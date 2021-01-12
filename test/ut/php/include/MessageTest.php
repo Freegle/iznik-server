@@ -678,8 +678,10 @@ class messageTest extends IznikTestCase {
         $this->waitBackground();
         $uid = $m2->getFromuser();
         $u = new User($this->dbhr, $this->dbhm, $uid);
-        $atts = $u->getPublic(NULL, FALSE, TRUE);
-        $log = $this->findLog('Message', 'Autoreposted', $atts['logs']);
+        $ctx = NULL;
+        $logs = [ $u->getId() => [ 'id' => $u->getId() ] ];
+        $u->getPublicLogs($u, $logs, FALSE, $ctx);
+        $log = $this->findLog(Log::TYPE_MESSAGE, Log::SUBTYPE_AUTO_REPOSTED, $logs[$u->getId()]['logs']);
         self::assertNotNull($log);
     }
 

@@ -102,5 +102,36 @@ class logsAPITest extends IznikAPITestCase
 
         assertEquals(0, $ret['ret']);
         assertEquals($uid1, $ret['logs'][0]['user']['id']);
+
+        # Logged out.
+        $ret = $this->call('logs', 'GET', [
+            'logtype' => 'user',
+            'userid' => $uid1
+        ]);
+
+        assertEquals(2, $ret['ret']);
+
+        # User themselves.
+        $_SESSION['id'] = $uid1;
+        $ret = $this->call('logs', 'GET', [
+            'logtype' => 'user',
+            'userid' => $uid1
+        ]);
+
+        assertEquals(2, $ret['ret']);
+
+        # Mod - can access.
+        $u = User::get($this->dbhr, $this->dbhr, $uid1);
+        $u->setPrivate('systemrole', User::ROLE_MODERATOR);
+        $ret = $this->call('logs', 'GET', [
+            'logtype' => 'user',
+            'userid' => $uid1
+        ]);
+
+        assertEquals(2, count($ret['logs']));
+        assertEquals(Log::TYPE_MESSAGE, $ret['logs'][0]['type']);
+        assertEquals(Log::SUBTYPE_RECEIVED, $ret['logs'][0]['subtype']);
+        assertEquals(Log::TYPE_GROUP, $ret['logs'][1]['type']);
+        assertEquals(Log::SUBTYPE_JOINED, $ret['logs'][1]['subtype']);
     }
 }

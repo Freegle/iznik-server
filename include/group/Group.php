@@ -774,8 +774,7 @@ memberships.groupid IN $groupq
 
                 if (Utils::pres('heldby', $thisone)) {
                     $u = User::get($this->dbhr, $this->dbhm, $thisone['heldby']);
-                    $ctx2 = NULL;
-                    $thisone['heldby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx2, FALSE, FALSE, FALSE, FALSE, FALSE);
+                    $thisone['heldby'] = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
                 }
 
                 if ($filter === Group::FILTER_MODERATORS) {
@@ -839,8 +838,7 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
         # Get the users in a single go for speed.
         $uids = array_column($members, 'fromuser');
         $u = new User($this->dbhr, $this->dbhm);
-        $uctx = NULL;
-        $users = $u->getPublicsById($uids, NULL, FALSE, FALSE, $uctx, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
+        $users = $u->getPublicsById($uids, NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
 
         # Get the preferred emails.
         $u->getPublicEmails($users);

@@ -42,8 +42,7 @@ class Noticeboard extends Entity
 
         if ($atts['addedby']) {
             $u = User::get($this->dbhr, $this->dbhm, $atts['addedby']);
-            $ctx = NULL;
-            $atts['addedby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
+            $atts['addedby'] = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
         }
 
         $atts['added'] = Utils::ISODate($atts['added']);
@@ -61,8 +60,7 @@ class Noticeboard extends Entity
 
             if ($check['userid']) {
                 $u = User::get($this->dbhr, $this->dbhm, $check['userid']);
-                $ctx = NULL;
-                $check['user'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
+                $check['user'] = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
                 $check['userid'] = NULL;
             }
         }

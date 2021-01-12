@@ -26,7 +26,6 @@ function memberships() {
     $message = Utils::presdef('message', $_REQUEST, NULL);
 
     $ban = array_key_exists('ban', $_REQUEST) ? filter_var($_REQUEST['ban'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-    $logs = array_key_exists('logs', $_REQUEST) ? filter_var($_REQUEST['logs'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $modmailsonly = array_key_exists('modmailsonly', $_REQUEST) ? filter_var($_REQUEST['modmailsonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $logctx = Utils::presdef('logcontext', $_REQUEST, NULL);
     $collection = Utils::presdef('collection', $_REQUEST, MembershipCollection::APPROVED);
@@ -141,14 +140,6 @@ function memberships() {
                                     'ret' => 0,
                                     'status' => 'Success'
                                 ];
-
-                                if ($logs) {
-                                    $u = User::get($dbhr, $dbhm, $userid);
-                                    $atts = $u->getPublic(NULL, TRUE, $logs, $logctx, FALSE, FALSE, FALSE, $modmailsonly);
-                                    $ret['member']['logs'] = $atts['logs'];
-                                    $ret['member']['merges'] = $atts['merges'];
-                                    $ret['logcontext'] = $logctx;
-                                }
                             } else {
                                 # Get some/all.
                                 $ret = [

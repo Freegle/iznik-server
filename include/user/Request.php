@@ -101,8 +101,7 @@ class Request extends Entity
 
         foreach ($requests as $request) {
             $u = User::get($this->dbhr, $this->dbhm, $request['completedby']);
-            $ctx = NULL;
-            $thisone = $u->getPublic(NULL, FALSE, NULL, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+            $thisone = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
             $ret[] = [
                 'user' => $thisone,
                 'count' => $request['count']

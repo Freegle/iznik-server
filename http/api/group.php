@@ -118,8 +118,7 @@ function group() {
                             $settings = $settings ? json_decode($settings, TRUE) : [];
                             if (Utils::pres('showmod', $settings)) {
                                 # We can show this mod.  Return basic info about them.
-                                $ctx = NULL;
-                                $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+                                $atts = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
                                 $toshow[] = [
                                     'id' => $mod['userid'],
                                     'firstname' => $atts['firstname'],

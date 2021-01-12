@@ -265,8 +265,7 @@ class Dashboard {
 
                 if (count($postings)) {
                     $u = new User($this->dbhr, $this->dbhm);
-                    $ctx = NULL;
-                    $users = $u->getPublicsById(array_filter(array_column($postings, 'fromuser')), NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
+                    $users = $u->getPublicsById(array_filter(array_column($postings, 'fromuser')), NULL, FALSE, FALSE, FALSE, FALSE);
 
                     foreach ($postings as $posting) {
                         foreach ($users as $user) {
@@ -298,8 +297,7 @@ GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
 
                 if (count($replies)) {
                     $u = new User($this->dbhr, $this->dbhm);
-                    $ctx = NULL;
-                    $users = $u->getPublicsById(array_filter(array_column($replies, 'userid')), NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
+                    $users = $u->getPublicsById(array_filter(array_column($replies, 'userid')), NULL, FALSE, FALSE, FALSE, FALSE);
 
                     foreach ($replies as $reply) {
                         foreach ($users as $user) {
@@ -319,7 +317,7 @@ GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
                 $modids = array_filter(array_column($mods, 'userid'));
                 $u = User::get($this->dbhr, $this->dbhm);
 
-                $users = $u->getPublicsById($modids, NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
+                $users = $u->getPublicsById($modids, NULL, FALSE, FALSE, FALSE, FALSE);
 
                 foreach ($users as &$user) {
                     foreach ($mods as $mod) {

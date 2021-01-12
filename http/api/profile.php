@@ -18,8 +18,7 @@ function profile() {
 
     if ($id) {
         $u = new User($dbhr, $dbhm, $id);
-        $ctx = NULL;
-        $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+        $atts = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
 
         $url = $atts['profile']['default'] ? $def : $atts['profile']['url'];
     }

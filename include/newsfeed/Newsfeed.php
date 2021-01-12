@@ -256,9 +256,8 @@ class Newsfeed extends Entity
         $missing = array_diff($uids, array_keys($users));
 
         if (count($missing)) {
-            $ctx = NULL;
             $u = User::get($this->dbhr, $this->dbhm);
-            $replyusers = $u->getPublicsById($missing, NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FAlSE, FALSE, FALSE);
+            $replyusers = $u->getPublicsById($missing, NULL, FALSE, FALSE, FALSE, FAlSE, FALSE, FALSE);
             $u->getPublicLocations($replyusers);
             $u->getActiveCountss($replyusers);
 
@@ -563,7 +562,7 @@ class Newsfeed extends Entity
                     $newsids = array_unique(array_merge($newsids, array_filter(array_column($replies, 'id'))));
                 } while (count($uids) !== $uidcount);
 
-                $users = $u->getPublicsById($uids, NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FAlSE, FALSE, FALSE);
+                $users = $u->getPublicsById($uids, NULL, FALSE, FALSE, FALSE, FAlSE, FALSE, FALSE);
                 $u->getPublicLocations($users);
                 $u->getActiveCountss($users);
             }

@@ -442,12 +442,14 @@ class userTest extends IznikTestCase {
 
         # Check the merge history shows.
         $this->waitBackground();
-        $atts = $u1->getPublic(NULL, FALSE, TRUE);
-        error_log("Merges " . var_export($atts['merges']));
-        $found = FALSE;
-        assertEquals(1, count($atts['merges']));
-        assertEquals($id2, $atts['merges'][0]['from']);
-        assertEquals($id1, $atts['merges'][0]['to']);
+        $ctx = NULL;
+        $logs = [ $id1 => [ 'id' => $id1 ] ];
+        $u = new User($this->dbhr, $this->dbhm);
+        $u->getPublicLogs($u, $logs, TRUE, $ctx);
+
+        assertEquals(1, count($logs[$id1]['merges']));
+        assertEquals($id2, $logs[$id1]['merges'][0]['from']);
+        assertEquals($id1, $logs[$id1]['merges'][0]['to']);
 
         $mc->delete();
     }
@@ -999,8 +1001,7 @@ class userTest extends IznikTestCase {
 
         assertTrue($u1->login('testpw'));
 
-        $ctx = NULL;
-        $atts = $u2->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, TRUE);
+        $atts = $u2->getPublic(NULL, FALSE, FALSE, TRUE);
         self::assertEquals(1, count($atts['memberof']));
         self::assertEquals($gid2, $atts['memberof'][0]['id']);
 
@@ -1029,8 +1030,7 @@ class userTest extends IznikTestCase {
 
         assertTrue($u1->login('testpw'));
 
-        $ctx = NULL;
-        $atts = $u2->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, TRUE);
+        $atts = $u2->getPublic(NULL, FALSE, FALSE, TRUE);
         self::assertEquals(0, count($atts['memberof']));
 
         }
@@ -1159,15 +1159,19 @@ class userTest extends IznikTestCase {
         User::clearCache();
         $this->waitBackground();
 
-        $atts = $u->getPublic(NULL, FALSE, TRUE);
-        $log = $this->findLog(Log::TYPE_USER, Log::SUBTYPE_DELETED, $atts['logs']);
+        $ctx = NULL;
+        $logs = [ $u->getId() => [ 'id' => $u->getId() ] ];
+        $u->getPublicLogs($u, $logs, FALSE, $ctx);
+        $log = $this->findLog(Log::TYPE_USER, Log::SUBTYPE_DELETED, $logs[$u->getId()]['logs']);
         assertNotNull($log);
 
         # Get logs for coverage.
         $u = User::get($this->dbhm, $this->dbhm, $uid);
 
-        $atts = $u->getPublic(NULL, FALSE, TRUE);
-        assertEquals(0, strpos($atts['logs'][0]['user']['fullname'], 'Deleted User'));
+        $ctx = NULL;
+        $logs = [ $u->getId() => [ 'id' => $u->getId() ] ];
+        $u->getPublicLogs($u, $logs, FALSE, $ctx);
+        assertEquals(0, strpos($logs[$u->getId()]['logs'][0]['user']['fullname'], 'Deleted User'));
 
         # Check we zapped things
         $emails = $u->getEmails();
@@ -1480,8 +1484,7 @@ class userTest extends IznikTestCase {
             Utils::randstr(32)
         ], FALSE);
 
-        $ctx = NULL;
-        $atts = $u->getPublic(NULL, TRUE, FALSE, $ctx, TRUE, TRUE, TRUE, FALSE, TRUE, [ MessageCollection::APPROVED ], FALSE);
+        $atts = $u->getPublic(NULL, TRUE, TRUE, TRUE, TRUE, FALSE, TRUE, [ MessageCollection::APPROVED ], FALSE);
         assertEquals(1, count($atts['emailhistory']));
     }
 
@@ -1492,9 +1495,11 @@ class userTest extends IznikTestCase {
         assertTrue($u->login('testpw'));
         $u->forget("UT");
         $this->waitBackground();
-        $atts = $u->getPublic(NULL, FALSE, TRUE);
-        assertEquals(0, strpos($atts['logs'][0]['user']['fullname'], 'Deleted User'));
-        assertEquals(0, strpos($atts['logs'][1]['byuser']['fullname'], 'Deleted User'));
+        $ctx = NULL;
+        $logs = [ $u->getId() => [ 'id' => $u->getId() ] ];
+        $u->getPublicLogs($u, $logs, FALSE, $ctx);
+        assertEquals(0, strpos($logs[$u->getId()]['logs'][0]['user']['fullname'], 'Deleted User'));
+        assertEquals(0, strpos($logs[$u->getId()]['logs'][1]['byuser']['fullname'], 'Deleted User'));
     }
 
     public function testMailer() {

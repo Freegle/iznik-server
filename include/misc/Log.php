@@ -84,10 +84,11 @@ class Log
         $this->dbhm->background($sql);
     }
 
-    public function get($types, $subtypes, $groupid, $date, $search, $limit, &$ctx, $uid = NULL) {
+    public function get($types, $subtypes, $groupid, $userid, $date, $search, $limit, &$ctx, $uid = NULL) {
         $limit = intval($limit);
 
         $groupq = $groupid ? " groupid = $groupid " : '1 = 1 ';
+        $userq = $userid ? " groupid = $groupid " : '1 = 1 ';
         $typeq = $types ? (" AND logs.type IN ('" . implode("','", $types) . "') ") : '';
         $subtypeq = $subtypes ? (" AND `subtype` IN ('" . implode("','", $subtypes) . "') ") : '';
         $mysqltime = date("Y-m-d", strtotime("midnight $date days ago"));
@@ -145,10 +146,9 @@ class Log
 
         $uids = array_filter(array_unique(array_merge(array_column($logs, 'user'), array_column($logs, 'byuser'))));
         $u = new User($this->dbhr, $this->dbhm);
-        $ctx = NULL;
         $users = [];
         if (count($uids)) {
-            $users = $u->getPublicsById($uids, NULL, NULL, FALSE, $ctx, FALSE, TRUE, TRUE);
+            $users = $u->getPublicsById($uids, NULL, NULL, FALSE, TRUE, TRUE);
         }
 
         $mids = array_filter(array_column($logs, 'msgid'));

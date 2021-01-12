@@ -1217,8 +1217,7 @@ ORDER BY lastdate DESC;";
                         $userids = array_filter(array_column($res, 'userid'));
                         if (count($userids)) {
                             $u = new User($this->dbhr, $this->dbhm);
-                            $ctx = NULL;
-                            $replyusers = $u->getPublicsById($userids, NULL, $messagehistory, FALSE, $ctx, Session::modtools(), Session::modtools(), Session::modtools(), Session::modtools(), FALSE, [MessageCollection::APPROVED], FALSE);
+                            $replyusers = $u->getPublicsById($userids, NULL, $messagehistory, Session::modtools(), Session::modtools(), Session::modtools(), Session::modtools(), FALSE, [MessageCollection::APPROVED], FALSE);
                             $u->getInfos($replyusers);
                         }
                     }
@@ -1406,8 +1405,7 @@ ORDER BY lastdate DESC;";
         $emails = count($fromuids) ? $u->getEmailsById($fromuids) : [];
 
         if (count($fromuids)) {
-            $ctx = NULL;
-            $fromusers = $u->getPublicsById($fromuids, $groupids, $messagehistory, FALSE, $ctx, Session::modtools(), Session::modtools(), Session::modtools(), Session::modtools(), FALSE, [ MessageCollection::APPROVED ], FALSE);
+            $fromusers = $u->getPublicsById($fromuids, $groupids, $messagehistory, Session::modtools(), Session::modtools(), Session::modtools(), Session::modtools(), FALSE, [ MessageCollection::APPROVED ], FALSE);
             $u->getInfos($fromusers);
         }
 
@@ -1472,8 +1470,7 @@ ORDER BY lastdate DESC;";
         foreach ($msgs as $msg) {
             if (Utils::pres('heldby', $rets[$msg['id']])) {
                 $u = User::get($this->dbhr, $this->dbhm, $rets[$msg['id']]['heldby']);
-                $ctx = NULL;
-                $rets[$msg['id']]['heldby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, Session::modtools(), Session::modtools(), Session::modtools(), FALSE, FALSE);
+                $rets[$msg['id']]['heldby'] = $u->getPublic(NULL, FALSE, Session::modtools(), Session::modtools(), Session::modtools(), FALSE, FALSE);
                 Utils::filterResult($rets[$msg['id']]);
             }
         }
@@ -1593,8 +1590,7 @@ ORDER BY lastdate DESC;";
 
                             if (Utils::pres('byuser', $thisedit)) {
                                 $u = User::get($this->dbhr, $this->dbhm, $thisedit['byuser']);
-                                $ctx = NULL;
-                                $thisedit['byuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
+                                $thisedit['byuser'] = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
                             }
                             
                             $rets[$retind]['edits'][] = $thisedit;
@@ -1632,8 +1628,7 @@ ORDER BY lastdate DESC;";
 
                             if (Utils::pres('byuser', $thisedit)) {
                                 $u = User::get($this->dbhr, $this->dbhm, $thisedit['byuser']);
-                                $ctx = NULL;
-                                $thisedit['byuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
+                                $thisedit['byuser'] = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
                             }
 
                             $rets[$retind]['edits'][] = $thisedit;

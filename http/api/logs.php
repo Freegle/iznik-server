@@ -9,6 +9,7 @@ function logs() {
     $logtype = Utils::presdef('logtype', $_REQUEST, NULL);
     $logsubtype = Utils::presdef('logsubtype', $_REQUEST, NULL);
     $groupid = (Utils::presint('groupid', $_REQUEST, NULL));
+    $userid = (Utils::presint('userid', $_REQUEST, NULL));
     $date = (Utils::presint('date', $_REQUEST, NULL));
     $search = Utils::presdef('search', $_REQUEST, NULL);
     $ctx = Utils::presdef('context', $_REQUEST, NULL);
@@ -20,30 +21,38 @@ function logs() {
         case 'GET': {
             $ret = [ 'ret' => 2, 'status' => 'Not moderator' ];
 
-            if ($me && ($me->isAdminOrSupport() || $me->isModOrOwner($groupid))) {
-                $ret = [ 'ret' => 0, 'status' => 'Success' ];
+            if ($me) {
+                if ($me->isAdminOrSupport() || $me->isModOrOwner($groupid)) {
+                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
-                $l = new Log($dbhr, $dbhm);
+                    $l = new Log($dbhr, $dbhm);
 
-                $types = [];
-                $subtypes = [];
+                    $ctx = $ctx ? $ctx : [];
 
-                switch ($logtype) {
-                    case 'messages': {
-                        $types = [ Log::TYPE_MESSAGE ];
-                        $subtypes = $logsubtype ? [ $logsubtype ] : [ Log::SUBTYPE_RECEIVED, Log::SUBTYPE_APPROVED, Log::SUBTYPE_REJECTED, Log::SUBTYPE_DELETED, Log::SUBTYPE_AUTO_REPOSTED, Log::SUBTYPE_AUTO_APPROVED, Log::SUBTYPE_OUTCOME ];
-                        break;
+                    switch ($logtype) {
+                        case 'messages': {
+                            $types = [ Log::TYPE_MESSAGE ];
+                            $subtypes = $logsubtype ? [ $logsubtype ] : [ Log::SUBTYPE_RECEIVED, Log::SUBTYPE_APPROVED, Log::SUBTYPE_REJECTED, Log::SUBTYPE_DELETED, Log::SUBTYPE_AUTO_REPOSTED, Log::SUBTYPE_AUTO_APPROVED, Log::SUBTYPE_OUTCOME ];
+                            $ret['logs'] = $l->get($types, $subtypes, $groupid, $userid, $date, $search, $limit, $ctx);
+                            break;
+                        }
+                        case 'memberships': {
+                            $types = [ Log::TYPE_GROUP, Log::TYPE_USER ];
+                            $subtypes = $logsubtype ? [ $logsubtype ] : [ Log::SUBTYPE_JOINED, Log::SUBTYPE_REJECTED, Log::SUBTYPE_APPROVED, Log::SUBTYPE_APPLIED, Log::SUBTYPE_AUTO_APPROVED, Log::SUBTYPE_LEFT ];
+                            $ret['logs'] = $l->get($types, $subtypes, $groupid, $userid, $date, $search, $limit, $ctx);
+                            break;
+                        }
                     }
-                    case 'memberships': {
-                        $types = [ Log::TYPE_GROUP, Log::TYPE_USER ];
-                        $subtypes = $logsubtype ? [ $logsubtype ] : [ Log::SUBTYPE_JOINED, Log::SUBTYPE_REJECTED, Log::SUBTYPE_APPROVED, Log::SUBTYPE_APPLIED, Log::SUBTYPE_AUTO_APPROVED, Log::SUBTYPE_LEFT ];
-                        break;
+                } else if ($me->isModerator()) {
+                    $u = User::get($dbhr, $dbhm, $userid);
+
+                    if ($u->isModerator() || $userid == $me->getId()) {
+                        $logs = [$userid => ['id' => $userid]];
+                        $u->getPublicLogs($u, $logs, false, $ctx);
+                        $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                        $ret['logs'] = $logs[$userid]['logs'];
                     }
                 }
-
-                $ctx = $ctx ? $ctx : [];
-
-                $ret['logs'] = $l->get($types, $subtypes, $groupid, $date, $search, $limit, $ctx);
             }
 
             $ret['context'] = $ctx;

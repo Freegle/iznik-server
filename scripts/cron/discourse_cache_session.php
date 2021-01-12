@@ -21,8 +21,7 @@ try {
         $u = new User($dbhr, $dbhm, $session['userid']);
         
         if ($u->isModerator()) {
-            $ctx = NULL;
-            $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, MessageCollection::APPROVED, FALSE);
+            $atts = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, MessageCollection::APPROVED, FALSE);
 
             $memberships = $u->getModGroupsByActivity();
 

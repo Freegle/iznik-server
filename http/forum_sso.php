@@ -45,8 +45,7 @@ if (($sso->validatePayload($payload,$signature))) {
             foreach ($sessions as &$session) {
                 $u = new User($dbhr, $dbhm, $session['userid']);
 
-                $ctx = NULL;
-                $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE, MessageCollection::APPROVED, FALSE);
+                $atts = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, MessageCollection::APPROVED, FALSE);
 
                 $memberships = $u->getMemberships(FALSE, Group::GROUP_FREEGLE);
                 $grouplist = [];

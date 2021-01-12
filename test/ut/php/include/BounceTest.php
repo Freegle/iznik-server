@@ -40,14 +40,18 @@ class BounceTest extends IznikTestCase
         assertTrue($b->process($id));
 
         $this->waitBackground();
-        $logs = $u->getPublic(NULL, FALSE, TRUE)['logs'];
-        $log = $this->findLog(Log::TYPE_USER, Log::SUBTYPE_BOUNCE, $logs);
+        $ctx = NULL;
+        $logs = [ $u->getId() => [ 'id' => $u->getId() ] ];
+        $u->getPublicLogs($u, $logs, FALSE, $ctx);
+        $log = $this->findLog(Log::TYPE_USER, Log::SUBTYPE_BOUNCE, $logs[$u->getId()]['logs']);
         assertEquals($this->uid, $log['user']['id']);
 
         $b->suspendMail($this->uid, 0, 0);
         $this->waitBackground();
-        $logs = $u->getPublic(NULL, FALSE, TRUE)['logs'];
-        $log = $this->findLog(Log::TYPE_USER, Log::SUBTYPE_SUSPEND_MAIL, $logs);
+        $ctx = NULL;
+        $logs = [ $u->getId() => [ 'id' => $u->getId() ] ];
+        $u->getPublicLogs($u, $logs, FALSE, $ctx);
+        $log = $this->findLog(Log::TYPE_USER, Log::SUBTYPE_SUSPEND_MAIL, $logs[$u->getId()]['logs']);
         assertEquals($this->uid, $log['user']['id']);
 
         }

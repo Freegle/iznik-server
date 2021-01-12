@@ -48,8 +48,7 @@ class Admin extends Entity
             $u = User::get($this->dbhr, $this->dbhm, $atts['createdby']);
             
             if ($u->getId() == $atts['createdby']) {
-                $ctx = NULL;
-                $atts['createdby'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+                $atts['createdby'] = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
             }
 
             $atts['created'] = Utils::ISODate($atts['created']);

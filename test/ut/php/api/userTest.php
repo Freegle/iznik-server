@@ -442,12 +442,12 @@ class userAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
-        $ret = $this->call('user', 'GET', [
-            'id' => $this->uid,
-            'logs' => TRUE
-        ]);
+        $ctx = NULL;
+        $logs = [ $this->uid => [ 'id' => $this->uid ] ];
+        $u = new User($this->dbhr, $this->dbhm);
+        $u->getPublicLogs($u, $logs, FALSE, $ctx, FALSE, FALSE);
+        $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_JOINED, $logs[$this->uid]['logs']);
 
-        $log = $this->findLog('Group', 'Joined', $ret['user']['logs']);
         assertNull($log);
 
         # Promote.
@@ -461,11 +461,11 @@ class userAPITest extends IznikAPITestCase {
         # Sleep for background logging
         $this->waitBackground();
 
-        $ret = $this->call('user', 'GET', [
-            'id' => $this->uid,
-            'logs' => TRUE
-        ]);
-        $log = $this->findLog('Group', 'Joined', $ret['user']['logs']);
+        $ctx = NULL;
+        $logs = [ $this->uid => [ 'id' => $this->uid ] ];
+        $u = new User($this->dbhr, $this->dbhm);
+        $u->getPublicLogs($u, $logs, FALSE, $ctx, FALSE, TRUE);
+        $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_JOINED, $logs[$this->uid]['logs']);
         assertEquals($this->groupid, $log['group']['id']);
 
         # Can also see as ourselves.
@@ -475,11 +475,11 @@ class userAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
-        $ret = $this->call('user', 'GET', [
-            'id' => $this->uid,
-            'logs' => TRUE
-        ]);
-        $log = $this->findLog('Group', 'Joined', $ret['user']['logs']);
+        $ctx = NULL;
+        $logs = [ $this->uid => [ 'id' => $this->uid ] ];
+        $u = new User($this->dbhr, $this->dbhm);
+        $u->getPublicLogs($u, $logs, FALSE, $ctx, FALSE, TRUE);
+        $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_JOINED, $logs[$this->uid]['logs']);
         assertEquals($this->groupid, $log['group']['id']);
 
         }
@@ -666,12 +666,11 @@ class userAPITest extends IznikAPITestCase {
 
         $this->waitBackground();
 
-        $ret = $this->call('user', 'GET', [
-            'id' => $this->uid,
-            'logs' => TRUE
-        ]);
-
-        $log = $this->findLog(Log::TYPE_USER, Log::SUBTYPE_UNBOUNCE, $ret['user']['logs']);
+        $ctx = NULL;
+        $logs = [ $this->uid => [ 'id' => $this->uid ] ];
+        $u = new User($this->dbhr, $this->dbhm);
+        $u->getPublicLogs($u, $logs, FALSE, $ctx, FALSE, TRUE);
+        $log = $this->findLog(Log::TYPE_USER, Log::SUBTYPE_UNBOUNCE, $logs[$this->uid]['logs']);
         assertNotNull($log);
     }
 

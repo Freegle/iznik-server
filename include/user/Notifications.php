@@ -53,7 +53,7 @@ class Notifications
 
             if (Utils::pres('fromuser', $notif)) {
                 $u = User::get($this->dbhr, $this->dbhm, $notif['fromuser']);
-                $notif['fromuser'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+                $notif['fromuser'] = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
             }
 
             if (Utils::pres('newsfeedid', $notif)) {

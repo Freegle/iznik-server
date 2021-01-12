@@ -211,12 +211,12 @@ class messagesTest extends IznikAPITestCase {
         $this->waitBackground();
 
         $this->log("Fromuser is " . $a->getFromuser());
-        $ret = $this->call('user', 'GET', [
-            'id' => $a->getFromuser(),
-            'logs' => TRUE
-        ]);
-        $this->log("Logs".  var_export($ret, true));
-        $log = $this->findLog('Message', 'Received', $ret['user']['logs']);
+
+        $ctx = NULL;
+        $logs = [ $a->getFromuser() => [ 'id' => $a->getFromuser() ] ];
+        $u = new User($this->dbhr, $this->dbhm);
+        $u->getPublicLogs($u, $logs, FALSE, $ctx, FALSE, TRUE);
+        $log = $this->findLog(Log::TYPE_MESSAGE, Log::SUBTYPE_RECEIVED, $logs[$a->getFromuser()]['logs']);
         $this->log("Got log " . var_export($log, TRUE));
         assertEquals($this->gid, $log['group']['id']);
         assertEquals($a->getFromuser(), $log['user']['id']);
@@ -233,11 +233,11 @@ class messagesTest extends IznikAPITestCase {
         $this->waitBackground();
 
         # The delete should show in the log.
-        $ret = $this->call('user', 'GET', [
-            'id' => $a->getFromuser(),
-            'logs' => TRUE
-        ]);
-        $log = $this->findLog('Message', 'Received', $ret['user']['logs']);
+        $ctx = NULL;
+        $logs = [ $a->getFromuser() => [ 'id' => $a->getFromuser() ] ];
+        $u = new User($this->dbhr, $this->dbhm);
+        $u->getPublicLogs($u, $logs, FALSE, $ctx, FALSE, TRUE);
+        $log = $this->findLog(Log::TYPE_MESSAGE, Log::SUBTYPE_RECEIVED, $logs[$a->getFromuser()]['logs']);
         assertEquals($this->gid, $log['group']['id']);
         assertEquals($a->getFromuser(), $log['user']['id']);
         assertEquals(1, $log['message']['deleted']);

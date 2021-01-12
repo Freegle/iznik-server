@@ -47,8 +47,7 @@ class MicroVolunteering
             $u = new User($this->dbhr, $this->dbhm);
             $a = new Attachment($this->dbhr, $this->dbhm);
 
-            $ctx2 = NULL;
-            $users = $u->getPublicsById(array_filter(array_column($items, 'userid')), NULL, FALSE, FALSE, $ctx2, FALSE, FALSE, FALSE);
+            $users = $u->getPublicsById(array_filter(array_column($items, 'userid')), NULL, FALSE, FALSE, FALSE, FALSE);
             $msgids = array_filter(array_column($items, 'msgid'));
             $msgs = count($msgids) ? $this->dbhr->preQuery("SELECT id, subject FROM messages WHERE id IN (" . implode(',', $msgids) . ")") : [];
             $imageids = array_filter(array_column($items, 'rotatedimage'));

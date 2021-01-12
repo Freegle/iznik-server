@@ -476,12 +476,10 @@ class messageAPITest extends IznikAPITestCase
         $this->waitBackground();
 
         # Get the logs - should reference the stdmsg.
-        $ret = $this->call('user', 'GET', [
-            'id' => $uid,
-            'logs' => TRUE
-        ]);
-
-        $log = $this->findLog('Message', 'Approved', $ret['user']['logs']);
+        $ctx = NULL;
+        $logs = [ $uid => [ 'id' => $uid ] ];
+        $u->getPublicLogs($u, $logs, FALSE, $ctx, FALSE, TRUE);
+        $log = $this->findLog(Log::TYPE_MESSAGE, Log::SUBTYPE_APPROVED, $logs[$uid]['logs']);
         assertEquals($sid, $log['stdmsgid']);
 
         $groups = $u->getModGroupsByActivity();
@@ -587,14 +585,18 @@ class messageAPITest extends IznikAPITestCase
         # User should have modmails.
         $this->waitBackground();
         $u->updateModMails($senduser);
+        $ctx = NULL;
+        $logs = [ $senduser => [ 'id' => $senduser ] ];
+        $u = new User($this->dbhr, $this->dbhm);
+        $u->getPublicLogs($u, $logs, FALSE, $ctx, FALSE, TRUE);
+        $log = $this->findLog(Log::TYPE_MESSAGE, Log::SUBTYPE_REJECTED, $logs[$senduser]['logs']);
+        assertNotNull($log);
+
         $ret = $this->call('user', 'GET', [
             'id' => $senduser,
             'logs' => TRUE,
             'modmailsonly' => TRUE
         ]);
-        assertEquals(Log::TYPE_MESSAGE, $ret['user']['logs'][0]['type']);
-        assertEquals(Log::SUBTYPE_REJECTED, $ret['user']['logs'][0]['subtype']);
-
         assertEquals(1, $ret['user']['modmails']);
 
         # The message should exist as rejected.  Should be able to see logged out

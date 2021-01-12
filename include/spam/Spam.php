@@ -590,7 +590,7 @@ class Spam {
         $users = $u->getPublicsById($spammeruids, NULL, TRUE, $seeall);
         $ctx = NULL;
         $moduids = array_filter(array_unique(array_merge(array_column($spammers, 'byuserid'), array_column($spammers, 'heldby'))));
-        $users2 = $u->getPublicsById($moduids, NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+        $users2 = $u->getPublicsById($moduids, NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
         $users = array_replace($users, $users2);
         $emails = $u->getEmailsById(array_merge($spammeruids, $moduids));
 

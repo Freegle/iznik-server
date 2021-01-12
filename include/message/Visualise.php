@@ -69,8 +69,7 @@ class Visualise extends Entity
                 }
             }
 
-            $ctx = NULL;
-            $atts = $fu->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+            $atts = $fu->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
             $fu->ensureAvatar($atts);
             list ($flat, $flng, $floc) = $fu->getLatLng(FALSE, FALSE);
 
@@ -86,8 +85,7 @@ class Visualise extends Entity
             }
 
             if ($ok) {
-                $ctx = NULL;
-                $atts = $fu->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+                $atts = $fu->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
                 $tu->ensureAvatar($atts);
                 list ($tlat, $tlng, $tloc) = $tu->getLatLng(FALSE, FALSE);
 
@@ -115,8 +113,7 @@ class Visualise extends Entity
 
                 foreach ($others as $other) {
                     $u = User::get($this->dbhr, $this->dbhm, $other['userid']);
-                    $ctx = NULL;
-                    $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+                    $atts = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
                     $u->ensureAvatar($atts);
                 }
             }
@@ -142,8 +139,7 @@ class Visualise extends Entity
         ];
         
         $u = User::get($this->dbhr, $this->dbhm, $ret['fromuser']);
-        $ctx = NULL;
-        $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+        $atts = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
         $ret['from'] = [
             'id' => $ret['fromuser'],
             'icon' => $atts['profile']['turl']
@@ -151,8 +147,7 @@ class Visualise extends Entity
         unset($atts['fromuser']);
 
         $u = User::get($this->dbhr, $this->dbhm, $ret['touser']);
-        $ctx = NULL;
-        $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+        $atts = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
         $ret['to'] = [
             'id' => $ret['touser'],
             'icon' => $atts['profile']['turl']
@@ -170,8 +165,7 @@ class Visualise extends Entity
 
         foreach ($others as $other) {
             $u = User::get($this->dbhr, $this->dbhm, $other['userid']);
-            $ctx = NULL;
-            $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+            $atts = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
             $u->ensureAvatar($atts);
             list ($lat, $lng) = $u->getLatLng(FALSE, FALSE, User::BLUR_100M);
             list ($lat, $lng) = Message::blur($lat, $lng);

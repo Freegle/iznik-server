@@ -568,8 +568,7 @@ WHERE chat_rooms.id IN $idlist;";
                     $ret['user1'] = $mepub;
                 } else {
                     $u = $u1id == $myid ? $me : User::get($this->dbhr, $this->dbhm, $u1id);
-                    $ctx = NULL;
-                    $ret['user1'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, Session::modtools(), FALSE, FALSE, FALSE);
+                    $ret['user1'] = $u->getPublic(NULL, FALSE, Session::modtools(), FALSE, FALSE, FALSE);
 
                     if (Utils::pres('group', $ret)) {
                         # As a mod we can see the email
@@ -583,8 +582,7 @@ WHERE chat_rooms.id IN $idlist;";
                     $ret['user2'] = $mepub;
                 } else {
                     $u = $u2id == $myid ? $me : User::get($this->dbhr, $this->dbhm, $u2id);
-                    $ctx = NULL;
-                    $ret['user2'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, Session::modtools(), FALSE, FALSE, FALSE);
+                    $ret['user2'] = $u->getPublic(NULL, FALSE, Session::modtools(), FALSE, FALSE, FALSE);
 
                     if (Utils::pres('group', $ret)) {
                         # As a mod we can see the email
@@ -936,8 +934,7 @@ WHERE chat_rooms.id IN $idlist;";
             if (count($rooms) > 0) {
                 # We might have quite a lot of chats - speed up by reducing user fetches.
                 $me = Session::whoAmI($this->dbhr, $this->dbhm);
-                $ctx = NULL;
-                $mepub = $me ? $me->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE) : NULL;
+                $mepub = $me ? $me->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE) : NULL;
 
                 foreach ($rooms as $room) {
                     $show = TRUE;
@@ -1170,8 +1167,8 @@ WHERE chat_rooms.id IN $idlist;";
                     $rost['status'] = ChatRoom::STATUS_AWAY;
                 }
             }
-            $ctx = NULL;
-            $rost['user'] = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE);
+
+            $rost['user'] = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE);
         }
 
         return ($roster);
@@ -1368,9 +1365,8 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
             array_column($msgs, 'user2')
         )));
 
-        $ctx2 = NULL;
         $u = new User($this->dbhr, $this->dbhm);
-        $userlist = $u->getPublicsById($uids, NULL, FALSE, FALSE, $ctx2, TRUE, FALSE, FAlSE, FALSE, FALSE);
+        $userlist = $u->getPublicsById($uids, NULL, FALSE, TRUE, FALSE, FAlSE, FALSE, FALSE);
 
         foreach ($msgs as $msg) {
             # Return whether we're an active or not - client can filter.  However we could have two copies of the

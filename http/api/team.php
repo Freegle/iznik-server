@@ -38,8 +38,7 @@ function team() {
                             $atts = $memb;
                         } else {
                             $u = User::get($dbhr, $dbhm, $memb['userid']);
-                            $ctx = NULL;
-                            $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+                            $atts = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
 
                             $u->ensureAvatar($atts);
                         }

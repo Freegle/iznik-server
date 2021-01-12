@@ -160,8 +160,11 @@ class configTest extends IznikTestCase {
         $this->waitBackground();
 
         $this->log("Find log");
-        $logs = $this->user->getPublic(NULL, FALSE, TRUE)['logs'];
-        $log = $this->findLog(Log::TYPE_CONFIG, Log::SUBTYPE_CREATED, $logs);
+        $ctx = NULL;
+        $logs = [ $this->uid => [ 'id' => $this->uid ] ];
+        $u = new User($this->dbhr, $this->dbhm);
+        $u->getPublicLogs($u, $logs, FALSE, $ctx);
+        $log = $this->findLog(Log::TYPE_CONFIG, Log::SUBTYPE_CREATED, $logs[$this->uid]['logs']);
         assertEquals($this->uid, $log['byuser']['id']);
 
         # Copy

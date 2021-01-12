@@ -36,7 +36,6 @@ function user() {
 
     switch ($_REQUEST['type']) {
         case 'GET': {
-            $logs = array_key_exists('logs', $_REQUEST) ? filter_var($_REQUEST['logs'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $emailhistory = array_key_exists('emailhistory', $_REQUEST) ? filter_var($_REQUEST['emailhistory'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $modmailsonly = array_key_exists('modmailsonly', $_REQUEST) ? filter_var($_REQUEST['modmailsonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $info = array_key_exists('info', $_REQUEST) ? filter_var($_REQUEST['info'], FILTER_VALIDATE_BOOLEAN) : FALSE;
@@ -63,9 +62,7 @@ function user() {
                         'status' => 'Success'
                     ];
 
-                    $ret['user'] = $u->getPublic(NULL, TRUE, $logs, $ctx, TRUE, TRUE, TRUE, $modmailsonly, $emailhistory);
-
-                    $ret['logcontext'] = $ctx;
+                    $ret['user'] = $u->getPublic(NULL, TRUE, TRUE, TRUE, TRUE, $modmailsonly, $emailhistory);
 
                     if ($info && $id && $u->getId() == $id) {
                         $u->ensureAvatar($ret['user']);

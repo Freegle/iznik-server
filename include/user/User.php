@@ -1953,13 +1953,13 @@ class User extends Entity
         }
     }
 
-    public function getPublic($groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE, $msgcoll = [ MessageCollection::APPROVED ], $historyfull = FALSE)
+    public function getPublic($groupids = NULL, $history = TRUE, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE, $msgcoll = [ MessageCollection::APPROVED ], $historyfull = FALSE)
     {
         $atts = [];
 
         if ($this->id) {
             $users = [ $this->user ];
-            $rets = $this->getPublics($users, $groupids, $history, $logs, $ctx, $comments, $memberof, $applied, $modmailsonly, $emailhistory, $msgcoll, $historyfull);
+            $rets = $this->getPublics($users, $groupids, $history, $comments, $memberof, $applied, $modmailsonly, $emailhistory, $msgcoll, $historyfull);
             $atts = $rets[$this->id];
         }
 
@@ -2370,7 +2370,7 @@ class User extends Entity
         }
     }
 
-    public function getPublicsById($uids, $groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE, $msgcoll = [MessageCollection::APPROVED], $historyfull = FALSE) {
+    public function getPublicsById($uids, $groupids = NULL, $history = TRUE, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE, $msgcoll = [MessageCollection::APPROVED], $historyfull = FALSE) {
         $rets = [];
 
         # We might have some of these in cache, especially ourselves.
@@ -2380,7 +2380,7 @@ class User extends Entity
             $u = User::get($this->dbhr, $this->dbhm, $uid, TRUE, TRUE);
 
             if ($u) {
-                $rets[$uid] = $u->getPublic($groupids, $history, $logs, $ctx, $comments, $memberof, $applied, $modmailsonly, $emailhistory, $msgcoll, $historyfull);
+                $rets[$uid] = $u->getPublic($groupids, $history, $comments, $memberof, $applied, $modmailsonly, $emailhistory, $msgcoll, $historyfull);
             } else {
                 $uidsleft[] = $uid;
             }
@@ -2396,7 +2396,7 @@ class User extends Entity
             }
 
             if (count($users)) {
-                $users = $this->getPublics($users, $groupids, $history, $logs, $ctx, $comments, $memberof, $applied, $modmailsonly, $emailhistory, $msgcoll, $historyfull);
+                $users = $this->getPublics($users, $groupids, $history, $comments, $memberof, $applied, $modmailsonly, $emailhistory, $msgcoll, $historyfull);
 
                 foreach ($users as $user) {
                     $rets[$user['id']] = $user;
@@ -2430,7 +2430,7 @@ class User extends Entity
         ];
     }
 
-    public function getPublicLogs($me, &$rets, $modmailsonly, &$ctx) {
+    public function getPublicLogs($me, &$rets, $modmailsonly, &$ctx, $suppress = TRUE, $seeall = FALSE) {
         # Add in the log entries we have for this user.  We exclude some logs of little interest to mods.
         # - creation - either of ourselves or others during syncing.
         # - deletion of users due to syncing
@@ -2439,9 +2439,11 @@ class User extends Entity
         $uids = array_keys($rets);
         $startq = $ctx ? (" AND id < " . intval($ctx['id']) . " ") : '';
         $modships = $me ? $me->getModeratorships() : [];
-        $modmailq = " AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) AND groupid IN (" . implode(',', $modships) . ")";
+        $groupq = count($modships) ? (" AND groupid IN (" . implode(',', $modships) . ")") : '';
+        $modmailq = " AND ((type = 'Message' AND subtype IN ('Rejected', 'Deleted', 'Replied')) OR (type = 'User' AND subtype IN ('Mailed', 'Rejected', 'Deleted'))) $groupq";
         $modq = $modmailsonly ? $modmailq : '';
-        $sql = "SELECT DISTINCT * FROM logs WHERE (user IN (" . implode(',', $uids) . ") OR byuser IN (" . implode(',', $uids) . ")) $startq AND NOT (type = 'User' AND subtype IN('Created', 'Merged', 'YahooConfirmed')) $modq ORDER BY id DESC LIMIT 50;";
+        $suppq = $suppress ? " AND NOT (type = 'User' AND subtype IN('Created', 'Merged', 'YahooConfirmed')) " : '';
+        $sql = "SELECT DISTINCT * FROM logs WHERE (user IN (" . implode(',', $uids) . ") OR byuser IN (" . implode(',', $uids) . ")) $startq $suppq $modq ORDER BY id DESC LIMIT 50;";
         $logs = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
         $groups = [];
         $users = [];
@@ -2463,7 +2465,7 @@ class User extends Entity
                             $u = User::get($this->dbhr, $this->dbhm, $log['byuser']);
 
                             if ($u->getId() == $log['byuser']) {
-                                $users[$log['byuser']] = $u->getPublic(NULL, FALSE, FALSE);
+                                $users[$log['byuser']] = $u->getPublic(NULL, FALSE);
                             } else {
                                 $users[$log['byuser']] = User::purgedUser($log['byuser']);
                             }
@@ -2477,7 +2479,7 @@ class User extends Entity
                             $u = User::get($this->dbhr, $this->dbhm, $log['user']);
 
                             if ($u->getId() == $log['user']) {
-                                $users[$log['user']] = $u->getPublic(NULL, FALSE, FALSE);
+                                $users[$log['user']] = $u->getPublic(NULL, FALSE);
                             } else {
                                 $users[$log['user']] = User::purgedUser($log['user']);
                             }
@@ -2500,7 +2502,8 @@ class User extends Entity
                         if (!($myid != NULL && Utils::pres('user', $log) && Utils::presdef('id', $log['user'], NULL) == $myid) &&
                             $g->getId() &&
                             $groups[$log['groupid']]['myrole'] != User::ROLE_OWNER &&
-                            $groups[$log['groupid']]['myrole'] != User::ROLE_MODERATOR
+                            $groups[$log['groupid']]['myrole'] != User::ROLE_MODERATOR &&
+                            !$seeall
                         ) {
                             # We can only see logs for this group if we have a mod role, or if we have appropriate system
                             # rights.  Skip this log.
@@ -2601,7 +2604,7 @@ class User extends Entity
         }
     }
 
-    public function getPublics($users, $groupids = NULL, $history = TRUE, $logs = FALSE, &$ctx = NULL, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE, $msgcoll = [MessageCollection::APPROVED], $historyfull = FALSE)
+    public function getPublics($users, $groupids = NULL, $history = TRUE, $comments = TRUE, $memberof = TRUE, $applied = TRUE, $modmailsonly = FALSE, $emailhistory = FALSE, $msgcoll = [MessageCollection::APPROVED], $historyfull = FALSE)
     {
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
@@ -2618,10 +2621,6 @@ class User extends Entity
 
         if ($history) {
             $this->getPublicHistory($me, $rets, $users, $groupids, $historyfull, $systemrole, $msgcoll);
-        }
-
-        if ($logs) {
-            $this->getPublicLogs($me, $rets, $modmailsonly, $ctx);
         }
 
         if (Session::modtools()) {
@@ -3225,8 +3224,7 @@ class User extends Entity
             $commentusers = [];
 
             if ($commentuids && count($commentuids)) {
-                $ctx = NULL;
-                $commentusers = $this->getPublicsById($commentuids, NULL, FALSE, FALSE, $ctx, FALSE);
+                $commentusers = $this->getPublicsById($commentuids, NULL, FALSE, FALSE);
 
                 foreach ($commentusers as &$commentuser) {
                     $commentuser['settings'] = NULL;
@@ -3267,7 +3265,7 @@ class User extends Entity
 
         $uids = array_unique(array_merge(array_column($comments, 'byuserid'), array_column($comments, 'userid')));
         $u = new User($this->dbhr, $this->dbhm);
-        $users = $u->getPublicsById($uids, NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE);
+        $users = $u->getPublicsById($uids, NULL, FALSE, FALSE, FALSE, FALSE);
 
         foreach ($comments as &$comment) {
             $comment['date'] = Utils::ISODate($comment['date']);
@@ -3912,8 +3910,7 @@ class User extends Entity
 
             $u = User::get($this->dbhr, $this->dbhm, $user['userid']);
 
-            $ctx = NULL;
-            $thisone = $u->getPublic(NULL, TRUE, FALSE, $ctx, TRUE, TRUE, TRUE, FALSE, TRUE, [
+            $thisone = $u->getPublic(NULL, TRUE, TRUE, TRUE, TRUE, FALSE, TRUE, [
                 MessageCollection::PENDING,
                 MessageCollection::APPROVED,
                 MessageCollection::SPAM
@@ -5285,7 +5282,7 @@ class User extends Entity
         error_log("...logs");
         $l = new Log($this->dbhr, $this->dbhm);
         $ctx = NULL;
-        $d['logs'] = $l->get(NULL, NULL, NULL, NULL, NULL, PHP_INT_MAX, $ctx, $this->id);
+        $d['logs'] = $l->get(NULL, NULL, NULL, NULL, NULL, NULL, PHP_INT_MAX, $ctx, $this->id);
 
         error_log("...add group to logs");
         $loggroups = [];

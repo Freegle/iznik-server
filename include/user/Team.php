@@ -138,7 +138,7 @@ class Team extends Entity
                     }
                 } else {
                     $u = new User($this->dbhr, $this->dbhm, $vol['userid']);
-                    $atts = $u->getPublic(NULL, FALSE, FALSE, $ctx, FALSE, FALSE, FALSE, FALSE, FALSE);
+                    $atts = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
                     $u->ensureAvatar($atts);
                     $profile = $atts['profile'];
                 }

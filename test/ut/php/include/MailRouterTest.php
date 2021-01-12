@@ -1292,8 +1292,10 @@ class MailRouterTest extends IznikTestCase {
 
         $this->waitBackground();
         $_SESSION['id'] = $uid;
-        $logs = $u->getPublic(NULL, FALSE, TRUE)['logs'];
-        $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_JOINED, $logs);
+        $ctx = NULL;
+        $logs = [ $u->getId() => [ 'id' => $u->getId() ] ];
+        $u->getPublicLogs($u, $logs, FALSE, $ctx);
+        $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_JOINED, $logs[$u->getId()]['logs']);
         assertEquals($this->gid, $log['group']['id']);
 
         # Mail - first to pending for new member, moderated by default, then to approved for group settings.
@@ -1347,8 +1349,10 @@ class MailRouterTest extends IznikTestCase {
 
         $this->waitBackground();
         $_SESSION['id'] = $uid;
-        $logs = $u->getPublic(NULL, FALSE, TRUE)['logs'];
-        $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_LEFT, $logs);
+        $ctx = NULL;
+        $logs = [ $u->getId() => [ 'id' => $u->getId() ] ];
+        $u->getPublicLogs($u, $logs, FALSE, $ctx);
+        $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_LEFT, $logs[$u->getId()]['logs']);
         assertEquals($this->gid, $log['group']['id']);
 
         }

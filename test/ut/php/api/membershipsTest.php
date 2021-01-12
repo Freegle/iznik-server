@@ -49,6 +49,10 @@ class membershipsAPITest extends IznikAPITestCase {
         assertTrue($this->user->login('testpw'));
     }
 
+    public function tearDown()
+    {
+    }
+
     public function testAdd() {
         # Should be able to add (i.e. join) as a non-member or a member.
         $_SESSION['id'] = $this->uid2;
@@ -222,13 +226,16 @@ class membershipsAPITest extends IznikAPITestCase {
 
         $ret = $this->call('memberships', 'GET', [
             'groupid' => $this->groupid,
-            'userid' => $this->uid,
-            'logs' => TRUE
+            'userid' => $this->uid
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals($this->uid, $ret['member']['userid']);
 
-        $log = $this->findLog('Group', 'Joined', $ret['member']['logs']);
+        $ctx = NULL;
+        $logs = [ $this->uid => [ 'id' => $this->uid ] ];
+        $u = new User($this->dbhr, $this->dbhm);
+        $u->getPublicLogs($u, $logs, FALSE, $ctx, FALSE, TRUE);
+        $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_JOINED, $logs[$this->uid]['logs']);
         assertEquals($this->groupid, $log['group']['id']);
 
         $ret = $this->call('memberships', 'GET', [
