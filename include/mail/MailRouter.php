@@ -47,6 +47,7 @@ class MailRouter
     const TRYST = 'Tryst';
     const DROPPED ='Dropped';
     const TO_VOLUNTEERS = "ToVolunteers";
+    const AWAIT_COVID = 'AwaitCovid';
 
     function __construct($dbhr, $dbhm, $id = NULL)
     {
@@ -641,7 +642,7 @@ class MailRouter
                                     if (!$u->hasCovidConfirmed()) {
                                         if ($log) { error_log("COVID Checklist required for $uid"); }
                                         $u->covidConfirm($this->msg->getID());
-                                        $ret = MailRouter::TO_SYSTEM;
+                                        $ret = MailRouter::AWAIT_COVID;
                                         $keepgroups = TRUE;
                                     } else if ($appmemb && $worry) {
                                         if ($log) { error_log("Worrying => pending"); }
@@ -749,7 +750,7 @@ class MailRouter
 
                                 if (!$u->hasCovidConfirmed()) {
                                     $u->covidConfirm($this->msg->getID());
-                                    $ret = MailRouter::TO_SYSTEM;
+                                    $ret = MailRouter::AWAIT_COVID;
                                     $keepgroups = TRUE;
                                 } else if ($m->getID() && $u->getId() && $m->getFromuser()) {
                                     # The email address that we replied from might not currently be attached to the
@@ -826,7 +827,7 @@ class MailRouter
 
                             if (!$u->hasCovidConfirmed()) {
                                 $u->covidConfirm($this->msg->getID());
-                                $ret = MailRouter::TO_SYSTEM;
+                                $ret = MailRouter::AWAIT_COVID;
                                 $keepgroups = TRUE;
                             } else if ($r->getId()) {
                                 # It's a valid chat.
@@ -885,7 +886,7 @@ class MailRouter
 
                         if ($this->msg->getFromuser() && !$fromu->hasCovidConfirmed()) {
                             $fromu->covidConfirm($this->msg->getID());
-                            $ret = MailRouter::TO_SYSTEM;
+                            $ret = MailRouter::AWAIT_COVID;
                             $keepgroups = true;
                         } else if ($uid && $this->msg->getFromuser() && strtolower($to) != strtolower(MODERATOR_EMAIL)) {
                             # This is to one of our users.  We try to pair it as best we can with one of the posts.
@@ -966,6 +967,11 @@ class MailRouter
                 MessageCollection::INCOMING
             ]);
         }
+
+        $this->dbhm->preExec("UPDATE messages SET lastroute = ? WHERE id = ?;", [
+            $ret,
+            $this->msg->getID()
+        ]);
 
         # Dropped messages will get tidied up by cron; we leave them around in case we need to
         # look at them for PD.

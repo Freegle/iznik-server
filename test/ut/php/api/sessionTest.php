@@ -881,7 +881,7 @@ class sessionTest extends IznikAPITestCase
         $this->log("Mail message $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
-        assertEquals(MailRouter::TO_SYSTEM, $rc);
+        assertEquals(MailRouter::AWAIT_COVID, $rc);
 
         # Confirm
         $u = User::get($this->dbhr, $this->dbhm);
@@ -908,8 +908,8 @@ class sessionTest extends IznikAPITestCase
         assertNotNull($m->getFromuser());
         $rc = $r->route();
 
-        # Should go to SYSTEM as not confirmed COVID yet.
-        assertEquals(MailRouter::TO_SYSTEM, $rc);
+        # Should go to AWAIT_COVID as not confirmed COVID yet.
+        assertEquals(MailRouter::AWAIT_COVID, $rc);
 
         $uid2 = $u->findByEmail('test2@test.com');
 
