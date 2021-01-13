@@ -158,4 +158,14 @@ WHERE  type = ?
 
         return($atts);
     }
+
+    public function contains($lat, $lng) {
+        $auths = $this->dbhr->preQuery("SELECT id FROM authorities WHERE id = ? AND ST_Contains(polygon, POINT(?,?));", [
+            $this->id,
+            $lng,
+            $lat
+        ]);
+
+        return count($auths) == 1;
+    }
 }

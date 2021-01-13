@@ -204,19 +204,45 @@ class Story extends Entity
         return($ids[0]['count']);
     }
 
-    public function getStories($groupid, $story, $limit = 20, $reviewnewsletter = FALSE) {
+    public function getStories($groupid, $authorityid, $story, $limit = 20, $reviewnewsletter = FALSE) {
         $limit = intval($limit);
         if ($reviewnewsletter) {
             $last = $this->dbhr->preQuery("SELECT MAX(created) AS max FROM newsletters WHERE type = 'Stories';");
             $since = $last[0]['max'];
             $sql = "SELECT DISTINCT users_stories.id FROM users_stories WHERE newsletter = 1 AND mailedtomembers = 0 AND date >= '$since' ORDER BY RAND();";
+            $ids = $this->dbhr->preQuery($sql);
         } else {
-            $sql1 = "SELECT DISTINCT users_stories.id FROM users_stories WHERE reviewed = 1 AND public = 1 AND userid IS NOT NULL ORDER BY date DESC LIMIT $limit;";
-            $sql2 = "SELECT DISTINCT users_stories.id FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE memberships.groupid = $groupid AND reviewed = 1 AND public = 1 AND users_stories.userid IS NOT NULL ORDER BY date DESC LIMIT $limit;";
-            $sql = $groupid ? $sql2 : $sql1;
+            if ($groupid) {
+                # Get stories where the user is a member of this group.  May cause same story to be visible across multiple groups.
+                $sql = "SELECT DISTINCT users_stories.id FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE memberships.groupid = $groupid AND reviewed = 1 AND public = 1 AND users_stories.userid IS NOT NULL ORDER BY date DESC LIMIT $limit;";
+                $ids = $this->dbhr->preQuery($sql);
+            } else if ($authorityid) {
+                # Get stories where the user has a location within the authority.  May omit users where we don't know their location.  Bit slow.
+                $a = new Authority($this->dbhr, $this->dbhm, $authorityid);
+                $stories = $this->dbhr->preQuery("SELECT id, userid FROM users_stories WHERE reviewed = 1 AND public = 1 AND userid IS NOT NULL ORDER BY date DESC;");
+                $ids = [];
+
+                foreach ($stories as $story) {
+                    $u = User::get($this->dbhr, $this->dbhm, $story['userid']);
+                    list ($lat, $lng, $loc) = $u->getLatLng();
+
+                    error_log("Story {$story['id']} user {$story['userid']} $lat, $lng");
+                    if (($lat || $lng) && $a->contains($lat, $lng)) {
+                        error_log("Inside");
+                        $ids[] = $story;
+                    }
+
+                    if (count($ids) >= $limit) {
+                        break;
+                    }
+                }
+
+            } else {
+                $sql = "SELECT DISTINCT users_stories.id FROM users_stories WHERE reviewed = 1 AND public = 1 AND userid IS NOT NULL ORDER BY date DESC LIMIT $limit;";
+                $ids = $this->dbhr->preQuery($sql);
+            }
         }
 
-        $ids = $this->dbhr->preQuery($sql);
         $ret = [];
 
         foreach ($ids as $id) {

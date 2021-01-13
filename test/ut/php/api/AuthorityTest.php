@@ -131,7 +131,45 @@ class authorityAPITest extends IznikAPITestCase
         assertEquals(1, count($ret['authorities']));
         assertEquals($id, $ret['authorities'][0]['id']);
 
-        }
+    }
+
+    public function testStory() {
+        $l = new Location($this->dbhr, $this->dbhm);
+        $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))', 0);
+        assertNotNull($areaid);
+
+        $a = new Authority($this->dbhr, $this->dbhm);
+        $id = $a->create("UTAuth", 'GLA', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
+
+        # Create a user within that authority.
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->setSetting('mylocation', [
+            'lng' => 179.2167,
+            'lat' => 8.53333,
+            'name' => 'TV13 1HH'
+        ]);
+
+        # Create a story for that user, hence within the authority.
+        $s = new Story($this->dbhr, $this->dbhm);
+        $sid = $s->create($uid, 1, "Test", "Test");
+        $s->setAttributes([
+                              'newsletterreviewed' => 1,
+                              'newsletter' => 1,
+                              'reviewed' => 1,
+                              'public' => 1
+                          ]);
+
+        $this->dbhm->preExec("UPDATE users_stories SET newsletterreviewed = 1, newsletter = 1 WHERE id = ?;", [ $sid ]);
+
+        # Should be able to get it.
+        $ret = $this->call('stories', 'GET', [
+            'authorityid' => $id
+        ]);
+
+        assertEquals(1, count($ret['stories']));
+        assertEquals($sid, $ret['stories'][0]['id']);
+    }
 //
 //    public function testEH()
 //    {

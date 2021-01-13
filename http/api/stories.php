@@ -7,7 +7,8 @@ function stories() {
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
     $id = Utils::presint('id', $_REQUEST, NULL);
-    $groupid = (Utils::presint('groupid', $_REQUEST, NULL));
+    $groupid = Utils::presint('groupid', $_REQUEST, NULL);
+    $authorityid = Utils::presint('authorityid', $_REQUEST, NULL);
     $reviewed = Utils::presint('reviewed', $_REQUEST, 1);
     $story = array_key_exists('story', $_REQUEST) ? filter_var($_REQUEST['story'], FILTER_VALIDATE_BOOLEAN) : TRUE;
     $newsletter = array_key_exists('newsletter', $_REQUEST) ? filter_var($_REQUEST['newsletter'], FILTER_VALIDATE_BOOLEAN) : FALSE;
@@ -31,7 +32,7 @@ function stories() {
                     ];
                 }
             } else if ($reviewnewsletter) {
-                $stories = $s->getStories($groupid, $story, $limit, TRUE);
+                $stories = $s->getStories($groupid, $authorityid, $story, $limit, TRUE);
 
                 $ret = [
                     'ret' => 0,
@@ -68,7 +69,7 @@ function stories() {
                 ];
             } else {
                 # We want to see the most recent few
-                $stories = $s->getStories($groupid, $story, $limit);
+                $stories = $s->getStories($groupid, $authorityid, $story, $limit, FALSE);
 
                 $ret = [
                     'ret' => 0,
