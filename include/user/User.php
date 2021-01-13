@@ -2449,6 +2449,14 @@ class User extends Entity
         $users = [];
         $configs = [];
 
+        # Get all log users in a single go.
+        $loguids = array_filter(array_merge(array_column($rets, 'user'), array_column($rets, 'byuser')));
+
+        if (count($loguids)) {
+            $u = new User($this->dbhr, $this->dbhm);
+            $users = $u->getPublicsById($loguids, NULL, FALSE, FALSE, FALSE, FALSE);
+        }
+
         if (!$ctx) {
             $ctx = ['id' => 0];
         }

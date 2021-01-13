@@ -104,6 +104,7 @@ class logsAPITest extends IznikAPITestCase
         assertEquals($uid1, $ret['logs'][0]['user']['id']);
 
         # Logged out.
+        $_SESSION['id'] = NULL;
         $ret = $this->call('logs', 'GET', [
             'logtype' => 'user',
             'userid' => $uid1

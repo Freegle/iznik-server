@@ -22,35 +22,74 @@ function logs() {
             $ret = [ 'ret' => 2, 'status' => 'Not moderator' ];
 
             if ($me) {
-                if ($me->isAdminOrSupport() || $me->isModOrOwner($groupid)) {
-                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                $l = new Log($dbhr, $dbhm);
 
-                    $l = new Log($dbhr, $dbhm);
+                $ctx = $ctx ? $ctx : [];
 
-                    $ctx = $ctx ? $ctx : [];
+                switch ($logtype) {
+                    case 'messages': {
+                        if ($me->isAdminOrSupport() || $me->isModOrOwner($groupid)) {
+                            $types = [Log::TYPE_MESSAGE];
+                            $subtypes = $logsubtype ? [$logsubtype] : [
+                                Log::SUBTYPE_RECEIVED,
+                                Log::SUBTYPE_APPROVED,
+                                Log::SUBTYPE_REJECTED,
+                                Log::SUBTYPE_DELETED,
+                                Log::SUBTYPE_AUTO_REPOSTED,
+                                Log::SUBTYPE_AUTO_APPROVED,
+                                Log::SUBTYPE_OUTCOME
+                            ];
 
-                    switch ($logtype) {
-                        case 'messages': {
-                            $types = [ Log::TYPE_MESSAGE ];
-                            $subtypes = $logsubtype ? [ $logsubtype ] : [ Log::SUBTYPE_RECEIVED, Log::SUBTYPE_APPROVED, Log::SUBTYPE_REJECTED, Log::SUBTYPE_DELETED, Log::SUBTYPE_AUTO_REPOSTED, Log::SUBTYPE_AUTO_APPROVED, Log::SUBTYPE_OUTCOME ];
-                            $ret['logs'] = $l->get($types, $subtypes, $groupid, $userid, $date, $search, $limit, $ctx);
-                            break;
+                            $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                            $ret['logs'] = $l->get(
+                                $types,
+                                $subtypes,
+                                $groupid,
+                                $userid,
+                                $date,
+                                $search,
+                                $limit,
+                                $ctx
+                            );
                         }
-                        case 'memberships': {
-                            $types = [ Log::TYPE_GROUP, Log::TYPE_USER ];
-                            $subtypes = $logsubtype ? [ $logsubtype ] : [ Log::SUBTYPE_JOINED, Log::SUBTYPE_REJECTED, Log::SUBTYPE_APPROVED, Log::SUBTYPE_APPLIED, Log::SUBTYPE_AUTO_APPROVED, Log::SUBTYPE_LEFT ];
-                            $ret['logs'] = $l->get($types, $subtypes, $groupid, $userid, $date, $search, $limit, $ctx);
-                            break;
-                        }
+                        break;
                     }
-                } else if ($me->isModerator()) {
-                    $u = User::get($dbhr, $dbhm, $userid);
+                    case 'memberships': {
+                        if ($me->isAdminOrSupport() || $me->isModOrOwner($groupid)) {
+                            $types = [Log::TYPE_GROUP, Log::TYPE_USER];
+                            $subtypes = $logsubtype ? [$logsubtype] : [
+                                Log::SUBTYPE_JOINED,
+                                Log::SUBTYPE_REJECTED,
+                                Log::SUBTYPE_APPROVED,
+                                Log::SUBTYPE_APPLIED,
+                                Log::SUBTYPE_AUTO_APPROVED,
+                                Log::SUBTYPE_LEFT
+                            ];
 
-                    if ($u->isModerator() || $userid == $me->getId()) {
-                        $logs = [$userid => ['id' => $userid]];
-                        $u->getPublicLogs($u, $logs, false, $ctx);
-                        $ret = [ 'ret' => 0, 'status' => 'Success' ];
-                        $ret['logs'] = $logs[$userid]['logs'];
+                            $ret = [ 'ret' => 0, 'status' => 'Success' ];
+
+                            $ret['logs'] = $l->get(
+                                $types,
+                                $subtypes,
+                                $groupid,
+                                $userid,
+                                $date,
+                                $search,
+                                $limit,
+                                $ctx
+                            );
+                        }
+                        break;
+                    }
+                    case 'user': {
+                        $u = User::get($dbhr, $dbhm, $userid);
+
+                        if ($me->isModerator()) {
+                            $logs = [$userid => ['id' => $userid]];
+                            $u->getPublicLogs($u, $logs, false, $ctx);
+                            $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                            $ret['logs'] = $logs[$userid]['logs'];
+                        }
                     }
                 }
             }
