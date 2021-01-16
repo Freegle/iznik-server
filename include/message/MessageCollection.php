@@ -176,6 +176,7 @@ class MessageCollection
 
                 if (in_array(MessageCollection::SPAM, $collection)) {
                     # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.
+                    # Exclude messages routed to system, which will be waiting for COVID confirmation.
                     # See also Group.
                     #
                     # This fits with Yahoo's policy on deleting pending activity.
@@ -183,7 +184,7 @@ class MessageCollection
                     # This code assumes that if we're called to retrieve SPAM, it's the only collection.  That's true at
                     # the moment as the only use of multiple collection values is via ALLUSER, which doesn't include SPAM.
                     $mysqltime = date("Y-m-d", strtotime(MessageCollection::RECENTPOSTS));
-                    $oldest = " AND messages_groups.arrival >= '$mysqltime' ";
+                    $oldest = " AND messages_groups.arrival >= '$mysqltime' AND (messages.lastroute IS NULL OR messages.lastroute != '" . MailRouter::TO_SYSTEM . "') ";
                 } else if ($age !== NULL) {
                     $mysqltime = date("Y-m-d", strtotime("Midnight $age days ago"));
                     $oldest = " AND messages_groups.arrival >= '$mysqltime' ";

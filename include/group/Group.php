@@ -322,13 +322,15 @@ class Group extends Entity
             $eventsqltime = date("Y-m-d H:i:s", time());
 
             # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.
+            # Exclude messages routed to system, which will be waiting for COVID confirmation.
             #
             # See also MessageCollection.
             $pendingspamcounts = $this->dbhr->preQuery("SELECT messages_groups.groupid, COUNT(*) AS count, messages_groups.collection, messages.heldby IS NOT NULL AS held FROM messages 
-    INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid IN $groupq AND messages_groups.collection IN (?, ?) AND messages_groups.deleted = 0 AND messages.deleted IS NULL AND messages.fromuser IS NOT NULL AND messages_groups.arrival >= '$earliestmsg' 
+    INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid IN $groupq AND messages_groups.collection IN (?, ?) AND messages_groups.deleted = 0 AND messages.deleted IS NULL AND messages.fromuser IS NOT NULL AND messages_groups.arrival >= '$earliestmsg' AND (messages.lastroute IS NULL OR messages.lastroute != ?) 
     GROUP BY messages_groups.groupid, messages_groups.collection, held;", [
                 MessageCollection::PENDING,
-                MessageCollection::SPAM
+                MessageCollection::SPAM,
+                MailRouter::TO_SYSTEM
             ]);
 
             $spammembercounts = $this->dbhr->preQuery(
