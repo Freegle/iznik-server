@@ -16,7 +16,6 @@ function stories() {
     $limit = (Utils::presint('limit', $_REQUEST, 20));
     $s = new Story($dbhr, $dbhm, $id);
     $me = Session::whoAmI($dbhr, $dbhm);
-    $myid = $me ? $me->getId() : NULL;
 
     switch ($_REQUEST['type']) {
         case 'GET': {
@@ -68,7 +67,7 @@ function stories() {
                     'stories' => $stories
                 ];
             } else {
-                # We want to see the most recent few
+                # We want to see the most recent few.
                 $stories = $s->getStories($groupid, $authorityid, $story, $limit, FALSE);
 
                 $ret = [

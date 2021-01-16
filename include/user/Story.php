@@ -226,9 +226,7 @@ class Story extends Entity
                     $u = User::get($this->dbhr, $this->dbhm, $story['userid']);
                     list ($lat, $lng, $loc) = $u->getLatLng();
 
-                    error_log("Story {$story['id']} user {$story['userid']} $lat, $lng");
                     if (($lat || $lng) && $a->contains($lat, $lng)) {
-                        error_log("Inside");
                         $ids[] = $story;
                     }
 
