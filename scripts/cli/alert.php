@@ -11,7 +11,7 @@ global $dbhr, $dbhm;
 $opts = getopt('g:s:b:');
 
 if (count($opts) < 2) {
-    echo "Usage: php admin.php -g <CSL id of group> -s <subject> -b <body>\n";
+    echo "Usage: php alert.php -g <CSL id of group> -s <subject> -b <body>\n";
 } else {
     $gids = $opts['g'];
 
