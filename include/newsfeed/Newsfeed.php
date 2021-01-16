@@ -1035,7 +1035,7 @@ class Newsfeed extends Entity
 
             if ($count > 0) {
                 # Got some to send
-                $url = $mod->loginLink(USER_SITE, $userid, '/newsfeed', 'newsfeeddigest');
+                $url = $mod->loginLink(USER_SITE, $userid, '/chitchat', 'newsfeeddigest');
 
                 $subj = $count . " chitchat post" . ($count != 1 ? 's': '') . " from your members";
 
