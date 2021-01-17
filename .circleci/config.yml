@@ -7,6 +7,7 @@ jobs:
       - image: freeglegeeks/server:ut
     steps:
       - checkout
+      - run: cd composer; wget https://getcomposer.org/composer-1.phar; php composer-1.phar install; cd ..
       - run: php scripts/cron/background.php&
       - run: php scripts/cron/exports.php&
 
