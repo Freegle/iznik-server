@@ -7,8 +7,8 @@ jobs:
       - image: freeglegeeks/server:ut
     steps:
       - checkout
-      - run php scripts/cron/background.php&
-      - run php scripts/cron/exports.php&
+      - run: php scripts/cron/background.php&
+      - run: php scripts/cron/exports.php&
 
-      - run cd http/api; ../../composer/vendor/bin/phpunit --stderr --bootstrap ../../composer/vendor/autoload.php -dxdebug.coverage_enable=1 --coverage-clover ../../test/ut/php/clover.xml --configuration ../../test/ut/php/phpunit.xml ../../test/ut/php/
-      - rub php ../../composer/vendor/bin/php-coveralls -v
+      - run: cd http/api; ../../composer/vendor/bin/phpunit --stderr --bootstrap ../../composer/vendor/autoload.php -dxdebug.coverage_enable=1 --coverage-clover ../../test/ut/php/clover.xml --configuration ../../test/ut/php/phpunit.xml ../../test/ut/php/
+      - run: php ../../composer/vendor/bin/php-coveralls -v
