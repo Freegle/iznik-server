@@ -1927,6 +1927,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                     $justmine = TRUE;
                     $firstid = NULL;
                     $fromname = NULL;
+                    $firstmsg = NULL;
 
                     foreach ($unmailedmsgs as $unmailedmsg) {
                         # Message might be empty.
@@ -2248,7 +2249,8 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
                                             if ($chattype == ChatRoom::TYPE_USER2USER && !$justmine) {
                                                 # Send any SMS, but not if we're only mailing our own messages
-                                                $sendingto->sms('You have a new message.', 'https://' . $site . '/chats/' . $chat['chatid'] . '?src=sms');
+                                                $smsmsg = ($textsummary && substr($textsummary, 0, 1) != "\r") ? ('New message: "' . substr($textsummary, 0, 30) . '"...') : 'You have a new message.';
+                                                $sendingto->sms($smsmsg, 'https://' . $site . '/chats/' . $chat['chatid'] . '?src=sms');
                                             }
 
                                             $notified++;
