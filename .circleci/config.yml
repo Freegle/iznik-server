@@ -60,6 +60,7 @@ jobs:
       - run: sudo sed -ie 's/\/var\/www\/iznik.mt.dbg\//\//g' test/ut/php/phpunit.xml
 
       # Set up the DB.  We need to make some minor schema tweaks otherwise it fails to install.
+      - run: apt-get install -y mysql-client
       - run: mysql -e 'CREATE DATABASE IF NOT EXISTS iznik;'
       - run: sudo sed -ie 's/ROW_FORMAT=DYNAMIC//g' install/schema.sql
       - run: sudo sed -ie 's/timestamp(3)/timestamp/g' install/schema.sql
