@@ -30,7 +30,7 @@ jobs:
       - run: sudo sed -i 's/home-dir/home-dir -4/g' /etc/default/spamassassin
       - run: sudo service spamassassin start
 
-      - run: sudo apt-get install php-ssh2
+#      - run: sudo apt-get install php-ssh2
 
       # GeoIP
       - run: sudo apt-get install php-geoip
