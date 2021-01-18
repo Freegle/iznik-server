@@ -15,6 +15,7 @@ jobs:
           MYSQL_USER: root
     steps:
       - checkout
+      - run: sudo apt-get update
 
       # ...and change some config, otherwise some of the larger attachment inserts fail.
 #      - run: echo -e "[server]\nmax_allowed_packet=32MB" | tee -a /etc/mysql/my.cnf
@@ -27,7 +28,6 @@ jobs:
       - run: sudo pecl install mailparse
 
       # Spamassassin for filtering
-      - run: sudo apt-get update
       - run: sudo apt-get install -y spamassassin spamc psmisc
       - run: sudo groupadd spamd
       - run: sudo useradd -g spamd -s /bin/false -d /var/log/spamassassin spamd
