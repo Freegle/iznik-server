@@ -32,6 +32,8 @@ jobs:
       - run: sudo -E docker-php-ext-enable pdo_mysql
       - run: sudo pecl install xdebug
       - run: sudo -E docker-php-ext-enable xdebug
+      - run: sudo -E pecl install redis
+      - run: sudo -E docker-php-ext-enable redis
 
       # Spamassassin for filtering
       - run: sudo apt-get install -y spamassassin spamc psmisc
