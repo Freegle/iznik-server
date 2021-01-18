@@ -3,6 +3,7 @@ jobs:
   build:
     environment:
       - STANDALONE=TRUE
+      - XDEBUG_MODE=coverage
     docker:
       - image: circleci/php:7.2
       - image: circleci/redis
@@ -28,7 +29,9 @@ jobs:
       - run: sudo pecl install mailparse
       - run: sudo -E docker-php-ext-enable mailparse
       - run: sudo docker-php-ext-install pdo_mysql
-      - run: sudo docker-php-ext-enable pdo_mysql
+      - run: sudo -E docker-php-ext-enable pdo_mysql
+      - run: sudo pecl install xdebug
+      - run: sudo -E docker-php-ext-enable xdebug
 
       # Spamassassin for filtering
       - run: sudo apt-get install -y spamassassin spamc psmisc
