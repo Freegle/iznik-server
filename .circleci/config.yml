@@ -5,19 +5,16 @@ jobs:
       - STANDALONE=TRUE
     docker:
       - image: freeglegeeks/server:ut
+      - image: circleci/mysql:5.7.32
+        environment:
+          MYSQL_ROOT_PASSWORD:
+          MYSQL_DATABASE: iznik
     steps:
       - checkout
       - run: ps -ef
         
-      # Having installed MySQL 5.7 we need to reset the password.
-      - run: chown mysql:mysql /var/lib/mysql
-      - run: mysqld --initialize-insecure
-      - run: mkdir /var/run/mysqld; chown mysql:mysql /var/run/mysqld; /etc/init.d/mysql --skip-grant-tables
-      - run: mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
-
       # ...and change some config, otherwise some of the larger attachment inserts fail.
-      - run: echo -e "[server]\nmax_allowed_packet=32MB" | sudo tee -a /etc/mysql/my.cnf
-      - run: killall -9 mysqld; sudo service mysql restart
+#      - run: echo -e "[server]\nmax_allowed_packet=32MB" | sudo tee -a /etc/mysql/my.cnf
 
       # Redis listens on localhost on travis, whereas we use a unix socket on the live servers.
       - run: sed -ie 's/\/var\/run\/redis\/redis.sock/127.0.0.1/g' include/config.php
