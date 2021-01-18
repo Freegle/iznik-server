@@ -48,7 +48,7 @@ jobs:
 #      - run: sudo apt-get install php-ssh2
 
       # GeoIP
-      - run: sudo apt-get install -y php-pear php-dev libgeoip-dev libcurl4-openssl-dev wget golang-go
+      - run: sudo apt-get install -y libgeoip-dev software-properties-common
       - run: sudo -E pecl install geoip-1.1.1
       - run: sudo add-apt-repository ppa:maxmind/ppa -y
       - run: sudo apt-get install geoipupdate
