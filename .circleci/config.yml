@@ -61,19 +61,19 @@ jobs:
 
       # Set up the DB.  We need to make some minor schema tweaks otherwise it fails to install.
       - run: sudo apt-get install -y default-mysql-client
-      - run: mysql -e 'CREATE DATABASE IF NOT EXISTS iznik;'
+      - run: mysql --host="127.0.0.1"-e 'CREATE DATABASE IF NOT EXISTS iznik;'
       - run: sudo sed -ie 's/ROW_FORMAT=DYNAMIC//g' install/schema.sql
       - run: sudo sed -ie 's/timestamp(3)/timestamp/g' install/schema.sql
       - run: sudo sed -ie 's/timestamp(6)/timestamp/g' install/schema.sql
       - run: sudo sed -ie 's/CURRENT_TIMESTAMP(3)/CURRENT_TIMESTAMP/g' install/schema.sql
       - run: sudo sed -ie 's/CURRENT_TIMESTAMP(6)/CURRENT_TIMESTAMP/g' install/schema.sql
-      - run: mysql -u root iznik < install/schema.sql
-      - run: mysql -u root iznik < install/functions.sql
-      - run: mysql -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'"
+      - run: mysql --host="127.0.0.1" -u root iznik < install/schema.sql
+      - run: mysql --host="127.0.0.1" -u root iznik < install/functions.sql
+      - run: mysql --host="127.0.0.1"-e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'"
 
       # We need the DamLevLim UDF.
 #      - run: cp install/mysqldamlevlim.so /usr/lib/mysql/plugin/
-#      - run: mysql -u root -e "CREATE FUNCTION damlevlim RETURNS INT SONAME 'mysqldamlevlim.so'"
+#      - run: mysql --host="127.0.0.1" -u root -e "CREATE FUNCTION damlevlim RETURNS INT SONAME 'mysqldamlevlim.so'"
 
       # Install composer dependencies.  Use v1 as we're not compatible with v2.
       - run: cd composer; wget https://getcomposer.org/composer-1.phar; php composer-1.phar install; cd ..
