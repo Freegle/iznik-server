@@ -12,8 +12,8 @@ jobs:
       # Having installed MySQL 5.7 we need to reset the password.
       - run: chown mysql:mysql /var/lib/mysql
       - run: mysqld --initialize-insecure
-      - run: /usr/sbin/mysqld --skip-grant-tables&
-      - run: sleep 10; mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
+      - run: mkdir /var/run/mysqld; chown mysql:mysql /var/run/mysqld; nohup /usr/sbin/mysqld --skip-grant-tables&
+      - run: mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
 
       # ...and change some config, otherwise some of the larger attachment inserts fail.
       - run: echo -e "[server]\nmax_allowed_packet=32MB" | sudo tee -a /etc/mysql/my.cnf
