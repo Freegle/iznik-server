@@ -61,7 +61,6 @@ jobs:
 
       # Set up the DB.  We need to make some minor schema tweaks otherwise it fails to install.
       - run: sudo apt-get install -y default-mysql-client
-      - run: mysql --host="127.0.0.1" -e 'CREATE DATABASE IF NOT EXISTS iznik;'
       - run: sudo sed -ie 's/ROW_FORMAT=DYNAMIC//g' install/schema.sql
       - run: sudo sed -ie 's/timestamp(3)/timestamp/g' install/schema.sql
       - run: sudo sed -ie 's/timestamp(6)/timestamp/g' install/schema.sql
