@@ -43,6 +43,7 @@ jobs:
 #      - run: sudo geoipupdate -v -f /tmp/GeoIP.conf
 
       # /etc/iznik.conf is where our config goes on the live server.  We have some keys in environment variables.
+      - run: sudo cp install/iznik.conf.php /etc/iznik.conf
       - run: sudo chmod 777 /etc/iznik.conf
       - run: sed -ie "s/'GOOGLE_VISION_KEY', 'zzz'/'GOOGLE_VISION_KEY', '$GOOGLE_VISION_KEY'/g" /etc/iznik.conf
       - run: sed -ie "s/'TWITTER_CONSUMER_KEY', 'zzzz'/'TWITTER_CONSUMER_KEY', '$TWITTER_CONSUMER_KEY'/g" /etc/iznik.conf
@@ -70,8 +71,8 @@ jobs:
       - run: mysql -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'"
 
       # We need the DamLevLim UDF.
-      - run: cp install/mysqldamlevlim.so /usr/lib/mysql/plugin/
-      - run: mysql -u root -e "CREATE FUNCTION damlevlim RETURNS INT SONAME 'mysqldamlevlim.so'"
+#      - run: cp install/mysqldamlevlim.so /usr/lib/mysql/plugin/
+#      - run: mysql -u root -e "CREATE FUNCTION damlevlim RETURNS INT SONAME 'mysqldamlevlim.so'"
 
       # Install composer dependencies.  Use v1 as we're not compatible with v2.
       - run: cd composer; wget https://getcomposer.org/composer-1.phar; php composer-1.phar install; cd ..
