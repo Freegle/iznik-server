@@ -19,10 +19,13 @@ jobs:
       # ...and change some config, otherwise some of the larger attachment inserts fail.
 #      - run: echo -e "[server]\nmax_allowed_packet=32MB" | tee -a /etc/mysql/my.cnf
 
-      # Redis listens on localhost on travis, whereas we use a unix socket on the live servers.
-#      - run: sudo sed -ie 's/\/var\/run\/redis\/redis.sock/127.0.0.1/g' include/config.php
-#      - run: service redis-server restart
-          
+      # PHP extensions
+      - run: sudo apt install -y libgmp-dev libxml2-dev libgd-dev
+      - run: sudo -E docker-php-ext-install gmp
+      - run: sudo -E docker-php-ext-install soap
+      - run: sudo -E docker-php-ext-install gd
+      - run: sudo pecl install mailparse
+
       # Spamassassin for filtering
       - run: sudo apt-get update
       - run: sudo apt-get install -y spamassassin spamc psmisc
@@ -48,6 +51,10 @@ jobs:
       # /etc/iznik.conf is where our config goes on the live server.  We have some keys in environment variables.
       - run: sudo cp install/iznik.conf.php /etc/iznik.conf
       - run: sudo chmod 777 /etc/iznik.conf
+
+      # Redis listens on localhost, whereas we use a unix socket on the live servers.
+      - run: sudo sed -ie 's/\/var\/run\/redis\/redis.sock/127.0.0.1/g' /etc/iznik.conf
+
       - run: sudo sed -ie "s/'GOOGLE_VISION_KEY', 'zzz'/'GOOGLE_VISION_KEY', '$GOOGLE_VISION_KEY'/g" /etc/iznik.conf
       - run: sudo sed -ie "s/'TWITTER_CONSUMER_KEY', 'zzzz'/'TWITTER_CONSUMER_KEY', '$TWITTER_CONSUMER_KEY'/g" /etc/iznik.conf
       - run: sudo sed -ie "s/'TWITTER_CONSUMER_SECRET', 'zzzz'/'TWITTER_CONSUMER_SECRET', '$TWITTER_CONSUMER_SECRET'/g" /etc/iznik.conf
