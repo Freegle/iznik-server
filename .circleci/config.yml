@@ -21,10 +21,13 @@ jobs:
 #      - run: sed -ie 's/\/var\/run\/redis\/redis.sock/127.0.0.1/g' include/config.php
 #      - run: service redis-server restart
           
-      # Spamassassin for filtering  
+      # Spamassassin for filtering
+      - run: apt-get install -y spamassassin spamc psmisc
+      - run: groupadd spamd && useradd -g spamd -s /bin/false -d /var/log/spamassassin spamd && mkdir /var/log/spamassassin
       - run: sed -i 's/ENABLED=0/ENABLED=1/g' /etc/default/spamassassin
       - run: sed -i 's/home-dir/home-dir -4/g' /etc/default/spamassassin
       - run: service spamassassin start
+
 #      - run: apt-get install php-ssh2
       - run: ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
 
