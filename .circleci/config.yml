@@ -22,19 +22,19 @@ jobs:
 #      - run: service redis-server restart
           
       # Spamassassin for filtering
-      - run: apt-get install -y spamassassin spamc psmisc
+      - run: sudo apt-get install -y spamassassin spamc psmisc
       - run: groupadd spamd && useradd -g spamd -s /bin/false -d /var/log/spamassassin spamd && mkdir /var/log/spamassassin
       - run: sed -i 's/ENABLED=0/ENABLED=1/g' /etc/default/spamassassin
       - run: sed -i 's/home-dir/home-dir -4/g' /etc/default/spamassassin
       - run: service spamassassin start
 
-#      - run: apt-get install php-ssh2
+#      - run: sudo apt-get install php-ssh2
       - run: ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
 
       # GeoIP
-      - run: apt-get install php-geoip
+      - run: sudo apt-get install php-geoip
       - run: add-apt-repository ppa:maxmind/ppa -y
-      - run: apt-get install geoipupdate
+      - run: sudo apt-get install geoipupdate
       - run: echo UserId $MAXMIND_ACCOUNT > /tmp/GeoIP.conf
       - run: echo LicenseKey $MAXMIND_KEY >> /tmp/GeoIP.conf
       - run: echo ProductIds GeoLite2-Country GeoLite2-City >> /tmp/GeoIP.conf
