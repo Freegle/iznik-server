@@ -23,7 +23,9 @@ jobs:
       # Spamassassin for filtering
       - run: sudo apt-get update
       - run: sudo apt-get install -y spamassassin spamc psmisc
-      - run: sudo groupadd spamd && useradd -g spamd -s /bin/false -d /var/log/spamassassin spamd && mkdir /var/log/spamassassin
+      - run: sudo groupadd spamd
+      - run: sudo useradd -g spamd -s /bin/false -d /var/log/spamassassin spamd
+      - run: sudo mkdir /var/log/spamassassin
       - run: sudo sed -i 's/ENABLED=0/ENABLED=1/g' /etc/default/spamassassin
       - run: sudo sed -i 's/home-dir/home-dir -4/g' /etc/default/spamassassin
       - run: sudo service spamassassin start
