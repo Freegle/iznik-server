@@ -4,7 +4,7 @@ jobs:
     environment:
       - STANDALONE=TRUE
     docker:
-      - image: freeglegeeks/server:ut
+      - image: circleci/php:7.2
       - image: circleci/mysql:5.7.32
         environment:
           MYSQL_ROOT_PASSWORD:
@@ -24,7 +24,7 @@ jobs:
       - run: sed -i 's/ENABLED=0/ENABLED=1/g' /etc/default/spamassassin
       - run: sed -i 's/home-dir/home-dir -4/g' /etc/default/spamassassin
       - run: service spamassassin start
-      - run: apt-get install php-ssh2
+#      - run: apt-get install php-ssh2
       - run: ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
 
       # GeoIP
