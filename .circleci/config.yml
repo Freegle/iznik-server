@@ -7,6 +7,10 @@ jobs:
       - image: freeglegeeks/server:ut
     steps:
       - checkout
+      - run: ps -ef
+      - run: service mysql restart
+      - run: service redis-server restart
+      - run: ps -ef
       - run: cd composer; wget https://getcomposer.org/composer-1.phar; php composer-1.phar install; cd ..
       - run: php scripts/cron/background.php&
       - run: php scripts/cron/exports.php&
