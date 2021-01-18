@@ -35,7 +35,7 @@ before_install:
   - sudo apt-get install php-ssh2
   - sudo ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
 
-  # GeoIP
+  # GeoIP, legacy C version.
   - sudo apt-get install -y php-geoip automake autoconf libtool build-essential libcurl4-openssl-dev zlib1g-dev
   - git clone https://github.com/maxmind/geoipupdate-legacy ; cd geoipupdate-legacy ; ./bootstrap ; ./configure ; make ; make install
   - sudo echo UserId $MAXMIND_ACCOUNT > /tmp/GeoIP.conf
