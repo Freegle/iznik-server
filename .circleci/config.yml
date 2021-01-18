@@ -27,6 +27,8 @@ jobs:
       - run: sudo -E docker-php-ext-install gd
       - run: sudo pecl install mailparse
       - run: sudo -E docker-php-ext-enable mailparse
+      - run: sudo docker-php-ext-install pdo_mysql
+      - run: sudo docker-php-ext-enable pdo_mysql
 
       # Spamassassin for filtering
       - run: sudo apt-get install -y spamassassin spamc psmisc
