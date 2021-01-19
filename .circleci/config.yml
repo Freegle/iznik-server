@@ -18,9 +18,6 @@ jobs:
       - checkout
       - run: sudo apt-get update
 
-      # ...and change some config, otherwise some of the larger attachment inserts fail.
-#      - run: echo -e "[server]\nmax_allowed_packet=32MB" | tee -a /etc/mysql/my.cnf
-
       # PHP extensions
       - run: sudo apt install -y libgmp-dev libxml2-dev libgd-dev libpng-dev libjpeg62-turbo-dev
       - run: sudo -E docker-php-ext-install exif
@@ -92,9 +89,8 @@ jobs:
       - run: mysql --host="127.0.0.1" -u root iznik < install/damlevlim.sql
       - run: mysql --host="127.0.0.1" -u root -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'"
 
-      # We need the DamLevLim UDF.
-#      - run: cp install/mysqldamlevlim.so /usr/lib/mysql/plugin/
-#      - run: mysql --host="127.0.0.1" -u root -e "CREATE FUNCTION damlevlim RETURNS INT SONAME 'mysqldamlevlim.so'"
+      # ...and change some config, otherwise some of the larger attachment inserts fail.
+      - run: mysql --host="127.0.0.1" -u root -e "set global max_allowed_packet=33554432"
 
       # Install composer dependencies.  Use v1 as we're not compatible with v2.
       - run: cd composer; wget https://getcomposer.org/composer-1.phar; php composer-1.phar install; cd ..
