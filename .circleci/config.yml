@@ -54,7 +54,7 @@ jobs:
       - run: echo UserId $MAXMIND_ACCOUNT > /tmp/GeoIP.conf
       - run: echo LicenseKey $MAXMIND_KEY >> /tmp/GeoIP.conf
       - run: echo ProductIds GeoLite2-Country GeoLite2-City >> /tmp/GeoIP.conf
-      - run: sudo geoipupdate -v -f /tmp/GeoIP.conf
+      - run: sudo geoipupdate-legacy/bin/geoipupdate -v -f /tmp/GeoIP.conf
 
       # /etc/iznik.conf is where our config goes on the live server.  We have some keys in environment variables.
       - run: sudo cp install/iznik.conf.php /etc/iznik.conf
