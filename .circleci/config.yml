@@ -51,7 +51,8 @@ jobs:
       - run: sudo apt-get install -y automake autoconf libtool build-essential libcurl4-openssl-dev zlib1g-dev
       - run: git clone https://github.com/maxmind/geoipupdate-legacy ; cd geoipupdate-legacy ; ./bootstrap ; ./configure ; make
       - run: sudo make install ; cd ..
-      - run: mkdir /usr/local/share/GeoIP
+      - run: sudo mkdir /usr/local/share/GeoIP
+      - run: sudo chmod 777 /usr/local/share/GeoIP
       - run: echo AccountID $MAXMIND_ACCOUNT > /tmp/GeoIP.conf
       - run: echo LicenseKey $MAXMIND_KEY >> /tmp/GeoIP.conf
       - run: echo ProductIds GeoLite2-Country GeoLite2-City >> /tmp/GeoIP.conf
