@@ -1,5 +1,5 @@
 -- From https://stackoverflow.com/questions/634995/implementation-of-levenshtein-distance-for-mysql-fuzzy-search .
--- On live servers we use the C UDF but this is used in Circle where it's harder to install on the mysql image.
+-- On live servers we use the C UDF but this is used in Circle where it's hard to install on the mysql image.
 DELIMITER $$
 CREATE FUNCTION damlevlim( s1 VARCHAR(255), s2 VARCHAR(255), n INT)
     RETURNS INT
