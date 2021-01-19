@@ -10,8 +10,6 @@ $sql = "SELECT COUNT(*) AS count, user, groupid, timestamp FROM `logs` WHERE typ
 # does a fetchall under the covers).
 $dbconfig = array (
     'host' => SQLHOST,
-    'port_read' => SQLPORT_READ,
-    'port_mod' => SQLPORT_MOD,
     'user' => SQLUSER,
     'pass' => SQLPASSWORD,
     'database' => SQLDB
