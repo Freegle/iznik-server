@@ -109,4 +109,4 @@ jobs:
 
       # Run the UT.
       - run: cd http/api; ../../composer/vendor/bin/phpunit -d memory_limit=512M --stderr --bootstrap ../../composer/vendor/autoload.php -dxdebug.coverage_enable=1 --coverage-clover ../../test/ut/php/clover.xml --configuration ../../test/ut/php/phpunit.xml ../../test/ut/php/
-      - run: php ../../composer/vendor/bin/php-coveralls -v
+      - run: php composer/vendor/bin/php-coveralls -v
