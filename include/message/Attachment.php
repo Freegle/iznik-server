@@ -407,8 +407,7 @@ class Attachment
                       },
                       "features": [
                           {
-                            "maxResults": 10
-                            "type": "OBJECT_LOCALIZATION"
+                            "type": "TEXT_DETECTION"
                           }
                       ],
                       "imageContext": {

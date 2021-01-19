@@ -99,7 +99,7 @@ class searchTest extends IznikTestCase
 
         # Test typo
         $ctx = NULL;
-        $ret = $m->search("Tets", $ctx);
+        $ret = $m->search("Tess", $ctx);
         $this->log("Typo " . var_export($ctx, true));
         assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
             return $a['id'] == $id1;
