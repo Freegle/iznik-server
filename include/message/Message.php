@@ -636,6 +636,7 @@ class Message
                 $role = User::ROLE_MEMBER;
 
                 if (strpos($msg['fromaddr'], '@' . $_SESSION['partnerdomain']) !== FALSE) {
+                    # It's from the partner domain, so they have full access.
                     $role = User::ROLE_OWNER;
                 }
             }
@@ -876,7 +877,21 @@ class Message
                 }
             }
 
-            if ($role === User::ROLE_NONMEMBER || $role === User::ROLE_MEMBER) {
+            $blur = TRUE;
+
+            if (Utils::pres('partner', $_SESSION)) {
+                # We might have given consent to this partner to see more info.
+                $consents = $this->dbhr->preQuery("SELECT * FROM partners_messages WHERE partnerid = ? AND msgid = ?", [
+                    $_SESSION['partner']['id'],
+                    $msg['id']
+                ]);
+
+                foreach ($consents as $consent) {
+                    $blur = FALSE;
+                }
+            }
+
+            if ($blur && ($role === User::ROLE_NONMEMBER || $role === User::ROLE_MEMBER)) {
                 // Blur lat/lng slightly for privacy.
                 list ($ret['lat'], $ret['lng']) = Message::blur($ret['lat'], $ret['lng']);
             }
@@ -1120,7 +1135,23 @@ class Message
                     }
                 }
 
-                if ($seeall || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($myid && $msg['fromuser'] == $myid)) {
+                # Can see the location if we have been asked to, if we're a mod, if it's our message, or we have
+                # consent for this partner.
+                $showloc = $seeall || $role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($myid && $msg['fromuser'] == $myid);
+
+                if (!$showloc && Utils::pres('partner', $_SESSION)) {
+                    # We might have given consent to this partner to see more info.
+                    $consents = $this->dbhr->preQuery("SELECT * FROM partners_messages WHERE partnerid = ? AND msgid = ?", [
+                        $_SESSION['partner']['id'],
+                        $msg['id']
+                    ]);
+
+                    foreach ($consents as $consent) {
+                        $showloc = TRUE;
+                    }
+                }
+
+                if ($showloc) {
                     $rets[$msg['id']]['location'] = $l->getPublic();
                 }
             }
@@ -1429,9 +1460,12 @@ ORDER BY lastdate DESC;";
                     $rets[$msg['id']]['fromuser']['emails'] = [];
                     foreach ($es as $email) {
                         if (Mail::ourDomain($email['email'])) {
-                            $rets[$msg['id']]['fromuser']['emails'] = $email;
+                            $rets[$msg['id']]['fromuser']['emails'][] = $email;
                         }
                     }
+                } else {
+                    # We should hide the emails.
+                    $rets[$msg['id']]['fromuser']['emails'] = NULL;
                 }
 
                 Utils::filterResult($rets[$msg['id']]['fromuser']);
@@ -5164,5 +5198,24 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
         }
 
         $this->dbhm->commit();
+    }
+
+    public function partnerConsent($partner) {
+        # Give consent to a partner to seem more info about this message.
+        $ret = FALSE;
+
+        $partners = $this->dbhr->preQuery("SELECT id FROM partners_keys WHERE partner LIKE ?;", [
+            $partner
+        ]);
+
+        foreach ($partners as $p) {
+            $ret = TRUE;
+            $this->dbhm->preExec("INSERT INTO partners_messages (msgid, partnerid) VALUES (?, ?)", [
+                $this->id,
+                $p['id']
+            ]);
+        }
+
+        return $ret;
     }
 }

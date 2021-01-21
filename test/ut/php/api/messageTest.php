@@ -2762,6 +2762,114 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
     }
 
+    public function testPartnerConsent() {
+        global $sessionPrepared;
+        $sessionPrepared = FALSE;
+
+        $key = Utils::randstr(64);
+        $this->dbhm->preExec("INSERT INTO partners_keys (`partner`, `key`, `domain`) VALUES ('UT', ?, ?);", [$key, 'test2.com']);
+        $partnerid = $this->dbhm->lastInsertId();
+        assertNotNull($partnerid);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)',0);
+
+        # Create member and mod.
+        $u = User::get($this->dbhr, $this->dbhm);
+
+        $u1id = $u->create('Test','User', 'Test User');
+        $u2id = $u->create('Test','User', 'Test User');
+
+        $memberid = $u->create('Test','User', 'Test User');
+        $member = User::get($this->dbhr, $this->dbhm, $memberid);
+        assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $member->addMembership($this->gid, User::ROLE_MEMBER);
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $member->addEmail($email);
+
+        $modid = $u->create('Test','User', 'Test User');
+        $mod = User::get($this->dbhr, $this->dbhm, $modid);
+        assertGreaterThan(0, $mod->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $mod->addMembership($this->gid, User::ROLE_MODERATOR);
+
+        $this->log("Created member $memberid and mod $modid");
+
+        # Submit a message from the member, who will be moderated as new members are.
+        assertTrue($member->login('testpw'));
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'groupid' => $this->gid,
+            'textbody' => 'Text body'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $mid = $ret['id'];
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'JoinAndPost',
+            'ignoregroupoverride' => true,
+            'email' => $email
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        # Not given consent.
+        $_SESSION['id'] = NULL;
+        $_SESSION['partner'] = NULL;
+        $GLOBALS['sessionPrepared'] = FALSE;
+        $ret = $this->call('message', 'PATCH', [
+            'id' => $mid,
+            'subject' => 'Test edit',
+            'partner' => $key
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $mid,
+            'partner' => $key
+        ]);
+
+        # Lat/lng  blurred.
+        assertEquals(8.534, $ret['message']['lat']);
+        assertEquals(179.216, $ret['message']['lng']);
+        assertFalse(array_key_exists('location', $ret['message']));
+
+        # Give consent
+        assertTrue($member->login('testpw'));
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'PartnerConsent',
+            'partner' => 'UT'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Still shouldn't have write access.
+        $_SESSION['id'] = NULL;
+        $_SESSION['partner'] = NULL;
+        $GLOBALS['sessionPrepared'] = FALSE;
+        $ret = $this->call('message', 'PATCH', [
+            'id' => $mid,
+            'subject' => 'Test edit',
+            'partner' => $key
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $mid,
+            'partner' => $key
+        ]);
+
+        # Lat/lng not blurred.
+        assertEquals(8.53333, $ret['message']['lat']);
+        assertEquals(179.2167, $ret['message']['lng']);
+        assertEquals('TV1 1AA', $ret['message']['location']['name']);
+    }
+
     public function testMove() {
         $group1 = $this->group->create('testgroup1', Group::GROUP_REUSE);
         $group2 = $this->group->create('testgroup2', Group::GROUP_REUSE);

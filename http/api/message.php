@@ -304,7 +304,7 @@ function message() {
                           $location, 
                           $attachments, 
                          TRUE, 
-                         ($partner || $me->isApprovedMember($groupid)) ? $groupid : NULL);
+                         ($partner || ($me && $me->isApprovedMember($groupid))) ? $groupid : NULL);
                         
                         $ret = $rc ? $ret : ['ret' => 2, 'status' => 'Edit failed'];
                         
@@ -657,6 +657,18 @@ function message() {
                         if ($role === User::ROLE_OWNER || $role === User::ROLE_MODERATOR) {
                             $m->approveEdit($editid);
                             $ret = ['ret' => 0, 'status' => 'Success' ];
+                        }
+                        break;
+                    case 'PartnerConsent':
+                        $partner = Utils::presdef('partner', $_REQUEST, NULL);
+                        $ret = ['ret' => 5, 'status' => 'Invalid parameters' ];
+
+                        $role = $m->getRoleForMessage()[0];
+
+                        if ($partner && ($role === User::ROLE_OWNER || $role === User::ROLE_MODERATOR)) {
+                            if ($m->partnerConsent($partner)) {
+                                $ret = ['ret' => 0, 'status' => 'Success' ];
+                            }
                         }
                         break;
                 }
