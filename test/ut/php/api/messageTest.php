@@ -2786,6 +2786,7 @@ class messageAPITest extends IznikAPITestCase
         $member->addMembership($this->gid, User::ROLE_MEMBER);
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
         $member->addEmail($email);
+        $member->addEmail('test@test.com');
 
         $modid = $u->create('Test','User', 'Test User');
         $mod = User::get($this->dbhr, $this->dbhm, $modid);
@@ -2838,6 +2839,8 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(8.534, $ret['message']['lat']);
         assertEquals(179.216, $ret['message']['lng']);
         assertFalse(array_key_exists('location', $ret['message']));
+        assertEquals(1, count($ret['message']['fromuser']['emails']));
+        assertEquals($email, $ret['message']['fromuser']['emails'][0]['email']);
 
         # Give consent
         assertTrue($member->login('testpw'));

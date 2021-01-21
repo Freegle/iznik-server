@@ -58,7 +58,6 @@ class Session {
             $_SESSION['partner'] = FALSE;
 
             if (Utils::pres('partner', $_REQUEST)) {
-                error_log("Prepare partner session");
                 list ($partner, $domain) = Session::partner($dbhr, $_REQUEST['partner']);
                 $_SESSION['partner'] = $partner;
                 $_SESSION['partnerdomain'] = $domain;

@@ -635,7 +635,7 @@ class Message
                 # Partners always get at least member rights.
                 $role = User::ROLE_MEMBER;
 
-                if (strpos($msg['fromaddr'], '@' . $_SESSION['partnerdomain']) !== FALSE) {
+                if (Utils::pres('partnerdomain', $_SESSION) && strpos($msg['fromaddr'], '@' . $_SESSION['partnerdomain']) !== FALSE) {
                     # It's from the partner domain, so they have full access.
                     $role = User::ROLE_OWNER;
                 }
