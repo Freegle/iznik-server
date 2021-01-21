@@ -35,6 +35,7 @@ class Spam {
     CONST REASON_KNOWN_KEYWORD = 'Known spam keyword';
     CONST REASON_DBL = 'URL on DBL';
     CONST REASON_BULK_VOLUNTEER_MAIL = 'BulkVolunteerMail';
+    CONST REASON_USED_OUR_DOMAIN = 'UsedOurDonain';
 
     const ACTION_SPAM = 'Spam';
     const ACTION_REVIEW = 'Review';
@@ -402,12 +403,18 @@ class Spam {
 
                         if (array_key_exists($url, $checked)) {
                             # We do this part for performance and part because we've seen hangs in dns_get_record
-                            # when checking Spamhaus repeatedly in UT.g
+                            # when checking Spamhaus repeatedly in UT.
                             $ret = $checked[$url];
                         }
 
                         if (Mail::checkSpamhaus("http://$url")) {
-                            $ret = array(true, Spam::REASON_DBL, "Blacklisted url $url");
+                            $ret = [ TRUE, Spam::REASON_DBL, "Blacklisted url $url" ];
+                            $checked[$url] = $ret;
+                        }
+
+                        if (preg_match('/.+' . GROUP_DOMAIN . '/', $url) || preg_match('/.+' . USER_DOMAIN . '/', $url)) {
+                            # A domain which embeds one of ours in an attempt to fool us into thinking it is legit.
+                            $ret = [ TRUE, Spam::REASON_USED_OUR_DOMAIN, "Used our domain inside $url" ] ;
                             $checked[$url] = $ret;
                         }
                     }
