@@ -6267,7 +6267,7 @@ memberships.groupid IN $groupq
         $twig = new \Twig_Environment($loader);
         $email = $this->getEmailPreferred();
 
-        $tn = strpos($email, 'user.trashnothing.com') !== FALSE ? 'tn=1' : '';
+        $tn = strpos($email, 'user.trashnothing.com') !== FALSE ? '&tn=1' : '';
         $url = $this->loginLink(USER_SITE, $this->id, "/covidchecklist?msgid=$msgid$tn", NULL, TRUE);
 
         $html = $twig->render('covid.html', [
