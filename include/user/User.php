@@ -1976,8 +1976,6 @@ class User extends Entity
 
             if (Session::modtools()) {
                 # We have some extra attributes.
-                $atts[] = 'suspectcount';
-                $atts[] = 'suspectreason';
                 $atts[] = 'deleted';
                 $atts[] = 'lastaccess';
             }
@@ -2133,61 +2131,6 @@ class User extends Entity
             foreach ($modmails as $modmail) {
                 if ($modmail['userid'] == $ret['id']) {
                     $rets[$userid]['modmails'] = $modmail['count'] ? $modmail['count'] : 0;
-                }
-            }
-        }
-    }
-
-    public function getPublicSuspect(&$rets, $me, $systemrole, $freeglemod) {
-        foreach ($rets as &$ret) {
-            if ($ret['suspectcount'] > 0) {
-                # This user is flagged as suspicious.  The memberships are visible iff the currently logged in user
-                # - has a system role which allows it
-                # - is a mod on a group which this user is also on.
-                #
-                # This is rare so we don't need to optimise DB ops.
-                $visible = $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT;
-                $memberof = [];
-
-                # Check the groups.  The collection that's relevant here is the Yahoo one if present; this is to handle
-                # the case where you have two emails and one is approved and the other pending.
-                $sql = "SELECT memberships.*, memberships.collection AS coll, groups.onhere, groups.nameshort, groups.namefull, groups.type FROM memberships INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
-                $groups = $this->dbhr->preQuery($sql, [$this->id]);
-
-                foreach ($groups as $group) {
-                    $role = $me ? $me->getRoleForGroup($group['groupid']) : User::ROLE_NONMEMBER;
-                    $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
-
-                    $thisone = [
-                        'id' => $group['groupid'],
-                        'membershipid' => $group['id'],
-                        'namedisplay' => $name,
-                        'nameshort' => $group['nameshort'],
-                        'added' => Utils::ISODate($group['added']),
-                        'collection' => $group['coll'],
-                        'role' => $group['role'],
-                        'emailfrequency' => $group['emailfrequency'],
-                        'eventsallowed' => $group['eventsallowed'],
-                        'volunteeringallowed' => $group['volunteeringallowed'],
-                        'ourPostingStatus' => $group['ourPostingStatus'],
-                        'type' => $group['type'],
-                        'onhere' => $group['onhere']
-                    ];
-
-                    $memberof[] = $thisone;
-
-                    # We can see this membership if we're a mod on the group, or we're a mod on a Freegle group
-                    # and this is one.
-                    if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR ||
-                        ($group['type'] == Group::GROUP_FREEGLE && $freeglemod)) {
-                        $visible = TRUE;
-                    }
-                }
-
-                if ($visible) {
-                    $ret['suspectcount'] = $ret['suspectcount'];
-                    $ret['suspectreason'] = $ret['suspectreason'];
-                    $ret['memberof'] = $memberof;
                 }
             }
         }
@@ -2632,7 +2575,6 @@ class User extends Entity
         }
 
         if (Session::modtools()) {
-            $this->getPublicSuspect($rets, $me, $systemrole, $freeglemod);
             $this->getPublicMemberOf($rets, $me, $freeglemod, $memberof, $systemrole);
             $this->getPublicApplied($rets, $me, $freeglemod, $applied, $systemrole);
             $this->getPublicSpammer($rets, $me, $systemrole);
@@ -6295,5 +6237,20 @@ memberships.groupid IN $groupq
         Mail::addHeaders($message, Mail::COVID_CHECKLIST, $this->getId());
 
         $this->sendIt($mailer, $message);
+    }
+
+    public function memberReview($groupid, $request, $reason) {
+        $mysqltime = date('Y-m-d H:i');
+
+        if ($request) {
+            # Requesting review.
+            $this->setMembershipAtt($groupid, 'reviewreason', $reason);
+            $this->setMembershipAtt($groupid, 'reviewrequestedat', $mysqltime);
+            $this->setMembershipAtt($groupid, 'reviewedat', NULL);
+        } else {
+            # We have reviewed.  Note that they might have been removed, in which case the set will do nothing.
+            $this->setMembershipAtt($groupid, 'reviewrequestedat', NULL);
+            $this->setMembershipAtt($groupid, 'reviewedat', $mysqltime);
+        }
     }
 }

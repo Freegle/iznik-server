@@ -218,9 +218,8 @@ function user() {
             }
 
             if ($u && $me && ($me->isModOrOwner($groupid) || $me->isAdminOrSupport())) {
-                if ($suspectcount !== NULL) {
-                    $u->setPrivate('suspectcount', $suspectcount);
-                    $u->setPrivate('suspectreason', $suspectreason);
+                if ($suspectcount !== NULL && $groupid) {
+                    $u->memberReview($groupid, $suspectcount, $suspectreason);
                 }
 
                 if ($ourPostingStatus) {

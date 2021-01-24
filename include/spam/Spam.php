@@ -544,11 +544,13 @@ class Spam {
                 'text' => $reason
             ]);
 
-            $this->dbhm->preExec("UPDATE users SET suspectcount = suspectcount + 1, suspectreason = ?, suspectdate = NOW() WHERE id = ?;",
-                [
-                    $reason,
-                    $userid
-                ]);
+            $u = User::get($this->dbhr, $this->dbhm, $userid);
+            $memberships = $u->getMemberships();
+
+            foreach ($memberships as $membership) {
+                $u->memberReview($membership['id'], TRUE, $reason);
+            }
+
             User::clearCache($userid);
         }
 

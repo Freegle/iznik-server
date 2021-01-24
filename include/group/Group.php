@@ -335,8 +335,7 @@ class Group extends Entity
 
             $spammembercounts = $this->dbhr->preQuery(
                 "SELECT memberships.groupid, COUNT(*) AS count, heldby IS NOT NULL AS held FROM memberships
-INNER JOIN users ON users.id = memberships.userid AND suspectcount > 0
-WHERE groupid IN $groupq
+WHERE reviewrequestedat IS NOT NULL AND groupid IN $groupq
 GROUP BY memberships.groupid, held
 UNION
 SELECT memberships.groupid, COUNT(*) AS count, memberships.heldby IS NOT NULL AS held FROM memberships
@@ -632,12 +631,11 @@ memberships.groupid IN $groupq
 
         if (!$searchid) {
             if ($collection == MembershipCollection::SPAM) {
-                # This collection is handled separately; we use the suspectcount field.
+                # This collection is handled separately; we use the reviewrequestedat  field.
                 #
                 # This is to avoid moving members into a spam collection and then having to remember whether they
                 # came from Pending or Approved.
-                $collectionq = " AND suspectcount > 0";
-                $uq = $uq ? $uq : ' INNER JOIN users ON users.id = memberships.userid ';
+                $collectionq = " AND reviewrequestedat IS NOT NULL";
             } else if ($collection) {
                 $collectionq = ' AND memberships.collection = ' . $this->dbhr->quote($collection) . ' ';
             }
