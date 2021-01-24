@@ -2190,7 +2190,10 @@ class User extends Entity
                             'volunteeringallowed' => $group['volunteeringallowed'],
                             'ourpostingstatus' => $group['ourPostingStatus'],
                             'type' => $group['type'],
-                            'onhere' => $group['onhere']
+                            'onhere' => $group['onhere'],
+                            'reviewrequestedat' => $group['reviewrequestedat'] ? Utils::ISODate($group['reviewrequestedat']) : NULL,
+                            'reviewreason' => $group['reviewreason'],
+                            'reviewedat' => $group['reviewedat'] ? Utils::ISODate($group['reviewedat']) : NULL,
                         ];
 
                         if ($group['lat'] && $group['lng']) {
