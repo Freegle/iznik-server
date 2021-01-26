@@ -90,6 +90,11 @@ function group() {
                         $ret['group']['polygon'] = $ret['group']['dpa'] ? $ret['group']['dpa'] : $ret['group']['cga'];
                     }
 
+                    if (Utils::presdef('tnkey', $_REQUEST, FALSE) && $me && $me->isModerator()) {
+                        # Get the link that we could use to access TN settings.
+                        $ret['group']['tnkey'] = json_decode(file_get_contents('https://trashnothing.com/modtools/api/group-settings-url?key=' . TNKEY . '&moderator_email=' . urlencode($me->getEmailPreferred()) . '&group_id=' . urlencode($ret['group']['nameshort'])), TRUE);
+                    }
+
                     if (Utils::presdef('sponsors', $_REQUEST, FALSE)) {
                         $ret['group']['sponsors'] = $g->getSponsorships();
                     }
