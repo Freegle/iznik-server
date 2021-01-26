@@ -126,52 +126,52 @@ if (count($opts) < 1) {
         $sheet->setCellValue('D8', $months[2]['formatted']);
         
         $op .= sprintf("Membership, %d, %d, %d, %d\n", $months[0][Stats::APPROVED_MEMBER_COUNT], $months[1][Stats::APPROVED_MEMBER_COUNT], $months[2][Stats::APPROVED_MEMBER_COUNT], $months[2][Stats::APPROVED_MEMBER_COUNT]);
-        $sheet->setCellValue('B10', $months[0][Stats::APPROVED_MEMBER_COUNT]);
-        $sheet->setCellValue('C10', $months[1][Stats::APPROVED_MEMBER_COUNT]);
-        $sheet->setCellValue('D10', $months[2][Stats::APPROVED_MEMBER_COUNT]);
-        $sheet->setCellValue('E10', $months[2][Stats::APPROVED_MEMBER_COUNT]);
+        $sheet->setCellValue('B9', $months[0][Stats::APPROVED_MEMBER_COUNT]);
+        $sheet->setCellValue('C9', $months[1][Stats::APPROVED_MEMBER_COUNT]);
+        $sheet->setCellValue('D9', $months[2][Stats::APPROVED_MEMBER_COUNT]);
+        $sheet->setCellValue('E9', $months[2][Stats::APPROVED_MEMBER_COUNT]);
 
         $op .= sprintf("Kgs reused, %d, %d, %d, %d\n", $months[0][Stats::WEIGHT], $months[1][Stats::WEIGHT], $months[2][Stats::WEIGHT], $months[0][Stats::WEIGHT] + $months[1][Stats::WEIGHT] + $months[2][Stats::WEIGHT]);
-        $sheet->setCellValue('B11', $months[0][Stats::WEIGHT]);
-        $sheet->setCellValue('C11', $months[1][Stats::WEIGHT]);
-        $sheet->setCellValue('D11', $months[2][Stats::WEIGHT]);
-        $sheet->setCellValue('E11', $months[0][Stats::WEIGHT] + $months[1][Stats::WEIGHT] + $months[2][Stats::WEIGHT]);
+        $sheet->setCellValue('B10', $months[0][Stats::WEIGHT]);
+        $sheet->setCellValue('C10', $months[1][Stats::WEIGHT]);
+        $sheet->setCellValue('D10', $months[2][Stats::WEIGHT]);
+        $sheet->setCellValue('E10', $months[0][Stats::WEIGHT] + $months[1][Stats::WEIGHT] + $months[2][Stats::WEIGHT]);
         
         $op .= sprintf("CO2 saved (tonnes), %d, %d, %d, %d\n", round($months[0][Stats::WEIGHT] * 0.51 / 100) / 10, round($months[1][Stats::WEIGHT] * 0.51 / 100) / 10, round($months[2][Stats::WEIGHT] * 0.51 / 100) / 10, round(($months[0][Stats::WEIGHT] + $months[1][Stats::WEIGHT] + $months[2][Stats::WEIGHT]) * 0.51 / 100) / 10);
-        $sheet->setCellValue('B12', round($months[0][Stats::WEIGHT] * 0.51 / 100) / 10);
-        $sheet->setCellValue('C12', round($months[1][Stats::WEIGHT] * 0.51 / 100) / 10);
-        $sheet->setCellValue('D12', round($months[2][Stats::WEIGHT] * 0.51 / 100) / 10);
-        $sheet->setCellValue('E12', round(($months[0][Stats::WEIGHT] + $months[1][Stats::WEIGHT] + $months[2][Stats::WEIGHT]) * 0.51 / 100) / 10);
+        $sheet->setCellValue('B11', round($months[0][Stats::WEIGHT] * 0.51 / 100) / 10);
+        $sheet->setCellValue('C11', round($months[1][Stats::WEIGHT] * 0.51 / 100) / 10);
+        $sheet->setCellValue('D11', round($months[2][Stats::WEIGHT] * 0.51 / 100) / 10);
+        $sheet->setCellValue('E11', round(($months[0][Stats::WEIGHT] + $months[1][Stats::WEIGHT] + $months[2][Stats::WEIGHT]) * 0.51 / 100) / 10);
         
         $op .= sprintf("Benefit (GBP), %d, %d, %d, %d\n", round($months[0][Stats::WEIGHT] * 711 / 100) / 10, round($months[1][Stats::WEIGHT] * 711 / 100) / 10, round($months[2][Stats::WEIGHT] * 711 / 100) / 10, round(($months[0][Stats::WEIGHT] + $months[1][Stats::WEIGHT] + $months[2][Stats::WEIGHT]) * 711 / 100) / 10);
-        $sheet->setCellValue('B13', round($months[0][Stats::WEIGHT] * 711 / 100) / 10);
-        $sheet->setCellValue('C13', round($months[1][Stats::WEIGHT] * 711 / 100) / 10);
-        $sheet->setCellValue('D13', round($months[2][Stats::WEIGHT] * 711 / 100) / 10);
-        $sheet->setCellValue('E13', round(($months[0][Stats::WEIGHT] + $months[1][Stats::WEIGHT] + $months[2][Stats::WEIGHT]) * 711 / 100) / 10);
+        $sheet->setCellValue('B12', round($months[0][Stats::WEIGHT] * 711 / 100) / 10);
+        $sheet->setCellValue('C12', round($months[1][Stats::WEIGHT] * 711 / 100) / 10);
+        $sheet->setCellValue('D12', round($months[2][Stats::WEIGHT] * 711 / 100) / 10);
+        $sheet->setCellValue('E12', round(($months[0][Stats::WEIGHT] + $months[1][Stats::WEIGHT] + $months[2][Stats::WEIGHT]) * 711 / 100) / 10);
 
         $op .= sprintf("Number of gifts made, %d, %d, %d, %d\n", $months[0][Stats::OUTCOMES], $months[1][Stats::OUTCOMES], $months[2][Stats::OUTCOMES], $months[0][Stats::OUTCOMES] + $months[1][Stats::OUTCOMES] + $months[2][Stats::OUTCOMES]);
-        $sheet->setCellValue('B14', round($months[0][Stats::OUTCOMES]));
-        $sheet->setCellValue('C14', round($months[1][Stats::OUTCOMES]));
-        $sheet->setCellValue('D14', round($months[2][Stats::OUTCOMES]));
-        $sheet->setCellValue('E14', round($months[0][Stats::OUTCOMES] + $months[1][Stats::OUTCOMES] + $months[2][Stats::OUTCOMES]));
+        $sheet->setCellValue('B13', round($months[0][Stats::OUTCOMES]));
+        $sheet->setCellValue('C13', round($months[1][Stats::OUTCOMES]));
+        $sheet->setCellValue('D13', round($months[2][Stats::OUTCOMES]));
+        $sheet->setCellValue('E13', round($months[0][Stats::OUTCOMES] + $months[1][Stats::OUTCOMES] + $months[2][Stats::OUTCOMES]));
 
-        $sheet->setCellValue('B19', $months[0]['formatted']);
-        $sheet->setCellValue('C19', $months[1]['formatted']);
-        $sheet->setCellValue('D19', $months[2]['formatted']);
-        $sheet->setCellValue('F19', $months[0]['formatted']);
-        $sheet->setCellValue('G19', $months[1]['formatted']);
-        $sheet->setCellValue('H19', $months[2]['formatted']);
-        $sheet->setCellValue('J19', $months[0]['formatted']);
-        $sheet->setCellValue('K19', $months[1]['formatted']);
-        $sheet->setCellValue('L19', $months[2]['formatted']);
-        $sheet->setCellValue('N19', $months[0]['formatted']);
-        $sheet->setCellValue('O19', $months[1]['formatted']);
-        $sheet->setCellValue('P19', $months[2]['formatted']);
-        $sheet->setCellValue('R19', $months[0]['formatted']);
-        $sheet->setCellValue('S19', $months[1]['formatted']);
-        $sheet->setCellValue('T19', $months[2]['formatted']);
+        $sheet->setCellValue('B18', $months[0]['formatted']);
+        $sheet->setCellValue('C18', $months[1]['formatted']);
+        $sheet->setCellValue('D18', $months[2]['formatted']);
+        $sheet->setCellValue('F18', $months[0]['formatted']);
+        $sheet->setCellValue('G18', $months[1]['formatted']);
+        $sheet->setCellValue('H18', $months[2]['formatted']);
+        $sheet->setCellValue('J18', $months[0]['formatted']);
+        $sheet->setCellValue('K18', $months[1]['formatted']);
+        $sheet->setCellValue('L18', $months[2]['formatted']);
+        $sheet->setCellValue('N18', $months[0]['formatted']);
+        $sheet->setCellValue('O18', $months[1]['formatted']);
+        $sheet->setCellValue('P18', $months[2]['formatted']);
+        $sheet->setCellValue('R18', $months[0]['formatted']);
+        $sheet->setCellValue('S18', $months[1]['formatted']);
+        $sheet->setCellValue('T18', $months[2]['formatted']);
 
-        $grouprow = 20;
+        $grouprow = 19;
 
         $links = [];
         
@@ -249,14 +249,12 @@ if (count($opts) < 1) {
             }
         }
 
-        error_log($op);
-
         # Get shortlinks.
         usort($links, function ($a, $b) {
             return (strcmp(strtolower($a['name']), strtolower($b['name'])));
         });
 
-        $shortlinkrow = $grouprow + 5;
+        $shortlinkrow = $grouprow + 6;
 
         $sheet->setCellValue("B$shortlinkrow", $months[0]['formatted']);
         $sheet->setCellValue("C$shortlinkrow", $months[1]['formatted']);
@@ -269,6 +267,7 @@ if (count($opts) < 1) {
             $sheet->setCellValue("B$shortlinkrow", $link['clicks'][0]);
             $sheet->setCellValue("C$shortlinkrow", $link['clicks'][1]);
             $sheet->setCellValue("D$shortlinkrow", $link['clicks'][2]);
+            $sheet->setCellValue("E$shortlinkrow", $link['clicks'][0] + $link['clicks'][1] + $link['clicks'][2]);
 
             $shortlinkrow++;
             $sheet->insertNewRowBefore($shortlinkrow, 1);
