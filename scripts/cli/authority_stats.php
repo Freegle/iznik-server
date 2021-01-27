@@ -63,7 +63,6 @@ if (count($opts) < 1) {
 
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setCellValue('A1', "Freegle in " . $atts['name']);
-        $sheet->setCellValue('A9', $atts['name']);
 
         # In the web we exclude groups which don't have > 1 kg per month on average.  Duplicate that logic here
         # so that the values match.
@@ -254,13 +253,14 @@ if (count($opts) < 1) {
             return (strcmp(strtolower($a['name']), strtolower($b['name'])));
         });
 
-        $shortlinkrow = $grouprow + 6;
+        $sheet->removeRow($grouprow);
+        $shortlinkrow = $grouprow + 4;
 
         $sheet->setCellValue("B$shortlinkrow", $months[0]['formatted']);
         $sheet->setCellValue("C$shortlinkrow", $months[1]['formatted']);
         $sheet->setCellValue("D$shortlinkrow", $months[2]['formatted']);
 
-        $shortlinkrow += 5;
+        $shortlinkrow++;
 
         foreach ($links as $link) {
             $sheet->setCellValue("A$shortlinkrow", $link['name']);
@@ -273,6 +273,7 @@ if (count($opts) < 1) {
             $sheet->insertNewRowBefore($shortlinkrow, 1);
         }
 
+        $sheet->removeRow($shortlinkrow);
         $sheet->setCellValue("A" . ($shortlinkrow + 1), "All data correct at " . date('d/m/Y'));
 
         # Write the output XLSX.
