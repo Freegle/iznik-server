@@ -3866,29 +3866,31 @@ ORDER BY lastdate DESC;";
         }
 
         if (count($itemids)) {
-            # Add any items which we have been told are related.
-            $itemq = implode(',', $itemids);
-            $sql = "SELECT item2 AS item, COUNT(*) AS count FROM `microactions` WHERE `item1` IN ($itemq) HAVING count > 2 UNION
+            if (!$exactonly) {
+                # Add any items which we have been told are related.
+                $itemq = implode(',', $itemids);
+                $sql = "SELECT item2 AS item, COUNT(*) AS count FROM `microactions` WHERE `item1` IN ($itemq) HAVING count > 2 UNION
             SELECT item1 AS item, COUNT(*) AS count FROM `microactions` WHERE `item2` IN ($itemq) HAVING count > 2 ORDER BY count DESC;";
-            #error_log("Look for similar $sql");
-            $related = $this->dbhr->preQuery($sql);
+                #error_log("Look for similar $sql");
+                $related = $this->dbhr->preQuery($sql);
 
-            foreach ($related as $related) {
-                if (!array_key_exists($related['item'], $itemids)) {
-                    $itemids[$related['item']] = $related['item'];
-                    $thisone = [
-                        'item' => $related['item'],
-                        'count' => $related['count'],
-                    ];
+                foreach ($related as $related) {
+                    if (!array_key_exists($related['item'], $itemids)) {
+                        $itemids[$related['item']] = $related['item'];
+                        $thisone = [
+                            'item' => $related['item'],
+                            'count' => $related['count'],
+                        ];
 
-                    foreach ($matches as $match) {
-                        if ($match['id'] == $related['item']) {
-                            $thisone['matchedon'] = $match['matchedon'];
-                            $thisone['matchedon']['type'] = 'Related';
+                        foreach ($matches as $match) {
+                            if ($match['id'] == $related['item']) {
+                                $thisone['matchedon'] = $match['matchedon'];
+                                $thisone['matchedon']['type'] = 'Related';
+                            }
                         }
-                    }
 
-                    $items[] = $thisone;
+                        $items[] = $thisone;
+                    }
                 }
             }
 
