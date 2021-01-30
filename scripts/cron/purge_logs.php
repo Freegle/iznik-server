@@ -13,10 +13,6 @@ global $dbhr, $dbhm, $dbconfig;
 
 $lockh = Utils::lockScript(basename(__FILE__));
 
-# Bypass our usual DB class as we don't want the overhead nor to log.
-$dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
-$dbhm = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass']);
-
 # Don't keep user deletion logs indefinitely - this may be useful for a while for diagnosis, but not long term.
 error_log("Purge user deletion logs");
 
