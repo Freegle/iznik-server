@@ -1,2 +1,6 @@
 #!/bin/bash
-php /var/www/iznik/scripts/incoming/bounce.php >> /tmp/iznik_bounce.out 2>&1
+if [[ "$RECIPIENT" == *"readreceipt-"* ]]; then
+    php /var/www/iznik/scripts/incoming/incoming.php >> /tmp/iznik_incoming.out 2>&1
+else
+    php /var/www/iznik/scripts/incoming/bounce.php >> /tmp/iznik_bounce.out 2>&1
+fi
