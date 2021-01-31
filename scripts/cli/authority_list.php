@@ -22,7 +22,7 @@ $kml = "<?xml version='1.0' encoding='UTF-8'?>
             <name>Authorities</name>";
 
 foreach ($authoritys as $authority) {
-    $geom = geoPHP::load($authority['polygon'], 'wkt');
+    $geom = \geoPHP::load($authority['polygon'], 'wkt');
     $kml .= "<Placemark><name>{$authority['name']}</name>" . $geom->out('kml') . "</Placemark>\r\n";
 }
 
