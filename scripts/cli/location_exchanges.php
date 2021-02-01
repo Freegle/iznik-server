@@ -28,54 +28,110 @@ if (count($opts) != 2) {
         $clng = $centre->x();
         error_log("Centre is at $clat, $clng");
 
-        # Find the locations of all offerers or wanters within the polygon.
-        $sql = "SELECT visualise.*, messages.type FROM visualise INNER JOIN messages ON messages.id = visualise.msgid WHERE ST_CONTAINS(GeomFromText(?), POINT(fromlng, fromlat));";
-        $points = $dbhr->preQuery($sql, [
+        # Find the groups which overlap this area.
+        $groups = $dbhr->preQuery("SELECT id FROM groups WHERE ST_Intersects(polyindex, GeomFromText(?));", [
             $polygon
         ]);
-        error_log("Found " . count($points) . " active in area");
 
-        # Find the other parties that they dealt with.
-        $others = [];
-        foreach ($points as $p) {
-            $otheru = User::get($dbhr, $dbhm, $p['touser']);
-            list ($tlat, $tlng, $loc) = $otheru->getLatLng(FALSE, FALSE, NULL);
+        error_log("Found " . count($groups) . " group intersecting with this area");
 
-            if ($tlat || $tlng) {
-                $others[] = [ $tlat, $tlng ];
+        if (count($groups)) {
+            $groupids = array_column($groups, 'id');
+        } else {
+            # TODO choose closest group.
+            error_log("Area not within a group");
+            $groupids = [];
+        }
+
+        if (count($groupids)) {
+            # Find the members of those groups who are within the area.
+            $members = $dbhr->preQuery("SELECT DISTINCT(userid) FROM memberships WHERE groupid IN (" . implode(',', $groupids) . ")");
+            error_log("Found " . count($members) . " possible freeglers in the area");
+
+            $freeglers = [];
+
+            foreach ($members as $member) {
+                $u = User::get($dbhr, $dbhm, $member['userid']);
+                list ($lat, $lng, $loc) = $u->getLatLng(FALSE, FALSE, NULL);
+
+                if (($lat || $lng)) {
+                    # See if it's inside.
+                    $g = new \geoPHP();
+                    $pstr = "POINT($lng $lat)";
+                    $point = $g::load($pstr, 'wkt');
+                    if ($point->within($geom)) {
+                        $freeglers[] = $member['userid'];
+                    }
+                }
             }
+
+            error_log("Found " . count($freeglers) . " actually in the area");
+
+            # Now find the locations of messages these freeglers replied to.
+            $locs = [];
+
+            foreach ($freeglers as $freegler) {
+                $replies = $dbhr->preQuery("SELECT lat, lng FROM messages INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id WHERE chat_messages.userid = ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL", [
+                    $freegler
+                ]);
+
+                foreach ($replies as $reply) {
+                    $locs[] = [ $reply['lat'], $reply['lng'] ];
+                }
+            }
+
+            # Sort those in ascending order of distance from the centre.
+            usort($locs, function($a, $b) use ($clat, $clng, $dbhr, $dbhm) {
+                $c = new POI($clat, $clng);
+
+                $pa = new POI($a[0], $a[1]);
+                $adist = $pa->getDistanceInMetersTo($c);
+                $pb = new POI($b[0], $b[1]);
+                $bdist = $pb->getDistanceInMetersTo($c);
+
+                return ($adist - $bdist);
+            });
+
+            # Now find how far up the array we need to go to match the percentage.
+            $upto = round(count($locs) * $threshold / 100);
+
+            # Now create the convex hull for that set.
+            $g = new \geoPHP();
+            $points = [];
+
+            for ($i = 0; $i < $upto; $i++) {
+                $pstr = "POINT({$locs[$i][1]} {$locs[$i][0]})";
+                $points[] = $g::load($pstr);
+            }
+
+            $mp = new \MultiPoint($points);
+            $hull = $mp->convexHull();
+            $geom = $hull->asText();
+            error_log("Organic area $geom");
         }
 
-        error_log("Found " . count($others) . " people they dealt with");
-
-        # Sort those in ascending order of distance from the centre.
-        usort($others, function($a, $b) use ($clat, $clng, $dbhr, $dbhm) {
-            $c = new POI($clat, $clng);
-
-            $pa = new POI($a[0], $a[1]);
-            $adist = $pa->getDistanceInMetersTo($c);
-            $pb = new POI($b[0], $b[1]);
-            $bdist = $pb->getDistanceInMetersTo($c);
-
-            return ($adist - $bdist);
-        });
-
-        # Now find how far up the array we need to go to match the percentage.
-        $upto = round(count($others) * $threshold / 100);
-
-        # Now create the convex hull for that set.
-        $g = new \geoPHP();
-        $points = [];
-
-        for ($i = 0; $i < $upto; $i++) {
-            $pstr = "POINT({$others[$i][1]} {$others[$i][0]})";
-            $points[] = $g::load($pstr);
-        }
-
-        $mp = new \MultiPoint($points);
-        $hull = $mp->convexHull();
-        $geom = $hull->asText();
-        error_log("Hull $geom");
+//        # Find the messages within the polygon.
+//        $sql = "SELECT id FROM messages WHERE ST_CONTAINS(GeomFromText(?), POINT(lng, lat));";
+//        $points = $dbhr->preQuery($sql, [
+//            $polygon
+//        ]);
+//        error_log("Found " . count($points) . " messages in area");
+//
+//        # Find the people who replied.
+//        $others = [];
+//        foreach ($points as $p) {
+//            $replies = $dbhr->preQuery("SELECT userid FROM chat_messages WHERE regmsgid = ?", [
+//                $p['id']
+//            ]);
+//
+//            foreach ($replies as $reply) {
+//                $otheru = User::get($dbhr, $dbhm, $reply['userid']);
+//            }
+//        }
+//
+//        error_log("Found " . count($others) . " people who replied");
+//        $others = array_values($others);
+//
     }
 }
 
