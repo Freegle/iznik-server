@@ -33,7 +33,7 @@ class profileTest extends IznikAPITestCase {
         $uid = $u->findByEmail('edwardhibbert59@gmail.com');
 
         if (!$uid) {
-            $u->create('Test', 'User', 'Test User');
+            $uid = $u->create('Test', 'User', 'Test User');
             $u->addEmail('edwardhibbert59@gmail.com');
         }
 
@@ -44,7 +44,6 @@ class profileTest extends IznikAPITestCase {
 
         assertEquals(0, $ret['ret']);
         assertTrue(array_key_exists('url', $ret));
-
-        }
+    }
 }
 
