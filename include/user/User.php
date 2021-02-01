@@ -5663,7 +5663,7 @@ class User extends Entity
         if ($rater != $ratee) {
             # Can't rate yourself.
             if ($rating !== NULL) {
-                $this->dbhm->preExec("REPLACE INTO ratings (rater, ratee, rating) VALUES (?, ?, ?);", [
+                $this->dbhm->preExec("REPLACE INTO ratings (rater, ratee, rating, timestamp) VALUES (?, ?, ?, NOW());", [
                     $rater,
                     $ratee,
                     $rating
