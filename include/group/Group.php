@@ -794,7 +794,7 @@ memberships.groupid IN $groupq
         return($ret);
     }
 
-    public function getHappinessMembers($groupids, &$ctx, $filter = NULL) {
+    public function getHappinessMembers($groupids, &$ctx, $filter = NULL, $limit = 10) {
         $ret = [];
         $filterq = '';
 
@@ -831,7 +831,7 @@ INNER JOIN messages ON messages.id = messages_outcomes.msgid
 $ctxq
 $filterq
 AND messages_outcomes.comments IS NOT NULL
-ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messages_outcomes.id DESC LIMIT 10
+ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messages_outcomes.id DESC LIMIT $limit
 ";
         $members = $this->dbhr->preQuery($sql, []);
 
