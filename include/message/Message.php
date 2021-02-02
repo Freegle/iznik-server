@@ -4393,6 +4393,7 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
 
                                                 $completed = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/completed", User::SRC_REPOST_WARNING);
                                                 $withdraw = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/withdraw", User::SRC_REPOST_WARNING);
+                                                $promise = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/promise", User::SRC_REPOST_WARNING);
                                                 $othertype = $m->getType() == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
                                                 $text = "We will automatically repost your message $subj soon, so that more people will see it.  If you don't want us to do that, please go to $completed to mark as $othertype or $withdraw to withdraw it.";
                                                 $html = $twig->render('autorepost.html', [
@@ -4401,7 +4402,8 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                                                     'email' => $to,
                                                     'type' => $othertype,
                                                     'completed' => $completed,
-                                                    'withdraw' => $withdraw
+                                                    'withdraw' => $withdraw,
+                                                    'promise' => $promise
                                                 ]);
 
                                                 list ($transport, $mailer) = Mail::getMailer();
