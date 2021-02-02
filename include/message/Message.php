@@ -875,6 +875,9 @@ class Message
                 foreach ($this->ownerAtts as $att) {
                     $ret[$att] = Utils::presdef($att, $msg, NULL);
                 }
+
+                # Add in the hashed value of the ID which can be used to refer to LoveJunk.
+                $ret['lovejunkhash'] = defined('LOVEJUNK_SECRET') ? hash_hmac('sha256', $msg['id'], LOVEJUNK_SECRET, FALSE) : NULL;
             }
 
             $blur = TRUE;
