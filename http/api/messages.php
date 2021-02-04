@@ -100,6 +100,12 @@ function messages() {
                         }
 
                         list($groups, $msgs) = $c->get($ctx, $limit, $groups, $userids, Message::checkTypes($types), $age, $hasoutcome, $summary);
+                        $m = new Message($dbhr, $dbhm);
+
+                        foreach ($msgs as &$msg) {
+                            $m->checkLoveJunk($msg);
+                        }
+
                         break;
                     case 'mygroups': {
                         $groups = [];
