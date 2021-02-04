@@ -956,9 +956,9 @@ class Message
                 $this->loveJunkPoly = \geoPHP::load(self::LOVEJUNK_AREA, 'wkt');
             }
 
-            $point = \geoPHP::load("POINT({$ret['lng']} {$ret['lat']})");
+            $point = \geoPHP::load("POINT({$ret['lng']} {$ret['lat']})", 'wkt');
 
-            if ($point->within($this->loveJunkPoly)) {
+            if ($this->loveJunkPoly->contains($point)) {
                 # Add in the hashed value of the ID which can be used to refer to LoveJunk.
                 $ret['lovejunkhash'] = defined('LOVEJUNK_SECRET') ? hash_hmac('sha256', $ret['id'], LOVEJUNK_SECRET, FALSE) : NULL;
             }
