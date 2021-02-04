@@ -8,7 +8,7 @@ require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
-$users = $dbhr->preQuery("SELECT id FROM users WHERE systemrole IN (?,?,?);", [
+$users = $dbhr->preQuery("SELECT id FROM users WHERE systemrole IN (?,?,?) ORDER BY RAND();", [
     User::SYSTEMROLE_MODERATOR,
     User::SYSTEMROLE_SUPPORT,
     User::SYSTEMROLE_ADMIN
