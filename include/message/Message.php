@@ -5236,9 +5236,10 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
 
         foreach ($partners as $p) {
             $ret = TRUE;
-            $this->dbhm->preExec("INSERT INTO partners_messages (msgid, partnerid) VALUES (?, ?)", [
+            $this->dbhm->preExec("INSERT INTO partners_messages (msgid, partnerid) VALUES (?, ?) ON DUPLICATE KEY UPDATE msgid = ?", [
                 $this->id,
-                $p['id']
+                $p['id'],
+                $this->id
             ]);
         }
 
