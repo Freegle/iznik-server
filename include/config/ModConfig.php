@@ -8,11 +8,11 @@ class ModConfig extends Entity
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'name', 'createdby', 'fromname', 'ccrejectto', 'ccrejectaddr', 'ccfollowupto',
         'ccfollowupaddr', 'ccrejmembto', 'ccrejmembaddr', 'ccfollmembto', 'ccfollmembaddr', 'protected',
-        'messageorder', 'network', 'coloursubj', 'subjreg', 'subjlen', 'default');
+        'messageorder', 'network', 'coloursubj', 'subjreg', 'subjlen', 'default', 'chatread');
 
     var $settableatts = array('name', 'fromname', 'ccrejectto', 'ccrejectaddr', 'ccfollowupto',
         'ccfollowupaddr', 'ccrejmembto', 'ccrejmembaddr', 'ccfollmembto', 'ccfollmembaddr', 'protected',
-        'messageorder', 'network', 'coloursubj', 'subjreg', 'subjlen');
+        'messageorder', 'network', 'coloursubj', 'subjreg', 'subjlen', 'chatread');
 
     /** @var  $log Log */
     private $log;

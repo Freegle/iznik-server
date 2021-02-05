@@ -9,7 +9,7 @@ class StdMessage extends Entity
         'autosend', 'newmodstatus', 'newdelstatus', 'edittext', 'insert');
 
     var $settableatts = array('configid', 'title', 'action', 'subjpref', 'subjsuff', 'body', 'rarelyused',
-        'autosend', 'newmodstatus', 'newdelstatus', 'edittext', 'insert', 'chatunread');
+        'autosend', 'newmodstatus', 'newdelstatus', 'edittext', 'insert');
 
     /** @var  $log Log */
     private $log;

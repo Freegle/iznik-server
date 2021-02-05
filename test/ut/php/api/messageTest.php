@@ -556,6 +556,11 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(2, $ret['ret']);
 
+        # Create another mod.
+        $othermod = User::get($this->dbhr, $this->dbhm);
+        $othermoduid = $othermod->create(NULL, NULL, 'Test User');
+        $othermod->addMembership($this->gid, User::ROLE_MODERATOR);
+
         # Promote to owner - should be able to reject it.  Suppress the mail.
         $u->setRole(User::ROLE_OWNER, $this->gid);
 
@@ -563,6 +568,7 @@ class messageAPITest extends IznikAPITestCase
         $cid = $c->create('Test');
         $c->setPrivate('ccrejectto', 'Me');
         $c->setPrivate('fromname', 'Groupname Moderator');
+        $c->setPrivate('chatread', 1);
 
         $s = new StdMessage($this->dbhr, $this->dbhm);
         $sid = $s->create('Test', $cid);
@@ -578,6 +584,11 @@ class messageAPITest extends IznikAPITestCase
             'duplicate' => 1
         ]);
         assertEquals(0, $ret['ret']);
+
+        # Other mod should not see this as unread, since we're set to mark as read.
+        $cr = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $cr->createUser2Mod($senduser, $this->gid);
+        assertEquals(0, $cr->unseenCountForUser($othermoduid));
 
         $s->delete();
         $c->delete();
@@ -709,6 +720,7 @@ class messageAPITest extends IznikAPITestCase
             ->setMethods(array('sendOne'))
             ->getMock();
         $m->method('sendOne')->willReturn(false);
+        $senduser = $m->getFromUser();
 
         assertEquals(Message::TYPE_OTHER, $m->getType());
 
@@ -736,6 +748,11 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(2, $ret['ret']);
 
+        # Create another mod.
+        $othermod = User::get($this->dbhr, $this->dbhm);
+        $othermoduid = $othermod->create(NULL, NULL, 'Test User');
+        $othermod->addMembership($this->gid, User::ROLE_MODERATOR);
+
         # Promote to owner - should be able to reply.  Suppress the mail.
         $u->setRole(User::ROLE_OWNER, $this->gid);
 
@@ -759,6 +776,11 @@ class messageAPITest extends IznikAPITestCase
             'duplicate' => 1
         ]);
         assertEquals(0, $ret['ret']);
+
+        # Other mod should see this as unread, since we're not set to mark as read.
+        $cr = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $cr->createUser2Mod($senduser, $this->gid);
+        assertEquals(1, $cr->unseenCountForUser($othermoduid));
 
         $s->delete();
         $c->delete();

@@ -691,6 +691,57 @@ class membershipsAPITest extends IznikAPITestCase {
 
         assertTrue($found);
     }
+
+    public function unreadProvider() {
+        return([
+            [ TRUE ],
+            [ FALSE ]
+        ]);
+    }
+
+    /**
+     * @param $unread
+     * @dataProvider unreadProvider
+     */
+
+    public function testChatUnread($chatread) {
+        # Create two mods on the group
+        $this->user2->addMembership($this->groupid, User::ROLE_MODERATOR);
+        $othermod = User::get($this->dbhr, $this->dbhm);
+        $othermoduid = $othermod->create(NULL, NULL, 'Test User');
+        $othermod->addMembership($this->groupid, User::ROLE_MODERATOR);
+
+        # Create a ModConfig.
+        $c = new ModConfig($this->dbhr, $this->dbhm);
+        $cid = $c->create('Test');
+        $c->useOnGroup($this->uid2, $this->groupid);
+        error_log("Created config $cid");
+        $c->setPrivate('chatread', $chatread);
+
+        $s = new StdMessage($this->dbhr, $this->dbhm);
+        $sid = $s->create('Test', $cid);
+        $s = new StdMessage($this->dbhr, $this->dbhm, $sid);
+        $s->setPrivate('action', 'Leave Approved Member');
+
+        # Send them a mail.
+        $_SESSION['id'] = $this->uid2;
+
+        $ret = $this->call('memberships', 'POST', [
+            'stdmsgid' => $sid,
+            'userid' => $this->uid,
+            'groupid' => $this->groupid,
+            'subject' => 'Yo',
+            'body' => 'Dudette',
+            'action' => 'Leave Approved Member'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Sending mod should not see this as unread, but other mod depends on param.
+        $cr = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $cr->createUser2Mod($this->uid, $this->groupid);
+        assertEquals(0, $cr->unseenCountForUser($this->uid2));
+        assertEquals($chatread ? 0 : 1, $cr->unseenCountForUser($othermoduid));
+    }
 //
 //    public function testEH() {
 //        $_SESSION['id'] = 420;

@@ -2898,8 +2898,23 @@ ORDER BY lastdate DESC;";
                 $m->setPrivate('reviewrequired', 0);
 
                 # We, as a mod, have seen this message - update the roster to show that.  This avoids this message
-                # appearing as unread to us and other mods.
+                # appearing as unread to us.
                 $r->updateRoster($myid, $mid);
+
+                # Ensure that the other mods are present in the roster with the message seen/unseen depending on
+                # whether that's what we want.
+                $mods = $g->getMods();
+                foreach ($mods as $mod) {
+                    if ($mod != $myid) {
+                        if ($c->getPrivate('chatread')) {
+                            # We want to mark it as seen for all mods.
+                            $r->updateRoster($mod, $mid, ChatRoom::STATUS_AWAY);
+                        } else {
+                            # Leave it unseen, but make sure they're in the roster.
+                            $r->updateRoster($mod, NULL, ChatRoom::STATUS_AWAY);
+                        }
+                    }
+                }
             }
         }
     }
