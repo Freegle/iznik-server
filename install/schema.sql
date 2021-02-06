@@ -182,6 +182,7 @@ CREATE TABLE `abtest` (
   `action` bigint(20) unsigned NOT NULL,
   `rate` decimal(10,2) NOT NULL,
   `suggest` tinyint(1) NOT NULL DEFAULT '1',
+  `timestamp` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uid_2` (`uid`,`variant`)
 ) ENGINE=InnoDB AUTO_INCREMENT=18214465 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='For testing site changes to see which work';
@@ -5335,4 +5336,4 @@ CREATE TABLE `worrywords` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-02-05  9:59:17
+-- Dump completed on 2021-02-06 16:56:30
