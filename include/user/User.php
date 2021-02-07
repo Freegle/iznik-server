@@ -1819,6 +1819,7 @@ class User extends Entity
 
         $this->getLatLngs($users);
         $this->getPublicLocations($users);
+
         return($users[$this->id]['info']['publiclocation']);
     }
 
@@ -4380,13 +4381,17 @@ class User extends Entity
                 #error_log("Look for group name only for {$att['id']}");
                 $found = [];
                 foreach ($userids as $userid) {
-                    $messages = $this->dbhr->preQuery("SELECT subject FROM messages WHERE fromuser = ? ORDER BY messages.arrival DESC LIMIT 1;", [
+                    $messages = $this->dbhr->preQuery("SELECT subject FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser = ? ORDER BY messages.arrival DESC LIMIT 1;", [
                         $userid
                     ]);
 
                     foreach ($messages as $msg) {
                         if (preg_match("/(.+)\:(.+)\((.+)\)/", $msg['subject'], $matches)) {
                             $grp = trim($matches[3]);
+
+                            // Handle some misfromed locations which end up with spurious brackets.
+                            $grp = preg_replace('/\(|\)/', '', $grp);
+
                             #error_log("Found $grp from post");
 
                             $users[$userid]['info']['publiclocation'] = [
