@@ -4526,6 +4526,7 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                         $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
 
                         if ($m->canChaseup()) {
+                            $matts = $m->getPublic(FALSE, FALSE);
                             $sql = "SELECT MAX(date) AS latest FROM chat_messages WHERE chatid IN (SELECT chatid FROM chat_messages WHERE refmsgid = ?);";
                             $replies = $this->dbhr->preQuery($sql, [$message['msgid']]);
                             $lastreply = $replies[0]['latest'];
@@ -4574,6 +4575,18 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                                         "/mypost/{$message['msgid']}/repost",
                                         User::SRC_CHASEUP
                                     );
+
+                                    $lovejunk = NULL;
+
+                                    if ($matts['lovejunkhash']) {
+                                        $lovejunk = $u->loginLink(
+                                            USER_SITE,
+                                            $u->getId(),
+                                            "/mypost/{$message['msgid']}/lovejunk",
+                                            User::SRC_CHASEUP
+                                        );
+                                    }
+
                                     $othertype = $m->getType(
                                     ) == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
                                     $text = "Can you let us know what happened with this?  Click $repost to post it again, or $completed to mark as $othertype, or $withdraw to withdraw it.  Thanks.";
@@ -4587,7 +4600,8 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                                             'type' => $othertype,
                                             'repost' => $repost,
                                             'completed' => $completed,
-                                            'withdraw' => $withdraw
+                                            'withdraw' => $withdraw,
+                                            'lovejunk' => $lovejunk
                                         ]
                                     );
 
