@@ -4898,7 +4898,7 @@ class User extends Entity
             }
         }
 
-        $phones = $this->dbhr->preQuery("SELECT number FROM users_phones WHERE userid = ?;", [
+        $phones = $this->dbhr->preQuery("SELECT * FROM users_phones WHERE userid = ?;", [
             $this->id
         ]);
 
