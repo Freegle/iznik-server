@@ -137,7 +137,13 @@ function session() {
 
                     if (!$components || in_array('phone', $components)) {
                         $me = $me ? $me : Session::whoAmI($dbhm, $dbhm);
-                        $ret['me']['phone'] = $me->getPhone();
+                        $phone = $me->getPhone();
+
+                        if ($phone) {
+                            $ret['me']['phone'] = $phone[0];
+                            $ret['me']['phonelastsent'] = $phone[1];
+                            $ret['me']['phonelastclicked'] = $phone[2];
+                        }
                     }
 
                     if (!$components || in_array('aboutme', $components)) {

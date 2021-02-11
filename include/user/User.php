@@ -4904,6 +4904,8 @@ class User extends Entity
 
         foreach ($phones as $phone) {
             $d['phone'] = $phone['number'];
+            $d['phonelastsent'] = Utils::ISODate($phone['lastsent']);
+            $d['phonelastclicked'] = Utils::ISODate($phone['lastclicked']);
         }
 
         error_log("...logins");
@@ -5595,7 +5597,9 @@ class User extends Entity
 
     public function sms($msg, $url, $from = TWILIO_FROM, $sid = TWILIO_SID, $auth = TWILIO_AUTH, $forcemsg = NULL)
     {
-        $phones = $this->dbhr->preQuery("SELECT * FROM users_phones WHERE userid = ? AND valid = 1;", [
+        # We only want to send SMS to people who are clicking on the links.  So if we've sent them one and they've
+        # not clicked on it, we stop.  This saves significant amounts of money.
+        $phones = $this->dbhr->preQuery("SELECT * FROM users_phones WHERE userid = ? AND valid = 1 AND (lastsent IS NULL OR (lastclicked IS NOT NULL AND lastclicked > lastsent));", [
             $this->id
         ]);
 
@@ -5662,7 +5666,7 @@ class User extends Entity
         ]);
 
         foreach ($phones as $phone) {
-            $ret = $phone['number'];
+            $ret = [ $phone['number'], Utils::ISODate($phone['lastsent']), Utils::ISODate($phone['lastclicked']) ];
         }
 
         return ($ret);

@@ -952,7 +952,8 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
     }
 
     public function getSponsorships() {
-        return $this->dbhr->preQuery("SELECT * FROM groups_sponsorship WHERE groupid = ? AND startdate <= NOW() AND enddate >= DATE(NOW()) AND visible = 1 ORDER BY amount DESC, tagline IS NOT NULL, description IS NOT NULL;", [
+        $sql = "SELECT * FROM groups_sponsorship WHERE groupid = ? AND startdate <= NOW() AND enddate >= DATE(NOW()) AND visible = 1 ORDER BY amount DESC, tagline IS NOT NULL, description IS NOT NULL;";
+        return $this->dbhr->preQuery($sql, [
             $this->id
         ]);
     }

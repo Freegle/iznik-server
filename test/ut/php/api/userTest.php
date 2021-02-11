@@ -917,15 +917,5 @@ class userAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
     }
-
-    public function testEH() {
-        $ret = $this->call('user', 'GET', [
-            'id' => 40789060,
-            'info'=> TRUE
-        ]);
-        assertEquals(0, $ret['ret']);
-        error_log(var_export($ret['user']['info']));
-
-    }
 }
 
