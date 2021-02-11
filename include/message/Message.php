@@ -4526,7 +4526,8 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                         $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
 
                         if ($m->canChaseup()) {
-                            $matts = $m->getPublic(FALSE, FALSE);
+                            $matts = $m->getPublic(FALSE, FALSE, TRUE);
+
                             $sql = "SELECT MAX(date) AS latest FROM chat_messages WHERE chatid IN (SELECT chatid FROM chat_messages WHERE refmsgid = ?);";
                             $replies = $this->dbhr->preQuery($sql, [$message['msgid']]);
                             $lastreply = $replies[0]['latest'];
@@ -4546,10 +4547,6 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                                         ) . " " . $m->getSubject() . " chaseup due"
                                     );
                                     $count++;
-                                    $this->dbhm->preExec(
-                                        "UPDATE messages_groups SET lastchaseup = NOW() WHERE msgid = ?;",
-                                        [$message['msgid']]
-                                    );
 
                                     $to = $u->getEmailPreferred();
                                     $subj = $m->getSubject();
@@ -4578,7 +4575,7 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
 
                                     $lovejunk = NULL;
 
-                                    if ($matts['lovejunkhash']) {
+                                    if ($m->getType() == Message::TYPE_OFFER && Utils::pres('lovejunkhash', $matts)) {
                                         $lovejunk = $u->loginLink(
                                             USER_SITE,
                                             $u->getId(),
@@ -4590,6 +4587,11 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                                     $othertype = $m->getType(
                                     ) == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
                                     $text = "Can you let us know what happened with this?  Click $repost to post it again, or $completed to mark as $othertype, or $withdraw to withdraw it.  Thanks.";
+
+                                    $this->dbhm->preExec(
+                                        "UPDATE messages_groups SET lastchaseup = NOW() WHERE msgid = ?;",
+                                        [$message['msgid']]
+                                    );
 
                                     $html = $twig->render(
                                         'chaseup.html',
