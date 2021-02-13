@@ -110,6 +110,9 @@ class donationsTest extends IznikTestCase {
         $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 1', 0);
         assertNotNull($did);
 
+        # Should be flagged as a supporter.
+        assertTrue($u->getPublic()['supporter']);
+
         $mysqltime = date("Y-m-d H:i:s", time());
         $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 2', 0);
         assertNotNull($did);

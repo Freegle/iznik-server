@@ -6307,7 +6307,7 @@ memberships.groupid IN $groupq
             $left = array_diff($userids, $found);
 
             if (count($left)) {
-                $info = $this->dbhr->preQuery("SELECT id FROM users_donations WHERE timestamp >= ? AND userid IN (" . implode(',', $left) . ");", [
+                $info = $this->dbhr->preQuery("SELECT userid FROM users_donations WHERE timestamp >= ? AND userid IN (" . implode(',', $left) . ");", [
                     $start
                 ]);
 

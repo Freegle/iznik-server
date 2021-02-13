@@ -208,7 +208,6 @@ class microvolunteeringAPITest extends IznikAPITestCase
         assertEquals(MicroVolunteering::CHALLENGE_FACEBOOK_SHARE, $ret['microvolunteering']['type']);
         $fbid = $ret['microvolunteering']['facebook']['id'];
 
-
         # Response
         $ret = $this->call('microvolunteering', 'POST', [
             'facebook' => $fbid,
@@ -268,6 +267,10 @@ class microvolunteeringAPITest extends IznikAPITestCase
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
+        # Should not be flagged as a supporter.
+        $atts = $u->getPublic();
+        assertFalse(array_key_exists('supporter', $atts));
+
         $ret = $this->call('microvolunteering', 'POST', [
             'photoid' => $photoid,
             'deg' => 90,
@@ -275,5 +278,9 @@ class microvolunteeringAPITest extends IznikAPITestCase
             'dup' => 1
         ]);
         assertTrue($ret['rotated']);
+
+        # Should be flagged as a supporter.
+        $atts = $u->getPublic();
+        assertTrue($atts['supporter']);
     }
 }
