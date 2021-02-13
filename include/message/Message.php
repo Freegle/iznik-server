@@ -2915,6 +2915,11 @@ ORDER BY lastdate DESC;";
                         }
                     }
                 }
+
+                if ($c->getPrivate('chatread')) {
+                    $m->setPrivate('mailedtoall', 1);
+                    $m->setPrivate('seenbyall', 1);
+                }
             }
         }
     }

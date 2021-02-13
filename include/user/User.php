@@ -3132,6 +3132,11 @@ class User extends Entity
                         }
                     }
                 }
+
+                if ($c->getPrivate('chatread')) {
+                    $m->setPrivate('mailedtoall', 1);
+                    $m->setPrivate('seenbyall', 1);
+                }
             }
         }
     }
