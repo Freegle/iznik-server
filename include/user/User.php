@@ -2569,6 +2569,7 @@ class User extends Entity
 
         $this->getPublicAtts($rets, $users, $me);
         $this->getPublicProfiles($rets);
+        $this->getSupporters($rets);
 
         if ($systemrole == User::ROLE_MODERATOR || $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT) {
             $this->getPublicEmails($rets);
@@ -6278,6 +6279,37 @@ memberships.groupid IN $groupq
             # We have reviewed.  Note that they might have been removed, in which case the set will do nothing.
             $this->setMembershipAtt($groupid, 'reviewrequestedat', NULL);
             $this->setMembershipAtt($groupid, 'reviewedat', $mysqltime);
+        }
+    }
+
+    public function getSupporters(&$rets) {
+        # A supporter is someone who has donated recently, or done microvolunteering recently.
+        $userids = array_filter(array_keys($rets));
+
+        if (count($userids)) {
+            $start = date('Y-m-d', strtotime("60 days ago"));
+            $info = $this->dbhr->preQuery("SELECT userid FROM microactions WHERE timestamp >= ? AND userid IN (" . implode(',', $userids) .");", [
+                $start
+            ]);
+
+            $found = [];
+
+            foreach ($info as $i) {
+                $rets[$i['userid']]['supporter'] = TRUE;
+                $found[] = $i['userid'];
+            }
+
+            $left = array_diff($userids, $found);
+
+            if (count($left)) {
+                $info = $this->dbhr->preQuery("SELECT id FROM users_donations WHERE timestamp >= ? AND userid IN (" . implode(',', $left) . ");", [
+                    $start
+                ]);
+
+                foreach ($info as $i) {
+                    $rets[$i['userid']]['supporter'] = TRUE;
+                }
+            }
         }
     }
 }
