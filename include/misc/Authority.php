@@ -132,7 +132,7 @@ WHERE  type = ?
        AND publish = 1 
        AND onmap = 1 
        AND authorities.id = ?;";
-        #error_log("Overlap SQL $sql");
+        #error_log("Overlap SQL $sql, {$atts['id']}");
         $groups = $this->dbhr->preQuery($sql, [
             Group::GROUP_FREEGLE,
             $atts['id']

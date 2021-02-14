@@ -54,9 +54,12 @@ class authorityAPITest extends IznikAPITestCase
 
         # Create a group there
         $this->group = Group::get($this->dbhr, $this->dbhm);
-        $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
+        $this->groupid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
         $this->group->setPrivate('lat', 8.5);
         $this->group->setPrivate('lng', 179.3);
+        $this->group->setPrivate('publish', 1);
+        $this->group->setPrivate('onmap', 1);
+        $this->group->setPrivate('polyofficial', 'POLYGON((179.25 8.5, 179.27 8.5, 179.27 8.6, 179.2 8.6, 179.25 8.5))');
 
         # Set it to have a default location.
         $this->group->setPrivate('defaultlocation', $fullpcid);
@@ -114,6 +117,8 @@ class authorityAPITest extends IznikAPITestCase
         assertEquals($id, $ret['authority']['id']);
         assertEquals('UTAuth', $ret['authority']['name']);
         assertEquals(1, count($ret['authority']['stats']));
+        assertEquals(1, count($ret['authority']['groups']));
+
         foreach ($ret['authority']['stats'] as $key => $stat) {
             assertEquals('TV13 1', $key);
             assertEquals(1, $stat[Message::TYPE_OFFER]);
