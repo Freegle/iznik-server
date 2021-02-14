@@ -8,11 +8,11 @@ class ModConfig extends Entity
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'name', 'createdby', 'fromname', 'ccrejectto', 'ccrejectaddr', 'ccfollowupto',
         'ccfollowupaddr', 'ccrejmembto', 'ccrejmembaddr', 'ccfollmembto', 'ccfollmembaddr', 'protected',
-        'messageorder', 'network', 'coloursubj', 'subjreg', 'subjlen', 'default');
+        'messageorder', 'network', 'coloursubj', 'subjreg', 'subjlen', 'default', 'chatread');
 
     var $settableatts = array('name', 'fromname', 'ccrejectto', 'ccrejectaddr', 'ccfollowupto',
         'ccfollowupaddr', 'ccrejmembto', 'ccrejmembaddr', 'ccfollmembto', 'ccfollmembaddr', 'protected',
-        'messageorder', 'network', 'coloursubj', 'subjreg', 'subjlen');
+        'messageorder', 'network', 'coloursubj', 'subjreg', 'subjlen', 'chatread');
 
     /** @var  $log Log */
     private $log;
@@ -275,6 +275,15 @@ class ModConfig extends Entity
 
     public function setAttributes($settings) {
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
+
+        foreach ($this->settableatts as $att) {
+            if (array_key_exists($att, $settings) && $att == 'protected') {
+                # If we go ahead and set the protected attribute, and the person who is down as creating it is
+                # not us, then we won't be able to unset it.
+                $this->setPrivate('createdby', $me->getId());
+            }
+        }
+
         parent::setAttributes($settings);
 
         $this->log->log([

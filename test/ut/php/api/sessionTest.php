@@ -479,7 +479,7 @@ class sessionTest extends IznikAPITestCase
         list ($partner, $domain) = Session::partner($this->dbhr, 'wibble');
         assertFalse($partner);
         list ($partner, $domain) = Session::partner($this->dbhr, $key);
-        assertTrue($partner);
+        assertEquals('UT', $partner['partner']);
 
         $this->dbhm->preExec("DELETE FROM partners_keys WHERE partner = 'UT';");
     }

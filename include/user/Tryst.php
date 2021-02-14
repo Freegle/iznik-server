@@ -204,7 +204,7 @@ class Tryst extends Entity
                 $time = date('h:i A', strtotime($t->getPrivate('arrangedfor')));
                 $r = new ChatRoom($this->dbhr, $this->dbhm);
                 $rid = $r->createConversation($u1id, $u2id);
-                $url = "https://" . USER_SITE . "/handover/" . $due['id'];
+                $url = "https://" . USER_SITE . "/handover/" . $due['id'] . '?src=sms';
 
                 if ($u1phone) {
                     $u1->sms(NULL, NULL, TWILIO_FROM, TWILIO_SID, TWILIO_AUTH, "Reminder: handover with " . $u2->getName() . " at $time.  Click $url to let us know if it's still ok.");

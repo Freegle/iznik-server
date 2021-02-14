@@ -11,10 +11,6 @@ require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm, $dbconfig;
 
-# Bypass our usual DB class as we don't want the overhead nor to log.
-$dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
-$dbhm = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass']);
-
 # Purge any spam chat messages which are more than a week old.  This gives time for us to debug any issues.
 error_log("Purge spam");
 $start = date('Y-m-d', strtotime("midnight 7 days ago"));

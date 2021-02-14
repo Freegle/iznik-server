@@ -23,7 +23,7 @@ $kml = "<?xml version='1.0' encoding='UTF-8'?>
 
 foreach ($groups as $group) {
     error_log("Group {$group['nameshort']}");
-    $geom = geoPHP::load($group['poly'], 'wkt');
+    $geom = \geoPHP::load($group['poly'], 'wkt');
     $kml .= "<Placemark><name>{$group['nameshort']}</name>" . $geom->out('kml') . "</Placemark>\r\n";
 }
 

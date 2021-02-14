@@ -8,7 +8,6 @@
 # 4. Run this script to process it.
 #
 # It will add any new postcodes to the DB.
-# TODO Removal?
 
 namespace Freegle\Iznik;
 

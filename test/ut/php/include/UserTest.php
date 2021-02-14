@@ -729,9 +729,9 @@ class userTest extends IznikTestCase {
 
             $this->log("$i");
             if ($i < Spam::SEEN_THRESHOLD) {
-                assertFalse(Utils::pres('suspectcount', $atts));
+                assertNull($u2->getMembershipAtt($gid, 'reviewrequestedat'));
             } else {
-                assertEquals(1, Utils::pres('suspectcount', $atts));
+                assertNotNull($u2->getMembershipAtt($gid, 'reviewrequestedat'));
                 $membs = $g->getMembers(10, NULL, $ctx, NULL, MembershipCollection::SPAM, [ $gid ]);
                 assertEquals(2, count($membs));
             }

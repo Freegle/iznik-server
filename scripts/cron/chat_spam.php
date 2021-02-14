@@ -75,7 +75,7 @@ foreach ($chats as $chat) {
         ]);
 
         $text = "Be careful!  You've been talking to " . $spammer->getName() . ".  Our checks suggest that this person might be a scammer/spammer.\r\n\r\n" .
-            "Don't give them any money, no matter how tempting it might be, and don't arrange to receive anything by courier.";
+            "This person has been reported as a spammer or scammer. Please do not talk to them and under no circumstances send them any money. Do not arrange anything by courier.";
 
         $message = \Swift_Message::newInstance()
             ->setSubject("A warning from " . SITE_NAME . " about " . $spammer->getName())

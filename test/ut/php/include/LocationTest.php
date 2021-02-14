@@ -146,8 +146,6 @@ class locationTest extends IznikTestCase {
     public function testError() {
         $dbconfig = array (
             'host' => SQLHOST,
-            'port_read' => SQLPORT_READ,
-            'port_mod' => SQLPORT_MOD,
             'user' => SQLUSER,
             'pass' => SQLPASSWORD,
             'database' => SQLDB

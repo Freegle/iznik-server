@@ -451,7 +451,7 @@ if ($kml) {
                 }
 
                 if ($poly) {
-                    $geom = geoPHP::load($poly->asXML(), 'kml');
+                    $geom = \geoPHP::load($poly->asXML(), 'kml');
                     $wkt = $geom->out('wkt');
                     if (strlen(trim($wkt)) > 0) {
                         #error_log("WKT from GAT $wkt");

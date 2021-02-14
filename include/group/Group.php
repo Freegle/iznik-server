@@ -335,8 +335,7 @@ class Group extends Entity
 
             $spammembercounts = $this->dbhr->preQuery(
                 "SELECT memberships.groupid, COUNT(*) AS count, heldby IS NOT NULL AS held FROM memberships
-INNER JOIN users ON users.id = memberships.userid AND suspectcount > 0
-WHERE groupid IN $groupq
+WHERE reviewrequestedat IS NOT NULL AND groupid IN $groupq
 GROUP BY memberships.groupid, held
 UNION
 SELECT memberships.groupid, COUNT(*) AS count, memberships.heldby IS NOT NULL AS held FROM memberships
@@ -360,21 +359,23 @@ GROUP BY memberships.groupid, held;
             #
             # Complex query for speed.
             $relatedsql = "SELECT COUNT(*) AS count, groupid FROM (
-SELECT user1, memberships.groupid FROM users_related
+SELECT user1, memberships.groupid, (SELECT COUNT(*) FROM users_logins WHERE userid = memberships.userid) AS logincount FROM users_related
 INNER JOIN memberships ON users_related.user1 = memberships.userid
 INNER JOIN users u1 ON users_related.user1 = u1.id AND u1.deleted IS NULL AND u1.systemrole = 'User'
 WHERE
 user1 < user2 AND
 notified = 0 AND
 memberships.groupid IN $groupq
+HAVING logincount > 0
 UNION
-SELECT user1, memberships.groupid FROM users_related
+SELECT user1, memberships.groupid, (SELECT COUNT(*) FROM users_logins WHERE userid = memberships.userid) AS logincount FROM users_related
 INNER JOIN memberships ON users_related.user2 = memberships.userid
 INNER JOIN users u2 ON users_related.user2 = u2.id AND u2.deleted IS NULL AND u2.systemrole = 'User'
 WHERE
 user1 < user2 AND
 notified = 0 AND
 memberships.groupid IN $groupq
+HAVING logincount > 0 
 ) t GROUP BY groupid;";
             $relatedmembers = $this->dbhr->preQuery($relatedsql, NULL, FALSE, FALSE);
 
@@ -632,12 +633,11 @@ memberships.groupid IN $groupq
 
         if (!$searchid) {
             if ($collection == MembershipCollection::SPAM) {
-                # This collection is handled separately; we use the suspectcount field.
+                # This collection is handled separately; we use the reviewrequestedat  field.
                 #
                 # This is to avoid moving members into a spam collection and then having to remember whether they
                 # came from Pending or Approved.
-                $collectionq = " AND suspectcount > 0";
-                $uq = $uq ? $uq : ' INNER JOIN users ON users.id = memberships.userid ';
+                $collectionq = " AND reviewrequestedat IS NOT NULL";
             } else if ($collection) {
                 $collectionq = ' AND memberships.collection = ' . $this->dbhr->quote($collection) . ' ';
             }
@@ -796,7 +796,7 @@ memberships.groupid IN $groupq
         return($ret);
     }
 
-    public function getHappinessMembers($groupids, &$ctx, $filter = NULL) {
+    public function getHappinessMembers($groupids, &$ctx, $filter = NULL, $limit = 10) {
         $ret = [];
         $filterq = '';
 
@@ -833,7 +833,7 @@ INNER JOIN messages ON messages.id = messages_outcomes.msgid
 $ctxq
 $filterq
 AND messages_outcomes.comments IS NOT NULL
-ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messages_outcomes.id DESC LIMIT 10
+ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messages_outcomes.id DESC LIMIT $limit
 ";
         $members = $this->dbhr->preQuery($sql, []);
 
@@ -954,7 +954,8 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
     }
 
     public function getSponsorships() {
-        return $this->dbhr->preQuery("SELECT * FROM groups_sponsorship WHERE groupid = ? AND startdate <= NOW() AND enddate >= DATE(NOW()) AND visible = 1 ORDER BY amount DESC;", [
+        $sql = "SELECT * FROM groups_sponsorship WHERE groupid = ? AND startdate <= NOW() AND enddate >= DATE(NOW()) AND visible = 1 ORDER BY amount DESC, tagline IS NOT NULL, description IS NOT NULL;";
+        return $this->dbhr->preQuery($sql, [
             $this->id
         ]);
     }

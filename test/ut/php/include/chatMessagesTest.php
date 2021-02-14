@@ -411,8 +411,6 @@ class chatMessagesTest extends IznikTestCase {
     public function testError() {
         $dbconfig = array (
             'host' => SQLHOST,
-            'port_read' => SQLPORT_READ,
-            'port_mod' => SQLPORT_MOD,
             'user' => SQLUSER,
             'pass' => SQLPASSWORD,
             'database' => SQLDB
@@ -492,6 +490,7 @@ class chatMessagesTest extends IznikTestCase {
         if (!getenv('STANDALONE')) {
             # TODO This doesn't work on Travis because Spamhaus doesn't let you test when you're using a
             # general public DNS server.
+            assertTrue($m->checkSpam("TEst message which includes http://evil.fakery." . GROUP_DOMAIN));
             assertTrue($m->checkSpam("TEst message which includes http://dbltest.com which is blocked."));
         }
     }

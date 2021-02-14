@@ -92,10 +92,7 @@ function memberships() {
                             $mygroups = $me->getMemberships(TRUE);
                             foreach ($mygroups as $group) {
                                 $settings = $me->getGroupSettings($group['id']);
-                                if ($search || $me->activeModForGroup($group['id']) &&
-                                    (!array_key_exists('showmembers', $settings) ||
-                                        $settings['showmembers'] ||
-                                        $collection == MembershipCollection::SPAM)) {
+                                if ($search || $me->activeModForGroup($group['id'])) {
                                     $proceed = TRUE;
                                     $groupids[] = $group['id'];
                                 }
@@ -105,7 +102,7 @@ function memberships() {
                         if ($proceed) {
                             if ($collection == MembershipCollection::HAPPINESS) {
                                 # This is handled differently - including a different processing for filter.
-                                $members = $g->getHappinessMembers($groupids, $ctx, Utils::presdef('filter', $_REQUEST, NULL));
+                                $members = $g->getHappinessMembers($groupids, $ctx, Utils::presdef('filter', $_REQUEST, NULL), $limit);
                             } else if ($collection == MembershipCollection::NEARBY) {
                                 $members = [];
 

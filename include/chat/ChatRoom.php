@@ -130,6 +130,7 @@ WHERE chat_rooms.id IN $idlist;";
 
         $ret = [];
         $refmsgids = [];
+        $otheruids = [];
 
         foreach ($rooms as &$room) {
             $room['u1name'] = Utils::presdef('u1name', $room, 'Someone');
@@ -158,6 +159,7 @@ WHERE chat_rooms.id IN $idlist;";
                 case ChatRoom::TYPE_USER2USER:
                     # We use the name of the user who isn't us, because that's who we're chatting to.
                     $room['name'] = $myid == $room['user1'] ? $room['u2name'] : $room['u1name'];
+                    $otheruids[] = $myid == $room['user1'] ? $room['user2'] : $room['user1'];
                     break;
                 case ChatRoom::TYPE_USER2MOD:
                     # If we started it, we're chatting to the group volunteers; otherwise to the user.
@@ -186,7 +188,9 @@ WHERE chat_rooms.id IN $idlist;";
                     'unseen' => $room['unseen'],
                     'name' => $room['name'],
                     'id' => $room['id'],
-                    'replyexpected' => $room['replyexpected']
+                    'replyexpected' => $room['replyexpected'],
+                    'user1id' => $room['user1'],
+                    'user2id' => $room['user2']
                 ];
                 
                 $thisone['snippet'] = $this->getSnippet($room['chatmsgtype'], $room['chatmsg']);
@@ -240,6 +244,30 @@ WHERE chat_rooms.id IN $idlist;";
                         }
                     }
                 }
+            }
+        }
+
+        if (count($otheruids)) {
+            $u = new User($this->dbhr, $this->dbhm);
+            $users = [];
+
+            foreach ($otheruids as $uid) {
+                $users[$uid]['supporter'] = FALSE;
+            }
+
+            $u->getSupporters($users);
+
+            for ($i = 0; $i < count($ret); $i++) {
+                if ($ret[$i]['chattype'] === ChatRoom::TYPE_USER2USER && Utils::pres('user1id', $ret[$i]) && Utils::pres('user2id', $ret[$i])) {
+                    if ($ret[$i]['user1id'] === $myid) {
+                        $ret[$i]['supporter'] = $users[$ret[$i]['user2id']]['supporter'];
+                    } else {
+                        $ret[$i]['supporter'] = $users[$ret[$i]['user1id']]['supporter'];
+                    }
+                }
+
+                unset($ret[$i]['user1id']);
+                unset($ret[$i]['user2id']);
             }
         }
 

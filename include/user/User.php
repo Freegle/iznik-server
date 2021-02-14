@@ -1819,6 +1819,7 @@ class User extends Entity
 
         $this->getLatLngs($users);
         $this->getPublicLocations($users);
+
         return($users[$this->id]['info']['publiclocation']);
     }
 
@@ -1976,8 +1977,6 @@ class User extends Entity
 
             if (Session::modtools()) {
                 # We have some extra attributes.
-                $atts[] = 'suspectcount';
-                $atts[] = 'suspectreason';
                 $atts[] = 'deleted';
                 $atts[] = 'lastaccess';
             }
@@ -2079,7 +2078,7 @@ class User extends Entity
     }
 
     public function getPublicHistory($me, &$rets, $users, $groupids, $historyfull, $systemrole, $msgcoll = [ MessageCollection::APPROVED ]) {
-        $userids = array_keys($rets);
+        $userids = array_filter(array_keys($rets));
 
         foreach ($rets as &$atts) {
             $atts['messagehistory'] = [];
@@ -2089,18 +2088,21 @@ class User extends Entity
         #
         # We want one entry in here for each repost, so we LEFT JOIN with the reposts table.
         $sql = NULL;
-        $collq = " AND messages_groups.collection IN ('" . implode("','", $msgcoll) . "') ";
-        $earliest = $historyfull ? '1970-01-01' : date('Y-m-d', strtotime("midnight 30 days ago"));
-        $delq = $historyfull ? '' : ' AND messages_groups.deleted = 0';
 
-        if ($groupids && count($groupids) > 0) {
-            # On these groups.  Have to be a bit careful about getting the posting date as GREATEST can return NULL
-            # if one of the arguments is NULL.
-            $groupq = implode(',', $groupids);
-            $sql = "SELECT GREATEST(COALESCE(messages_postings.date, messages.arrival), COALESCE(messages_postings.date, messages.arrival)) AS postdate, messages_outcomes.outcome, messages.fromuser, messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_groups.deleted, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) $collq AND fromuser IN (" . implode(',', $userids) . ") $delq LEFT JOIN messages_postings ON messages.id = messages_postings.msgid LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id HAVING postdate > ? ORDER BY postdate DESC;";
-        } else if ($systemrole == User::SYSTEMROLE_SUPPORT || $systemrole == User::SYSTEMROLE_ADMIN) {
-            # We can see all groups.
-            $sql = "SELECT GREATEST(COALESCE(messages_postings.date, messages.arrival), COALESCE(messages_postings.date, messages.arrival)) AS postdate, messages_outcomes.outcome, messages.fromuser, messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_groups.deleted, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid $collq AND fromuser IN (" . implode(',', $userids) . ") $delq LEFT JOIN messages_postings ON messages.id = messages_postings.msgid LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id HAVING postdate > ? ORDER BY postdate DESC;";
+        if (count($userids)) {
+            $collq = " AND messages_groups.collection IN ('" . implode("','", $msgcoll) . "') ";
+            $earliest = $historyfull ? '1970-01-01' : date('Y-m-d', strtotime("midnight 30 days ago"));
+            $delq = $historyfull ? '' : ' AND messages_groups.deleted = 0';
+
+            if ($groupids && count($groupids) > 0) {
+                # On these groups.  Have to be a bit careful about getting the posting date as GREATEST can return NULL
+                # if one of the arguments is NULL.
+                $groupq = implode(',', $groupids);
+                $sql = "SELECT GREATEST(COALESCE(messages_postings.date, messages.arrival), COALESCE(messages_postings.date, messages.arrival)) AS postdate, messages_outcomes.outcome, messages.fromuser, messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_groups.deleted, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) $collq AND fromuser IN (" . implode(',', $userids) . ") $delq LEFT JOIN messages_postings ON messages.id = messages_postings.msgid LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id HAVING postdate > ? ORDER BY postdate DESC;";
+            } else if ($systemrole == User::SYSTEMROLE_SUPPORT || $systemrole == User::SYSTEMROLE_ADMIN) {
+                # We can see all groups.
+                $sql = "SELECT GREATEST(COALESCE(messages_postings.date, messages.arrival), COALESCE(messages_postings.date, messages.arrival)) AS postdate, messages_outcomes.outcome, messages.fromuser, messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_groups.deleted, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid $collq AND fromuser IN (" . implode(',', $userids) . ") $delq LEFT JOIN messages_postings ON messages.id = messages_postings.msgid LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id HAVING postdate > ? ORDER BY postdate DESC;";
+            }
         }
 
         if ($sql) {
@@ -2133,61 +2135,6 @@ class User extends Entity
             foreach ($modmails as $modmail) {
                 if ($modmail['userid'] == $ret['id']) {
                     $rets[$userid]['modmails'] = $modmail['count'] ? $modmail['count'] : 0;
-                }
-            }
-        }
-    }
-
-    public function getPublicSuspect(&$rets, $me, $systemrole, $freeglemod) {
-        foreach ($rets as &$ret) {
-            if ($ret['suspectcount'] > 0) {
-                # This user is flagged as suspicious.  The memberships are visible iff the currently logged in user
-                # - has a system role which allows it
-                # - is a mod on a group which this user is also on.
-                #
-                # This is rare so we don't need to optimise DB ops.
-                $visible = $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT;
-                $memberof = [];
-
-                # Check the groups.  The collection that's relevant here is the Yahoo one if present; this is to handle
-                # the case where you have two emails and one is approved and the other pending.
-                $sql = "SELECT memberships.*, memberships.collection AS coll, groups.onhere, groups.nameshort, groups.namefull, groups.type FROM memberships INNER JOIN groups ON memberships.groupid = groups.id WHERE userid = ?;";
-                $groups = $this->dbhr->preQuery($sql, [$this->id]);
-
-                foreach ($groups as $group) {
-                    $role = $me ? $me->getRoleForGroup($group['groupid']) : User::ROLE_NONMEMBER;
-                    $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
-
-                    $thisone = [
-                        'id' => $group['groupid'],
-                        'membershipid' => $group['id'],
-                        'namedisplay' => $name,
-                        'nameshort' => $group['nameshort'],
-                        'added' => Utils::ISODate($group['added']),
-                        'collection' => $group['coll'],
-                        'role' => $group['role'],
-                        'emailfrequency' => $group['emailfrequency'],
-                        'eventsallowed' => $group['eventsallowed'],
-                        'volunteeringallowed' => $group['volunteeringallowed'],
-                        'ourPostingStatus' => $group['ourPostingStatus'],
-                        'type' => $group['type'],
-                        'onhere' => $group['onhere']
-                    ];
-
-                    $memberof[] = $thisone;
-
-                    # We can see this membership if we're a mod on the group, or we're a mod on a Freegle group
-                    # and this is one.
-                    if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR ||
-                        ($group['type'] == Group::GROUP_FREEGLE && $freeglemod)) {
-                        $visible = TRUE;
-                    }
-                }
-
-                if ($visible) {
-                    $ret['suspectcount'] = $ret['suspectcount'];
-                    $ret['suspectreason'] = $ret['suspectreason'];
-                    $ret['memberof'] = $memberof;
                 }
             }
         }
@@ -2247,7 +2194,10 @@ class User extends Entity
                             'volunteeringallowed' => $group['volunteeringallowed'],
                             'ourpostingstatus' => $group['ourPostingStatus'],
                             'type' => $group['type'],
-                            'onhere' => $group['onhere']
+                            'onhere' => $group['onhere'],
+                            'reviewrequestedat' => $group['reviewrequestedat'] ? Utils::ISODate($group['reviewrequestedat']) : NULL,
+                            'reviewreason' => $group['reviewreason'],
+                            'reviewedat' => $group['reviewedat'] ? Utils::ISODate($group['reviewedat']) : NULL,
                         ];
 
                         if ($group['lat'] && $group['lng']) {
@@ -2622,6 +2572,7 @@ class User extends Entity
 
         $this->getPublicAtts($rets, $users, $me);
         $this->getPublicProfiles($rets);
+        $this->getSupporters($rets);
 
         if ($systemrole == User::ROLE_MODERATOR || $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT) {
             $this->getPublicEmails($rets);
@@ -2632,7 +2583,6 @@ class User extends Entity
         }
 
         if (Session::modtools()) {
-            $this->getPublicSuspect($rets, $me, $systemrole, $freeglemod);
             $this->getPublicMemberOf($rets, $me, $freeglemod, $memberof, $systemrole);
             $this->getPublicApplied($rets, $me, $freeglemod, $applied, $systemrole);
             $this->getPublicSpammer($rets, $me, $systemrole);
@@ -3168,8 +3118,28 @@ class User extends Entity
                 $m->setPrivate('reviewrequired', 0);
 
                 # We, as a mod, have seen this message - update the roster to show that.  This avoids this message
-                # appearing as unread to us and other mods.
+                # appearing as unread to us.
                 $r->updateRoster($myid, $mid);
+
+                # Ensure that the other mods are present in the roster with the message seen/unseen depending on
+                # whether that's what we want.
+                $mods = $g->getMods();
+                foreach ($mods as $mod) {
+                    if ($mod != $myid) {
+                        if ($c->getPrivate('chatread')) {
+                            # We want to mark it as seen for all mods.
+                            $r->updateRoster($mod, $mid, ChatRoom::STATUS_AWAY);
+                        } else {
+                            # Leave it unseen, but make sure they're in the roster.
+                            $r->updateRoster($mod, NULL, ChatRoom::STATUS_AWAY);
+                        }
+                    }
+                }
+
+                if ($c->getPrivate('chatread')) {
+                    $m->setPrivate('mailedtoall', 1);
+                    $m->setPrivate('seenbyall', 1);
+                }
             }
         }
     }
@@ -4420,13 +4390,17 @@ class User extends Entity
                 #error_log("Look for group name only for {$att['id']}");
                 $found = [];
                 foreach ($userids as $userid) {
-                    $messages = $this->dbhr->preQuery("SELECT subject FROM messages WHERE fromuser = ? ORDER BY messages.arrival DESC LIMIT 1;", [
+                    $messages = $this->dbhr->preQuery("SELECT subject FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser = ? ORDER BY messages.arrival DESC LIMIT 1;", [
                         $userid
                     ]);
 
                     foreach ($messages as $msg) {
                         if (preg_match("/(.+)\:(.+)\((.+)\)/", $msg['subject'], $matches)) {
                             $grp = trim($matches[3]);
+
+                            // Handle some misfromed locations which end up with spurious brackets.
+                            $grp = preg_replace('/\(|\)/', '', $grp);
+
                             #error_log("Found $grp from post");
 
                             $users[$userid]['info']['publiclocation'] = [
@@ -4933,12 +4907,14 @@ class User extends Entity
             }
         }
 
-        $phones = $this->dbhr->preQuery("SELECT number FROM users_phones WHERE userid = ?;", [
+        $phones = $this->dbhr->preQuery("SELECT * FROM users_phones WHERE userid = ?;", [
             $this->id
         ]);
 
         foreach ($phones as $phone) {
             $d['phone'] = $phone['number'];
+            $d['phonelastsent'] = Utils::ISODate($phone['lastsent']);
+            $d['phonelastclicked'] = Utils::ISODate($phone['lastclicked']);
         }
 
         error_log("...logins");
@@ -5630,7 +5606,9 @@ class User extends Entity
 
     public function sms($msg, $url, $from = TWILIO_FROM, $sid = TWILIO_SID, $auth = TWILIO_AUTH, $forcemsg = NULL)
     {
-        $phones = $this->dbhr->preQuery("SELECT * FROM users_phones WHERE userid = ? AND valid = 1;", [
+        # We only want to send SMS to people who are clicking on the links.  So if we've sent them one and they've
+        # not clicked on it, we stop.  This saves significant amounts of money.
+        $phones = $this->dbhr->preQuery("SELECT * FROM users_phones WHERE userid = ? AND valid = 1 AND (lastsent IS NULL OR (lastclicked IS NOT NULL AND lastclicked > lastsent));", [
             $this->id
         ]);
 
@@ -5697,7 +5675,7 @@ class User extends Entity
         ]);
 
         foreach ($phones as $phone) {
-            $ret = $phone['number'];
+            $ret = [ $phone['number'], Utils::ISODate($phone['lastsent']), Utils::ISODate($phone['lastclicked']) ];
         }
 
         return ($ret);
@@ -5718,7 +5696,7 @@ class User extends Entity
         if ($rater != $ratee) {
             # Can't rate yourself.
             if ($rating !== NULL) {
-                $this->dbhm->preExec("REPLACE INTO ratings (rater, ratee, rating) VALUES (?, ?, ?);", [
+                $this->dbhm->preExec("REPLACE INTO ratings (rater, ratee, rating, timestamp) VALUES (?, ?, ?, NOW());", [
                     $rater,
                     $ratee,
                     $rating
@@ -6267,7 +6245,7 @@ memberships.groupid IN $groupq
         $twig = new \Twig_Environment($loader);
         $email = $this->getEmailPreferred();
 
-        $tn = strpos($email, 'user.trashnothing.com') !== FALSE ? 'tn=1' : '';
+        $tn = strpos($email, 'user.trashnothing.com') !== FALSE ? '&tn=1' : '';
         $url = $this->loginLink(USER_SITE, $this->id, "/covidchecklist?msgid=$msgid$tn", NULL, TRUE);
 
         $html = $twig->render('covid.html', [
@@ -6295,5 +6273,51 @@ memberships.groupid IN $groupq
         Mail::addHeaders($message, Mail::COVID_CHECKLIST, $this->getId());
 
         $this->sendIt($mailer, $message);
+    }
+
+    public function memberReview($groupid, $request, $reason) {
+        $mysqltime = date('Y-m-d H:i');
+
+        if ($request) {
+            # Requesting review.
+            $this->setMembershipAtt($groupid, 'reviewreason', $reason);
+            $this->setMembershipAtt($groupid, 'reviewrequestedat', $mysqltime);
+            $this->setMembershipAtt($groupid, 'reviewedat', NULL);
+        } else {
+            # We have reviewed.  Note that they might have been removed, in which case the set will do nothing.
+            $this->setMembershipAtt($groupid, 'reviewrequestedat', NULL);
+            $this->setMembershipAtt($groupid, 'reviewedat', $mysqltime);
+        }
+    }
+
+    public function getSupporters(&$rets) {
+        # A supporter is someone who has donated recently, or done microvolunteering recently.
+        $userids = array_filter(array_keys($rets));
+
+        if (count($userids)) {
+            $start = date('Y-m-d', strtotime("60 days ago"));
+            $info = $this->dbhr->preQuery("SELECT userid FROM microactions WHERE timestamp >= ? AND userid IN (" . implode(',', $userids) .");", [
+                $start
+            ]);
+
+            $found = [];
+
+            foreach ($info as $i) {
+                $rets[$i['userid']]['supporter'] = TRUE;
+                $found[] = $i['userid'];
+            }
+
+            $left = array_diff($userids, $found);
+
+            if (count($left)) {
+                $info = $this->dbhr->preQuery("SELECT userid FROM users_donations WHERE timestamp >= ? AND userid IN (" . implode(',', $left) . ");", [
+                    $start
+                ]);
+
+                foreach ($info as $i) {
+                    $rets[$i['userid']]['supporter'] = TRUE;
+                }
+            }
+        }
     }
 }

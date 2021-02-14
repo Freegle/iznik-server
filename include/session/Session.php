@@ -134,7 +134,7 @@ class Session {
 
         $partners = $dbhr->preQuery("SELECT * FROM partners_keys WHERE `key` = ?;", [ $key ]);
         foreach ($partners as $partner) {
-            $ret = TRUE;
+            $ret = $partner;
             $domain = $partner['domain'];
         }
 

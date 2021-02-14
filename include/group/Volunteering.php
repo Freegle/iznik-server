@@ -60,7 +60,6 @@ class Volunteering extends Entity
 
         $n = new PushNotifications($this->dbhr, $this->dbhm);
         $n->notifyGroupMods($groupid);
-        error_log("Volunteering notify $groupid");
     }
 
     public function removeGroup($id) {

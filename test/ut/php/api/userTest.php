@@ -15,10 +15,6 @@ require_once(UT_DIR . '/../../include/db.php');
 class userAPITest extends IznikAPITestCase {
     public $dbhr, $dbhm;
 
-    public function tearDown()
-    {
-    }
-
     protected function setUp() {
         parent::setUp ();
 

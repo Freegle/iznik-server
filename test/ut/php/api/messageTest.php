@@ -556,6 +556,11 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(2, $ret['ret']);
 
+        # Create another mod.
+        $othermod = User::get($this->dbhr, $this->dbhm);
+        $othermoduid = $othermod->create(NULL, NULL, 'Test User');
+        $othermod->addMembership($this->gid, User::ROLE_MODERATOR);
+
         # Promote to owner - should be able to reject it.  Suppress the mail.
         $u->setRole(User::ROLE_OWNER, $this->gid);
 
@@ -563,6 +568,7 @@ class messageAPITest extends IznikAPITestCase
         $cid = $c->create('Test');
         $c->setPrivate('ccrejectto', 'Me');
         $c->setPrivate('fromname', 'Groupname Moderator');
+        $c->setPrivate('chatread', 1);
 
         $s = new StdMessage($this->dbhr, $this->dbhm);
         $sid = $s->create('Test', $cid);
@@ -578,6 +584,11 @@ class messageAPITest extends IznikAPITestCase
             'duplicate' => 1
         ]);
         assertEquals(0, $ret['ret']);
+
+        # Other mod should not see this as unread, since we're set to mark as read.
+        $cr = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $cr->createUser2Mod($senduser, $this->gid);
+        assertEquals(0, $cr->unseenCountForUser($othermoduid));
 
         $s->delete();
         $c->delete();
@@ -709,6 +720,7 @@ class messageAPITest extends IznikAPITestCase
             ->setMethods(array('sendOne'))
             ->getMock();
         $m->method('sendOne')->willReturn(false);
+        $senduser = $m->getFromUser();
 
         assertEquals(Message::TYPE_OTHER, $m->getType());
 
@@ -736,6 +748,11 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(2, $ret['ret']);
 
+        # Create another mod.
+        $othermod = User::get($this->dbhr, $this->dbhm);
+        $othermoduid = $othermod->create(NULL, NULL, 'Test User');
+        $othermod->addMembership($this->gid, User::ROLE_MODERATOR);
+
         # Promote to owner - should be able to reply.  Suppress the mail.
         $u->setRole(User::ROLE_OWNER, $this->gid);
 
@@ -759,6 +776,11 @@ class messageAPITest extends IznikAPITestCase
             'duplicate' => 1
         ]);
         assertEquals(0, $ret['ret']);
+
+        # Other mod should see this as unread, since we're not set to mark as read.
+        $cr = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $cr->createUser2Mod($senduser, $this->gid);
+        assertEquals(1, $cr->unseenCountForUser($othermoduid));
 
         $s->delete();
         $c->delete();
@@ -2760,6 +2782,117 @@ class messageAPITest extends IznikAPITestCase
             'partner' => $key
         ]);
         assertEquals(0, $ret['ret']);
+    }
+
+    public function testPartnerConsent() {
+        global $sessionPrepared;
+        $sessionPrepared = FALSE;
+
+        $key = Utils::randstr(64);
+        $this->dbhm->preExec("INSERT INTO partners_keys (`partner`, `key`, `domain`) VALUES ('UT', ?, ?);", [$key, 'test2.com']);
+        $partnerid = $this->dbhm->lastInsertId();
+        assertNotNull($partnerid);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)',0);
+
+        # Create member and mod.
+        $u = User::get($this->dbhr, $this->dbhm);
+
+        $u1id = $u->create('Test','User', 'Test User');
+        $u2id = $u->create('Test','User', 'Test User');
+
+        $memberid = $u->create('Test','User', 'Test User');
+        $member = User::get($this->dbhr, $this->dbhm, $memberid);
+        assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $member->addMembership($this->gid, User::ROLE_MEMBER);
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $member->addEmail($email);
+        $member->addEmail('test@test.com');
+
+        $modid = $u->create('Test','User', 'Test User');
+        $mod = User::get($this->dbhr, $this->dbhm, $modid);
+        assertGreaterThan(0, $mod->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $mod->addMembership($this->gid, User::ROLE_MODERATOR);
+
+        $this->log("Created member $memberid and mod $modid");
+
+        # Submit a message from the member, who will be moderated as new members are.
+        assertTrue($member->login('testpw'));
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'groupid' => $this->gid,
+            'textbody' => 'Text body'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $mid = $ret['id'];
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'JoinAndPost',
+            'ignoregroupoverride' => true,
+            'email' => $email
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        # Not given consent.
+        $_SESSION['id'] = NULL;
+        $_SESSION['partner'] = NULL;
+        $GLOBALS['sessionPrepared'] = FALSE;
+        $ret = $this->call('message', 'PATCH', [
+            'id' => $mid,
+            'subject' => 'Test edit',
+            'partner' => $key
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $mid,
+            'partner' => $key
+        ]);
+
+        # Lat/lng  blurred.
+        assertEquals(8.534, $ret['message']['lat']);
+        assertEquals(179.216, $ret['message']['lng']);
+        assertFalse(array_key_exists('location', $ret['message']));
+        assertEquals(1, count($ret['message']['fromuser']['emails']));
+        assertEquals($email, $ret['message']['fromuser']['emails'][0]['email']);
+
+        # Give consent
+        assertTrue($member->login('testpw'));
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'PartnerConsent',
+            'partner' => 'UT'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Still shouldn't have write access.
+        $_SESSION['id'] = NULL;
+        $_SESSION['partner'] = NULL;
+        $GLOBALS['sessionPrepared'] = FALSE;
+        $ret = $this->call('message', 'PATCH', [
+            'id' => $mid,
+            'subject' => 'Test edit',
+            'partner' => $key
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $mid,
+            'partner' => $key
+        ]);
+
+        # Lat/lng not blurred.
+        assertEquals(8.53333, $ret['message']['lat']);
+        assertEquals(179.2167, $ret['message']['lng']);
+        assertEquals('TV1 1AA', $ret['message']['location']['name']);
     }
 
     public function testMove() {

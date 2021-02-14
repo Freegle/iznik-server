@@ -199,7 +199,9 @@ class PushNotifications
                         }
 
                         try {
-                            $this->messaging->validate($message);
+                            if ($this->messaging) {
+                                $this->messaging->validate($message);
+                            }
                         } catch (InvalidMessage $e) {
                             # We might not want to remove the subscription.  Check the nature of the error
                             # and (for now) record unknown ones to check.
@@ -234,8 +236,11 @@ class PushNotifications
                             break;
                         }
 
-                        $ret = $this->messaging->send($message);
-                        error_log("FCM send " . var_export($ret, TRUE));
+                        if ($this->messaging) {
+                            $ret = $this->messaging->send($message);
+                            error_log("FCM send " . var_export($ret, TRUE));
+                        }
+
                         $rc = TRUE;
                         break;
                     }

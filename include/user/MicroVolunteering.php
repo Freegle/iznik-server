@@ -119,7 +119,6 @@ class MicroVolunteering
 
             # Find the earliest message:
             # - on approved (in the spatial index)
-            # - not explicitly moderated
             # - from the current day (use messages because we're interested in the first post).
             # - on one of these groups
             # - micro-volunteering is enabled on the group
@@ -128,6 +127,8 @@ class MicroVolunteering
             # - not one we've seen
             # - still open
             # - on a group with this kind of microvolunteering enabled.
+            #
+            # We include explicitly moderated ones because this gives us data on how well they do.
             if (in_array(self::CHALLENGE_CHECK_MESSAGE, $types) &&
                 count($groupids)) {
                 $msgs = $this->dbhr->preQuery(
@@ -142,7 +143,6 @@ class MicroVolunteering
     LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages_spatial.msgid
     WHERE messages_groups.groupid IN (" . implode(',', $groupids) . " ) 
         AND DATE(messages.arrival) = CURDATE()
-        AND approvedby IS NULL  
         AND fromuser != ?
         AND microvolunteering = 1
         AND messages_outcomes.id IS NULL

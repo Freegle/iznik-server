@@ -19,13 +19,12 @@ jobs:
       - checkout
       - run: sudo apt-get update
 
-      # ...and change some config, otherwise some of the larger attachment inserts fail.
-#      - run: echo -e "[server]\nmax_allowed_packet=32MB" | tee -a /etc/mysql/my.cnf
-
       # PHP extensions
-      - run: sudo apt install -y libgmp-dev libxml2-dev libgd-dev
+      - run: sudo apt install -y libgmp-dev libxml2-dev libgd-dev libpng-dev libjpeg62-turbo-dev
+      - run: sudo -E docker-php-ext-install exif
       - run: sudo -E docker-php-ext-install gmp
       - run: sudo -E docker-php-ext-install soap
+      - run: sudo -E docker-php-ext-configure gd  --with-jpeg-dir=/usr/include/
       - run: sudo -E docker-php-ext-install gd
       - run: sudo pecl install mailparse
       - run: sudo -E docker-php-ext-enable mailparse
@@ -51,10 +50,12 @@ jobs:
       - run: sudo apt-get install -y automake autoconf libtool build-essential libcurl4-openssl-dev zlib1g-dev
       - run: git clone https://github.com/maxmind/geoipupdate-legacy ; cd geoipupdate-legacy ; ./bootstrap ; ./configure ; make
       - run: sudo make install ; cd ..
-      - run: echo UserId $MAXMIND_ACCOUNT > /tmp/GeoIP.conf
+      - run: sudo mkdir /usr/local/share/GeoIP
+      - run: sudo chmod 777 /usr/local/share/GeoIP
+      - run: echo AccountID $MAXMIND_ACCOUNT > /tmp/GeoIP.conf
       - run: echo LicenseKey $MAXMIND_KEY >> /tmp/GeoIP.conf
       - run: echo ProductIds GeoLite2-Country GeoLite2-City >> /tmp/GeoIP.conf
-      - run: sudo geoipupdate -v -f /tmp/GeoIP.conf
+      - run: sudo geoipupdate-legacy/bin/geoipupdate -v -f /tmp/GeoIP.conf
 
       # /etc/iznik.conf is where our config goes on the live server.  We have some keys in environment variables.
       - run: sudo cp install/iznik.conf.php /etc/iznik.conf
@@ -86,20 +87,26 @@ jobs:
       - run: sudo sed -ie 's/CURRENT_TIMESTAMP(6)/CURRENT_TIMESTAMP/g' install/schema.sql
       - run: mysql --host="127.0.0.1" -u root iznik < install/schema.sql
       - run: mysql --host="127.0.0.1" -u root iznik < install/functions.sql
+      - run: mysql --host="127.0.0.1" -u root iznik < install/damlevlim.sql
       - run: mysql --host="127.0.0.1" -u root -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'"
 
-      # We need the DamLevLim UDF.
-#      - run: cp install/mysqldamlevlim.so /usr/lib/mysql/plugin/
-#      - run: mysql --host="127.0.0.1" -u root -e "CREATE FUNCTION damlevlim RETURNS INT SONAME 'mysqldamlevlim.so'"
+      # ...and change some config, otherwise some of the larger attachment inserts fail.
+      - run: mysql --host="127.0.0.1" -u root -e "set global max_allowed_packet=33554432"
 
       # Install composer dependencies.  Use v1 as we're not compatible with v2.
       - run: cd composer; wget https://getcomposer.org/composer-1.phar; php composer-1.phar install; cd ..
-      - run: php scripts/cron/background.php&
-      - run: php scripts/cron/exports.php&
+      - run:
+          name: Background job
+          command: php scripts/cron/background.php
+          background: true
+      - run:
+          name: Export job
+          command: php scripts/cron/exports.php
+          background: true
 
       # Set up the environment we need for running our UT.
       - run: php install/testenv.php
 
       # Run the UT.
-      - run: cd http/api; ../../composer/vendor/bin/phpunit --stderr --bootstrap ../../composer/vendor/autoload.php -dxdebug.coverage_enable=1 --coverage-clover ../../test/ut/php/clover.xml --configuration ../../test/ut/php/phpunit.xml ../../test/ut/php/
-      - run: php ../../composer/vendor/bin/php-coveralls -v
+      - run: cd http/api; ../../composer/vendor/bin/phpunit -d memory_limit=512M --stderr --bootstrap ../../composer/vendor/autoload.php -dxdebug.coverage_enable=1 --coverage-clover ../../test/ut/php/clover.xml --configuration ../../test/ut/php/phpunit.xml ../../test/ut/php/
+      - run: php composer/vendor/bin/php-coveralls -v
