@@ -1661,44 +1661,6 @@ ORDER BY lastdate DESC;";
         }
     }
 
-    public function getPublicDistances(&$userlist, &$rets, $me, $myid) {
-        $msgids = array_filter(array_column($msgs, 'id'));
-
-        if (count($msgids)) {
-            if ($doit) {
-                # Return any edit history, most recent first.
-                $edits = $this->dbhr->preQuery("SELECT * FROM messages_edits WHERE msgid IN (" . implode(',', $msgids) . ") ORDER BY id DESC;", [
-                    $this->id
-                ]);
-            }
-
-            # We can't use foreach because then data is copied by reference.
-            foreach ($rets as $retind => $ret) {
-                $rets[$retind]['edits'] = [];
-
-                if ($doit) {
-                    for ($editind = 0; $editind < count($edits); $editind++) {
-                        if ($rets[$retind]['id'] == $edits[$editind]['msgid']) {
-                            $thisedit = $edits[$editind];
-                            $thisedit['timestamp'] = Utils::ISODate($thisedit['timestamp']);
-
-                            if (Utils::pres('byuser', $thisedit)) {
-                                $u = User::get($this->dbhr, $this->dbhm, $thisedit['byuser']);
-                                $thisedit['byuser'] = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, NULL, FALSE);
-                            }
-
-                            $rets[$retind]['edits'][] = $thisedit;
-                        }
-                    }
-
-                    if (count($rets[$retind]['edits']) === 0) {
-                        $rets[$retind]['edits'] = NULL;
-                    }
-                }
-            }
-        }
-    }
-
     public function getWorry(&$msgs) {
        if (Session::modtools()) {
            # We check the messages again.  This means if something is added to worry words while our message is in
