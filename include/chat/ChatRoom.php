@@ -258,7 +258,7 @@ WHERE chat_rooms.id IN $idlist;";
             $u->getSupporters($users);
 
             for ($i = 0; $i < count($ret); $i++) {
-                if ($ret[$i]['chattype'] === ChatRoom::TYPE_USER2USER) {
+                if ($ret[$i]['chattype'] === ChatRoom::TYPE_USER2USER && Utils::pres('user1id', $ret[$i]) && Utils::pres('user2id', $ret[$i])) {
                     if ($ret[$i]['user1id'] === $myid) {
                         $ret[$i]['supporter'] = $users[$ret[$i]['user2id']]['supporter'];
                     } else {
