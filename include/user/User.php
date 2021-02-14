@@ -2078,7 +2078,7 @@ class User extends Entity
     }
 
     public function getPublicHistory($me, &$rets, $users, $groupids, $historyfull, $systemrole, $msgcoll = [ MessageCollection::APPROVED ]) {
-        $userids = array_keys($rets);
+        $userids = array_filter(array_keys($rets));
 
         foreach ($rets as &$atts) {
             $atts['messagehistory'] = [];
@@ -2088,18 +2088,21 @@ class User extends Entity
         #
         # We want one entry in here for each repost, so we LEFT JOIN with the reposts table.
         $sql = NULL;
-        $collq = " AND messages_groups.collection IN ('" . implode("','", $msgcoll) . "') ";
-        $earliest = $historyfull ? '1970-01-01' : date('Y-m-d', strtotime("midnight 30 days ago"));
-        $delq = $historyfull ? '' : ' AND messages_groups.deleted = 0';
 
-        if ($groupids && count($groupids) > 0) {
-            # On these groups.  Have to be a bit careful about getting the posting date as GREATEST can return NULL
-            # if one of the arguments is NULL.
-            $groupq = implode(',', $groupids);
-            $sql = "SELECT GREATEST(COALESCE(messages_postings.date, messages.arrival), COALESCE(messages_postings.date, messages.arrival)) AS postdate, messages_outcomes.outcome, messages.fromuser, messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_groups.deleted, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) $collq AND fromuser IN (" . implode(',', $userids) . ") $delq LEFT JOIN messages_postings ON messages.id = messages_postings.msgid LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id HAVING postdate > ? ORDER BY postdate DESC;";
-        } else if ($systemrole == User::SYSTEMROLE_SUPPORT || $systemrole == User::SYSTEMROLE_ADMIN) {
-            # We can see all groups.
-            $sql = "SELECT GREATEST(COALESCE(messages_postings.date, messages.arrival), COALESCE(messages_postings.date, messages.arrival)) AS postdate, messages_outcomes.outcome, messages.fromuser, messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_groups.deleted, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid $collq AND fromuser IN (" . implode(',', $userids) . ") $delq LEFT JOIN messages_postings ON messages.id = messages_postings.msgid LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id HAVING postdate > ? ORDER BY postdate DESC;";
+        if (count($userids)) {
+            $collq = " AND messages_groups.collection IN ('" . implode("','", $msgcoll) . "') ";
+            $earliest = $historyfull ? '1970-01-01' : date('Y-m-d', strtotime("midnight 30 days ago"));
+            $delq = $historyfull ? '' : ' AND messages_groups.deleted = 0';
+
+            if ($groupids && count($groupids) > 0) {
+                # On these groups.  Have to be a bit careful about getting the posting date as GREATEST can return NULL
+                # if one of the arguments is NULL.
+                $groupq = implode(',', $groupids);
+                $sql = "SELECT GREATEST(COALESCE(messages_postings.date, messages.arrival), COALESCE(messages_postings.date, messages.arrival)) AS postdate, messages_outcomes.outcome, messages.fromuser, messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_groups.deleted, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) $collq AND fromuser IN (" . implode(',', $userids) . ") $delq LEFT JOIN messages_postings ON messages.id = messages_postings.msgid LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id HAVING postdate > ? ORDER BY postdate DESC;";
+            } else if ($systemrole == User::SYSTEMROLE_SUPPORT || $systemrole == User::SYSTEMROLE_ADMIN) {
+                # We can see all groups.
+                $sql = "SELECT GREATEST(COALESCE(messages_postings.date, messages.arrival), COALESCE(messages_postings.date, messages.arrival)) AS postdate, messages_outcomes.outcome, messages.fromuser, messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_groups.deleted, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid $collq AND fromuser IN (" . implode(',', $userids) . ") $delq LEFT JOIN messages_postings ON messages.id = messages_postings.msgid LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id HAVING postdate > ? ORDER BY postdate DESC;";
+            }
         }
 
         if ($sql) {

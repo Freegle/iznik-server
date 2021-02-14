@@ -189,8 +189,8 @@ WHERE chat_rooms.id IN $idlist;";
                     'name' => $room['name'],
                     'id' => $room['id'],
                     'replyexpected' => $room['replyexpected'],
-                    'user1' => $room['user1'],
-                    'user2' => $room['user2']
+                    'user1id' => $room['user1'],
+                    'user2id' => $room['user2']
                 ];
                 
                 $thisone['snippet'] = $this->getSnippet($room['chatmsgtype'], $room['chatmsg']);
@@ -259,12 +259,15 @@ WHERE chat_rooms.id IN $idlist;";
 
             for ($i = 0; $i < count($ret); $i++) {
                 if ($ret[$i]['chattype'] === ChatRoom::TYPE_USER2USER) {
-                    if ($ret[$i]['user1'] === $myid) {
-                        $ret[$i]['supporter'] = $users[$ret[$i]['user2']]['supporter'];
+                    if ($ret[$i]['user1id'] === $myid) {
+                        $ret[$i]['supporter'] = $users[$ret[$i]['user2id']]['supporter'];
                     } else {
-                        $ret[$i]['supporter'] = $users[$ret[$i]['user1']]['supporter'];
+                        $ret[$i]['supporter'] = $users[$ret[$i]['user1id']]['supporter'];
                     }
                 }
+
+                unset($ret[$i]['user1id']);
+                unset($ret[$i]['user2id']);
             }
         }
 
