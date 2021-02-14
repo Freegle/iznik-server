@@ -51,6 +51,11 @@ class adviewAPITest extends IznikAPITestCase
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
+        # Fake a previous click.
+        $ret = $this->call('adview', 'POST', [
+            'link' => 'https://adview.online/dispatch/job/publisher/principal-submarine-engineer?pid=2053&psrc=feed&pchl=web&ptkn=037f392bfd21f764cf6a5537ea915f2098354c7b&ptms=eyJpdiI6Ik1hT3R6R0p0ZEl6WGxaMkhyR2t2MVE9PSIsInZhbHVlIjoiSnNnSkw3aEh6MGpZTWo3WER1VytSQT09IiwibWFjIjoiZT'
+        ]);
+
         $u->setSetting('mylocation', [
             'lng' => 55.9533,
             'lat' => 3.1883,
