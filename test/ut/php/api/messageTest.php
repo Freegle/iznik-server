@@ -1140,20 +1140,22 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(2, $ret['ret']);
 
-        # Attachments
-        $ret = $this->call('message', 'PATCH', [
-            'id' => $id,
-            'groupid' => $this->gid,
-            'textbody' => 'Test edit',
-            'attachments' => [ $attid ]
-        ]);
-        assertEquals(0, $ret['ret']);
+        # Attachments - twice for old atts code path.
+        for ($i = 0; $i < 2; $i++) {
+            $ret = $this->call('message', 'PATCH', [
+                'id' => $id,
+                'groupid' => $this->gid,
+                'textbody' => 'Test edit',
+                'attachments' => [ $attid ]
+            ]);
+            assertEquals(0, $ret['ret']);
 
-        $ret = $this->call('message', 'GET', [
-            'id' => $id
-        ]);
-        assertEquals('Test edit', $ret['message']['textbody']);
-        $this->log("After text edit " . var_export($ret, TRUE));
+            $ret = $this->call('message', 'GET', [
+                'id' => $id
+            ]);
+            assertEquals('Test edit', $ret['message']['textbody']);
+            $this->log("After text edit " . var_export($ret, TRUE));
+        }
 
         # Check edit history
         assertEquals('Test edit long', $ret['message']['edits'][1]['oldsubject']);
