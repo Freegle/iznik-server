@@ -18,7 +18,7 @@ function messages() {
     $summary = array_key_exists('summary', $_REQUEST) ? filter_var($_REQUEST['summary'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $grouptype = Utils::presdef('grouptype', $_REQUEST, NULL);
     $exactonly = array_key_exists('exactonly', $_REQUEST) ? filter_var($_REQUEST['exactonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-    $searchmygroups= array_key_exists('searchmygroups', $_REQUEST) ? filter_var($_REQUEST['searchmygroups'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+    $searchmygroups = array_key_exists('searchmygroups', $_REQUEST) ? filter_var($_REQUEST['searchmygroups'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $swlat = Utils::presfloat('swlat', $_REQUEST, NULL);
     $swlng = Utils::presfloat('swlng', $_REQUEST, NULL);
     $nelat = Utils::presfloat('nelat', $_REQUEST, NULL);

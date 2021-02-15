@@ -3957,16 +3957,6 @@ ORDER BY lastdate DESC;";
         return($ret);
     }
 
-    public function mailf($fromemail, $toemail, $hdrs, $body) {
-        $rc = FALSE;
-        $mailf = Mail::factory("mail", "-f " . $fromemail);
-        if ($mailf->send($toemail, $hdrs, $body) === TRUE) {
-            $rc = TRUE;
-        }
-
-        return($rc);
-    }
-
     public function constructSubject($groupid) {
         # Construct the subject - do this now as it may get displayed to the user before we get the membership.
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
