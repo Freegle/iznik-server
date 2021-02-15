@@ -317,7 +317,8 @@ class Newsfeed extends Entity
                     $entries[$entindex]['message'] = trim($entries[$entindex]['message']);
                 }
 
-                $use = !Utils::presdef('reviewrequired', $entries[$entindex], FALSE) && !Utils::presdef('deleted', $entries[$entindex], FALSE);
+                $use = !Utils::presdef('reviewrequired', $entries[$entindex], FALSE) &&
+                    (!Utils::presdef('deleted', $entries[$entindex], FALSE) || $me->isModerator());
 
                 #error_log("Use $use for type {$entries[$entindex]['type']} from " . Utils::presdef('reviewrequired', $entries[$entindex], FALSE) . "," . Utils::presdef('deleted', $entries[$entindex], FALSE));
 
