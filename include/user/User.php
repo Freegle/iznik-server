@@ -3950,10 +3950,39 @@ class User extends Entity
         return ($ret);
     }
 
+    private function safeGetPostcode($val) {
+        $ret = NULL;
+
+        $settings = json_decode($val, TRUE);
+
+        if (Utils::pres('mylocation', $settings) &&
+            Utils::presdef('type', $settings['mylocation'], NULL) == 'Postcode') {
+            $ret = Utils::presdef('name', $settings['mylocation'], NULL);
+        }
+
+        return $ret;
+    }
+
     public function setPrivate($att, $val)
     {
+        if (!strcmp($att, 'settings') && $val) {
+            # Possible location change.
+            $oldloc = $this->safeGetPostcode($this->getPrivate('settings'));
+            $newloc = $this->safeGetPostcode($val);
+
+            if ($oldloc !== $newloc) {
+                $this->log->log([
+                            'type' => Log::TYPE_USER,
+                            'subtype' => Log::SUBTYPE_POSTCODECHANGE,
+                            'user' => $this->id,
+                            'text' => $newloc
+                        ]);
+            }
+        }
+
         User::clearCache($this->id);
         parent::setPrivate($att, $val);
+
     }
 
     public function canMerge()

@@ -1377,12 +1377,21 @@ class userTest extends IznikTestCase {
         $settings = [
             'mylocation' => [
                 'name' => 'EH3 6SS',
+                'type' => 'Postcode',
                 'lat' => 55.957571,
                 'lng' => -3.205333
             ],
         ];
 
         $u->setPrivate('settings', json_encode($settings));
+
+        # Setting the postcode should generate a log.
+        $this->waitBackground();
+        $logs = [ $u->getId() => [ 'id' => $u->getId() ] ];
+        $u->getPublicLogs($u, $logs, FALSE, $ctx, FALSE, FALSE);
+        $log = $this->findLog(Log::TYPE_USER, Log::SUBTYPE_POSTCODECHANGE, $logs[$u->getId()]['logs']);
+        assertEquals('EH3 6SS', $log['text']);
+
         $jobs = $u->getJobAds();
         assertEquals('Edinburgh', $jobs['location']);
 
