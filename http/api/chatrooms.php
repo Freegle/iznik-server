@@ -35,8 +35,8 @@ function chatrooms() {
                     $ret['chatroom']['unseen'] = $r->unseenCountForUser($myid);
                     $ret['chatroom']['lastmsgseen'] = $r->lastSeenForUser($myid);
 
-                    if (!Utils::pres('latestmessage', $ret['chatroom']) ||
-                        time() - strtotime($ret['chatroom']['latestmessage']) > 31 * 24 * 3600) {
+                    if (!Session::modtools() && (!Utils::pres('latestmessage', $ret['chatroom']) ||
+                        time() - strtotime($ret['chatroom']['latestmessage']) > 31 * 24 * 3600)) {
                         // This is an old chat which we have decided to fetch. Update latestmessage to make
                         // sure it will subsequently appear in listForUser
                         $r->ensureAppearInList($id);
