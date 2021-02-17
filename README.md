@@ -5,8 +5,12 @@
 
 Iznik is a platform for online reuse of unwanted items.  This is the server half.  
 
-The development has been funded by Freegle for use in the UK, 
+The development has been funded by Freegle for use in the UK,
 but it is an open source platform which can be used or adapted by others.
+
+**It would be very lovely if you sponsored us.**
+
+[:heart: Sponsor](https://github.com/sponsors/Freegle)
 
 We welcome potential developers with open arms.  Have  a look at the wiki section.
 
