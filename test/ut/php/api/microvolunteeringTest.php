@@ -282,5 +282,10 @@ class microvolunteeringAPITest extends IznikAPITestCase
         # Should be flagged as a supporter.
         $atts = $u->getPublic();
         assertTrue($atts['supporter']);
+
+        # Ask not to be flagged.
+        $u->setSetting('hidesupporter', TRUE);
+        $atts = $u->getPublic();
+        assertFalse($atts['supporter']);
     }
 }

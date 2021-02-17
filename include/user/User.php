@@ -6319,32 +6319,46 @@ memberships.groupid IN $groupq
         }
     }
 
+    private function checkSupporterSettings($settings) {
+        $ret = TRUE;
+
+        if ($settings) {
+            $s = json_decode($settings, TRUE);
+
+            if ($s && array_key_exists('hidesupporter', $s)) {
+                $ret = !$s['hidesupporter'];
+            }
+        }
+
+        return $ret;
+    }
+
     public function getSupporters(&$rets) {
         # A supporter is someone who has donated recently, or done microvolunteering recently.
         $userids = array_filter(array_keys($rets));
 
         if (count($userids)) {
             $start = date('Y-m-d', strtotime("60 days ago"));
-            $info = $this->dbhr->preQuery("SELECT userid FROM microactions WHERE timestamp >= ? AND userid IN (" . implode(',', $userids) .");", [
+            $info = $this->dbhr->preQuery("SELECT userid, settings FROM microactions INNER JOIN users ON users.id = microactions.userid WHERE microactions.timestamp >= ? AND microactions.userid IN (" . implode(',', $userids) .");", [
                 $start
             ]);
 
             $found = [];
 
             foreach ($info as $i) {
-                $rets[$i['userid']]['supporter'] = TRUE;
+                $rets[$i['userid']]['supporter'] = $this->checkSupporterSettings($i['settings']);
                 $found[] = $i['userid'];
             }
 
             $left = array_diff($userids, $found);
 
             if (count($left)) {
-                $info = $this->dbhr->preQuery("SELECT userid FROM users_donations WHERE timestamp >= ? AND userid IN (" . implode(',', $left) . ");", [
+                $info = $this->dbhr->preQuery("SELECT userid, settings FROM users_donations INNER JOIN users ON users_donations.userid = users.id WHERE users_donations.timestamp >= ? AND users_donations.userid IN (" . implode(',', $left) . ");", [
                     $start
                 ]);
 
                 foreach ($info as $i) {
-                    $rets[$i['userid']]['supporter'] = TRUE;
+                    $rets[$i['userid']]['supporter'] = $this->checkSupporterSettings($i['settings']);
                 }
             }
         }
