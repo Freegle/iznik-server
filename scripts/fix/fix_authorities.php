@@ -1,6 +1,4 @@
 <?php
-define('SQLLOG', FALSE);
-
 # Some authority data is MULTIPOLYGON.  This causes problems with some of the MySQL geometry functions - probably
 # bugs.  So find such multipolygons and use the largest of its multipolygons instead.
 require_once dirname(__FILE__) . '/../../include/config.php';
