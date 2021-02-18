@@ -61,7 +61,7 @@
       <mj-raw>
         {% if lovejunk %}
       </mj-raw>
-      <mj-section padding="10px">
+      <mj-section padding="0px">
         <mj-column>
           <mj-text>
             <h1>Need it gone?</h1>
@@ -70,7 +70,7 @@
           </mj-text>
         </mj-column>
       </mj-section>
-      <mj-section padding="10px">
+      <mj-section padding="0px">
         <mj-column>
           <mj-image href="{{ lovejunk }}" src="https://www.ilovefreegle.org/lovejunk.png" />
         </mj-column>
@@ -78,6 +78,8 @@
       <mj-section padding="10px">
         <mj-column>
           <mj-button align="center" href="{{ lovejunk }}" mj-class="primary">Find out more</mj-button>
+          <mj-text>
+          This will pass the details of your item and your postcode, but no other personal data, to LoveJunk.						</mj-text>
         </mj-column>
       </mj-section>
       <mj-raw>
