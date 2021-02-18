@@ -1490,7 +1490,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
         if ($myid && $myid != $this->chatroom['user1'] && $myid != $this->chatroom['user2']) {
             #error_log("Check mod access $myid, {$this->chatroom['user1']}, {$this->chatroom['user2']}");
-            $modaccess = $me->moderatorForUser($this->chatroom['user1']) ||
+            $modaccess = $me->isAdminOrSupport() || $me->moderatorForUser($this->chatroom['user1']) ||
                 $me->moderatorForUser($this->chatroom['user2']);
         }
 
