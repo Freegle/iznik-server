@@ -875,7 +875,6 @@ class Message
                 }
             }
 
-            error_log("Role $role");
             if ($role == User::ROLE_OWNER || $seeall) {
                 foreach ($this->ownerAtts as $att) {
                     $ret[$att] = Utils::presdef($att, $msg, NULL);
