@@ -6339,7 +6339,7 @@ memberships.groupid IN $groupq
 
         if (count($userids)) {
             $start = date('Y-m-d', strtotime("60 days ago"));
-            $info = $this->dbhr->preQuery("SELECT userid, settings FROM microactions INNER JOIN users ON users.id = microactions.userid WHERE microactions.timestamp >= ? AND microactions.userid IN (" . implode(',', $userids) .");", [
+            $info = $this->dbhr->preQuery("SELECT DISTINCT userid, settings FROM microactions INNER JOIN users ON users.id = microactions.userid WHERE microactions.timestamp >= ? AND microactions.userid IN (" . implode(',', $userids) .");", [
                 $start
             ]);
 
