@@ -6335,6 +6335,7 @@ memberships.groupid IN $groupq
 
     public function getSupporters(&$rets) {
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
 
         # A supporter is someone who has donated recently, or done microvolunteering recently.
         $userids = array_filter(array_keys($rets));
@@ -6355,9 +6356,9 @@ memberships.groupid IN $groupq
             $left = array_diff($userids, $found);
 
             # If we are one of the users, then we want to return whether we are a donor.
-            if ($me && in_array($me->getId(), $userids)) {
-                $left[] = $me->getId();
-                $left = array_unique($left);
+            if (in_array($myid, $userids)) {
+                $left[] = $myid;
+                $left = array_filter(array_unique($left));
             }
 
             if (count($left)) {
@@ -6368,7 +6369,7 @@ memberships.groupid IN $groupq
                 foreach ($info as $i) {
                     $rets[$i['userid']]['supporter'] = $this->checkSupporterSettings($i['settings']);
 
-                    if ($i['userid'] == $me->getId()) {
+                    if ($i['userid'] == $myid) {
                         # Only return this info for ourselves, otherwise it's a privacy leak.
                         $rets[$i['userid']]['donor'] = TRUE;
                     }
