@@ -952,7 +952,6 @@ class Message
     }
 
     public function checkLoveJunk(&$ret) {
-        error_log("Check love junk {$ret['id']}, {$ret['lat']}, {$ret['lng']}");
         if ($ret['lat'] || $ret['lng']) {
             # Check if this is a possibility for lovejunk.
             if (!$this->loveJunkPoly) {
@@ -963,7 +962,6 @@ class Message
 
             if ($this->loveJunkPoly->contains($point)) {
                 # Add in the hashed value of the ID which can be used to refer to LoveJunk.
-                error_log("Inside");
                 $ret['lovejunkhash'] = defined('LOVEJUNK_SECRET') ? hash_hmac('sha256', $ret['id'], LOVEJUNK_SECRET, FALSE) : NULL;
             }
         }
