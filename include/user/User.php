@@ -6355,7 +6355,7 @@ memberships.groupid IN $groupq
             $left = array_diff($userids, $found);
 
             # If we are one of the users, then we want to return whether we are a donor.
-            if (in_array($me->getId(), $userids)) {
+            if ($me && in_array($me->getId(), $userids)) {
                 $left[] = $me->getId();
                 $left = array_unique($left);
             }
