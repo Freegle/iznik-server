@@ -24,6 +24,11 @@ $tngroups = str_replace("'", '"', $tngroups);
 $tngroups = json_decode($tngroups, TRUE);
 
 # Ensure the polyindex is set correctly.  It can get out of step if someone updates the DB manually.
+#
+# Bad geometries can sometimes be fixed like this:
+#
+# SELECT ST_AsText(ST_Simplify(St_Buffer(GeomFromText('...'), 0.001), 0.001))
+#
 $groups = $dbhr->preQuery("SELECT id, nameshort FROM groups WHERE ST_IsValid(polyindex) = 0 OR ST_IsValid(GeomFromText(poly)) = 0 OR ST_IsValid(GeomFromText(polyofficial)) = 0 AND type = ?;", [
     Group::GROUP_FREEGLE
 ]);
