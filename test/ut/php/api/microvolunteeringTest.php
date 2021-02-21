@@ -66,6 +66,7 @@ class microvolunteeringAPITest extends IznikAPITestCase
         $uid = $u->create('Test', 'User', NULL);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
+        $u->setPrivate('trustlevel', User::TRUST_BASIC);
 
         # Ask again - logged in with membership.
         $u->addMembership($gid);
@@ -106,6 +107,7 @@ class microvolunteeringAPITest extends IznikAPITestCase
         $u->addMembership($gid, User::ROLE_MODERATOR);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
+        $u->setPrivate('trustlevel', User::TRUST_BASIC);
 
         $ret = $this->call('microvolunteering', 'POST', [
             'msgid' => $id,
@@ -147,6 +149,7 @@ class microvolunteeringAPITest extends IznikAPITestCase
         $uid2 = $u->create('Test', 'User', NULL);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
+        $u->setPrivate('trustlevel', User::TRUST_BASIC);
         $ret = $this->call('microvolunteering', 'POST', [
             'msgid' => $id,
             'response' => MicroVolunteering::RESULT_REJECT,
@@ -157,6 +160,7 @@ class microvolunteeringAPITest extends IznikAPITestCase
         $uid3 = $u->create('Test', 'User', NULL);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
+        $u->setPrivate('trustlevel', User::TRUST_BASIC);
         $ret = $this->call('microvolunteering', 'POST', [
             'msgid' => $id,
             'response' => MicroVolunteering::RESULT_APPROVE
@@ -168,6 +172,9 @@ class microvolunteeringAPITest extends IznikAPITestCase
         assertEquals(100, $v->getScore($uid));
         assertEquals(100, $v->getScore($uid2));
         assertEquals(0, $v->getScore($uid3));
+
+        $count = $v->promote($uid, 90, 0);
+        assertEquals(1, $count);
     }
 
     public function testFacebook() {

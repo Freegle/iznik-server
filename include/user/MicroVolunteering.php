@@ -479,4 +479,36 @@ class MicroVolunteering
 
         return $ret;
     }
+
+    public function promote($userid = NULL, $threshold = 90, $days = 7) {
+        $count = 0;
+        $userq = $userid ? (" AND `userid` = " . intval($userid) . " ") : '';
+
+        # Find people who are currently on the basic level who have high accuracy.
+        $users = $this->dbhr->preQuery("SELECT userid, 100 * score_positive / (score_positive + score_negative) AS score FROM microactions INNER JOIN users ON users.id = microactions.userid WHERE users.trustlevel = ? $userq GROUP BY userid HAVING score > ?;", [
+            User::TRUST_BASIC,
+            $threshold
+        ]);
+
+        foreach ($users as $user) {
+            # Check how long have done microvolunteering for.
+            $durations = $this->dbhr->preQuery("SELECT DATEDIFF(MAX(timestamp), MIN(timestamp)) AS diff FROM microactions WHERE userid = ?;", [
+                $user['userid']
+            ]);
+
+            foreach ($durations as $duration) {
+                if ($duration['diff'] >= $days) {
+                    # More than a week.
+                    $this->dbhm->preExec("UPDATE users SET trustlevel = ? WHERE id = ?", [
+                        User::TRUST_MODERATE,
+                        $user['userid']
+                    ]);
+
+                    $count++;
+                }
+            }
+        }
+
+        return $count;
+    }
 }

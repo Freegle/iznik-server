@@ -17,6 +17,8 @@ error_log("Start at " . date("Y-m-d H:i:s"));
 
 $m = new MicroVolunteering($dbhr,$dbhm);
 $m->score("48 hours ago");
+$promoted = $m->promote();
+error_log("Promoted $promoted");
 
 error_log("Finish at " . date("Y-m-d H:i:s"));
 
