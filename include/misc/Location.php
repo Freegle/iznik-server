@@ -673,7 +673,7 @@ class Location extends Entity
         # display our areas on a map.  Put a limit on this so that the API can't kill us.
         $sql = "SELECT DISTINCT areaid FROM locations LEFT JOIN locations_excluded ON locations.areaid = locations_excluded.locationid WHERE lat >= ? AND lng >= ? AND lat <= ? AND lng <= ? AND locations_excluded.locationid IS NULL LIMIT 500;";
         $areas = $this->dbhr->preQuery($sql, [ $swlat, $swlng, $nelat, $nelng ]);
-        error_log("SELECT DISTINCT areaid FROM locations LEFT JOIN locations_excluded ON locations.areaid = locations_excluded.locationid WHERE lat >= $swlat AND lng >= $swlng AND lat <= $nelat AND lng <= $nelng AND locations_excluded.locationid IS NULL LIMIT 500;");
+        #error_log("SELECT DISTINCT areaid FROM locations LEFT JOIN locations_excluded ON locations.areaid = locations_excluded.locationid WHERE lat >= $swlat AND lng >= $swlng AND lat <= $nelat AND lng <= $nelng AND locations_excluded.locationid IS NULL LIMIT 500;");
         $ret = [];
 
         foreach ($areas as $area) {

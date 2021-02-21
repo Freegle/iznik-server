@@ -496,4 +496,12 @@ class Utils {
 
         return($ret);
     }
+
+    public function array_key_first(array $arr) {
+        # Not available in PHP until 7.3.
+        foreach($arr as $key => $unused) {
+            return $key;
+        }
+        return NULL;
+    }
 }

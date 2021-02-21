@@ -142,6 +142,32 @@ class microvolunteeringAPITest extends IznikAPITestCase
         ]);
 
         assertEquals(3, count($ret['microvolunteerings']));
+
+        # Create two other users and a difference of opinion.
+        $uid2 = $u->create('Test', 'User', NULL);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+        $ret = $this->call('microvolunteering', 'POST', [
+            'msgid' => $id,
+            'response' => MicroVolunteering::RESULT_REJECT,
+            'msgcategory' => MicroVolunteering::MSGCATEGORY_SHOULDNT_BE_HERE,
+            'comments' => 'Fish with another bad face2'
+        ]);
+
+        $uid3 = $u->create('Test', 'User', NULL);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+        $ret = $this->call('microvolunteering', 'POST', [
+            'msgid' => $id,
+            'response' => MicroVolunteering::RESULT_APPROVE
+        ]);
+
+        $v = new MicroVolunteering($this->dbhr, $this->dbhm);
+        $v->score();
+
+        assertEquals(100, $v->getScore($uid));
+        assertEquals(100, $v->getScore($uid2));
+        assertEquals(0, $v->getScore($uid3));
     }
 
     public function testFacebook() {
