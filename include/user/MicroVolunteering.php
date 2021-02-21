@@ -485,7 +485,7 @@ class MicroVolunteering
         $userq = $userid ? (" AND `userid` = " . intval($userid) . " ") : '';
 
         # Find people who are currently on the basic level who have high accuracy.
-        $users = $this->dbhr->preQuery("SELECT userid, 100 * score_positive / (score_positive + score_negative) AS score FROM microactions INNER JOIN users ON users.id = microactions.userid WHERE users.trustlevel = ? $userq GROUP BY userid HAVING score > ?;", [
+        $users = $this->dbhr->preQuery("SELECT userid, 100 * score_positive / (score_positive + score_negative) AS score FROM microactions INNER JOIN users ON users.id = microactions.userid WHERE users.trustlevel = ? $userq GROUP BY userid HAVING score >= ?;", [
             User::TRUST_BASIC,
             $threshold
         ]);

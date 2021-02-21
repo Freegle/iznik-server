@@ -102,7 +102,7 @@ class microvolunteeringAPITest extends IznikAPITestCase
         assertEquals(MessageCollection::APPROVED, $ret['message']['groups'][0]['collection']);
 
         $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create('Test', 'User', NULL);
+        $u->create('Test', 'User', NULL);
         $u->addEmail('test@test.com');
         $u->addMembership($gid, User::ROLE_MODERATOR);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
