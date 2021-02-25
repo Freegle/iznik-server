@@ -562,7 +562,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
 
         # Cover the last year.
         $start = date('Y-m-d', strtotime($start));
-        $end = date('Y-m-d', strtotime($end));
+        $end = date('Y-m-d 23:59:59', strtotime($end));
 
         # Get the messages which we can identify as being within each of these postcodes.
         foreach([ Message::TYPE_OFFER, Message::TYPE_WANTED] as $type) {
@@ -591,7 +591,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
                   INNER JOIN messages ON messages.locationid = pc.locationid INNER JOIN locations on messages.locationid = locations.id 
                   INNER JOIN chat_messages cm on messages.id = cm.refmsgid AND cm.type = ?
                   WHERE locations.type = 'Postcode' AND LOCATE(' ', locations.name) > 0
-                  AND messages.type = ? AND messages.arrival >= BETWEEN '$start' AND '$end'
+                  AND messages.type = ? AND messages.arrival BETWEEN '$start' AND '$end'
                   GROUP BY PartialPostcode order by locations.name;", [
                 ChatMessage::TYPE_INTERESTED,
                 $type
