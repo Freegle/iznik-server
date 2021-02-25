@@ -216,12 +216,13 @@ class Notifications
         $mysqltime2 = date("Y-m-d H:i:s", strtotime($since));
         $seenq = $unseen ? " AND seen = 0 ": '';
         $mailq = $mailed ? " AND mailed = 0 " : '';
-        $sql = "SELECT DISTINCT(touser) FROM `users_notifications` WHERE timestamp <= '$mysqltime' AND timestamp >= '$mysqltime2' $seenq $mailq AND `type` NOT IN (?, ?, ?, ?) $userq;";
+        $sql = "SELECT DISTINCT(touser) FROM `users_notifications` WHERE timestamp <= '$mysqltime' AND timestamp >= '$mysqltime2' $seenq $mailq AND `type` NOT IN (?, ?, ?, ?, ?) $userq;";
         $users = $this->dbhr->preQuery($sql, [
             Notifications::TYPE_TRY_FEED,
             Notifications::TYPE_EXHORT,
             Notifications::TYPE_ABOUT_ME,
-            Notifications::TYPE_GIFTAID
+            Notifications::TYPE_GIFTAID,
+            Notifications::TYPE_OPEN_POSTS
         ]);
 
         $total = 0;
@@ -389,5 +390,12 @@ class Notifications
 
         $count = $notifs[0]['count'];
         return($count > 0);
+    }
+
+    public function deleteUserType($uid, $type) {
+        $this->dbhm->preQuery("DELETE FROM users_notifications WHERE touser = ? AND type = ?;", [
+            $uid,
+            $type
+        ]);
     }
 }

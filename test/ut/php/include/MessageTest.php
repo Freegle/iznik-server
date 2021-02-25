@@ -733,6 +733,57 @@ class messageTest extends IznikTestCase {
         assertEquals(0, $count);
     }
 
+    public function testLanguishing() {
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Test (Tuvalu High Street)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $this->user->addEmail($email);
+        $msg = str_replace('test@test.com', $email, $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $mid = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+        assertNotNull($mid);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $mid);
+
+        # Shouldn't notify, too new.
+        assertEquals(0, $m->notifyLanguishing($mid));
+
+        # Should have no notification.
+        $n = new Notifications($this->dbhr, $this->dbhm);
+        $ctx = NULL;
+        $notifs = $n->get($m->getFromuser(), $ctx);
+        assertEquals(1, count($notifs));
+        assertEquals(Notifications::TYPE_ABOUT_ME, $notifs[0]['type']);
+
+        # Make it older.
+        $mysqltime = date("Y-m-d H:i:s", strtotime('121 hours ago'));
+        $this->dbhm->preExec("UPDATE messages_groups SET arrival = ? WHERE msgid = ?;", [
+            $mysqltime,
+            $mid
+        ]);
+
+        # Notify languish - nothing as not reposted enough.
+        assertEquals(0, $m->notifyLanguishing($mid));
+
+        # Fake reposts
+        $this->dbhm->preExec("UPDATE messages_groups SET autoreposts = 100 WHERE msgid = ?;", [
+            $mid
+        ]);
+        assertEquals(1, $m->notifyLanguishing($mid));
+
+        # Should have a notification.
+        $n = new Notifications($this->dbhr, $this->dbhm);
+        $ctx = NULL;
+        $notifs = $n->get($m->getFromuser(), $ctx);
+        assertEquals(2, count($notifs));
+        assertEquals(Notifications::TYPE_ABOUT_ME, $notifs[1]['type']);
+        assertEquals(Notifications::TYPE_OPEN_POSTS, $notifs[0]['type']);
+    }
+
     public function testTN() {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tnatt2'));
         $m = new Message($this->dbhr, $this->dbhm);

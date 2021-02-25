@@ -19,6 +19,7 @@ $count = $m->tidyOutcomes('2001-01-01');
 error_log("Tidied $count outcomes");
 $count = $m->processIntendedOutcomes();
 error_log("Processed $count intended");
+$m->notifyLanguishing();
 $count = $m->chaseUp(Group::GROUP_FREEGLE, $mysqltime);
 error_log("Sent $count chaseups");
 

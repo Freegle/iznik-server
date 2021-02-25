@@ -4598,6 +4598,78 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
         return($count);
     }
 
+    public function notifyLanguishing($mid) {
+        # Notify users about posts which seem to be stuck doing nothing.
+        #
+        # First find recent posts which are not promised, deleted, completed.
+        $count = 0;
+        $start = date('Y-m-d', strtotime("midnight 31 days ago"));
+        $end = date('Y-m-d', strtotime("48 hours ago"));
+        $mq = $mid ? " AND messages.id = $mid " : "";
+        $msgs = $this->dbhr->preQuery("SELECT messages_groups.msgid, messages_groups.msgtype, messages_groups.autoreposts, messages_groups.groupid, messages_groups.collection, messages.fromuser, messages.fromaddr FROM messages_groups 
+LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages_groups.msgid 
+LEFT JOIN messages_promises ON messages_promises.msgid = messages_groups.msgid
+INNER JOIN messages ON messages.id = messages_groups.msgid
+WHERE messages_groups.arrival BETWEEN ? AND ?
+AND messages_outcomes.id IS NULL
+AND messages_promises.id IS NULL
+AND messages.deleted IS NULL
+AND messages.heldby IS NULL
+$mq", [
+    $start,
+    $end
+        ]);
+
+        $languishing = [];
+
+        foreach ($msgs as $msg) {
+            # Indexing works better if we handle this with an if test rather than in the query.
+            if ($msg['collection'] == MessageCollection::APPROVED &&
+                ($msg['msgtype'] == Message::TYPE_OFFER || $msg['msgtype'] == Message::TYPE_WANTED) &&
+                Mail::ourDomain($msg['fromaddr'])
+            ) {
+                # We have a post.  Check when the last activity on any chat referencing it was.
+                #error_log("Consider {$msg['msgid']}");
+                $chats = $this->dbhr->preQuery("SELECT MAX(date) AS max FROM chat_messages WHERE chatid IN (SELECT chatid FROM chat_messages WHERE refmsgid = ?) AND date >= ?;", [
+                    $msg['msgid'],
+                    $end
+                ]);
+
+                if (!$chats[0]['max']) {
+                    #error_log("...no recent chats");
+
+                    # No recent chatting about this message.
+                    #
+                    # If the group doesn't have autoreposting on, or we've finished doing it, then
+                    # this message is languishing.
+                    $g = Group::get($this->dbhr, $this->dbhm, $msg['groupid']);
+                    $reposts = $g->getSetting('reposts', ['offer' => 3, 'wanted' => 7, 'max' => 5, 'chaseups' => 5]);
+                    #error_log("...reposts {$msg['autoreposts']} vs {$reposts['max']}");
+                    if (!$reposts['max'] || $msg['autoreposts'] > $reposts['max']) {
+                        #error_log("{$msg['msgid']} from {$msg['fromuser']} is languishing");
+                        $count++;
+                        if (!array_key_exists($msg['fromuser'], $languishing)) {
+                            $languishing[$msg['fromuser']] = 1;
+                        } else {
+                            $languishing[$msg['fromuser']];
+                        }
+                    }
+                }
+            }
+        }
+
+        #error_log("Found " . count($languishing) . " users with $count languishing posts");
+
+        foreach ($languishing as $user => $count) {
+            # Only want one outstanding notification of this type.
+            $n = new Notifications($this->dbhr, $this->dbhm);
+            $n->deleteUserType($user, Notifications::TYPE_OPEN_POSTS);
+            $n->add(NULL, $user, Notifications::TYPE_OPEN_POSTS, NULL, NULL, NULL, NULL, $count);
+        }
+
+        return $count;
+    }
+
     public function dullComment($comment) {
         $dull = TRUE;
 

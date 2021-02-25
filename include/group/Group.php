@@ -334,7 +334,7 @@ class Group extends Entity
             ]);
 
             $spammembercounts = $this->dbhr->preQuery(
-                "SELECT memberships.groupid, COUNT(*) AS count, heldby IS NOT NULL AS held FROM memberships
+                "SELECT memberships.groupid, COUNT(*) AS count, memberships.heldby IS NOT NULL AS held FROM memberships
 WHERE reviewrequestedat IS NOT NULL AND groupid IN $groupq
 GROUP BY memberships.groupid, held
 UNION
