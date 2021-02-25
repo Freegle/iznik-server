@@ -14,6 +14,7 @@ class Notifications
     const TYPE_ABOUT_ME = 'AboutMe';
     const TYPE_EXHORT = 'Exhort';
     const TYPE_GIFTAID = 'GiftAid';
+    const TYPE_OPEN_POSTS = 'OpenPosts';
 
     private $dbhr, $dbhm, $log;
 
