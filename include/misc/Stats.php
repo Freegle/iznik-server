@@ -549,25 +549,27 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
         return($areas);
     }
 
-    private function getFromPostcodeTable() {
+    private function getFromPostcodeTable($start = "365 days ago", $end = "today") {
         $ret = [];
         $emptyStats = [
             Message::TYPE_OFFER => 0,
             Message::TYPE_WANTED => 0,
             Stats::SEARCHES => 0,
             Stats::WEIGHT => 0,
-            Stats::REPLIES => 0
+            Stats::REPLIES => 0,
+            Stats::OUTCOMES => 0
         ];
 
         # Cover the last year.
-        $start = date('Y-m-d', strtotime("365 days ago"));
+        $start = date('Y-m-d', strtotime($start));
+        $end = date('Y-m-d', strtotime($end));
 
         # Get the messages which we can identify as being within each of these postcodes.
         foreach([ Message::TYPE_OFFER, Message::TYPE_WANTED] as $type) {
             $stats = $this->dbhm->preQuery("SELECT SUBSTRING(locations.name, 1, LENGTH(locations.name) - 2) AS PartialPostcode, count(*) as count FROM pc 
                   INNER JOIN messages ON messages.locationid = pc.locationid INNER JOIN locations on messages.locationid = locations.id 
                   WHERE locations.type = 'Postcode' AND LOCATE(' ', locations.name) > 0
-                  AND messages.type = ? AND messages.arrival >= '$start'
+                  AND messages.type = ? AND messages.arrival BETWEEN '$start' AND '$end'
                   GROUP BY PartialPostcode order by locations.name;", [
                 $type
             ]);
@@ -589,7 +591,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
                   INNER JOIN messages ON messages.locationid = pc.locationid INNER JOIN locations on messages.locationid = locations.id 
                   INNER JOIN chat_messages cm on messages.id = cm.refmsgid AND cm.type = ?
                   WHERE locations.type = 'Postcode' AND LOCATE(' ', locations.name) > 0
-                  AND messages.type = ? AND messages.arrival >= '$start'
+                  AND messages.type = ? AND messages.arrival >= BETWEEN '$start' AND '$end'
                   GROUP BY PartialPostcode order by locations.name;", [
                 ChatMessage::TYPE_INTERESTED,
                 $type
@@ -606,8 +608,34 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
             }
         }
 
+        # Get the count of the fulfilled requests.
+        $avg = $this->dbhm->preQuery("SELECT SUM(popularity * weight) / SUM(popularity) AS average FROM items WHERE weight IS NOT NULL AND weight != 0")[0]['average'];
+        $avg = floatval($avg) ? $avg : 0;
+        $stats = $this->dbhm->preQuery("SELECT SUBSTRING(locations.name, 1, LENGTH(locations.name) - 2) AS PartialPostcode, 
+                  COUNT(*) AS count FROM pc 
+                  INNER JOIN messages ON messages.locationid = pc.locationid
+                  INNER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id
+                  INNER JOIN locations on messages.locationid = locations.id 
+                  WHERE locations.type = 'Postcode' AND LOCATE(' ', locations.name) > 0
+                  AND messages.arrival BETWEEN '$start' AND '$end'
+                  AND outcome IN (?, ?)
+                  GROUP BY PartialPostcode order by locations.name;", [
+            Message::OUTCOME_TAKEN,
+            Message::OUTCOME_RECEIVED
+        ]);
+
+        foreach ($stats as $stat) {
+            $pc = $stat['PartialPostcode'];
+
+            if (!array_key_exists($pc, $ret)) {
+                $ret[$pc] = $emptyStats;
+            }
+
+            $ret[$pc][Stats::OUTCOMES] += $stat['count'];
+        }
+
         # Get the weights for the fulfilled requests.
-        $avg = $this->dbhr->preQuery("SELECT SUM(popularity * weight) / SUM(popularity) AS average FROM items WHERE weight IS NOT NULL AND weight != 0")[0]['average'];
+        $avg = $this->dbhm->preQuery("SELECT SUM(popularity * weight) / SUM(popularity) AS average FROM items WHERE weight IS NOT NULL AND weight != 0")[0]['average'];
         $avg = floatval($avg) ? $avg : 0;
         $stats = $this->dbhm->preQuery("SELECT SUBSTRING(locations.name, 1, LENGTH(locations.name) - 2) AS PartialPostcode, 
                   SUM(COALESCE(weight, $avg)) AS weight FROM pc 
@@ -617,7 +645,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
                   INNER JOIN items i on mi.itemid = i.id
                   INNER JOIN locations on messages.locationid = locations.id 
                   WHERE locations.type = 'Postcode' AND LOCATE(' ', locations.name) > 0
-                  AND messages.arrival >= '$start'
+                  AND messages.arrival BETWEEN '$start' AND '$end'
                   AND outcome IN (?, ?)
                   GROUP BY PartialPostcode order by locations.name;", [
             Message::OUTCOME_TAKEN,
@@ -637,7 +665,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
         # Get searches.
         $stats = $this->dbhm->preQuery("SELECT SUBSTRING(locations.name, 1, LENGTH(locations.name) - 2) AS PartialPostcode, count(*) as count FROM pc 
           INNER JOIN search_history ON search_history.locationid = pc.locationid INNER JOIN locations on search_history.locationid = locations.id 
-          WHERE locations.type = 'Postcode' AND LOCATE(' ', locations.name) > 0 AND search_history.date >= '$start'
+          WHERE locations.type = 'Postcode' AND LOCATE(' ', locations.name) > 0 AND search_history.date BETWEEN '$start' AND '$end'
           GROUP BY PartialPostcode order by locations.name;");
 
         foreach ($stats as $stat) {
@@ -654,9 +682,9 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
         return($ret);
     }
 
-    public function getByAuthority($authorityids) {
+    public function getByAuthority($authorityids, $start = "365 days ago", $end = "today") {
         $this->dbhm->preExec("DROP TEMPORARY TABLE IF EXISTS pc; CREATE TEMPORARY TABLE pc AS (SELECT locationid FROM authorities INNER JOIN `locations_spatial` on authorities.id IN (" . implode(',', $authorityids) . ") AND st_contains(authorities.polygon, locations_spatial.geometry));");
 
-        return($this->getFromPostcodeTable());
+        return($this->getFromPostcodeTable($start, $end));
     }
 }

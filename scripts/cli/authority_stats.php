@@ -55,13 +55,12 @@ if (count($opts) < 1) {
         $a = new Authority($dbhr, $dbhm, $id);
         $atts = $a->getPublic();
         $groups = $atts['groups'];
-        $gids = array_column($groups, 'id');
 
         # Read the template
         $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
         $spreadsheet = $reader->load("authority_stats.xlsx");
 
-        $sheet = $spreadsheet->getActiveSheet();
+        $sheet = $spreadsheet->getSheetByName('Standard report');
         $sheet->setCellValue('A1', "Freegle in " . $atts['name']);
 
         # In the web we exclude groups which don't have > 1 kg per month on average.  Duplicate that logic here
@@ -275,6 +274,27 @@ if (count($opts) < 1) {
 
         $sheet->removeRow($shortlinkrow);
         $sheet->setCellValue("A" . ($shortlinkrow + 1), "All data correct at " . date('d/m/Y'));
+
+        # Get the postcode info.
+        $sheet = $spreadsheet->getSheetByName('Postcode breakdown');
+        $s = new Stats($dbhr, $dbhm);
+        $stats = $s->getByAuthority([ $a->getId() ], $months[0]['start'], $months[2]['end']);
+        $row = 2;
+
+        foreach ($stats as $pc => $stat) {
+            $sheet->setCellValue("A$row", $pc);
+            $sheet->setCellValue("B$row", $stat[Message::TYPE_OFFER]);
+            $sheet->setCellValue("C$row", $stat[Message::TYPE_WANTED]);
+            $sheet->setCellValue("D$row", $stat[Stats::SEARCHES]);
+            $sheet->setCellValue("E$row", $stat[Stats::OUTCOMES]);
+            $sheet->setCellValue("F$row", round($stat[Stats::WEIGHT], 1));
+            $sheet->setCellValue("G$row", round($stat[Stats::WEIGHT] * 0.51, 2));
+            $sheet->setCellValue("H$row", round($stat[Stats::WEIGHT] * 711 / 10) / 100);
+            $row++;
+        }
+
+        # Select the right sheet to open on.
+        $spreadsheet->setActiveSheetIndexByName('Standard report');
 
         # Write the output XLSX.
         $ofn = "/tmp/Freegle-Statistics-{$atts['name']}-" . date('Y') . "-Q$q.xlsx";
