@@ -14,6 +14,7 @@ function logs() {
     $search = Utils::presdef('search', $_REQUEST, NULL);
     $ctx = Utils::presdef('context', $_REQUEST, NULL);
     $limit = (Utils::presint('limit', $_REQUEST, 20));
+    $modmailsonly = Utils::presbool('modmailsonly', $_REQUEST, FALSE);
 
     $ret = [ 'ret' => 1, 'status' => 'Unknown verb' ];
 
@@ -86,7 +87,7 @@ function logs() {
 
                         if ($me->isModerator()) {
                             $logs = [$userid => ['id' => $userid]];
-                            $u->getPublicLogs($u, $logs, false, $ctx);
+                            $u->getPublicLogs($u, $logs, $modmailsonly, $ctx);
                             $ret = [ 'ret' => 0, 'status' => 'Success' ];
                             $ret['logs'] = $logs[$userid]['logs'];
                         }
