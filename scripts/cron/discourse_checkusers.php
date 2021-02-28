@@ -4,8 +4,10 @@
 //
 // 2019-12-13 Use header auth not query params
 // 2019-12-13 Add bounce reporting
+// 2021-02-28 Fix DateTime namespace
 
 namespace Freegle\Iznik;
+use \Datetime;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
