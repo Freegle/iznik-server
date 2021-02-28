@@ -2,6 +2,8 @@
 
 namespace Freegle\Iznik;
 
+use PhpMimeMailParser\Exception;
+
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
 
@@ -33,7 +35,11 @@ $count = 0;
 foreach ($pcids as $id => $gridid) {
     $count++;
     error_log("$id ($count / " . count($pcids) . ")");
-    $l->setParents($id);
+    try {
+        $l->setParents($id);
+    } catch (\Exception $e) {
+        error_log("Failed on $id with " . $e->getMessage());
+    }
 }
 
 Utils::unlockScript($lockh);
