@@ -127,7 +127,7 @@ class RelevantTest extends IznikTestCase
         $l = new Location($this->dbhr, $this->dbhm);
 
         $rl = new Relevant($this->dbhr, $this->dbhm);
-        $ints = $rl->findRelevant($uid, Group::GROUP_FREEGLE);
+        $ints = $rl->findRelevant($uid, Group::GROUP_FREEGLE, NULL, 'tomorrow');
         $this->log("Found interested 1 " . var_export($ints, TRUE));
         assertEquals(2, count($ints));
 
@@ -182,7 +182,8 @@ class RelevantTest extends IznikTestCase
 
         $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->setPrivate('lastrelevantcheck', NULL);
-        self::assertEquals(1, $mock->sendMessages($uid));
+        self::assertEquals(0, $mock->sendMessages($uid, NULL, '24 hours ago'));
+        self::assertEquals(1, $mock->sendMessages($uid, NULL, 'tomorrow'));
 
         $msgs = $this->msgsSent;
         $this->log("Should return just $id1");
@@ -216,7 +217,7 @@ class RelevantTest extends IznikTestCase
         $m->like($uid, Message::LIKE_VIEW);
 
         $this->msgsSent = [];
-        self::assertEquals(1, $mock->sendMessages($uid));
+        self::assertEquals(1, $mock->sendMessages($uid, NULL, 'tomorrow'));
         $msgs = $this->msgsSent;
         assertEquals(1, count($msgs));
         $msgs = preg_replace("/\=\r\n/", "", $msgs[0]);
@@ -231,7 +232,7 @@ class RelevantTest extends IznikTestCase
 
         $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->setPrivate('lastrelevantcheck', NULL);
-        self::assertEquals(0, $mock->sendMessages($uid));
+        self::assertEquals(0, $mock->sendMessages($uid, NULL, 'tomorrow'));
     }
 
     public function testOff() {

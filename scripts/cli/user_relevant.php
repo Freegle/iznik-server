@@ -15,7 +15,7 @@ if (count($opts) < 1) {
 } else {
     $id = $opts['i'];
     $r = new Relevant($dbhr, $dbhm);
-    $ints = $r->findRelevant($id);
+    $ints = $r->findRelevant($id, Group::GROUP_FREEGLE, NULL, '24 hours ago');
 
     foreach ($ints as $int) {
         error_log("  Type {$int['type']} Item {$int['item']} Because " . var_export($int, TRUE));

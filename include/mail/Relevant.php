@@ -59,11 +59,12 @@ class Relevant {
         }
     }
 
-    public function findRelevant($userid, $grouptype = Group::GROUP_FREEGLE, $earliest = NULL) {
+    public function findRelevant($userid, $grouptype = Group::GROUP_FREEGLE, $earliest = NULL, $latest = "24 hours ago") {
         $interested = [];
         $terms = [];
 
-        $earlyq = $earliest ? " AND messages.arrival > '$earliest'" : NULL;
+        $earlyq = $earliest ? (" AND messages.arrival > '" . date("Y-m-d H:i:s", strtotime($earliest)) . "' ") : NULL;
+        $lateq = $latest ? (" AND messages.arrival <= '" . date("Y-m-d H:i:s", strtotime($latest)) . "' ") : NULL;
 
         $u = User::get($this->dbhr, $this->dbhm, $userid);
 
@@ -80,7 +81,7 @@ class Relevant {
             $start = date('Y-m-d', strtotime("30 days ago"));
 
             # First the messages.
-            $sql = "SELECT DISTINCT messages.type, messages.subject, messages.arrival, messages.id FROM messages LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND collection = 'Approved' INNER JOIN groups ON groups.id = messages_groups.groupid AND groups.type = ? AND groups.onhere = 1 WHERE messages_outcomes.msgid IS NULL AND fromuser = ? AND messages.type IN ('Offer', 'Wanted') AND messages.arrival >= ? AND messages_groups.deleted = 0 $earlyq;";
+            $sql = "SELECT DISTINCT messages.type, messages.subject, messages.arrival, messages.id FROM messages LEFT OUTER JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND collection = 'Approved' INNER JOIN groups ON groups.id = messages_groups.groupid AND groups.type = ? AND groups.onhere = 1 WHERE messages_outcomes.msgid IS NULL AND fromuser = ? AND messages.type IN ('Offer', 'Wanted') AND messages.arrival >= ? AND messages_groups.deleted = 0 $earlyq $lateq;";
             $msgs = $this->dbhr->preQuery($sql, [ $grouptype, $userid, $start ] );
             #error_log("Look for posts from $userid since $start found " . count($msgs));
             foreach ($msgs as $msg) {
@@ -226,7 +227,7 @@ class Relevant {
         $mailer->send($message);
     }
 
-    public function sendMessages($userid = NULL) {
+    public function sendMessages($userid = NULL, $earliest = NULL, $latest = "24 hours ago") {
         list ($transport, $mailer) = Mail::getMailer();
 
         $count = 0;
@@ -240,7 +241,7 @@ class Relevant {
             # Only want to send to people who have used FD.
             #error_log("Check send our emails");
             if ($u->getOurEmail() && $u->sendOurMails()) {
-                $ints = $this->findRelevant($user['id']);
+                $ints = $this->findRelevant($user['id'], Group::GROUP_FREEGLE, $earliest, $latest);
                 $msgs = $this->getMessages($user['id'], $ints);
                 #error_log("Number of messages " . count($msgs) . " from " . var_export($ints, TRUE) . " and " . var_export($msgs, TRUE));;
 
