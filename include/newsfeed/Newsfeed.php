@@ -304,7 +304,7 @@ class Newsfeed extends Entity
             }
 
             if ($checkreplies) {
-                $replies = $this->dbhr->preQuery($allreplies ? "SELECT * FROM newsfeed WHERE replyto IN (" . implode(',', $ids) . ") ORDER BY id DESC;" : "SELECT * FROM newsfeed WHERE replyto IN (" . implode(',', $ids) . ") ORDER BY id DESC;", NULL, FALSE);
+                $replies = $this->dbhr->preQuery($allreplies ? "SELECT * FROM newsfeed WHERE replyto IN (" . implode(',', $ids) . ") AND deleted IS NULL ORDER BY id DESC;" : "SELECT * FROM newsfeed WHERE replyto IN (" . implode(',', $ids) . ") AND deleted IS NULL ORDER BY id DESC;", NULL, FALSE);
                 $replies = array_reverse($replies);
                 $this->fillIn($replies, $users, TRUE, FALSE);
             }
@@ -539,7 +539,7 @@ class Newsfeed extends Entity
                 $pinq .= ")";
             }
 
-            $sql = "SELECT newsfeed." . implode(',newsfeed.', $this->publicatts) . ", hidden, newsfeed_unfollow.id AS unfollowed FROM newsfeed LEFT JOIN newsfeed_unfollow ON newsfeed.id = newsfeed_unfollow.newsfeedid AND newsfeed_unfollow.userid = $userid AND deleted IS NULL WHERE $first AND replyto IS NULL $typeq $pinq ORDER BY pinned DESC, timestamp DESC LIMIT 5;";
+            $sql = "SELECT newsfeed." . implode(',newsfeed.', $this->publicatts) . ", hidden, newsfeed_unfollow.id AS unfollowed FROM newsfeed LEFT JOIN newsfeed_unfollow ON newsfeed.id = newsfeed_unfollow.newsfeedid AND newsfeed_unfollow.userid = $userid WHERE $first AND replyto IS NULL AND newsfeed.deleted IS NULL $typeq $pinq ORDER BY pinned DESC, timestamp DESC LIMIT 5;";
             #error_log("Get feed $sql");
             $entries = $this->dbhr->preQuery($sql);
             $last = NULL;
