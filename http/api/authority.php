@@ -7,6 +7,8 @@ function authority() {
     $id = (Utils::presint('id', $_REQUEST, NULL));
     $search = Utils::presdef('search', $_REQUEST, NULL);
     $stats = array_key_exists('stats', $_REQUEST) ? filter_var($_REQUEST['stats'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+    $start = Utils::presdef('start', $_REQUEST, '365 days ago');
+    $end = Utils::presdef('end', $_REQUEST, 'today');
 
     $a = new Authority($dbhr, $dbhm, $id);
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
@@ -17,7 +19,7 @@ function authority() {
                 $atts = $a->getPublic();
                 if ($stats) {
                     $s = new Stats($dbhr, $dbhm);
-                    $atts['stats'] = $s->getByAuthority([ $id ]);
+                    $atts['stats'] = $s->getByAuthority([ $id ], $start, $end);
                 }
 
                 $ret = [
