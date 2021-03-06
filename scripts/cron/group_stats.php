@@ -171,7 +171,6 @@ $stats = $dbhr->preQuery("SELECT groupid, SUM(count) AS count, CONCAT(YEAR(date)
 ]);
 
 foreach ($stats as $stat) {
-    error_log($stat['groupid']);
     $dbhm->preExec("REPLACE INTO stats_outcomes (groupid, count, date) VALUES (?, ?, ?);", [
         $stat['groupid'],
         $stat['count'],
