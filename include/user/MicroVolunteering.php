@@ -135,22 +135,52 @@ class MicroVolunteering
                 $groupids = $u->getMembershipGroupIds(false, Group::GROUP_FREEGLE, $userid);
             }
 
-            # Find the earliest message:
-            # - on approved (in the spatial index)
-            # - from the current day (use messages because we're interested in the first post).
-            # - on one of these groups
-            # - micro-volunteering is enabled on the group
-            # - not from us
-            # - not had a quorum of opinions
-            # - not one we've seen
-            # - still open
-            # - on a group with this kind of microvolunteering enabled.
-            #
-            # We include explicitly moderated ones because this gives us data on how well they do.
-            if (in_array(self::CHALLENGE_CHECK_MESSAGE, $types) &&
-                count($groupids)) {
+            if ($u->getPrivate('trustlevel') == User::TRUST_MODERATE) {
+                # Users with this trust level can review pending messages.
                 $msgs = $this->dbhr->preQuery(
-                    "SELECT messages_spatial.msgid,
+                    "SELECT messages_groups.msgid
+    FROM messages_groups
+    INNER JOIN messages ON messages.id = messages_groups.msgid
+    INNER JOIN groups ON groups.id = messages_groups.groupid
+    LEFT JOIN microactions ON microactions.msgid = messages_groups.msgid AND microactions.userid = ?    
+    WHERE messages_groups.groupid IN (" . implode(',', $groupids) . " ) 
+        AND fromuser != ?
+        AND microvolunteering = 1
+        AND messages.deleted IS NULL
+        AND microactions.id IS NULL
+        AND (microvolunteeringoptions IS NULL OR JSON_EXTRACT(microvolunteeringoptions, '$.approvedmessages') = 1)
+    ORDER BY messages_groups.arrival ASC LIMIT 1",
+                    [
+                        $userid,
+                        $userid
+                    ]
+                );
+
+                foreach ($msgs as $msg) {
+                    $ret = [
+                        'type' => self::CHALLENGE_CHECK_MESSAGE,
+                        'msgid' => $msg['msgid']
+                    ];
+                }
+            }
+
+            if (!$ret) {
+                # Find the earliest message:
+                # - on approved (in the spatial index)
+                # - from the current day (use messages because we're interested in the first post).
+                # - on one of these groups
+                # - micro-volunteering is enabled on the group
+                # - not from us
+                # - not had a quorum of opinions
+                # - not one we've seen
+                # - still open
+                # - on a group with this kind of microvolunteering enabled.
+                #
+                # We include explicitly moderated ones because this gives us data on how well they do.
+                if (in_array(self::CHALLENGE_CHECK_MESSAGE, $types) &&
+                    count($groupids)) {
+                    $msgs = $this->dbhr->preQuery(
+                        "SELECT messages_spatial.msgid,
        (SELECT COUNT(*) AS count FROM microactions WHERE msgid = messages_spatial.msgid) AS reviewcount,
        (SELECT COUNT(*) AS count FROM microactions WHERE msgid = messages_spatial.msgid AND result = ?) AS approvalcount
     FROM messages_spatial 
@@ -169,20 +199,21 @@ class MicroVolunteering
         AND (microvolunteeringoptions IS NULL OR JSON_EXTRACT(microvolunteeringoptions, '$.approvedmessages') = 1)
     HAVING approvalcount < ? AND reviewcount < ?
     ORDER BY messages_groups.arrival ASC LIMIT 1",
-                    [
-                        self::RESULT_APPROVE,
-                        $userid,
-                        $userid,
-                        self::APPROVAL_QUORUM,
-                        self::DISSENTING_QUORUM
-                    ]
-                );
+                        [
+                            self::RESULT_APPROVE,
+                            $userid,
+                            $userid,
+                            self::APPROVAL_QUORUM,
+                            self::DISSENTING_QUORUM
+                        ]
+                    );
 
-                foreach ($msgs as $msg) {
-                    $ret = [
-                        'type' => self::CHALLENGE_CHECK_MESSAGE,
-                        'msgid' => $msg['msgid']
-                    ];
+                    foreach ($msgs as $msg) {
+                        $ret = [
+                            'type' => self::CHALLENGE_CHECK_MESSAGE,
+                            'msgid' => $msg['msgid']
+                        ];
+                    }
                 }
             }
 
