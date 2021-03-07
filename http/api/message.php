@@ -268,6 +268,8 @@ function message() {
                     $msgtype = Utils::presdef('msgtype', $_REQUEST, NULL);
                     $item = Utils::presdef('item', $_REQUEST, NULL);
                     $location = Utils::presdef('location', $_REQUEST, NULL);
+                    $lat = Utils::presfloat('lat', $_REQUEST, NULL);
+                    $lng = Utils::presfloat('lng', $_REQUEST, NULL);
                     $textbody = Utils::presdef('textbody', $_REQUEST, NULL);
                     $fop = array_key_exists('FOP', $_REQUEST) ? $_REQUEST['FOP'] : NULL;
                     $availableinitially = Utils::presint('availableinitially', $_REQUEST, NULL);
@@ -287,7 +289,7 @@ function message() {
                         $m->setPrivate('availableinitially', $availableinitially);
                     }
 
-                    if ($subject || $textbody || $msgtype || $item || $location || $attachments !== NULL) {
+                    if ($subject || $textbody || $msgtype || $item || $location || $attachments !== NULL || $lat || $lng) {
                         $partner = Utils::pres('partner', $_SESSION);
 
                         if ($partner) {
@@ -295,9 +297,15 @@ function message() {
                             $m->deleteAllAttachments();
                             $textbody = $m->scrapePhotos($textbody);
                             $m->saveAttachments($id);
+
+                            # Lat/lng might have changed
+                            if ($lat || $lng) {
+                                $m->setPrivate('lat', $lat);
+                                $m->setPrivate('lng', $lng);
+                            }
                         }
 
-                        $rc = $m->edit($subject, 
+                        $rc = $m->edit($subject,
                           $textbody, 
                           $msgtype,
                           $item, 
