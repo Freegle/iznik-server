@@ -186,15 +186,33 @@ class Group extends Entity
     }
 
     public function setPrivate($att, $val) {
+        $ret = TRUE;
+
         # We override this in order to clear our cache, which would otherwise be out of date.
         parent::setPrivate($att, $val);
 
         if ($att == 'poly' || $att == 'polyofficial') {
-            $this->dbhm->preExec("UPDATE groups SET polyindex = GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)')) WHERE id = ?;", [
-                $this->id
+            # Check validity of spatial data
+            $ret = FALSE;
+
+            $valid = $this->dbhm->preQuery("SELECT ST_IsValid(GeomFromText(?)) AS valid;", [
+                $val
             ]);
+
+            foreach ($valid as $v) {
+                if ($v['valid']) {
+                    $this->dbhm->preExec("UPDATE groups SET polyindex = GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)')) WHERE id = ?;", [
+                        $this->id
+                    ]);
+
+                    $ret = TRUE;
+                }
+            }
         }
+
         Group::clearCache($this->id);
+
+        return $ret;
     }
 
     public function create($shortname, $type) {
