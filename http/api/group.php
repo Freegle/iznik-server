@@ -223,12 +223,7 @@ function group() {
                             foreach (['poly', 'polyofficial'] as $att) {
                                 $val = Utils::presdef($att, $_REQUEST, NULL);
                                 if (array_key_exists($att, $_REQUEST)) {
-                                    try {
-                                        $dbhr->preQuery("SELECT GeomFromText(?);", [
-                                            $val
-                                        ]);
-                                        $g->setPrivate($att, $val);
-                                    } catch (\Exception $e) {
+                                    if (!$g->setPrivate($att, $val)) {
                                         $ret = [
                                             'ret' => 3,
                                             'status' => 'Invalid polygon data'
