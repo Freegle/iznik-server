@@ -195,18 +195,22 @@ class Group extends Entity
             # Check validity of spatial data
             $ret = FALSE;
 
-            $valid = $this->dbhm->preQuery("SELECT ST_IsValid(GeomFromText(?)) AS valid;", [
-                $val
-            ]);
+            try {
+                $valid = $this->dbhm->preQuery("SELECT ST_IsValid(GeomFromText(?)) AS valid;", [
+                    $val
+                ]);
 
-            foreach ($valid as $v) {
-                if ($v['valid']) {
-                    $this->dbhm->preExec("UPDATE groups SET polyindex = GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)')) WHERE id = ?;", [
-                        $this->id
-                    ]);
+                foreach ($valid as $v) {
+                    if ($v['valid']) {
+                        $this->dbhm->preExec("UPDATE groups SET polyindex = GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)')) WHERE id = ?;", [
+                            $this->id
+                        ]);
 
-                    $ret = TRUE;
+                        $ret = TRUE;
+                    }
                 }
+            } catch(\Exception $e) {
+                # Drop through with ret false.
             }
         }
 
