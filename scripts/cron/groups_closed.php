@@ -23,7 +23,7 @@ foreach ($cs as $c) {
         ->setCc(MENTORS_ADDR)
         ->setDate(time())
         ->setBody(
-            "Hi there - just to remind you that your Freegle group is currently closed.  You're probably keeping it closed intentionally, but if you now feel it's time to re-open then you can go that from ModTools, in Settings->Community->Features for Members->Closed for COVID-19.  We'll send this automated mail once a week."
+            "Hi there - just to remind you that your Freegle group is currently closed.  If you now feel it's time to re-open then you can do that from ModTools, in Settings->Community->Features for Members->Closed for COVID-19.  We'll send this automated mail once a week."
         );
     $mailer->send($message);
 }
