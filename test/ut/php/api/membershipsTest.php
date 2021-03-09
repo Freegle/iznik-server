@@ -107,6 +107,35 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals(MembershipCollection::APPROVED, $ret['addedto']);
         assertNotNull($this->user2->isApprovedMember($this->groupid));
+
+        # Ban them again.
+        $ret = $this->call('memberships', 'DELETE', [
+            'groupid' => $this->groupid,
+            'userid' => $this->uid2,
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertNull($this->user2->isApprovedMember($this->groupid));
+
+        # Unban them
+        $ret = $this->call('memberships', 'POST', [
+            'groupid' => $this->groupid,
+            'userid' => $this->uid2,
+            'action' => 'Unban'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertNull($this->user2->isApprovedMember($this->groupid));
+
+        # They should be able to join.
+        # Should be able to add (i.e. join) as a non-member or a member.
+        $_SESSION['id'] = $this->uid2;
+
+        $ret = $this->call('memberships', 'PUT', [
+            'groupid' => $this->groupid,
+            'userid' => $this->uid2,
+            'role' => 'Member'
+        ]);
+        assertEquals(0, $ret['ret']);
+        self::assertEquals(MembershipCollection::APPROVED, $ret['addedto']);
     }
 
     public function testJoinAndSee() {
@@ -742,6 +771,7 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(0, $cr->unseenCountForUser($this->uid2));
         assertEquals($chatread ? 0 : 1, $cr->unseenCountForUser($othermoduid));
     }
+
 //
 //    public function testEH() {
 //        $_SESSION['id'] = 420;

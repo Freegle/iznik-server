@@ -244,6 +244,10 @@ function memberships() {
                         case 'HappinessReviewed':
                             $u->happinessReviewed($happinessid);
                             break;
+                        case 'Unban': {
+                            $u->unban($groupid);
+                            break;
+                        }
                     }
                 }
 
