@@ -1742,7 +1742,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                     // User2Mod, and we are notifying a mod
                     if ($unmailedmsg['userid'] == $sendingfrom->getId()) {
                         $thistwig['mine'] = TRUE;
-                        $profileu = $sendingto;
+                        $profileu = $sendingfrom;
 
                     } else {
                         $thistwig['mine'] = FALSE;
