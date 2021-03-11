@@ -1578,6 +1578,7 @@ class userTest extends IznikTestCase {
         assertEquals('+447888888888' ,$u->formatPhone('4407888888888'));
         assertEquals('+447888888888' ,$u->formatPhone('+4407888888888'));
         assertEquals('+447888888888' ,$u->formatPhone('07888888888'));
+        assertEquals('+447888888888' ,$u->formatPhone('+440447888888888'));
     }
 }
 
