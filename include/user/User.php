@@ -5620,9 +5620,7 @@ class User extends Entity
     public function formatPhone($num)
     {
         $num = str_replace(' ', '', $num);
-        $num = str_replace('+44', '', $num);
-        $num = str_replace('+', '', $num);
-        $num = preg_replace('/^44/', '', $num);
+        $num = preg_replace('/^(\+)?4+([^4])/', '$2', $num);
 
         if (substr($num, 0, 1) === '0') {
             $num = substr($num, 1);

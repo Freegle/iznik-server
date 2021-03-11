@@ -1568,5 +1568,16 @@ class userTest extends IznikTestCase {
         list ($total, $chatcount, $notifcount, $title, $message, $chatids, $route) = $u->getNotificationPayload(TRUE);
         assertEquals(2, $chatcount);
     }
+
+    public function testFormatPhone() {
+        $u = new User($this->dbhr, $this->dbhm);
+        assertEquals('+447888888888' ,$u->formatPhone('+44447888888888'));
+        assertEquals('+447888888888' ,$u->formatPhone('+4444447888888888'));
+        assertEquals('+447888888888' ,$u->formatPhone('4444447888888888'));
+        assertEquals('+447888888888' ,$u->formatPhone('447888888888'));
+        assertEquals('+447888888888' ,$u->formatPhone('4407888888888'));
+        assertEquals('+447888888888' ,$u->formatPhone('+4407888888888'));
+        assertEquals('+447888888888' ,$u->formatPhone('07888888888'));
+    }
 }
 
