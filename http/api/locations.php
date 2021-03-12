@@ -80,6 +80,8 @@ function locations() {
                 $polygon = Utils::presdef('polygon', $_REQUEST, NULL);
                 if ($polygon) {
                     $worked = FALSE;
+                    $ret = ['ret' => 3, 'status' => 'Set failed - invalid geometry?'];
+
                     if ($l->setGeometry($polygon)) {
                         $worked = TRUE;
                     }

@@ -606,23 +606,43 @@ class Location extends Entity
     }
 
     public function setGeometry($val) {
-        $rc = $this->dbhm->preExec("UPDATE locations SET `type` = 'Polygon', `ourgeometry` = GeomFromText(?) WHERE id = {$this->id};", [$val]);
-        if ($rc) {
-            # Put in the index table.
-            $this->dbhm->preExec("REPLACE INTO locations_spatial (locationid, geometry) VALUES (?, GeomFromText(?));", [
-                $this->id,
-                $val
-            ]);
+        $rc = FALSE;
 
-            # The centre point and max dimensions will also have changed.
-            $rc = $this->dbhm->preExec("UPDATE locations SET maxdimension = GetMaxDimension(ourgeometry), lat = Y(ST_Centroid(ourgeometry)), lng = X(ST_Centroid(ourgeometry)) WHERE id = {$this->id};", [$val]);
+        $valid = $this->dbhm->preQuery("SELECT ST_IsValid(GeomFromText(?)) AS valid;", [
+            $val
+        ]);
 
-            if ($rc) {
-                $this->remapPostcodes($val, $this->loc['gridid']);
+        foreach ($valid as $v) {
+            if ($v['valid']) {
+                $rc = $this->dbhm->preExec(
+                    "UPDATE locations SET `type` = 'Polygon', `ourgeometry` = GeomFromText(?) WHERE id = {$this->id};",
+                    [$val]
+                );
+                if ($rc) {
+                    # Put in the index table.
+                    $this->dbhm->preExec(
+                        "REPLACE INTO locations_spatial (locationid, geometry) VALUES (?, GeomFromText(?));",
+                        [
+                            $this->id,
+                            $val
+                        ]
+                    );
 
-                $this->fetch($this->dbhm, $this->dbhm, $this->id, 'locations', 'loc', $this->publicatts);
+                    # The centre point and max dimensions will also have changed.
+                    $rc = $this->dbhm->preExec(
+                        "UPDATE locations SET maxdimension = GetMaxDimension(ourgeometry), lat = Y(ST_Centroid(ourgeometry)), lng = X(ST_Centroid(ourgeometry)) WHERE id = {$this->id};",
+                        [$val]
+                    );
+
+                    if ($rc) {
+                        $this->remapPostcodes($val, $this->loc['gridid']);
+
+                        $this->fetch($this->dbhm, $this->dbhm, $this->id, 'locations', 'loc', $this->publicatts);
+                    }
+                }
             }
         }
+
         return($rc);
     }
 
