@@ -1,26 +1,25 @@
 <?php
 
-define(SQLLOG, FALSE);
+namespace Freegle\Iznik;
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
+global $dbhr, $dbhm;
 
-require_once(IZNIK_BASE . '/include/misc/Location.php');
-
-# Use dbhm to bypass cache.
 $l = new Location($dbhm, $dbhm);
 
-$locs = $dbhm->query("SELECT id, name, gridid FROM locations WHERE type = 'Postcode' AND LOCATE(' ', name) > 0 AND (name LIKE 'IP%' OR name LIKE 'PE%') ORDER BY name ASC;");
+error_log("Search");
+$locs = $dbhm->query("SELECT l1.id FROM `locations` l1 INNER JOIN locations l2 ON l1.areaid = l2.id WHERE LOCATE(' ', l1.name) > 0 AND l1.type = 'Postcode' AND NOT ST_Contains(COALESCE(l2.ourgeometry, l2.geometry), l1.geometry);");
+error_log("Searched " . count($locs));;
 
 $count = 0;
 
 foreach ($locs as $loc) {
-    #echo "{$loc['id']} - {$loc['name']} => ";
     try {
         $l->setParents($loc['id']);
         $count++;
 
-        if ($count % 1000 == 0) {
+        if ($count % 10 == 0) {
             error_log("$count...");
         }
     } catch (\Exception $e) {}
