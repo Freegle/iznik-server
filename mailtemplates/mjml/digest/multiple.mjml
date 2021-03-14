@@ -154,7 +154,11 @@
       <mj-section background-color="#D8D8D8" padding-top="0" padding-bottom="0px">
         <mj-column>
           <mj-text>{{ message.textbody }}</mj-text>
-          <mj-raw>{% endif %}</mj-raw>
+        </mj-column>
+      </mj-section>
+      <mj-raw>{% endif %}</mj-raw>
+      <mj-section background-color="#D8D8D8" padding-top="0" padding-bottom="0px">
+        <mj-column>
           <mj-text color="darkgrey" padding-top="0" padding-bottom="0px">Posted by {{ message.fromname }} on {{ message.date }}.</mj-text>
           <mj-text padding-top="0" padding-bottom="0px">
             <hr style="border: 0; border-top: 1px solid #aaa; " />
