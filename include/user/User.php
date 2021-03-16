@@ -4001,7 +4001,7 @@ class User extends Entity
             self::NOTIFS_EMAIL_MINE => FALSE,
             self::NOTIFS_PUSH => TRUE,
             self::NOTIFS_FACEBOOK => TRUE,
-            self::NOTIFS_PUSH => TRUE
+            self::NOTIFS_APP => TRUE
         ];
 
         $ret = ($notifs && array_key_exists($type, $notifs)) ? $notifs[$type] : $defs[$type];
