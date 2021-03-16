@@ -3997,11 +3997,11 @@ class User extends Entity
         $notifs = Utils::pres('notifications', $settings);
 
         $defs = [
-            'email' => TRUE,
-            'emailmine' => FALSE,
-            'push' => TRUE,
-            'facebook' => TRUE,
-            'app' => TRUE
+            self::NOTIFS_EMAIL => TRUE,
+            self::NOTIFS_EMAIL_MINE => FALSE,
+            self::NOTIFS_PUSH => TRUE,
+            self::NOTIFS_FACEBOOK => TRUE,
+            self::NOTIFS_PUSH => TRUE
         ];
 
         $ret = ($notifs && array_key_exists($type, $notifs)) ? $notifs[$type] : $defs[$type];
