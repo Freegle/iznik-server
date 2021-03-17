@@ -8,6 +8,8 @@ require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
+$lockh = Utils::lockScript(basename(__FILE__));
+
 # This is run from cron to check status, which can then be returned from the API.
 function status()
 {
@@ -241,3 +243,5 @@ ORDER BY backlog DESC LIMIT 1;";
 # Put into cache file for API call.
 file_put_contents('/tmp/iznik.status', json_encode(status()));
 chmod('/tmp/iznik.status', 0644);
+
+Utils::unlockScript($lockh);
