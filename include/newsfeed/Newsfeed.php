@@ -1148,14 +1148,4 @@ class Newsfeed extends Entity
 
         return(count($ns) > 0 ? $ns[0]['id'] : NULL);
     }
-
-    public function deleteRecent($userid, $type, $within = "24 hours ago") {
-        $mysqltime = date("Y-m-d H:i:s", strtotime($within));
-        #error_log("UPDATE newsfeed SET deleted = NOW() WHERE timestamp >= '$mysqltime' AND userid = $userid AND type = '$type';");
-        $this->dbhm->preExec("UPDATE newsfeed SET deleted = NOW() WHERE timestamp >= ? AND userid = ? AND type = ?;", [
-            $mysqltime,
-            $userid,
-            $type
-        ]);
-    }
 }
