@@ -596,6 +596,8 @@ class userAPITest extends IznikAPITestCase {
         $u = new User($this->dbhr, $this->dbhm, $id);
         self::assertTrue($u->isModOrOwner($this->groupid));
 
+        # Again for coverage of cache case.
+        self::assertTrue($u->isModOrOwner($this->groupid));
     }
 
     public function testCantMerge() {

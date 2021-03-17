@@ -1644,7 +1644,7 @@ class User extends Entity
         }
     }
     
-    public function getInfo()
+    public function getInfo($grace = 30)
     {
         # Extra user info.
         $ret = [];
@@ -1731,7 +1731,7 @@ class User extends Entity
 
         $ret['ratings'] = $this->getRating();
 
-        $replies = $this->getExpectedReplies([ $this->id ]);
+        $replies = $this->getExpectedReplies([ $this->id ], ChatRoom::ACTIVELIM, $grace);
 
         foreach ($replies as $reply) {
             $ret['expectedreply'] = $reply['count'];
@@ -4430,8 +4430,6 @@ class User extends Entity
                             // Handle some misfromed locations which end up with spurious brackets.
                             $grp = preg_replace('/\(|\)/', '', $grp);
 
-                            #error_log("Found $grp from post");
-
                             $users[$userid]['info']['publiclocation'] = [
                                 'display' => $grp,
                                 'location' => NULL,
@@ -4442,8 +4440,8 @@ class User extends Entity
                         }
                     }
                 }
-                
-                $userids = array_diff($found, $userids);
+
+                $userids = array_diff($userids, $found);
                 
                 # Now check just membership.
                 if (count($userids)) {
@@ -4460,7 +4458,6 @@ class User extends Entity
                         foreach ($membs as $memb) {
                             if ($memb['userid'] == $userid) {
                                 $grp = $memb['namefull'] ? $memb['namefull'] : $memb['nameshort'];
-                                #error_log("Found $grp from membership");
 
                                 $users[$userid]['info']['publiclocation'] = [
                                     'display' => $grp,
@@ -4471,12 +4468,6 @@ class User extends Entity
                         }
                     }
                 }
-            }
-
-            // TODO Remove after 2021-03-01
-            foreach ($users as $user) {
-                $userid = $user['id'];
-                $users[$userid]['publiclocation'] = Utils::presdef('publiclocation', $users[$userid]['info'], NULL);
             }
         }
     }
@@ -6067,7 +6058,7 @@ memberships.groupid IN $groupq
         #
         # $since here has to match the value in ChatRoom::
         $starttime = date("Y-m-d H:i:s", strtotime($since));
-        $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS count, expectee FROM users_expected INNER JOIN users ON users.id = users_expected.expectee INNER JOIN chat_messages ON chat_messages.id = users_expected.chatmsgid WHERE expectee IN (" . implode(',', $uids) . ") AND chat_messages.date >= '$starttime' AND replyreceived = 0 AND TIMESTAMPDIFF(MINUTE, chat_messages.date, users.lastaccess) > ?", [
+        $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS count, expectee FROM users_expected INNER JOIN users ON users.id = users_expected.expectee INNER JOIN chat_messages ON chat_messages.id = users_expected.chatmsgid WHERE expectee IN (" . implode(',', $uids) . ") AND chat_messages.date >= '$starttime' AND replyreceived = 0 AND TIMESTAMPDIFF(MINUTE, chat_messages.date, users.lastaccess) >= ?", [
             $grace
         ]);
 
