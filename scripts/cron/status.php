@@ -126,7 +126,7 @@ function status()
         }
 
         # Get the spool folder count in case it's too large
-        $queuesize = trim(shell_exec("ssh -oStrictHostKeyChecking=no root@$host \"ls -1 /var/www/iznik/spool | wc -l\" 2>&1"));
+        $queuesize = trim(shell_exec("ssh -oStrictHostKeyChecking=no root@$host \"ls -1 /var/www/iznik/spool*/* | wc -l\" 2>&1"));
         error_log("Spool queue $queuesize");
 
         if (intval($queuesize) > 100000) {
