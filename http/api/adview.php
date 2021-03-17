@@ -49,7 +49,7 @@ function adview() {
 
                 $ret = [
                     'ret' => 3,
-                    'status' => 'No data returned'
+                    'status' => 'No data returned',
                 ];
 
                 if ($data) {
@@ -61,9 +61,6 @@ function adview() {
                     ];
 
                     if (array_key_exists('data', $d)) {
-                        $a = new AdView($dbhr, $dbhm);
-                        $d['data'] = $a->sortJobs($d['data'], $me ? $me->getId() : NULL);
-
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',
