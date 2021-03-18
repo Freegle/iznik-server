@@ -2971,8 +2971,11 @@ ORDER BY lastdate DESC;";
 
         $this->notif->notifyGroupMods($groupid);
         $this->maybeMail($groupid, $subject, $body, 'Approve');
-        $this->addToSpatialIndex();
-        $this->index();
+
+        if (!$this->hasOutcome()) {
+            $this->addToSpatialIndex();
+            $this->index();
+        }
     }
 
     public function addToSpatialIndex() {
