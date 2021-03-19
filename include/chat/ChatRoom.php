@@ -251,8 +251,14 @@ WHERE chat_rooms.id IN $idlist;";
             $u = new User($this->dbhr, $this->dbhm);
             $users = [];
 
-            foreach ($otheruids as $uid) {
-                $users[$uid]['supporter'] = FALSE;
+            for ($i = 0; $i < count($ret); $i++) {
+                if (Utils::pres('user1id', $ret[$i])) {
+                    $users[$ret[$i]]['supporter'] = false;
+                }
+
+                if (Utils::pres('user2id', $ret[$i])) {
+                    $users[$ret[$i]]['supporter'] = false;
+                }
             }
 
             $u->getSupporters($users);
