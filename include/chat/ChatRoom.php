@@ -253,11 +253,11 @@ WHERE chat_rooms.id IN $idlist;";
 
             for ($i = 0; $i < count($ret); $i++) {
                 if (Utils::pres('user1id', $ret[$i])) {
-                    $users[$ret[$i]]['supporter'] = false;
+                    $users[$ret[$i]['user1id']]['supporter'] = false;
                 }
 
                 if (Utils::pres('user2id', $ret[$i])) {
-                    $users[$ret[$i]]['supporter'] = false;
+                    $users[$ret[$i]['user2id']]['supporter'] = false;
                 }
             }
 
