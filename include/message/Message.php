@@ -344,7 +344,6 @@ class Message
                     # Notify the mods of the soon-to-exist pending work.
                     $n = new PushNotifications($this->dbhr, $this->dbhm);
                     $n->notifyGroupMods($group['groupid']);
-                    error_log("Edit notify {$group['groupid']}");
                 }
             }
         }
