@@ -33,7 +33,7 @@ function status()
         $errortext = NULL;
 
         # Check for security patches
-        $cmd = 'ssh -oStrictHostKeyChecking=no root@' . $host . ' "nice apt-get upgrade -s | grep -i security"';
+        $cmd = 'ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@' . $host . ' "nice apt-get upgrade -s | grep -i security"';
         $op = shell_exec($cmd);
 
         if (strpos($op, 'security') !== FALSE) {
@@ -43,7 +43,7 @@ function status()
         }
 
         # Check for reboot required
-        $cmd = 'ssh -oStrictHostKeyChecking=no root@' . $host . ' cat /var/run/reboot-required';
+        $cmd = 'ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@' . $host . ' cat /var/run/reboot-required';
         $op = shell_exec($cmd);
 
         if (strpos($op, 'required') !== FALSE) {
@@ -53,7 +53,7 @@ function status()
         }
 
         # Get beanstalk queue length.
-        $cmd = 'ssh -oStrictHostKeyChecking=no root@' . $host . ' "echo -e \"stats\\\\\\\\r\\\\\\\\nquit\\\\\\\\r\\\\\\\\n\" | nc localhost 11300 | grep current-jobs-ready 2>&1"';
+        $cmd = 'ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@' . $host . ' "echo -e \"stats\\\\\\\\r\\\\\\\\nquit\\\\\\\\r\\\\\\\\n\" | nc localhost 11300 | grep current-jobs-ready 2>&1"';
         $op = shell_exec($cmd);
         $info[$host]['beanstalk'] = $op;
         $count = intval(substr($op, 20));
@@ -64,7 +64,7 @@ function status()
             $warningtext = "beanstalkd queue large ($count)";
         }
 
-        $op = shell_exec("ssh -oStrictHostKeyChecking=no root@$host monit summary 2>&1");
+        $op = shell_exec("ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@$host monit summary 2>&1");
         #error_log("$host returned $op err " );
         $info[$host]['monit'] = $op;
 
@@ -94,7 +94,7 @@ function status()
         }
 
         # Get the exim mail count in case it's too large
-        $queuesize = trim(shell_exec("ssh -oStrictHostKeyChecking=no root@$host exim -bpc 2>&1"));
+        $queuesize = trim(shell_exec("ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@$host exim -bpc 2>&1"));
 
         if (strpos($queuesize, "exim: command not found") !== FALSE) {
             # That's fine - no exim on this box.
@@ -109,7 +109,7 @@ function status()
         }
 
         # Get the postfix mail count in case it's too large
-        $queuesize = trim(shell_exec("ssh -oStrictHostKeyChecking=no root@$host \"/usr/sbin/postqueue -p | /usr/bin/tail -n1 | /usr/bin/gawk '{print $5}'\" 2>&1"));
+        $queuesize = trim(shell_exec("ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@$host \"/usr/sbin/postqueue -p | /usr/bin/tail -n1 | /usr/bin/gawk '{print $5}'\" 2>&1"));
         error_log("Postfix queue $queuesize");
 
         if (strpos($queuesize, "Total") === FALSE) {
@@ -126,7 +126,7 @@ function status()
         }
 
         # Get the spool folder count in case it's too large
-        $queuesize = trim(shell_exec("ssh -oStrictHostKeyChecking=no root@$host \"ls -1 /var/www/iznik/spool | wc -l\" 2>&1"));
+        $queuesize = trim(shell_exec("ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@$host \"ls -1 /var/www/iznik/spool | wc -l\" 2>&1"));
         error_log("Spool queue $queuesize");
 
         if (intval($queuesize) > 100000) {
