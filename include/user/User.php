@@ -505,7 +505,8 @@ class User extends Entity
     public function getIdForEmail($email)
     {
         # Email is a unique key but conceivably we could be called with an email for another user.
-        $ids = $this->dbhr->preQuery("SELECT id, userid FROM users_emails WHERE (canon = ? OR canon = ?);", [
+        $ids = $this->dbhr->preQuery("SELECT id, userid FROM users_emails WHERE (email = ? OR canon = ? OR canon = ?);", [
+            $email,
             User::canonMail($email),
             User::canonMail($email, TRUE)
         ]);
