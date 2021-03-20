@@ -550,8 +550,9 @@ class User extends Entity
         # Take care not to pick up empty or null else that will cause is to overmerge.
         #
         # Use canon to match - that handles variant TN addresses or % addressing.
-        $users = $this->dbhr->preQuery("SELECT userid FROM users_emails WHERE (canon = ? OR canon = ?) AND canon IS NOT NULL AND LENGTH(canon) > 0;",
+        $users = $this->dbhr->preQuery("SELECT userid FROM users_emails WHERE (email = ? OR canon = ? OR canon = ?) AND canon IS NOT NULL AND LENGTH(canon) > 0;",
             [
+                $email,
                 User::canonMail($email),
                 User::canonMail($email, TRUE)
             ]);
