@@ -27,6 +27,7 @@ if ($id) {
             $_SESSION['id'] = $log['userid'];
         }
 
+        session_id($log['session']);
         $_REQUEST = json_decode($log['request'], TRUE);
         API::call();
     }
