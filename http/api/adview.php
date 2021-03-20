@@ -43,7 +43,8 @@ function adview() {
 
                 $ctx = stream_context_create(array('http'=> [
                     'timeout' => 10,
-                    "method" => "GET"
+                    "method" => "GET",
+                    "header" => "User-Agent: curl/7.58.0"
                 ]));
 
                 $data = $mockresults ? $mockresults : @file_get_contents($url, FALSE, $ctx);
