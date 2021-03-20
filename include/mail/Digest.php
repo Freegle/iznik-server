@@ -206,7 +206,7 @@ class Digest
                     if ($atts['type'] == Message::TYPE_OFFER || $atts['type'] == Message::TYPE_WANTED) {
                         if (count($atts['outcomes']) == 0) {
                             $available[] = $atts;
-                        } else {
+                        } else if (!Utils::presdef('firstposted', $atts, NULL)) {
                             $unavailable[] = $atts;
                         }
                     }
