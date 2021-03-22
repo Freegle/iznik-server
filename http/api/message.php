@@ -13,6 +13,7 @@ function message() {
     $collection = Utils::presdef('collection', $_REQUEST, MessageCollection::APPROVED);
     $groupid = (Utils::presint('groupid', $_REQUEST, NULL));
     $id = (Utils::presint('id', $_REQUEST, NULL));
+    $tnpostid = (Utils::presint('tnpostid', $_REQUEST, NULL));
     $reason = Utils::presdef('reason', $_REQUEST, NULL);
     $action = Utils::presdef('action', $_REQUEST, NULL);
     $subject = Utils::presdef('subject', $_REQUEST, NULL);
@@ -26,6 +27,11 @@ function message() {
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
     $ischat = FALSE;
+
+    if ($tnpostid && !$id) {
+        $m = new Message($dbhr, $dbhm);
+        $id = $m->findByTnPostId($tnpostid);
+    }
 
     switch ($_REQUEST['type']) {
         case 'GET':

@@ -5309,4 +5309,18 @@ $mq", [
 
         return $ret;
     }
+
+    public function findByTnPostId($tnpostid) {
+        $ret = NULL;
+
+        $msgs = $this->dbhr->preQuery("SELECT id FROM messages WHERE tnpostid = ?", [
+            $tnpostid
+        ]);
+
+        foreach ($msgs as $msg) {
+            $ret = $msg['id'];
+        }
+
+        return $ret;
+    }
 }
