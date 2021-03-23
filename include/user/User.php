@@ -6259,42 +6259,6 @@ memberships.groupid IN $groupq
         return $ret;
     }
 
-    public function covidConfirm($msgid) {
-        # Mail the user and ask them to complete the COVID checklist, which they haven't done yet.
-        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/');
-        $twig = new \Twig_Environment($loader);
-        $email = $this->getEmailPreferred();
-
-        $tn = strpos($email, 'user.trashnothing.com') !== FALSE ? '&tn=1' : '';
-        $url = $this->loginLink(USER_SITE, $this->id, "/covidchecklist?msgid=$msgid$tn", NULL, TRUE);
-
-        $html = $twig->render('covid.html', [
-            'email' => $email,
-            'url' => $url
-        ]);
-
-        list ($transport, $mailer) = Mail::getMailer();
-        $message = \Swift_Message::newInstance()
-            ->setSubject("COVID-19 - Action required to process your message")
-            ->setFrom([NOREPLY_ADDR => SITE_NAME])
-            ->setTo($email)
-            ->setDate(time())
-            ->setBody("Action required - complete our COVID Checklist at $url");
-
-        # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-        # Outlook.
-        $htmlPart = \Swift_MimePart::newInstance();
-        $htmlPart->setCharset('utf-8');
-        $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
-        $htmlPart->setContentType('text/html');
-        $htmlPart->setBody($html);
-        $message->attach($htmlPart);
-
-        Mail::addHeaders($message, Mail::COVID_CHECKLIST, $this->getId());
-
-        $this->sendIt($mailer, $message);
-    }
-
     public function memberReview($groupid, $request, $reason) {
         $mysqltime = date('Y-m-d H:i');
 

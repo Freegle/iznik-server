@@ -639,12 +639,7 @@ class MailRouter
                                 foreach ($groups as $group) {
                                     $appmemb = $u->isApprovedMember($group['groupid']);
 
-                                    if (!$u->hasCovidConfirmed()) {
-                                        if ($log) { error_log("COVID Checklist required for $uid"); }
-                                        $u->covidConfirm($this->msg->getID());
-                                        $ret = MailRouter::AWAIT_COVID;
-                                        $keepgroups = TRUE;
-                                    } else if ($appmemb && $worry) {
+                                    if ($appmemb && $worry) {
                                         if ($log) { error_log("Worrying => pending"); }
                                         if ($this->markPending($notspam)) {
                                             $ret = MailRouter::PENDING;
