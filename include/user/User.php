@@ -1521,7 +1521,7 @@ class User extends Entity
         }
     }
 
-    public function getInfos(&$users) {
+    public function getInfos(&$users, $grace = 30) {
         $uids = array_filter(array_column($users, 'id'));
 
         $start = date('Y-m-d', strtotime(User::OPEN_AGE . " days ago"));
@@ -1539,8 +1539,8 @@ class User extends Entity
         // the round trip (seriously, I've measured it, and it's worth doing).
         //
         // No need to check on the chat room type as we can only get messages of type Interested in a User2User chat.
-        $counts = $this->dbhr->preQuery("SELECT t0.id AS theuserid, t1.*, t3.*, t4.*, t5.* FROM
-(SELECT id FROM users WHERE id in (" . implode(',', $uids) . ")) t0 LEFT JOIN                                                                
+        $counts = $this->dbhr->preQuery("SELECT t0.id AS theuserid, t0.lastaccess AS lastaccess, t1.*, t3.*, t4.*, t5.* FROM
+(SELECT id, lastaccess FROM users WHERE id in (" . implode(',', $uids) . ")) t0 LEFT JOIN                                                                
 (SELECT COUNT(DISTINCT refmsgid) AS replycount, userid FROM chat_messages WHERE $userq AND date > ? AND refmsgid IS NOT NULL AND type = ?) t1 ON t1.userid = t0.id LEFT JOIN 
 (SELECT COUNT(DISTINCT(msgid)) AS reneged, userid FROM messages_reneged WHERE $userq AND timestamp > ?) t3 ON t3.userid = t0.id LEFT JOIN
 (SELECT COUNT(DISTINCT msgid) AS collected, messages_by.userid FROM messages_by INNER JOIN messages ON messages.id = messages_by.msgid INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id AND messages.type = ? AND chat_messages.type = ? WHERE chat_messages.$userq AND messages_by.$userq AND messages_by.userid != messages.fromuser AND messages.arrival >= '$days90') t4 ON t4.userid = t0.id LEFT JOIN
@@ -1559,6 +1559,8 @@ class User extends Entity
                     $users[$uid]['info']['replies'] = $count['replycount'] ? $count['replycount'] : 0;
                     $users[$uid]['info']['reneged'] = $count['reneged'] ? $count['reneged'] : 0;
                     $users[$uid]['info']['collected'] = $count['collected'] ? $count['collected'] : 0;
+                    $users[$uid]['info']['lastaccess'] = $count['lastaccess'] ? Utils::ISODate($count['lastaccess']) : NULL;
+                    $users[$uid]['info']['count'] = $count;
 
                     if (Utils::pres('abouttime', $count)) {
                         $users[$uid]['info']['aboutme'] = [
@@ -1637,7 +1639,7 @@ class User extends Entity
             $users[$uid]['info']['ratings'] = $rating;
         }
 
-        $replies = $this->getExpectedReplies($uids);
+        $replies = $this->getExpectedReplies($uids, ChatRoom::ACTIVELIM, $grace);
 
         foreach ($replies as $reply) {
             if ($reply['expectee']) {
@@ -1648,98 +1650,15 @@ class User extends Entity
     
     public function getInfo($grace = 30)
     {
-        # Extra user info.
-        $ret = [];
-        $ret['openage'] = User::OPEN_AGE;
-        $start = date('Y-m-d', strtotime("{$ret['openage']} days ago"));
-        $days90 = date("Y-m-d", strtotime("90 days ago"));
+        $users = [
+            $this->id => [
+                'id' => $this->id
+            ]
+        ];
 
-        // We can combine some queries into a single one.  This is better for performance because it saves on
-        // the round trip (seriously, I've measured it, and it's worth doing).
-        //
-        // No need to check on the chat room type as we can only get messages of type Interested in a User2User chat.
-        $replies = $this->dbhr->preQuery("SELECT 
-(SELECT COUNT(DISTINCT refmsgid) FROM chat_messages WHERE userid = ? AND date > ? AND refmsgid IS NOT NULL AND type = ?) AS replycount, 
-(SELECT COUNT(DISTINCT(msgid)) AS count FROM messages_reneged WHERE userid = ? AND timestamp > ?) AS reneged,
-(SELECT COUNT(DISTINCT(msgid)) AS count FROM messages_by 
-    INNER JOIN messages ON messages.id = messages_by.msgid 
-    INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id AND messages.type = ? AND chat_messages.type = ? 
-    WHERE chat_messages.userid = ? AND messages_by.userid = ? AND messages_by.userid != messages.fromuser AND messages.arrival >= '$days90') AS collected,
-(SELECT CONCAT(timestamp, ',', text) FROM users_aboutme WHERE userid = ? ORDER BY timestamp DESC LIMIT 1) AS abouttext
-;", [
-            $this->id,
-            $start,
-            ChatMessage::TYPE_INTERESTED,
-            $this->id,
-            $start,
-            ChatMessage::TYPE_INTERESTED,
-            Message::TYPE_OFFER,
-            $this->id,
-            $this->id,
-            $this->id
-        ]);
+        $this->getInfos($users, $grace);
 
-        $ret['replies'] = $replies[0]['replycount'];
-        $ret['reneged'] = $replies[0]['reneged'];
-        $ret['collected'] = $replies[0]['collected'];
-
-        if (Utils::pres('abouttext', $replies[0])) {
-            $p = strpos($replies[0]['abouttext'], ',');
-            $ret['aboutme'] = [
-                'timestamp' => Utils::ISODate(substr($replies[0]['abouttext'], 0, $p)),
-                'text' => substr($replies[0]['abouttext'], $p + 1)
-            ];
-        }
-
-        $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count, messages.type, messages_outcomes.outcome FROM messages LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser = ? AND messages.arrival > ? AND collection = ? AND messages_groups.deleted = 0 GROUP BY messages.type, messages_outcomes.outcome;", [
-            $this->id,
-            $start,
-            MessageCollection::APPROVED
-        ]);
-
-        $ret['offers'] = 0;
-        $ret['wanteds'] = 0;
-        $ret['openoffers'] = 0;
-        $ret['openwanteds'] = 0;
-
-        foreach ($counts as $count) {
-            if ($count['type'] == Message::TYPE_OFFER) {
-                $ret['offers'] += $count['count'];
-
-                if (!Utils::pres('outcome', $count)) {
-                    $ret['openoffers'] += $count['count'];
-                }
-            } else if ($count['type'] == Message::TYPE_WANTED) {
-                $ret['wanteds'] += $count['count'];
-
-                if (!Utils::pres('outcome', $count)) {
-                    $ret['openwanteds'] += $count['count'];
-                }
-            }
-        }
-
-        # Distance away.
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-
-        if ($me) {
-            list ($mylat, $mylng, $myloc) = $me->getLatLng();
-            $ret['milesaway'] = $this->getDistance($mylat, $mylng);
-            $ret['publiclocation'] = $this->getPublicLocation();
-        }
-
-        $r = new ChatRoom($this->dbhr, $this->dbhm);
-        $ret['replytime'] = $r->replyTime($this->id);
-        $ret['nudges'] = $r->nudgeCount($this->id);
-
-        $ret['ratings'] = $this->getRating();
-
-        $replies = $this->getExpectedReplies([ $this->id ], ChatRoom::ACTIVELIM, $grace);
-
-        foreach ($replies as $reply) {
-            $ret['expectedreply'] = $reply['count'];
-        }
-
-        return ($ret);
+        return ($users[$this->id]['info']);
     }
 
     public function getAboutMe() {
