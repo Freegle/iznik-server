@@ -4419,7 +4419,7 @@ class User extends Entity
                 }
 
                 if ($lat === NULL) {
-                    $lid = $this->getPrivate('lastlocation');
+                    $lid = $att['lastlocation'];
 
                     if ($lid) {
                         $l = new Location($this->dbhr, $this->dbhm, $lid);
@@ -4438,7 +4438,7 @@ class User extends Entity
                     ];
 
                     $userids = array_filter($userids, function($id) use ($att) {
-                        return $id !== $att['id'];
+                        return $id != $att['id'];
                     });
                 }
             }
@@ -4456,7 +4456,7 @@ class User extends Entity
                 #error_log("Got from last message posted {$memb['lat']}, {$memb['lng']}");
 
                 $userids = array_filter($userids, function($id) use ($memb) {
-                    return $id !== $memb['userid'];
+                    return $id != $memb['userid'];
                 });
             }
         }
@@ -4474,7 +4474,7 @@ class User extends Entity
                 #error_log("Got from membership {$memb['lat']}, {$memb['lng']}, " . Utils::presdef('namefull', $memb, $memb['nameshort']));
 
                 $userids = array_filter($userids, function($id) use ($memb) {
-                    return $id !== $memb['userid'];
+                    return $id != $memb['userid'];
                 });
             }
         }
