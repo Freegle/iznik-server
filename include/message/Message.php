@@ -3724,7 +3724,9 @@ ORDER BY lastdate DESC;";
                     $this->locationid = $loc['id'];
 
                     if ($this->fromuser) {
-                        # Save off this as the last known location for this user.
+                        # Save off this as the last known location for this user.  If this message was posted via
+                        # the platform then it will match mylocation in settings, but we get messages posted by
+                        # email too.
                         $this->dbhm->preExec("UPDATE users SET lastlocation = ? WHERE id = ?;", [
                             $this->locationid,
                             $this->fromuser

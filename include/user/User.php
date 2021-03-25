@@ -1583,6 +1583,7 @@ class User extends Entity
             $users[$uid]['info']['wanteds'] = 0;
             $users[$uid]['info']['openoffers'] = 0;
             $users[$uid]['info']['openwanteds'] = 0;
+            $users[$uid]['info']['expectedreply'] = 0;
 
             foreach ($counts as $count) {
                 if ($count['userid'] == $users[$uid]['id']) {
@@ -3872,13 +3873,16 @@ class User extends Entity
     }
 
     private function safeGetPostcode($val) {
-        $ret = NULL;
+        $ret = [ NULL, NULL ];
 
         $settings = json_decode($val, TRUE);
 
         if (Utils::pres('mylocation', $settings) &&
             Utils::presdef('type', $settings['mylocation'], NULL) == 'Postcode') {
-            $ret = Utils::presdef('name', $settings['mylocation'], NULL);
+            $ret = [
+                Utils::presdef('id', $settings['mylocation'], NULL),
+                Utils::presdef('name', $settings['mylocation'], NULL)
+            ];
         }
 
         return $ret;
@@ -3888,10 +3892,13 @@ class User extends Entity
     {
         if (!strcmp($att, 'settings') && $val) {
             # Possible location change.
-            $oldloc = $this->safeGetPostcode($this->getPrivate('settings'));
-            $newloc = $this->safeGetPostcode($val);
+            list ($oldid, $oldloc) = $this->safeGetPostcode($this->getPrivate('settings'));
+            list ($newid, $newloc) = $this->safeGetPostcode($val);
 
             if ($oldloc !== $newloc) {
+                # We have changed our location.
+                parent::setPrivate('lastlocation', $newid);
+
                 $this->log->log([
                             'type' => Log::TYPE_USER,
                             'subtype' => Log::SUBTYPE_POSTCODECHANGE,
