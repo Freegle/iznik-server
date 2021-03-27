@@ -2306,6 +2306,10 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                 # We have now mailed some more.  Note that this is resilient to new messages arriving while we were
                 # looping above, because of lastmaxmailed, and we will mail those next time.
                 $this->updateMaxMailed($chattype, $chat['chatid'], $lastmaxmailed);
+
+                # Reduce occupancy.
+                User::clearCache();
+                gc_collect_cycles();
             }
         }
 

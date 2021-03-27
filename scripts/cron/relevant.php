@@ -18,11 +18,21 @@ session_start();
 
 $rl = new Relevant($dbhr, $dbhm);
 $count = 0;
+$upto = 0;
 
 $users = $dbhr->preQuery("SELECT id FROM users WHERE lastlocation IS NOT NULL AND relevantallowed = 1;");
+$total = count($users);
+error_log("$total users");
+
 foreach ($users as $user) {
     $count += $rl->sendMessages($user['id']);
     $rl->recordCheck($user['id']);
+
+    $upto++;
+
+    if ($upto % 1000 == 0) {
+        error_log("...$upto / $total");
+    }
 }
 
 error_log("Sent $count");

@@ -39,91 +39,96 @@ class Nearby
                 # users we've not mailed about this message.
                 $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
 
-                $lid = $m->getPrivate('locationid');
-                $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
-                $name = $u->getName();
-                $lat = $m->getPrivate('lat');
-                $lng = $m->getPrivate('lng');
-                error_log("{$msg['id']} " . $m->getPrivate('subject') . " at $lat, $lng");
-                $sql = "SELECT users.id, locations.lat, locations.lng, haversine($lat, $lng, locations.lat, locations.lng) AS dist FROM users INNER JOIN memberships ON users.id = memberships.userid INNER JOIN locations ON locations.id = users.lastlocation LEFT JOIN users_nearby ON users_nearby.userid = users.id AND users_nearby.msgid = {$msg['id']} WHERE groupid = $groupid AND users.id != " . $m->getFromuser(
-                    ) . " AND users_nearby.msgid IS NULL ORDER BY dist ASC LIMIT 100;";
-                $users = $this->dbhr->preQuery($sql);
+                if ($m->getFromuser()) {
+                    $lid = $m->getPrivate('locationid');
+                    $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
+                    $name = $u->getName();
+                    $lat = $m->getPrivate('lat');
+                    $lng = $m->getPrivate('lng');
+                    error_log("{$msg['id']} " . $m->getPrivate('subject') . " at $lat, $lng");
+                    $sql = "SELECT users.id, locations.lat, locations.lng, haversine($lat, $lng, locations.lat, locations.lng) AS dist FROM users INNER JOIN memberships ON users.id = memberships.userid INNER JOIN locations ON locations.id = users.lastlocation LEFT JOIN users_nearby ON users_nearby.userid = users.id AND users_nearby.msgid = {$msg['id']} WHERE groupid = $groupid AND users.id != " . $m->getFromuser(
+                        ) . " AND users_nearby.msgid IS NULL ORDER BY dist ASC LIMIT 100;";
+                    $users = $this->dbhr->preQuery($sql);
 
-                foreach ($users as $user) {
-                    $u2 = new User($this->dbhr, $this->dbhm, $user['id']);
+                    foreach ($users as $user) {
+                        $u2 = new User($this->dbhr, $this->dbhm, $user['id']);
 
-                    if ($u2->getPrivate('relevantallowed') && $u2->sendOurMails()) {
-                        $miles = $u2->getDistance($lat, $lng);
-                        $miles = round($miles);
+                        if ($u2->getPrivate('relevantallowed') && $u2->sendOurMails()) {
+                            $miles = $u2->getDistance($lat, $lng);
+                            $miles = round($miles);
 
-                        # We mail the most nearby people - but too far it's probably not worth it.
-                        if ($miles <= 2) {
-                            # Check we've not mailed them recently.
-                            $mailed = $this->dbhr->preQuery(
-                                "SELECT MAX(timestamp) AS max FROM users_nearby WHERE userid = ?;",
-                                [
-                                    $user['id']
-                                ]
-                            );
-
-                            if (count($mailed) == 0 || (time() - strtotime($mailed[0]['max']) > 7 * 24 * 60 * 60)) {
-                                $this->dbhm->preExec(
-                                    "INSERT INTO users_nearby (userid, msgid) VALUES (?, ?);",
+                            # We mail the most nearby people - but too far it's probably not worth it.
+                            if ($miles <= 2) {
+                                # Check we've not mailed them recently.
+                                $mailed = $this->dbhr->preQuery(
+                                    "SELECT MAX(timestamp) AS max FROM users_nearby WHERE userid = ?;",
                                     [
-                                        $user['id'],
-                                        $msg['id']
+                                        $user['id']
                                     ]
                                 );
 
-                                $subj = "Could you help " . $u->getName(
-                                    ) . " ($miles mile" . ($miles != 1 ? 's' : '') . " away)?";
-                                $noemail = 'relevantoff-' . $user['id'] . "@" . USER_DOMAIN;
-                                        $textbody = "$name, who's about $miles mile" . ($miles != 1 ? 's' : '') . " miles from you, has posted " . $m->getSubject() . ".  Do you know anyone who can help?  The post is here: https://" . USER_SITE . "/message/{$msg['id']}?src=nearby\r\nIf you don't want to get these suggestions, mail $noemail.";
+                                if (count($mailed) == 0 || (time() - strtotime($mailed[0]['max']) > 7 * 24 * 60 * 60)) {
+                                    $this->dbhm->preExec(
+                                        "INSERT INTO users_nearby (userid, msgid) VALUES (?, ?);",
+                                        [
+                                            $user['id'],
+                                            $msg['id']
+                                        ]
+                                    );
 
-                                $email = $u2->getEmailPreferred();
-                                $html = relevant_nearby(
-                                    USER_SITE,
-                                    USERLOGO,
-                                    $name,
-                                    $miles,
-                                    $m->getSubject(),
-                                    $msg['id'],
-                                    $msg['type'],
-                                    $email,
-                                    $noemail
-                                );
+                                    $subj = "Could you help " . $u->getName(
+                                        ) . " ($miles mile" . ($miles != 1 ? 's' : '') . " away)?";
+                                    $noemail = 'relevantoff-' . $user['id'] . "@" . USER_DOMAIN;
+                                    $textbody = "$name, who's about $miles mile" . ($miles != 1 ? 's' : '') . " miles from you, has posted " . $m->getSubject(
+                                        ) . ".  Do you know anyone who can help?  The post is here: https://" . USER_SITE . "/message/{$msg['id']}?src=nearby\r\nIf you don't want to get these suggestions, mail $noemail.";
 
-                                try {
-                                    $message = \Swift_Message::newInstance()
-                                        ->setSubject($subj)
-                                        ->setFrom([NOREPLY_ADDR => SITE_NAME])
-                                        ->setReturnPath($u->getBounce())
-                                        ->setTo([$email => $u2->getName()])
-                                        ->setBody($textbody);
+                                    $email = $u2->getEmailPreferred();
+                                    $html = relevant_nearby(
+                                        USER_SITE,
+                                        USERLOGO,
+                                        $name,
+                                        $miles,
+                                        $m->getSubject(),
+                                        $msg['id'],
+                                        $msg['type'],
+                                        $email,
+                                        $noemail
+                                    );
 
-                                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-                                    # Outlook.
-                                    $htmlPart = \Swift_MimePart::newInstance();
-                                    $htmlPart->setCharset('utf-8');
-                                    $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
-                                    $htmlPart->setContentType('text/html');
-                                    $htmlPart->setBody($html);
-                                    $message->attach($htmlPart);
+                                    try {
+                                        $message = \Swift_Message::newInstance()
+                                            ->setSubject($subj)
+                                            ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                                            ->setReturnPath($u->getBounce())
+                                            ->setTo([$email => $u2->getName()])
+                                            ->setBody($textbody);
 
-                                    Mail::addHeaders($message, Mail::NEARBY, $u2->getId());
+                                        # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                                        # Outlook.
+                                        $htmlPart = \Swift_MimePart::newInstance();
+                                        $htmlPart->setCharset('utf-8');
+                                        $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                                        $htmlPart->setContentType('text/html');
+                                        $htmlPart->setBody($html);
+                                        $message->attach($htmlPart);
 
-                                    $this->sendOne($mailer, $message);
-                                    error_log("...user {$user['id']} dist $miles");
-                                    $count++;
-                                } catch (\Exception $e) {
-                                    error_log("Send to $email failed with " . $e->getMessage());
+                                        Mail::addHeaders($message, Mail::NEARBY, $u2->getId());
+
+                                        $this->sendOne($mailer, $message);
+                                        error_log("...user {$user['id']} dist $miles");
+                                        $count++;
+                                    } catch (\Exception $e) {
+                                        error_log("Send to $email failed with " . $e->getMessage());
+                                    }
                                 }
                             }
                         }
                     }
-
-                    gc_collect_cycles();
                 }
+
+                # Prod garbage collection, as we've seen high memory usage by this.
+                User::clearCache();
+                gc_collect_cycles();
             }
         }
 
