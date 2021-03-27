@@ -30,7 +30,6 @@ class Nearby
 
         if ($g->getSetting('relevant', 1)) {
             # Find the recent extant messages
-            $mysqltime = date ("Y-m-d", strtotime(MessageCollection::RECENTPOSTS));
             $sql = "SELECT DISTINCT messages_spatial.msgid AS id, messages_spatial.msgtype AS type FROM messages_spatial WHERE groupid = ?;";
             $msgs = $this->dbhr->preQuery($sql, [ $groupid ] );
 
