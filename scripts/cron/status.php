@@ -135,6 +135,16 @@ function status()
             $warningtext = "Mail spool folder large ($queuesize)";
         }
 
+        # Zero length files cause the spooler to choke.
+        $zeros = trim(shell_exec("ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@$host \"find /var/www/iznik/ -size 0  | grep spool | wc -l\" 2>&1"));
+        error_log("Zero length spool files $zeros");
+
+        if (intval($queuesize) > 10000) {
+            $warning = TRUE;
+            $overallwarning = TRUE;
+            $warningtext = "Mail spool contains zero length files ($zeros)";
+        }
+
         $info[$host]['error'] = $error;
         $info[$host]['errortext'] = $errortext;
         $info[$host]['warning'] = $warning;
