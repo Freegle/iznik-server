@@ -177,6 +177,52 @@ class microvolunteeringAPITest extends IznikAPITestCase
         assertEquals(1, $count);
     }
 
+    public function testModerate()
+    {
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup1', Group::GROUP_FREEGLE);
+        $g->setPrivate('microvolunteering', 1);
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace("FreeglePlayground", "testgroup", $msg);
+        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
+        $msg = str_replace("Hey", "Hey {{username}}", $msg);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
+        $u->addEmail('test@test.com');
+        $u->addMembership($gid);
+
+        $r = new MailRouter($this->dbhm, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
+        assertNotNull($id);
+        $this->log("Created message $id");
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+        $u->setPrivate('trustlevel', User::TRUST_BASIC);
+        $u->addMembership($gid);
+
+        # Message is Pending so shouldn't see it as basic.
+        $ret = $this->call('microvolunteering', 'GET', [
+            'groupid' => $gid
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(MicroVolunteering::CHALLENGE_SEARCH_TERM, $ret['microvolunteering']['type']);
+
+        $u->setPrivate('trustlevel', User::TRUST_MODERATE);
+        assertEquals(User::TRUST_MODERATE, $u->getPrivate('trustlevel'));
+        $ret = $this->call('microvolunteering', 'GET', [
+            'groupid' => $gid
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(MicroVolunteering::CHALLENGE_CHECK_MESSAGE, $ret['microvolunteering']['type']);
+        assertEquals($id, $ret['microvolunteering']['msgid']);
+    }
+
     public function testFacebook() {
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup1', Group::GROUP_FREEGLE);

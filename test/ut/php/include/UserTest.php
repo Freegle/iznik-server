@@ -65,6 +65,9 @@ class userTest extends IznikTestCase {
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
         $u->addMembership($group1);
+        $_SESSION['id'] = $u->getId();
+        assertEquals('testgroup1', $u->getInfo()['publiclocation']['display']);
+        $_SESSION['id'] = NULL;
         assertGreaterThan(0, $u->delete());
 
         $u = User::get($this->dbhr, $this->dbhm);
@@ -123,6 +126,7 @@ class userTest extends IznikTestCase {
         assertEquals(0, count($u->getEmails()));
 
         # Add an email - should work.
+        assertNull($u->findByEmailHash(md5('test@test.com')));
         $eid = $u->addEmail('test@test.com');
         assertGreaterThan(0, $eid);
         assertEquals(0, $u->getEmailAge('test@test.com'));
@@ -1083,6 +1087,8 @@ class userTest extends IznikTestCase {
         $u->addPhone('1234');
 
         $u->setPrivate('settings', json_encode($settings));
+        assertEquals(8.51111, $u->getPublic()['settings']['mylocation']['lat']);
+        assertEquals(179.11111, $u->getPublic()['settings']['mylocation']['lng']);
 
         # Get blurred location.
         $atts = $u->getPublic();
@@ -1567,6 +1573,18 @@ class userTest extends IznikTestCase {
         assertEquals(1, $chatcount);
         list ($total, $chatcount, $notifcount, $title, $message, $chatids, $route) = $u->getNotificationPayload(TRUE);
         assertEquals(2, $chatcount);
+    }
+
+    public function testFormatPhone() {
+        $u = new User($this->dbhr, $this->dbhm);
+        assertEquals('+447888888888' ,$u->formatPhone('+44447888888888'));
+        assertEquals('+447888888888' ,$u->formatPhone('+4444447888888888'));
+        assertEquals('+447888888888' ,$u->formatPhone('4444447888888888'));
+        assertEquals('+447888888888' ,$u->formatPhone('447888888888'));
+        assertEquals('+447888888888' ,$u->formatPhone('4407888888888'));
+        assertEquals('+447888888888' ,$u->formatPhone('+4407888888888'));
+        assertEquals('+447888888888' ,$u->formatPhone('07888888888'));
+        assertEquals('+447888888888' ,$u->formatPhone('+440447888888888'));
     }
 }
 

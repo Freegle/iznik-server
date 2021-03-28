@@ -33,15 +33,6 @@ class UserSearch extends Entity
             if ($id) {
                 $this->fetch($this->dbhm, $this->dbhm, $id, 'users_searches', 'search', $this->publicatts);
             }
-
-            if ($userid && $locationid) {
-                # Save off this as the last known location for this user.
-                $this->dbhm->preExec("UPDATE users SET lastlocation = ? WHERE id = ?;", [
-                    $locationid,
-                    $userid
-                ]);
-                User::clearCache($userid);
-            }
         }
 
         return($id);

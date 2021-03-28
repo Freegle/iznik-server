@@ -115,6 +115,10 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->log("Created feed {$ret['id']}");
         $nid = $ret['id'];
 
+        # Pin for coverage.
+        $n = new Newsfeed($this->dbhr, $this->dbhm, $nid);
+        $n->setPrivate('pinned', TRUE);
+
         $ret = $this->call('newsfeed', 'POST', [
             'message' => 'Test reply',
             'replyto' => $nid
@@ -180,6 +184,13 @@ class newsfeedAPITest extends IznikAPITestCase {
         $ret = $this->call('stories', 'PUT', [
             'headline' => 'Test story, nice and long so it gets included',
             'story' => 'Test'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('stories', 'PUT', [
+            'headline' => 'Test story, nice and long so it gets included',
+            'story' => 'Test',
+            'dup' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
 
@@ -253,12 +264,14 @@ class newsfeedAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
         $ret = $this->call('newsfeed', 'GET', [
-            'id' => $nid
+            'id' => $nid,
+            'lovelist' => TRUE
         ]);
         $this->log(var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         self::assertEquals(1, $ret['newsfeed']['loves']);
         self::assertTrue($ret['newsfeed']['loved']);
+        assertEquals($this->user2->getId(), $ret['newsfeed']['lovelist'][0]['id']);
 
         # Will have generated a notification, plus the one for "about me".
         assertTrue($this->user->login('testpw'));
@@ -314,6 +327,9 @@ class newsfeedAPITest extends IznikAPITestCase {
         $ret = $this->call('newsfeed', 'GET', [
             'types' => [
                 Newsfeed::TYPE_MESSAGE
+            ],
+            'context' => [
+                'pinned' => '[0]'
             ]
         ]);
         assertEquals(0, $ret['ret']);

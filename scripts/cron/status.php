@@ -8,6 +8,8 @@ require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
+$lockh = Utils::lockScript(basename(__FILE__));
+
 # This is run from cron to check status, which can then be returned from the API.
 function status()
 {
@@ -31,7 +33,7 @@ function status()
         $errortext = NULL;
 
         # Check for security patches
-        $cmd = 'ssh -oStrictHostKeyChecking=no root@' . $host . ' "nice apt-get upgrade -s | grep -i security"';
+        $cmd = 'ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@' . $host . ' "nice apt-get upgrade -s | grep -i security"';
         $op = shell_exec($cmd);
 
         if (strpos($op, 'security') !== FALSE) {
@@ -41,7 +43,7 @@ function status()
         }
 
         # Check for reboot required
-        $cmd = 'ssh -oStrictHostKeyChecking=no root@' . $host . ' cat /var/run/reboot-required';
+        $cmd = 'ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@' . $host . ' cat /var/run/reboot-required';
         $op = shell_exec($cmd);
 
         if (strpos($op, 'required') !== FALSE) {
@@ -51,7 +53,7 @@ function status()
         }
 
         # Get beanstalk queue length.
-        $cmd = 'ssh -oStrictHostKeyChecking=no root@' . $host . ' "echo -e \"stats\\\\\\\\r\\\\\\\\nquit\\\\\\\\r\\\\\\\\n\" | nc localhost 11300 | grep current-jobs-ready 2>&1"';
+        $cmd = 'ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@' . $host . ' "echo -e \"stats\\\\\\\\r\\\\\\\\nquit\\\\\\\\r\\\\\\\\n\" | nc localhost 11300 | grep current-jobs-ready 2>&1"';
         $op = shell_exec($cmd);
         $info[$host]['beanstalk'] = $op;
         $count = intval(substr($op, 20));
@@ -62,7 +64,7 @@ function status()
             $warningtext = "beanstalkd queue large ($count)";
         }
 
-        $op = shell_exec("ssh -oStrictHostKeyChecking=no root@$host monit summary 2>&1");
+        $op = shell_exec("ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@$host monit summary 2>&1");
         #error_log("$host returned $op err " );
         $info[$host]['monit'] = $op;
 
@@ -92,7 +94,7 @@ function status()
         }
 
         # Get the exim mail count in case it's too large
-        $queuesize = trim(shell_exec("ssh -oStrictHostKeyChecking=no root@$host exim -bpc 2>&1"));
+        $queuesize = trim(shell_exec("ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@$host exim -bpc 2>&1"));
 
         if (strpos($queuesize, "exim: command not found") !== FALSE) {
             # That's fine - no exim on this box.
@@ -107,7 +109,7 @@ function status()
         }
 
         # Get the postfix mail count in case it's too large
-        $queuesize = trim(shell_exec("ssh -oStrictHostKeyChecking=no root@$host \"/usr/sbin/postqueue -p | /usr/bin/tail -n1 | /usr/bin/gawk '{print $5}'\" 2>&1"));
+        $queuesize = trim(shell_exec("ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@$host \"/usr/sbin/postqueue -p | /usr/bin/tail -n1 | /usr/bin/gawk '{print $5}'\" 2>&1"));
         error_log("Postfix queue $queuesize");
 
         if (strpos($queuesize, "Total") === FALSE) {
@@ -124,13 +126,23 @@ function status()
         }
 
         # Get the spool folder count in case it's too large
-        $queuesize = trim(shell_exec("ssh -oStrictHostKeyChecking=no root@$host \"ls -1 /var/www/iznik/spool | wc -l\" 2>&1"));
+        $queuesize = trim(shell_exec("ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@$host \"ls -1 /var/www/iznik/spool*/* | wc -l\" 2>&1"));
         error_log("Spool queue $queuesize");
 
-        if (intval($queuesize) > 100000) {
+        if (intval($queuesize) > 10000) {
             $warning = TRUE;
             $overallwarning = TRUE;
             $warningtext = "Mail spool folder large ($queuesize)";
+        }
+
+        # Zero length files cause the spooler to choke.
+        $zeros = trim(shell_exec("ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@$host \"find /var/www/iznik/ -size 0  | grep spool | wc -l\" 2>&1"));
+        error_log("Zero length spool files $zeros");
+
+        if (intval($queuesize) > 10000) {
+            $warning = TRUE;
+            $overallwarning = TRUE;
+            $warningtext = "Mail spool contains zero length files ($zeros)";
         }
 
         $info[$host]['error'] = $error;
@@ -241,3 +253,5 @@ ORDER BY backlog DESC LIMIT 1;";
 # Put into cache file for API call.
 file_put_contents('/tmp/iznik.status', json_encode(status()));
 chmod('/tmp/iznik.status', 0644);
+
+Utils::unlockScript($lockh);

@@ -206,6 +206,14 @@ class chatMessagesAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
 
+        # Second user should now show that they are expected to reply.
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $r->updateExpected();
+        $info = $this->user->getInfo(0);
+        assertEquals(0, $info['expectedreply']);
+        $info = $this->user2->getInfo(0);
+        assertEquals(1, $info['expectedreply']);
+
         # Duplicate
         $ret = $this->call('chatmessages', 'POST', [
             'roomid' => $this->cid,

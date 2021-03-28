@@ -478,6 +478,7 @@ class API
                                 # Our cluster is unwell.  This can happen if we are rebooting a DB server, so give ourselves
                                 # more time.
                                 $apicallretries = 0;
+                                sleep(1);
                             } else {
                                 $ret = [
                                     'ret' => 997,

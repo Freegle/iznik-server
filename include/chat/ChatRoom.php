@@ -251,8 +251,14 @@ WHERE chat_rooms.id IN $idlist;";
             $u = new User($this->dbhr, $this->dbhm);
             $users = [];
 
-            foreach ($otheruids as $uid) {
-                $users[$uid]['supporter'] = FALSE;
+            for ($i = 0; $i < count($ret); $i++) {
+                if (Utils::pres('user1id', $ret[$i])) {
+                    $users[$ret[$i]['user1id']]['supporter'] = false;
+                }
+
+                if (Utils::pres('user2id', $ret[$i])) {
+                    $users[$ret[$i]['user2id']]['supporter'] = false;
+                }
             }
 
             $u->getSupporters($users);
@@ -1112,12 +1118,15 @@ WHERE chat_rooms.id IN $idlist;";
         #
         # Don't want to log these - lots of them.
         #error_log("updateRoster: Add $userid into {$this->id}");
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : NULL;
+
         $this->dbhm->preExec("INSERT INTO chat_roster (chatid, userid, lastip) VALUES (?,?,?) ON DUPLICATE KEY UPDATE lastip = ?, status = ?;",
             [
                 $this->id,
                 $userid,
-                Utils::presdef('REMOTE_ADDR', $_SERVER, NULL),
-                Utils::presdef('REMOTE_ADDR', $_SERVER, NULL),
+                $userid == $myid ? Utils::presdef('REMOTE_ADDR', $_SERVER, NULL) : NULL,
+                $userid == $myid ? Utils::presdef('REMOTE_ADDR', $_SERVER, NULL) : NULL,
                 $status
             ],
             FALSE);
@@ -1739,7 +1748,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                     // User2Mod, and we are notifying a mod
                     if ($unmailedmsg['userid'] == $sendingfrom->getId()) {
                         $thistwig['mine'] = TRUE;
-                        $profileu = $sendingto;
+                        $profileu = $sendingfrom;
 
                     } else {
                         $thistwig['mine'] = FALSE;
@@ -2297,6 +2306,10 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                 # We have now mailed some more.  Note that this is resilient to new messages arriving while we were
                 # looping above, because of lastmaxmailed, and we will mail those next time.
                 $this->updateMaxMailed($chattype, $chat['chatid'], $lastmaxmailed);
+
+                # Reduce occupancy.
+                User::clearCache();
+                gc_collect_cycles();
             }
         }
 

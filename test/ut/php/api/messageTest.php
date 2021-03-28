@@ -2780,10 +2780,23 @@ class messageAPITest extends IznikAPITestCase
 
         $ret = $this->call('message', 'PATCH', [
             'id' => $id,
-            'subject' => 'Test edit',
+            'textbody' => 'Test edit',
+            'lat' => 123.4,
+            'lng' => 0.12,
             'partner' => $key
         ]);
+
         assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $id,
+            'partner' => $key
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals('Test edit', $ret['message']['textbody']);
+        assertEquals(123.4, $ret['message']['lat']);
+        assertEquals(0.12, $ret['message']['lng']);
     }
 
     public function testPartnerConsent() {
@@ -3072,5 +3085,26 @@ class messageAPITest extends IznikAPITestCase
 
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_MODERATED);
         assertEquals(MessageCollection::PENDING, $m->repost());
+    }
+
+
+    public function testTnPostId() {
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Subject: Basic test', 'Subject: OFFER: sofa (Place)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $m->setPrivate('tnpostid', -1);
+
+        $ret = $this->call('message', 'GET', [
+            'tnpostid' => -1
+        ]);
+
+        assertEquals($id, $ret['message']['id']);
     }
 }

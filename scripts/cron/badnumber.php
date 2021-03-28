@@ -12,7 +12,7 @@ $_SERVER['HTTP_HOST'] = "ilovefreegle.org";
 
 $lockh = Utils::lockScript(basename(__FILE__));
 
-$bads = $dbhr->preQuery("SELECT * FROM users_phones WHERE laststatus IN ('failed', 'undelivered') AND valid = 1");
+$bads = $dbhr->preQuery("SELECT * FROM users_phones WHERE (lastresponse NOT LIKE 'SM%' OR laststatus IN ('failed', 'undelivered')) AND valid = 1");
 
 foreach ($bads as $bad) {
     error_log("Bad number {$bad['number']} for user #{$bad['userid']} status {$bad['laststatus']}");

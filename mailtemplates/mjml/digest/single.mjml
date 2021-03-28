@@ -29,10 +29,10 @@
           <mj-text padding-top="0" padding-bottom="0" color="#61AE24" font-size="18px" line-height="1.25">{{ subject }}</mj-text>
         </mj-column>
       </mj-section>
-      <mj-raw>{% if autoreposts is defined and autoreposts > 0 %}</mj-raw>
+      <mj-raw>{% if firstposted is defined and firstposted > 0 %}</mj-raw>
       <mj-section background-color="#FFF8DC">
         <mj-column>
-          <mj-text padding-top="0px" padding-bottom="0px" color="grey" font-size="10px" line-height="1.25">Autorepost #{{ autoreposts }}</mj-text>
+          <mj-text padding-top="0px" padding-bottom="0px" color="grey" font-size="10px" line-height="1.25">First posted&nbsp;{{ firstposted }}</mj-text>
         </mj-column>
       </mj-section>
       <mj-raw>{% endif %}</mj-raw>

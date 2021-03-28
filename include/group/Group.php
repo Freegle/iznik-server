@@ -186,15 +186,37 @@ class Group extends Entity
     }
 
     public function setPrivate($att, $val) {
+        $ret = TRUE;
+
         # We override this in order to clear our cache, which would otherwise be out of date.
         parent::setPrivate($att, $val);
 
         if ($att == 'poly' || $att == 'polyofficial') {
-            $this->dbhm->preExec("UPDATE groups SET polyindex = GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)')) WHERE id = ?;", [
-                $this->id
-            ]);
+            # Check validity of spatial data
+            $ret = FALSE;
+
+            try {
+                $valid = $this->dbhm->preQuery("SELECT ST_IsValid(GeomFromText(?)) AS valid;", [
+                    $val
+                ]);
+
+                foreach ($valid as $v) {
+                    if ($v['valid']) {
+                        $this->dbhm->preExec("UPDATE groups SET polyindex = GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)')) WHERE id = ?;", [
+                            $this->id
+                        ]);
+
+                        $ret = TRUE;
+                    }
+                }
+            } catch(\Exception $e) {
+                # Drop through with ret false.
+            }
         }
+
         Group::clearCache($this->id);
+
+        return $ret;
     }
 
     public function create($shortname, $type) {
@@ -365,7 +387,9 @@ INNER JOIN users u1 ON users_related.user1 = u1.id AND u1.deleted IS NULL AND u1
 WHERE
 user1 < user2 AND
 notified = 0 AND
-memberships.groupid IN $groupq
+memberships.groupid IN $groupq AND
+u1.deleted IS NULL AND
+u1.systemrole = 'User'      
 HAVING logincount > 0
 UNION
 SELECT user1, memberships.groupid, (SELECT COUNT(*) FROM users_logins WHERE userid = memberships.userid) AS logincount FROM users_related
@@ -374,7 +398,9 @@ INNER JOIN users u2 ON users_related.user2 = u2.id AND u2.deleted IS NULL AND u2
 WHERE
 user1 < user2 AND
 notified = 0 AND
-memberships.groupid IN $groupq
+memberships.groupid IN $groupq AND
+u2.deleted IS NULL AND
+u2.systemrole = 'User'      
 HAVING logincount > 0 
 ) t GROUP BY groupid;";
             $relatedmembers = $this->dbhr->preQuery($relatedsql, NULL, FALSE, FALSE);
@@ -990,7 +1016,7 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
         $suppfields = $support ? ", founded, lastmoderated, lastmodactive, lastautoapprove, activemodcount, backupmodsactive, backupownersactive, onmap, affiliationconfirmed, affiliationconfirmedby": '';
         $polyfields = $polys ? ", CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial" : '';
 
-        $sql = "SELECT groups.id, groups_images.id AS attid, nameshort, region, namefull, lat, lng, altlat, altlng, publish $suppfields $polyfields, mentored, onhere, ontn, onmap, external, profile, tagline, contactmail, authorities.name AS authority FROM groups LEFT JOIN groups_images ON groups_images.groupid = groups.id LEFT JOIN authorities ON authorities.id = groups.authorityid WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END, groups_images.id DESC;";
+        $sql = "SELECT groups.id, groups_images.id AS attid, nameshort, region, namefull, lat, lng, altlat, altlng, publish $suppfields $polyfields, mentored, onhere, ontn, onmap, external, profile, tagline, contactmail FROM groups LEFT JOIN groups_images ON groups_images.groupid = groups.id WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END, groups_images.id DESC;";
         $groups = $this->dbhr->preQuery($sql, [ $type ]);
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
 
@@ -1007,7 +1033,6 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
                 Log::TYPE_MESSAGE,
                 Log::SUBTYPE_APPROVED
             ]);
-
         }
 
         $lastname = NULL;

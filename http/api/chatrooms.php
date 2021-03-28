@@ -16,6 +16,7 @@ function chatrooms() {
     $search = Utils::presdef('search', $_REQUEST, NULL);
     $summary = array_key_exists('summary', $_REQUEST) ? filter_var($_REQUEST['summary'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $count = array_key_exists('count', $_REQUEST) ? filter_var($_REQUEST['count'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+    $age = Utils::presint('age', $_REQUEST, ChatRoom::ACTIVELIM);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -49,7 +50,7 @@ function chatrooms() {
                 if ($me) {
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
-                    $rooms = $r->listForUser(Session::modtools(), $myid, $chattypes, $search, NULL, ChatRoom::ACTIVELIM);
+                    $rooms = $r->listForUser(Session::modtools(), $myid, $chattypes, $search, NULL, $age);
                     $ret['chatrooms'] = [];
 
                     if ($rooms) {

@@ -19,7 +19,6 @@ $id = Utils::presint('id', $_REQUEST,   NULL);
 if ($id) {
     $m = new Message($dbhr, $dbhm, $id);
 
-    error_log("Got message" . $m->getID());
     if ($m->getID() == $id) {
         $userlist = [];
         $locationlist = [];

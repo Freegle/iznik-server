@@ -91,7 +91,6 @@ function memberships() {
                             # We always show spammers, because we want mods to act on them asap.
                             $mygroups = $me->getMemberships(TRUE);
                             foreach ($mygroups as $group) {
-                                $settings = $me->getGroupSettings($group['id']);
                                 if ($search || $me->activeModForGroup($group['id'])) {
                                     $proceed = TRUE;
                                     $groupids[] = $group['id'];
@@ -245,6 +244,10 @@ function memberships() {
                         case 'HappinessReviewed':
                             $u->happinessReviewed($happinessid);
                             break;
+                        case 'Unban': {
+                            $u->unban($groupid);
+                            break;
+                        }
                     }
                 }
 

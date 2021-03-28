@@ -202,7 +202,7 @@ class Twitter {
         # - any story which hasn't been tweeted, or
         # - a random one
         $idq = $id ? " AND id = $id " : "";
-        $sql = "SELECT id FROM users_stories WHERE public = 1 AND newsletterreviewed = 1 AND newsletter = 0 AND DATEDIFF(NOW(), date) <= 30 $idq ORDER BY tweeted ASC, RAND() LIMIT 1;";
+        $sql = "SELECT id FROM users_stories WHERE public = 1 AND newsletterreviewed = 1 AND tweeted = 0 AND DATEDIFF(NOW(), date) <= 30 $idq ORDER BY tweeted ASC, RAND() LIMIT 1;";
         $stories = $this->dbhr->preQuery($sql);
 
         $count = 0;

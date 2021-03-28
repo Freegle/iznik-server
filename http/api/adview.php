@@ -8,6 +8,7 @@ function adview() {
     $ip = Utils::presdef('REMOTE_ADDR', $_SERVER, NULL);
     $hdrs = Session::getallheaders();
     $ip = Utils::presdef('X-Real-Ip', $hdrs, $ip);
+    $mockresults = Utils::presdef('mockresults', $_REQUEST, NULL);
 
     $location = Utils::presdef('location', $_REQUEST, NULL);
     $link = Utils::presdef('link', $_REQUEST, NULL);
@@ -42,14 +43,15 @@ function adview() {
 
                 $ctx = stream_context_create(array('http'=> [
                     'timeout' => 10,
-                    "method" => "GET"
+                    "method" => "GET",
+                    "header" => "User-Agent: curl/7.58.0"
                 ]));
 
-                $data = @file_get_contents($url, FALSE, $ctx);
+                $data = $mockresults ? $mockresults : @file_get_contents($url, FALSE, $ctx);
 
                 $ret = [
                     'ret' => 3,
-                    'status' => 'No data returned'
+                    'status' => 'No data returned',
                 ];
 
                 if ($data) {
@@ -61,9 +63,6 @@ function adview() {
                     ];
 
                     if (array_key_exists('data', $d)) {
-                        $a = new AdView($dbhr, $dbhm);
-                        $d['data'] = $a->sortJobs($d['data'], $me ? $me->getId() : NULL);
-
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',

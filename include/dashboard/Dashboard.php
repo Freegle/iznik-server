@@ -175,10 +175,11 @@ class Dashboard {
         }
 
         # And the total successful outcomes per month.
-        $mysqltime = date("Y-m-01", strtotime("13 months ago"));
-        $ret['OutcomesPerMonth'] = $this->dbhr->preQuery("SELECT * FROM stats_outcomes WHERE groupid IN (" . implode(',', $groupids) . ");", [
-            Stats::OUTCOMES,
-            $mysqltime
+        $startq = date("Y-m-01", strtotime($start));
+        $endq = date("Y-m-01", strtotime($end));
+        $ret['OutcomesPerMonth'] = $this->dbhr->preQuery("SELECT * FROM stats_outcomes WHERE groupid IN (" . implode(',', $groupids) . ") AND date >= ? AND date <= ?;", [
+            $startq,
+            $endq
         ]);
 
         if ($groupid) {

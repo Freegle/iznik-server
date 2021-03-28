@@ -191,13 +191,22 @@ class Digest
                     $atts['autoreposts'] = $message['autoreposts'];
                     $atts['subject'] = $subject;
 
+                    $atts['firstposted'] = NULL;
+
+                    if ($message['arrival'] != $atts['date']) {
+                        # This message has been reposted.
+                        $datetime = new \DateTime('@' . strtotime($atts['date']), $tz1);
+                        $datetime->setTimezone($tz2);
+                        $atts['firstposted'] = $datetime->format('D, jS F g:ia');
+                    }
+
                     # Strip out the clutter associated with various ways of posting.
                     $atts['textbody'] = $m->stripGumf();
 
                     if ($atts['type'] == Message::TYPE_OFFER || $atts['type'] == Message::TYPE_WANTED) {
                         if (count($atts['outcomes']) == 0) {
                             $available[] = $atts;
-                        } else {
+                        } else if (!Utils::presdef('firstposted', $atts, NULL)) {
                             $unavailable[] = $atts;
                         }
                     }
@@ -222,7 +231,7 @@ class Digest
                         # become per-user is in the template as a {{...}} substitution.
                         $replyto = "replyto-{$msg['id']}-{{replyto}}@" . USER_DOMAIN;
 
-                        $datetime = new \DateTime('@' . strtotime($msg['date']), $tz1);
+                        $datetime = new \DateTime('@' . strtotime($msg['arrival']), $tz1);
                         $datetime->setTimezone($tz2);
 
                         try {
@@ -311,7 +320,8 @@ class Digest
                             'replyweb' => "https://" . USER_SITE . "/message/{$msg['id']}",
                             'replyemail' => "mailto:$replyto?subject=" . rawurlencode("Re: " . $msg['subject']),
                             'autoreposts' => $msg['autoreposts'],
-                            'date' => date("D, jS F g:ia", strtotime($msg['date'])),
+                            'firstposted' => $msg['firstposted'],
+                            'date' => date("D, jS F g:ia", strtotime($msg['arrival'])),
                         ];
 
                         if (preg_match("/(.+)\:(.+)\((.+)\)/", $msg['subject'], $matches)) {
@@ -338,7 +348,8 @@ class Digest
                             'replyweb' => NULL,
                             'replyemail' => NULL,
                             'autoreposts' => $msg['autoreposts'],
-                            'date' => date("D, jS F g:ia", strtotime($msg['date'])),
+                            'firstposted' => $msg['firstposted'],
+                            'date' => date("D, jS F g:ia", strtotime($msg['arrival'])),
                         ];
 
                         $textsumm .= $msg['subject'] . " (post completed, no longer active)\r\n";

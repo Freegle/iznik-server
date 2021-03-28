@@ -344,7 +344,6 @@ class Message
                     # Notify the mods of the soon-to-exist pending work.
                     $n = new PushNotifications($this->dbhr, $this->dbhm);
                     $n->notifyGroupMods($group['groupid']);
-                    error_log("Edit notify {$group['groupid']}");
                 }
             }
         }
@@ -2971,8 +2970,11 @@ ORDER BY lastdate DESC;";
 
         $this->notif->notifyGroupMods($groupid);
         $this->maybeMail($groupid, $subject, $body, 'Approve');
-        $this->addToSpatialIndex();
-        $this->index();
+
+        if (!$this->hasOutcome()) {
+            $this->addToSpatialIndex();
+            $this->index();
+        }
     }
 
     public function addToSpatialIndex() {
@@ -3388,7 +3390,7 @@ ORDER BY lastdate DESC;";
         $textbody = preg_replace('/Sent.* from my iPhone/i', '', $textbody);
         $textbody = preg_replace('/^Sent from EE.*/ims', '', $textbody);
         $textbody = preg_replace('/^Sent from my Samsung device.*/ims', '', $textbody);
-        $textbody = preg_replace('/^Sent from my Galaxy smartphone.*/ims', '', $textbody);
+        $textbody = preg_replace('/^Sent from my Galaxy.*/ims', '', $textbody);
         $textbody = preg_replace('/^Sent from my Samsung Galaxy smartphone.*/ims', '', $textbody);
         $textbody = preg_replace('/^Sent from my Windows Phone.*/ims', '', $textbody);
         $textbody = preg_replace('/^Sent from the trash nothing! Mobile App.*/ims', '', $textbody);
@@ -3722,7 +3724,9 @@ ORDER BY lastdate DESC;";
                     $this->locationid = $loc['id'];
 
                     if ($this->fromuser) {
-                        # Save off this as the last known location for this user.
+                        # Save off this as the last known location for this user.  If this message was posted via
+                        # the platform then it will match mylocation in settings, but we get messages posted by
+                        # email too.
                         $this->dbhm->preExec("UPDATE users SET lastlocation = ? WHERE id = ?;", [
                             $this->locationid,
                             $this->fromuser
@@ -5303,6 +5307,20 @@ $mq", [
                 $p['id'],
                 $this->id
             ]);
+        }
+
+        return $ret;
+    }
+
+    public function findByTnPostId($tnpostid) {
+        $ret = NULL;
+
+        $msgs = $this->dbhr->preQuery("SELECT id FROM messages WHERE tnpostid = ?", [
+            $tnpostid
+        ]);
+
+        foreach ($msgs as $msg) {
+            $ret = $msg['id'];
         }
 
         return $ret;
