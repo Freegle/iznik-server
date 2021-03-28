@@ -190,6 +190,7 @@ class LoggedPDO {
                         # This can happen if we have issues with the DB, e.g. one server dies or the connection is
                         # timed out.  We re-open the connection and try again.
                         $try++;
+                        sleep(1);
                         $this->connected = FALSE;
                         $this->doConnect();
                     }
