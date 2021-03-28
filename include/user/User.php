@@ -334,6 +334,9 @@ class User extends Entity
         # Stop silly long names.
         $name = strlen($name) > 32 ? (substr($name, 0, 32) . '...') : $name;
 
+        # Numeric names confuse the client.
+        $name = is_numeric($name) ? "$name." : $name;
+
         return ($name);
     }
 
