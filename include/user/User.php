@@ -1497,7 +1497,7 @@ class User extends Entity
         $uids = array_filter(array_column($users, 'id'));
 
         if (count($uids)) {
-            $counts = $this->dbhr->preQuery("SELECT messages.fromuser AS userid, COUNT(*) AS count, messages.type, messages_outcomes.outcome FROM messages LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser IN (" . implode(',', $uids) . ") AND messages.arrival > ? AND collection = ? AND messages_groups.deleted = 0 AND messages_outcomes.id IS NULL GROUP BY messages.fromuser, messages.type, messages_outcomes.outcome;", [
+            $counts = $this->dbhr->preQuery("SELECT messages.fromuser AS userid, COUNT(*) AS count, messages.type, messages_outcomes.outcome FROM messages LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser IN (" . implode(',', $uids) . ") AND messages_groups.arrival > ? AND collection = ? AND messages_groups.deleted = 0 AND messages_outcomes.id IS NULL GROUP BY messages.fromuser, messages.type, messages_outcomes.outcome;", [
                 $start,
                 MessageCollection::APPROVED
             ]);
@@ -1536,19 +1536,21 @@ class User extends Entity
             $users[$uid]['info']['taken'] = 0;
             $users[$uid]['info']['reneged'] = 0;
             $users[$uid]['info']['collected'] = 0;
+            $users[$uid]['info']['openage'] = User::OPEN_AGE;
         }
 
         // We can combine some queries into a single one.  This is better for performance because it saves on
         // the round trip (seriously, I've measured it, and it's worth doing).
         //
         // No need to check on the chat room type as we can only get messages of type Interested in a User2User chat.
-        $counts = $this->dbhr->preQuery("SELECT t0.id AS theuserid, t0.lastaccess AS lastaccess, t1.*, t3.*, t4.*, t5.* FROM
+        $sql = "SELECT t0.id AS theuserid, t0.lastaccess AS lastaccess, t1.*, t3.*, t4.*, t5.* FROM
 (SELECT id, lastaccess FROM users WHERE id in (" . implode(',', $uids) . ")) t0 LEFT JOIN                                                                
 (SELECT COUNT(DISTINCT refmsgid) AS replycount, userid FROM chat_messages WHERE $userq AND date > ? AND refmsgid IS NOT NULL AND type = ?) t1 ON t1.userid = t0.id LEFT JOIN 
-(SELECT COUNT(DISTINCT(msgid)) AS reneged, userid FROM messages_reneged WHERE $userq AND timestamp > ?) t3 ON t3.userid = t0.id LEFT JOIN
-(SELECT COUNT(DISTINCT msgid) AS collected, messages_by.userid FROM messages_by INNER JOIN messages ON messages.id = messages_by.msgid INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id AND messages.type = ? AND chat_messages.type = ? WHERE chat_messages.$userq AND messages_by.$userq AND messages_by.userid != messages.fromuser AND messages.arrival >= '$days90') t4 ON t4.userid = t0.id LEFT JOIN
+(SELECT COUNT(DISTINCT(messages_reneged.msgid)) AS reneged, userid FROM messages_reneged WHERE $userq AND timestamp > ?) t3 ON t3.userid = t0.id LEFT JOIN
+(SELECT COUNT(DISTINCT messages_by.msgid) AS collected, messages_by.userid FROM messages_by INNER JOIN messages ON messages.id = messages_by.msgid INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id AND messages.type = ? AND chat_messages.type = ? INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE chat_messages.$userq AND messages_by.$userq AND messages_by.userid != messages.fromuser AND messages_groups.arrival >= '$days90') t4 ON t4.userid = t0.id LEFT JOIN
 (SELECT timestamp AS abouttime, text AS abouttext, userid FROM users_aboutme WHERE $userq ORDER BY timestamp DESC LIMIT 1) t5 ON t5.userid = t0.id
-;", [
+;";
+        $counts = $this->dbhr->preQuery($sql, [
             $start,
             ChatMessage::TYPE_INTERESTED,
             $start,
