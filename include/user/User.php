@@ -1853,7 +1853,7 @@ class User extends Entity
 
     public function filterDefault(&$profile, &$hash) {
         $hasher = new ImageHash;
-        $data = $profile['url'] && strlen($profile['url']) ? @file_get_contents($profile['url']) : NULL;
+        $data = Utils::pres('url', $profile) && strlen($profile['url']) ? @file_get_contents($profile['url']) : NULL;
         $hash = NULL;
 
         if ($data) {
