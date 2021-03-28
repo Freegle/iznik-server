@@ -223,7 +223,7 @@ class Newsfeed extends Entity
 
         if ($lovelist) {
             $atts['lovelist'] = [];
-            $loves = $this->dbhr->preQuery("SELECT * FROM newsfeed_likes WHERE newsfeedid = ?;", [
+            $loves = $this->dbhr->preQuery("SELECT * FROM newsfeed_likes WHERE newsfeedid = ? ORDER BY timestamp DESC;", [
                 $this->id
             ]);
 

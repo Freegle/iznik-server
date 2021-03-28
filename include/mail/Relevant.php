@@ -227,13 +227,18 @@ class Relevant {
         $mailer->send($message);
     }
 
-    public function sendMessages($userid = NULL, $earliest = NULL, $latest = "24 hours ago") {
+    public function sendMessages($userid = NULL, $earliest = "31 days ago", $latest = "24 hours ago") {
         list ($transport, $mailer) = Mail::getMailer();
 
         $count = 0;
 
-        $sql = $userid ? "SELECT id FROM users WHERE id = $userid AND relevantallowed = 1;" : "SELECT id FROM users WHERE relevantallowed = 1;";
-        $users = $this->dbhr->preQuery($sql);
+        # Filter by last access as this reduces the scan a lot.
+        $lastaccess = date("Y-m-d", strtotime("@" . (time() - Engage::USER_INACTIVE)));
+
+        $sql = $userid ? "SELECT id FROM users WHERE id = $userid AND relevantallowed = 1 AND lastaccess >= ?;" : "SELECT id FROM users WHERE relevantallowed = 1 AND lastaccess >= ?;";
+        $users = $this->dbhr->preQuery($sql, [
+            $lastaccess
+        ]);
 
         foreach ($users as $user) {
             $u = User::get($this->dbhr, $this->dbhm, $user['id']);
@@ -315,6 +320,10 @@ class Relevant {
                     }
                 }
             }
+
+            # Prod garbage collection, as we've seen high memory usage by this.
+            User::clearCache();
+            gc_collect_cycles();
         }
 
         return($count);

@@ -104,10 +104,12 @@ class nearbyTest extends IznikTestCase {
         $u->setPrivate('lastlocation', $lid2);
         $u->addEmail('test@test.com');
 
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->updateSpatialIndex();
+
         $n = new Nearby($this->dbhm, $this->dbhm);
         assertEquals(1, $n->messages($gid));
-
-        }
+    }
 }
 
 
