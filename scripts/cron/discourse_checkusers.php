@@ -17,8 +17,6 @@ global $dbhr, $dbhm;
 
 echo "checkusers\r\n";
 
-global $dbhr, $dbhm;
-
 // https://docs.discourse.org/
 // DISCOURSE_SECRET
 // DISCOURSE_APIKEY
@@ -104,6 +102,44 @@ function GetUser($id,$username){
 }
 
 //////////////////////////////////////////////////////////////////////////
+// GET USER2
+// https://discourse.ilovefreegle.org/u/{username}
+
+function GetUser2($id,$username){
+  global $api_username;
+  $url = 'https://discourse.ilovefreegle.org/u/'.$username.'.json';
+
+  $ch = curl_init();
+  curl_setopt( $ch, CURLOPT_URL, $url );
+  curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+  curl_setopt( $ch, CURLOPT_USERAGENT, 'Freegle' );
+  curl_setopt( $ch, CURLOPT_HTTPHEADER, array(
+    'Api-Key: '.DISCOURSE_APIKEY,
+    'Api-Username: '.$api_username
+  ));
+
+  $result = curl_exec( $ch );
+
+  if ( curl_errno( $ch ) !== 0 ) {
+    curl_close($ch);
+    throw new \Exception('curl_errno: GetUser '.$id." - ".$id);
+  }
+  curl_close( $ch );
+
+  //echo "<pre>".htmlspecialchars($result)."</pre>";
+  //  {"errors":["The requested URL or resource could not be found."],"error_type":"not_found"}
+  $user2 = json_decode($result);
+  //echo print_r($user2)."\r\n\r\n";
+  if (property_exists($user2, 'errors')){
+    echo print_r($user2)."\r\n\r\n";
+    throw new \Exception('GetUser error '.$user2->errors[0]);
+  }
+  $user2 = $user2->user;
+  //echo print_r($user2)."\r\n\r\n";
+  return $user2;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // GET USER EMAIL
 // https://discourse.ilovefreegle.org//users/[username]/emails.json
 
@@ -170,6 +206,10 @@ try{
   $anybouncers = '';
   $bouncestopped = 0;
   $bouncestoppers = '';
+  $mailinglistmode = 0;
+  $watchingcount = 0;
+  $email_digests = 0;
+  $notreceivingmail = 0;
   foreach ($allusers as $user) {
     usleep(250000);
     $count++;
@@ -245,6 +285,42 @@ try{
         $notuser++;
         $report .= 'Not a MT user: Discourse username: '.$user->username.', email: '.$useremail."\r\n";
       }
+
+      // SEE WHAT MAILS THEY ARE GETTING
+      // Check for mailing list mode
+      $user2 = GetUser2($user->id,$user->username);
+
+      $gettingAnyMails = false;
+      //echo "watched_category_ids: ".count($user2->watched_category_ids)."\r\n";
+      //echo "watched_first_post_category_ids: ".count($user2->watched_first_post_category_ids)."\r\n";
+      //echo "tracked_category_ids: ".count($user2->tracked_category_ids)."\r\n";
+      $watchedGroups = count($user2->watched_category_ids);
+      $watchedGroupsFirstPost = count($user2->watched_first_post_category_ids);
+      $trackedGroups = count($user2->tracked_category_ids);
+      if( ($watchedGroups+$watchedGroupsFirstPost+$trackedGroups)>0) {
+        $watchingcount++;
+        $gettingAnyMails = true;
+      }
+
+      if (property_exists($user2, 'user_option')){
+        $mlm = $user2->user_option->mailing_list_mode;
+        if( is_bool($mlm) && $mlm) {
+          $mailinglistmode++;
+          $gettingAnyMails = true;
+        }
+        $eg = $user2->user_option->email_digests;
+        if( is_bool($eg) && $eg) {
+          $email_digests++;
+          $gettingAnyMails = true;
+        }
+      
+      } else echo "NO USER OPTIONS\r\n";
+
+      if( !$gettingAnyMails){
+        $useremail = GetUserEmail($user->username);
+        $report .= 'Not getting any mails: Discourse username: '.$user->username.', email: '.$useremail."\r\n";
+        $notreceivingmail++;
+      }
     }
     //if( $count>50) break;
   }
@@ -269,6 +345,11 @@ try{
   if( $bouncestopped>0){
     $report .= "Check users with stopped mails here:  https://discourse.ilovefreegle.org/admin/logs/staff_action_logs - action 'revoke email'\r\n";
   }
+  $report .= "\r\n";
+  $report .= "mailinglistmode: ($mailinglistmode)\r\n";
+  $report .= "watchingcount: ($watchingcount)\r\n";
+  $report .= "email_digests: ($email_digests)\r\n";
+  $report .= "notreceivingmail: ($notreceivingmail)\r\n";
 
   echo $report;
   echo "\r\n";
