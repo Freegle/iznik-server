@@ -44,7 +44,6 @@ class Mail {
     const UNSUBSCRIBE = 40;
     const MISSING = 41;
     const NOTICEBOARD_CHASEUP_OWNER = 42;
-    const COVID_CHECKLIST = 43;
 
     const DESCRIPTIONS = [
         Mail::DIGEST => 'Digest',
@@ -86,8 +85,7 @@ class Mail {
         Mail::NOTICEBOARD => 'Noticeboard',
         Mail::UNSUBSCRIBE => 'Unsubscribe',
         Mail::MISSING => 'Missing',
-        Mail::NOTICEBOARD_CHASEUP_OWNER => 'NoticeboardChaseupOwner',
-        Mail::COVID_CHECKLIST => 'CovidChecklist'
+        Mail::NOTICEBOARD_CHASEUP_OWNER => 'NoticeboardChaseupOwner'
     ];
 
     # This is the key control over how frequency we add Return Path seed lists to our mails.  0 will disable.
@@ -131,8 +129,7 @@ class Mail {
         Mail::NOTICEBOARD => 0,
         Mail::UNSUBSCRIBE => 0,
         Mail::MISSING => 0,
-        Mail::NOTICEBOARD_CHASEUP_OWNER => 0,
-        Mail::COVID_CHECKLIST=> 0
+        Mail::NOTICEBOARD_CHASEUP_OWNER => 0
     ];
 
     public static function getDescription($type) {

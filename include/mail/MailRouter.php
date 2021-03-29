@@ -47,7 +47,6 @@ class MailRouter
     const TRYST = 'Tryst';
     const DROPPED ='Dropped';
     const TO_VOLUNTEERS = "ToVolunteers";
-    const AWAIT_COVID = 'AwaitCovid';
 
     function __construct($dbhr, $dbhm, $id = NULL)
     {
@@ -737,17 +736,13 @@ class MailRouter
 
                             if ($closed) {
                                 if ($log) { error_log("Reply to message on closed group"); }
-                                $this->mail($this->msg->getFromaddr(), NOREPLY_ADDR,  "This community is currently closed", "This Freegle community is currently closed due to COVID-19.  Your local volunteers have made this difficult decision to try to keep you safe.  Please respect it, and we hope you'll come back when the situation changes.\r\n\r\nThis is an automated message - please do not reply.");
+                                $this->mail($this->msg->getFromaddr(), NOREPLY_ADDR,  "This community is currently closed", "This Freegle community is currently closed.\r\n\r\nThis is an automated message - please do not reply.");
                                 $ret = MailRouter::TO_SYSTEM;
                             } else {
                                 $u = User::get($this->dbhr, $this->dbhm, $fromid);
                                 $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $fromid;");
 
-                                if (!$u->hasCovidConfirmed()) {
-                                    $u->covidConfirm($this->msg->getID());
-                                    $ret = MailRouter::AWAIT_COVID;
-                                    $keepgroups = TRUE;
-                                } else if ($m->getID() && $u->getId() && $m->getFromuser()) {
+                                if ($m->getID() && $u->getId() && $m->getFromuser()) {
                                     # The email address that we replied from might not currently be attached to the
                                     # other user, for example if someone has email forwarding set up.  So make sure we
                                     # have it.
@@ -820,11 +815,7 @@ class MailRouter
                             $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
                             $u = User::get($this->dbhr, $this->dbhm, $userid);
 
-                            if (!$u->hasCovidConfirmed()) {
-                                $u->covidConfirm($this->msg->getID());
-                                $ret = MailRouter::AWAIT_COVID;
-                                $keepgroups = TRUE;
-                            } else if ($r->getId()) {
+                            if ($r->getId()) {
                                 # It's a valid chat.
                                 if ($r->getPrivate('user1') == $userid || $r->getPrivate('user2') == $userid || $u->isModerator()) {
                                     # ...and the user we're replying to is part of it or a mod.
@@ -879,11 +870,7 @@ class MailRouter
                         if ($log) { error_log("Find reply $to = $uid"); }
                         $fromu = User::get($this->dbhr, $this->dbhm, $this->msg->getFromuser());
 
-                        if ($this->msg->getFromuser() && !$fromu->hasCovidConfirmed()) {
-                            $fromu->covidConfirm($this->msg->getID());
-                            $ret = MailRouter::AWAIT_COVID;
-                            $keepgroups = true;
-                        } else if ($uid && $this->msg->getFromuser() && strtolower($to) != strtolower(MODERATOR_EMAIL)) {
+                        if ($uid && $this->msg->getFromuser() && strtolower($to) != strtolower(MODERATOR_EMAIL)) {
                             # This is to one of our users.  We try to pair it as best we can with one of the posts.
                             #
                             # We don't want to process replies to ModTools user.  This can happen if MT is a member

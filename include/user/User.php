@@ -38,7 +38,7 @@ class User extends Entity
 
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing', 'added', 'invitesleft', 'onholidaytill', 'covidconfirmed');
+    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing', 'added', 'invitesleft', 'onholidaytill');
 
     # Roles on specific groups
     const ROLE_NONMEMBER = 'Non-member';
@@ -6177,15 +6177,6 @@ memberships.groupid IN $groupq
                 $ret = TRUE;
             }
         }
-
-        return $ret;
-    }
-
-    public function hasCovidConfirmed() {
-        $covid = $this->getPrivate('covidconfirmed');
-
-        # We want most of the UT to work without doing this.
-        $ret = (getenv('UT') && !getenv('UTTESTCOVIDCONFIRM')) || $covid;
 
         return $ret;
     }

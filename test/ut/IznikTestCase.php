@@ -63,7 +63,6 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         $this->log(__METHOD__);
 
         putenv('UT=1');
-        putenv('UTTESTCOVIDCONFIRM=0');
 
         if (file_exists(IZNIK_BASE . '/standalone')) {
             # Probably in Docket
