@@ -106,18 +106,18 @@ if (count($opts) != 1) {
                 $donation['amount']
             ]);
 
-//            if ($dbhm->rowsAffected() > 0 && $amount >= 20) {
-//                $text = "$name ($email) donated £{$amount}.  Please can you thank them?";
-//                $message = \Swift_Message::newInstance()
-//                    ->setSubject("$name ({$email}) donated £{$amount} - please send thanks")
-//                    ->setFrom(NOREPLY_ADDR)
-//                    ->setTo(INFO_ADDR)
-//                    ->setCc('log@ehibbert.org.uk')
-//                    ->setBody($text);
-//
-//                list ($transport, $mailer) = Mail::getMailer();
-//                $mailer->send($message);
-//            }
+            if ($dbhm->rowsAffected() > 0 && intval($donation['amount']) >= 20) {
+                $text = "$name ($email) donated £{$amount}.  Please can you thank them?";
+                $message = \Swift_Message::newInstance()
+                    ->setSubject("$name ({$email}) donated £{$amount} - please send thanks")
+                    ->setFrom(NOREPLY_ADDR)
+                    ->setTo(INFO_ADDR)
+                    ->setCc('log@ehibbert.org.uk')
+                    ->setBody($text);
+
+                list ($transport, $mailer) = Mail::getMailer();
+                $mailer->send($message);
+            }
         }
 
         $mysqltime = date ("Y-m-d", strtotime("Midnight yesterday"));
