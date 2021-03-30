@@ -38,7 +38,7 @@ class User extends Entity
 
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing', 'added', 'invitesleft', 'onholidaytill', 'covidconfirmed');
+    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing', 'added', 'invitesleft', 'onholidaytill');
 
     # Roles on specific groups
     const ROLE_NONMEMBER = 'Non-member';
@@ -1497,7 +1497,7 @@ class User extends Entity
         $uids = array_filter(array_column($users, 'id'));
 
         if (count($uids)) {
-            $counts = $this->dbhr->preQuery("SELECT messages.fromuser AS userid, COUNT(*) AS count, messages.type, messages_outcomes.outcome FROM messages LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser IN (" . implode(',', $uids) . ") AND messages.arrival > ? AND collection = ? AND messages_groups.deleted = 0 AND messages_outcomes.id IS NULL GROUP BY messages.fromuser, messages.type, messages_outcomes.outcome;", [
+            $counts = $this->dbhr->preQuery("SELECT messages.fromuser AS userid, COUNT(*) AS count, messages.type, messages_outcomes.outcome FROM messages LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser IN (" . implode(',', $uids) . ") AND messages_groups.arrival > ? AND collection = ? AND messages_groups.deleted = 0 AND messages_outcomes.id IS NULL GROUP BY messages.fromuser, messages.type, messages_outcomes.outcome;", [
                 $start,
                 MessageCollection::APPROVED
             ]);
@@ -1536,19 +1536,21 @@ class User extends Entity
             $users[$uid]['info']['taken'] = 0;
             $users[$uid]['info']['reneged'] = 0;
             $users[$uid]['info']['collected'] = 0;
+            $users[$uid]['info']['openage'] = User::OPEN_AGE;
         }
 
         // We can combine some queries into a single one.  This is better for performance because it saves on
         // the round trip (seriously, I've measured it, and it's worth doing).
         //
         // No need to check on the chat room type as we can only get messages of type Interested in a User2User chat.
-        $counts = $this->dbhr->preQuery("SELECT t0.id AS theuserid, t0.lastaccess AS lastaccess, t1.*, t3.*, t4.*, t5.* FROM
+        $sql = "SELECT t0.id AS theuserid, t0.lastaccess AS lastaccess, t1.*, t3.*, t4.*, t5.* FROM
 (SELECT id, lastaccess FROM users WHERE id in (" . implode(',', $uids) . ")) t0 LEFT JOIN                                                                
 (SELECT COUNT(DISTINCT refmsgid) AS replycount, userid FROM chat_messages WHERE $userq AND date > ? AND refmsgid IS NOT NULL AND type = ?) t1 ON t1.userid = t0.id LEFT JOIN 
-(SELECT COUNT(DISTINCT(msgid)) AS reneged, userid FROM messages_reneged WHERE $userq AND timestamp > ?) t3 ON t3.userid = t0.id LEFT JOIN
-(SELECT COUNT(DISTINCT msgid) AS collected, messages_by.userid FROM messages_by INNER JOIN messages ON messages.id = messages_by.msgid INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id AND messages.type = ? AND chat_messages.type = ? WHERE chat_messages.$userq AND messages_by.$userq AND messages_by.userid != messages.fromuser AND messages.arrival >= '$days90') t4 ON t4.userid = t0.id LEFT JOIN
+(SELECT COUNT(DISTINCT(messages_reneged.msgid)) AS reneged, userid FROM messages_reneged WHERE $userq AND timestamp > ?) t3 ON t3.userid = t0.id LEFT JOIN
+(SELECT COUNT(DISTINCT messages_by.msgid) AS collected, messages_by.userid FROM messages_by INNER JOIN messages ON messages.id = messages_by.msgid INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id AND messages.type = ? AND chat_messages.type = ? INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE chat_messages.$userq AND messages_by.$userq AND messages_by.userid != messages.fromuser AND messages_groups.arrival >= '$days90') t4 ON t4.userid = t0.id LEFT JOIN
 (SELECT timestamp AS abouttime, text AS abouttext, userid FROM users_aboutme WHERE $userq ORDER BY timestamp DESC LIMIT 1) t5 ON t5.userid = t0.id
-;", [
+;";
+        $counts = $this->dbhr->preQuery($sql, [
             $start,
             ChatMessage::TYPE_INTERESTED,
             $start,
@@ -6177,51 +6179,6 @@ memberships.groupid IN $groupq
         }
 
         return $ret;
-    }
-
-    public function hasCovidConfirmed() {
-        $covid = $this->getPrivate('covidconfirmed');
-
-        # We want most of the UT to work without doing this.
-        $ret = (getenv('UT') && !getenv('UTTESTCOVIDCONFIRM')) || $covid;
-
-        return $ret;
-    }
-
-    public function covidConfirm($msgid) {
-        # Mail the user and ask them to complete the COVID checklist, which they haven't done yet.
-        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/');
-        $twig = new \Twig_Environment($loader);
-        $email = $this->getEmailPreferred();
-
-        $tn = strpos($email, 'user.trashnothing.com') !== FALSE ? '&tn=1' : '';
-        $url = $this->loginLink(USER_SITE, $this->id, "/covidchecklist?msgid=$msgid$tn", NULL, TRUE);
-
-        $html = $twig->render('covid.html', [
-            'email' => $email,
-            'url' => $url
-        ]);
-
-        list ($transport, $mailer) = Mail::getMailer();
-        $message = \Swift_Message::newInstance()
-            ->setSubject("COVID-19 - Action required to process your message")
-            ->setFrom([NOREPLY_ADDR => SITE_NAME])
-            ->setTo($email)
-            ->setDate(time())
-            ->setBody("Action required - complete our COVID Checklist at $url");
-
-        # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-        # Outlook.
-        $htmlPart = \Swift_MimePart::newInstance();
-        $htmlPart->setCharset('utf-8');
-        $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
-        $htmlPart->setContentType('text/html');
-        $htmlPart->setBody($html);
-        $message->attach($htmlPart);
-
-        Mail::addHeaders($message, Mail::COVID_CHECKLIST, $this->getId());
-
-        $this->sendIt($mailer, $message);
     }
 
     public function memberReview($groupid, $request, $reason) {

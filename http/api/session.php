@@ -377,47 +377,13 @@ function session() {
             $host = Utils::presdef('host', $_REQUEST, NULL);
             $keyu = (Utils::presint('u', $_REQUEST, NULL));
             $keyk = Utils::presdef('k', $_REQUEST, NULL);
-            $covidconfirmed = Utils::presdef('covidconfirmed', $_REQUEST, NULL);
 
             $id = NULL;
             $user = User::get($dbhr, $dbhm);
             $f = NULL;
             $ret = array('ret' => 1, 'status' => 'Invalid login details', 'req' => $_REQUEST);
 
-            if ($me && $covidconfirmed) {
-                if (!$me->hasCovidConfirmed()) {
-                    $me->setPrivate('covidconfirmed', date("Y-m-d H:i:s"));
-
-                    # Find any messages from them which may currently be in limbo.
-                    $msgs = $dbhr->preQuery("SELECT id FROM messages WHERE fromuser = ? AND lastroute = ?;", [
-                        $me->getId(),
-                        MailRouter::AWAIT_COVID
-                    ]);
-
-                    foreach ($msgs as $msg) {
-                        $msgid = $msg['id'];
-
-                        # Dispatch the message on its way.
-                        $r = new MailRouter($dbhr, $dbhm);
-                        $m = new Message($dbhr, $dbhm, $msgid);
-                        $mgroups = $m->getGroups(TRUE, FALSE);
-
-                        if (count($mgroups) == 0) {
-                            # Will be a chat.
-                            $r->route($m);
-                        } else {
-                            # Will be for a group.
-                            foreach ($mgroups as $mgroup) {
-                                if ($mgroup['collection'] == MessageCollection::INCOMING) {
-                                    $r->route($m);
-                                }
-                            }
-                        }
-                    }
-                }
-
-                $ret = [ 'ret' => 0, 'status' => 'Success' ];
-            } else if ($keyu && $keyk) {
+            if ($keyu && $keyk) {
                 # uid and key login, used in email links and impersonation.
                 $u = new User($dbhr, $dbhm, $keyu);
 

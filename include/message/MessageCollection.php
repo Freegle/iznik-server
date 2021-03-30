@@ -176,7 +176,7 @@ class MessageCollection
 
                 if (in_array(MessageCollection::SPAM, $collection)) {
                     # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.
-                    # Exclude messages routed to system, which will be waiting for COVID confirmation.
+                    # Exclude messages routed to system, which will be for some good reason.
                     # See also Group.
                     #
                     # This fits with Yahoo's policy on deleting pending activity.
