@@ -222,20 +222,19 @@ try{
   $subject = 'Discourse: all active volunteers on here';
   if( $notondiscourse>0) $subject = 'Discourse: '.$notondiscourse.' volunteers not signed up';
 
-  /*$mailedcentralmods = false;
-  $subject = 'Discourse checkuser OK';
-  if( $notmod || $notuser){
+  $mailedcentralmods = false;
+  /*if( $notmod || $notuser){
     $subject = 'Discourse checkuser USERS TO CHECK';
     $sent = mail(CENTRALMODS_ADDR, $subject, $report,$headers);
     echo "Mail sent to centralmods: ".$sent."\r\n";
     $report = "Mail sent to centralmods: ".$sent."\r\n".$report;
     $mailedcentralmods = true;
-  }
+  }*/
 
   if( !$mailedcentralmods && (date('w')==6)){
     $sent = mail(CENTRALMODS_ADDR, $subject, $report,$headers);
     echo "Mail sent to centralmods: ".$sent."\r\n";
-  }*/
+  }
   
   //$report = wordwrap($report, 70, "\r\n");
   $sent = mail(GEEKSALERTS_ADDR, $subject, $report,$headers);
