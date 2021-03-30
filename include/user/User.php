@@ -3104,7 +3104,7 @@ class User extends Entity
 
         $this->getComments($me, $rets);
 
-        return $rets[$userid]['comments'];
+        return Utils::presdef('comments', $rets[$userid], NULL);
     }
 
     public function getComments($me, &$rets)
