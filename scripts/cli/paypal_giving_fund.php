@@ -108,7 +108,7 @@ if (count($opts) != 1) {
                 strpos($donation['name'], 'Anonymous') !== 0 &&
                 $dbhm->rowsAffected() > 0 &&
                 intval($donation['amount']) >= 20) {
-                $text = "$name ({$donation['email']}) donated £{$donation['amount']}.  Please can you thank them?";
+                $text = "{$donation['name']} ({$donation['email']}) donated £{$donation['amount']}.  Please can you thank them?";
                 $message = \Swift_Message::newInstance()
                     ->setSubject("{$donation['name']} ({$donation['email']}) donated £{$donation['amount']} - please send thanks")
                     ->setFrom(NOREPLY_ADDR)
