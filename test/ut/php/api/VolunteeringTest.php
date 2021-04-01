@@ -202,7 +202,7 @@ class volunteeringAPITest extends IznikAPITestCase {
         # Add a photo
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_VOLUNTEERING);
-        $photoid = $a->create(NULL, 'image/jpeg', $data);
+        $photoid = $a->create(NULL, $data);
 
         $ret = $this->call('volunteering', 'PATCH', [
             'id' => $id,

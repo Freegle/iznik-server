@@ -332,8 +332,7 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $ret = $this->call('image', 'POST', [
             'photo' => [
-                'tmp_name' => '/tmp/pan.jpg',
-                'type' => 'image/jpeg'
+                'tmp_name' => '/tmp/pan.jpg'
             ],
             'chatmessage' => 1,
             'imgtype' => Attachment::TYPE_CHAT_MESSAGE

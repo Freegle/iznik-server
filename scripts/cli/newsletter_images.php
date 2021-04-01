@@ -30,7 +30,7 @@ if (count($opts) != 1) {
             $data = file_get_contents($file);
 
             $a = new Attachment($dbhr, $dbhm, NULL, Attachment::TYPE_NEWSLETTER);
-            $attid = $a->create(NULL, 'image/jpeg', $data);
+            $attid = $a->create(NULL, $data);
             error_log("$file => $attid");
         }
     }

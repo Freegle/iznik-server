@@ -95,7 +95,7 @@ foreach ($dups as $dup) {
 # We archive message photos out of the DB.  This reduces load on the servers because we don't have to serve
 # the images up, and it also reduces the disk space we need within the DB (which is not an ideal
 # place to store large amounts of image data);
-$sql = "SELECT id, contenttype FROM messages_attachments WHERE archived = 0;";
+$sql = "SELECT id FROM messages_attachments WHERE archived = 0;";
 $atts = $dbhr->preQuery($sql);
 error_log(count($atts) . " to archive");
 $count = 0;

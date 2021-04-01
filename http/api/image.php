@@ -117,13 +117,10 @@ function image() {
             } else {
                 $photo = Utils::presdef('photo', $_FILES, NULL) ? $_FILES['photo'] : $_REQUEST['photo'];
                 $imgtype = Utils::presdef('imgtype', $_REQUEST, Attachment::TYPE_MESSAGE);
-                $mimetype = Utils::presdef('type', $photo, NULL);
 
                 # Make sure what we have looks plausible - the file upload plugin should ensure this is the case.
                 if ($photo &&
-                    Utils::pres('tmp_name', $photo) &&
-                    strpos($mimetype, 'image/') === 0) {
-
+                    Utils::pres('tmp_name', $photo)) {
                     try {
                         # We may need to rotate.
                         $data = file_get_contents($photo['tmp_name']);
@@ -166,7 +163,7 @@ function image() {
 
                         if ($data) {
                             $a = new Attachment($dbhr, $dbhm, NULL, $imgtype);
-                            $id = $a->create($msgid, $photo['type'], $data);
+                            $id = $a->create($msgid,$data);
 
                             # Make sure it's not too large, to keep DB size down.  Ought to have been resized by
                             # client, but you never know.

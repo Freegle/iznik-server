@@ -87,7 +87,7 @@ function catalogue() {
                     if ($id) {
                         # Create an image with the binary data.
                         $a = new Attachment($dbhr, $dbhm, NULL, Attachment::TYPE_BOOKTASTIC);
-                        $imgid = $a->create($id, $photo['type'], base64_decode($data));
+                        $imgid = $a->create($id, base64_decode($data));
                     }
 
                     $ret = [

@@ -141,7 +141,7 @@ class chatRoomsTest extends IznikTestCase {
 
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_CHAT_MESSAGE);
-        $attid = $a->create(NULL, 'image/jpeg', $data);
+        $attid = $a->create(NULL, $data);
         assertNotNull($attid);
 
         $m = new ChatMessage($this->dbhr, $this->dbhm);
