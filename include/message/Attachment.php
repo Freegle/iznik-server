@@ -334,7 +334,6 @@ class Attachment
             $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
             if ($status) {
-                $this->dbhm->preExec("UPDATE messages_attachments SET identification = ? WHERE id = ?;", [ $json_response, $this->id ]);
                 $rsp = json_decode($json_response, TRUE);
                 #error_log("Identified {$this->id} by Google $json_response for $r_json");
 
