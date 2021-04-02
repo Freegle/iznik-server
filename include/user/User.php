@@ -2153,7 +2153,7 @@ class User extends Entity
         ) {
             # As well as being a member of a group, they might have joined and left, or applied and been rejected.
             # This is useful info for moderators.
-            $sql = "SELECT DISTINCT memberships_history.*, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships_history INNER JOIN groups ON memberships_history.groupid = groups.id WHERE userid IN (" . implode(',', $userids) . ") AND DATEDIFF(NOW(), added) <= 31 ORDER BY added DESC;";
+            $sql = "SELECT DISTINCT memberships_history.*, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships_history INNER JOIN groups ON memberships_history.groupid = groups.id WHERE userid IN (" . implode(',', $userids) . ") AND DATEDIFF(NOW(), added) <= 31 AND groups.publish = 1 AND groups.onmap = 1 ORDER BY added DESC;";
             $membs = $this->dbhr->preQuery($sql);
 
             foreach ($rets as &$ret) {
