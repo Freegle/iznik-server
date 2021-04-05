@@ -230,9 +230,6 @@ class API
                         case 'abtest':
                             $ret = abtest();
                             break;
-                        case 'adview':
-                            $ret = adview();
-                            break;
                         case 'activity':
                             $ret = activity();
                             break;
@@ -271,6 +268,9 @@ class API
                             $ret = catalogue();
                             break;
                         // @codeCoverageIgnoreEnd
+                        case 'jobs':
+                            $ret = jobs();
+                            break;
                         case 'profile':
                             $ret = profile();
                             break;

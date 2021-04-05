@@ -1266,6 +1266,50 @@ CREATE TABLE `items_non` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `jobs`
+--
+
+DROP TABLE IF EXISTS `jobs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `jobs` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `location` varchar(256) DEFAULT NULL,
+  `city` varchar(256) DEFAULT NULL,
+  `state` varchar(256) DEFAULT NULL,
+  `country` varchar(256) DEFAULT NULL,
+  `job_type` varchar(32) DEFAULT NULL,
+  `posted_at` datetime DEFAULT NULL,
+  `job_reference` varchar(32) DEFAULT NULL,
+  `company` varchar(256) DEFAULT NULL,
+  `mobile_friendly_apply` varchar(32) DEFAULT NULL,
+  `category` varchar(64) DEFAULT NULL,
+  `html_jobs` varchar(32) DEFAULT NULL,
+  `url` varchar(1024) DEFAULT NULL,
+  `body` text,
+  `cpc` decimal(4,4) DEFAULT NULL,
+  `position` geometry DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `jobs_keywords`
+--
+
+DROP TABLE IF EXISTS `jobs_keywords`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `jobs_keywords` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `keyword` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `count` bigint(20) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `keyword` (`keyword`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `link_previews`
 --
 
@@ -5324,4 +5368,4 @@ CREATE TABLE `worrywords` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-04-01 17:55:35
+-- Dump completed on 2021-04-05 11:08:47

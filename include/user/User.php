@@ -5783,37 +5783,20 @@ class User extends Entity
         $search = NULL;
         $ret = '<span class="jobads">';
 
-        list ($search, $lat, $lng) = $this->getCity();
+        list ($search, $lat, $lng) = $this->getLatLng();
 
         if ($search) {
-            # AdView's servers can't keep up with us, so we keep a more or less daily cache of jobs per location.
-            $fn = "/tmp/adview." . base64_encode($search);
+            $j = new Jobs($this->dbhr, $this->dbhm);
+            $jobs = $j->query($lat, $lng);
+            $jobs = array_slice($jobs, 0, 4);
 
-            if (!is_file($fn) || (time() - filemtime($fn) > 20 * 3600)) {
-                # No cache or time to update.
-                $url = "https://uk.whatjobs.com/api/v1/jobs.json?publisher=2053&channel=email&limit=50&radius=5&location=" . urlencode($search);
-                $data = @file_get_contents($url);
-                file_put_contents($fn, $data);
-            } else {
-                $data = @file_get_contents($fn);
-            }
+            foreach ($jobs as $job) {
+                $loc = Utils::presdef('location', $job, '');
+                $title = "{$job['title']}" . ($loc !== ' ' ? " ($loc)" : '');
 
-            if ($data) {
-                $data = json_decode($data, TRUE);
-                if ($data && $data['data'] && count($data['data'])) {
-                    $a = new AdView($this->dbhr, $this->dbhm);
-                    $jobs = $a->sortJobs($data['data'], $this->id);
-                    $jobs = array_slice($jobs, 0, 4);
-
-                    foreach ($jobs as $job) {
-                        $loc = Utils::presdef('location', $job, '') . ' ' . Utils::presdef('postcode', $job, '');
-                        $title = "{$job['title']}" . ($loc !== ' ' ? " ($loc)" : '');
-                        # Direct link to job to increase click conversions.
-                        $url = 'https://' . USER_SITE . '/jobs/' . urlencode($search);
-                        #$url = $job['url'];
-                        $ret .= '<a href="' . $url . '" target="_blank">' . htmlentities($title) . '</a><br />';
-                    }
-                }
+                # Direct link to job to increase click conversions.
+                $url = $job['url'];
+                $ret .= '<a href="' . $url . '" target="_blank">' . htmlentities($title) . '</a><br />';
             }
         }
 
