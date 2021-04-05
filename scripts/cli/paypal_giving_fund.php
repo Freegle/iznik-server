@@ -32,17 +32,16 @@ if (count($opts) != 1) {
             $fields = fgetcsv($fh);
 
             $date = $fields[0];
-            $name = $fields[1];
-            $email = $fields[2];
-            $program = $fields[3];
-            $campaign = $fields[4];
+            $name = $fields[1] . " " . $fields[2];
+            $email = $fields[3];
+            $program = $fields[4];
             $ebayId = $fields[5];
             $amount = $fields[7];
 
             # Invent a unique transaction ID because we might rerun on the same data.  This isn't perfect - anonymous
             # donations on the same date from PayPal will lead to the same id, and therefore get undercounted.  But
             # undercounting is probably better than overcounting for soliciting donations...
-            $txid = $date . $email . $program . $campaign . $ebayId . $amount;
+            $txid = $fields[10];
 
             error_log("$date email $email amount $amount");
 
@@ -59,7 +58,6 @@ if (count($opts) != 1) {
                 'txid' => $txid,
                 'amount' => $amount,
                 'program' => $program,
-                'campaign' => $campaign,
                 'ebayId' => $ebayId
             ];
             
@@ -106,18 +104,21 @@ if (count($opts) != 1) {
                 $donation['amount']
             ]);
 
-//            if ($dbhm->rowsAffected() > 0 && $amount >= 20) {
-//                $text = "$name ($email) donated £{$amount}.  Please can you thank them?";
-//                $message = \Swift_Message::newInstance()
-//                    ->setSubject("$name ({$email}) donated £{$amount} - please send thanks")
-//                    ->setFrom(NOREPLY_ADDR)
-//                    ->setTo(INFO_ADDR)
-//                    ->setCc('log@ehibbert.org.uk')
-//                    ->setBody($text);
-//
-//                list ($transport, $mailer) = Mail::getMailer();
-//                $mailer->send($message);
-//            }
+            if (
+                strpos($donation['name'], 'Anonymous') !== 0 &&
+                $dbhm->rowsAffected() > 0 &&
+                intval($donation['amount']) >= 20) {
+                $text = "{$donation['name']} ({$donation['email']}) donated £{$donation['amount']}.  Please can you thank them?";
+                $message = \Swift_Message::newInstance()
+                    ->setSubject("{$donation['name']} ({$donation['email']}) donated £{$donation['amount']} - please send thanks")
+                    ->setFrom(NOREPLY_ADDR)
+                    ->setTo(INFO_ADDR)
+                    ->setCc('log@ehibbert.org.uk')
+                    ->setBody($text);
+
+                list ($transport, $mailer) = Mail::getMailer();
+                $mailer->send($message);
+            }
         }
 
         $mysqltime = date ("Y-m-d", strtotime("Midnight yesterday"));

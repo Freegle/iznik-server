@@ -27,7 +27,7 @@ class AttachmentTest extends IznikTestCase {
         if (GOOGLE_VISION_KEY != ' GOOGLE_VISION_KEY') {
             $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
             $a = new Attachment($this->dbhr, $this->dbhm);
-            $attid = $a->create(null, 'image/jpeg', $data);
+            $attid = $a->create(null, $data);
             assertNotNull($attid);
 
             $a = new Attachment($this->dbhr, $this->dbhm, $attid);
@@ -81,7 +81,7 @@ class AttachmentTest extends IznikTestCase {
 
         $a->method('fgc')->willReturn('UT');
 
-        $attid = $a->create(NULL, 'image/jpeg', $data);
+        $attid = $a->create(NULL, $data);
         assertNotNull($attid);
 
         $ret = $a->archive();
@@ -96,12 +96,12 @@ class AttachmentTest extends IznikTestCase {
     public function testHash() {
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
-        $attid1 = $a->create(NULL, 'image/jpeg', $data);
+        $attid1 = $a->create(NULL,$data);
         assertNotNull($attid1);
 
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
-        $attid2 = $a->create(NULL, 'image/jpeg', $data);
+        $attid2 = $a->create(NULL, $data);
         assertNotNull($attid1);
 
         $a1 = new Attachment($this->dbhr, $this->dbhm, $attid1, Attachment::TYPE_GROUP);
@@ -126,7 +126,7 @@ class AttachmentTest extends IznikTestCase {
     public function testGetByImageIds() {
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
-        $attid1 = $a->create(NULL, 'image/jpeg', $data);
+        $attid1 = $a->create(NULL,$data);
         assertNotNull($attid1);
 
         $atts = $a->getByImageIds([ $attid1 ]);

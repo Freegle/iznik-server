@@ -2025,10 +2025,10 @@ class User extends Entity
                 # On these groups.  Have to be a bit careful about getting the posting date as GREATEST can return NULL
                 # if one of the arguments is NULL.
                 $groupq = implode(',', $groupids);
-                $sql = "SELECT GREATEST(COALESCE(messages_postings.date, messages.arrival), COALESCE(messages_postings.date, messages.arrival)) AS postdate, messages_outcomes.outcome, messages.fromuser, messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_groups.deleted, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) $collq AND fromuser IN (" . implode(',', $userids) . ") $delq LEFT JOIN messages_postings ON messages.id = messages_postings.msgid LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id HAVING postdate > ? ORDER BY postdate DESC;";
+                $sql = "SELECT GREATEST(COALESCE(messages_postings.date, messages.arrival), COALESCE(messages_postings.date, messages.arrival)) AS postdate, (SELECT outcome FROM messages_outcomes WHERE messages_outcomes.msgid = messages.id ORDER BY timestamp DESC LIMIT 1) AS outcome, messages.fromuser, messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_groups.deleted, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) $collq AND fromuser IN (" . implode(',', $userids) . ") $delq LEFT JOIN messages_postings ON messages.id = messages_postings.msgid HAVING postdate > ? ORDER BY postdate DESC;";
             } else if ($systemrole == User::SYSTEMROLE_SUPPORT || $systemrole == User::SYSTEMROLE_ADMIN) {
                 # We can see all groups.
-                $sql = "SELECT GREATEST(COALESCE(messages_postings.date, messages.arrival), COALESCE(messages_postings.date, messages.arrival)) AS postdate, messages_outcomes.outcome, messages.fromuser, messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_groups.deleted, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid $collq AND fromuser IN (" . implode(',', $userids) . ") $delq LEFT JOIN messages_postings ON messages.id = messages_postings.msgid LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages.id HAVING postdate > ? ORDER BY postdate DESC;";
+                $sql = "SELECT GREATEST(COALESCE(messages_postings.date, messages.arrival), COALESCE(messages_postings.date, messages.arrival)) AS postdate, (SELECT outcome FROM messages_outcomes WHERE messages_outcomes.msgid = messages.id ORDER BY timestamp DESC LIMIT 1) AS outcome, messages.fromuser, messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_groups.deleted, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid $collq AND fromuser IN (" . implode(',', $userids) . ") $delq LEFT JOIN messages_postings ON messages.id = messages_postings.msgid HAVING postdate > ? ORDER BY postdate DESC;";
             }
         }
 
@@ -2153,7 +2153,7 @@ class User extends Entity
         ) {
             # As well as being a member of a group, they might have joined and left, or applied and been rejected.
             # This is useful info for moderators.
-            $sql = "SELECT DISTINCT memberships_history.*, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships_history INNER JOIN groups ON memberships_history.groupid = groups.id WHERE userid IN (" . implode(',', $userids) . ") AND DATEDIFF(NOW(), added) <= 31 ORDER BY added DESC;";
+            $sql = "SELECT DISTINCT memberships_history.*, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships_history INNER JOIN groups ON memberships_history.groupid = groups.id WHERE userid IN (" . implode(',', $userids) . ") AND DATEDIFF(NOW(), added) <= 31 AND groups.publish = 1 AND groups.onmap = 1 ORDER BY added DESC;";
             $membs = $this->dbhr->preQuery($sql);
 
             foreach ($rets as &$ret) {
@@ -3104,7 +3104,7 @@ class User extends Entity
 
         $this->getComments($me, $rets);
 
-        return $rets[$userid]['comments'];
+        return Utils::presdef('comments', $rets[$userid], NULL);
     }
 
     public function getComments($me, &$rets)
@@ -5874,7 +5874,13 @@ class User extends Entity
         foreach ($userlist as $user1) {
             foreach ($userlist as $user2) {
                 if ($user1 && $user2 && $user1 !== $user2) {
-                    $this->dbhm->background("INSERT INTO users_related (user1, user2) VALUES ($user1, $user2) ON DUPLICATE KEY UPDATE timestamp = NOW();");
+                    # We may be passed user ids which no longer exist.
+                    $u1 = User::get($this->dbhr, $this->dbhm, $user1);
+                    $u2 = User::get($this->dbhr, $this->dbhm, $user2);
+
+                    if ($u1->getId() && $u2->getId()) {
+                        $this->dbhm->background("INSERT INTO users_related (user1, user2) VALUES ($user1, $user2) ON DUPLICATE KEY UPDATE timestamp = NOW();");
+                    }
                 }
             }
         }

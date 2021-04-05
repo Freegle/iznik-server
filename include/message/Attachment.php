@@ -14,7 +14,7 @@ class Attachment
     private $dbhr;
     /** @var  $dbhm LoggedPDO */
     private $dbhm;
-    private $id, $table, $contentType, $hash, $archived;
+    private $id, $table, $hash, $archived;
 
     /**
      * @return null
@@ -41,14 +41,6 @@ class Attachment
     public function getHash()
     {
         return $this->hash;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getContentType()
-    {
-        return $this->contentType;
     }
 
     public function getPath($thumb = FALSE, $id = NULL) {
@@ -82,11 +74,8 @@ class Attachment
             $this->idatt => $this->{$this->idatt}
         );
 
-        if (stripos($this->contentType, 'image') !== FALSE) {
-            # It's an image.  That's the only type we support.
-            $ret['path'] = $this->getPath(FALSE);
-            $ret['paththumb'] = $this->getPath(TRUE);
-        }
+        $ret['path'] = $this->getPath(FALSE);
+        $ret['paththumb'] = $this->getPath(TRUE);
 
         return($ret);
     }
@@ -113,10 +102,9 @@ class Attachment
         }
 
         if ($id) {
-            $sql = "SELECT {$this->idatt}, contenttype, hash, archived FROM {$this->table} WHERE id = ?;";
+            $sql = "SELECT {$this->idatt}, hash, archived FROM {$this->table} WHERE id = ?;";
             $as = $atts ? [ $atts ] : $this->dbhr->preQuery($sql, [$id]);
             foreach ($as as $att) {
-                $this->contentType = $att['contenttype'];
                 $this->hash = $att['hash'];
                 $this->archived = $att['archived'];
                 $this->{$this->idatt} = $att[$this->idatt];
@@ -124,15 +112,14 @@ class Attachment
         }
     }
 
-    public function create($id, $ct, $data) {
+    public function create($id, $data) {
         # We generate a perceptual hash.  This allows us to spot duplicate or similar images later.
         $hasher = new ImageHash;
         $img = @imagecreatefromstring($data);
         $hash = $img ? $hasher->hash($img) : NULL;
 
-        $rc = $this->dbhm->preExec("INSERT INTO {$this->table} (`{$this->idatt}`, `contenttype`, `data`, `hash`) VALUES (?, ?, ?, ?);", [
+        $rc = $this->dbhm->preExec("INSERT INTO {$this->table} (`{$this->idatt}`, `data`, `hash`) VALUES (?, ?, ?);", [
             $id,
-            $ct,
             $data,
             $hash
         ]);
@@ -141,7 +128,6 @@ class Attachment
 
         if ($imgid) {
             $this->id = $imgid;
-            $this->contentType = $ct;
             $this->hash = $hash;
         }
 
@@ -163,7 +149,7 @@ class Attachment
         $ret = [];
 
         if (count($ids)) {
-            $sql = "SELECT id, {$this->idatt}, contenttype, hash, archived FROM {$this->table} WHERE {$this->idatt} IN (" . implode(',', $ids) . ") AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1) ORDER BY id;";
+            $sql = "SELECT id, {$this->idatt}, hash, archived FROM {$this->table} WHERE {$this->idatt} IN (" . implode(',', $ids) . ") AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1) ORDER BY id;";
             $atts = $this->dbhr->preQuery($sql);
             foreach ($atts as $att) {
                 $ret[] = new Attachment($this->dbhr, $this->dbhm, $att['id'], $this->type, $att);
@@ -177,7 +163,7 @@ class Attachment
         $ret = [];
 
         if (count($ids)) {
-            $sql = "SELECT id, {$this->idatt}, contenttype, hash, archived FROM {$this->table} WHERE id IN (" . implode(',', $ids) . ") AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1) ORDER BY id;";
+            $sql = "SELECT id, {$this->idatt}, hash, archived FROM {$this->table} WHERE id IN (" . implode(',', $ids) . ") AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1) ORDER BY id;";
             $atts = $this->dbhr->preQuery($sql);
             foreach ($atts as $att) {
                 $ret[] = new Attachment($this->dbhr, $this->dbhm, $att['id'], $this->type, $att);
@@ -348,7 +334,6 @@ class Attachment
             $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
             if ($status) {
-                $this->dbhm->preExec("UPDATE messages_attachments SET identification = ? WHERE id = ?;", [ $json_response, $this->id ]);
                 $rsp = json_decode($json_response, TRUE);
                 #error_log("Identified {$this->id} by Google $json_response for $r_json");
 

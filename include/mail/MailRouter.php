@@ -970,10 +970,9 @@ class MailRouter
         foreach ($atts as $att) {
             list ($aid, $banned) = $m->create($rid, $this->msg->getFromuser(), NULL, ChatMessage::TYPE_IMAGE, NULL, FALSE);
             $data = $att->getData();
-            $ct = $att->getContentType();
             $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_CHAT_MESSAGE);
             try {
-                $aid2 = $a->create($aid, $ct, $data);
+                $aid2 = $a->create($aid, $data);
 
                 $hash = $a->getHash();
 

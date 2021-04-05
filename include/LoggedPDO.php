@@ -190,6 +190,7 @@ class LoggedPDO {
                         # This can happen if we have issues with the DB, e.g. one server dies or the connection is
                         # timed out.  We re-open the connection and try again.
                         $try++;
+                        error_log("Server gone away, sleep and retry");
                         sleep(1);
                         $this->connected = FALSE;
                         $this->doConnect();
@@ -234,6 +235,7 @@ class LoggedPDO {
                 ) {
                     # Try re-opening the connection.
                     $try++;
+                    error_log("Server gone away, sleep and retry");
                     sleep(1);
                     $this->connected = FALSE;
                     $this->doConnect();

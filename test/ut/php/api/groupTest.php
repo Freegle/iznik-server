@@ -216,7 +216,7 @@ class groupAPITest extends IznikAPITestCase {
         # Profile
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
-        $attid = $a->create(NULL, 'image/jpeg', $data);
+        $attid = $a->create(NULL, $data);
         assertNotNull($attid);
 
         $ret = $this->call('group', 'PATCH', [

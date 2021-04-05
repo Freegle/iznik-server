@@ -88,7 +88,6 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
 
         # Check the saved attachment.  Only one - other stripped for aspect ratio.
         $atts = $m->getAttachments();
-        assertEquals('image/png', $atts[0]->getContentType());
         assertEquals(7975, strlen($atts[0]->getData()));
 
         # Check the returned attachment.  Only one - other stripped for aspect ratio.

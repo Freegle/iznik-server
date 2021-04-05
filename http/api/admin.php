@@ -63,6 +63,10 @@ function admin() {
                     # Admin and Support can create suggested admins, which aren't attached to a group.
                     if ($me->isAdminOrSupport() || $me->isModOrOwner($groupid)) {
                         $ret = ['ret' => 3, 'status' => "Create failed" ];
+
+                        # Admins can send to all groups.
+                        $groupid = $groupid ? $groupid : ($me->isAdminOrSupport() ? NULL : 0);
+
                         $aid = $a->create($groupid, $me->getId(), $subject, $text);
 
                         if ($aid) {

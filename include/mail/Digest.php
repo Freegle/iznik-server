@@ -21,6 +21,9 @@ class Digest
     const HOUR8 = 8;
     const DAILY = 24;
 
+    const SPOOLERS = 10;
+    const SPOOLNAME = '/spool_';
+
     function __construct($dbhr, $dbhm, $id = NULL, $errorlog = FALSE)
     {
         $this->dbhr = $dbhr;
@@ -445,7 +448,8 @@ class Digest
                         error_log("#$groupid {$gatts['nameshort']} " . count($tosend) . " messages max $maxmsg, $maxdate to " . count($replacements) . " users");
                         # Now send.  We use a failover transport so that if we fail to send, we'll queue it for later
                         # rather than lose it.
-                        list ($transport, $mailer) = Mail::getMailer($host);
+                        $spool = rand(1, self::SPOOLERS);
+                        list ($transport, $mailer) = Mail::getMailer($host, self::SPOOLNAME . $spool);
 
                         # We're decorating using the information we collected earlier.  However the decorator doesn't
                         # cope with sending to multiple recipients properly (headers just get decorated with the first

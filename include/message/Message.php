@@ -2518,44 +2518,46 @@ ORDER BY lastdate DESC;";
             foreach ($this->attachments as $att) {
                 /** @var \PhpMimeMailParser\Attachment $att */
                 $ct = $att->getContentType();
-                $fn = $this->attach_dir . DIRECTORY_SEPARATOR . $att->getFilename();
 
-                # Can't use LOAD_FILE as server may be remote.
-                $data = file_get_contents($fn);
+                if (strpos($ct, 'image') === 0) {
+                    $fn = $this->attach_dir . DIRECTORY_SEPARATOR . $att->getFilename();
 
-                # Scale the image if it's large.  Ideally we'd store the full size image, but images can be many meg, and
-                # it chews up disk space.
-                $i = new Image($data);
-                if ($i->img) {
-                    $ow = $w = $i->width();
-                    $oh = $h = $i->height();
+                    # Can't use LOAD_FILE as server may be remote.
+                    $data = file_get_contents($fn);
 
-                    if (strlen($data) > 300000) {
-                        $w = min(1024, $w);
-                        $i->scale($w, NULL);
-                        $data = $i->getData();
-                        $ct = 'image/jpeg';
-                    }
+                    # Scale the image if it's large.  Ideally we'd store the full size image, but images can be many meg, and
+                    # it chews up disk space.
+                    $i = new Image($data);
+                    if ($i->img) {
+                        $ow = $w = $i->width();
+                        $oh = $h = $i->height();
 
-                    if ($ow && $oh) {
-                        $r = $ow / $oh;
+                        if (strlen($data) > 300000) {
+                            $w = min(1024, $w);
+                            $i->scale($w, NULL);
+                            $data = $i->getData();
+                        }
 
-                        # We want to remove images which are likely to be signature images.
-                        #
-                        # Camera use aspect ratios like 4:3, 3:2, 16:9.  If it's too far from that, then it's
-                        # probably not a photo, more likely to be an image signature, if it's small.
-                        #
-                        # We also only want images which are a decent size; otherwise more likely to just be
-                        # logos and suchlike.
-                        if ($ow > 150 && $oh > 150 && ($ow > 600 || $oh > 600 || ($r >= 0.5 && $r <= 1.5))) {
-                            $a->create($msgid, $ct, $data);
+                        if ($ow && $oh) {
+                            $r = $ow / $oh;
+
+                            # We want to remove images which are likely to be signature images.
+                            #
+                            # Camera use aspect ratios like 4:3, 3:2, 16:9.  If it's too far from that, then it's
+                            # probably not a photo, more likely to be an image signature, if it's small.
+                            #
+                            # We also only want images which are a decent size; otherwise more likely to just be
+                            # logos and suchlike.
+                            if ($ow > 150 && $oh > 150 && ($ow > 600 || $oh > 600 || ($r >= 0.5 && $r <= 1.5))) {
+                                $a->create($msgid, $data);
+                            }
                         }
                     }
                 }
             }
 
             foreach ($this->inlineimgs as $att) {
-                $a->create($msgid, 'image/jpeg', $att);
+                $a->create($msgid, $att);
             }
         }
     }

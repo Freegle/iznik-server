@@ -1042,8 +1042,7 @@ class messageAPITest extends IznikAPITestCase
 
         $ret = $this->call('image', 'POST', [
             'photo' => [
-                'tmp_name' => '/tmp/chair.jpg',
-                'type' => 'image/jpeg'
+                'tmp_name' => '/tmp/chair.jpg'
             ],
             'identify' => FALSE
         ]);
@@ -1507,8 +1506,7 @@ class messageAPITest extends IznikAPITestCase
 
         $ret = $this->call('image', 'POST', [
             'photo' => [
-                'tmp_name' => '/tmp/chair.jpg',
-                'type' => 'image/jpeg'
+                'tmp_name' => '/tmp/chair.jpg'
             ],
             'identify' => TRUE
         ]);
@@ -1577,7 +1575,6 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('image', 'POST', [
             'photo' => [
                 'tmp_name' => '/tmp/chair.jpg',
-                'type' => 'image/jpeg',
                 'dedup' => 1
             ],
             'identify' => TRUE

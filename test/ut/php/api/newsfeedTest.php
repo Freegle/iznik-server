@@ -94,8 +94,7 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         $ret = $this->call('image', 'POST', [
             'photo' => [
-                'tmp_name' => '/tmp/giveandtake.jpg',
-                'type' => 'image/jpeg'
+                'tmp_name' => '/tmp/giveandtake.jpg'
             ],
             'newsfeed' => TRUE,
             'ocr' => FALSE
