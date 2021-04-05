@@ -3894,14 +3894,19 @@ ORDER BY lastdate DESC;";
                             'count' => $related['count'],
                         ];
 
+                        $found = FALSE;
+
                         foreach ($matches as $match) {
                             if ($match['id'] == $related['item']) {
                                 $thisone['matchedon'] = $match['matchedon'];
                                 $thisone['matchedon']['type'] = 'Related';
+                                $found = TRUE;
                             }
                         }
 
-                        $items[] = $thisone;
+                        if ($found) {
+                            $items[] = $thisone;
+                        }
                     }
                 }
             }
