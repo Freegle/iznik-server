@@ -96,7 +96,9 @@ try {
                             }
                         }
 
-                        $n->executeSend($data['userid'], $data['notiftype'], $data['params'], $data['endpoint'], $payload);
+                        try {
+                            $n->executeSend($data['userid'], $data['notiftype'], $data['params'], $data['endpoint'], $payload);
+                        } catch (\Exception $e) {}
 
                         # Now the real one.
                         $n->executeSend($data['userid'], $data['notiftype'], $data['params'], $data['endpoint'], $data['payload']);
