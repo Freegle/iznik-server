@@ -1275,8 +1275,10 @@ DROP TABLE IF EXISTS `jobs`;
 CREATE TABLE `jobs` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `location` varchar(256) DEFAULT NULL,
+  `title` varchar(255) DEFAULT NULL,
   `city` varchar(256) DEFAULT NULL,
   `state` varchar(256) DEFAULT NULL,
+  `zip` varchar(32) DEFAULT NULL,
   `country` varchar(256) DEFAULT NULL,
   `job_type` varchar(32) DEFAULT NULL,
   `posted_at` datetime DEFAULT NULL,
@@ -1288,9 +1290,11 @@ CREATE TABLE `jobs` (
   `url` varchar(1024) DEFAULT NULL,
   `body` text,
   `cpc` decimal(4,4) DEFAULT NULL,
-  `position` geometry DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `geometry` geometry NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `job_reference` (`job_reference`),
+  SPATIAL KEY `geometry` (`geometry`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1516,7 +1520,7 @@ CREATE TABLE `logs_api` (
   KEY `date` (`date`),
   KEY `userid` (`userid`),
   KEY `ip` (`ip`)
-) ENGINE=InnoDB AUTO_INCREMENT=111836917 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci KEY_BLOCK_SIZE=8 COMMENT='Log of all API requests and responses';
+) ENGINE=InnoDB AUTO_INCREMENT=111836918 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci KEY_BLOCK_SIZE=8 COMMENT='Log of all API requests and responses';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1611,7 +1615,7 @@ CREATE TABLE `logs_jobs` (
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `timestamp` (`timestamp`)
-) ENGINE=InnoDB AUTO_INCREMENT=224155 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=224156 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -5368,4 +5372,4 @@ CREATE TABLE `worrywords` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-04-05 11:08:47
+-- Dump completed on 2021-04-05 13:15:26

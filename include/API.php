@@ -242,6 +242,13 @@ class API
                         case 'alert':
                             $ret = alert();
                             break;
+                        case 'adview':
+                            # Remove after 2021-05-05.
+                            $ret = [
+                                'ret' => 0,
+                                'status' => 'Success',
+                                'data' => []
+                            ];
                         case 'admin':
                             $ret = admin();
                             break;
