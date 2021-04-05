@@ -1266,22 +1266,6 @@ CREATE TABLE `items_non` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `jobs_keywords`
---
-
-DROP TABLE IF EXISTS `jobs_keywords`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `jobs_keywords` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `keyword` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `count` bigint(20) unsigned NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `keyword` (`keyword`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `link_previews`
 --
 

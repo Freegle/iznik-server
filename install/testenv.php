@@ -75,8 +75,6 @@ if (!$gid) {
 (54, '?rolletar', 1),
 (57, '.', 16),
 (60, '. beds', 1);");
-
-    $dbhm->preExec("INSERT INTO jobs_keywords (keyword, count) VALUES ('worker', 1);");
 } else {
     error_log("Test environment already set up.");
 }
