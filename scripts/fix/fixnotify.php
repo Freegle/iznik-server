@@ -17,5 +17,5 @@ $l = new PushNotifications($dbhr, $dbhm);
 #$l->notifyGroupMods($gid);
 #$l->notify(35909200, TRUE);
 #$l->notify(13437455, TRUE);
-#$l->notify(32496365, TRUE); // MT chriscant@phdcc.com
+#$l->notify(32496365, TRUE); // MT chriscant
 $l->notify(32496365, FALSE); // FD
