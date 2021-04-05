@@ -5874,7 +5874,13 @@ class User extends Entity
         foreach ($userlist as $user1) {
             foreach ($userlist as $user2) {
                 if ($user1 && $user2 && $user1 !== $user2) {
-                    $this->dbhm->background("INSERT INTO users_related (user1, user2) VALUES ($user1, $user2) ON DUPLICATE KEY UPDATE timestamp = NOW();");
+                    # We may be passed user ids which no longer exist.
+                    $u1 = User::get($this->dbhr, $this->dbhm, $user1);
+                    $u2 = User::get($this->dbhr, $this->dbhm, $user2);
+
+                    if ($u1->getId() && $u2->getId()) {
+                        $this->dbhm->background("INSERT INTO users_related (user1, user2) VALUES ($user1, $user2) ON DUPLICATE KEY UPDATE timestamp = NOW();");
+                    }
                 }
             }
         }
