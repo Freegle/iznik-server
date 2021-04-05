@@ -235,6 +235,7 @@ class LoggedPDO {
                 ) {
                     # Try re-opening the connection.
                     $try++;
+                    error_log("Server gone away, sleep and retry");
                     sleep(1);
                     $this->connected = FALSE;
                     $this->doConnect();
