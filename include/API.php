@@ -249,6 +249,7 @@ class API
                                 'status' => 'Success',
                                 'data' => []
                             ];
+                            break;
                         case 'admin':
                             $ret = admin();
                             break;

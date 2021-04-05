@@ -84,6 +84,8 @@ function session() {
                     if (!$components || (gettype($components) == 'array' && in_array('me', $components))) {
                         # Don't want to use cached information when looking at our own session.
                         $ret['me'] = $me->getPublic();
+                        $loc = $me->getCity();
+                        $ret['me']['city'] = $loc[0];
                         $ret['me']['lat'] = $loc[1];
                         $ret['me']['lng'] = $loc[2];
 
