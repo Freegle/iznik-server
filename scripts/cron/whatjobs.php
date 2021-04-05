@@ -8,15 +8,13 @@ require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
+$lockh = Utils::lockScript(basename(__FILE__));
+
 # Fetch the dump file
 $data = @file_get_contents(WHATJOBS_DUMP);
 
-error_log("Length compressed " . strlen($data));
-
 if ($data) {
     $uncompressed = gzdecode($data);
-
-    error_log("Length uncompressed " . strlen($uncompressed));
 
     if ($uncompressed) {
         $xml = simplexml_load_string($uncompressed);
@@ -99,3 +97,5 @@ if ($data) {
         }
     }
 }
+
+Utils::unlockScript($lockh);
