@@ -3775,6 +3775,7 @@ ORDER BY lastdate DESC;";
         $ctx = NULL;
         $searched = $this->search($string, $ctx, 1000, NULL, $groupids, NULL, $exactonly);
         $msgids = array_filter(array_column($searched, 'id'));
+        $ret = [];
 
         if (count($msgids)) {
             # Find which of these messages are on a group, not deleted, have no outcome, are the
