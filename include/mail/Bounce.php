@@ -32,7 +32,8 @@ class Bounce
         $ret = FALSE;
         foreach ([
             'delivery temporarily suspended',
-            'Trop de connexions'
+            'Trop de connexions',
+            'found on industry URI blacklists'
                  ] as $err) {
             if (stripos($code, $err) !== FALSE) {
                 $ret = TRUE;
