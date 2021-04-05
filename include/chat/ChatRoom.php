@@ -1054,7 +1054,7 @@ WHERE chat_rooms.id IN $idlist;";
     public function upToDate($userid) {
         $msgs = $this->dbhr->preQuery("SELECT MAX(id) AS max FROM chat_messages WHERE chatid = ?;", [ $this->id ]);
         foreach ($msgs as $msg) {
-            error_log("upToDate: Set max to {$msg['max']} for $userid in room {$this->id} ");
+            #error_log("upToDate: Set max to {$msg['max']} for $userid in room {$this->id} ");
             $this->dbhm->preExec("INSERT INTO chat_roster (chatid, userid, lastmsgseen, lastmsgemailed, lastemailed) VALUES (?, ?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE lastmsgseen = ?, lastmsgemailed = ?, lastemailed = NOW();",
                 [
                     $this->id,
