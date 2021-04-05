@@ -546,13 +546,13 @@ class API
                     $_SESSION['modorowner'] = [];
                 }
 
-                # Update our last access time for this user.  We do this every 60 seconds.  This is used to return our
+                # Update our last access time for this user.  his is used to return our
                 # roster status in ChatRoom.php, and also for spotting idle members.
                 #
                 # Do this here, as we might not be logged in at the start if we had a persistent token but no PHP session.
                 $id = Utils::pres('id', $_SESSION);
                 $last = intval(Utils::presdef('lastaccessupdate', $_SESSION, 0));
-                if ($id && (abs(time() - $last) > 60)) {
+                if ($id && (abs(time() - $last) > 600)) {
                     $dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $id;");
                     $_SESSION['lastaccessupdate'] = time();
                 }
