@@ -75,13 +75,6 @@ if (count($opts) != 1) {
 
         error_log("CSV covers $mindate");
 
-        # Delete the donations we're about to reprocess.  This is all of them except DonateWithPayPal, which come via IPN hooks rather
-        # than this export.
-        $dbhm->preExec("DELETE FROM users_donations WHERE timestamp >= ? AND source IN ('PayPalGivingFund', 'eBay', 'Facebook');", [
-            $mindate
-        ]);
-        error_log("Deleted " . $dbhm->rowsAffected());
-        
         foreach ($donations as $donation) {
             error_log("Record {$donation['date']} {$donation['email']} {$donation['amount']} source {$donation['program']}");
             switch ($donation['program']) {
@@ -108,6 +101,7 @@ if (count($opts) != 1) {
                 strpos($donation['name'], 'Anonymous') !== 0 &&
                 $dbhm->rowsAffected() > 0 &&
                 intval($donation['amount']) >= 20) {
+                error_log("Thank {$donation['email']} for {$donation['amount']}");
                 $text = "{$donation['name']} ({$donation['email']}) donated £{$donation['amount']}.  Please can you thank them?";
                 $message = \Swift_Message::newInstance()
                     ->setSubject("{$donation['name']} ({$donation['email']}) donated £{$donation['amount']} - please send thanks")
