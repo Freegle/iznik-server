@@ -5787,8 +5787,7 @@ class User extends Entity
 
         if ($search) {
             $j = new Jobs($this->dbhr, $this->dbhm);
-            $jobs = $j->query($lat, $lng);
-            $jobs = array_slice($jobs, 0, 4);
+            $jobs = $j->query($lat, $lng, 4);
 
             foreach ($jobs as $job) {
                 $loc = Utils::presdef('location', $job, '');

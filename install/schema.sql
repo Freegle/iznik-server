@@ -1293,6 +1293,7 @@ CREATE TABLE `jobs` (
   `geometry` geometry NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `job_reference` (`job_reference`),
+  UNIQUE KEY `job_reference_2` (`job_reference`),
   SPATIAL KEY `geometry` (`geometry`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -5372,4 +5373,4 @@ CREATE TABLE `worrywords` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-04-05 13:15:26
+-- Dump completed on 2021-04-05 15:30:25
