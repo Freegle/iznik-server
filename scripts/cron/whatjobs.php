@@ -22,6 +22,7 @@ if ($data) {
         if ($xml && $xml->jobs) {
             $total = $xml->jobs_count;
             $count = 0;
+            $new = 0;
 
             error_log("$total jobs");
 
@@ -85,6 +86,8 @@ if ($data) {
                                                     $geom
                                                 ]
                                             );
+
+                                            $new++;
                                         } catch (\Exception $e) {
                                             error_log("Failed to add {$job->title} $geom");
                                         }
@@ -105,4 +108,5 @@ if ($data) {
     }
 }
 
+error_log("New jobs $new");
 Utils::unlockScript($lockh);
