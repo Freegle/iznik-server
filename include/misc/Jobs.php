@@ -12,7 +12,7 @@ class Jobs {
         $this->dbhm = $dbhm;
     }
 
-    public function query($lat, $lng, $limit = 50) {
+    public function query($lat, $lng, $limit = 50, $category = NULL) {
         # To make efficient use of the spatial index we construct a box around our lat/lng, and search for jobs
         # where the geometry overlaps it.  We keep expanding our box until we fix enough.
         $ambit = 0.02;
@@ -26,9 +26,12 @@ class Jobs {
             $nelng = $lng + $ambit;
 
             $poly = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
+            $categoryq = $category ? (" AND category = " . $this->dbhr->quote($category)) : '';
+
             $sql = "SELECT ST_Distance(geometry, POINT($lng, $lat)) AS dist, ST_Area(geometry) AS area, jobs.* FROM `jobs`
 WHERE ST_Intersects(geometry, GeomFromText('$poly')) 
     AND ST_Area(geometry) / ST_Area(GeomFromText('$poly')) < 2
+    $categoryq
 ORDER BY dist ASC, area ASC, posted_at DESC LIMIT $limit;";
             $jobs = $this->dbhr->preQuery($sql);
             #error_log($sql . " found " . count($jobs));

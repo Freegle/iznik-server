@@ -5,10 +5,10 @@ function jobs() {
     # This proxies a request on to adview to avoid CORS issues.
     global $dbhr, $dbhm;
 
-    $location = Utils::presdef('location', $_REQUEST, NULL);
     $link = Utils::presdef('link', $_REQUEST, NULL);
     $lat = Utils::presfloat('lat', $_REQUEST, NULL);
     $lng = Utils::presfloat('lng', $_REQUEST, NULL);
+    $category = Utils::presdef('category', $_REQUEST, NULL);
 
     $me = Session::whoAmI($dbhr, $dbhm);
 
@@ -32,7 +32,7 @@ function jobs() {
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
-                    'jobs' => $j->query($lat, $lng)
+                    'jobs' => $j->query($lat, $lng, 50, $category)
                 ];
             }
             break;
