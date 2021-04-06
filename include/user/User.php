@@ -5794,7 +5794,7 @@ class User extends Entity
                 $title = "{$job['title']}" . ($loc !== ' ' ? " ($loc)" : '');
 
                 # Direct link to job to increase click conversions.
-                $url = $job['url'];
+                $url = "https://" . USER_SITE . "/job/{$job['id']}";
                 $ret .= '<a href="' . $url . '" target="_blank">' . htmlentities($title) . '</a><br />';
             }
         }
