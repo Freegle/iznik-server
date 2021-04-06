@@ -5783,9 +5783,9 @@ class User extends Entity
         $search = NULL;
         $ret = '<span class="jobads">';
 
-        list ($search, $lat, $lng) = $this->getLatLng();
+        list ($lat, $lng) = $this->getLatLng();
 
-        if ($search) {
+        if ($lat || $lng) {
             $j = new Jobs($this->dbhr, $this->dbhm);
             $jobs = $j->query($lat, $lng, 4);
 
