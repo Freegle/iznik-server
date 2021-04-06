@@ -48,4 +48,12 @@ ORDER BY dist ASC, area ASC, posted_at DESC LIMIT $limit;";
 
         return $ret;
     }
+
+    public function get($id) {
+        $jobs = $this->dbhr->preQuery("SELECT * FROM jobs WHERE id = ?", [
+            $id
+        ]);
+
+        return $jobs;
+    }
 }

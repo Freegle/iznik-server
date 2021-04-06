@@ -8,6 +8,7 @@ function jobs() {
     $link = Utils::presdef('link', $_REQUEST, NULL);
     $lat = Utils::presfloat('lat', $_REQUEST, NULL);
     $lng = Utils::presfloat('lng', $_REQUEST, NULL);
+    $id = Utils::presint('id', $_REQUEST, NULL);
     $category = Utils::presdef('category', $_REQUEST, NULL);
 
     $me = Session::whoAmI($dbhr, $dbhm);
@@ -26,7 +27,15 @@ function jobs() {
                 list ($lat, $lng, $loc) = $me->getLatLng();
             }
 
-            if ($lat || $lng) {
+            if ($id) {
+                $j = new Jobs($dbhr, $dbhm);
+
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success',
+                    'jobs' => $j->get($id)
+                ];
+            } else if ($lat || $lng) {
                 $j = new Jobs($dbhr, $dbhm);
 
                 $ret = [
