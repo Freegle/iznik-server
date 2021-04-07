@@ -87,6 +87,25 @@ class worryWordsTest extends IznikTestCase
         assertNull($w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody()));
     }
 
+    public function testSpace()
+    {
+        $this->dbhm->preExec("INSERT INTO worrywords (keyword, type) VALUES (?, ?);", [
+            'UTtest1 UTtest2',
+            WorryWords::TYPE_REVIEW
+        ]);
+
+        $w = new WorryWords($this->dbhr, $this->dbhm);
+
+        $m = new Message($this->dbhr, $this->dbhm);
+        $mid = $m->createDraft();
+        $m = new Message($this->dbhr, $this->dbhm);
+        $mid = $m->createDraft();
+        $m = new Message($this->dbhr, $this->dbhm, $mid);
+        $m->setPrivate('subject', 'OFFER: UTtest1 UTtest2 (Somewhere)');
+        $m->setPrivate('textbody', 'A body');
+        assertNotNull($w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody()));
+    }
+
 //
 //    public function testEH()
 //    {

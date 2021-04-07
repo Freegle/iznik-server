@@ -40,6 +40,42 @@ class WorryWords {
                 }
             }
 
+            # Check for literal occurrences of worrywords with spaces, which are phrases.
+            foreach ($this->words as $worryword) {
+                foreach ([ $subject, $textbody ] as $scan) {
+                    if ($worryword['type'] !== WorryWords::TYPE_ALLOWED &&
+                        strpos($worryword['keyword'], ' ') !== false &&
+                        (stripos($subject, $worryword['keyword']) !== false || stripos(
+                                $textbody,
+                                $worryword['keyword']
+                            ) !== false)
+                    ) {
+                        if ($log) {
+                            $this->log->log(
+                                [
+                                    'type' => Log::TYPE_MESSAGE,
+                                    'subtype' => Log::SUBTYPE_WORRYWORDS,
+                                    'user' => $fromuser,
+                                    'msgid' => $id,
+                                    'text' => "Found '{$worryword['keyword']}' type {$worryword['type']}"
+                                ]
+                            );
+                        }
+
+                        if ($ret === null) {
+                            $ret = [];
+                        }
+
+                        $ret[] = [
+                            'word' => $scan,
+                            'worryword' => $worryword,
+                        ];
+
+                        $foundword[$worryword['keyword']] = true;
+                    }
+                }
+            }
+
             $words = preg_split("/[\s,]+/", $scan);
 
             foreach ($words as $word) {
