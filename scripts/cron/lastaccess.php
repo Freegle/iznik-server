@@ -8,7 +8,7 @@ global $dbhr, $dbhm;
 
 $l = new Location($dbhm, $dbhm);
 
-$users = $dbhr->preQuery("SELECT DISTINCT(userid) FROM users INNER JOIN chat_messages ON chat_messages.userid = users.id WHERE users.lastaccess < chat_messages.date");
+$users = $dbhr->preQuery("SELECT DISTINCT(userid) FROM users INNER JOIN chat_messages ON chat_messages.userid = users.id WHERE users.lastaccess < chat_messages.date AND TIMESTAMPDIFF(SECOND, users.lastaccess, chat_messages.date) > 600;");
 
 error_log("Got " . count($users));
 
