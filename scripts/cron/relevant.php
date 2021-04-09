@@ -20,7 +20,10 @@ $rl = new Relevant($dbhr, $dbhm);
 $count = 0;
 $upto = 0;
 
-$users = $dbhr->preQuery("SELECT id FROM users WHERE lastlocation IS NOT NULL AND relevantallowed = 1;");
+$mysqltime = date("Y-m-d", strtotime("Midnight 90 days ago"));
+$users = $dbhr->preQuery("SELECT id FROM users WHERE lastaccess >= ? AND lastlocation IS NOT NULL AND relevantallowed = 1;", [
+    $mysqltime
+]);
 $total = count($users);
 error_log("$total users");
 
