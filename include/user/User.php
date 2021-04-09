@@ -2220,7 +2220,8 @@ class User extends Entity
                             }
 
                             $ret['spammer']['added'] = Utils::ISODate($ret['spammer']['added']);
-                        } else {
+                        } else if ($user['collection'] == Spam::TYPE_SPAMMER) {
+                            # Only return to members that they are a spammer once approved.
                             $ret['spammer'] = TRUE;
                         }
                     }

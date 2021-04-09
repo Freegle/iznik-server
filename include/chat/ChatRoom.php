@@ -2562,7 +2562,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
             $this->dbhm->preExec("INSERT INTO users_nudges (fromuser, touser) VALUES (?, ?);", [ $myid, $other ]);
             $id = $this->dbhm->lastInsertId();
         } else {
-            $id = $lastmsg['id'];
+            $id = Utils::presdef('id', $lastmsg, NULL);
         }
 
         # Create a message in the chat.

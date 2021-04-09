@@ -29,13 +29,16 @@ do {
             $sent = $spool->flushQueue($realTransport);
 
             echo "Sent $sent emails\n";
-            break;
         } else {
             error_log("Couldn't get spool, sleep and retry");
-            sleep(1);
         }
     } catch (\Exception $e) {
         error_log("Exception; sleep and retry " . $e->getMessage());
+    }
+
+    if (file_exists('/tmp/iznik.mail.abort')) {
+        exit(0);
+    } else {
         sleep(1);
     }
 } while (true);
