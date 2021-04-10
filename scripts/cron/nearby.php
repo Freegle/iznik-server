@@ -21,6 +21,8 @@ $n->updateLocations();
 
 $groups = $dbhr->preQuery("SELECT groups.id, groups.nameshort FROM groups WHERE groups.type = 'Freegle' AND publish = 1 AND onhere = 1 ORDER BY LOWER(nameshort) ASC;");
 foreach ($groups as $group) {
+    $n = new Nearby($dbhr, $dbhm);
+
     error_log($group['nameshort']);
     $g = Group::get($dbhr, $dbhm, $group['id']);
 

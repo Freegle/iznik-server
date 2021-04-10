@@ -25,7 +25,7 @@ class Nearby
     public function messages($groupid) {
         list ($transport, $mailer) = Mail::getMailer();
         $count = 0;
-        $mysqltime = date("Y-m-d", strtotime("Midnight 90 days ago"));
+        $mysqltime = date("Y-m-d", strtotime("@" . (time() - Engage::USER_INACTIVE)));
 
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
@@ -131,6 +131,8 @@ class Nearby
                 gc_collect_cycles();
             }
         }
+
+        Group::clearCache();
 
         return($count);
     }

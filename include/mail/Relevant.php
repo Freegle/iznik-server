@@ -66,10 +66,13 @@ class Relevant {
         $earlyq = $earliest ? (" AND messages.arrival > '" . date("Y-m-d H:i:s", strtotime($earliest)) . "' ") : NULL;
         $lateq = $latest ? (" AND messages.arrival <= '" . date("Y-m-d H:i:s", strtotime($latest)) . "' ") : NULL;
 
-        $u = User::get($this->dbhr, $this->dbhm, $userid);
+        # Only send these mails if they are a still member of a group.  Get the membership count directly to avoid
+        # instantiating the User object.
+        $memberships = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE userid = ?;", [
+            $userid
+        ]);
 
-        # Only send these mails if they are a still member of a group.
-        if (count($u->getMemberships(FALSE, $grouptype)) > 0) {
+        if ($memberships[0]['count'] > 0) {
             # We have two sources:
             # - Outstanding posts by the user, which might be either OFFERs or WANTEDs, where we want to look for the
             # - Recently viewed posts.
@@ -105,10 +108,11 @@ class Relevant {
                 }
             }
 
-            # Now the recent views of other people's messages.
+            # Now the recent views of other people's messages.  Some people view loads of posts; limit the number
+            # we consider.
             $sql = "SELECT messages.type, messages.id, messages.subject, messages_likes.timestamp FROM messages_likes 
     INNER JOIN messages ON messages.id = messages_likes.msgid 
-    WHERE userid = ? AND timestamp >= ? AND messages_likes.type = ? AND messages.fromuser != ?;";
+    WHERE userid = ? AND timestamp >= ? AND messages_likes.type = ? AND messages.fromuser != ? ORDER BY timestamp DESC LIMIT 30;";
             $views = $this->dbhr->preQuery($sql, [
                 $userid,
                 $start,
@@ -175,6 +179,7 @@ class Relevant {
         $groups = $allowed;
 
         if (count($groups) > 0) {
+            #error_log("User #" . $u->getId() . " groups " . count($groups) . " interested " . count($interesteds));
             foreach ($interesteds as $interested) {
                 $s = new Search($this->dbhr, $this->dbhm, 'messages_index', 'msgid', 'arrival', 'words', 'groupid', $start);
                 $ctx = NULL;
@@ -241,81 +246,82 @@ class Relevant {
         ]);
 
         foreach ($users as $user) {
-            $u = User::get($this->dbhr, $this->dbhm, $user['id']);
+            $ints = $this->findRelevant($user['id'], Group::GROUP_FREEGLE, $earliest, $latest);
 
-            # Only want to send to people who have used FD.
-            #error_log("Check send our emails");
-            if ($u->getOurEmail() && $u->sendOurMails()) {
-                $ints = $this->findRelevant($user['id'], Group::GROUP_FREEGLE, $earliest, $latest);
-                $msgs = $this->getMessages($user['id'], $ints);
-                #error_log("Number of messages " . count($msgs) . " from " . var_export($ints, TRUE) . " and " . var_export($msgs, TRUE));;
+            if (count($ints)) {
+                $u = User::get($this->dbhr, $this->dbhm, $user['id']);
 
-                if (count($msgs) > 0) {
-                    $noemail = 'relevantoff-' . $user['id'] . "@" . USER_DOMAIN;
-                    $textbody = "Based on what you've offered or searched for, we thought you might be interested in these recent messages.\r\nIf you don't want to get these suggestions, mail $noemail.";
-                    $offers = [];
-                    $wanteds = [];
-                    $hoffers = [];
-                    $hwanteds = [];
+                if ($u->getOurEmail() && $u->sendOurMails()) {
+                    $msgs = $this->getMessages($user['id'], $ints);
+                    #error_log("Number of messages " . count($msgs) . " from " . var_export($ints, TRUE) . " and " . var_export($msgs, TRUE));;
 
-                    foreach ($msgs as $msg) {
-                        $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
+                    if (count($msgs) > 0) {
+                        $noemail = 'relevantoff-' . $user['id'] . "@" . USER_DOMAIN;
+                        $textbody = "Based on what you've offered or searched for, we thought you might be interested in these recent messages.\r\nIf you don't want to get these suggestions, mail $noemail.";
+                        $offers = [];
+                        $wanteds = [];
+                        $hoffers = [];
+                        $hwanteds = [];
 
-                        # We need the approved ID on Yahoo for migration links.
-                        $href = $u->loginLink(USER_SITE, $u->getId(), "/message/{$msg['id']}", User::SRC_RELEVANT);
-                        $subject = $m->getSubject();
-                        $subject = preg_replace('/\[.*?\]\s*/', '', $subject);
+                        foreach ($msgs as $msg) {
+                            $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
 
-                        if ($m->getType() == Message::TYPE_OFFER) {
-                            $offers[] = "$subject - see $href\r\n";
-                            $hoffers[] = relevant_one($subject, $href, $msg['matchedon'], $msg['reason']);
-                        } else {
-                            $wanteds[] = "$subject - see $href\r\n";
-                            $hwanteds[] = relevant_one($subject, $href, $msg['matchedon'], $msg['reason']);
+                            # We need the approved ID on Yahoo for migration links.
+                            $href = $u->loginLink(USER_SITE, $u->getId(), "/message/{$msg['id']}", User::SRC_RELEVANT);
+                            $subject = $m->getSubject();
+                            $subject = preg_replace('/\[.*?\]\s*/', '', $subject);
+
+                            if ($m->getType() == Message::TYPE_OFFER) {
+                                $offers[] = "$subject - see $href\r\n";
+                                $hoffers[] = relevant_one($subject, $href, $msg['matchedon'], $msg['reason']);
+                            } else {
+                                $wanteds[] = "$subject - see $href\r\n";
+                                $hwanteds[] = relevant_one($subject, $href, $msg['matchedon'], $msg['reason']);
+                            }
                         }
-                    }
 
-                    $textbody .= count($offers) > 0 ? ("\r\nThings people are giving away which you might want:\r\n\r\n" . implode('', $offers)) : '';
-                    $textbody .= count($wanteds) > 0 ? ("\r\nThings people are looking for which you might have:\r\n\r\n" . implode('', $wanteds)) : '';
+                        $textbody .= count($offers) > 0 ? ("\r\nThings people are giving away which you might want:\r\n\r\n" . implode('', $offers)) : '';
+                        $textbody .= count($wanteds) > 0 ? ("\r\nThings people are looking for which you might have:\r\n\r\n" . implode('', $wanteds)) : '';
 
-                    $htmloffers = count($offers) > 0 ? ("<p>Things people are giving away which you might want:</p>" . implode('', $hoffers)) : '';
-                    $htmlwanteds = count($wanteds) > 0 ? ("<p>Things people are looking for which you might have:</p>" . implode('', $hwanteds)) : '';
+                        $htmloffers = count($offers) > 0 ? ("<p>Things people are giving away which you might want:</p>" . implode('', $hoffers)) : '';
+                        $htmlwanteds = count($wanteds) > 0 ? ("<p>Things people are looking for which you might have:</p>" . implode('', $hwanteds)) : '';
 
-                    $email = $u->getEmailPreferred();
-                    #error_log("Preferred email $email");
+                        $email = $u->getEmailPreferred();
+                        #error_log("Preferred email $email");
 
-                    if ($email) {
-                        $subj = "Any of these take your fancy?";
-                        $post = $u->loginLink(USER_SITE, $u->getId(), "/", User::SRC_RELEVANT);
-                        $unsubscribe = $u->loginLink(USER_SITE, $u->getId(), "/unsubscribe", User::SRC_RELEVANT);
-                        $visit = $u->loginLink(USER_SITE, $u->getId(), "/mygroups", User::SRC_RELEVANT);
+                        if ($email) {
+                            $subj = "Any of these take your fancy?";
+                            $post = $u->loginLink(USER_SITE, $u->getId(), "/", User::SRC_RELEVANT);
+                            $unsubscribe = $u->loginLink(USER_SITE, $u->getId(), "/unsubscribe", User::SRC_RELEVANT);
+                            $visit = $u->loginLink(USER_SITE, $u->getId(), "/mygroups", User::SRC_RELEVANT);
 
-                        $html = relevant_wrapper(USER_SITE, USERLOGO, $subj, $htmloffers, $htmlwanteds, $email, $noemail, $post, $visit, $unsubscribe);
+                            $html = relevant_wrapper(USER_SITE, USERLOGO, $subj, $htmloffers, $htmlwanteds, $email, $noemail, $post, $visit, $unsubscribe);
 
-                        try {
-                            $message = \Swift_Message::newInstance()
-                                ->setSubject($subj)
-                                ->setFrom([NOREPLY_ADDR => SITE_NAME ])
-                                ->setReturnPath($u->getBounce())
-                                ->setTo([ $email => $u->getName() ])
-                                ->setBody($textbody);
+                            try {
+                                $message = \Swift_Message::newInstance()
+                                    ->setSubject($subj)
+                                    ->setFrom([NOREPLY_ADDR => SITE_NAME ])
+                                    ->setReturnPath($u->getBounce())
+                                    ->setTo([ $email => $u->getName() ])
+                                    ->setBody($textbody);
 
-                            # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-                            # Outlook.
-                            $htmlPart = \Swift_MimePart::newInstance();
-                            $htmlPart->setCharset('utf-8');
-                            $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
-                            $htmlPart->setContentType('text/html');
-                            $htmlPart->setBody($html);
-                            $message->attach($htmlPart);
+                                # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                                # Outlook.
+                                $htmlPart = \Swift_MimePart::newInstance();
+                                $htmlPart->setCharset('utf-8');
+                                $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                                $htmlPart->setContentType('text/html');
+                                $htmlPart->setBody($html);
+                                $message->attach($htmlPart);
 
-                            Mail::addHeaders($message, Mail::RELEVANT, $u->getId());
+                                Mail::addHeaders($message, Mail::RELEVANT, $u->getId());
 
-                            $this->sendOne($mailer, $message);
-                            #error_log("Sent to $email");
-                            $count++;
-                        } catch (\Exception $e) {
-                            error_log("Send to $email failed with " . $e->getMessage());
+                                $this->sendOne($mailer, $message);
+                                #error_log("Sent to $email");
+                                $count++;
+                            } catch (\Exception $e) {
+                                error_log("Send to $email failed with " . $e->getMessage());
+                            }
                         }
                     }
                 }
@@ -323,6 +329,7 @@ class Relevant {
 
             # Prod garbage collection, as we've seen high memory usage by this.
             User::clearCache();
+            Group::clearCache();
             gc_collect_cycles();
         }
 

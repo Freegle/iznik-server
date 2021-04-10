@@ -3,7 +3,7 @@ namespace Freegle\Iznik;
 
 class Group extends Entity
 {
-    # We have a cache of groups, because we create groups a _lot_, and this can speed things up significantly by avoiding
+    # We have a cache of groups, because we access groups a _lot_, and this can speed things up significantly by avoiding
     # hitting the DB.  This is only preserved within this process.
     static $processCache = [];
     static $processCacheDeleted = [];
