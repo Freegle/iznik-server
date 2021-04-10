@@ -25,6 +25,7 @@ class Nearby
     public function messages($groupid) {
         list ($transport, $mailer) = Mail::getMailer();
         $count = 0;
+        $mysqltime = date("Y-m-d", strtotime("Midnight 90 days ago"));
 
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
@@ -45,7 +46,7 @@ class Nearby
                     $lat = $m->getPrivate('lat');
                     $lng = $m->getPrivate('lng');
                     error_log("{$msg['id']} " . $m->getPrivate('subject') . " at $lat, $lng");
-                    $sql = "SELECT users.id, locations.lat, locations.lng, haversine($lat, $lng, locations.lat, locations.lng) AS dist FROM users INNER JOIN memberships ON users.id = memberships.userid INNER JOIN locations ON locations.id = users.lastlocation LEFT JOIN users_nearby ON users_nearby.userid = users.id AND users_nearby.msgid = {$msg['id']} WHERE groupid = $groupid AND users.id != " . $m->getFromuser(
+                    $sql = "SELECT users.id, locations.lat, locations.lng, haversine($lat, $lng, locations.lat, locations.lng) AS dist FROM users INNER JOIN memberships ON users.id = memberships.userid INNER JOIN locations ON locations.id = users.lastlocation LEFT JOIN users_nearby ON users_nearby.userid = users.id AND users_nearby.msgid = {$msg['id']} WHERE users.lastaccess >= '$mysqltime' AND groupid = $groupid AND users.id != " . $m->getFromuser(
                         ) . " AND users_nearby.msgid IS NULL ORDER BY dist ASC LIMIT 100;";
                     $users = $this->dbhr->preQuery($sql);
 
