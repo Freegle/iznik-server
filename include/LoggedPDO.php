@@ -172,6 +172,11 @@ class LoggedPDO {
                 # We try to reuse prepared statements for performance reasons.  Although PHP is short-lived this
                 # still has some gains.
                 if (!Utils::pres($sql, $this->preparedStatements)) {
+                    if (count($this->preparedStatements) > 100) {
+                        # Prevent memory leaks.
+                        $this->preparedStatements = [];
+                    }
+
                     $this->preparedStatements[$sql] = $this->parentPrepare($sql);
                 }
 
