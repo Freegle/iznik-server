@@ -18,6 +18,7 @@ class Jobs {
         $ambit = 0.02;
         $ret = [];
         $got = [];
+        $qlimit = min(100, $limit * 10);
 
         do {
             $swlat = $lat - $ambit;
@@ -32,8 +33,10 @@ class Jobs {
 WHERE ST_Intersects(geometry, GeomFromText('$poly')) 
     AND ST_Area(geometry) / ST_Area(GeomFromText('$poly')) < 2
     $categoryq
-ORDER BY dist ASC, area ASC, posted_at DESC LIMIT $limit;";
+ORDER BY dist ASC, area ASC, posted_at DESC LIMIT $qlimit;";
             $jobs = $this->dbhr->preQuery($sql);
+            shuffle($jobs);
+            $jobs = array_slice($jobs, 0, 10);
             #error_log($sql . " found " . count($jobs));
 
             foreach ($jobs as $job) {
