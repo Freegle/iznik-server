@@ -76,6 +76,7 @@ class LoggedPDO {
     private function close() {
         $this->_db = NULL;
         $this->connected = FALSE;
+        $this->preparedStatements = [];
     }
 
     private function doConnect() {
