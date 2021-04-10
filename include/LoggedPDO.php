@@ -73,6 +73,11 @@ class LoggedPDO {
         return $this;
     }
 
+    private function close() {
+        $this->_db = NULL;
+        $this->connected = FALSE;
+    }
+
     private function doConnect() {
         if (!$this->connected) {
             # We haven't connected yet.  Do so now.  We defer the connect because all API calls have both a read
@@ -192,7 +197,7 @@ class LoggedPDO {
                         $try++;
                         error_log("Server gone away, sleep and retry");
                         sleep(1);
-                        $this->connected = FALSE;
+                        $this->close();
                         $this->doConnect();
                     }
                 }
@@ -237,7 +242,7 @@ class LoggedPDO {
                     $try++;
                     error_log("Server gone away, sleep and retry");
                     sleep(1);
-                    $this->connected = FALSE;
+                    $this->close();
                     $this->doConnect();
                 } else {
                     $msg = "Non-deadlock DB Exception " . $e->getMessage() . " $sql";
@@ -308,7 +313,8 @@ class LoggedPDO {
                     if (stripos($msg, 'has gone away') !== FALSE) {
                         # This can happen if we have issues with the DB, e.g. one server dies or the connection is
                         # timed out.  We re-open the connection and try again.
-                        $this->connected = FALSE;
+                        sleep(1);
+                        $this->close();
                         $this->doConnect();
                     }
                 }
@@ -366,7 +372,8 @@ class LoggedPDO {
                     if (stripos($msg, 'has gone away') !== FALSE) {
                         # This can happen if we have issues with the DB, e.g. one server dies or the connection is
                         # timed out.  We re-open the connection and try again.
-                        $this->connected = FALSE;
+                        sleep(1);
+                        $this->close();
                         $this->doConnect();
                     }
                 }
