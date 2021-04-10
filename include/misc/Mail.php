@@ -132,6 +132,8 @@ class Mail {
         Mail::NOTICEBOARD_CHASEUP_OWNER => 0
     ];
 
+    private static $mailers = [];
+
     public static function getDescription($type) {
         return(Mail::DESCRIPTIONS[$type]);
     }
@@ -183,22 +185,28 @@ class Mail {
     }
 
     public static function getMailer($host = 'localhost', $spoolname = '/spool') {
-        if (!file_exists(IZNIK_BASE . $spoolname)) {
-            @mkdir(IZNIK_BASE . $spoolname);
-            @chmod(IZNIK_BASE . $spoolname, 755);
-            @chgrp(IZNIK_BASE . $spoolname, 'www-data');
-            @chown(IZNIK_BASE . $spoolname, 'www-data');
+        $key = $host . $spoolname;
+
+        if (!array_key_exists($key, self::$mailers)) {
+            if (!file_exists(IZNIK_BASE . $spoolname)) {
+                @mkdir(IZNIK_BASE . $spoolname);
+                @chmod(IZNIK_BASE . $spoolname, 755);
+                @chgrp(IZNIK_BASE . $spoolname, 'www-data');
+                @chown(IZNIK_BASE . $spoolname, 'www-data');
+            }
+
+            $spool = new \Swift_FileSpool(IZNIK_BASE . $spoolname);
+            $spooltrans = \Swift_SpoolTransport::newInstance($spool);
+            $smtptrans = \Swift_SmtpTransport::newInstance($host);
+            $transport = \Swift_FailoverTransport::newInstance([
+                                                                   $smtptrans,
+                                                                   $spooltrans
+                                                               ]);
+            $mailer = \Swift_Mailer::newInstance($transport);
+            self::$mailers[$key] = [$transport, $mailer];
         }
 
-        $spool = new \Swift_FileSpool(IZNIK_BASE . $spoolname);
-        $spooltrans = \Swift_SpoolTransport::newInstance($spool);
-        $smtptrans = \Swift_SmtpTransport::newInstance($host);
-        $transport = \Swift_FailoverTransport::newInstance([
-                                                               $smtptrans,
-                                                               $spooltrans
-                                                           ]);
-        $mailer = \Swift_Mailer::newInstance($transport);
-        return([$transport, $mailer]);
+        return self::$mailers[$key];
     }
 
     public static function realEmail($email) {
