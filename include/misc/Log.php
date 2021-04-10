@@ -69,6 +69,10 @@ class Log
     }
 
     public function log($params) {
+        # Insert the current timestamp, so that the time in the log is when the log was made, rather than when
+        # it percolates through the background processing.
+        $params['timestamp'] = date("Y-m-d H:i:s", time());
+
         # We assume that the parameters passed match fields in the logs table.
         # If they don't, the caller is at fault and should be taken out and shot.
         $q = [];
