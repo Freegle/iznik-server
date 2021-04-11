@@ -1782,6 +1782,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
         }
 
         $thistwig['date'] = date("Y-m-d H:i:s", strtotime($unmailedmsg['date']));
+        $thistwig['replyexpected'] = Utils::presdef('replyexpected', $unmailedmsg, FALSE);
 
         return $thistwig;
     }
@@ -2158,6 +2159,13 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
                             $jobads = $sendingto->getJobAds();
 
+                            $replyexpected = FALSE;
+                            foreach ($twigmessages as $t) {
+                                if (Utils::presbool('replyexpected', $t, FALSE)) {
+                                    $replyexpected = TRUE;
+                                }
+                            }
+
                             try {
                                 switch ($chattype) {
                                     case ChatRoom::TYPE_USER2USER:
@@ -2175,6 +2183,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                             'joblocation' => $jobads['location'],
                                             'outcometaken' => $outcometaken,
                                             'outcomewithdrawn' => $outcomewithdrawn,
+                                            'replyexpected' => $replyexpected
                                         ]);
 
                                         $sendname = $sendingfrom->getName();

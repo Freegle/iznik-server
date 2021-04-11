@@ -24,9 +24,24 @@
   <mj-body>
     <mj-section padding="20px 0px 0px ">
       <mj-column>
-        <mj-text mj-class="sectiontitle">
-          Message from&nbsp;{{ fromname }}
-        </mj-text>
+        <mj-raw>
+        {% if replyexpected %}
+        </mj-raw>
+          <mj-text mj-class="sectiontitle">
+            Message from&nbsp;{{ fromname }}
+            <span style="color:red">
+              RSVP - reply expected
+            </span>
+          </mj-text>
+        <mj-raw>
+          {% else%}
+        </mj-raw>
+          <mj-text mj-class="sectiontitle">
+            Message from&nbsp;{{ fromname }}
+          </mj-text>
+        <mj-raw>
+          {% endif %}
+        </mj-raw>
       </mj-column>
     </mj-section>
 
