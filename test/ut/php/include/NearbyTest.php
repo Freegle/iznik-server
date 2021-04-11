@@ -92,9 +92,7 @@ class nearbyTest extends IznikTestCase {
         $m->setPrivate('locationid', $lid);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
-
-        $m = new Message($this->dbhr, $this->dbhm, $mid);
-        $this->log("Created message $mid");
+        $m->addToSpatialIndex();
 
         # Create a nearby user
         $u = User::get($this->dbhr, $this->dbhm);
@@ -104,10 +102,8 @@ class nearbyTest extends IznikTestCase {
         $u->setPrivate('lastlocation', $lid2);
         $u->addEmail('test@test.com');
 
-        $m = new Message($this->dbhr, $this->dbhm);
-        $m->updateSpatialIndex();
-
         $n = new Nearby($this->dbhm, $this->dbhm);
+        $n->updateLocations();
         assertEquals(1, $n->messages($gid));
     }
 }

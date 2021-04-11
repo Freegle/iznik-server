@@ -702,7 +702,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $this->user->setPrivate('lastaccess', date("Y-m-d H:i:s"));
 
         $n = new Nearby($this->dbhr, $this->dbhm);
-        $n->updateLocations(TRUE, '5 minutes ago');
+        $n->updateLocations();
 
         $ret = $this->call('memberships', 'GET', [
             'collection' => MembershipCollection::NEARBY

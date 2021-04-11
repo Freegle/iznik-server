@@ -106,7 +106,7 @@ function memberships() {
                                 $members = [];
 
                                 if ($me->isModerator()) {
-                                    # At the moment only mods can see this, and they can see all mods..
+                                    # At the moment only mods can see this, and they can see all mods.
                                     $n = new Nearby($dbhr, $dbhm);
                                     list ($lat, $lng, $loc) = $me->getLatLng();
                                     $members = $n->getUsersNear($lat, $lng, TRUE);

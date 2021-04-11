@@ -3,6 +3,7 @@ namespace Freegle\Iznik;
 
 
 require_once(IZNIK_BASE . '/mailtemplates/relevant/nearby.php');
+require_once(IZNIK_BASE . '/lib/GreatCircle.php');
 
 class Nearby
 {
@@ -25,101 +26,110 @@ class Nearby
     public function messages($groupid) {
         list ($transport, $mailer) = Mail::getMailer();
         $count = 0;
-        $mysqltime = date("Y-m-d", strtotime("@" . (time() - Engage::USER_INACTIVE)));
 
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
         if ($g->getSetting('relevant', 1)) {
             # Find the recent extant messages
-            $sql = "SELECT DISTINCT messages_spatial.msgid AS id, messages_spatial.msgtype AS type FROM messages_spatial WHERE groupid = ?;";
+            $sql = "SELECT DISTINCT messages_spatial.msgid AS id, messages_spatial.msgtype AS type, Y(messages_spatial.point) AS lat, X(messages_spatial.point) AS lng, messages.fromuser, messages.subject FROM messages_spatial INNER JOIN messages ON messages_spatial.msgid = messages.id WHERE groupid = ? AND messages.fromuser IS NOT NULL;";
             $msgs = $this->dbhr->preQuery($sql, [ $groupid ] );
+            #error_log("Look for extant messages for $groupid found " . count($msgs));
 
             foreach ($msgs as $msg) {
                 # We have a message which is still extant and where we know the location.  Find nearby
                 # users we've not mailed about this message.
-                $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
+                $mlat = $msg['lat'];
+                $mlng = $msg['lng'];
 
-                if ($m->getFromuser()) {
-                    $lid = $m->getPrivate('locationid');
-                    $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
-                    $name = $u->getName();
-                    $lat = $m->getPrivate('lat');
-                    $lng = $m->getPrivate('lng');
-                    error_log("{$msg['id']} " . $m->getPrivate('subject') . " at $lat, $lng");
-                    $sql = "SELECT users.id, locations.lat, locations.lng, haversine($lat, $lng, locations.lat, locations.lng) AS dist FROM users INNER JOIN memberships ON users.id = memberships.userid INNER JOIN locations ON locations.id = users.lastlocation LEFT JOIN users_nearby ON users_nearby.userid = users.id AND users_nearby.msgid = {$msg['id']} WHERE users.lastaccess >= '$mysqltime' AND groupid = $groupid AND users.id != " . $m->getFromuser(
-                        ) . " AND users_nearby.msgid IS NULL ORDER BY dist ASC LIMIT 100;";
-                    $users = $this->dbhr->preQuery($sql);
+                # Find a bounding box roughly 4km.  Later we'll restrict that to 2 miles.
+                $dist = 4000;
+                $ne = \GreatCircle::getPositionByDistance($dist, 45, $mlat, $mlng);
+                $sw = \GreatCircle::getPositionByDistance($dist, 225, $mlat, $mlng);
+                $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
 
-                    foreach ($users as $user) {
-                        $u2 = new User($this->dbhr, $this->dbhm, $user['id']);
+                $users = $this->dbhr->preQuery("SELECT userid AS id FROM users_approxlocs WHERE ST_Contains($box, position);");
+                #error_log("Look for users near $mlat, $mlng with $box found " . count($users));
+                $mu = NULL;
 
-                        if ($u2->getPrivate('relevantallowed') && $u2->sendOurMails()) {
-                            $miles = $u2->getDistance($lat, $lng);
-                            $miles = round($miles);
+                foreach ($users as $user) {
+                    if (!$mu) {
+                        $mu = User::get($this->dbhr, $this->dbhm, $msg['fromuser']);
+                        $mname = $mu->getName();
+                    }
 
-                            # We mail the most nearby people - but too far it's probably not worth it.
-                            if ($miles <= 2) {
-                                # Check we've not mailed them recently.
-                                $mailed = $this->dbhr->preQuery(
-                                    "SELECT MAX(timestamp) AS max FROM users_nearby WHERE userid = ?;",
+                    $u = User::get($this->dbhr, $this->dbhm, $user['id']);
+
+                    if ($u->getPrivate('relevantallowed') && $u->sendOurMails()) {
+                        $miles = $u->getDistance($msg['lat'], $msg['lng']);
+                        $miles = round($miles);
+
+                        # We mail the most nearby people - but too far it's probably not worth it.
+                        if ($miles <= 2) {
+                            # Check we've not mailed them recently.
+                            $mailed = $this->dbhr->preQuery(
+                                "SELECT MAX(timestamp) AS max FROM users_nearby WHERE userid = ?;",
+                                [
+                                    $user['id']
+                                ]
+                            );
+
+                            # ..or about this message.
+                            $thisone = $this->dbhr->preQuery("SELECT * FROM users_nearby WHERE userid = ? AND msgid = ?;", [
+                                $user['id'],
+                                $msg['id']
+                            ]);
+
+                            if (count($thisone) == 0 && (count($mailed) == 0 || (time() - strtotime($mailed[0]['max']) > 7 * 24 * 60 * 60))) {
+                                $this->dbhm->preExec(
+                                    "INSERT INTO users_nearby (userid, msgid) VALUES (?, ?);",
                                     [
-                                        $user['id']
+                                        $user['id'],
+                                        $msg['id']
                                     ]
                                 );
 
-                                if (count($mailed) == 0 || (time() - strtotime($mailed[0]['max']) > 7 * 24 * 60 * 60)) {
-                                    $this->dbhm->preExec(
-                                        "INSERT INTO users_nearby (userid, msgid) VALUES (?, ?);",
-                                        [
-                                            $user['id'],
-                                            $msg['id']
-                                        ]
-                                    );
+                                $subj = "Could you help " . $u->getName(
+                                    ) . " ($miles mile" . ($miles != 1 ? 's' : '') . " away)?";
+                                $noemail = 'relevantoff-' . $user['id'] . "@" . USER_DOMAIN;
+                                $textbody = "$mname, who's about $miles mile" . ($miles != 1 ? 's' : '') . " miles from you, has posted " . $msg['subject'] . ".  Do you know anyone who can help?  The post is here: https://" . USER_SITE . "/message/{$msg['id']}?src=nearby\r\nIf you don't want to get these suggestions, mail $noemail.";
 
-                                    $subj = "Could you help " . $u->getName(
-                                        ) . " ($miles mile" . ($miles != 1 ? 's' : '') . " away)?";
-                                    $noemail = 'relevantoff-' . $user['id'] . "@" . USER_DOMAIN;
-                                    $textbody = "$name, who's about $miles mile" . ($miles != 1 ? 's' : '') . " miles from you, has posted " . $m->getSubject(
-                                        ) . ".  Do you know anyone who can help?  The post is here: https://" . USER_SITE . "/message/{$msg['id']}?src=nearby\r\nIf you don't want to get these suggestions, mail $noemail.";
+                                $email = $u->getEmailPreferred();
+                                $html = relevant_nearby(
+                                    USER_SITE,
+                                    USERLOGO,
+                                    $mname,
+                                    $miles,
+                                    $msg['subject'],
+                                    $msg['id'],
+                                    $msg['type'],
+                                    $email,
+                                    $noemail
+                                );
 
-                                    $email = $u2->getEmailPreferred();
-                                    $html = relevant_nearby(
-                                        USER_SITE,
-                                        USERLOGO,
-                                        $name,
-                                        $miles,
-                                        $m->getSubject(),
-                                        $msg['id'],
-                                        $msg['type'],
-                                        $email,
-                                        $noemail
-                                    );
+                                try {
+                                    $message = \Swift_Message::newInstance()
+                                        ->setSubject($subj)
+                                        ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                                        ->setReturnPath($u->getBounce())
+                                        ->setTo([$email => $u->getName()])
+                                        ->setBody($textbody);
 
-                                    try {
-                                        $message = \Swift_Message::newInstance()
-                                            ->setSubject($subj)
-                                            ->setFrom([NOREPLY_ADDR => SITE_NAME])
-                                            ->setReturnPath($u->getBounce())
-                                            ->setTo([$email => $u2->getName()])
-                                            ->setBody($textbody);
+                                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                                    # Outlook.
+                                    $htmlPart = \Swift_MimePart::newInstance();
+                                    $htmlPart->setCharset('utf-8');
+                                    $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                                    $htmlPart->setContentType('text/html');
+                                    $htmlPart->setBody($html);
+                                    $message->attach($htmlPart);
 
-                                        # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-                                        # Outlook.
-                                        $htmlPart = \Swift_MimePart::newInstance();
-                                        $htmlPart->setCharset('utf-8');
-                                        $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
-                                        $htmlPart->setContentType('text/html');
-                                        $htmlPart->setBody($html);
-                                        $message->attach($htmlPart);
+                                    Mail::addHeaders($message, Mail::NEARBY, $u->getId());
 
-                                        Mail::addHeaders($message, Mail::NEARBY, $u2->getId());
-
-                                        $this->sendOne($mailer, $message);
-                                        error_log("...user {$user['id']} dist $miles");
-                                        $count++;
-                                    } catch (\Exception $e) {
-                                        error_log("Send to $email failed with " . $e->getMessage());
-                                    }
+                                    $this->sendOne($mailer, $message);
+                                    error_log("...user {$user['id']} dist $miles");
+                                    $count++;
+                                } catch (\Exception $e) {
+                                    error_log("Send to $email failed with " . $e->getMessage());
                                 }
                             }
                         }
@@ -137,34 +147,45 @@ class Nearby
         return($count);
     }
 
-    public function updateLocations($modonly = TRUE, $since = "Midnight 90 days ago") {
-        $mysqltime = date("Y-m-d", strtotime($since));
-        $mods = $this->dbhr->preQuery("SELECT DISTINCT users.id FROM users INNER JOIN memberships ON memberships.userid = users.id WHERE users.lastaccess >= '$mysqltime' AND memberships.role IN (?, ?);", [
-            User::ROLE_MODERATOR,
-            User::ROLE_OWNER
-        ]);
+    public function updateLocations() {
+        $mysqltime =  date("Y-m-d", strtotime("@" . (time() - Engage::USER_INACTIVE + 24 * 60 * 60)));
+        $users = $this->dbhr->preQuery("SELECT DISTINCT users.id, users.lastaccess FROM users INNER JOIN memberships ON memberships.userid = users.id WHERE users.lastaccess >= '$mysqltime';");
+        $count = 0;
+        $total = count($users);
 
-        foreach ($mods as $mod) {
-            $u = new User($this->dbhr, $this->dbhm, $mod['id']);
+        foreach ($users as $user) {
+            $u = new User($this->dbhr, $this->dbhm, $user['id']);
 
             # Get approximate location where we have one.
-            list($lat, $lng, $loc) = $u->getLatLng(FALSE, FALSE, User::BLUR_1K);
+            list($lat, $lng, $loc) = $u->getLatLng(FALSE, FALSE, User::BLUR_100M);
 
             if ($lat || $lng) {
                 # We found one.
-                $this->dbhm->preExec("INSERT INTO users_approxlocs (userid, lat, lng, position) VALUES (?, ?, ?, GEOMFROMTEXT(CONCAT('POINT(', ?, ' ', ?, ')'))) ON DUPLICATE KEY UPDATE lat = ?, lng = ?, position = GEOMFROMTEXT(CONCAT('POINT(', ?, ' ', ?, ')'));", [
-                    $mod['id'],
+                $this->dbhm->preExec("INSERT INTO users_approxlocs (userid, lat, lng, position, timestamp) VALUES (?, ?, ?, GEOMFROMTEXT(CONCAT('POINT(', ?, ' ', ?, ')')), ?) ON DUPLICATE KEY UPDATE lat = ?, lng = ?, position = GEOMFROMTEXT(CONCAT('POINT(', ?, ' ', ?, ')')), timestamp = ?;", [
+                    $user['id'],
                     $lat,
                     $lng,
                     $lng,
                     $lat,
+                    $user['lastaccess'],
                     $lat,
                     $lng,
                     $lng,
-                    $lat
+                    $lat,
+                    $user['lastaccess']
                 ]);
             }
+
+            $count++;
+
+            if ($count % 1000 == 0) {
+                error_log("...$count / $total");
+            }
         }
+
+        $this->dbhm->preExec("DELETE FROM users_approxlocs WHERE timestamp < ?", [
+            $mysqltime
+        ]);
     }
 
     public function getUsersNear($lat, $lng, $mods) {
