@@ -22,7 +22,7 @@
     "google/apiclient": "^1.1",
     "jenssegers/imagehash": "^0.4.0",
     "facebook/webdriver": "^1.1",
-    "swiftmailer/swiftmailer": "v5.4.3",
+    "swiftmailer/swiftmailer": "5.4.12",
     "abraham/twitteroauth": "^0.6.4",
     "oefenweb/damerau-levenshtein": "^2.1",
     "kartik-v/bootstrap-fileinput": "dev-master",
@@ -41,8 +41,7 @@
     "facebook/graph-sdk": "^5.7",
     "griffinledingham/php-apple-signin": "^1.1",
     "phpoffice/phpspreadsheet": "^1.14",
-    "eluceo/ical": "^0.16.1",
-    "prewk/xml-string-streamer": "^1.1"
+    "eluceo/ical": "^0.16.1"
   },
   "repositories": [
     {

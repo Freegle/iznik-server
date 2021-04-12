@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3cd7d5d4e28f25b27fe8ad1f030a1b9a",
+    "content-hash": "5550487d352c2a4dbd9445b49941cf3c",
     "packages": [
         {
             "name": "abraham/twitteroauth",
@@ -3622,48 +3622,6 @@
             "time": "2020-07-19T09:51:35+00:00"
         },
         {
-            "name": "prewk/xml-string-streamer",
-            "version": "1.1.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/prewk/xml-string-streamer.git",
-                "reference": "8bfccd2b3e899858d3f4fa33123a8c3b0f721be0"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/prewk/xml-string-streamer/zipball/8bfccd2b3e899858d3f4fa33123a8c3b0f721be0",
-                "reference": "8bfccd2b3e899858d3f4fa33123a8c3b0f721be0",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^7.2 || ^8.0"
-            },
-            "require-dev": {
-                "mockery/mockery": "^1.3.0",
-                "phpunit/phpunit": "^8.5.8 || ^9.5.0",
-                "prewk/xml-faker": "^0.0.2"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Prewk\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "prewk",
-                    "email": "oskar.thornblad@gmail.com"
-                }
-            ],
-            "description": "Stream large XML files with low memory consumption",
-            "homepage": "https://github.com/prewk/xml-string-streamer",
-            "time": "2021-03-07T16:34:57+00:00"
-        },
-        {
             "name": "psr/cache",
             "version": "1.0.1",
             "source": {
@@ -4398,23 +4356,24 @@
         },
         {
             "name": "swiftmailer/swiftmailer",
-            "version": "v5.4.3",
+            "version": "v5.4.12",
             "source": {
                 "type": "git",
                 "url": "https://github.com/swiftmailer/swiftmailer.git",
-                "reference": "4cc92842069c2bbc1f28daaaf1d2576ec4dfe153"
+                "reference": "181b89f18a90f8925ef805f950d47a7190e9b950"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/swiftmailer/swiftmailer/zipball/4cc92842069c2bbc1f28daaaf1d2576ec4dfe153",
-                "reference": "4cc92842069c2bbc1f28daaaf1d2576ec4dfe153",
+                "url": "https://api.github.com/repos/swiftmailer/swiftmailer/zipball/181b89f18a90f8925ef805f950d47a7190e9b950",
+                "reference": "181b89f18a90f8925ef805f950d47a7190e9b950",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.3"
             },
             "require-dev": {
-                "mockery/mockery": "~0.9.1"
+                "mockery/mockery": "~0.9.1",
+                "symfony/phpunit-bridge": "~3.2"
             },
             "type": "library",
             "extra": {
@@ -4441,13 +4400,13 @@
                 }
             ],
             "description": "Swiftmailer, free feature-rich PHP mailer",
-            "homepage": "http://swiftmailer.org",
+            "homepage": "https://swiftmailer.symfony.com",
             "keywords": [
                 "email",
                 "mail",
                 "mailer"
             ],
-            "time": "2016-07-08T11:51:25+00:00"
+            "time": "2018-07-31T09:26:32+00:00"
         },
         {
             "name": "symfony/config",
@@ -6755,12 +6714,12 @@
             "version": "1.3.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/webmozart/assert.git",
+                "url": "https://github.com/webmozarts/assert.git",
                 "reference": "0df1908962e7a3071564e857d86874dad1ef204a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webmozart/assert/zipball/0df1908962e7a3071564e857d86874dad1ef204a",
+                "url": "https://api.github.com/repos/webmozarts/assert/zipball/0df1908962e7a3071564e857d86874dad1ef204a",
                 "reference": "0df1908962e7a3071564e857d86874dad1ef204a",
                 "shasum": ""
             },
