@@ -4340,13 +4340,14 @@ WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND message
                 # message gets resent repeatedly and people keep replying and not getting a response.
                 #
                 # The sending user must also still be a member of the group.
+                # TODO Remove mention of 2021-03-29 after 2021-08-01.
                 $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, autoreposts, lastautopostwarning, messages.type, messages.fromaddr 
 FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid 
 INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid 
 LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid 
 LEFT OUTER JOIN messages_promises ON messages_promises.msgid = messages.id 
 LEFT OUTER JOIN chat_messages ON messages.id = chat_messages.refmsgid AND chat_messages.type != 'ModMail' 
-WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL AND chat_messages.refmsgid IS NULL $msgq;";
+WHERE messages_groups.arrival > ? AND messages.arrival >= '2021-03-29' AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL AND chat_messages.refmsgid IS NULL $msgq;";
                 #error_log("$sql, $mindate, {$group['id']}");
                 $messages = $this->dbhr->preQuery($sql, [
                     $mindate,
