@@ -26,9 +26,13 @@ do {
         $spool = $transport->getSpool();
 
         if ($spool) {
-            $sent = $spool->flushQueue($realTransport);
+            try {
+                $sent = $spool->flushQueue($realTransport);
 
-            echo "Sent $sent emails\n";
+                echo "Sent $sent emails\n";
+            } catch (\TypeError $ex) {
+                error_log("Type error " . $ex->getMessage());
+            }
         } else {
             error_log("Couldn't get spool, sleep and retry");
         }
