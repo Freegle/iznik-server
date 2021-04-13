@@ -248,7 +248,8 @@ class dashboardTest extends IznikAPITestCase {
 
         # Trigger a notification check which also records us as active.
         $this->call('notification', 'GET', [
-            'count' => TRUE
+            'count' => TRUE,
+            'modtools' => FALSE
         ]);
 
         # Generate stats so they exist to query.
