@@ -914,7 +914,7 @@ class Newsfeed extends Entity
             if ($count > 0) {
                 # Got some to send
                 $u = new User($this->dbhr, $this->dbhm, $userid);
-                $url = $u->loginLink(USER_SITE, $userid, '/newsfeed', 'newsfeeddigest');
+                $url = $u->loginLink(USER_SITE, $userid, '/chitchat', 'newsfeeddigest');
                 $noemail = 'notificationmailsoff-' . $userid . "@" . USER_DOMAIN;
 
                 $html = $twig->render('newsfeed/digest.html', [

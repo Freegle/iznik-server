@@ -120,7 +120,7 @@
               </mj-text>
           </mj-column>
           <mj-column>
-            <mj-button align="right" href="https://www.ilovefreegle.org/newsfeed/{{ notification.newsfeed.id }}" background-color="darkgreen">
+            <mj-button align="right" href="https://www.ilovefreegle.org/chitchat/{{ notification.newsfeed.id }}" background-color="darkgreen">
               <mj-raw>
                 {% if notification.type == 'Exhort' %}
               </mj-raw>

@@ -257,7 +257,7 @@ class Notifications
                     }
                 }
 
-                $url = $u->loginLink(USER_SITE, $user['touser'], '/newsfeed', 'notifemail');
+                $url = $u->loginLink(USER_SITE, $user['touser'], '/chitchat', 'notifemail');
                 $noemail = 'notificationmailsoff-' . $user['touser'] . "@" . USER_DOMAIN;
 
                 try {

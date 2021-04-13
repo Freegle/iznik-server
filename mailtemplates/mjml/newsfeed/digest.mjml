@@ -52,7 +52,7 @@
               <br />
           </mj-column>
           <mj-column width="33%">
-            <mj-button align="right" href="https://www.ilovefreegle.org/newsfeed/{{ item.id }}" background-color="darkgreen">
+            <mj-button align="right" href="https://www.ilovefreegle.org/chitchat/{{ item.id }}" background-color="darkgreen">
               View thread
             </mj-button>
           </mj-column>
