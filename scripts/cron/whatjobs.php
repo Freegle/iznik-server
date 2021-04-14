@@ -14,16 +14,6 @@ use Prewk\XmlStringStreamer\Parser;
 
 $lockh = Utils::lockScript(basename(__FILE__));
 
-# Purge old jobs.
-$oldest = date('Y-m-d', strtotime("7 days ago"));
-$purged = 0;
-
-do {
-    $sql = "DELETE FROM jobs WHERE posted_at < '$oldest' LIMIT 1000;";
-    $count = $dbhm->exec($sql);
-    $purged += $count;
-} while ($count > 0);
-
 system('cd /tmp/; rm feed.xml; wget ' . WHATJOBS_DUMP . '; gzip -d feed.xml.gz');
 
 $options = array(
@@ -49,7 +39,7 @@ while ($node = $streamer->getNode()) {
             error_log("No job reference for {$job->title}, {$job->location}");
         } else {
             # See if we already have the job. If so, ignore it.  If it changes, tough.
-            $existings = $dbhr->preQuery("SELECT job_reference FROM jobs WHERE job_reference = ?", [
+            $existings = $dbhr->preQuery("SELECT id, job_reference FROM jobs WHERE job_reference = ?", [
                 $job->job_reference
             ]);
 
@@ -109,6 +99,10 @@ while ($node = $streamer->getNode()) {
                         }
                     }
                 }
+            } else {
+                $dbhm->preExec("UPDATE jobs SET seenat = NOW() WHERE id = ?", [
+                    $existings[0]['id']
+                ]);
             }
         }
     } else {
@@ -121,6 +115,24 @@ while ($node = $streamer->getNode()) {
         error_log("...$count");
     }
 }
+
+# Purge old jobs.
+$oldest = date('Y-m-d H:i:s', strtotime("9 hours ago"));
+$purged = 0;
+$olds = $dbhr->preQuery("SELECT id FROM jobs WHERE seenat < '$oldest' OR seenat IS NULL;");
+
+foreach ($olds as $o) {
+    $dbhm->preExec("DELETE FROM jobs WHERE id = ?;", [
+        $o['id']
+    ]);
+
+    $purged++;
+
+    if ($purged % 1000 === 0) {
+        error_log("...$purged purged");
+    }
+}
+
 
 error_log("New jobs $new, ignore $old, purged $purged");
 Utils::unlockScript($lockh);
