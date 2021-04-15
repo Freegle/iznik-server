@@ -72,9 +72,9 @@ while ($node = $streamer->getNode()) {
                                 $dbhm->preExec(
                                     "REPLACE INTO jobs (location, title, city, state, zip, country, job_type, posted_at, job_reference, company, mobile_friendly_apply, category, html_jobs, url, body, cpc, geometry) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GeomFromText(?));",
                                     [
-                                        $job->location ?? null,
-                                        $job->title ?? null,
-                                        $job->city ?? null,
+                                        $job->location ? html_entity_decode($job->location) : null,
+                                        $job->title ? html_entity_decode($job->title) : null,
+                                        $job->city ? html_entity_decode($job->city) : null,
                                         $job->state ?? null,
                                         $job->zip ?? null,
                                         $job->country ?? null,
@@ -86,7 +86,7 @@ while ($node = $streamer->getNode()) {
                                         $job->category ?? NULL,
                                         $job->html_jobs ?? NULL,
                                         $job->url ?? NULL,
-                                        $job->body ?? NULL,
+                                        $job->body ? html_entity_decode($job->body) : NULL,
                                         $job->cpc ?? NULL,
                                         $geom
                                     ]
