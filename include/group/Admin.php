@@ -10,7 +10,7 @@ class Admin extends Entity
     const SPOOLNAME = '/spool_admin_';
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'groupid', 'created', 'complete', 'subject', 'text', 'createdby', 'pending', 'parentid', 'heldby', 'heldat');
+    var $publicatts = array('id', 'groupid', 'created', 'complete', 'subject', 'text', 'createdby', 'pending', 'parentid', 'heldby', 'heldat', 'activeonly');
     var $settableatts = [ 'subject', 'text', 'pending' ];
 
     /** @var  $log Log */
@@ -132,6 +132,13 @@ class Admin extends Entity
         foreach ($members as $member) {
             $u = User::get($this->dbhr, $this->dbhm, $member['userid']);
 
+            $lastaccess = strtotime("@" . (time() - Engage::USER_INACTIVE));
+
+            if ($this->admin['activeonly'] && strtotime($u->getPrivate('lastaccess') < $lastaccess)) {
+                # Not active recently - we want to skip this one.
+                continue;
+            }
+
             #error_log("Consider {$member['userid']} parent {$this->admin['parentid']}");
             if ($this->admin['parentid']) {
                 # This is a suggested admin, where we create copies for each group for them to edit/approve/reject
@@ -201,6 +208,10 @@ class Admin extends Entity
 
         if ($id) {
             $a->setPrivate('parentid', $this->id);
+
+            # Suggested ADMINs lead to us sending a lot of mail very rapidly across the whole system.  This can trigger
+            # spam reports if the ADMINs go all users.  So we set suggested ADMINs to only send to active members.
+            $a->setPrivate('activeonly', TRUE);
         }
 
         return($id);

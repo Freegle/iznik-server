@@ -89,7 +89,7 @@ function admin() {
                 $ret = ['ret' => 2, 'status' => "Can't create an admin on that group" ];
 
                 #error_log("Check mod for admin $id , group " . $a->getPrivate('groupid'));
-                if ($me->isModOrOwner($a->getPrivate('groupid'))) {
+                if ($me->isAdminOrSupport() || $me->isModOrOwner($a->getPrivate('groupid'))) {
                     $a->setAttributes($_REQUEST);
                     $a->updateEdit();
 
