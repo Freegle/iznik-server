@@ -732,6 +732,8 @@ class userTest extends IznikTestCase {
             $atts = $u2->getPublic();
 
             $this->log("$i");
+            $this->waitBackground();
+
             if ($i < Spam::SEEN_THRESHOLD) {
                 assertNull($u2->getMembershipAtt($gid, 'reviewrequestedat'));
             } else {
@@ -740,8 +742,7 @@ class userTest extends IznikTestCase {
                 assertEquals(2, count($membs));
             }
         }
-
-        }
+    }
 
     public function testVerifyMail() {
         $_SERVER['HTTP_HOST'] = 'localhost';
