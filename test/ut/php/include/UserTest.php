@@ -729,10 +729,10 @@ class userTest extends IznikTestCase {
             $u2->addMembership($gid);
 
             $u2 = User::get($this->dbhr, $this->dbhm, $id2, FALSE);
+            $this->waitBackground();
             $atts = $u2->getPublic();
 
             $this->log("$i");
-            $this->waitBackground();
 
             if ($i < Spam::SEEN_THRESHOLD) {
                 assertNull($u2->getMembershipAtt($gid, 'reviewrequestedat'));
