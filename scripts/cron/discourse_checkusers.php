@@ -275,7 +275,7 @@ try{
           $useremail = GetUserEmail($user->username);
           echo "NOT A MOD\r\n";
           $notmod++;
-          $report .= 'Not a mod. MT id: '.$external_id.', Discourse username: '.$user->username.', email: '.$useremail."\r\n";
+          $report .= 'NOT A MOD. MT id: '.$external_id.', Discourse username: '.$user->username.', email: '.$useremail."\r\n";
         }
       } else {
         // No entry in MT at all
