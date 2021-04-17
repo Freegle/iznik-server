@@ -756,6 +756,7 @@ HAVING logincount > 0
                 $thisone['userid'] = $thisone['id'];
                 $thisone['id'] = $member['id'];
                 $thisone['trustlevel'] = $u->getPrivate('trustlevel');
+                $thisone['engagement'] = $u->getPrivate('engagement');
 
                 # We want to return both the email used on this group and any others we have.
                 $emails = $u->getEmails();
