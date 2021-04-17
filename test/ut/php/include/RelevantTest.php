@@ -126,6 +126,9 @@ class RelevantTest extends IznikTestCase
 
         $l = new Location($this->dbhr, $this->dbhm);
 
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->updateSpatialIndex();
+
         $rl = new Relevant($this->dbhr, $this->dbhm);
         $ints = $rl->findRelevant($uid, Group::GROUP_FREEGLE, NULL, 'tomorrow');
         $this->log("Found interested 1 " . var_export($ints, TRUE));

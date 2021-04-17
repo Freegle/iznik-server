@@ -23,8 +23,10 @@ function notification() {
                         'count' => $n->countUnseen($me->getId())
                     ];
 
-                    # This request occurs every 30 seconds, so we can piggyback on it to spot when users are active.
-                    $me->recordActive();
+                    if (!Session::modtools()) {
+                        # This request occurs every 30 seconds, so we can piggyback on it to spot when users are active.
+                        $me->recordActive();
+                    }
                 } else {
                     $ctx = Utils::presdef('context', $_REQUEST, NULL);
                     $notifs = $n->get($me->getId(), $ctx);

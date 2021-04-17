@@ -729,9 +729,11 @@ class userTest extends IznikTestCase {
             $u2->addMembership($gid);
 
             $u2 = User::get($this->dbhr, $this->dbhm, $id2, FALSE);
+            $this->waitBackground();
             $atts = $u2->getPublic();
 
             $this->log("$i");
+
             if ($i < Spam::SEEN_THRESHOLD) {
                 assertNull($u2->getMembershipAtt($gid, 'reviewrequestedat'));
             } else {
@@ -740,8 +742,7 @@ class userTest extends IznikTestCase {
                 assertEquals(2, count($membs));
             }
         }
-
-        }
+    }
 
     public function testVerifyMail() {
         $_SERVER['HTTP_HOST'] = 'localhost';
@@ -1363,54 +1364,6 @@ class userTest extends IznikTestCase {
             'offers' => 2,
             'wanteds' => 1
         ], $u->getActiveCounts());
-    }
-
-    public function testJobs() {
-        foreach (glob("/tmp/adview.*") AS $filename) {
-            unlink($filename);
-        }
-
-        $u = User::get($this->dbhr, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
-
-        $g = new Group($this->dbhr, $this->dbhm);
-        $gid = $g->findByShortName('FreeglePlayground');
-        $g = new Group($this->dbhr, $this->dbhm, $gid);
-        $g->setPrivate('lat', 55.9533);
-        $g->setPrivate('lng', -3.1883);
-
-        # First when we have a postcode.
-        $settings = [
-            'mylocation' => [
-                'name' => 'EH3 6SS',
-                'type' => 'Postcode',
-                'lat' => 55.957571,
-                'lng' => -3.205333
-            ],
-        ];
-
-        $u->setPrivate('settings', json_encode($settings));
-
-        # Setting the postcode should generate a log.
-        $this->waitBackground();
-        $logs = [ $u->getId() => [ 'id' => $u->getId() ] ];
-        $u->getPublicLogs($u, $logs, FALSE, $ctx, FALSE, FALSE);
-        $log = $this->findLog(Log::TYPE_USER, Log::SUBTYPE_POSTCODECHANGE, $logs[$u->getId()]['logs']);
-        assertEquals('EH3 6SS', $log['text']);
-
-        $jobs = $u->getJobAds();
-        assertEquals('Edinburgh', $jobs['location']);
-
-        # And again for cache.
-        $jobs = $u->getJobAds();
-        assertEquals('Edinburgh', $jobs['location']);
-
-        # Now when we have just a group membership
-        $l = new Location($this->dbhr, $this->dbhm);
-        $u->addMembership($gid);
-        $u->setPrivate('settings', json_encode([]));
-        $jobs = $u->getJobAds();
-        assertEquals('Edinburgh', $jobs['location']);
     }
 
     public function testHide() {

@@ -62,7 +62,7 @@
           <mj-raw>{% if message.firstposted is defined and message.firstposted %}</mj-raw>
           <mj-text color="#1D6607" font-weight="bold" padding-top="0" padding-bottom="2px"><a jumpthis="msg-{{ message.id }}" href="#msg-{{ message.id }}">
                 {{ message.subject }}
-              </a>&nbsp;<span style="font-size:8pt" color="grey">First posted&nbsp;{{ message.firstposted }}</span></mj-text>
+              </a>&nbsp;<span style="font-size:8pt; color:grey">First posted&nbsp;{{ message.firstposted }}</span></mj-text>
           <mj-raw>{% else %}</mj-raw>
           <mj-text color="#1D6607" font-weight="bold" padding-top="0" padding-bottom="2px"><a href="#msg-{{ message.id }}">
                 {{ message.subject }}
@@ -79,7 +79,7 @@
         <mj-column>
           <mj-text padding="0px"><a id="msg-{{ message.id }}" name="msg-{{ message.id }}" /></mj-text>
           <mj-raw>{% if message.firstposted is defined and message.firstposted %}</mj-raw>
-          <mj-text padding-top="0" padding-bottom="0px" color="#1D6607" font-size="18px" line-height="1.25">{{ message.subject }}&nbsp;<span style="font-size:10pt" color="grey">First posted&nbsp;{{ message.firstposted }}</span></mj-text>
+          <mj-text padding-top="0" padding-bottom="0px" color="#1D6607" font-size="18px" line-height="1.25">{{ message.subject }}&nbsp;<span style="font-size:10pt; color: grey">First posted&nbsp;{{ message.firstposted }}</span></mj-text>
           <mj-raw>{% else %}</mj-raw>
           <mj-text padding-top="0" padding-bottom="0px" color="#1D6607" font-size="18px" line-height="1.25">{{ message.subject }}</mj-text>
           <mj-raw>{% endif %}</mj-raw>

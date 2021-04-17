@@ -386,7 +386,7 @@ class Utils {
     }
 
     public static function presbool($key, $arr, $def) {
-        return array_key_exists($key, $arr) ? filter_var($_REQUEST[$key], FILTER_VALIDATE_BOOLEAN) : $def;
+        return array_key_exists($key, $arr) ? filter_var($arr[$key], FILTER_VALIDATE_BOOLEAN) : $def;
     }
 
     public static function ISODate($date)
@@ -497,7 +497,7 @@ class Utils {
         return($ret);
     }
 
-    public function array_key_first(array $arr) {
+    public static function array_key_first(array $arr) {
         # Not available in PHP until 7.3.
         foreach($arr as $key => $unused) {
             return $key;

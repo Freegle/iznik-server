@@ -76,10 +76,14 @@ define('FORUM_SECRET', 'zzz');
 define('FORUM_APIKEY', 'zzz');
 define('FORUM_API', 'zzz');
 
+# We fetch jobs to display.
+define('WHATJOBS_DUMP', 'zzzz');
+
 # We verify email addresses.
 define('BRITEVERIFY_PRIVATE_KEY', 'zzzz');
 
 define('SERVER_LIST', '');
+define('GEOCODER', 'zzzz');
 
 # We use beanstalk for backgrounding.
 define('PHEANSTALK_SERVER', '127.0.0.1');

@@ -54,7 +54,7 @@ if ($transaction['mc_gross'] > 0) {
     if (!$giftaid || $giftaid['period'] == Donations::PERIOD_THIS) {
         # Ask them to complete a gift aid form.
         $n = new Notifications($dbhr, $dbhm);
-        $n->add(NULL, $u->getId, Notifications::TYPE_GIFTAID, NULL);
+        $n->add(NULL, $u->getId(), Notifications::TYPE_GIFTAID, NULL);
     }
 
     # Don't ask for thanks for the PayPal Giving Fund transactions.

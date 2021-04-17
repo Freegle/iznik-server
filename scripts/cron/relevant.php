@@ -16,15 +16,18 @@ $lockh = Utils::lockScript(basename(__FILE__));
 
 session_start();
 
-$rl = new Relevant($dbhr, $dbhm);
 $count = 0;
 $upto = 0;
 
-$users = $dbhr->preQuery("SELECT id FROM users WHERE lastlocation IS NOT NULL AND relevantallowed = 1;");
+$mysqltime = date("Y-m-d", strtotime("@" . (time() - Engage::USER_INACTIVE)));
+$users = $dbhr->preQuery("SELECT id FROM users WHERE lastaccess >= ? AND lastlocation IS NOT NULL AND relevantallowed = 1;", [
+    $mysqltime
+]);
 $total = count($users);
 error_log("$total users");
 
 foreach ($users as $user) {
+    $rl = new Relevant($dbhr, $dbhm);
     $count += $rl->sendMessages($user['id']);
     $rl->recordCheck($user['id']);
 

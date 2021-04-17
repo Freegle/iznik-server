@@ -5,7 +5,7 @@ require_once(IZNIK_BASE . '/mailtemplates/header.php');
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
 function newsfeed_try($siteurl, $logo, $groupname, $email) {
-    $newsfeed = "https://" . USER_SITE . "/newsfeed";
+    $newsfeed = "https://" . USER_SITE . "/chitchat";
     $html = <<<EOT
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>

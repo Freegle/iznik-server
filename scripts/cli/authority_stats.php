@@ -19,7 +19,8 @@ if (count($opts) < 1) {
     $ids = explode(',', $opts['i']);
     $quarter = Utils::presdef('q', $opts, '3 months ago');
 
-    $q = ceil(date("n") / 3);
+    $q = ceil(date("n", strtotime($quarter)) / 3);
+    error_log("Quarter $q");
 
     foreach ($ids as $id) {
         $months = [];

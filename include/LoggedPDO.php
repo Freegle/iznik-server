@@ -73,6 +73,12 @@ class LoggedPDO {
         return $this;
     }
 
+    private function close() {
+        $this->_db = NULL;
+        $this->connected = FALSE;
+        $this->preparedStatements = [];
+    }
+
     private function doConnect() {
         if (!$this->connected) {
             # We haven't connected yet.  Do so now.  We defer the connect because all API calls have both a read
@@ -166,6 +172,11 @@ class LoggedPDO {
                 # We try to reuse prepared statements for performance reasons.  Although PHP is short-lived this
                 # still has some gains.
                 if (!Utils::pres($sql, $this->preparedStatements)) {
+                    if (count($this->preparedStatements) > 100) {
+                        # Prevent memory leaks.
+                        $this->preparedStatements = [];
+                    }
+
                     $this->preparedStatements[$sql] = $this->parentPrepare($sql);
                 }
 
@@ -192,7 +203,7 @@ class LoggedPDO {
                         $try++;
                         error_log("Server gone away, sleep and retry");
                         sleep(1);
-                        $this->connected = FALSE;
+                        $this->close();
                         $this->doConnect();
                     }
                 }
@@ -237,7 +248,7 @@ class LoggedPDO {
                     $try++;
                     error_log("Server gone away, sleep and retry");
                     sleep(1);
-                    $this->connected = FALSE;
+                    $this->close();
                     $this->doConnect();
                 } else {
                     $msg = "Non-deadlock DB Exception " . $e->getMessage() . " $sql";
@@ -308,7 +319,8 @@ class LoggedPDO {
                     if (stripos($msg, 'has gone away') !== FALSE) {
                         # This can happen if we have issues with the DB, e.g. one server dies or the connection is
                         # timed out.  We re-open the connection and try again.
-                        $this->connected = FALSE;
+                        sleep(1);
+                        $this->close();
                         $this->doConnect();
                     }
                 }
@@ -366,7 +378,8 @@ class LoggedPDO {
                     if (stripos($msg, 'has gone away') !== FALSE) {
                         # This can happen if we have issues with the DB, e.g. one server dies or the connection is
                         # timed out.  We re-open the connection and try again.
-                        $this->connected = FALSE;
+                        sleep(1);
+                        $this->close();
                         $this->doConnect();
                     }
                 }

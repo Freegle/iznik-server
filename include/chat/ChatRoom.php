@@ -1054,7 +1054,7 @@ WHERE chat_rooms.id IN $idlist;";
     public function upToDate($userid) {
         $msgs = $this->dbhr->preQuery("SELECT MAX(id) AS max FROM chat_messages WHERE chatid = ?;", [ $this->id ]);
         foreach ($msgs as $msg) {
-            error_log("upToDate: Set max to {$msg['max']} for $userid in room {$this->id} ");
+            #error_log("upToDate: Set max to {$msg['max']} for $userid in room {$this->id} ");
             $this->dbhm->preExec("INSERT INTO chat_roster (chatid, userid, lastmsgseen, lastmsgemailed, lastemailed) VALUES (?, ?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE lastmsgseen = ?, lastmsgemailed = ?, lastemailed = NOW();",
                 [
                     $this->id,
@@ -1782,6 +1782,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
         }
 
         $thistwig['date'] = date("Y-m-d H:i:s", strtotime($unmailedmsg['date']));
+        $thistwig['replyexpected'] = Utils::presdef('replyexpected', $unmailedmsg, FALSE);
 
         return $thistwig;
     }
@@ -2158,6 +2159,13 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
                             $jobads = $sendingto->getJobAds();
 
+                            $replyexpected = FALSE;
+                            foreach ($twigmessages as $t) {
+                                if (Utils::presbool('replyexpected', $t, FALSE)) {
+                                    $replyexpected = TRUE;
+                                }
+                            }
+
                             try {
                                 switch ($chattype) {
                                     case ChatRoom::TYPE_USER2USER:
@@ -2175,6 +2183,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                             'joblocation' => $jobads['location'],
                                             'outcometaken' => $outcometaken,
                                             'outcomewithdrawn' => $outcomewithdrawn,
+                                            'replyexpected' => $replyexpected
                                         ]);
 
                                         $sendname = $sendingfrom->getName();
@@ -2562,7 +2571,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
             $this->dbhm->preExec("INSERT INTO users_nudges (fromuser, touser) VALUES (?, ?);", [ $myid, $other ]);
             $id = $this->dbhm->lastInsertId();
         } else {
-            $id = $lastmsg['id'];
+            $id = Utils::presdef('id', $lastmsg, NULL);
         }
 
         # Create a message in the chat.

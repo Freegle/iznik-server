@@ -407,6 +407,9 @@ class Digest
                     $emailToId = [];
 
                     foreach ($users as $user) {
+                        # Keep connection alive.
+                        $this->dbhm->preQuery("SELECT 1");
+
                         $u = User::get($this->dbhr, $this->dbhm, $user['userid']);
                         if ($this->errorlog) { error_log("Consider user {$user['userid']}"); }
 

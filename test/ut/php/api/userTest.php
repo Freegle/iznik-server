@@ -854,7 +854,8 @@ class userAPITest extends IznikAPITestCase {
 
         # Trigger a notification check - should mark this as active.
         $ret = $this->call('notification', 'GET', [
-            'count' => TRUE
+            'count' => TRUE,
+            'modtools' => FALSE
         ]);
         $this->waitBackground();
 
