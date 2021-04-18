@@ -5329,10 +5329,6 @@ $mq", [
             $tnpostid
         ]);
 
-        foreach ($msgs as $msg) {
-            $ret = $msg['id'];
-        }
-
-        return $ret;
+        return array_unique(array_column($msgs, 'id'));
     }
 }

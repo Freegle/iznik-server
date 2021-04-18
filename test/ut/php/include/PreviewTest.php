@@ -31,7 +31,8 @@ class PreviewTest extends IznikTestCase {
         assertNotNull($id);
         $atts = $l->getPublic();
         $this->log("Atts " . var_export($atts, TRUE));
-        self::assertEquals('Google', $atts['title']);
+        self::assertTrue($atts['title'] == 'Google' || $atts['title'] == 'Before you continue to Google Search');
+
         assertNotFalse(strpos($atts['image'], 'http'));
 
         $id2 = $l->get('https://google.co.uk');

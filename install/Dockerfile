@@ -104,7 +104,7 @@ RUN cat install/crontab | crontab -u root -
 RUN rm -rf /var/lib/apt/lists/*
 
 # Need to resolve google.
-RUN echo 8.8.8.8 dns.google >> /etc/hosts
+RUN echo "8.8.8.8 dns.google" >> /etc/hosts
 
 # What happens when we start the container
 # First start some services.  MySQL is a bit of a faff.
