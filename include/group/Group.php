@@ -413,8 +413,18 @@ HAVING logincount > 0
 
             # We only want to show happiness upto 31 days old - after that just let it slide.  We're only interested
             # in ones with interesting comments.
+            #
+            # This code matches the feedback code on the client.
             $mysqltime = date("Y-m-d", strtotime(MessageCollection::RECENTPOSTS));
-            $sql = "SELECT messages_groups.groupid, COUNT(DISTINCT messages_outcomes.id) AS count FROM messages_outcomes INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid WHERE messages_groups.arrival >= '$mysqltime' AND messages_outcomes.timestamp >= '$mysqltime' AND groupid IN $groupq AND reviewed = 0 AND messages_outcomes.comments IS NOT NULL GROUP BY groupid;";
+            $sql = "SELECT messages_groups.groupid, COUNT(DISTINCT messages_outcomes.id) AS count FROM messages_outcomes INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid WHERE messages_groups.arrival >= '$mysqltime' AND messages_outcomes.timestamp >= '$mysqltime' AND groupid IN $groupq AND reviewed = 0 AND messages_outcomes.comments IS NOT NULL
+              AND messages_outcomes.comments != 'Sorry, this is no longer available.'
+              AND messages_outcomes.comments != 'Thanks, this has now been taken.'
+              AND messages_outcomes.comments != 'Thanks, I\'m no longer looking for this.' 
+              AND messages_outcomes.comments != 'Sorry, this has now been taken.'
+              AND messages_outcomes.comments != 'Thanks for the interest, but this has now been taken.'
+              AND messages_outcomes.comments != 'Thanks, these have now been taken.'
+              AND messages_outcomes.comments != 'Thanks, this has now been received.'
+            GROUP BY groupid;";
             $happinesscounts = $this->dbhr->preQuery($sql);
 
             $c = new ChatMessage($this->dbhr, $this->dbhm);
