@@ -220,7 +220,7 @@ class Nearby
             }
 
             $u = new User($this->dbhr, $this->dbhm);
-            $u->getPublicProfiles($ret);
+            $u->getPublicProfiles($ret, []);
 
             foreach ($ret as $userid => $r) {
                 $ret[$userid]['settings'] = NULL;

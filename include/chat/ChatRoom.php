@@ -261,7 +261,7 @@ WHERE chat_rooms.id IN $idlist;";
                 }
             }
 
-            $u->getSupporters($users);
+            $u->getSupporters($users, $users);
 
             for ($i = 0; $i < count($ret); $i++) {
                 if ($ret[$i]['chattype'] === ChatRoom::TYPE_USER2USER && Utils::pres('user1id', $ret[$i]) && Utils::pres('user2id', $ret[$i])) {
@@ -1763,7 +1763,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                     $settings = $settings ? json_decode($settings, TRUE) : [];
 
                     $users = [ $profileu->getId() => [ 'userid' => $profileu->getId(), 'settings' => $settings ] ];
-                    $u->getPublicProfiles($users);
+                    $u->getPublicProfiles($users, []);
                     $userlist[$profileu->getId()] = $users[$profileu->getId()];
                 }
 

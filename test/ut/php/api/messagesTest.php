@@ -801,7 +801,7 @@ class messagesTest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
     }
 
-//    public function testEH()
+//    public function testEH() {
 //        $u = new User($this->dbhr, $this->dbhm);
 //        $this->dbhr->errorLog = TRUE;
 //        $this->dbhm->errorLog = TRUE;
@@ -819,6 +819,8 @@ class messagesTest extends IznikAPITestCase {
 //                Message::TYPE_WANTED
 //            ],
 //            'fromuser' => $uid,
+//            'limit' => 15,
+//            'modtools' => TRUE
 //        ]);
 //
 //        assertEquals(0, $ret['ret']);

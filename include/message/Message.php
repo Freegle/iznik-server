@@ -1341,12 +1341,12 @@ ORDER BY lastdate DESC;";
                         $ps = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
                         $allpromises = [];
 
+                        foreach ($msgids as $msgid) {
+                            $allpromises[$msgid] = [];
+                        }
+
                         foreach ($ps as $p) {
-                            if (!Utils::pres($p['msgid'], $allpromises)) {
-                                $allpromises[$p['msgid']] = [ $p ];
-                            } else {
-                                $allpromises[$p['msgid']][] = $p;
-                            }
+                            $allpromises[$p['msgid']][] = $p;
                         }
                     }
 

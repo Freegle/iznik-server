@@ -1964,12 +1964,24 @@ class User extends Entity
         }
     }
     
-    public function getPublicProfiles(&$rets) {
-        $userids = array_filter(array_keys($rets));
+    public function getPublicProfiles(&$rets, $users) {
+        $idsleft = [];
 
-        if ($userids && count($userids)) {
-            foreach ($rets as &$ret) {
-                $ret['profile'] = [
+        foreach ($rets as $userid => $ret) {
+            if (Utils::pres($userid, $users)) {
+                if (Utils::pres('profile', $users[$userid])) {
+                    $rets[$userid]['profile'] = $users[$userid]['profile'];
+                } else {
+                    $idsleft[] = $userid;
+                }
+            } else {
+                $idsleft[] = $userid;
+            }
+        }
+
+        if (count($idsleft)) {
+            foreach ($idsleft as $id) {
+                $rets[$id]['profile'] = [
                     'url' => 'https://' . IMAGE_DOMAIN . '/defaultprofile.png',
                     'turl' => 'https://' . IMAGE_DOMAIN . '/defaultprofile.png',
                     'default' => TRUE
@@ -1977,7 +1989,7 @@ class User extends Entity
             }
 
             # Ordering by id ASC means we'll end up with the most recent value in our output.
-            $sql = "SELECT * FROM users_images WHERE userid IN (" . implode(',', $userids) . ") ORDER BY userid, id ASC;";
+            $sql = "SELECT * FROM users_images WHERE userid IN (" . implode(',', $idsleft) . ") ORDER BY userid, id ASC;";
 
             $profiles = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
 
@@ -2005,63 +2017,94 @@ class User extends Entity
     }
 
     public function getPublicHistory($me, &$rets, $users, $groupids, $historyfull, $systemrole, $msgcoll = [ MessageCollection::APPROVED ]) {
-        $userids = array_filter(array_keys($rets));
+        $idsleft = [];
 
-        foreach ($rets as &$atts) {
-            $atts['messagehistory'] = [];
-        }
-
-        # Add in the message history - from any of the emails associated with this user.
-        #
-        # We want one entry in here for each repost, so we LEFT JOIN with the reposts table.
-        $sql = NULL;
-
-        if (count($userids)) {
-            $collq = " AND messages_groups.collection IN ('" . implode("','", $msgcoll) . "') ";
-            $earliest = $historyfull ? '1970-01-01' : date('Y-m-d', strtotime("midnight 30 days ago"));
-            $delq = $historyfull ? '' : ' AND messages_groups.deleted = 0';
-
-            if ($groupids && count($groupids) > 0) {
-                # On these groups.  Have to be a bit careful about getting the posting date as GREATEST can return NULL
-                # if one of the arguments is NULL.
-                $groupq = implode(',', $groupids);
-                $sql = "SELECT GREATEST(COALESCE(messages_postings.date, messages.arrival), COALESCE(messages_postings.date, messages.arrival)) AS postdate, (SELECT outcome FROM messages_outcomes WHERE messages_outcomes.msgid = messages.id ORDER BY timestamp DESC LIMIT 1) AS outcome, messages.fromuser, messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_groups.deleted, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) $collq AND fromuser IN (" . implode(',', $userids) . ") $delq LEFT JOIN messages_postings ON messages.id = messages_postings.msgid HAVING postdate > ? ORDER BY postdate DESC;";
-            } else if ($systemrole == User::SYSTEMROLE_SUPPORT || $systemrole == User::SYSTEMROLE_ADMIN) {
-                # We can see all groups.
-                $sql = "SELECT GREATEST(COALESCE(messages_postings.date, messages.arrival), COALESCE(messages_postings.date, messages.arrival)) AS postdate, (SELECT outcome FROM messages_outcomes WHERE messages_outcomes.msgid = messages.id ORDER BY timestamp DESC LIMIT 1) AS outcome, messages.fromuser, messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_groups.deleted, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid $collq AND fromuser IN (" . implode(',', $userids) . ") $delq LEFT JOIN messages_postings ON messages.id = messages_postings.msgid HAVING postdate > ? ORDER BY postdate DESC;";
+        foreach ($rets as $userid => $ret) {
+            if (Utils::pres($userid, $users)) {
+                if (array_key_exists('messagehistory', $users[$userid])) {
+                    $rets[$userid]['messagehistory'] = $users[$userid]['messagehistory'];
+                    $rets[$userid]['modmails'] = $users[$userid]['modmails'];
+                } else {
+                    $idsleft[] = $userid;
+                }
+            } else {
+                $idsleft[] = $userid;
             }
         }
 
-        if ($sql) {
-             $histories = $this->dbhr->preQuery($sql, [
-                $earliest
-             ]);
+        if (count($idsleft)) {
+            foreach ($rets as &$atts) {
+                $atts['messagehistory'] = [];
+            }
 
-             foreach ($rets as $userid => $ret) {
-                 foreach ($histories as $history) {
-                     if ($history['fromuser'] == $ret['id']) {
-                         $history['arrival'] = Utils::pres('repostdate', $history) ? Utils::ISODate($history['repostdate']) : Utils::ISODate($history['arrival']);
-                         $history['date'] = Utils::ISODate($history['date']);
-                         $rets[$userid]['messagehistory'][] = $history;
-                     }
-                 }
-             }
-        }
+            # Add in the message history - from any of the emails associated with this user.
+            #
+            # We want one entry in here for each repost, so we LEFT JOIN with the reposts table.
+            $sql = null;
 
-        # Add in a count of recent "modmail" type logs which a mod might care about.
-        $modships = $me ? $me->getModeratorships() : [];
-        $modships = count($modships) == 0 ? [0] : $modships;
-        $sql = "SELECT COUNT(*) AS count, userid FROM `users_modmails` WHERE userid IN (" . implode(',', $userids) . ") AND groupid IN (" . implode(',', $modships) . ") GROUP BY userid;";
-        $modmails = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
+            if (count($idsleft)) {
+                $collq = " AND messages_groups.collection IN ('" . implode("','", $msgcoll) . "') ";
+                $earliest = $historyfull ? '1970-01-01' : date('Y-m-d', strtotime("midnight 30 days ago"));
+                $delq = $historyfull ? '' : ' AND messages_groups.deleted = 0';
 
-        foreach ($userids as $userid) {
-            $rets[$userid]['modmails'] = 0;
-        }
+                if ($groupids && count($groupids) > 0) {
+                    # On these groups.  Have to be a bit careful about getting the posting date as GREATEST can return NULL
+                    # if one of the arguments is NULL.
+                    $groupq = implode(',', $groupids);
+                    $sql = "SELECT GREATEST(COALESCE(messages_postings.date, messages.arrival), COALESCE(messages_postings.date, messages.arrival)) AS postdate, (SELECT outcome FROM messages_outcomes WHERE messages_outcomes.msgid = messages.id ORDER BY timestamp DESC LIMIT 1) AS outcome, messages.fromuser, messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_groups.deleted, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) $collq AND fromuser IN (" . implode(
+                            ',',
+                            $idsleft
+                        ) . ") $delq LEFT JOIN messages_postings ON messages.id = messages_postings.msgid HAVING postdate > ? ORDER BY postdate DESC;";
+                } else {
+                    if ($systemrole == User::SYSTEMROLE_SUPPORT || $systemrole == User::SYSTEMROLE_ADMIN) {
+                        # We can see all groups.
+                        $sql = "SELECT GREATEST(COALESCE(messages_postings.date, messages.arrival), COALESCE(messages_postings.date, messages.arrival)) AS postdate, (SELECT outcome FROM messages_outcomes WHERE messages_outcomes.msgid = messages.id ORDER BY timestamp DESC LIMIT 1) AS outcome, messages.fromuser, messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_groups.deleted, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid $collq AND fromuser IN (" . implode(
+                                ',',
+                                $idsleft
+                            ) . ") $delq LEFT JOIN messages_postings ON messages.id = messages_postings.msgid HAVING postdate > ? ORDER BY postdate DESC;";
+                    }
+                }
+            }
 
-        foreach ($rets as $userid => $ret) {
-            foreach ($modmails as $modmail) {
-                if ($modmail['userid'] == $ret['id']) {
-                    $rets[$userid]['modmails'] = $modmail['count'] ? $modmail['count'] : 0;
+            if ($sql) {
+                $histories = $this->dbhr->preQuery(
+                    $sql,
+                    [
+                        $earliest
+                    ]
+                );
+
+                foreach ($rets as $userid => $ret) {
+                    foreach ($histories as $history) {
+                        if ($history['fromuser'] == $ret['id']) {
+                            $history['arrival'] = Utils::pres('repostdate', $history) ? Utils::ISODate(
+                                $history['repostdate']
+                            ) : Utils::ISODate($history['arrival']);
+                            $history['date'] = Utils::ISODate($history['date']);
+                            $rets[$userid]['messagehistory'][] = $history;
+                        }
+                    }
+                }
+            }
+
+            # Add in a count of recent "modmail" type logs which a mod might care about.
+            $modships = $me ? $me->getModeratorships() : [];
+            $modships = count($modships) == 0 ? [0] : $modships;
+            $sql = "SELECT COUNT(*) AS count, userid FROM `users_modmails` WHERE userid IN (" . implode(
+                    ',',
+                    $idsleft
+                ) . ") AND groupid IN (" . implode(',', $modships) . ") GROUP BY userid;";
+            $modmails = $this->dbhr->preQuery($sql, null, false, false);
+
+            foreach ($idsleft as $userid) {
+                $rets[$userid]['modmails'] = 0;
+            }
+
+            foreach ($rets as $userid => $ret) {
+                foreach ($modmails as $modmail) {
+                    if ($modmail['userid'] == $ret['id']) {
+                        $rets[$userid]['modmails'] = $modmail['count'] ? $modmail['count'] : 0;
+                    }
                 }
             }
         }
@@ -2143,49 +2186,74 @@ class User extends Entity
         }
     }
 
-    public function getPublicApplied(&$rets, $me, $freeglemod, $applied, $systemrole) {
-        $userids = array_keys($rets);
-
+    public function getPublicApplied(&$rets, $users, $applied, $systemrole) {
         if ($applied &&
             $systemrole == User::ROLE_MODERATOR ||
             $systemrole == User::SYSTEMROLE_ADMIN ||
             $systemrole == User::SYSTEMROLE_SUPPORT
         ) {
-            # As well as being a member of a group, they might have joined and left, or applied and been rejected.
-            # This is useful info for moderators.
-            $sql = "SELECT DISTINCT memberships_history.*, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships_history INNER JOIN groups ON memberships_history.groupid = groups.id WHERE userid IN (" . implode(',', $userids) . ") AND DATEDIFF(NOW(), added) <= 31 AND groups.publish = 1 AND groups.onmap = 1 ORDER BY added DESC;";
-            $membs = $this->dbhr->preQuery($sql);
+            $idsleft = [];
 
-            foreach ($rets as &$ret) {
-                $ret['applied'] = [];
-                $ret['activedistance'] = NULL;
+            foreach ($rets as $userid => $ret) {
+                if (Utils::pres($userid, $users)) {
+                    if (array_key_exists('applied', $users[$userid])) {
+                        $rets[$userid]['applied'] = $users[$userid]['applied'];
+                        $rets[$userid]['activedistance'] = $users[$userid]['activedistance'];
+                    } else {
+                        $idsleft[] = $userid;
+                    }
+                } else {
+                    $idsleft[] = $userid;
+                }
+            }
 
-                foreach ($membs as $memb) {
-                    if ($ret['id'] == $memb['userid']) {
-                        $name = $memb['namefull'] ? $memb['namefull'] : $memb['nameshort'];
-                        $memb['namedisplay'] = $name;
-                        $memb['added'] = Utils::ISODate($memb['added']);
-                        $memb['id'] = $memb['groupid'];
-                        unset($memb['groupid']);
+            if (count($idsleft)) {
+                # As well as being a member of a group, they might have joined and left, or applied and been rejected.
+                # This is useful info for moderators.
+                $sql = "SELECT DISTINCT memberships_history.*, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships_history INNER JOIN groups ON memberships_history.groupid = groups.id WHERE userid IN (" . implode(
+                        ',',
+                        $idsleft
+                    ) . ") AND DATEDIFF(NOW(), added) <= 31 AND groups.publish = 1 AND groups.onmap = 1 ORDER BY added DESC;";
+                $membs = $this->dbhr->preQuery($sql);
 
-                        if ($memb['lat'] && $memb['lng']) {
-                            $box = Utils::presdef('activearea', $ret, NULL);
+                foreach ($rets as &$ret) {
+                    $ret['applied'] = [];
+                    $ret['activedistance'] = null;
 
-                            $box = [
-                                'swlat' => $box == NULL ? $memb['lat'] : min($memb['lat'], $box['swlat']),
-                                'swlng' => $box == NULL ? $memb['lng'] : min($memb['lng'], $box['swlng']),
-                                'nelng' => $box == NULL ? $memb['lng'] : max($memb['lng'], $box['nelng']),
-                                'nelat' => $box == NULL ? $memb['lat'] : max($memb['lat'], $box['nelat'])
-                            ];
+                    foreach ($membs as $memb) {
+                        if ($ret['id'] == $memb['userid']) {
+                            $name = $memb['namefull'] ? $memb['namefull'] : $memb['nameshort'];
+                            $memb['namedisplay'] = $name;
+                            $memb['added'] = Utils::ISODate($memb['added']);
+                            $memb['id'] = $memb['groupid'];
+                            unset($memb['groupid']);
 
-                            $ret['activearea'] = $box;
+                            if ($memb['lat'] && $memb['lng']) {
+                                $box = Utils::presdef('activearea', $ret, null);
 
-                            if ($box) {
-                                $ret['activedistance'] = round(Location::getDistance($box['swlat'], $box['swlng'], $box['nelat'], $box['nelng']));
+                                $box = [
+                                    'swlat' => $box == null ? $memb['lat'] : min($memb['lat'], $box['swlat']),
+                                    'swlng' => $box == null ? $memb['lng'] : min($memb['lng'], $box['swlng']),
+                                    'nelng' => $box == null ? $memb['lng'] : max($memb['lng'], $box['nelng']),
+                                    'nelat' => $box == null ? $memb['lat'] : max($memb['lat'], $box['nelat'])
+                                ];
+
+                                $ret['activearea'] = $box;
+
+                                if ($box) {
+                                    $ret['activedistance'] = round(
+                                        Location::getDistance(
+                                            $box['swlat'],
+                                            $box['swlng'],
+                                            $box['nelat'],
+                                            $box['nelng']
+                                        )
+                                    );
+                                }
                             }
-                        }
 
-                        $ret['applied'][] = $memb;
+                            $ret['applied'][] = $memb;
+                        }
                     }
                 }
             }
@@ -2499,8 +2567,8 @@ class User extends Entity
         $rets = [];
 
         $this->getPublicAtts($rets, $users, $me);
-        $this->getPublicProfiles($rets);
-        $this->getSupporters($rets);
+        $this->getPublicProfiles($rets, $users);
+        $this->getSupporters($rets, $users);
 
         if ($systemrole == User::ROLE_MODERATOR || $systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT) {
             $this->getPublicEmails($rets);
@@ -2512,7 +2580,7 @@ class User extends Entity
 
         if (Session::modtools()) {
             $this->getPublicMemberOf($rets, $me, $freeglemod, $memberof, $systemrole);
-            $this->getPublicApplied($rets, $me, $freeglemod, $applied, $systemrole);
+            $this->getPublicApplied($rets, $users, $applied, $systemrole);
             $this->getPublicSpammer($rets, $me, $systemrole);
 
             if ($comments) {
@@ -4240,14 +4308,21 @@ class User extends Entity
 
     public function getPublicLocations(&$users, $atts = NULL)
     {
-        $userids = array_filter(array_column($users, 'id'));
+        $idsleft = [];
+        
+        foreach ($users as $userid => $user) {
+            if (!Utils::pres('info', $user) || !Utils::pres('publiclocation', $user['info'])) {
+                $idsleft[] = $userid;
+            }
+        }
+        
         $areas = NULL;
         $groups = NULL;
         $membs = NULL;
 
-        if ($userids && count($userids)) {
+        if ($idsleft && count($idsleft)) {
             # First try to get the location from settings or last location.
-            $atts = $atts ? $atts : $this->dbhr->preQuery("SELECT id, settings, lastlocation FROM users WHERE id in (" . implode(',', $userids) . ");", NULL, FALSE, FALSE);
+            $atts = $atts ? $atts : $this->dbhr->preQuery("SELECT id, settings, lastlocation FROM users WHERE id in (" . implode(',', $idsleft) . ");", NULL, FALSE, FALSE);
 
             foreach ($atts as $att) {
                 $loc = NULL;
@@ -4283,7 +4358,7 @@ class User extends Entity
                         $areas = $this->dbhr->preQuery("SELECT l2.id, l2.name, l2.lat, l2.lng, users.id AS userid FROM locations l1 
                             INNER JOIN users ON users.lastlocation = l1.id
                             INNER JOIN locations l2 ON l2.id = l1.areaid
-                            WHERE users.id IN (" . implode(',', $userids) . ");", NULL, FALSE, FALSE);
+                            WHERE users.id IN (" . implode(',', $idsleft) . ");", NULL, FALSE, FALSE);
                     }
 
                     foreach ($areas as $area) {
@@ -4307,7 +4382,7 @@ class User extends Entity
                     if (!$membs) {
                         $sql = "SELECT memberships.userid, groups.id, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid IN (" . implode(
                                 ',',
-                                $userids
+                                $idsleft
                             ) . ") ORDER BY added ASC;";
                         $membs = $this->dbhr->preQuery($sql);
                     }
@@ -4340,19 +4415,19 @@ class User extends Entity
                         'groupname' => $grp
                     ];
 
-                    $userids = array_filter($userids, function($val) use ($att) {
+                    $idsleft = array_filter($idsleft, function($val) use ($att) {
                         return($val != $att['id']);
                     });
                 }
             }
 
-            if (count($userids) > 0) {
+            if (count($idsleft) > 0) {
                 # We have some left which don't have explicit postcodes.  Try for a group name.
                 #
                 # First check the group we used most recently.
                 #error_log("Look for group name only for {$att['id']}");
                 $found = [];
-                foreach ($userids as $userid) {
+                foreach ($idsleft as $userid) {
                     $messages = $this->dbhr->preQuery("SELECT subject FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE fromuser = ? ORDER BY messages.arrival DESC LIMIT 1;", [
                         $userid
                     ]);
@@ -4375,19 +4450,19 @@ class User extends Entity
                     }
                 }
 
-                $userids = array_diff($userids, $found);
+                $idsleft = array_diff($idsleft, $found);
                 
                 # Now check just membership.
-                if (count($userids)) {
+                if (count($idsleft)) {
                     if (!$membs) {
                         $sql = "SELECT memberships.userid, groups.id, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid IN (" . implode(
                                 ',',
-                                $userids
+                                $idsleft
                             ) . ") ORDER BY added ASC;";
                         $membs = $this->dbhr->preQuery($sql);
                     }
                     
-                    foreach ($userids as $userid) {
+                    foreach ($idsleft as $userid) {
                         # Now check the group we joined most recently.
                         foreach ($membs as $memb) {
                             if ($memb['userid'] == $userid) {
@@ -6199,45 +6274,70 @@ memberships.groupid IN $groupq
         return $ret;
     }
 
-    public function getSupporters(&$rets) {
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+    public function getSupporters(&$rets, $users) {
+        $idsleft = [];
 
-        # A supporter is someone who has donated recently, or done microvolunteering recently.
-        $userids = array_filter(array_keys($rets));
-
-        if (count($userids)) {
-            $start = date('Y-m-d', strtotime("60 days ago"));
-            $info = $this->dbhr->preQuery("SELECT DISTINCT userid, settings FROM microactions INNER JOIN users ON users.id = microactions.userid WHERE microactions.timestamp >= ? AND microactions.userid IN (" . implode(',', $userids) .");", [
-                $start
-            ]);
-
-            $found = [];
-
-            foreach ($info as $i) {
-                $rets[$i['userid']]['supporter'] = $this->checkSupporterSettings($i['settings']);
-                $found[] = $i['userid'];
+        foreach ($rets as $userid => $ret) {
+            if (Utils::pres($userid, $users)) {
+                if (array_key_exists('supporter', $users[$userid])) {
+                    $rets[$userid]['supporter'] = $users[$userid]['supporter'];
+                    $rets[$userid]['donor'] = Utils::presdef('donor', $users[$userid], FALSE);
+                }
+            } else {
+                $idsleft[] = $userid;
             }
+        }
 
-            $left = array_diff($userids, $found);
+        if (count($idsleft)) {
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
+            $myid = $me ? $me->getId() : null;
 
-            # If we are one of the users, then we want to return whether we are a donor.
-            if (in_array($myid, $userids)) {
-                $left[] = $myid;
-                $left = array_filter(array_unique($left));
-            }
+            # A supporter is someone who has donated recently, or done microvolunteering recently.
+            if (count($idsleft)) {
+                $start = date('Y-m-d', strtotime("60 days ago"));
+                $info = $this->dbhr->preQuery(
+                    "SELECT DISTINCT userid, settings FROM microactions INNER JOIN users ON users.id = microactions.userid WHERE microactions.timestamp >= ? AND microactions.userid IN (" . implode(
+                        ',',
+                        $idsleft
+                    ) . ");",
+                    [
+                        $start
+                    ]
+                );
 
-            if (count($left)) {
-                $info = $this->dbhr->preQuery("SELECT userid, settings FROM users_donations INNER JOIN users ON users_donations.userid = users.id WHERE users_donations.timestamp >= ? AND users_donations.userid IN (" . implode(',', $left) . ");", [
-                    $start
-                ]);
+                $found = [];
 
                 foreach ($info as $i) {
                     $rets[$i['userid']]['supporter'] = $this->checkSupporterSettings($i['settings']);
+                    $found[] = $i['userid'];
+                }
 
-                    if ($i['userid'] == $myid) {
-                        # Only return this info for ourselves, otherwise it's a privacy leak.
-                        $rets[$i['userid']]['donor'] = TRUE;
+                $left = array_diff($idsleft, $found);
+
+                # If we are one of the users, then we want to return whether we are a donor.
+                if (in_array($myid, $idsleft)) {
+                    $left[] = $myid;
+                    $left = array_filter(array_unique($left));
+                }
+
+                if (count($left)) {
+                    $info = $this->dbhr->preQuery(
+                        "SELECT userid, settings FROM users_donations INNER JOIN users ON users_donations.userid = users.id WHERE users_donations.timestamp >= ? AND users_donations.userid IN (" . implode(
+                            ',',
+                            $left
+                        ) . ");",
+                        [
+                            $start
+                        ]
+                    );
+
+                    foreach ($info as $i) {
+                        $rets[$i['userid']]['supporter'] = $this->checkSupporterSettings($i['settings']);
+
+                        if ($i['userid'] == $myid) {
+                            # Only return this info for ourselves, otherwise it's a privacy leak.
+                            $rets[$i['userid']]['donor'] = true;
+                        }
                     }
                 }
             }
