@@ -1413,10 +1413,12 @@ ORDER BY lastdate DESC;";
                 foreach ($rets[$msg['id']]['groups'] as $group) {
                     $grouparrival = strtotime($group['arrival']);
                     $grouparrivalago = floor((time() - $grouparrival) / 86400);
+                    $expiretime = Utils::presdef('expiretime', $rets[$msg['id']], 90);
+                    $expiredat = Utils::ISODate('@' . (strtotime($group['arrival']) + $rets[$msg['id']]['expiretime'] * 86400));
+                    $rets[$msg['id']]['expiresat'] = $expiredat;
 
-                    if ($grouparrivalago > Utils::presdef('expiretime', $rets[$msg['id']], 0)) {
+                    if ($grouparrivalago > $expiretime) {
                         # Assume anything this old is no longer available.
-                        $expiredat = Utils::ISODate('@' . (strtotime($group['arrival']) + $rets[$msg['id']]['expiretime'] * 86400));
 
                         $rets[$msg['id']]['outcomes'] = [
                             [
