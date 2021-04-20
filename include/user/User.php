@@ -38,7 +38,7 @@ class User extends Entity
 
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'ripaconsent', 'bouncing', 'added', 'invitesleft', 'onholidaytill');
+    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'newslettersallowed', 'relevantallowed', 'publishconsent', 'bouncing', 'added', 'invitesleft', 'onholidaytill');
 
     # Roles on specific groups
     const ROLE_NONMEMBER = 'Non-member';
@@ -230,11 +230,6 @@ class User extends Entity
                     $s = new Session($this->dbhr, $this->dbhm);
                     $s->create($this->id);
 
-                    # Anyone who has logged in to our site has given RIPA consent.
-                    $this->dbhm->preExec("UPDATE users SET ripaconsent = 1 WHERE id = ?;",
-                        [
-                            $this->id
-                        ]);
                     User::clearCache($this->id);
 
                     $l = new Log($this->dbhr, $this->dbhm);
@@ -4822,7 +4817,6 @@ class User extends Entity
         $d['When_you_joined_the_site'] = Utils::ISODate($this->getPrivate('added'));
         $d['When_you_last_accessed_the_site'] = Utils::ISODate($this->getPrivate('lastaccess'));
         $d['When_we_last_checked_for_relevant_posts_for_you'] = Utils::ISODate($this->getPrivate('lastrelevantcheck'));
-        $d['Whether_we_can_scan_your_messages_to_protect_other_users'] = $this->getPrivate('ripaconsent') ? 'Yes' : 'No';
         $d['Whether_we_can_publish_your_posts_outside_the_site'] = $this->getPrivate('publishconsent') ? 'Yes' : 'No';
         $d['Whether_your_email_is_bouncing'] = $this->getPrivate('bouncing') ? 'Yes' : 'No';
         $d['Permissions_you_have_on_the_site'] = $this->getPrivate('permissions');

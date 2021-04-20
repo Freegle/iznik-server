@@ -150,11 +150,6 @@ class Yahoo
                             $s = new Session($this->dbhr, $this->dbhm);
                             $s->create($id);
 
-                            # Anyone who has logged in to our site has given RIPA consent.
-                            $this->dbhm->preExec("UPDATE users SET ripaconsent = 1 WHERE id = ?;",
-                                [
-                                    $id
-                                ]);
                             User::clearCache($id);
 
                             $l = new Log($this->dbhr, $this->dbhm);
@@ -267,11 +262,6 @@ class Yahoo
                     $s = new Session($this->dbhr, $this->dbhm);
                     $s->create($id);
 
-                    # Anyone who has logged in to our site has given RIPA consent.
-                    $this->dbhm->preExec("UPDATE users SET ripaconsent = 1 WHERE id = ?;",
-                        [
-                            $id
-                        ]);
                     User::clearCache($id);
 
                     $l = new Log($this->dbhr, $this->dbhm);
