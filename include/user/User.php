@@ -5737,10 +5737,6 @@ class User extends Entity
         return($ret);
     }
 
-    public function getRating() {
-        return($this->getRatings([$this->id])[$this->id]);
-    }
-
     public function getRatings($uids) {
         $mysqltime = date("Y-m-d", strtotime("Midnight 182 days ago"));
         $ret = [];
@@ -5863,7 +5859,7 @@ class User extends Entity
                 $loc = Utils::presdef('location', $job, '');
                 $title = "{$job['title']}" . ($loc !== ' ' ? " ($loc)" : '');
 
-                # Direct link to job to increase click conversions.
+                # Link via our site to avoid spam trap warnings.
                 $url = "https://" . USER_SITE . "/job/{$job['id']}";
                 $ret .= '<a href="' . $url . '" target="_blank">' . htmlentities($title) . '</a><br />';
             }

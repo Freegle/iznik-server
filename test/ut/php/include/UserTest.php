@@ -1211,6 +1211,8 @@ class userTest extends IznikTestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create('Test', 'User', 'Test User');
 
+        assertEquals('+441234567890', $u->formatPhone('01234 567890'));
+
         $u->addPhone('01234 567890');
         $u->sms('Test message', 'https://' . USER_SITE, TWILIO_TEST_FROM, TWILIO_TEST_SID, TWILIO_TEST_AUTHTOKEN);
 
@@ -1221,8 +1223,7 @@ class userTest extends IznikTestCase {
         $u->removePhone();
         assertNotNull($u->addPhone('+15005550001'));
         $u->sms('Test message', 'https://' . USER_SITE, TWILIO_TEST_FROM, TWILIO_TEST_SID, TWILIO_TEST_AUTHTOKEN);
-
-        }
+    }
 
     public function testKudos() {
         $g = Group::get($this->dbhm, $this->dbhm);
@@ -1538,6 +1539,22 @@ class userTest extends IznikTestCase {
         assertEquals('+447888888888' ,$u->formatPhone('+4407888888888'));
         assertEquals('+447888888888' ,$u->formatPhone('07888888888'));
         assertEquals('+447888888888' ,$u->formatPhone('+440447888888888'));
+    }
+
+    public function testJobAds() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', 'Test User');
+
+        $settings = [
+            'mylocation' => [
+                'lat' => 8.51111,
+                'lng' => 179.11111
+            ],
+        ];
+
+        $u->setPrivate('settings', json_encode($settings));
+        $jobs = $u->getJobAds();
+        assertGreaterThan(0, count($jobs));
     }
 }
 
