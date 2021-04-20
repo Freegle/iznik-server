@@ -34,6 +34,5 @@ class donationsAPITest extends IznikAPITestCase
         $ret = $this->call('donations', 'GET', []);
         assertEquals(0, $ret['ret']);
         assertTrue(array_key_exists('donations', $ret));
-
-        }
+    }
 }

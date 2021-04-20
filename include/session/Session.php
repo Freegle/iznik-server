@@ -151,6 +151,7 @@ class Session {
             $r = User::get($dbhr, $dbhm, $id);
 
             if ($r->getId() == $id) {
+                #error_log("Return cached user $id");
                 $ret = $r;
             }
             #error_log("Found " . $ret->getId() . " role " . $ret->isModerator());

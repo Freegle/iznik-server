@@ -6336,7 +6336,7 @@ memberships.groupid IN $groupq
 
                         if ($i['userid'] == $myid) {
                             # Only return this info for ourselves, otherwise it's a privacy leak.
-                            $rets[$i['userid']]['donor'] = true;
+                            $rets[$i['userid']]['donor'] = TRUE;
                         }
                     }
                 }

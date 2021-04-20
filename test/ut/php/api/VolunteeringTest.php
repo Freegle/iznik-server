@@ -123,6 +123,10 @@ class volunteeringAPITest extends IznikAPITestCase {
         $this->user2->addMembership($this->groupid, User::ROLE_MODERATOR);
         assertTrue($this->user2->login('testpw'));
 
+        $ret = $this->call('session', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, $ret['work']['pendingvolunteering']);
+
         # Edit it
         $ret = $this->call('volunteering', 'PATCH', [
             'id' => $id,
@@ -276,6 +280,73 @@ class volunteeringAPITest extends IznikAPITestCase {
         ]);
 
         assertFalse(array_key_exists('heldby', $ret['volunteering']));
+    }
+
+    public function testNational() {
+        assertTrue($this->user->login('testpw'));
+
+        $ret = $this->call('volunteering', 'POST', [
+            'title' => 'UTTest',
+            'location' => 'UTTest',
+            'description' => 'UTTest',
+        ]);
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+        assertNotNull($id);
+        $this->log("Created event $id");
+
+        # Add date
+        $ret = $this->call('volunteering', 'PATCH', [
+            'id' => $id,
+            'start' => Utils::ISODate('@' . strtotime('next wednesday 2pm')),
+            'end' => Utils::ISODate('@' . strtotime('next wednesday 4pm')),
+            'action' => 'AddDate'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Log in as the mod
+        $this->user2->addMembership($this->groupid, User::ROLE_MODERATOR);
+        assertTrue($this->user2->login('testpw'));
+
+        # Shouldn't show as we don't have national permission.
+        $ret = $this->call('session', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, $ret['work']['pendingvolunteering']);
+    }
+
+    public function testNational2() {
+        assertTrue($this->user->login('testpw'));
+
+        $ret = $this->call('volunteering', 'POST', [
+            'title' => 'UTTest',
+            'location' => 'UTTest',
+            'description' => 'UTTest',
+        ]);
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+        assertNotNull($id);
+        $this->log("Created event $id");
+
+        # Add date
+        $ret = $this->call('volunteering', 'PATCH', [
+            'id' => $id,
+            'start' => Utils::ISODate('@' . strtotime('next wednesday 2pm')),
+            'end' => Utils::ISODate('@' . strtotime('next wednesday 4pm')),
+            'action' => 'AddDate'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Log in as the mod
+        $this->user2->setPrivate('permissions', User::PERM_NATIONAL_VOLUNTEERS . "," . User::PERM_GIFTAID);
+        $this->user2->addMembership($this->groupid, User::ROLE_MODERATOR);
+        assertTrue($this->user2->login('testpw'));
+
+        $ret = $this->call('session', 'GET', [
+            'components' => [ 'work' ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, $ret['work']['pendingvolunteering']);
+        assertEquals(0, $ret['work']['giftaid']);
     }
 }
 

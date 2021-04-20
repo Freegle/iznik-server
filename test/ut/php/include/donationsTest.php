@@ -61,6 +61,9 @@ class donationsTest extends IznikTestCase {
         $gid = $d->setGiftAid($id, Donations::PERIOD_SINCE, 'Test User', 'Nowheresville');
         $d->editGiftAid($gid, NULL, NULL, NULL, NULL, NULL, TRUE, FALSE);
 
+        $_SESSION['id'] = $id;
+        assertTrue($u->getPublic()['donor']);
+
         # All three have consent
         assertEquals(3, $d->identifyGiftAidedDonations($gid));
 
