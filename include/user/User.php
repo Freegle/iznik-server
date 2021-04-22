@@ -1907,7 +1907,16 @@ class User extends Entity
                 $rets[$user['id']][$att] = Utils::presdef($att, $user, NULL);
             }
 
-            $rets[$user['id']]['settings'] = Utils::presdef('settings', $user, NULL) ? json_decode($user['settings'], TRUE) : ['dummy' => TRUE];
+            $rets[$user['id']]['settings'] = ['dummy' => TRUE];
+
+            if (Utils::presdef('settings', $user, NULL)) {
+                # This is a bit of a type guddle.
+                if (gettype($user['settings']) == 'string') {
+                    $rets[$user['id']]['settings'] = json_decode($user['settings'], TRUE);
+                } else {
+                    $rets[$user['id']]['settings'] = $user['settings'];
+                }
+            }
 
             if (Utils::pres('mylocation', $rets[$user['id']]['settings']) && Utils::pres('groupsnear', $rets[$user['id']]['settings']['mylocation'])) {
                 # This is large - no need for it.
@@ -1921,7 +1930,7 @@ class User extends Entity
 
             $rets[$user['id']]['displayname'] = $this->getName(TRUE, $user);
 
-            $rets[$user['id']]['added'] = Utils::ISODate($user['added']);
+            $rets[$user['id']]['added'] = array_key_exists('added', $user) ? Utils::ISODate($user['added']) : NULL;
 
             foreach (['fullname', 'firstname', 'lastname'] as $att) {
                 # Make sure we don't return an email if somehow one has snuck in.

@@ -284,6 +284,18 @@ class userTest extends IznikTestCase {
         $this->log("Applied " . var_export($atts['applied'], TRUE));
         assertEquals(1, count($atts['applied']));
 
+        # Get again for coverage.
+        $users = [
+            $u->getId() => [
+                'id' => $u->getId()
+            ],
+        ];
+
+        $rets = $u->getPublics($users);
+        assertEquals(1, count($rets[$u->getId()]['applied']));
+        $rets2 = $u->getPublics($rets);
+        assertEquals(1, count($rets2[$u->getId()]['applied']));
+
         $u->setRole(User::ROLE_MODERATOR, $group1);
         # We had a problem preserving the emails off setting - test here.
         $u->setMembershipAtt($group1, 'emailfrequency', 0);
@@ -370,8 +382,10 @@ class userTest extends IznikTestCase {
         $u2->addMembership($group2, User::ROLE_OWNER);
         $u1->addMembership($group3, User::ROLE_MEMBER);
         $u2->addMembership($group3, User::ROLE_MODERATOR);
-        $settings = [ 'test' => 1];
+        $settings = [ 'test' => 1 ];
+        $u2->setGroupSettings($group1, $settings);
         $u2->setGroupSettings($group2, $settings);
+        error_log("Set setting for {$u2->getId()} on $group2");
         $u1->clearMembershipCache();
         assertEquals([ 'active' => 1, 'pushnotify' => 1, 'showchat' => 1, 'eventsallowed' => 1, 'volunteeringallowed' => 1], $u1->getGroupSettings($group2));
 
@@ -396,6 +410,7 @@ class userTest extends IznikTestCase {
 
         # We should get the group back and a default config.
         $this->log("Check settings for $id2 on $group2");
+        assertEquals(1, $u2->getGroupSettings($group1)['test'] );
         assertEquals(1, $u2->getGroupSettings($group2)['test'] );
         assertNotNull($u2->getGroupSettings($group2)['configid']);
 
