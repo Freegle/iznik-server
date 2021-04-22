@@ -46,7 +46,8 @@ if ($transaction['mc_gross'] > 0) {
         $transaction['txn_id'],
         $transaction['mc_gross'],
         $eid,
-        date("Y-m-d H:i:s", strtotime($transaction['payment_date']))
+        date("Y-m-d H:i:s", strtotime($transaction['payment_date'])),
+        $transaction['txn_type']
     );
 
     $giftaid = $d->getGiftAid($u->getId());

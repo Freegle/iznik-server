@@ -16,14 +16,15 @@ class Donations
         $this->groupid = $groupid;
     }
 
-    public function add($eid, $email, $name, $date, $txnid, $gross) {
-        $this->dbhm->preExec("INSERT INTO users_donations (userid, Payer, PayerDisplayName, timestamp, TransactionID, GrossAmount) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE userid = ?, timestamp = ?;", [
+    public function add($eid, $email, $name, $date, $txnid, $gross, $type = NULL) {
+        $this->dbhm->preExec("INSERT INTO users_donations (userid, Payer, PayerDisplayName, timestamp, TransactionID, GrossAmount, TransactionType) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE userid = ?, timestamp = ?;", [
             $eid,
             $email,
             $name,
             $date,
             $txnid,
             $gross,
+            $type,
             $eid,
             $date
         ]);
