@@ -34,6 +34,7 @@ class Bounce
             'delivery temporarily suspended',
             'Trop de connexions',
             'found on industry URI blacklists',
+            'This message has been blocked',
             'is listed'
                  ] as $err) {
             if (stripos($code, $err) !== FALSE) {
