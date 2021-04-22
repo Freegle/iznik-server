@@ -175,9 +175,9 @@ class Dashboard {
         }
 
         # And the total successful outcomes per month.
-        $startq = date("Y-m-01", strtotime($start));
-        $endq = date("Y-m-01", strtotime($end));
-        $ret['OutcomesPerMonth'] = $this->dbhr->preQuery("SELECT * FROM stats_outcomes WHERE groupid IN (" . implode(',', $groupids) . ") AND date >= ? AND date <= ?;", [
+        $startq = date("Y-m", strtotime($start));
+        $endq = date("Y-m", strtotime($end));
+        $ret['OutcomesPerMonth'] = $this->dbhr->preQuery("SELECT * FROM stats_outcomes WHERE groupid IN (" . implode(',', $groupids) . ") AND date >= ? AND date < ?;", [
             $startq,
             $endq
         ]);
