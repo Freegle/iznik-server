@@ -2255,11 +2255,17 @@ ORDER BY lastdate DESC;";
             }
         }
 
+        if ($this->htmlbody && !$this->textbody) {
+            $html = new \Html2Text\Html2Text($this->htmlbody);
+            $this->textbody = $html->getText();
+        }
+
         $this->textbody = $this->stripSigs($this->textbody);
         $this->textbody = $this->scrapePhotos();
 
         # If this is a reuse group, we need to determine the type.
         $g = Group::get($this->dbhr, $this->dbhm, $this->groupid);
+
         if ($g->getPrivate('type') == Group::GROUP_FREEGLE ||
             $g->getPrivate('type') == Group::GROUP_REUSE
         ) {
@@ -3221,14 +3227,7 @@ ORDER BY lastdate DESC;";
     public function stripQuoted() {
         # Try to get the text we care about by stripping out quoted text.  This can't be
         # perfect - quoting varies and it's a well-known hard problem.
-        $htmlbody = $this->getHtmlbody();
         $textbody = $this->getTextbody();
-
-        if ($htmlbody && !$textbody) {
-            $html = new \Html2Text\Html2Text($htmlbody);
-            $textbody = $html->getText();
-            #error_log("Converted HTML text $textbody");
-        }
 
         # Convert unicode spaces to ascii spaces
         $textbody = str_replace("\xc2\xa0", "\x20", $textbody);

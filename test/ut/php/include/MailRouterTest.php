@@ -1261,6 +1261,21 @@ class MailRouterTest extends IznikTestCase {
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
     }
 
+    public function testVolsHtmlOnly()
+    {
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create("testgroup", Group::GROUP_REUSE);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/htmlonly'));
+        $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-volunteers@' . GROUP_DOMAIN, $msg);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route($m);
+        assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
+        assertEquals("Hey.", $m->getTextbody());
+    }
+
     public function testSubMailUnsub() {
         # Subscribe
         # Post by email when not a member.
