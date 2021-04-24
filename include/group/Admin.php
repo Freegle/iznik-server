@@ -88,7 +88,7 @@ class Admin extends Entity
     public function process($id = NULL, $force = FALSE, $gently = FALSE) {
         $done = 0;
         $idq = $id ? " id = $id AND " : '';
-        $sql = "SELECT * FROM admins WHERE $idq complete IS NULL AND pending = 0;";
+        $sql = "SELECT * FROM admins WHERE $idq complete IS NULL AND pending = 0 LIMIT 1;";
         $admins = $this->dbhr->preQuery($sql);
 
         foreach ($admins as $admin) {
@@ -96,6 +96,7 @@ class Admin extends Entity
 
             if ($force || ($g->getPrivate('onhere') && $g->getPrivate('publish') && !$g->getPrivate('external'))) {
                 $a = new Admin($this->dbhr, $this->dbhm, $admin['id']);
+                error_log($g->getPrivate('nameshort') . " " . $a->getPrivate('subject'));
                 $done += $a->mailMembers($gently);
                 $this->dbhm->preExec("UPDATE admins SET complete = NOW() WHERE id = ?;", [$admin['id']]);
             }
@@ -128,14 +129,16 @@ class Admin extends Entity
 
         $sql = "SELECT userid FROM memberships WHERE groupid = ? $userq;";
         $members = $this->dbhr->preQuery($sql, [ $groupid ]);
+        $skipped = 0;
 
         foreach ($members as $member) {
             $u = User::get($this->dbhr, $this->dbhm, $member['userid']);
 
             $lastaccess = strtotime("@" . (time() - Engage::USER_INACTIVE));
 
-            if ($this->admin['activeonly'] && strtotime($u->getPrivate('lastaccess') < $lastaccess)) {
+            if ($this->admin['activeonly'] && strtotime($u->getPrivate('lastaccess')) < $lastaccess) {
                 # Not active recently - we want to skip this one.
+                $skipped++;
                 continue;
             }
 
@@ -188,6 +191,8 @@ class Admin extends Entity
                 }
             }
         }
+
+        error_log("Sent $done skipped $skipped of " . count($members));
 
         return($done);
     }
