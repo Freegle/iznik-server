@@ -973,6 +973,7 @@ class Newsfeed extends Entity
 
             # Find the groups that we're an active mod on.
             $feeds = [];
+            $feedids = [];
             $groups = $mod->getModeratorships();
 
             foreach ($groups as $groupid) {
@@ -990,8 +991,13 @@ class Newsfeed extends Entity
                         $userid
                     ]);
 
+                    foreach ($thislot as $thisone) {
+                        if (!array_key_exists($thisone['id'], $feedids)) {
+                            $feedids[$thisone['id']] = TRUE;
+                            $feeds[] = $thisone;
+                        }
+                    }
                     #error_log("Active mod for $groupid found " . count($thislot) . " from $sql, $start, $lastseen, $groupid");
-                    $feeds = array_merge($feeds, $thislot);
                 }
             }
 
