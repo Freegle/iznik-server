@@ -77,7 +77,7 @@ class WorryWords {
                 }
             }
 
-            $words = preg_split("/[\s,]+/", $scan);
+            $words = preg_split("/\b/", $scan);
 
             foreach ($words as $word) {
                 foreach ($this->words as $worryword) {

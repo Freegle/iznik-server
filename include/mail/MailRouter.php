@@ -632,11 +632,12 @@ class MailRouter
                                 $ret = MailRouter::DROPPED;
 
                                 # Check the message for worry words.
-                                $w = new WorryWords($this->dbhr, $this->dbhm, $group['groupid']);
-                                $worry = $w->checkMessage($this->msg->getID(), $this->msg->getFromuser(), $this->msg->getSubject(), $this->msg->getTextbody());
-
                                 foreach ($groups as $group) {
+                                    $w = new WorryWords($this->dbhr, $this->dbhm, $group['groupid']);
+                                    $worry = $w->checkMessage($this->msg->getID(), $this->msg->getFromuser(), $this->msg->getSubject(), $this->msg->getTextbody());
+
                                     $appmemb = $u->isApprovedMember($group['groupid']);
+                                    error_log("Worry on {$group['groupid']} for {$this->msg->getTextBody()}" . json_encode($worry));
 
                                     if ($appmemb && $worry) {
                                         if ($log) { error_log("Worrying => spam"); }
