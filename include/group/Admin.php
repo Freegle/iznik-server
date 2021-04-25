@@ -2,8 +2,6 @@
 namespace Freegle\Iznik;
 
 
-require_once(IZNIK_BASE . '/mailtemplates/admin.php');
-
 class Admin extends Entity
 {
     const SPOOLERS = 10;
@@ -66,7 +64,18 @@ class Admin extends Entity
         $subject = str_replace('ADMIN: ', '', $subject);
         $subject = str_replace('ADMIN ', '', $subject);
 
-        $html = admin_tpl($groupname, $toname, $to, 'https://' . USER_SITE, USERLOGO, $subject, nl2br($text), $post, $unsubscribe, $visit);
+        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/');
+        $twig = new \Twig_Environment($loader);
+
+        $html = $twig->render('admin.html', [
+            'email' => $to,
+            'visit' => $visit,
+            'subject' => "ADMIN: $subject",
+            'textbody' => $text,
+            'groupname' => $groupname,
+            'unsubscribe' => "https://" . USER_SITE . "/unsubscribe"
+        ]);
+
         $message = \Swift_Message::newInstance()
             ->setSubject("ADMIN: $subject")
             ->setFrom([$from => "$groupname Volunteers" ])
