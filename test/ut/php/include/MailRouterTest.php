@@ -1646,6 +1646,31 @@ class MailRouterTest extends IznikTestCase {
         assertEquals(0, count($m->getAttachments()));
     }
 
+    public function testWorryWords() {
+        $this->user->addMembership($this->gid);
+        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_MODERATED);
+        User::clearCache();
+
+        # Set up worry words.
+        $settings = json_decode($this->group->getPrivate('settings'), TRUE);
+        $settings['spammers'] = [ 'worrywords' => 'wibble,wobble' ];
+        $this->group->setSettings($settings);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_ireplace('Hey', 'wobble', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $id = $m->save();
+
+        $r = new MailRouter($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertEquals(MessageCollection::SPAM, $m->getPublic()['groups'][0]['collection']);
+        assertEquals(Spam::REASON_WORRY_WORD, $m->getPrivate('spamtype'));
+    }
+
     //    public function testSpecial() {
 //        //
 //        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/special'));

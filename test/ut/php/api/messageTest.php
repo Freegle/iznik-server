@@ -3154,7 +3154,6 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertEquals(MessageCollection::SPAM, $m->getPublic()['groups'][0]['collection']);
-        error_log("Get spamrtpe on " . $m->getId() . "," . $m->getPrivate('spamtype'));
         assertEquals(Spam::REASON_WORRY_WORD, $m->getPrivate('spamtype'));
     }
 }
