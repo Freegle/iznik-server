@@ -545,7 +545,7 @@ function message() {
                                         $cont = TRUE;
 
                                         # Check the message for worry words.
-                                        $w = new WorryWords($dbhr, $dbhm);
+                                        $w = new WorryWords($dbhr, $dbhm, $groupid);
                                         $worry = $w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody());
 
                                         # Assume this post is moderated unless we decide otherwise below.
@@ -555,7 +555,7 @@ function message() {
 
                                             # This is now a member, and we always moderate posts from new members,
                                             # so this goes to pending.
-                                            $postcoll = MessageCollection::PENDING;
+                                            $postcoll = $worry ? MessageCollection::SPAM : MessageCollection::PENDING;
 
                                             if ($addworked === FALSE) {
                                                 # We couldn't join - we're banned.  Suppress the message below.
@@ -578,8 +578,10 @@ function message() {
                                             # Worrying messages always go to Pending.
                                             if ($g->getPrivate('overridemoderation') === Group::OVERRIDE_MODERATION_ALL) {
                                                 $postcoll = MessageCollection::PENDING;
+                                            } else if ($worry) {
+                                                $postcoll = MessageCollection::SPAM;
                                             } else {
-                                                $postcoll = ($worry || $g->getSetting('moderated', 0) || $g->getSetting('close', 0)) ? MessageCollection::PENDING : $u->postToCollection($groupid);
+                                                $postcoll = ($g->getSetting('moderated', 0) || $g->getSetting('close', 0)) ? MessageCollection::PENDING : $u->postToCollection($groupid);
                                             }
                                         }
 
@@ -590,6 +592,11 @@ function message() {
                                         if ($rc) {
                                             # It is.  Put in the spam collection.
                                             $postcoll = MessageCollection::SPAM;
+                                        }
+
+                                        if ($worry) {
+                                            $m->setPrivate('spamtype', Spam::REASON_WORRY_WORD);
+                                            $m->setPrivate('spamreason','Referred to worry word ' . $worry[0]['word']);
                                         }
 
                                         # We want the message to come from one of our emails rather than theirs, so

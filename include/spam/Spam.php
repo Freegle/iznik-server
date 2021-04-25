@@ -36,6 +36,7 @@ class Spam {
     CONST REASON_DBL = 'URL on DBL';
     CONST REASON_BULK_VOLUNTEER_MAIL = 'BulkVolunteerMail';
     CONST REASON_USED_OUR_DOMAIN = 'UsedOurDonain';
+    CONST REASON_WORRY_WORD = 'WorryWord';
 
     const ACTION_SPAM = 'Spam';
     const ACTION_REVIEW = 'Review';

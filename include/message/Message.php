@@ -1669,9 +1669,10 @@ ORDER BY lastdate DESC;";
        if (Session::modtools()) {
            # We check the messages again.  This means if something is added to worry words while our message is in
            # pending, we'll see it.
-           $w = new WorryWords($this->dbhr, $this->dbhm);
-
            foreach ($msgs as $msgind => $msg) {
+               $groupid = Utils::pres('groups', $msg) ? $msg['groups'][0]['groupid'] : NULL;
+               $w = new WorryWords($this->dbhr, $this->dbhm, $groupid);
+
                $msgs[$msgind]['worry'] = $w->checkMessage($msg['id'], Utils::pres('fromuser', $msg) ? $msg['fromuser']['id'] : NULL, $msg['subject'], $msg['textbody'], FALSE);
            }
        }

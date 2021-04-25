@@ -19,12 +19,15 @@ class WorryWords {
     /** @var  $dbhm LoggedPDO */
     private $dbhm;
 
+    private $groupid = NULL;
+
     private $words = NULL;
 
-    function __construct($dbhr, $dbhm, $id = NULL)
+    function __construct($dbhr, $dbhm, $groupid = NULL)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+        $this->groupid = $groupid;
         $this->log = new Log($this->dbhr, $this->dbhm);
     }
 
@@ -125,6 +128,23 @@ class WorryWords {
     private function getWords() {
         if (!$this->words) {
             $this->words = $this->dbhr->preQuery("SELECT * FROM worrywords;");
+
+            if ($this->groupid) {
+                # Get the group-specific worry words.
+                $g = Group::get($this->dbhr, $this->dbhm, $this->groupid);
+                $spammers = $g->getSetting('spammers', NULL);
+
+                if ($spammers && Utils::pres('worrywords', $spammers)) {
+                    $words = explode(',', $spammers['worrywords']);
+
+                    foreach ($words as $word) {
+                        $this->words[] = [
+                            'type' => WorryWords::TYPE_REVIEW,
+                            'keyword' => strtolower(trim($word))
+                        ];
+                    }
+                }
+            }
         }
     }
 }

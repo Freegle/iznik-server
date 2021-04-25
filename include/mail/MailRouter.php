@@ -632,16 +632,17 @@ class MailRouter
                                 $ret = MailRouter::DROPPED;
 
                                 # Check the message for worry words.
-                                $w = new WorryWords($this->dbhr, $this->dbhm);
+                                $w = new WorryWords($this->dbhr, $this->dbhm, $group['groupid']);
                                 $worry = $w->checkMessage($this->msg->getID(), $this->msg->getFromuser(), $this->msg->getSubject(), $this->msg->getTextbody());
 
                                 foreach ($groups as $group) {
                                     $appmemb = $u->isApprovedMember($group['groupid']);
 
                                     if ($appmemb && $worry) {
-                                        if ($log) { error_log("Worrying => pending"); }
+                                        if ($log) { error_log("Worrying => spam"); }
                                         if ($this->markPending($notspam)) {
                                             $ret = MailRouter::PENDING;
+                                            $this->markAsSpam(Spam::REASON_WORRY_WORD, 'Referred to worry word');
                                         }
                                     } else {
                                         if ($log) { error_log("Approved member " . $u->getEmailPreferred() . " on {$group['groupid']}? $appmemb"); }

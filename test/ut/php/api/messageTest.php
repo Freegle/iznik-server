@@ -3104,4 +3104,57 @@ class messageAPITest extends IznikAPITestCase
 
         assertEquals($id, $ret['message']['id']);
     }
+
+    public function testWorryWords() {
+        $email1 = 'test-' . rand() . '@blackhole.io';
+
+        # Create a user with email1
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid1 = $u->create('Test', 'User', 'Test User');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+        $u->addEmail($email1);
+
+        $this->group->setPrivate('lat', 8.5);
+        $this->group->setPrivate('lng', 179.3);
+        $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
+        $this->group->setPrivate('publish', 1);
+
+        # Set up worry words.
+        $settings = json_decode($this->group->getPrivate('settings'), TRUE);
+        $settings['spammers'] = [ 'worrywords' => 'wibble,wobble' ];
+        $this->group->setSettings($settings);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'groupid' => $this->gid,
+            'textbody' => 'wibble'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+        $this->log("Created draft $id");
+
+        # Submit the post - should go to spam.
+        $this->dbhm->errorLog = true;
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'JoinAndPost',
+            'email' => $email1,
+            'ignoregroupoverride' => true
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertEquals(MessageCollection::SPAM, $m->getPublic()['groups'][0]['collection']);
+        error_log("Get spamrtpe on " . $m->getId() . "," . $m->getPrivate('spamtype'));
+        assertEquals(Spam::REASON_WORRY_WORD, $m->getPrivate('spamtype'));
+    }
 }
