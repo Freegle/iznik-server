@@ -43,6 +43,7 @@ if ($transaction['mc_gross'] > 0) {
         $transaction['payer_email'],
         "{$transaction['first_name']} {$transaction['last_name']}",
         date("Y-m-d H:i:s", strtotime($transaction['payment_date'])),
+        $transaction['txn_id'],
         $transaction['mc_gross'],
         $transaction['txn_type']
     );
