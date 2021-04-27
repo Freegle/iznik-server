@@ -54,6 +54,11 @@ ORDER BY dist ASC, area ASC, posted_at DESC LIMIT $qlimit;";
             $ambit *= 2;
         } while (count($ret) < $limit && $ambit < 1);
 
+        # Sort the resulting jobs by clickability, which should result in more clicks.
+        usort($ret, function($a, $b) {
+            return $b['clickability'] - $a['clickability'];
+        });
+
         return $ret;
     }
 
@@ -63,5 +68,90 @@ ORDER BY dist ASC, area ASC, posted_at DESC LIMIT $qlimit;";
         ]);
 
         return $jobs;
+    }
+
+    public static function getKeywords($str) {
+        $initial = explode(' ',$str);
+
+        # Remove some stuff.
+        $arr = [];
+
+        foreach ($initial as $i) {
+            $w = preg_replace("/[^A-Za-z]/", '', $i);
+
+            if (strlen($w) > 2) {
+                $arr[] = $w;
+            }
+        }
+
+        $result = [];
+
+        for($i=0; $i < count($arr)-1; $i++) {
+            $result[] =  strtolower($arr[$i]) . ' ' . strtolower($arr[$i+1]);
+        }
+
+        return $result;
+    }
+
+    public function recordClick($jobid, $link, $userid) {
+        $this->dbhm->preExec("INSERT INTO logs_jobs (userid, jobid, link) VALUES (?, ?, ?);", [
+            $userid,
+            $jobid,
+            $link
+        ]);
+    }
+
+    public function clickability($jobid, $title = NULL, $maxish = NULL) {
+        $ret = 0;
+
+        if (!$title) {
+            # Collect the sum of the counts of keywords present in this title.
+            $jobs = $this->dbhr->preQuery("SELECT title FROM jobs WHERE id = ?;", [
+                $jobid
+            ]);
+
+            foreach ($jobs as $job) {
+                $title = $job['title'];
+            }
+        }
+
+        if ($title) {
+            $keywords = Jobs::getKeywords($title);
+
+            if (count($keywords)) {
+                $kq = '';
+
+                foreach ($keywords as $k) {
+                   if (strlen($kq)) {
+                       $kq .= ", " . $this->dbhr->quote($k);
+                   }  else {
+                       $kq = $this->dbhr->quote($k);
+                   }
+                }
+
+                $sql = "SELECT count, keyword FROM jobs_keywords WHERE keyword IN ($kq);";
+                $counts = $this->dbhr->preQuery($sql);
+
+                foreach ($keywords as $keyword) {
+                    foreach ($counts as $count) {
+                        if ($count['keyword'] == $keyword) {
+                            $ret += $count['count'];
+                        }
+                    }
+                }
+            }
+        }
+
+        # Normalise this, so that if we get more clicks overall because we have more site activity we don't
+        # think it's because the jobs we happen to be clicking are more desirable. Use the 95th percentile to
+        # get the maxish value (avoiding outliers).
+        if (!$maxish) {
+            $maxish = $this->dbhr->preQuery("SELECT count FROM 
+(SELECT t.*,  @row_num :=@row_num + 1 AS row_num FROM jobs_keywords t, 
+    (SELECT @row_num:=0) counter ORDER BY count) 
+temp WHERE temp.row_num = ROUND (.95* @row_num);")[0]['count'];
+        }
+
+        return $ret / $maxish;
     }
 }

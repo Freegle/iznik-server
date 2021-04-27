@@ -48,10 +48,8 @@ function jobs() {
         }
 
         case 'POST': {
-            $dbhm->preExec("INSERT INTO logs_jobs (userid, link) VALUES (?, ?);", [
-                $me ? $me->getId() : NULL,
-                $link
-            ]);
+            $j = new Jobs($dbhr, $dbhm);
+            $j->recordClick($id, $link, $me ? $me->getId() : NULL);
 
             $ret = [ 'ret' => 0, 'status' => 'Success' ];
             break;

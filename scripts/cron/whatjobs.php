@@ -92,6 +92,17 @@ while ($node = $streamer->getNode()) {
                                     ]
                                 );
 
+                                $id = $dbhm->lastInsertId();
+
+                                if ($id) {
+                                    $j = new Jobs($dbhr, $dbhm);
+                                    $score = $j->clickability($job['id']);
+                                    $dbhm->preExec("UPDATE jobs SET clickability = ? WHERE id = ?;", [
+                                        $score,
+                                        $id
+                                    ]);
+                                }
+
                                 $new++;
                             } catch (\Exception $e) {
                                 error_log("Failed to add {$job->title} $geom");
@@ -100,6 +111,8 @@ while ($node = $streamer->getNode()) {
                     }
                 }
             } else {
+                # Leave clickability untouched for speed.  That means it'll be a bit wrong, but wrong values will
+                # age out.
                 $dbhm->preExec("UPDATE jobs SET seenat = NOW() WHERE id = ?", [
                     $existings[0]['id']
                 ]);
