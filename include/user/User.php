@@ -5560,6 +5560,10 @@ class User extends Entity
                 $u->forget('Inactive');
                 $count++;
             }
+
+            # Prod garbage collection, as we've seen high memory usage by this.
+            User::clearCache();
+            gc_collect_cycles();
         }
 
         error_log("...removed $count");
