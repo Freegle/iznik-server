@@ -146,10 +146,14 @@ ORDER BY dist ASC, area ASC, posted_at DESC LIMIT $qlimit;";
         # think it's because the jobs we happen to be clicking are more desirable. Use the 95th percentile to
         # get the maxish value (avoiding outliers).
         if (!$maxish) {
-            $maxish = $this->dbhr->preQuery("SELECT count FROM 
+            $m = $this->dbhr->preQuery("SELECT count FROM 
 (SELECT t.*,  @row_num :=@row_num + 1 AS row_num FROM jobs_keywords t, 
     (SELECT @row_num:=0) counter ORDER BY count) 
-temp WHERE temp.row_num = ROUND (.95* @row_num);")[0]['count'];
+temp WHERE temp.row_num = ROUND (.95* @row_num);");
+
+            if (count($m)) {
+                $maxish = $m[0]['count'];
+            }
         }
 
         return $ret / $maxish;
