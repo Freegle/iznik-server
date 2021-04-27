@@ -2186,7 +2186,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                             'replyexpected' => $replyexpected
                                         ]);
 
-                                        $sendname = $sendingfrom->getName();
+                                        $sendname = $justmine ? $sendingto->getName() : $sendingfrom->getName();
                                         break;
                                     case ChatRoom::TYPE_USER2MOD:
                                         if ($notifyingmember) {
