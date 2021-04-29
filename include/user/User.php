@@ -271,7 +271,7 @@ class User extends Entity
                     'text' => 'Using link'
                 ]);
 
-                $this->dbhm->preExec("UPDATE user_logins SET lastaccess = NOW() WHERE userid = ? AND type = ?;", [
+                $this->dbhm->preExec("UPDATE users_logins SET lastaccess = NOW() WHERE userid = ? AND type = ?;", [
                     $this->id,
                     User::LOGIN_LINK
                 ]);
