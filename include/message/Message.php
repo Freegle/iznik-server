@@ -3164,7 +3164,7 @@ ORDER BY lastdate DESC;";
     }
 
     public function findFromReply($userid) {
-        # TN puts a useful header in.
+        # TN puts a useful header in for the initial reply to a post.
         $msgid = $this->getHeader('x-fd-msgid');
 
         if ($msgid) {
@@ -3176,11 +3176,36 @@ ORDER BY lastdate DESC;";
             }
         }
 
+        # Consider this case:
+        # - A has a post X open.
+        # - B has a post Y open.
+        # - A replies to B expressing interest in Y.
+        # - B replies back, still about Y.
+        #
+        # We don't want to match B's reply against X.  So check the subject to see if it matches a post from the
+        # sending user.
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $r->createConversation($this->getFromuser(), $userid);
+        $earlier = $this->dbhr->preQuery("SELECT * FROM chat_messages INNER JOIN messages ON chat_messages.refmsgid = messages.id WHERE userid = ? AND messages.fromuser = ? AND DATEDIFF(NOW(), messages.arrival) < 90;", [
+            $userid,
+            $this->getFromuser()
+        ]);
+
+        foreach ($earlier as $early) {
+            $m = new Message($this->dbhr, $this->dbhm, $early['refmsgid']);
+            #error_log("Compare reply " . $this->getSubject() . " vs " . $m->getSubject());
+            if (strlen($m->getSubject()) && strpos($this->getSubject(), $m->getSubject()) !== FALSE) {
+                # The reply we are currently processing matches the subject line of an earlier referenced message.
+                # That means we shouldn't match this one to any outstanding posts.
+                #error_log("Reply to earlier");
+                return NULL;
+            }
+        }
+
         # Unfortunately, it's fairly common for people replying by email to compose completely new
-        # emails with subjects of their choice, or reply from Yahoo Groups which doesn't add
-        # In-Reply-To headers.  So we just have to do the best we can using the email subject.  The Damerau–Levenshtein
-        # distance does this for us - if we get a subject which is just "Re: " and the original, then that will come
-        # top.  We can't do that in the DB, though, as we need to strip out some stuff.
+        # emails with subjects of their choice.  So we just have to do the best we can using the email subject.
+        # The Damerau–Levenshtein distance does this for us - if we get a subject which is just "Re: " and the original,
+        # then that will come top.  We can't do that in the DB, though, as we need to strip out some stuff.
         #
         # We only expect to be matching replies for reuse/Freegle groups, and it's not worth matching against any
         # old messages.
@@ -3212,7 +3237,7 @@ ORDER BY lastdate DESC;";
             $message['dist'] = $d->getSimilarity();
             $mindist = min($mindist, $message['dist']);
 
-            error_log("Compare subjects $subj1 vs $subj2 dist {$message['dist']} min $mindist lim " . (strlen($subj1) * 3 / 4));
+            #error_log("Compare subjects $subj1 vs $subj2 dist {$message['dist']} min $mindist lim " . (strlen($subj1) * 3 / 4));
 
             if ($message['dist'] <= $mindist && $message['dist'] <= strlen($subj1) * 3 / 4) {
                 # This is the closest match, but not utterly different.

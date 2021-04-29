@@ -713,7 +713,7 @@ class MailRouter
                     $u = User::get($this->dbhr, $this->dbhm);
                     $to = $this->msg->getEnvelopeto();
                     $to = $to ? $to : $this->msg->getHeader('to');
-                    if ($log) { error_log("Look for reply $to"); }
+                    if ($log) { error_log("Look for reply to $to from " . $this->msg->getEnvelopeFrom()); }
                     $uid = NULL;
                     $ret = MailRouter::DROPPED;
 
@@ -890,7 +890,7 @@ class MailRouter
                             $textbody = $original ? $textbody : ($this->msg->getSubject() . "\r\n\r\n$textbody");
 
                             # Get/create the chat room between the two users.
-                            if ($log) { error_log("Create chat between " . $this->msg->getFromuser() . " (" . $this->msg->getFromaddr() . ") and " . $uid); }
+                            if ($log) { error_log("Create chat between " . $this->msg->getFromuser() . " (" . $this->msg->getFromaddr() . ") and $uid ($to)"); }
                             $r = new ChatRoom($this->dbhr, $this->dbhm);
                             $rid = $r->createConversation($this->msg->getFromuser(), $uid);
                             if ($log) { error_log("Got chat id $rid"); }

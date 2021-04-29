@@ -1671,6 +1671,88 @@ class MailRouterTest extends IznikTestCase {
         assertEquals(Spam::REASON_WORRY_WORD, $m->getPrivate('spamtype'));
     }
 
+    public function testConfused() {
+        # Set up two users, each with an OFFER.
+        $u1 = new User($this->dbhr, $this->dbhm);
+        $uid1 = $u1->create('Test', 'User', 'Test User');
+        $u1->addEmail('test1@test.com');
+        $u1->addMembership($this->gid);
+        $u1->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        error_log("ADded {$this->gid}, {$u1->getId()}");
+        $u2 = new User($this->dbhr, $this->dbhm);
+        $uid2 = $u2->create('Test', 'User', 'Test User');
+        $u2->addEmail('test2@test.com');
+        $u2->addMembership($this->gid);
+        $u2->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Subject: Basic test', 'Subject: Offer: thing1 (place)', $msg);
+        $msg = str_replace('test@test.com', 'test1@test.com', $msg);
+        $msg = str_replace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id1 = $r->received(Message::EMAIL, 'test1@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+        assertNotNull($id1);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $m1 = new Message($this->dbhr, $this->dbhm, $id1);
+        assertEquals($uid1, $m1->getFromuser());
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Subject: Basic test', 'Subject: Offer: thing2 (place)', $msg);
+        $msg = str_replace('test@test.com', 'test2@test.com', $msg);
+        $msg = str_replace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id2 = $r->received(Message::EMAIL, 'test2@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+        assertNotNull($id1);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $m2 = new Message($this->dbhr, $this->dbhm, $id2);
+        assertEquals($uid2, $m2->getFromuser());
+
+        # First user replies interested in the second user's post.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
+        $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing2 (place)', $msg);
+        $msg = str_replace('test@test.com', 'test2@test.com', $msg);
+        $msg = str_replace('test2@test.com', 'test1@test.com', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test1@test.com', 'test2@test.com', $msg);
+        assertNotNull($id);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertNotNull($m->getFromuser());
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_USER, $rc);
+
+        # Chat message should exist, referencing it.
+        $c = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $c->createConversation($uid1, $uid2);
+        assertNotNull($rid);
+        error_log("Got chatid $rid for $uid1 to $uid2");
+
+        $c = new ChatRoom($this->dbhr, $this->dbhm, $rid);
+        list($msgs, $users) = $c->getMessages();
+        assertEquals(1, count($msgs));
+        assertEquals($id2, $msgs[0]['refmsg']['id']);
+
+        # Now second user replies back.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
+        $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing2 (place)', $msg);
+        $msg = str_replace('test@test.com', 'test1@test.com', $msg);
+        $msg = str_replace('test2@test.com', 'test2@test.com', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'test2@test.com', 'test1@test.com', $msg);
+        assertNotNull($id);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertNotNull($m->getFromuser());
+        $rc = $r->route();
+        assertEquals(MailRouter::TO_USER, $rc);
+
+        # Chat message should exist, but not referencing anything (specifically not referencing user1's OFFER).
+        list($msgs, $users) = $c->getMessages();
+        assertEquals(2, count($msgs));
+        error_log ("Got messages " . var_export($msgs, TRUE));
+        assertFalse(array_key_exists('refmsg', $msgs[1]));
+    }
+
     //    public function testSpecial() {
 //        //
 //        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/special'));
