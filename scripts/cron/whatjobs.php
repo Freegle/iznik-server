@@ -14,7 +14,10 @@ use Prewk\XmlStringStreamer\Parser;
 
 $lockh = Utils::lockScript(basename(__FILE__));
 
-system('cd /tmp/; rm feed.xml; wget ' . WHATJOBS_DUMP . '; gzip -d feed.xml.gz');
+# Get the oldest date before we start because the script can run for ages.
+$oldest = date('Y-m-d H:i:s', strtotime("9 hours ago"));
+
+system('cd /tmp/; rm feed.xml*; wget -O - ' . WHATJOBS_DUMP . '| gzip -d -c > feed.xml');
 
 $options = array(
     "captureDepth" => 3
@@ -27,6 +30,10 @@ $streamer = new XmlStringStreamer($parser, $stream);
 $count = 0;
 $new = 0;
 $old = 0;
+
+$j = new Jobs($dbhr, $dbhm);
+$maxish = $j->getMaxish();
+$seen = [];
 
 while ($node = $streamer->getNode()) {
     $job = simplexml_load_string($node);
@@ -47,75 +54,91 @@ while ($node = $streamer->getNode()) {
                 # Try to geocode the address.
                 $addr = "{$job->city}, {$job->state}, {$job->country}";
 
-                $geocode = @file_get_contents("https://" . GEOCODER . "/api?q=" . urlencode($addr) . "&bbox=-7.57216793459%2C49.959999905%2C1.68153079591%2C58.6350001085");
+                # See if we already have the address geocoded - would save hitting the geocoder.
+                $geo = $dbhr->preQuery("SELECT AsText(geometry) AS geom FROM jobs WHERE city = ? AND state = ? AND country = ? LIMIT 1;", [
+                    $job->city,
+                    $job->state,
+                    $job->country
+                ]);
 
-                if ($geocode) {
-                    $results = json_decode($geocode, TRUE);
+                $geom = NULL;
 
-                    if (Utils::pres('features', $results) && count($results['features'])) {
-                        $loc = $results['features'][0];
+                if (count($geo)) {
+                    $geom = $geo[0]['geom'];
+                } else {
+                    # We don't - so geocode it.
+                    $geocode = @file_get_contents("https://" . GEOCODER . "/api?q=" . urlencode($addr) . "&bbox=-7.57216793459%2C49.959999905%2C1.68153079591%2C58.6350001085");
 
-                        $geom = NULL;
+                    if ($geocode) {
+                        $results = json_decode($geocode, true);
 
-                        if (Utils::pres('properties', $loc) && Utils::pres('extent', $loc['properties'])) {
-                            $swlng = floatval($loc['properties']['extent'][0]);
-                            $swlat = floatval($loc['properties']['extent'][1]);
-                            $nelng = floatval($loc['properties']['extent'][2]);
-                            $nelat = floatval($loc['properties']['extent'][3]);
-                            $geom = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
-                        } else if (Utils::pres('geometry', $loc) && Utils::pres('coordinates', $loc['geometry'])) {
-                            $geom = "POINT({$loc['geometry']['coordinates'][0]} {$loc['geometry']['coordinates'][1]})";
-                        }
+                        if (Utils::pres('features', $results) && count($results['features'])) {
+                            $loc = $results['features'][0];
 
-                        if ($geom) {
-                            try {
-                                $dbhm->preExec(
-                                    "REPLACE INTO jobs (location, title, city, state, zip, country, job_type, posted_at, job_reference, company, mobile_friendly_apply, category, html_jobs, url, body, cpc, geometry) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GeomFromText(?));",
-                                    [
-                                        $job->location ? html_entity_decode($job->location) : null,
-                                        $job->title ? html_entity_decode($job->title) : null,
-                                        $job->city ? html_entity_decode($job->city) : null,
-                                        $job->state ?? null,
-                                        $job->zip ?? null,
-                                        $job->country ?? null,
-                                        $job->job_type ?? null,
-                                        $job->posted_at ?? null,
-                                        $job->job_reference ?? null,
-                                        $job->company ?? NULL,
-                                        $job->mobile_friendly_apply ?? NULL,
-                                        $job->category ?? NULL,
-                                        $job->html_jobs ?? NULL,
-                                        $job->url ?? NULL,
-                                        $job->body ? html_entity_decode($job->body) : NULL,
-                                        $job->cpc ?? NULL,
-                                        $geom
-                                    ]
-                                );
+                            $geom = null;
 
-                                $id = $dbhm->lastInsertId();
-
-                                if ($id) {
-                                    $j = new Jobs($dbhr, $dbhm);
-                                    $score = $j->clickability($job['id']);
-                                    $dbhm->preExec("UPDATE jobs SET clickability = ? WHERE id = ?;", [
-                                        $score,
-                                        $id
-                                    ]);
+                            if (Utils::pres('properties', $loc) && Utils::pres('extent', $loc['properties'])) {
+                                $swlng = floatval($loc['properties']['extent'][0]);
+                                $swlat = floatval($loc['properties']['extent'][1]);
+                                $nelng = floatval($loc['properties']['extent'][2]);
+                                $nelat = floatval($loc['properties']['extent'][3]);
+                                $geom = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
+                            } else {
+                                if (Utils::pres('geometry', $loc) && Utils::pres('coordinates', $loc['geometry'])) {
+                                    $geom = "POINT({$loc['geometry']['coordinates'][0]} {$loc['geometry']['coordinates'][1]})";
                                 }
-
-                                $new++;
-                            } catch (\Exception $e) {
-                                error_log("Failed to add {$job->title} $geom");
                             }
                         }
+                    }
+                }
+
+                if ($geom) {
+                    try {
+                        $clickability = 0;
+
+                        if ($job->title) {
+                            $j = new Jobs($dbhr, $dbhm);
+                            $clickability = $j->clickability(NULL, html_entity_decode($job->title), $maxish);
+                        }
+
+                        $dbhm->preExec(
+                            "INSERT INTO jobs (location, title, city, state, zip, country, job_type, posted_at, job_reference, company, mobile_friendly_apply, category, html_jobs, url, body, cpc, geometry, clickability, bodyhash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GeomFromText(?), ?, ?);",
+                            [
+                                $job->location ? html_entity_decode($job->location) : null,
+                                $job->title ? html_entity_decode($job->title) : null,
+                                $job->city ? html_entity_decode($job->city) : null,
+                                $job->state ?? null,
+                                $job->zip ?? null,
+                                $job->country ?? null,
+                                $job->job_type ?? null,
+                                $job->posted_at ?? null,
+                                $job->job_reference ?? null,
+                                $job->company ?? NULL,
+                                $job->mobile_friendly_apply ?? NULL,
+                                $job->category ?? NULL,
+                                $job->html_jobs ?? NULL,
+                                $job->url ?? NULL,
+                                $job->body ? html_entity_decode($job->body) : NULL,
+                                $job->cpc ?? NULL,
+                                $geom,
+                                $clickability,
+                                md5(substr($job->body, 0, 256))
+                            ]
+                        );
+                        $new++;
+                    } catch (\Exception $e) {
+                        error_log("Failed to add {$job->title} $geom");
                     }
                 }
             } else {
                 # Leave clickability untouched for speed.  That means it'll be a bit wrong, but wrong values will
                 # age out.
-                $dbhm->preExec("UPDATE jobs SET seenat = NOW() WHERE id = ?", [
-                    $existings[0]['id']
-                ]);
+                $seen[] = $existings[0]['id'];
+
+                if (count($seen) > 100) {
+                    $dbhm->background("UPDATE jobs SET seenat = NOW() WHERE id IN (" . implode(',', $seen) . ");");
+                    $seen = [];
+                }
             }
         }
     } else {
@@ -129,8 +152,11 @@ while ($node = $streamer->getNode()) {
     }
 }
 
+if (count($seen)) {
+    $dbhm->preExec("UPDATE jobs SET seenat = NOW() WHERE id IN (" . implode(',', $seen) . ");");
+}
+
 # Purge old jobs.
-$oldest = date('Y-m-d H:i:s', strtotime("9 hours ago"));
 $purged = 0;
 $olds = $dbhr->preQuery("SELECT id FROM jobs WHERE seenat < '$oldest' OR seenat IS NULL;");
 
@@ -146,6 +172,17 @@ foreach ($olds as $o) {
     }
 }
 
+# There are some "spammy" jobs which are posted with identical descriptions across the UK.  They feel scuzzy,
+$spamcount = 0;
+$spams = $dbhr->preQuery("SELECT COUNT(*) as count, title, bodyhash FROM jobs GROUP BY bodyhash HAVING count > 1000 AND bodyhash IS NOT NULL;");
 
-error_log("New jobs $new, ignore $old, purged $purged");
+foreach ($spams as $spam) {
+    error_log("Delete spammy job {$spam['title']} * {$spam['count']}");
+    $spamcount += $spam['count'];
+    $dbhm->preExec("DELETE FROM jobs WHERE bodyhash = ?;", [
+        $spam['bodyhash']
+    ]);
+}
+
+error_log("New jobs $new, ignore $old, spammy $spamcount, purged $purged");
 Utils::unlockScript($lockh);

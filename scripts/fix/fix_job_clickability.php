@@ -12,10 +12,7 @@ $jobs = $dbhr->preQuery("SELECT id, title FROM jobs;");
 $j = new Jobs($dbhr, $dbhm);
 $count = 0;
 
-$maxish = $dbhr->preQuery("SELECT count FROM 
-(SELECT t.*,  @row_num :=@row_num + 1 AS row_num FROM jobs_keywords t, 
-    (SELECT @row_num:=0) counter ORDER BY count) 
-temp WHERE temp.row_num = ROUND (.95* @row_num);")[0]['count'];
+$maxish = $j->getMaxish();
 
 foreach ($jobs as $job) {
     $score = $j->clickability($job['id'], $job['title'], $maxish);

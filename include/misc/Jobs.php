@@ -7,6 +7,8 @@ class Jobs {
     /** @public  $dbhm LoggedPDO */
     public $dbhm;
 
+    private $jobKeywords = NULL;
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm) {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
@@ -119,24 +121,19 @@ ORDER BY dist ASC, area ASC, posted_at DESC LIMIT $qlimit;";
             $keywords = Jobs::getKeywords($title);
 
             if (count($keywords)) {
-                $kq = '';
+                if (!$this->jobKeywords) {
+                    # Cache in this object because it speeds bulk load a lot.
+                    $this->jobKeywords = [];
+                    $jobKeywords = $this->dbhr->preQuery("SELECT * FROM jobs_keywords");
 
-                foreach ($keywords as $k) {
-                   if (strlen($kq)) {
-                       $kq .= ", " . $this->dbhr->quote($k);
-                   }  else {
-                       $kq = $this->dbhr->quote($k);
-                   }
+                    foreach ($jobKeywords as $j) {
+                        $this->jobKeywords[$j['keyword']] = $j['count'];
+                    }
                 }
 
-                $sql = "SELECT count, keyword FROM jobs_keywords WHERE keyword IN ($kq);";
-                $counts = $this->dbhr->preQuery($sql);
-
                 foreach ($keywords as $keyword) {
-                    foreach ($counts as $count) {
-                        if ($count['keyword'] == $keyword) {
-                            $ret += $count['count'];
-                        }
+                    if (array_key_exists($keyword, $this->jobKeywords)) {
+                        $ret += $this->jobKeywords[$keyword];
                     }
                 }
             }
@@ -146,16 +143,24 @@ ORDER BY dist ASC, area ASC, posted_at DESC LIMIT $qlimit;";
         # think it's because the jobs we happen to be clicking are more desirable. Use the 95th percentile to
         # get the maxish value (avoiding outliers).
         if (!$maxish) {
-            $m = $this->dbhr->preQuery("SELECT count FROM 
+            $maxish = $this->getMaxish();
+        }
+
+        return $ret / $maxish;
+    }
+
+    public function getMaxish() {
+        $maxish = 1;
+
+        $m = $this->dbhr->preQuery("SELECT count FROM 
 (SELECT t.*,  @row_num :=@row_num + 1 AS row_num FROM jobs_keywords t, 
     (SELECT @row_num:=0) counter ORDER BY count) 
 temp WHERE temp.row_num = ROUND (.95* @row_num);");
 
-            if (count($m)) {
-                $maxish = $m[0]['count'];
-            }
+        if (count($m)) {
+            $maxish = $m[0]['count'];
         }
 
-        return $ret / $maxish;
+        return $maxish;
     }
 }
