@@ -95,17 +95,19 @@ while ($node = $streamer->getNode()) {
                 if ($geom) {
                     try {
                         $clickability = 0;
+                        $title = NULL;
 
                         if ($job->title) {
                             $j = new Jobs($dbhr, $dbhm);
-                            $clickability = $j->clickability(NULL, html_entity_decode($job->title), $maxish);
+                            $title = str_replace('&#39;', "'", html_entity_decode($job->title));
+                            $clickability = $j->clickability(NULL, html_entity_decode($title), $maxish);
                         }
 
                         $dbhm->preExec(
                             "INSERT INTO jobs (location, title, city, state, zip, country, job_type, posted_at, job_reference, company, mobile_friendly_apply, category, html_jobs, url, body, cpc, geometry, clickability, bodyhash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GeomFromText(?), ?, ?);",
                             [
                                 $job->location ? html_entity_decode($job->location) : null,
-                                $job->title ? html_entity_decode($job->title) : null,
+                                $title,
                                 $job->city ? html_entity_decode($job->city) : null,
                                 $job->state ?? null,
                                 $job->zip ?? null,
