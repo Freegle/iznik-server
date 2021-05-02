@@ -254,18 +254,16 @@ class messagesTest extends IznikAPITestCase {
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
-        $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::SPAM);
+        $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::PENDING);
         $a = new Message($this->dbhr, $this->dbhm, $id);
 
         # Shouldn't be able to see spam
         $ret = $this->call('messages', 'GET', [
             'groupid' => $this->gid,
-            'collection' => 'Spam'
+            'collection' => MessageCollection::PENDING
         ]);
 
-        assertEquals(0, $ret['ret']);
-        $msgs = $ret['messages'];
-        assertEquals(0, count($msgs));
+        assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to see a spam message
         $u = User::get($this->dbhr, $this->dbhm);
@@ -275,11 +273,9 @@ class messagesTest extends IznikAPITestCase {
 
         $ret = $this->call('messages', 'GET', [
             'groupid' => $this->gid,
-            'collection' => 'Spam'
+            'collection' => MessageCollection::PENDING
         ]);
-        assertEquals(0, $ret['ret']);
-        $msgs = $ret['messages'];
-        assertEquals(0, count($msgs));
+        assertEquals(2, $ret['ret']);
 
         # Promote to owner - should be able to see it.
         $u->setRole(User::ROLE_OWNER, $this->gid);
@@ -288,7 +284,7 @@ class messagesTest extends IznikAPITestCase {
         assertTrue($u->login('testpw'));
         $ret = $this->call('messages', 'GET', [
             'groupid' => $this->gid,
-            'collection' => 'Spam',
+            'collection' => MessageCollection::PENDING,
             'start' => '2100-01-01T06:00:00Z'
         ]);
         assertEquals(0, $ret['ret']);
@@ -330,7 +326,7 @@ class messagesTest extends IznikAPITestCase {
             'groupid' => $this->gid,
             'collection' => 'Pending'
         ]);
-        self::assertEquals(1, $ret['ret']);
+        self::assertEquals(2, $ret['ret']);
 
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');
@@ -345,9 +341,7 @@ class messagesTest extends IznikAPITestCase {
         ]);
 
         $this->log("Shouldn't see pending " . var_export($ret, TRUE));
-        assertEquals(0, $ret['ret']);
-        $msgs = $ret['messages'];
-        assertEquals(0, count($msgs));
+        assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to see a pending message
         $u = User::get($this->dbhr, $this->dbhm);
@@ -361,9 +355,7 @@ class messagesTest extends IznikAPITestCase {
             'groupid' => $this->gid,
             'collection' => 'Pending'
         ]);
-        assertEquals(0, $ret['ret']);
-        $msgs = $ret['messages'];
-        assertEquals(0, count($msgs));
+        assertEquals(2, $ret['ret']);
 
         # Promote to mod - should be able to see it.
         $this->log("Check as mod for " . $a->getID());

@@ -70,18 +70,6 @@ function message() {
                                 }
                             }
                             break;
-                        case MessageCollection::SPAM:
-                            if (!$me) {
-                                $ret = ['ret' => 1, 'status' => 'Not logged in'];
-                                $m = NULL;
-                            } else {
-                                $groups = $m->getGroups();
-                                if (count($groups) == 0 || !$groupid || !$me->isModOrOwner($groups[0])) {
-                                    $ret = ['ret' => 2, 'status' => 'Permission denied 2'];
-                                    $m = NULL;
-                                }
-                            }
-                            break;
                         case MessageCollection::CHAT:
                             # We can see the original message for a chat if we're a mod.  This is used in chat
                             # message review when we want to show the source.
@@ -417,27 +405,12 @@ function message() {
                         case 'Release':
                             $m->release();
                             break;
-                        case 'NotSpam':
-                            $m->notSpam();
-                            $r = new MailRouter($dbhr, $dbhm);
-                            $rc = $r->route($m, TRUE);
-                            if ($rc == MailRouter::DROPPED || $rc == MailRouter::TO_SYSTEM) {
-                                # We no longer want this message - for example because they're no longer a member.
-                                $m->delete("Not spam and dropped/to system", $groupid);
-                            }
-                            break;
                         case 'Move':
                             $ret = $m->move($groupid);
                             break;
                         case 'Spam':
-                            # Don't trust normal mods to categorise this correctly.  Often they will mark a message from
-                            # a scammer trying to extort as spam, though the message itself is ok.  This tends to poison
-                            # our filter.
-                            if ($me->isAdminOrSupport()) {
-                                $m->spam($groupid);
-                            } else {
-                                $m->delete("Categorised as spam by moderator");
-                            }
+                            # Record for training.
+                            $m->spam();
                             break;
                         case 'JoinAndPost':
                             # This is the mainline case for someone posting a message.  We find the nearest group, sign
@@ -555,7 +528,7 @@ function message() {
 
                                             # This is now a member, and we always moderate posts from new members,
                                             # so this goes to pending.
-                                            $postcoll = $worry ? MessageCollection::SPAM : MessageCollection::PENDING;
+                                            $postcoll = MessageCollection::PENDING;
 
                                             if ($addworked === FALSE) {
                                                 # We couldn't join - we're banned.  Suppress the message below.
@@ -576,10 +549,8 @@ function message() {
                                             # case the message goes to pending, otherwise approved.
                                             #
                                             # Worrying messages always go to Pending.
-                                            if ($g->getPrivate('overridemoderation') === Group::OVERRIDE_MODERATION_ALL) {
+                                            if ($worry || $g->getPrivate('overridemoderation') === Group::OVERRIDE_MODERATION_ALL) {
                                                 $postcoll = MessageCollection::PENDING;
-                                            } else if ($worry) {
-                                                $postcoll = MessageCollection::SPAM;
                                             } else {
                                                 $postcoll = ($g->getSetting('moderated', 0) || $g->getSetting('close', 0)) ? MessageCollection::PENDING : $u->postToCollection($groupid);
                                             }
@@ -590,8 +561,8 @@ function message() {
                                         list ($rc, $reason) = $s->checkMessage($m);
 
                                         if ($rc) {
-                                            # It is.  Put in the spam collection.
-                                            $postcoll = MessageCollection::SPAM;
+                                            # It is.  Put in pending for review.
+                                            $postcoll = MessageCollection::PENDING;
                                         }
 
                                         if ($worry) {

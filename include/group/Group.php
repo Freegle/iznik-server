@@ -343,15 +343,13 @@ class Group extends Entity
             $earliestmsg = date("Y-m-d", strtotime(MessageCollection::RECENTPOSTS));
             $eventsqltime = date("Y-m-d H:i:s", time());
 
-            # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.
             # Exclude messages routed to system, for which there must be a good reason.
             #
             # See also MessageCollection.
             $pendingspamcounts = $this->dbhr->preQuery("SELECT messages_groups.groupid, COUNT(*) AS count, messages_groups.collection, messages.heldby IS NOT NULL AS held FROM messages 
-    INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid IN $groupq AND messages_groups.collection IN (?, ?) AND messages_groups.deleted = 0 AND messages.deleted IS NULL AND messages.fromuser IS NOT NULL AND messages_groups.arrival >= '$earliestmsg' AND (messages.lastroute IS NULL OR messages.lastroute != ?) 
+    INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.groupid IN $groupq AND messages_groups.collection IN (?) AND messages_groups.deleted = 0 AND messages.deleted IS NULL AND messages.fromuser IS NOT NULL AND messages_groups.arrival >= '$earliestmsg' AND (messages.lastroute IS NULL OR messages.lastroute != ?) 
     GROUP BY messages_groups.groupid, messages_groups.collection, held;", [
                 MessageCollection::PENDING,
-                MessageCollection::SPAM,
                 MailRouter::TO_SYSTEM
             ]);
 
@@ -533,11 +531,7 @@ HAVING logincount > 0
                 } else {
                     foreach ($pendingspamcounts as $count) {
                         if ($count['groupid'] == $groupid) {
-                            if ($count['collection'] == MessageCollection::SPAM) {
-                                $thisone['spamother'] = $count['count'];
-                            } else {
-                                $thisone['pendingother'] = $count['count'];
-                            }
+                            $thisone['pendingother'] = $count['count'];
                         }
                     }
 

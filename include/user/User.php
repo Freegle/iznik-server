@@ -3895,8 +3895,7 @@ class User extends Entity
 
             $thisone = $u->getPublic(NULL, TRUE, TRUE, TRUE, TRUE, FALSE, TRUE, [
                 MessageCollection::PENDING,
-                MessageCollection::APPROVED,
-                MessageCollection::SPAM
+                MessageCollection::APPROVED
             ], TRUE);
 
             # We might not have the emails.

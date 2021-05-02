@@ -2940,24 +2940,24 @@ ORDER BY lastdate DESC;";
         $this->maybeMail($groupid, $subject, $body, 'Reject');
     }
 
-    public function approve($groupid, $subject = NULL, $body = NULL, $stdmsgid = NULL, $yahooonly = FALSE) {
+    public function approve($groupid, $subject = NULL, $body = NULL, $stdmsgid = NULL) {
         # No need for a transaction - if things go wrong, the message will remain in pending, which is the correct
         # behaviour.
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
-        if (!$yahooonly) {
-            $this->log->log([
-                'type' => Log::TYPE_MESSAGE,
-                'subtype' => Log::SUBTYPE_APPROVED,
-                'msgid' => $this->id,
-                'user' => $this->fromuser,
-                'byuser' => $myid,
-                'groupid' => $groupid,
-                'stdmsgid' => $stdmsgid,
-                'text' => $subject
-            ]);
-        }
+        $this->notSpam();
+
+        $this->log->log([
+            'type' => Log::TYPE_MESSAGE,
+            'subtype' => Log::SUBTYPE_APPROVED,
+            'msgid' => $this->id,
+            'user' => $this->fromuser,
+            'byuser' => $myid,
+            'groupid' => $groupid,
+            'stdmsgid' => $stdmsgid,
+            'text' => $subject
+        ]);
 
         # Update the arrival time to NOW().  This is because otherwise we will fail to send out messages which
         # were held for moderation to people who are on immediate emails.
@@ -3613,13 +3613,11 @@ ORDER BY lastdate DESC;";
         return($found);
     }
 
-    public function spam($groupid) {
-        # We mark is as spam on all groups, and delete it on the specific one in question.
-        $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ?;", [ MessageCollection::SPAM, $this->id ]);
-        $this->delete("Deleted as spam", $groupid);
-
+    public function spam() {
         # Record for training.
         $this->dbhm->preExec("REPLACE INTO messages_spamham (msgid, spamham) VALUES (?, ?);", [ $this->id , Spam::SPAM ]);
+
+        $this->delete("Categorised as spam by moderator");
     }
 
     public function sendForReview($reason)
@@ -3631,21 +3629,23 @@ ORDER BY lastdate DESC;";
         ]);
 
         $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ?;",
-            [MessageCollection::SPAM, $this->id]
+            [MessageCollection::PENDING, $this->id]
         );
     }
 
     public function notSpam() {
-        if ($this->spamtype == Spam::REASON_SUBJECT_USED_FOR_DIFFERENT_GROUPS) {
-            # This subject is probably fine, then.
-            $s = new Spam($this->dbhr, $this->dbhm);
-            $s->notSpamSubject($this->getPrunedSubject());
-        }
+        if ($this->spamtype) {
+            if ($this->spamtype == Spam::REASON_SUBJECT_USED_FOR_DIFFERENT_GROUPS) {
+                # This subject is probably fine, then.
+                $s = new Spam($this->dbhr, $this->dbhm);
+                $s->notSpamSubject($this->getPrunedSubject());
+            }
 
-        # We leave the spamreason and type set in the message, because it can be useful for later PD.
-        #
-        # Record for training.
-        $this->dbhm->preExec("REPLACE INTO messages_spamham (msgid, spamham) VALUES (?, ?);", [ $this->id , Spam::HAM ]);
+            # We leave the spamreason and type set in the message, because it can be useful for later PD.
+            #
+            # Record for training.
+            $this->dbhm->preExec("REPLACE INTO messages_spamham (msgid, spamham) VALUES (?, ?);", [ $this->id , Spam::HAM ]);
+        }
     }
 
     public function suggestSubject($groupid, $subject) {

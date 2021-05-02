@@ -50,7 +50,6 @@ class MessageCollection
             case MessageCollection::APPROVED:
             case MessageCollection::PENDING:
             case MessageCollection::EDITS:
-            case MessageCollection::SPAM:
             case MessageCollection::DRAFT:
             case MessageCollection::REJECTED:
             case MessageCollection::VIEWED:
@@ -174,18 +173,7 @@ class MessageCollection
                 $typeq = $types ? (" AND `type` IN (" . implode(',', $types) . ") ") : '';
                 $oldest = '';
 
-                if (in_array(MessageCollection::SPAM, $collection)) {
-                    # We only want to show spam messages upto 31 days old to avoid seeing too many, especially on first use.
-                    # Exclude messages routed to system, which will be for some good reason.
-                    # See also Group.
-                    #
-                    # This fits with Yahoo's policy on deleting pending activity.
-                    #
-                    # This code assumes that if we're called to retrieve SPAM, it's the only collection.  That's true at
-                    # the moment as the only use of multiple collection values is via ALLUSER, which doesn't include SPAM.
-                    $mysqltime = date("Y-m-d", strtotime(MessageCollection::RECENTPOSTS));
-                    $oldest = " AND messages_groups.arrival >= '$mysqltime' AND (messages.lastroute IS NULL OR messages.lastroute != '" . MailRouter::TO_SYSTEM . "') ";
-                } else if ($age !== NULL) {
+                if ($age !== NULL) {
                     $mysqltime = date("Y-m-d", strtotime("Midnight $age days ago"));
                     $oldest = " AND messages_groups.arrival >= '$mysqltime' ";
                 } else if (!Session::modtools()) {
@@ -373,16 +361,6 @@ class MessageCollection
                         case MessageCollection::PENDING:
                         case MessageCollection::REJECTED:
                         case MessageCollection::EDITS:
-                            if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
-                                # Only visible to moderators or owners
-                                $n = $public;
-                                unset($n['message']);
-                                $n['matchedon'] = Utils::presdef('matchedon', $msg, NULL);
-                                $msgs[] = $n;
-                                $limit--;
-                            }
-                            break;
-                        case MessageCollection::SPAM:
                             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                                 # Only visible to moderators or owners
                                 $n = $public;

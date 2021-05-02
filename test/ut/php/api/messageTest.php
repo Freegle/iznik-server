@@ -241,7 +241,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'GET', [
             'id' => $id,
             'groupid' => $this->gid,
-            'collection' => 'Spam'
+            'collection' => MessageCollection::PENDING
         ]);
         assertEquals(1, $ret['ret']);
 
@@ -256,7 +256,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'GET', [
             'id' => $id,
             'groupid' => $this->gid,
-            'collection' => 'Spam'
+            'collection' => MessageCollection::PENDING
         ]);
         assertEquals(2, $ret['ret']);
 
@@ -267,7 +267,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'GET', [
             'id' => $id,
             'groupid' => $this->gid,
-            'collection' => 'Spam'
+            'collection' => MessageCollection::PENDING
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['message']['id']);
@@ -285,7 +285,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'DELETE', [
             'id' => $id,
             'groupid' => $this->gid,
-            'collection' => 'Spam'
+            'collection' => MessageCollection::PENDING
         ]);
         assertEquals(0, $ret['ret']);
 
@@ -293,7 +293,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'GET', [
             'id' => $id,
             'groupid' => $this->gid,
-            'collection' => 'Spam'
+            'collection' => MessageCollection::PENDING
         ]);
         assertEquals(3, $ret['ret']);
 
@@ -325,16 +325,17 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'GET', [
             'id' => $id,
             'groupid' => $this->gid,
-            'collection' => 'Spam'
+            'collection' => MessageCollection::PENDING
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['message']['id']);
 
-        # Mark as not spam.
+        # Approve the message.
+        error_log("Now approve");
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'groupid' => $this->gid,
-            'action' => 'NotSpam'
+            'action' => 'Approve'
         ]);
         assertEquals(0, $ret['ret']);
 
@@ -376,7 +377,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'GET', [
             'id' => $id,
             'groupid' => $this->gid,
-            'collection' => 'Spam'
+            'collection' => MessageCollection::PENDING
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['message']['id']);
@@ -391,17 +392,17 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'groupid' => $this->gid,
-            'action' => 'NotSpam'
+            'action' => 'Approve'
         ]);
         assertEquals(0, $ret['ret']);
 
-        # Try again to see it - should be gone from spam into approved
+        # Try again to see it - should be gone from pending into approved
         $ret = $this->call('message', 'GET', [
             'id' => $id
         ]);
-        assertEquals(3, $ret['ret']);
-
-        }
+        assertEquals(0, $ret['ret']);
+        assertEquals(MessageCollection::APPROVED, $ret['message']['groups'][0]['collection']);
+    }
 
     public function testApprove()
     {
@@ -914,14 +915,6 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(1, count($msgs));
         assertEquals($id, $msgs[0]['id']);
 
-        # Spam should be empty.
-        $ret = $this->call('messages', 'GET', [
-            'groupid' => $this->gid,
-            'collection' => 'Spam'
-        ]);
-        $msgs = $ret['messages'];
-        assertEquals(0, count($msgs));
-
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'groupid' => $this->gid,
@@ -932,7 +925,7 @@ class messageAPITest extends IznikAPITestCase
         # Pending should be empty.
         $ret = $this->call('messages', 'GET', [
             'groupid' => $this->gid,
-            'collection' => 'Pending'
+            'collection' => MessageCollection::PENDING
         ]);
         $msgs = $ret['messages'];
         assertEquals(0, count($msgs));
@@ -957,7 +950,7 @@ class messageAPITest extends IznikAPITestCase
         # Pending should be empty.
         $ret = $this->call('messages', 'GET', [
             'groupid' => $this->gid,
-            'collection' => 'Pending'
+            'collection' => MessageCollection::PENDING
         ]);
         $msgs = $ret['messages'];
         assertEquals(0, count($msgs));
@@ -2438,7 +2431,7 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals('Success', $ret['status']);
 
-        $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::SPAM);
+        $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::PENDING);
         $ctx = NULL;
         list ($groups, $msgs) = $c->get($ctx, 10, [ $this->gid ]);
         $this->log("Got pending messages " . var_export($msgs, TRUE));
@@ -3153,7 +3146,7 @@ class messageAPITest extends IznikAPITestCase
 
         assertEquals(0, $ret['ret']);
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertEquals(MessageCollection::SPAM, $m->getPublic()['groups'][0]['collection']);
+        assertEquals(MessageCollection::PENDING, $m->getPublic()['groups'][0]['collection']);
         assertEquals(Spam::REASON_WORRY_WORD, $m->getPrivate('spamtype'));
     }
 }

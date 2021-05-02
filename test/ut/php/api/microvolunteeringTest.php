@@ -122,7 +122,7 @@ class microvolunteeringAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'GET', [
             'id' => $id
         ]);
-        assertEquals(MessageCollection::SPAM, $ret['message']['groups'][0]['collection']);
+        assertEquals(MessageCollection::PENDING, $ret['message']['groups'][0]['collection']);
 
         # Should be no messages left as we've given a response, so we'll get a search term.
         $ret = $this->call('microvolunteering', 'GET', [

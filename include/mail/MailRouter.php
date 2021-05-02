@@ -88,7 +88,8 @@ class MailRouter
                 $reason,
                 $this->msg->getID()
             ]) &&
-            $this->dbhm->preExec("UPDATE messages_groups SET collection = 'Spam' WHERE msgid = ?;", [
+            $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ?;", [
+                MessageCollection::PENDING,
                 $this->msg->getID()
             ]));
     }
