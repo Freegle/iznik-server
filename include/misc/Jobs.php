@@ -103,7 +103,8 @@ ORDER BY dist ASC, area ASC, posted_at DESC LIMIT $qlimit;";
     }
 
     public function recordClick($jobid, $link, $userid) {
-        $this->dbhm->preExec("INSERT INTO logs_jobs (userid, jobid, link) VALUES (?, ?, ?);", [
+        # Use ignore because we can get clicks for jobs we have purged.
+        $this->dbhm->preExec("INSERT IGNORE INTO logs_jobs (userid, jobid, link) VALUES (?, ?, ?);", [
             $userid,
             $jobid,
             $link
