@@ -40,8 +40,6 @@ WHERE ST_Within(geometry, GeomFromText('$poly'))
     $categoryq
 ORDER BY dist ASC, area ASC, posted_at DESC LIMIT $qlimit;";
             $jobs = $this->dbhr->preQuery($sql);
-            shuffle($jobs);
-            $jobs = array_slice($jobs, 0, $limit);
             #error_log($sql . " found " . count($jobs));
             $passes++;
 
@@ -49,6 +47,13 @@ ORDER BY dist ASC, area ASC, posted_at DESC LIMIT $qlimit;";
                 if (!array_key_exists($job['id'], $got)) {
                     $got[$job['id']] = TRUE;
                     $job['passes'] = $passes;
+
+                    # We have clickability, which is our estimate of how likely people are to click on a job based on
+                    # past clicks.  We also have the CPC, which is how much we expect to earn from a click.
+                    # Use these to order the jobs by our expected income.
+                    $cpc = max($job['cpc'], 0.0001);
+                    $job['expectation'] = $cpc * $job['clickability'];
+
                     $ret[] = $job;
                 }
             }
@@ -56,10 +61,12 @@ ORDER BY dist ASC, area ASC, posted_at DESC LIMIT $qlimit;";
             $ambit *= 2;
         } while (count($ret) < $limit && $ambit < 1);
 
-        # Sort the resulting jobs by clickability, which should result in more clicks.
         usort($ret, function($a, $b) {
-            return $b['clickability'] - $a['clickability'];
+            # Take care - must return integer, not float, otherwise the sort doesn't work.
+            return ceil($b['expectation'] - $a['expectation']);
         });
+
+        $ret = array_slice($ret, 0, $limit);
 
         return $ret;
     }
