@@ -6329,10 +6329,10 @@ memberships.groupid IN $groupq
 
                 if (count($left)) {
                     $info = $this->dbhr->preQuery(
-                        "SELECT userid, settings FROM users_donations INNER JOIN users ON users_donations.userid = users.id WHERE users_donations.timestamp >= ? AND users_donations.userid IN (" . implode(
+                        "SELECT userid, settings, TransactionType FROM users_donations INNER JOIN users ON users_donations.userid = users.id WHERE users_donations.timestamp >= ? AND users_donations.userid IN (" . implode(
                             ',',
                             $left
-                        ) . ");",
+                        ) . ") GROUP BY TransactionType;",
                         [
                             $start
                         ]
@@ -6344,6 +6344,10 @@ memberships.groupid IN $groupq
                         if ($i['userid'] == $myid) {
                             # Only return this info for ourselves, otherwise it's a privacy leak.
                             $rets[$i['userid']]['donor'] = TRUE;
+
+                            if ($i['TransactionType'] == 'subscr_payment' || $i['TransactionType'] == 'recurring_payment') {
+                                $rets[$i['userid']]['donorrecurring'] = TRUE;
+                            }
                         }
                     }
                 }
