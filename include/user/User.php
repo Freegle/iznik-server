@@ -6354,4 +6354,17 @@ memberships.groupid IN $groupq
             }
         }
     }
+
+    public function obfuscateEmail($email) {
+        $p = strpos($email, '@');
+
+        # For very short emails, we just show the first character.
+        if ($p <= 3) {
+            $email = substr($email, 0, 1) . "***" . substr($email, $p);
+        } else {
+            $email = substr($email, 0, 1) . "***" . substr($email, $p - 1);
+        }
+
+        return $email;
+    }
 }

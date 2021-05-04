@@ -1571,5 +1571,15 @@ class userTest extends IznikTestCase {
         $jobs = $u->getJobAds();
         assertGreaterThan(0, count($jobs));
     }
+
+    public function testObfuscate() {
+        $u = new User($this->dbhr, $this->dbhm);
+        assertEquals('t***@test.com', $u->obfuscateEmail('t@test.com'));
+        assertEquals('t***@test.com', $u->obfuscateEmail('te@test.com'));
+        assertEquals('t***@test.com', $u->obfuscateEmail('tes@test.com'));
+        assertEquals('t***t@test.com', $u->obfuscateEmail('test@test.com'));
+        assertEquals('t***1@test.com', $u->obfuscateEmail('test1@test.com'));
+        assertEquals('t***2@test.com', $u->obfuscateEmail('test12@test.com'));
+    }
 }
 
