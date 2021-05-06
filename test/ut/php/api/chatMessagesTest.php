@@ -677,7 +677,7 @@ class chatMessagesAPITest extends IznikAPITestCase
     public function testContext() {
         # Set up a conversation with lots of messages.
         $r = new ChatRoom($this->dbhr, $this->dbhm);
-        $rid = $r->createConversation($this->uid, $this->uid2);
+        list ($rid, $blocked) = $r->createConversation($this->uid, $this->uid2);
 
         for ($i = 0; $i < 10; $i++) {
             $cm = new ChatMessage($this->dbhr, $this->dbhm);

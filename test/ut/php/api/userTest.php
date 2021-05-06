@@ -784,7 +784,7 @@ class userAPITest extends IznikAPITestCase {
         # Create some interaction.
         $cr = new ChatRoom($this->dbhr, $this->dbhm);
         $cm = new ChatMessage($this->dbhr, $this->dbhm);
-        $cid = $cr->createConversation($this->user->getId(), $uid);
+        list ($cid, $blocked) = $cr->createConversation($this->user->getId(), $uid);
         list ($mid1, $j) = $cm->create($cid, $this->user->getId(), "test");
         list ($mid2, $j) = $cm->create($cid, $uid, "test");
 

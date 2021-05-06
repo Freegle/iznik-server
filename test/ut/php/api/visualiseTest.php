@@ -55,7 +55,7 @@ class visualiseAPITest extends IznikAPITestCase
             'lat' => 8.5
         ]);
         $r = new ChatRoom($this->dbhr, $this->dbhm);
-        $rid = $r->createConversation($uid, $m1->getFromuser());
+        list ($rid, $blocked) = $r->createConversation($uid, $m1->getFromuser());
         $cm = new ChatMessage($this->dbhr, $this->dbhm);
         $cmid = $cm->create($rid, $uid, "Hello?", ChatMessage::TYPE_INTERESTED, $id1);
         assertNotNull($cmid);

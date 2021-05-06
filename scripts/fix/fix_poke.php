@@ -12,5 +12,5 @@ $uid1 = $u->findByEmail('edward@ehibbert.org.uk');
 $uid2 = $u->findByEmail('test@ehibbert.org.uk');
 
 $c = new ChatRoom($dbhr, $dbhm);
-$cid = $c->createConversation($uid1, $uid2);
+list ($cid, $blocked) = $c->createConversation($uid1, $uid2);
 $c->pokeMembers();

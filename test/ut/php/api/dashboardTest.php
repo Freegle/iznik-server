@@ -211,7 +211,7 @@ class dashboardTest extends IznikAPITestCase {
         assertTrue($u->addMembership($gid, User::ROLE_MEMBER));
 
         $cr = new ChatRoom($this->dbhr, $this->dbhm);
-        $rid = $cr->createConversation($uid, $uid2);
+        list ($rid, $blocked) = $cr->createConversation($uid, $uid2);
         $cm = new ChatMessage($this->dbhr, $this->dbhm);
         list ($cmid, $banned) = $cm->create($rid, $uid2, "Test", ChatMessage::TYPE_INTERESTED, $mid);
         assertNotNull($cmid);

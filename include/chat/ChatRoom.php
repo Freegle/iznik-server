@@ -426,6 +426,7 @@ WHERE chat_rooms.id IN $idlist;";
     public function createConversation($user1, $user2, $checkonly = FALSE)
     {
         $id = NULL;
+        $bannedonall = FALSE;
 
         # We use a transaction to close timing windows.
         $this->dbhm->beginTransaction();
@@ -501,7 +502,7 @@ WHERE chat_rooms.id IN $idlist;";
             }
         }
 
-        return ($id);
+        return [ $id, $bannedonall ];
     }
 
     public function createUser2Mod($user1, $groupid)

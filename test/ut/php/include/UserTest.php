@@ -391,8 +391,8 @@ class userTest extends IznikTestCase {
 
         # Set up some chats
         $c = new ChatRoom($this->dbhr, $this->dbhm);
-        $cid1 = $c->createConversation($id1, $id3);
-        $cid2 = $c->createConversation($id2, $id3);
+        list ($cid1, $blocked) = $c->createConversation($id1, $id3);
+        list ($cid2, $blocked) = $c->createConversation($id2, $id3);
         $cid3 = $c->createUser2Mod($id2, $group1);
         $this->log("Created to mods $cid3");
         $cm = new ChatMessage($this->dbhr, $this->dbhm);
@@ -449,7 +449,7 @@ class userTest extends IznikTestCase {
         assertEquals(0, $emails[1]['preferred']);
 
         # Check chats
-        $cid1a = $c->createConversation($id1, $id3);
+        list ($cid1a, $blocked) = $c->createConversation($id1, $id3);
         self::assertEquals($cid1a, $cid1);
         $c = new ChatRoom($this->dbhr, $this->dbhm, $cid1);
         list ($msgs, $users) = $c->getMessages();
@@ -1086,7 +1086,7 @@ class userTest extends IznikTestCase {
         $n = new Newsfeed($this->dbhr, $this->dbhm);
 
         $r = new ChatRoom($this->dbhr, $this->dbhm);
-        $rid = $r->createConversation($uid, $uid2);
+        list ($rid, $blocked) = $r->createConversation($uid, $uid2);
         $m = new ChatMessage($this->dbhr, $this->dbhm);
         $mid = $m->create($rid, $uid, "Test");
 
@@ -1171,7 +1171,7 @@ class userTest extends IznikTestCase {
         $m = new Message($this->dbhm, $this->dbhm, $mid);
 
         $c = new ChatRoom($this->dbhr, $this->dbhm);
-        $cid1 = $c->createConversation($uid, $uid1);
+        list ($cid1, $blocked) = $c->createConversation($uid, $uid1);
         $cm = new ChatMessage($this->dbhr, $this->dbhm);
         $str = "Test";
         list ($mid1, $banned) = $cm->create($cid1, $uid, $str);
@@ -1307,7 +1307,7 @@ class userTest extends IznikTestCase {
         $uid1 = $u->create('Test', 'User', 'Test User');
         $uid2 = $u->create('Test', 'User', 'Test User');
         $r = new ChatRoom($this->dbhr, $this->dbhm);
-        $rid = $r->createConversation($uid1, $uid2);
+        list ($rid, $blocked) = $r->createConversation($uid1, $uid2);
         $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
         $_SESSION['id'] = $uid2;
         $enc = User::encodeId($uid1);
@@ -1438,8 +1438,8 @@ class userTest extends IznikTestCase {
         $id3 = $u->create('Test', 'User', NULL);
 
         $r = new ChatRoom($this->dbhr, $this->dbhm);
-        $rid1 = $r->createConversation($id1, $id2);
-        $rid2 = $r->createConversation($id3, $id1);
+        list ($rid1, $blocked) = $r->createConversation($id1, $id2);
+        list ($rid2, $blocked) = $r->createConversation($id3, $id1);
 
         $cm = new ChatMessage($this->dbhr, $this->dbhm);
         $mid1 = $cm->create($rid1, $id1, 'Test', ChatMessage::TYPE_INTERESTED, $id);
@@ -1528,7 +1528,7 @@ class userTest extends IznikTestCase {
         $u->addMembership($gid);
 
         $r = new ChatRoom($this->dbhr, $this->dbhm);
-        $r1 = $r->createConversation($id1, $id2);
+        list ($r1, $blocked) = $r->createConversation($id1, $id2);
         $m = new ChatMessage($this->dbhr, $this->dbhm);
         $m->create($r1, $id2, 'Test');
 

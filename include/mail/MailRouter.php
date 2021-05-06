@@ -756,7 +756,7 @@ class MailRouter
                                     # between them and the sender of the message (who might or might not be on our
                                     # platform).
                                     $r = new ChatRoom($this->dbhr, $this->dbhm);
-                                    $chatid = $r->createConversation($fromid, $m->getFromuser());
+                                    list ($chatid, $blocked) = $r->createConversation($fromid, $m->getFromuser());
 
                                     # Now add this into the conversation as a message.  This will notify them.
                                     $textbody = $this->msg->stripQuoted();
@@ -893,7 +893,7 @@ class MailRouter
                             # Get/create the chat room between the two users.
                             if ($log) { error_log("Create chat between " . $this->msg->getFromuser() . " (" . $this->msg->getFromaddr() . ") and $uid ($to)"); }
                             $r = new ChatRoom($this->dbhr, $this->dbhm);
-                            $rid = $r->createConversation($this->msg->getFromuser(), $uid);
+                            list ($rid, $blocked) = $r->createConversation($this->msg->getFromuser(), $uid);
                             if ($log) { error_log("Got chat id $rid"); }
 
                             if ($rid) {

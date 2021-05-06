@@ -65,13 +65,14 @@ function chatrooms() {
         case 'PUT': {
             # Create a conversation.
             $ret = ['ret' => 1, 'status' => 'Not logged in'];
+            $blocked = FALSE;
 
             if ($me) {
                 switch ($chattype) {
                     case ChatRoom::TYPE_USER2USER:
                         if ($userid) {
                             if ($myid != $userid) {
-                                $id = $r->createConversation($myid, $userid);
+                                list ($id, $blocked) = $r->createConversation($myid, $userid);
 
                                 if ($id) {
                                     $r = new ChatRoom($dbhr, $dbhm, $id);
@@ -97,7 +98,7 @@ function chatrooms() {
                         break;
                 }
 
-                $ret = ['ret' => 3, 'status' => 'Create failed'];
+                $ret = $blocked ? ['ret' => 4, 'status' => 'Blocked'] : ['ret' => 3, 'status' => 'Create failed'];
 
                 if ($id) {
                     $ret = ['ret' => 0, 'status' => 'Success', 'id' => $id];

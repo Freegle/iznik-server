@@ -87,7 +87,7 @@ class Tryst extends Entity
 
     public function createICS($userid, $u1, $u2) {
         $r = new ChatRoom($this->dbhr, $this->dbhm);
-        $rid = $r->createConversation($this->getPrivate('user1'), $this->getPrivate('user2'));
+        list ($rid, $blocked) = $r->createConversation($this->getPrivate('user1'), $this->getPrivate('user2'));
         $title = 'Freegle Handover: ' . $u1->getName() . " and " . $u2->getName();
 
         $event = new Event();
@@ -203,7 +203,7 @@ class Tryst extends Entity
                 $u2phone = $u2->getPhone();
                 $time = date('h:i A', strtotime($t->getPrivate('arrangedfor')));
                 $r = new ChatRoom($this->dbhr, $this->dbhm);
-                $rid = $r->createConversation($u1id, $u2id);
+                list ($rid, $blocked) = $r->createConversation($u1id, $u2id);
                 $url = "https://" . USER_SITE . "/handover/" . $due['id'] . '?src=sms';
 
                 if ($u1phone) {

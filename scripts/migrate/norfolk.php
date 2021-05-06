@@ -617,7 +617,7 @@ foreach ($messages as $message) {
     if ($touid && $fromuid) {
         error_log("...message {$message['g_Id']} to #$touid from #$fromuid");
         $r = new ChatRoom($dbhr, $dbhm);
-        $rid = $r->createConversation($fromuid, $touid);
+        list ($rid, $blocked) = $r->createConversation($fromuid, $touid);
         $r = new ChatRoom($dbhr, $dbhm, $rid);
 
         if ($rid) {

@@ -19,7 +19,7 @@ foreach ($ratings as $r) {
 
     foreach ($others as $other) {
         $cr = new ChatRoom($dbhr, $dbhm);
-        $rid = $cr->createConversation($other['rater'], $r['ratee']);
+        list ($rid, $blocked) = $cr->createConversation($other['rater'], $r['ratee']);
         $maxes = $dbhr->preQuery("SELECT MAX(date) AS m FROM chat_messages WHERE chatid = ?;", [
             $rid
         ]);

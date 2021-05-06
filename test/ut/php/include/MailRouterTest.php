@@ -836,7 +836,7 @@ class MailRouterTest extends IznikTestCase {
         assertNotNull($uid2);
         assertNotEquals($this->uid, $uid2);
         $c = new ChatRoom($this->dbhr, $this->dbhm);
-        $rid = $c->createConversation($this->uid, $uid2);
+        list ($rid, $blocked) = $c->createConversation($this->uid, $uid2);
         assertNotNull($rid);
 
         list($msgs, $users) = $c->getMessages();
@@ -889,7 +889,7 @@ class MailRouterTest extends IznikTestCase {
         assertNotNull($uid2);
         assertNotEquals($this->uid, $uid2);
         $c = new ChatRoom($this->dbhm, $this->dbhm);
-        $rid = $c->createConversation($this->uid, $uid2);
+        list ($rid, $blocked) = $c->createConversation($this->uid, $uid2);
         assertNotNull($rid);
         list($msgs, $users) = $c->getMessages();
 
@@ -1041,7 +1041,7 @@ class MailRouterTest extends IznikTestCase {
         assertNotNull($uid2);
         assertNotEquals($this->uid, $uid2);
         $c = new ChatRoom($this->dbhr, $this->dbhm);
-        $rid = $c->createConversation($this->uid, $uid2);
+        list ($rid, $blocked) = $c->createConversation($this->uid, $uid2);
         assertNotNull($rid);
 
         list($msgs, $users) = $c->getMessages();
@@ -1094,7 +1094,7 @@ class MailRouterTest extends IznikTestCase {
         # Now get the chat room that this should have been placed into.
         assertNotEquals($this->uid, $uid2);
         $c = new ChatRoom($this->dbhr, $this->dbhm);
-        $rid = $c->createConversation($this->uid, $uid2);
+        list ($rid, $blocked) = $c->createConversation($this->uid, $uid2);
         assertNotNull($rid);
 
         list($msgs, $users) = $c->getMessages();
@@ -1424,7 +1424,7 @@ class MailRouterTest extends IznikTestCase {
         assertNotNull($uid2);
         assertNotEquals($uid, $uid2);
         $c = new ChatRoom($this->dbhr, $this->dbhm);
-        $rid = $c->createConversation($uid, $uid2);
+        list ($rid, $blocked) = $c->createConversation($uid, $uid2);
         assertNotNull($rid);
         list($msgs, $users) = $c->getMessages();
 
@@ -1724,7 +1724,7 @@ class MailRouterTest extends IznikTestCase {
 
         # Chat message should exist, referencing it.
         $c = new ChatRoom($this->dbhr, $this->dbhm);
-        $rid = $c->createConversation($uid1, $uid2);
+        list ($rid, $blocked) = $c->createConversation($uid1, $uid2);
         assertNotNull($rid);
         error_log("Got chatid $rid for $uid1 to $uid2");
 

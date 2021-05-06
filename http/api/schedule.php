@@ -35,7 +35,7 @@ function schedule() {
                     # We are updating a schedule from within a chat to another user.  Create a message
                     # between the users to show that we have created this schedule.
                     $r = new ChatRoom($dbhr, $dbhm);
-                    $rid = $r->createConversation($myid, $chatuserid);
+                    list ($rid, $blocked) = $r->createConversation($myid, $chatuserid);
                     $m = new ChatMessage($dbhr, $dbhm);
                     list ($mid, $banned) = $m->create($rid, $myid, NULL, ChatMessage::TYPE_SCHEDULE, NULL, TRUE, NULL, NULL, NULL, NULL, NULL);
                 }
@@ -55,7 +55,7 @@ function schedule() {
                 if ($chatuserid) {
                     # Create a message in a chat between the users to show that we have updated this schedule.
                     $r = new ChatRoom($dbhr, $dbhm);
-                    $rid = $r->createConversation($myid, $chatuserid);
+                    list ($rid, $blocked) = $r->createConversation($myid, $chatuserid);
                     $m = new ChatMessage($dbhr, $dbhm);
                     list ($mid, $banned) = $m->create($rid, $myid, NULL, ChatMessage::TYPE_SCHEDULE_UPDATED, NULL, TRUE, NULL, NULL, NULL, NULL, NULL);
                 }

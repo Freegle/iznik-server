@@ -689,7 +689,7 @@ function message() {
                     if ($canmod) {
                         if ($userid > 0) {
                             $r = new ChatRoom($dbhr, $dbhm);
-                            $rid = $r->createConversation($myid, $userid);
+                            list ($rid, $blocked) = $r->createConversation($myid, $userid);
                             $cm = new ChatMessage($dbhr, $dbhm);
                         }
 

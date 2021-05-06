@@ -121,7 +121,7 @@ class scheduleAPITest extends IznikAPITestCase {
         # If we get the chatroom between these two users we should find that they have no scheduling matches so far,
         # as we only have a schedule for one user.
         $r = new ChatRoom($this->dbhr, $this->dbhm);
-        $rid = $r->createConversation($uid1, $uid2);
+        list ($rid, $blocked) = $r->createConversation($uid1, $uid2);
         assertNotNull($rid);
         $r = new ChatRoom($this->dbhr, $this->dbhm, $rid);
         list ($msgs, $users) = $r->getMessages();

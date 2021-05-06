@@ -3186,7 +3186,7 @@ ORDER BY lastdate DESC;";
         # We don't want to match B's reply against X.  So check the subject to see if it matches a post from the
         # sending user.
         $r = new ChatRoom($this->dbhr, $this->dbhm);
-        $rid = $r->createConversation($this->getFromuser(), $userid);
+        list ($rid, $blocked) = $r->createConversation($this->getFromuser(), $userid);
         $earlier = $this->dbhr->preQuery("SELECT * FROM chat_messages INNER JOIN messages ON chat_messages.refmsgid = messages.id WHERE userid = ? AND messages.fromuser = ? AND DATEDIFF(NOW(), messages.arrival) < 90;", [
             $userid,
             $this->getFromuser()

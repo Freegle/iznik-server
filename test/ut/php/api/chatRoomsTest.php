@@ -60,7 +60,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         $uid = $u->create(NULL, NULL, 'Test User');
 
         $c = new ChatRoom($this->dbhr, $this->dbhm);
-        $rid = $c->createConversation($this->uid, $uid);
+        list ($rid, $blocked) = $c->createConversation($this->uid, $uid);
 
         # Just because it exists, doesn't mean we should be able to see it.
         $ret = $this->call('chatrooms', 'GET', []);
@@ -261,7 +261,7 @@ class chatRoomsAPITest extends IznikAPITestCase
 
         # Create an unseen message
         $c = new ChatRoom($this->dbhr, $this->dbhm);
-        $rid = $c->createConversation($this->uid, $uid);
+        list ($rid, $blocked) = $c->createConversation($this->uid, $uid);
         $this->log("Created room $rid");
         $m = new ChatMessage($this->dbhr, $this->dbhm);
         list ($mid, $banned) = $m->create($rid, $uid, 'Test');
@@ -316,7 +316,7 @@ class chatRoomsAPITest extends IznikAPITestCase
 
         # Create an unseen message
         $c = new ChatRoom($this->dbhr, $this->dbhr);
-        $rid = $c->createConversation($this->uid, $uid);
+        list ($rid, $blocked) = $c->createConversation($this->uid, $uid);
         $this->log("Created room $rid between {$this->uid} and $uid");
 
         assertTrue($this->user->login('testpw'));
@@ -366,7 +366,7 @@ class chatRoomsAPITest extends IznikAPITestCase
 
         # Create an unseen message
         $c = new ChatRoom($this->dbhr, $this->dbhr);
-        $rid = $c->createConversation($this->uid, $uid);
+        list ($rid, $blocked) = $c->createConversation($this->uid, $uid);
         $this->log("Created room $rid between {$this->uid} and $uid");
 
         assertTrue($this->user->login('testpw'));
@@ -406,8 +406,9 @@ class chatRoomsAPITest extends IznikAPITestCase
 
         # u1 should not be able to open a chat to u2 as they are banned on all groups in common.
         $r = new ChatRoom($this->dbhr, $this->dbhm);
-        $rid = $r->createConversation($uid1, $uid2);
+        list ($rid, $blocked) = $r->createConversation($uid1, $uid2);
         assertNull($rid);
+        assertTrue($blocked);
     }
 //
 //    public function testEH() {

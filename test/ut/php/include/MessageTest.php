@@ -705,7 +705,7 @@ class messageTest extends IznikTestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $r = new ChatRoom($this->dbhr, $this->dbhm);
-        $rid = $r->createConversation($m->getFromuser(), $uid);
+        list ($rid, $blocked) = $r->createConversation($m->getFromuser(), $uid);
 
         $c = new ChatMessage($this->dbhr, $this->dbhm);
         list ($cid, $banned) = $c->create($rid, $uid, "Test reply", ChatMessage::TYPE_DEFAULT, $mid);
