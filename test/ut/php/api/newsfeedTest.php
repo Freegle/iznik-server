@@ -772,6 +772,8 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->user2->setSetting('modnotifnewsfeed', TRUE);
         assertEquals(1, $n->modnotif($this->uid2));
 
+        # Shouldn't duplicate.
+        assertEquals(0, $n->modnotif($this->uid2));
     }
 
     public function testReplyToReply() {

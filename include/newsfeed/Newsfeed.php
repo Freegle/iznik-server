@@ -953,6 +953,7 @@ class Newsfeed extends Entity
 
     public function modnotif($userid, $timeago = "24 hours ago") {
         $count = 0;
+        $max = 0;
 
         $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
         $twig = new \Twig_Environment($loader);
@@ -1006,6 +1007,7 @@ class Newsfeed extends Entity
             $twigitems = [];
 
             foreach ($feeds as &$feed) {
+                $max = max($feed['id'], $max);
                 #error_log("Compare {$feed['userid']} vs $userid, unseen $unseen, feed {$feed['id']} vs $lastseen, timestamp {$feed['timestamp']} vs $oldest");
                 $count++;
 
@@ -1073,6 +1075,13 @@ class Newsfeed extends Entity
                 error_log("..." . $mod->getEmailPreferred() . " send $count");
                 list ($transport, $mailer) = Mail::getMailer();
                 $this->sendIt($mailer, $message);
+            }
+
+            if ($max && $max > $lastseen) {
+                $this->dbhm->preExec("REPLACE INTO newsfeed_users (userid, newsfeedid) VALUES (?, ?);", [
+                    $userid,
+                    $max
+                ]);
             }
         }
 
