@@ -4441,7 +4441,7 @@ class User extends Entity
                     ]);
 
                     foreach ($messages as $msg) {
-                        if (preg_match("/(.+)\:(.+)\((.+)\)/", $msg['subject'], $matches)) {
+                        if (preg_match(Message::SUBJECT_REGEXP, $msg['subject'], $matches)) {
                             $grp = trim($matches[3]);
 
                             // Handle some misfromed locations which end up with spurious brackets.

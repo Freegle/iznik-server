@@ -89,7 +89,7 @@ class Relevant {
             #error_log("Look for posts from $userid since $start found " . count($msgs));
             foreach ($msgs as $msg) {
                 # We only bother with messages with standard subject line formats.
-                if (preg_match("/(.+)\:(.+)\((.+)\)/", $msg['subject'], $matches)) {
+                if (preg_match(Message::SUBJECT_REGEXP, $msg['subject'], $matches)) {
                     $item = trim($matches[2]);
 
                     if (!array_key_exists($item, $terms)) {
@@ -122,7 +122,7 @@ class Relevant {
 
             foreach ($views as $view) {
                 # We only bother with messages with standard subject line formats.
-                if (preg_match("/(.+)\:(.+)\((.+)\)/", $view['subject'], $matches)) {
+                if (preg_match(Message::SUBJECT_REGEXP, $view['subject'], $matches)) {
                     $item = trim($matches[2]);
 
                     if (!array_key_exists($item, $terms)) {

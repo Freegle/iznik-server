@@ -564,7 +564,7 @@ $total = count($items);
 $count = 0;
 
 foreach ($items AS $item) {
-    if (preg_match("/(.+)\:(.+)\((.+)\)/", $item['subject'], $matches)) {
+    if (preg_match(Message::SUBJECT_REGEXP, $item['subject'], $matches)) {
         $itemname = trim($matches[2]);
         error_log("...{$item['msgid']} $itemname");
 
