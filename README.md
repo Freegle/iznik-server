@@ -1,6 +1,6 @@
 # iznik-server
 
-[![Build Status](https://travis-ci.com/Freegle/iznik-server.svg?branch=master)](https://travis-ci.com/Freegle/iznik-server)
+[![CircleCI](https://circleci.com/gh/Freegle/iznik-server.svg?style=svg)](<LINK>)
 [![Coverage Status](https://coveralls.io/repos/github/Freegle/iznik-server/badge.svg?branch=master)](https://coveralls.io/github/Freegle/iznik-server?branch=master)
 
 Iznik is a platform for online reuse of unwanted items.  This is the server half.  
