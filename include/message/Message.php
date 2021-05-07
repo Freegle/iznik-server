@@ -3412,6 +3412,7 @@ ORDER BY lastdate DESC;";
         $textbody = preg_replace('/^Get Outlook for Android.*/ims', '', $textbody);
         $textbody = preg_replace('/^Get Outlook for IOS.*/ims', '', $textbody);
         $textbody = preg_replace('/^Sent from my Xperia.*/ims', '', $textbody);
+        $textbody = preg_replace('/^Sent from the all-new AOL app.*/ims', '', $textbody);
         $textbody = preg_replace('/^Sent from my BlueMail/ims', '', $textbody);
         $textbody = preg_replace('/^Sent using the mail.com mail app.*/ims', '', $textbody);
         $textbody = preg_replace('/^Sent from my phone.*/ims', '', $textbody);
