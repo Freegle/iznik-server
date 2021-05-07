@@ -732,6 +732,14 @@ HAVING logincount > 0
             $u = new User($this->dbhr, $this->dbhm);
             $u->getInfos($infousers);
             $u->getPublicLocations($infousers);
+
+            if ($collection == MembershipCollection::SPAM) {
+                $latlngs = $u->getLatLngs($infousers, FALSE, FALSE);
+
+                foreach ($latlngs as $userid => $latlng) {
+                    $infousers[$userid]['info']['privateposition'] = $latlng;
+                }
+            }
         }
 
         # Suspect members might be on multiple groups, so make sure we only return one.
