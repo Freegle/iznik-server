@@ -81,7 +81,7 @@ class WorryWords {
 
             foreach ($words as $word) {
                 foreach ($this->words as $worryword) {
-                    if (!Utils::pres($worryword['keyword'], $foundword) && $worryword['type'] !== WorryWords::TYPE_ALLOWED) {
+                    if (!Utils::pres($worryword['keyword'], $foundword) && $worryword['type'] !== WorryWords::TYPE_ALLOWED && strlen($worryword['keyword'])) {
                         # Check that words are roughly the same length, and allow more fuzziness as the word length increases.
                         $ratio = strlen($word) / strlen($worryword['keyword']);
                         $len = strlen($word);
