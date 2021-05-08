@@ -327,12 +327,10 @@ class Digest
                             'date' => date("D, jS F g:ia", strtotime($msg['arrival'])),
                         ];
 
-                        if (preg_match(Message::SUBJECT_REGEXP, $msg['subject'], $matches)) {
-                            $item = trim($matches[2]);
+                        list ($type, $item, $location ) = Message::parseSubject($msg['subject']);
 
-                            if (strlen($item) < 25 && strlen($subjinfo) < 50) {
-                                $subjinfo = $subjinfo == '' ? $item : "$subjinfo, $item";
-                            }
+                        if (strlen($item) < 25 && strlen($subjinfo) < 50) {
+                            $subjinfo = $subjinfo == '' ? $item : "$subjinfo, $item";
                         }
                     }
 

@@ -937,6 +937,25 @@ class messageTest extends IznikTestCase {
         assertTrue($found);
     }
 
+    public function testParseSubject() {
+        assertEquals([ NULL, NULL, NULL], Message::parseSubject('OFFER item (Place)'));
+        assertEquals([ NULL, NULL, NULL], Message::parseSubject('OFFER: item Place)'));
+        assertEquals([ NULL, NULL, NULL], Message::parseSubject('OFFER: item (Place'));
+        assertEquals([ NULL, NULL, NULL ], Message::parseSubject('OFFER: (Place)'));
+
+        assertEquals([ 'OFFER', 'item', 'Place'], Message::parseSubject('OFFER: item (Place)'));
+        assertEquals([ 'OFFER', 'item', ''], Message::parseSubject('OFFER: item ()'));
+        assertEquals([ 'OFFER', 'item', 'a'], Message::parseSubject('OFFER: item (a)'));
+
+        assertEquals([ 'OFFER', 'item', 'Place (with brackets)'], Message::parseSubject('OFFER: item (Place (with brackets))'));
+        assertEquals([ 'OFFER', 'item', 'Place (with brackets)'], Message::parseSubject(' OFFER :  item  ( Place (with brackets) )'));
+        assertEquals([ 'OFFER', 'item', 'Place (with) brackets'], Message::parseSubject('OFFER: item (Place (with) brackets)'));
+        assertEquals([ 'OFFER', 'item (with) brackets', 'Place'], Message::parseSubject('OFFER: item (with) brackets (Place)'));
+        assertEquals([ 'OFFER', 'item (with brackets)', 'Place'], Message::parseSubject('OFFER: item (with brackets) (Place)'));
+        assertEquals([ 'OFFER', 'item (with brackets)', 'Place (with) brackets'], Message::parseSubject('OFFER: item (with brackets) (Place (with) brackets)'));
+        assertEquals([ 'OFFER', 'item (with brackets', 'Place (with) brackets' ], Message::parseSubject('OFFER: item (with brackets (Place (with) brackets)'));
+    }
+
     // For manual testing
 //    public function testSpecial() {
 //        //

@@ -89,22 +89,19 @@ class Relevant {
             #error_log("Look for posts from $userid since $start found " . count($msgs));
             foreach ($msgs as $msg) {
                 # We only bother with messages with standard subject line formats.
-                if (preg_match(Message::SUBJECT_REGEXP, $msg['subject'], $matches)) {
-                    $item = trim($matches[2]);
-
-                    if (!array_key_exists($item, $terms)) {
-                        $terms[$item] = TRUE;
-                        $interested[] = [
-                            'type' => $msg['type'],
-                            'item' => $item,
-                            'reason' => [
-                                'type' => Relevant::MATCH_POST,
-                                'msgid' => $msg['id'],
-                                'subject' => $msg['subject'],
-                                'date' => Utils::ISODate($msg['arrival'])
-                            ]
-                        ];
-                    }
+                list ($type, $item, $location ) = Message::parseSubject($msg['subject']);
+                if ($item && !array_key_exists($item, $terms)) {
+                    $terms[$item] = TRUE;
+                    $interested[] = [
+                        'type' => $msg['type'],
+                        'item' => $item,
+                        'reason' => [
+                            'type' => Relevant::MATCH_POST,
+                            'msgid' => $msg['id'],
+                            'subject' => $msg['subject'],
+                            'date' => Utils::ISODate($msg['arrival'])
+                        ]
+                    ];
                 }
             }
 
@@ -122,23 +119,20 @@ class Relevant {
 
             foreach ($views as $view) {
                 # We only bother with messages with standard subject line formats.
-                if (preg_match(Message::SUBJECT_REGEXP, $view['subject'], $matches)) {
-                    $item = trim($matches[2]);
+                list ($type, $item, $location ) = Message::parseSubject($view['subject']);
+                if ($item && !array_key_exists($item, $terms)) {
+                    $terms[$item] = true;
 
-                    if (!array_key_exists($item, $terms)) {
-                        $terms[$item] = true;
-
-                        $interested[] = [
-                            'item' => $item,
-                            'type' => $view['type'] == Message::TYPE_OFFER ? Message::TYPE_WANTED : Message::TYPE_OFFER,
-                            'reason' => [
-                                'type' => Relevant::MATCH_VIEWED,
-                                'msgid' => $view['id'],
-                                'term' => $item,
-                                'date' => Utils::ISODate($view['timestamp'])
-                            ]
-                        ];
-                    }
+                    $interested[] = [
+                        'item' => $item,
+                        'type' => $view['type'] == Message::TYPE_OFFER ? Message::TYPE_WANTED : Message::TYPE_OFFER,
+                        'reason' => [
+                            'type' => Relevant::MATCH_VIEWED,
+                            'msgid' => $view['id'],
+                            'term' => $item,
+                            'date' => Utils::ISODate($view['timestamp'])
+                        ]
+                    ];
                 }
             }
         }

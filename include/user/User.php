@@ -4441,10 +4441,12 @@ class User extends Entity
                     ]);
 
                     foreach ($messages as $msg) {
-                        if (preg_match(Message::SUBJECT_REGEXP, $msg['subject'], $matches)) {
-                            $grp = trim($matches[3]);
+                        list ($type, $item, $location) = Message::parseSubject($msg['subject']);
 
-                            // Handle some misfromed locations which end up with spurious brackets.
+                        if ($item) {
+                            $grp = $location;
+
+                            // Handle some misformed locations which end up with spurious brackets.
                             $grp = preg_replace('/\(|\)/', '', $grp);
 
                             $users[$userid]['info']['publiclocation'] = [
@@ -4452,7 +4454,7 @@ class User extends Entity
                                 'location' => NULL,
                                 'groupname' => $grp
                             ];
-                            
+
                             $found[] = $userid;
                         }
                     }
