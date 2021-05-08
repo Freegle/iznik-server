@@ -135,10 +135,11 @@ class MicroVolunteering
                 $groupids = $u->getMembershipGroupIds(false, Group::GROUP_FREEGLE, $userid);
             }
 
-            if ($u->getPrivate('trustlevel') == User::TRUST_MODERATE) {
-                # Users with this trust level can review pending messages.
-                $msgs = $this->dbhr->preQuery(
-                    "SELECT messages_groups.msgid
+            if (count($groupids)) {
+                if ($u->getPrivate('trustlevel') == User::TRUST_MODERATE) {
+                    # Users with this trust level can review pending messages.
+                    $msgs = $this->dbhr->preQuery(
+                        "SELECT messages_groups.msgid
     FROM messages_groups
     INNER JOIN messages ON messages.id = messages_groups.msgid
     INNER JOIN groups ON groups.id = messages_groups.groupid
@@ -150,17 +151,18 @@ class MicroVolunteering
         AND microactions.id IS NULL
         AND (microvolunteeringoptions IS NULL OR JSON_EXTRACT(microvolunteeringoptions, '$.approvedmessages') = 1)
     ORDER BY messages_groups.arrival ASC LIMIT 1",
-                    [
-                        $userid,
-                        $userid
-                    ]
-                );
+                        [
+                            $userid,
+                            $userid
+                        ]
+                    );
 
-                foreach ($msgs as $msg) {
-                    $ret = [
-                        'type' => self::CHALLENGE_CHECK_MESSAGE,
-                        'msgid' => $msg['msgid']
-                    ];
+                    foreach ($msgs as $msg) {
+                        $ret = [
+                            'type' => self::CHALLENGE_CHECK_MESSAGE,
+                            'msgid' => $msg['msgid']
+                        ];
+                    }
                 }
             }
 
@@ -236,7 +238,7 @@ class MicroVolunteering
                 }
             }
 
-            if (!$ret && in_array(self::CHALLENGE_PHOTO_ROTATE, $types)) {
+            if (!$ret && in_array(self::CHALLENGE_PHOTO_ROTATE, $types) && count($groupids)) {
                 # Select 9 distinct random recent photos that we've not reviewed.
 
                 $atts = $this->dbhr->preQuery(
