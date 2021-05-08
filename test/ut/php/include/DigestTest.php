@@ -279,5 +279,86 @@ class digestTest extends IznikTestCase {
         # Again - nothing to send.
         assertEquals(0, $mock->send($this->gid, Digest::HOUR1));
     }
+
+    public function testNearby() {
+        # Two groups.
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid1 = $g->create('testgroup1', Group::GROUP_FREEGLE);
+        $g->setSettings([
+                            'nearbygroups' => 1
+                        ]);
+        $gid2 = $g->create('testgroup2', Group::GROUP_FREEGLE);
+        $g->setSettings([
+                            'nearbygroups' => 2
+                        ]);
+
+        # A message on each.
+        $this->user->addMembership($gid1);
+        $this->user->setMembershipAtt($gid1, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        $this->user->addMembership($gid2);
+        $this->user->setMembershipAtt($gid2, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace("FreeglePlayground", "testgroup1", $msg);
+        $msg = str_replace('Basic test', 'OFFER: Test item 1 (location)', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id1 = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid1);
+        assertNotNull($id1);
+        $this->log("Created message $id1");
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace("FreeglePlayground", "testgroup2", $msg);
+        $msg = str_replace('Basic test', 'OFFER: Test item 2 (location)', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id2 = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid2);
+        assertNotNull($id2);
+        $this->log("Created message $id2");
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Mock the actual send
+        $mock = $this->getMockBuilder('Freegle\Iznik\Digest')
+            ->setConstructorArgs([$this->dbhr, $this->dbhm, NULL, TRUE])
+            ->setMethods(array('sendOne'))
+            ->getMock();
+        $mock->method('sendOne')->will($this->returnCallback(function($mailer, $message) {
+            return($this->sendMock($mailer, $message));
+        }));
+
+        # Create a user on the first group.
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test@blackhole.io');
+        $eid = $u->addEmail('test@' . USER_DOMAIN);
+        $this->log("Created user $uid email $eid");
+        assertGreaterThan(0, $eid);
+        $u->addMembership($gid1, User::ROLE_MEMBER, $eid);
+        $u->setMembershipAtt($gid1, 'emailfrequency', Digest::HOUR1);
+
+        # Put the messages a bit apart.
+        $m1 = new Message($this->dbhr, $this->dbhm, $id1);
+        $m1->setPrivate('lng', 179.19);
+        $m1->setPrivate('lat', 8.51);
+
+        $m2 = new Message($this->dbhr, $this->dbhm, $id2);
+        $m2->setPrivate('lng', 179.195);
+        $m2->setPrivate('lat', 8.515);
+
+        $m1->updateSpatialIndex();
+
+        # Put the user near the first one.
+        $u->setSetting('mylocation', [
+            'lng' => 179.20,
+            'lat' => 8.51
+        ]);
+
+        # Send digest.  Should contain the nearby message.
+        assertEquals(1, $mock->send($gid1, Digest::HOUR1, 'localhost', NULL, TRUE, TRUE));
+        assertEquals(1, count($this->msgsSent));
+        error_log("Sent " . $this->msgsSent[0]);
+        assertNotFalse(strpos($this->msgsSent[0], 'Test item 2'));
+    }
 }
 

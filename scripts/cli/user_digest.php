@@ -28,7 +28,7 @@ if (count($opts) < 3) {
 
         foreach ($groups as $group) {
             # Force
-            $total = $d->send($group['id'], $interval, 'localhost', $uid);
+            $total = $d->send($group['id'], $interval, 'localhost', $uid, TRUE);
         }
 
         error_log("Sent $total");

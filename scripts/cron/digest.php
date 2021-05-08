@@ -39,7 +39,8 @@ if (count($opts) < 1) {
 
         # Don't send for closed groups.
         if (!$g->getSetting('closed',FALSE)) {
-            $total += $d->send($group['id'], $interval);
+            # Don't encourage non-local posts yet because of COVID.
+            $total += $d->send($group['id'], $interval, 'localhost', NULL, FALSE, FALSE);
             if (file_exists('/tmp/iznik.mail.abort')) {
                 break;
             }

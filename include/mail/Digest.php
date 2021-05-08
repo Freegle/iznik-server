@@ -3,6 +3,7 @@ namespace Freegle\Iznik;
 
 
 require_once(IZNIK_BASE . '/mailtemplates/digest/off.php');
+require_once(IZNIK_BASE . '/lib/GreatCircle.php');
 
 class Digest
 {
@@ -112,7 +113,7 @@ class Digest
         }
     }
 
-    public function send($groupid, $frequency, $host = 'localhost', $uidforce = NULL) {
+    public function send($groupid, $frequency, $host = 'localhost', $uidforce = NULL, $allownearby = FALSE, $nearbyintext = FALSE) {
         $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
         $twig = new \Twig_Environment($loader);
         $sent = 0;
@@ -377,7 +378,8 @@ class Digest
                             'visit' => '{{visit}}',
                             'jobads' => '{{jobads}}',
                             'sponsors' => $sponsors,
-                            'joblocation' => '{{joblocation}}'
+                            'joblocation' => '{{joblocation}}',
+                            'nearby' => '{{nearby}}'
                         ]);
                     } catch (\Exception $e) {
                         error_log("Message prepare failed with " . $e->getMessage());
@@ -423,6 +425,7 @@ class Digest
 
                             # We build up an array of the substitutions we need.
                             $jobads = $u->getJobAds();
+                            $nearby = $allownearby ? $this->getMessagesOnNearbyGroups($twig, $u, $g, $frequency) : '';
 
                             $replacements[$email] = [
                                 '{{uid}}' => $u->getId(),
@@ -447,8 +450,9 @@ class Digest
 
                     if (count($replacements) > 0) {
                         error_log("#$groupid {$gatts['nameshort']} " . count($tosend) . " messages max $maxmsg, $maxdate to " . count($replacements) . " users");
+
                         # Now send.  We use a failover transport so that if we fail to send, we'll queue it for later
-                        # rather than lose it.
+                        # rather than lose it.  We use multiple spoolers for throughput.
                         $spool = rand(1, self::SPOOLERS);
                         list ($transport, $mailer) = Mail::getMailer($host, self::SPOOLNAME . $spool);
 
@@ -477,6 +481,11 @@ class Digest
                                     # text, which looks wrong.  So make sure it's not empty.
                                     $msg['text'] = $msg['text'] ? $msg['text'] : '.';
 
+                                    if ($nearbyintext) {
+                                        # This is used in UT.
+                                        $msg['text'] .= $nearby;
+                                    }
+
                                     $message = \Swift_Message::newInstance()
                                         ->setSubject($msg['subject'] . ' ' . User::encodeId($emailToId[$email]))
                                         ->setFrom([$msg['from'] => $msg['fromname']])
@@ -490,7 +499,10 @@ class Digest
                                     $htmlPart->setCharset('utf-8');
                                     $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
                                     $htmlPart->setContentType('text/html');
-                                    $htmlPart->setBody($html);
+
+                                    # {{nearby}} doesn't expand correctly inside the decorator, so do it manually here.
+                                    $htmlPart->setBody(str_replace('{{nearby}}', $nearby, $html));
+
                                     $message->attach($htmlPart);
 
                                     $headers = $message->getHeaders();
@@ -522,5 +534,67 @@ class Digest
         }
 
         return($sent);
+    }
+
+    private function getMessagesOnNearbyGroups($twig, User $u, Group $g, $frequency) {
+        $ret = '';
+
+        if ($frequency != Digest::IMMEDIATE) {
+            $nearby = $g->getSetting('nearbygroups', $g->defaultSettings['nearbygroups']);
+            list ($lat, $lng, $loc) = $u->getLatLng(FALSE, FALSE);
+
+            if ($nearby && ($lat || $lng)) {
+                # The group we are mailing for allows us to show posts near the boundary.  Find extant messages on
+                # other groups which are within this distance of the user, not from us and where we are not a
+                # member of the group.  These are ones which might encourage us to join that group.
+                $distance = $nearby * 1609.34;
+                $ne = \GreatCircle::getPositionByDistance($distance, 45, $lat, $lng);
+                $sw = \GreatCircle::getPositionByDistance($distance, 255, $lat, $lng);
+                $box = "GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
+
+                $sql = "SELECT Y(point) AS lat, X(point) AS lng, messages_spatial.msgid, messages_spatial.groupid, messages.subject FROM messages_spatial 
+    INNER JOIN messages ON messages_spatial.msgid = messages.id
+    LEFT JOIN memberships ON memberships.userid = ? AND memberships.groupid = messages_spatial.groupid
+    WHERE ST_Contains($box, point)
+      AND messages_spatial.groupid != ? 
+      AND fromuser != ?
+      AND memberships.id IS NULL  
+    ORDER BY messages_spatial.arrival ASC;";
+                $posts = $this->dbhr->preQuery($sql, [
+                    $u->getId(),
+                    $g->getId(),
+                    $u->getId()
+                ]);
+
+                $include = [];
+
+                foreach ($posts as $post) {
+                    # Get distance from user.
+                    $away = \GreatCircle::getDistance($post['lat'], $post['lng'], $lat, $lng);
+
+                    # We have searched using a box rather than circle, and the group the message is on might have a
+                    # different distance.  So check both.
+                    $g2 = Group::get($this->dbhr, $this->dbhm, $post['groupid']);
+                    $nearby2 = $g2->getSetting('nearbygroups', $g->defaultSettings['nearbygroups']);
+                    $distance2 = $nearby2 * 1609.34;
+                    #error_log("Post is $away away, group limits $distance and $distance2");
+
+                    if (($nearby2 && $away <= $distance) && ($away <= $distance2)) {
+                        $post['replyweb'] = "https://" . USER_SITE . "/message/{$post['msgid']}";
+                        $include[] = $post;
+                    }
+                }
+
+                if (count($include)) {
+                    // What we render here is not an entire message, it's a fragment that is then inserted.  So
+                    // when converting from MJML we take care to extract the relevant part.
+                    $ret = $twig->render('digest/nearby.html', [
+                        'nearby' => $include
+                    ]);
+                }
+            }
+        }
+
+        return $ret;
     }
 }

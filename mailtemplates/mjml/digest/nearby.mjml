@@ -1,0 +1,24 @@
+<mjml>
+    <mj-body>
+      <mj-wrapper full-width="full-width" background-color="#D8D8D8">
+        <mj-section background-color="#D8D8D8" padding="0px">
+          <mj-column>
+            <mj-text color="#1D6607" font-size="20px" line-height="1.25" padding-bottom="0px">Other Nearby Posts</mj-text>
+            <mj-text color="#1D6607" line-height="1.25"><br /> These posts are
+              near you from other communities.
+              <br />
+              <br />
+              <hr style="border: 0; border-top: 1px solid #AAA; " />
+            </mj-text>
+          </mj-column>
+        </mj-section>
+        <mj-section background-color="#D8D8D8" padding="0px">
+          <mj-column>
+		      	<mj-raw>{% for message in nearby %}</mj-raw>
+            <mj-text padding-top="0" padding-bottom="0px" color="#1D6607" font-size="18px" line-height="1.25"><a  href="{{ message.replyweb }}">{{ message.subject }}</a></mj-text>
+		       	<mj-raw>{% endfor %}</mj-raw>
+          </mj-column>
+        </mj-section>
+      </mj-wrapper>
+  </mj-body>
+</mjml>
