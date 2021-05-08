@@ -22,6 +22,7 @@ class Jobs {
         $ret = [];
         $got = [];
         $gotbody = [];
+        $gottitle = [];
         $qlimit = min(50, $limit * 5);
         $passes = 0;
 
@@ -45,9 +46,13 @@ ORDER BY dist ASC, area ASC, posted_at DESC LIMIT $qlimit;";
             $passes++;
 
             foreach ($jobs as $job) {
-                if (!array_key_exists($job['id'], $got) && !array_key_exists($job['body'], $gotbody)) {
+                if (!array_key_exists($job['id'], $got) &&
+                    !array_key_exists($job['body'], $gotbody) &&
+                    !array_key_exists($job['title'], $gottitle)
+                ) {
                     $got[$job['id']] = TRUE;
                     $got[$job['body']] = $job['body'];
+                    $got[$job['title']] = $job['title'];
                     $job['passes'] = $passes;
 
                     # We have clickability, which is our estimate of how likely people are to click on a job based on
