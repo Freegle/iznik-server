@@ -631,6 +631,16 @@ class messageTest extends IznikTestCase {
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
+        # Create an old reply to the post.
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', 'Test User');
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $m2 = new Message($this->dbhr, $this->dbhm, $id2);
+        list ($cid, $blocked) = $r->createConversation($uid, $m2->getFromuser());
+        $cm = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cmid, $blocked) = $cm->create($cid, $uid, "Me please", ChatMessage::TYPE_INTERESTED, $id2);
+        error_log("Created $cmid interested in $id2");
+
         $m = new Message($this->dbhr, $this->dbhm);
 
         # Should get nothing - first message is not due and too old to generate a warning.
@@ -639,11 +649,21 @@ class messageTest extends IznikTestCase {
         assertEquals(0, $count);
         assertEquals(0, $warncount);
 
-        # Call when repost not due.  First one should cause a warning only.
-        $this->log("Expect warning for $id2");
+        # Call when warning due, but a recent reply..
+        $this->log("Recent reply for $id2");
         $mysqltime = date("Y-m-d H:i:s", strtotime('59 hours ago'));
         $this->dbhm->preExec("UPDATE messages_groups SET arrival = '$mysqltime' WHERE msgid = ?;", [ $id2 ]);
 
+        list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $this->gid);
+        assertEquals(0, $count);
+        assertEquals(0, $warncount);
+
+        # Make reply old enough not to block autorepost.
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $cmid);
+        $cm->setPrivate('date', '2016-01-01');
+
+        # Call when repost not due.  First one should cause a warning only.
+        $this->log("Expect warning for $id2");
         list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $this->gid);
         assertEquals(0, $count);
         assertEquals(1, $warncount);
@@ -658,7 +678,6 @@ class messageTest extends IznikTestCase {
         $_SESSION['id'] = $m2->getFromuser();
         $atts = $m2->getPublic();
         self::assertEquals(FALSE, $atts['canrepost']);
-        self::assertEquals(TRUE, $atts['willautorepost']);
 
         # Make the message and warning look longer ago.  Then call - should cause a repost.
         $this->log("Expect repost");

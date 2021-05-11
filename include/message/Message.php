@@ -1109,7 +1109,6 @@ class Message
                             if ($repostat < time()) {
                                 # Hit max number of autoreposts.
                                 $repostat = time();
-                                $rets[$msg['id']]['willautorepost'] = FALSE;
                             }
 
                             $rets[$msg['id']]['canrepostat'] = Utils::ISODate("@$repostat");
@@ -1328,10 +1327,6 @@ ORDER BY lastdate DESC;";
                     }
 
                     $rets[$msg['id']]['replies'] = $ourreplies;
-
-                    # Whether or not we will auto-repost depends on whether there are replies.
-                    $rets[$msg['id']]['willautorepost'] = count($rets[$msg['id']]['replies']) == 0;
-
                     $rets[$msg['id']]['promisecount'] = 0;
                 }
 
@@ -4366,8 +4361,11 @@ WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND message
             if (!$g->getSetting('closed', FALSE) && !$g->getPrivate('autofunctionoverride')) {
                 $reposts = $g->getSetting('reposts', [ 'offer' => 3, 'wanted' => 7, 'max' => 5, 'chaseups' => 5]);
 
-                # We want approved messages which haven't got an outcome, aren't promised, don't have any replies and
-                # which we originally sent.
+                # We want approved messages which:
+                # - haven't got an outcome
+                # - aren't promised
+                # - we originally sent
+                # - we are still a member of the group
                 #
                 # The replies part is because we can't really rely on members to let us know what happens to a message,
                 # especially if they are not receiving emails reliably.  At least this way it avoids the case where a
@@ -4380,8 +4378,7 @@ FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid
 INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid 
 LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid 
 LEFT OUTER JOIN messages_promises ON messages_promises.msgid = messages.id 
-LEFT OUTER JOIN chat_messages ON messages.id = chat_messages.refmsgid AND chat_messages.type != 'ModMail' 
-WHERE messages_groups.arrival > ? AND messages.arrival >= '2021-03-29' AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL AND chat_messages.refmsgid IS NULL $msgq;";
+WHERE messages_groups.arrival > ? AND messages.arrival >= '2021-03-29' AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL $msgq;";
                 #error_log("$sql, $mindate, {$group['id']}");
                 $messages = $this->dbhr->preQuery($sql, [
                     $mindate,
@@ -4396,16 +4393,28 @@ WHERE messages_groups.arrival > ? AND messages.arrival >= '2021-03-29' AND messa
                 foreach ($messages as $message) {
                     if (Mail::ourDomain($message['fromaddr'])) {
                         if ($message['autoreposts'] < $reposts['max']) {
+                            $interval = $message['type'] == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
+
+                            # Check for replies.  Even if they haven't promised it, they might be in the middle of
+                            # talking about arrangements.  So find the most recent message in any chat which mentions
+                            # this post.
+                            $maxchat = $this->dbhr->preQuery("SELECT MAX(chat_messages.date) AS max FROM chat_messages WHERE chatid IN (SELECT chat_messages.chatid FROM chat_messages WHERE chat_messages.refmsgid = ? AND chat_messages.type != ?);", [
+                                $message['msgid'],
+                                ChatMessage::TYPE_MODMAIL
+                            ]);
+
+                            $max = $maxchat[0]['max'];
+                            $recentreply = $max && ($now - strtotime($max)) < $interval * 60 * 60;
+
                             # We want to send a warning 24 hours before we repost.
                             $lastwarnago = $message['lastautopostwarning'] ? ($now - strtotime($message['lastautopostwarning'])) : NULL;
-                            $interval = $message['type'] == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
 
                             # If we have messages which are older than we could have been trying for, ignore them.
                             $maxage = $interval * ($reposts['max'] + 1);
 
-                            error_log("Consider repost {$message['msgid']}, posted {$message['hoursago']} interval $interval lastwarning $lastwarnago maxage $maxage");
+                            error_log("Consider repost {$message['msgid']}, posted {$message['hoursago']} interval $interval lastwarning $lastwarnago maxage $maxage last reply $max");
 
-                            if ($message['hoursago'] < $maxage * 24) {
+                            if (!$recentreply && $message['hoursago'] < $maxage * 24) {
                                 # Reposts might be turned off.
                                 if ($interval > 0 && $reposts['max'] > 0) {
                                     if ($message['hoursago'] <= $interval * 24 &&
