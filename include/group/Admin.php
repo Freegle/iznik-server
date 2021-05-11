@@ -55,12 +55,13 @@ class Admin extends Entity
         return($atts);
     }
 
-    public function constructMessage($groupname, $to, $toname, $from, $subject, $text) {
+    public function constructMessage($groupname, $modsmail, $to, $toname, $from, $subject, $text) {
         $post = "https://" . USER_SITE;
         $unsubscribe = "https://" . USER_SITE . "/unsubscribe";
         $visit = "https://" .  USER_SITE . "/mygroups";
 
         $text = str_replace('$groupname', $groupname, $text);
+        $text = str_replace('$owneremail', $modsmail, $text);
         $subject = str_replace('ADMIN: ', '', $subject);
         $subject = str_replace('ADMIN ', '', $subject);
 
@@ -134,6 +135,7 @@ class Admin extends Entity
         $atts = $g->getPublic();
 
         $groupname = $atts['namedisplay'];
+        $modsmail = $atts['modsmail'];
         $userq = $userid ? " AND userid = $userid " : '';
 
         $sql = "SELECT userid FROM memberships WHERE groupid = ? $userq;";
@@ -173,7 +175,7 @@ class Admin extends Entity
 
             if ($preferred) {
                 try {
-                    $msg = $this->constructMessage($groupname, $preferred, $u->getName(), $g->getAutoEmail(), $this->admin['subject'], $this->admin['text']);
+                    $msg = $this->constructMessage($groupname, $modsmail, $preferred, $u->getName(), $g->getAutoEmail(), $this->admin['subject'], $this->admin['text']);
 
                     Mail::addHeaders($msg, Mail::ADMIN, $u->getId());
 
