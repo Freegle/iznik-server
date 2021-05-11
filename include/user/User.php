@@ -6064,7 +6064,7 @@ memberships.groupid IN $groupq
         #
         # $since here has to match the value in ChatRoom::
         $starttime = date("Y-m-d H:i:s", strtotime($since));
-        $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS count, expectee FROM users_expected INNER JOIN users ON users.id = users_expected.expectee INNER JOIN chat_messages ON chat_messages.id = users_expected.chatmsgid WHERE expectee IN (" . implode(',', $uids) . ") AND chat_messages.date >= '$starttime' AND replyreceived = 0 AND TIMESTAMPDIFF(MINUTE, chat_messages.date, users.lastaccess) >= ?", [
+        $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS count, expectee FROM users_expected INNER JOIN users ON users.id = users_expected.expectee INNER JOIN chat_messages ON chat_messages.id = users_expected.chatmsgid WHERE expectee IN (" . implode(',', $uids) . ") AND chat_messages.date >= '$starttime' AND replyexpected = 1 AND replyreceived = 0 AND TIMESTAMPDIFF(MINUTE, chat_messages.date, users.lastaccess) >= ?", [
             $grace
         ]);
 
@@ -6077,7 +6077,7 @@ memberships.groupid IN $groupq
         #
         # $since here has to match the value in ChatRoom::
         $starttime = date("Y-m-d H:i:s", strtotime($since));
-        $replies = $this->dbhr->preQuery("SELECT chatid FROM users_expected INNER JOIN users ON users.id = users_expected.expectee INNER JOIN chat_messages ON chat_messages.id = users_expected.chatmsgid WHERE expectee = ? AND chat_messages.date >= '$starttime' AND replyreceived = 0 AND TIMESTAMPDIFF(MINUTE, chat_messages.date, users.lastaccess) > ?", [
+        $replies = $this->dbhr->preQuery("SELECT chatid FROM users_expected INNER JOIN users ON users.id = users_expected.expectee INNER JOIN chat_messages ON chat_messages.id = users_expected.chatmsgid WHERE expectee = ? AND chat_messages.date >= '$starttime' AND replyexpected = 1 AND replyreceived = 0 AND TIMESTAMPDIFF(MINUTE, chat_messages.date, users.lastaccess) > ?", [
             $uid,
             $grace
         ]);
