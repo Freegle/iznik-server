@@ -135,7 +135,7 @@ class Admin extends Entity
         $atts = $g->getPublic();
 
         $groupname = $atts['namedisplay'];
-        $modsmail = $atts['modsmail'];
+        $modsmail = $atts['modsemail'];
         $userq = $userid ? " AND userid = $userid " : '';
 
         $sql = "SELECT userid FROM memberships WHERE groupid = ? $userq;";
