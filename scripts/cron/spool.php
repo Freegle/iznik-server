@@ -13,8 +13,10 @@ $spoolname = Utils::presdef('n', $opts, '/spool');
 $lockh = Utils::lockScript(basename(__FILE__ . '_' . $spoolname));
 
 $spool = new \Swift_FileSpool(IZNIK_BASE . $spoolname);
+
+# Some messages can fail to send, if exim is playing up.
 $spool->recover(60);
-$recover = 300;
+$restart = 3600;
 
 do {
     try {
@@ -45,12 +47,12 @@ do {
     } else {
         sleep(1);
 
-        $recover--;
+        $restart--;
 
-        if ($recover <= 0) {
-            # Some messages can fail to send, if exim is playing up.
-            $spool->recover(60);
-            $recover = 300;
+        if ($restart <= 0) {
+            # Exit and restart.  Picks up any code changes and will force another flush of the spool when we
+            # next start running due to cron.
+            exit(0);
         }
     }
 } while (true);
