@@ -2952,6 +2952,8 @@ class User extends Entity
                     }
 
                     # Merge the add date.
+                    $u1 = User::get($this->dbhr, $this->dbhm, $id1);
+                    $u2 = User::get($this->dbhr, $this->dbhm, $id2);
                     $this->dbhm->preExec("UPDATE users SET added = ? WHERE id = $id1;", [
                         strtotime($u1->getPrivate('added')) < strtotime($u2->getPrivate('added')) ? $u1->getPrivate('added') : $u2->getPrivate('added')
                     ]);
