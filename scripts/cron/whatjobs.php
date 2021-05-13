@@ -34,6 +34,8 @@ $old = 0;
 $j = new Jobs($dbhr, $dbhm);
 $maxish = $j->getMaxish();
 $seen = [];
+$insertsql = '';
+$batchcount = 100;
 
 while ($node = $streamer->getNode()) {
     $job = simplexml_load_string($node);
@@ -103,33 +105,37 @@ while ($node = $streamer->getNode()) {
                             $clickability = $j->clickability(NULL, html_entity_decode($title), $maxish);
                         }
 
-                        $dbhm->preExec(
-                            "INSERT INTO jobs (location, title, city, state, zip, country, job_type, posted_at, job_reference, company, mobile_friendly_apply, category, html_jobs, url, body, cpc, geometry, clickability, bodyhash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GeomFromText(?), ?, ?);",
-                            [
-                                $job->location ? html_entity_decode($job->location) : null,
-                                $title,
-                                $job->city ? html_entity_decode($job->city) : null,
-                                $job->state ?? null,
-                                $job->zip ?? null,
-                                $job->country ?? null,
-                                $job->job_type ?? null,
-                                $job->posted_at ?? null,
-                                $job->job_reference ?? null,
-                                $job->company ?? NULL,
-                                $job->mobile_friendly_apply ?? NULL,
-                                $job->category ?? NULL,
-                                $job->html_jobs ?? NULL,
-                                $job->url ?? NULL,
-                                $job->body ? html_entity_decode($job->body) : NULL,
-                                $job->cpc ?? NULL,
-                                $geom,
-                                $clickability,
-                                md5(substr($job->body, 0, 256))
-                            ]
-                        );
+                        $batchcount++;
+                        $insertsql .= "INSERT INTO jobs (location, title, city, state, zip, country, job_type, posted_at, job_reference, company, mobile_friendly_apply, category, html_jobs, url, body, cpc, geometry, clickability, bodyhash, seenat) VALUES (" .
+                            ($job->location ? $dbhm->quote(html_entity_decode($job->location)) : 'NULL') . ", " .
+                            $dbhm->quote($title) . ", " .
+                            ($job->city ? $dbhm->quote(html_entity_decode($job->city)) : 'NULL') . ", " .
+                            ($job->state ? $dbhm->quote(html_entity_decode($job->state)) : 'NULL') . ", " .
+                            ($job->zip ? $dbhm->quote(html_entity_decode($job->zip)) : 'NULL') . ", " .
+                            ($job->country ? $dbhm->quote(html_entity_decode($job->country)) : 'NULL') . ", " .
+                            ($job->job_type ? $dbhm->quote(html_entity_decode($job->job_type)) : 'NULL') . ", " .
+                            ($job->posted_at ? $dbhm->quote(html_entity_decode($job->posted_at)) : 'NULL') . ", " .
+                            ($job->job_reference ? $dbhm->quote(html_entity_decode($job->job_reference)) : 'NULL') . ", " .
+                            ($job->company ? $dbhm->quote(html_entity_decode($job->company)) : 'NULL') . ", " .
+                            ($job->mobile_friendly_apply ? $dbhm->quote(html_entity_decode($job->mobile_friendly_apply)) : 'NULL') . ", " .
+                            ($job->category ? $dbhm->quote(html_entity_decode($job->category)) : 'NULL') . ", " .
+                            ($job->html_jobs ? $dbhm->quote(html_entity_decode($job->html_jobs)) : 'NULL') . ", " .
+                            ($job->url ? $dbhm->quote(html_entity_decode($job->url)) : 'NULL') . ", " .
+                            ($job->body ? $dbhm->quote(html_entity_decode($job->body)) : 'NULL') . ", " .
+                            ($job->cpc ? $dbhm->quote(html_entity_decode($job->cpc)) : 'NULL') . ", " .
+                            "GeomFromText('$geom'), " .
+                            $clickability . "," .
+                            $dbhm->quote(md5(substr($job->body, 0, 256))) . ", " .
+                            "NOW());";
+
+                        if ($batchcount > 100) {
+                            $dbhm->preExec($insertsql);
+                            $insertsql = '';
+                        }
+
                         $new++;
                     } catch (\Exception $e) {
-                        error_log("Failed to add {$job->title} $geom");
+                        error_log("Failed to add {$job->title} $geom " . $e->getMessage());
                     }
                 }
             } else {
@@ -150,33 +156,23 @@ while ($node = $streamer->getNode()) {
     $count++;
 
     if ($count % 1000 === 0) {
-        error_log("...$count");
+        error_log(date("Y-m-d H:i:s", time()) . "...$count");
     }
+}
+
+if ($insertsql) {
+    $dbhm->preExec($insertsql);
 }
 
 if (count($seen)) {
     $dbhm->preExec("UPDATE jobs SET seenat = NOW() WHERE id IN (" . implode(',', $seen) . ");");
 }
 
-# Purge old jobs.
-$purged = 0;
-$olds = $dbhr->preQuery("SELECT id FROM jobs WHERE seenat < '$oldest' OR seenat IS NULL;");
-
-foreach ($olds as $o) {
-    $dbhm->preExec("DELETE FROM jobs WHERE id = ?;", [
-        $o['id']
-    ]);
-
-    $purged++;
-
-    if ($purged % 1000 === 0) {
-        error_log("...$purged purged");
-    }
-}
-
 # There are some "spammy" jobs which are posted with identical descriptions across the UK.  They feel scuzzy,
 $spamcount = 0;
 $spams = $dbhr->preQuery("SELECT COUNT(*) as count, title, bodyhash FROM jobs GROUP BY bodyhash HAVING count > 1000 AND bodyhash IS NOT NULL;");
+
+error_log(date("Y-m-d H:i:s", time()) . "Delete spammy jobs");
 
 foreach ($spams as $spam) {
     error_log("Delete spammy job {$spam['title']} * {$spam['count']}");
@@ -185,6 +181,20 @@ foreach ($spams as $spam) {
         $spam['bodyhash']
     ]);
 }
+
+# Purge old jobs.  whatjobs_purge should have kept this to a minimum.
+$purged = 0;
+
+do {
+    $dbhm->preExec("DELETE FROM jobs WHERE seenat < '$oldest' LIMIT 100;");
+    $thispurge = $dbhm->rowsAffected();
+
+    $purged += $thispurge;
+
+    if ($purged % 1000 === 0) {
+        error_log(date("Y-m-d H:i:s", time()) . "...$purged purged");
+    }
+} while ($thispurge);
 
 error_log("New jobs $new, ignore $old, spammy $spamcount, purged $purged");
 Utils::unlockScript($lockh);
