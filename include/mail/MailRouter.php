@@ -862,6 +862,8 @@ class MailRouter
                                     $ret = MailRouter::TO_USER;
                                 }
                             }
+                        } else {
+                            if ($log) { error_log("Bounce " . $this->msg->isBounce() . " auto " . $this->msg->isAutoreply()); }
                         }
                     } else if (preg_match('/notify@yahoogroups.co.*/', $from)) {
                         # This is a Yahoo message which shouldn't get passed on to a non-Yahoo user.
