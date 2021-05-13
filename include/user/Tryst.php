@@ -3,6 +3,7 @@ namespace Freegle\Iznik;
 
 use Eluceo\iCal\Component\Calendar;
 use Eluceo\iCal\Component\Event;
+use Eluceo\iCal\Component\Timezone;
 use Eluceo\iCal\Property\Event\Organizer;
 use PhpMimeMailParser\Exception;
 
@@ -94,19 +95,25 @@ class Tryst extends Entity
 
         // Create a VCALENDAR.  No point creating an alarm as Google ignores them unless they were generated
         // itself.
+
+        $tz = new \DateTimeZone('Europe/London');
+        $date = new \DateTime(Utils::ISODate($this->getPrivate('arrangedfor')));
+        $date->setTimezone($tz);
+        $event->setDtStart($date);
+
         $event->setSummary($title);
         $event->setDescription("If anything changes please let them know through Chat - click https://" . USER_SITE . "/chats/" . $rid);
-        $event->setDtStart(new \DateTime(Utils::ISODate($this->getPrivate('arrangedfor'))));
         $event->setDuration(new \DateInterval('PT15M'));
         $event->setOrganizer(new Organizer("MAILTO:handover-" . $this->id . '-' . $userid . "@" . USER_DOMAIN, [ 'CN' => SITE_NAME ]));
         $event->addAttendee('MAILTO:' . $u1->getEmailPreferred(), [ 'ROLE' => 'REQ-PARTICIPANT', 'PARTSTAT' => 'ACCEPTED', 'CN' => $u1->getName()]);
         $event->addAttendee('MAILTO:' . $u2->getOurEmail(), [ 'ROLE' => 'REQ-PARTICIPANT', 'PARTSTAT' => 'ACCEPTED', 'CN' => $u2->getName()]);
         $event->setUseTimezone(true);
-        $event->setTimezoneString('UTC');
+        $event->setTimezoneString('Europe/London');
 
         $calendar = new Calendar([$event]);
         $calendar->addComponent($event);
         $calendar->setMethod('REQUEST');
+
         $op = $calendar->render();
         $op = str_replace("ATTENDEE;", "ATTENDEE;RSVP=TRUE:", $op);
 
