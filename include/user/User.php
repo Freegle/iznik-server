@@ -2951,6 +2951,11 @@ class User extends Entity
                         User::clearCache($id1);
                     }
 
+                    # Merge the add date.
+                    $this->dbhm->preExec("UPDATE users SET added = ? WHERE id = $id1;", [
+                        strtotime($u1->getPrivate('added')) < strtotime($u2->getPrivate('added')) ? $u1->getPrivate('added') : $u2->getPrivate('added')
+                    ]);
+
                     if ($rc) {
                         # Log the merge - before the delete otherwise we will fail to log it.
                         $l->log([
