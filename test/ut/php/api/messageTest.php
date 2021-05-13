@@ -3115,7 +3115,7 @@ class messageAPITest extends IznikAPITestCase
 
         # Set up worry words.
         $settings = json_decode($this->group->getPrivate('settings'), TRUE);
-        $settings['spammers'] = [ 'worrywords' => 'wibble,wobble' ];
+        $settings['spammers'] = [ 'worrywords' => 'wibble,wobble,£' ];
         $this->group->setSettings($settings);
 
         $l = new Location($this->dbhr, $this->dbhm);
@@ -3135,8 +3135,32 @@ class messageAPITest extends IznikAPITestCase
         $this->log("Created draft $id");
 
         # Submit the post - should go to spam.
-        $this->dbhm->errorLog = true;
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'JoinAndPost',
+            'email' => $email1,
+            'ignoregroupoverride' => true
+        ]);
 
+        assertEquals(0, $ret['ret']);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        assertEquals(MessageCollection::PENDING, $m->getPublic()['groups'][0]['collection']);
+        assertEquals(Spam::REASON_WORRY_WORD, $m->getPrivate('spamtype'));
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'groupid' => $this->gid,
+            'textbody' => 'I want £3 for the pair'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+        $this->log("Created draft $id");
+
+        # Submit the post - should go to spam.
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'action' => 'JoinAndPost',

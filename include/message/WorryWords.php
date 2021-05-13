@@ -80,13 +80,15 @@ class WorryWords {
             $words = preg_split("/\b/", $scan);
 
             foreach ($words as $word) {
+                $word = trim($word);
+
                 foreach ($this->words as $worryword) {
                     if (!Utils::pres($worryword['keyword'], $foundword) && $worryword['type'] !== WorryWords::TYPE_ALLOWED && strlen($worryword['keyword'])) {
                         # Check that words are roughly the same length, and allow more fuzziness as the word length increases.
                         $ratio = strlen($word) / strlen($worryword['keyword']);
-                        $len = strlen($word);
 
                         # Fuzzy matching is causing more problems than it's worth.
+                        # $len = strlen($word);
                         # $threshold =  ($len > 7) ? 3 : ($len > 4 ? 2 : 1);
                         $threshold = 1;
 
