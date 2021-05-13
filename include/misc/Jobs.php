@@ -51,8 +51,8 @@ ORDER BY dist ASC, area ASC, posted_at DESC LIMIT $qlimit;";
                     !array_key_exists($job['title'], $gottitle)
                 ) {
                     $got[$job['id']] = TRUE;
-                    $got[$job['body']] = $job['body'];
-                    $got[$job['title']] = $job['title'];
+                    $gotbody[$job['body']] = $job['body'];
+                    $gottitle[$job['title']] = $job['title'];
                     $job['passes'] = $passes;
 
                     # We have clickability, which is our estimate of how likely people are to click on a job based on
