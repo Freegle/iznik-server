@@ -16,7 +16,7 @@ $spool = new \Swift_FileSpool(IZNIK_BASE . $spoolname);
 
 # Some messages can fail to send, if exim is playing up.
 $spool->recover(60);
-$restart = 3600;
+$restart = 60;
 
 do {
     try {
@@ -30,10 +30,11 @@ do {
         if ($spool) {
             try {
                 $sent = $spool->flushQueue($realTransport);
-
-                echo "Sent $sent emails\n";
-            } catch (\TypeError $ex) {
-                error_log("Type error " . $ex->getMessage());
+                if ($sent) {
+                    echo "Sent $sent emails\n";
+                }
+            } catch (\Throwable $ex) {
+                error_log("Flush error " . $ex->getMessage());
             }
         } else {
             error_log("Couldn't get spool, sleep and retry");
@@ -43,15 +44,16 @@ do {
     }
 
     if (file_exists('/tmp/iznik.mail.abort')) {
+        error_log("Aborting");
         exit(0);
     } else {
-        sleep(1);
-
         $restart--;
+        sleep(1);
 
         if ($restart <= 0) {
             # Exit and restart.  Picks up any code changes and will force another flush of the spool when we
             # next start running due to cron.
+            error_log("Exiting");
             exit(0);
         }
     }
