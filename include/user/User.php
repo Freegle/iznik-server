@@ -6203,6 +6203,7 @@ memberships.groupid IN $groupq
             # deliberately excludes interactions on ChitChat, where we have seen some people go a bit overboard on
             # rating people.
             $visible = FALSE;
+            #error_log("Check {$rating['rater']} rating of {$rating['ratee']}");
 
             $chats = $this->dbhr->preQuery("SELECT id FROM chat_rooms WHERE (user1 = ? AND user2 = ?) OR (user2 = ? AND user1 = ?)", [
                 $rating['rater'],
@@ -6212,24 +6213,27 @@ memberships.groupid IN $groupq
             ]);
 
             foreach ($chats as $chat) {
-                $distincts = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(userid)) AS count FROM chat_messages WHERE chatid = ?;", [
+                $distincts = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(userid)) AS count FROM chat_messages WHERE chatid = ? AND refmsgid IS NULL AND message IS NOT NULL;", [
                     $chat['id']
                 ]);
 
                 if ($distincts[0]['count'] >= 2) {
+                    #error_log("At least one real message from each of them in {$chat['id']}");
                     $visible = TRUE;
                 } else {
-                    $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = ? AND userid = ? AND refmsgid IS NOT NULL;", [
+                    $replies = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = ? AND userid = ? AND refmsgid IS NOT NULL AND message IS NOT NULL;", [
                         $chat['id'],
                         $rating['ratee']
                     ]);
 
                     if ($replies[0]['count']) {
+                        #error_log("Significant reply from {$rating['ratee']} in {$chat['id']}");
                         $visible = TRUE;
                     }
                 }
             }
 
+            #error_log("Use {$rating['rating']} from {$rating['rater']} ? " . ($visible ? 'yes': 'no'));
             $oldvisible = intval($rating['visible']) ? TRUE : FALSE;
 
             if ($visible != $oldvisible) {
