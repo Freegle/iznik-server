@@ -16,7 +16,7 @@ $spool = new \Swift_FileSpool(IZNIK_BASE . $spoolname);
 
 # Some messages can fail to send, if exim is playing up.
 $spool->recover(60);
-$restart = 60;
+$restart = 600;
 
 do {
     try {
