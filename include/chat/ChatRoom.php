@@ -915,14 +915,14 @@ WHERE chat_rooms.id IN $idlist;";
             # but for mods we might have marked ourselves as a backup on the group.
             $t1 = "(SELECT groupid, role, role = 'Member' OR ((role IN ('Owner', 'Moderator') AND (settings IS NULL OR LOCATE('\"active\"', settings) = 0 OR LOCATE('\"active\":1', settings) > 0))) AS active FROM memberships WHERE userid = $userid) t1 ";
 
-            $activesince = date("Y-m-d", strtotime($activelim));
+            $activesince = $chatid ? '1970-01-01' : date("Y-m-d", strtotime($activelim));
 
             # We don't want to see non-empty chats where all the messages are held for review, because they are likely to
             # be spam.
             $countq = " AND (chat_rooms.msgvalid + chat_rooms.msginvalid = 0 OR chat_rooms.msgvalid > 0) ";
 
             # We don't want to see chats where you are a backup mod, unless we're specifically searching.
-            $activeq = $search ? '' : ' AND active ';
+            $activeq = ($chatid || $search) ? '' : ' AND active ';
 
             $sql = '';
 
