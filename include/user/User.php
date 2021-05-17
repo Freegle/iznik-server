@@ -2,7 +2,6 @@
 namespace Freegle\Iznik;
 
 require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
-require_once(IZNIK_BASE . '/mailtemplates/welcome/forgotpassword.php');
 require_once(IZNIK_BASE . '/mailtemplates/invite.php');
 require_once(IZNIK_BASE . '/lib/wordle/functions.php');
 require_once(IZNIK_BASE . '/lib/GreatCircle.php');
@@ -3515,7 +3514,14 @@ class User extends Entity
     public function forgotPassword($email)
     {
         $link = $this->loginLink(USER_SITE, $this->id, '/settings', User::SRC_FORGOT_PASSWORD, TRUE);
-        $html = forgot_password(USER_SITE, USERLOGO, $email, $link);
+
+        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/welcome');
+        $twig = new \Twig_Environment($loader);
+
+        $html = $twig->render('forgotpassword.html', [
+            'email' => $this->getEmailPreferred(),
+            'url' => $link,
+        ]);
 
         $message = \Swift_Message::newInstance()
             ->setSubject("Forgot your password?")
