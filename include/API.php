@@ -24,7 +24,7 @@ class API
 
         // Access-Control-Allow-Origin not now added by nginx.
         @header('Access-Control-Allow-Origin: *');
-        @header('Access-Control-Allow-Headers: ' . (array_key_exists('HTTP_ACCESS_CONTROL_REQUEST_HEADERS', $_SERVER) ? $_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'] : "Origin, X-Requested-With, Content-Type, Accept, Authorization")); // X-HTTP-Method-Override not needed
+        @header('Access-Control-Allow-Headers: ' . (array_key_exists('HTTP_ACCESS_CONTROL_REQUEST_HEADERS', $_SERVER) ? $_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'] : "Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Iznik-PHP-Session")); // X-HTTP-Method-Override not needed
         @header('Access-Control-Allow-Credentials: true');
         @header('P3P:CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT"');
     }
