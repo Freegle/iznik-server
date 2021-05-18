@@ -8,6 +8,7 @@ function changes() {
 
     $since = Utils::presdef('since', $_REQUEST, date("Y-m-d H:i:s", strtotime("1 hour ago")));
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
+    $partner = Utils::pres('partner', $_SESSION);
 
     switch ($_REQUEST['type']) {
         case 'GET': {
@@ -18,12 +19,14 @@ function changes() {
 
             if ($since) {
                 $m = new MessageCollection($dbhr, $dbhm);
+                $u = new User($dbhr, $dbhm);
 
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
                     'changes' => [
-                        'messages' => $m->getChanges($since)
+                        'messages' => $m->getChanges($since),
+                        'ratings' => $partner ? $u->getAllRatings($since) : []
                     ]
                 ];
             }

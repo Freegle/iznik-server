@@ -5812,6 +5812,20 @@ class User extends Entity
         return($ret);
     }
 
+    public function getAllRatings($since) {
+        $mysqltime = date("Y-m-d H:i:s", strtotime($since));
+
+        $ratings = $this->dbhr->preQuery("SELECT * FROM ratings WHERE timestamp >= ? AND visible = 1;", [
+            $mysqltime
+        ]);
+
+        foreach ($ratings as &$rating) {
+            $rating['timestamp'] = Utils::ISODate($rating['timestamp']);
+        }
+
+        return $ratings;
+    }
+
     public function getRated() {
         $rateds = $this->dbhr->preQuery("SELECT * FROM ratings WHERE rater = ?;", [
             $this->id
