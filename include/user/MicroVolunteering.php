@@ -14,8 +14,8 @@ class MicroVolunteering
     const VERSION = 4;
 
     const CHALLENGE_CHECK_MESSAGE = 'CheckMessage';
-    const CHALLENGE_SEARCH_TERM = 'SearchTerm';  // No longer used.
-    const CHALLENGE_ITEMS = 'Items';
+    const CHALLENGE_SEARCH_TERM = 'SearchTerm';
+    const CHALLENGE_ITEMS = 'Items';  // No longer used.
     const CHALLENGE_FACEBOOK_SHARE = 'Facebook';
     const CHALLENGE_PHOTO_ROTATE = 'PhotoRotate';
 
@@ -307,8 +307,9 @@ class MicroVolunteering
         if ($result == self::RESULT_APPROVE || $result == self::RESULT_REJECT) {
             # Insert might fail if message is deleted - timing window.
             $this->dbhm->preExec(
-                "INSERT INTO microactions (userid, msgid, result, msgcategory, comments, version) VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE result = ?, comments = ?, version = ?, msgcategory = ?;",
+                "INSERT INTO microactions (actiontype, userid, msgid, result, msgcategory, comments, version) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE result = ?, comments = ?, version = ?, msgcategory = ?;",
                 [
+                    MicroVolunteering::CHALLENGE_CHECK_MESSAGE,
                     $userid,
                     $msgid,
                     $result,
@@ -341,12 +342,13 @@ class MicroVolunteering
         }
     }
 
-    public function responseItems($userid, $item1, $item2)
+    public function responseSearchTerm($userid, $item1, $item2)
     {
         try {
             $this->dbhm->preExec(
-                "INSERT INTO microactions (userid, item1, item2, version) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE userid = userid, version = ?;",
+                "INSERT INTO microactions (actiontype, userid, item1, item2, version) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE userid = userid, version = ?;",
                 [
+                    MicroVolunteering::CHALLENGE_SEARCH_TERM,
                     $userid,
                     $item1,
                     $item2,
@@ -362,8 +364,9 @@ class MicroVolunteering
     {
         try {
             $this->dbhm->preExec(
-                "INSERT IGNORE INTO microactions (userid, facebook_post, result, version) VALUES (?, ?, ?, ?);",
+                "INSERT IGNORE INTO microactions (actiontype, userid, facebook_post, result, version) VALUES (?, ?, ?, ?, ?);",
                 [
+                    MicroVolunteering::CHALLENGE_FACEBOOK_SHARE,
                     $userid,
                     $postid,
                     $result,
@@ -380,8 +383,9 @@ class MicroVolunteering
 
         try {
             $this->dbhm->preExec(
-                "INSERT IGNORE INTO microactions (userid, rotatedimage, result, version) VALUES (?, ?, ?, ?);",
+                "INSERT IGNORE INTO microactions (actiontype, userid, rotatedimage, result, version) VALUES (?, ?, ?, ?, ?);",
                 [
+                    self::CHALLENGE_PHOTO_ROTATE,
                     $userid,
                     $photoid,
                     $result,
