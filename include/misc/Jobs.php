@@ -39,6 +39,7 @@ class Jobs {
             $sql = "SELECT ST_Distance(geometry, POINT($lng, $lat)) AS dist, ST_Area(geometry) AS area, jobs.* FROM `jobs`
 WHERE ST_Within(geometry, GeomFromText('$poly')) 
     AND ST_Area(geometry) / ST_Area(GeomFromText('$poly')) < 2
+    AND cpc >= 0.09
     $categoryq
 ORDER BY dist ASC, area ASC, posted_at DESC LIMIT $qlimit;";
             $jobs = $this->dbhr->preQuery($sql);
