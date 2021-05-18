@@ -70,7 +70,7 @@ ORDER BY dist ASC, area ASC, posted_at DESC LIMIT $qlimit;";
 
         usort($ret, function($a, $b) {
             # Take care - must return integer, not float, otherwise the sort doesn't work.
-            return ceil($b['expectation'] - $a['expectation']);
+            return ceil($b['cpc'] - $a['cpc']);
         });
 
         $ret = array_slice($ret, 0, $limit);
