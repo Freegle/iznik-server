@@ -39,6 +39,13 @@ class Session {
                 session_id($_REQUEST['api_key']);
             }
 
+            # The IOS app needs to be able to set the session id.  This is as secure as the Cookie header would be.
+            $headers = Session::getallheaders();
+            $sessid = Utils::presdef('X-Iznik-Php-Session', $headers, NULL);
+            if ($sessid && strlen($sessid) >= 26 && ctype_alnum($sessid)) {
+                session_id($sessid);
+            }
+
             if (session_status() == PHP_SESSION_NONE) {
                 @session_start();
             }
@@ -245,11 +252,15 @@ class Session {
                 'token' => $token
             ];
 
-            $this->dbhm->preExec("UPDATE sessions SET lastactive = NOW() WHERE  id = ? AND series = ? AND token = ?;", [
-                $id,
-                $series,
-                $token
-            ]);
+            # Update the last access time, unless we have done so recently.
+            $age = time() - strtotime($session['lastactive']);
+            if ($age > 30) {
+                $this->dbhm->preExec("UPDATE sessions SET lastactive = NOW() WHERE  id = ? AND series = ? AND token = ?;", [
+                    $id,
+                    $series,
+                    $token
+                ]);
+            }
 
             return($userid);
         }

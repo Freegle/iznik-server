@@ -856,4 +856,15 @@ class sessionTest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertTrue(array_key_exists('me', $ret));
     }
+
+    public function testPhpSessionHeader() {
+        $ret = $this->call('session', 'GET', []);
+        $session = $ret['session'];
+        $ret = $this->call('session', 'GET', []);
+        session_destroy();
+        $GLOBALS['sessionPrepared'] = FALSE;
+        $_SERVER['HTTP_X_IZNIK_PHP_SESSION'] = $session;
+        $ret = $this->call('session', 'GET', []);
+        assertEquals($session, $ret['session']);
+    }
 }
