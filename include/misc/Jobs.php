@@ -9,6 +9,8 @@ class Jobs {
 
     private $jobKeywords = NULL;
 
+    const MINIMUM_CPC = 0.09;
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm) {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
@@ -39,7 +41,7 @@ class Jobs {
             $sql = "SELECT ST_Distance(geometry, POINT($lng, $lat)) AS dist, ST_Area(geometry) AS area, jobs.* FROM `jobs`
 WHERE ST_Within(geometry, GeomFromText('$poly')) 
     AND ST_Area(geometry) / ST_Area(GeomFromText('$poly')) < 2
-    AND cpc >= 0.09
+    AND cpc >= " . Jobs::MINIMUM_CPC . "
     $categoryq
 ORDER BY dist ASC, area ASC, posted_at DESC LIMIT $qlimit;";
             $jobs = $this->dbhr->preQuery($sql);

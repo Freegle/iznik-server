@@ -46,6 +46,8 @@ while ($node = $streamer->getNode()) {
     if ($age < 7) {
         if (!$job->job_reference) {
             error_log("No job reference for {$job->title}, {$job->location}");
+        } else if (!$job->cpc < Jobs::MINIMUM_CPC) {
+            # Ignore this job - not worth us showing.
         } else {
             # See if we already have the job. If so, ignore it.  If it changes, tough.
             $existings = $dbhr->preQuery("SELECT id, job_reference FROM jobs WHERE job_reference = ?", [
