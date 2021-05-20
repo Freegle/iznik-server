@@ -861,7 +861,7 @@ class sessionTest extends IznikAPITestCase
         $ret = $this->call('session', 'GET', []);
         $session = $ret['session'];
         $ret = $this->call('session', 'GET', []);
-        session_destroy();
+        @session_destroy();
         $GLOBALS['sessionPrepared'] = FALSE;
         $_SERVER['HTTP_X_IZNIK_PHP_SESSION'] = $session;
         $ret = $this->call('session', 'GET', []);
