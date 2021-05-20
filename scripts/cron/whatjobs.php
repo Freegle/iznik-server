@@ -30,6 +30,7 @@ $streamer = new XmlStringStreamer($parser, $stream);
 $count = 0;
 $new = 0;
 $old = 0;
+$toolow = 0;
 
 $j = new Jobs($dbhr, $dbhm);
 $maxish = $j->getMaxish();
@@ -46,8 +47,9 @@ while ($node = $streamer->getNode()) {
     if ($age < 7) {
         if (!$job->job_reference) {
             error_log("No job reference for {$job->title}, {$job->location}");
-        } else if (!$job->cpc < Jobs::MINIMUM_CPC) {
+        } else if ($job->cpc < Jobs::MINIMUM_CPC) {
             # Ignore this job - not worth us showing.
+            $toolow++;
         } else {
             # See if we already have the job. If so, ignore it.  If it changes, tough.
             $existings = $dbhr->preQuery("SELECT id, job_reference FROM jobs WHERE job_reference = ?", [
@@ -158,7 +160,7 @@ while ($node = $streamer->getNode()) {
     $count++;
 
     if ($count % 1000 === 0) {
-        error_log(date("Y-m-d H:i:s", time()) . "...$count");
+        error_log(date("Y-m-d H:i:s", time()) . "...processing $count");
     }
 }
 
@@ -198,5 +200,5 @@ do {
     }
 } while ($thispurge);
 
-error_log("New jobs $new, ignore $old, spammy $spamcount, purged $purged");
+error_log("New jobs $new, too low $toolow, ignore $old, spammy $spamcount, purged $purged");
 Utils::unlockScript($lockh);
