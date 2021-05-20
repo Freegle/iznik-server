@@ -2957,6 +2957,10 @@ class User extends Entity
                         strtotime($u1->getPrivate('added')) < strtotime($u2->getPrivate('added')) ? $u1->getPrivate('added') : $u2->getPrivate('added')
                     ]);
 
+                    $this->dbhm->preExec("UPDATE users SET lastupdated = NOW() WHERE id = ?;", [
+                        $id1
+                    ]);
+
                     if ($rc) {
                         # Log the merge - before the delete otherwise we will fail to log it.
                         $l->log([
@@ -5535,7 +5539,6 @@ class User extends Entity
             $this->id
         ]);
 
-
         $l = new Log($this->dbhr, $this->dbhm);
         $l->log([
             'type' => Log::TYPE_USER,
@@ -5740,6 +5743,8 @@ class User extends Entity
             $text
         ]);
 
+        $this->dbhm->background("UPDATE users SET lastupdated = NOW() WHERE id = {$this->id};");
+
         return($this->dbhm->lastInsertId());
     }
 
@@ -5764,6 +5769,8 @@ class User extends Entity
 
                 $ret = NULL;
             }
+
+            $this->dbhm->background("UPDATE users SET lastupdated = NOW() WHERE id IN ($rater, $ratee);");
         }
 
         return($ret);
@@ -5812,18 +5819,18 @@ class User extends Entity
         return($ret);
     }
 
-    public function getAllRatings($since) {
+    public function getChanges($since) {
         $mysqltime = date("Y-m-d H:i:s", strtotime($since));
 
-        $ratings = $this->dbhr->preQuery("SELECT * FROM ratings WHERE timestamp >= ? AND visible = 1;", [
+        $users = $this->dbhr->preQuery("SELECT id, lastupdated FROM users WHERE lastupdated >= ?;", [
             $mysqltime
         ]);
 
-        foreach ($ratings as &$rating) {
-            $rating['timestamp'] = Utils::ISODate($rating['timestamp']);
+        foreach ($users as &$user) {
+            $user['lastupdated'] = Utils::ISODate($user['lastupdated']);
         }
 
-        return $ratings;
+        return $users;
     }
 
     public function getRated() {

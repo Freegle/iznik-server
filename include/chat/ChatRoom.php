@@ -2544,6 +2544,8 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                         $userid,
                         $time
                     ]);
+
+                    $this->dbhm->background("UPDATE users SET lastupdated = NOW() WHERE id = $userid;");
                 } catch (\Exception $e) {}
 
                 $ret[$userid] = $time;

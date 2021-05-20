@@ -26,7 +26,7 @@ function changes() {
                     'status' => 'Success',
                     'changes' => [
                         'messages' => $m->getChanges($since),
-                        'ratings' => $partner ? $u->getAllRatings($since) : []
+                        'users' => $u->getChanges($since)
                     ]
                 ];
             }
