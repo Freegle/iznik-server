@@ -640,7 +640,7 @@ class MailRouter
                                     $appmemb = $u->isApprovedMember($group['groupid']);
                                     error_log("Worry on {$group['groupid']} for {$this->msg->getTextBody()}" . json_encode($worry));
 
-                                    if ($appmemb && $worry) {
+                                    if (!$notspam && $appmemb && $worry) {
                                         if ($log) { error_log("Worrying => spam"); }
                                         if ($this->markPending($notspam)) {
                                             $ret = MailRouter::PENDING;
@@ -649,8 +649,6 @@ class MailRouter
                                     } else {
                                         if ($log) { error_log("Approved member " . $u->getEmailPreferred() . " on {$group['groupid']}? $appmemb"); }
                                         if ($appmemb) {
-                                            # Worrying messages always go to Pending.
-                                            #
                                             # Otherwise whether we post to pending or approved depends on the group setting,
                                             # and if that is set not to moderate, the user setting.  Similar code for
                                             # this setting in message API call.
