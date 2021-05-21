@@ -529,7 +529,7 @@ class Spam {
                         ]);
 
                         $suspect = TRUE;
-                        $reason = "Replied to posts $dist miles apart (threshold on {dists[0]['nameshort']} $replydist)";
+                        $reason = "Replied to posts $dist miles apart (threshold on {$dists[0]['nameshort']} $replydist)";
                         $suspectgroups[] = $dists[0]['groupid'];
                     }
                 }
