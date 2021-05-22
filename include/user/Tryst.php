@@ -125,25 +125,28 @@ class Tryst extends Entity
     public function sendCalendar($userid) {
         $ret = NULL;
         $u1 = User::get($this->dbhr, $this->dbhm, $userid);
-        $email = $u1->getEmailPreferred();
 
-        $u2 = User::get($this->dbhr, $this->dbhm, $userid == $this->getPrivate('user1') ? $this->getPrivate('user2') : $this->getPrivate('user1'));
+        if ($u1->notifsOn(User::NOTIFS_EMAIL)) {
+            $email = $u1->getEmailPreferred();
 
-        list ($transport, $mailer) = Mail::getMailer();
+            $u2 = User::get($this->dbhr, $this->dbhm, $userid == $this->getPrivate('user1') ? $this->getPrivate('user2') : $this->getPrivate('user1'));
 
-        try {
-            list ($ics, $ret, $title) = $this->createICS($userid, $u1, $u2);
+            list ($transport, $mailer) = Mail::getMailer();
 
-            $message = \Swift_Message::newInstance()
-                ->setSubject("Please add to your calendar - $title")
-                ->setFrom([NOREPLY_ADDR => SITE_NAME])
-                ->setTo($email)
-                ->setBody('You\'ve arranged a Freegle handover.  Please add this to your calendar to help things go smoothly.')
-                ->addPart($ics, 'text/calendar');
+            try {
+                list ($ics, $ret, $title) = $this->createICS($userid, $u1, $u2);
 
-            $this->sendIt($mailer, $message);
-        } catch (Exception $e) {
-            error_log("Failed to send calendar invite for {$this->id}" . $e->getMessage());
+                $message = \Swift_Message::newInstance()
+                    ->setSubject("Please add to your calendar - $title")
+                    ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                    ->setTo($email)
+                    ->setBody('You\'ve arranged a Freegle handover.  Please add this to your calendar to help things go smoothly.')
+                    ->addPart($ics, 'text/calendar');
+
+                $this->sendIt($mailer, $message);
+            } catch (Exception $e) {
+                error_log("Failed to send calendar invite for {$this->id}" . $e->getMessage());
+            }
         }
 
         return $ret;
