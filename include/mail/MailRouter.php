@@ -383,7 +383,7 @@ class MailRouter
 
                                             # Now add this message into the chat.  Don't strip quoted as it might be useful -
                                             # one example is twitter email confirmations, where the URL is quoted (weirdly).
-                                            $textbody = $this->msg->stripQuoted();
+                                            $textbody = $this->msg->getTextBody();
 
                                             if (strlen($textbody)) {
                                                 $m = new ChatMessage($this->dbhr, $this->dbhm);

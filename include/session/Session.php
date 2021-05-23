@@ -254,7 +254,7 @@ class Session {
 
             # Update the last access time, unless we have done so recently.
             $age = time() - strtotime($session['lastactive']);
-            if ($age > 30) {
+            if ($age > 600) {
                 $this->dbhm->preExec("UPDATE sessions SET lastactive = NOW() WHERE  id = ? AND series = ? AND token = ?;", [
                     $id,
                     $series,
