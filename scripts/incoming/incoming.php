@@ -38,8 +38,10 @@ $groupname = NULL;
 # the logs.
 $chat = preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $envto);
 
-error_log("Email");
-$id = $r->received(Message::EMAIL, $envfrom, $envto, $msg, NULL, !$chat);
+# We don't want to prune mails to mods, because we will relay on the full message.
+$tomods = preg_match('/' . GROUP_DOMAIN. '/', $envto);
+
+$id = $r->received(Message::EMAIL, $envfrom, $envto, $msg, NULL, !$chat, !$tomods);
 
 if ($id) {
     $rc = $r->route();

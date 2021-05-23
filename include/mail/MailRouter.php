@@ -63,7 +63,7 @@ class MailRouter
         }
     }
 
-    public function received($source, $from, $to, $msg, $groupid = NULL, $log = TRUE) {
+    public function received($source, $from, $to, $msg, $groupid = NULL, $log = TRUE, $prune = TRUE) {
         # We parse it and save it to the DB.  Then it will get picked up by background
         # processing.
         #
@@ -74,7 +74,7 @@ class MailRouter
         $rc = $this->msg->parse($source, $from, $to, $msg, $groupid);
 
         if ($rc) {
-            $ret = $this->msg->save($log);
+            $ret = $this->msg->save($log, $prune);
         }
         
         return($ret);
@@ -362,7 +362,6 @@ class MailRouter
                                 # We should always find them as Message::parse should create them
                                 if ($uid) {
                                     if ($this->log) { error_log("From user $uid to group $gid"); }
-                                    $u = User::get($this->dbhr, $this->dbhm, $uid);
                                     $s = new Spam($this->dbhr, $this->dbhm);
 
                                     # Filter out mail to volunteers from known spammers.

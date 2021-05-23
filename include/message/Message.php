@@ -2570,7 +2570,7 @@ ORDER BY lastdate DESC;";
     }
 
     # Save a parsed message to the DB
-    public function save($log = TRUE) {
+    public function save($log = TRUE, $prune = TRUE) {
         # Despite what the RFCs might say, it's possible that a message can appear on Yahoo without a Message-ID.  We
         # require unique message ids, so this causes us a problem.  Invent one.
         $this->messageid = $this->messageid ? $this->messageid : (microtime(TRUE). '@' . USER_DOMAIN);
@@ -2596,8 +2596,10 @@ ORDER BY lastdate DESC;";
             }
         }
 
-        # Reduce the size of the message source
-        $this->message = $this->pruneMessage();
+        if ($this->prune) {
+            # Reduce the size of the message source
+            $this->message = $this->pruneMessage();
+        }
 
         $this->id = NULL;
 
