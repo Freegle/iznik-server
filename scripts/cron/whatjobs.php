@@ -181,9 +181,11 @@ error_log(date("Y-m-d H:i:s", time()) . "Delete spammy jobs");
 foreach ($spams as $spam) {
     error_log("Delete spammy job {$spam['title']} * {$spam['count']}");
     $spamcount += $spam['count'];
-    $dbhm->preExec("DELETE FROM jobs WHERE bodyhash = ?;", [
-        $spam['bodyhash']
-    ]);
+    do {
+        $dbhm->preExec("DELETE FROM jobs WHERE bodyhash = ? LIMIT 1;", [
+            $spam['bodyhash']
+        ]);
+    } while ($dbhm->rowsAffected());
 }
 
 # Purge old jobs.  whatjobs_purge should have kept this to a minimum.
