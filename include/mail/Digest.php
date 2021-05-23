@@ -536,7 +536,7 @@ class Digest
         return($sent);
     }
 
-    private function getMessagesOnNearbyGroups($twig, User $u, Group $g, $frequency) {
+    public function getMessagesOnNearbyGroups($twig, User $u, Group $g, $frequency) {
         $ret = '';
 
         if ($frequency != Digest::IMMEDIATE) {
@@ -580,8 +580,14 @@ class Digest
                     #error_log("Post is $away away, group limits $distance and $distance2");
 
                     if (($nearby2 && $away <= $distance) && ($away <= $distance2)) {
+                        error_log("Add nearby for user {$u->getId()} $lat,$lng group {$g->getId()} post {$post['msgid']} which is at {$post['lat']},{$post['lng']} distance away $away vs $distance/$distance2");
                         $post['replyweb'] = "https://" . USER_SITE . "/message/{$post['msgid']}";
                         $include[] = $post;
+
+                        if (count($include) >= 5) {
+                            # Don't add too many, otherwise the mail gets stupid long.
+                            break;
+                        }
                     }
                 }
 
