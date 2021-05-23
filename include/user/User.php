@@ -6339,15 +6339,18 @@ memberships.groupid IN $groupq
             $me = Session::whoAmI($this->dbhr, $this->dbhm);
             $myid = $me ? $me->getId() : null;
 
-            # A supporter is someone who has donated recently, or done microvolunteering recently.
+            # A supporter is a mod, someone who has donated recently, or done microvolunteering recently.
             if (count($idsleft)) {
                 $start = date('Y-m-d', strtotime("60 days ago"));
                 $info = $this->dbhr->preQuery(
-                    "SELECT DISTINCT userid, settings FROM microactions INNER JOIN users ON users.id = microactions.userid WHERE microactions.timestamp >= ? AND microactions.userid IN (" . implode(
+                    "SELECT DISTINCT userid, settings, systemrole FROM users LEFT JOIN microactions ON users.id = microactions.userid WHERE users.id IN (" . implode(
                         ',',
                         $idsleft
-                    ) . ");",
+                    ) . ") AND (systemrole IN (?, ?, ?) OR microactions.timestamp >= ?);",
                     [
+                        User::SYSTEMROLE_ADMIN,
+                        User::SYSTEMROLE_SUPPORT,
+                        User::SYSTEMROLE_MODERATOR,
                         $start
                     ]
                 );
