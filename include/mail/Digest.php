@@ -441,7 +441,8 @@ class Digest
                                 '{{creds}}' => $creds,
                                 '{{replyto}}' => $u->getId(),
                                 '{{jobads}}' => $jobads['jobs'],
-                                '{{joblocation}}' => $jobads['location']
+                                '{{joblocation}}' => $jobads['location'],
+                                '{{nearby}}' => $nearby
                             ];
 
                             $emailToId[$email] = $u->getId();
@@ -483,7 +484,7 @@ class Digest
 
                                     if ($nearbyintext) {
                                         # This is used in UT.
-                                        $msg['text'] .= $nearby;
+                                        $msg['text'] .= $rep['{{nearby}}'];
                                     }
 
                                     $message = \Swift_Message::newInstance()
