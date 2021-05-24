@@ -158,6 +158,20 @@ try{
   $count = 0;
   $report = 'Total Discourse users: '.count($allDusers)."\r\n";
 
+  $sql = "SELECT * FROM `groups` WHERE `publish`=1 ORDER BY nameshort ASC";
+  $allgroups = $dbhr->preQuery($sql);
+  $report .= "Published groups: ".count($allgroups)."\r\n";
+  $groups = array();
+  foreach ($allgroups as $group) {
+    $groups[$group['id']] = false;
+  }
+
+  $sql = "SELECT DISTINCT users.*,groups.id as groupid FROM users INNER JOIN memberships ON users.id = memberships.userid ".
+  "INNER JOIN groups ON groups.id = memberships.groupid ".
+  "WHERE memberships.role IN ('Owner', 'Moderator') AND groups.type = 'Freegle' AND `lastaccess` > DATE_SUB(now(), INTERVAL 6 MONTH) ".
+  "ORDER BY users.id";
+  $allactivemodsgroups = $dbhr->preQuery($sql);
+
   // id, fullname, systemrole, lastaccess
   $sql = "SELECT DISTINCT users.* FROM users INNER JOIN memberships ON users.id = memberships.userid ".
   "INNER JOIN groups ON groups.id = memberships.groupid ".
@@ -175,7 +189,7 @@ try{
     usleep(250000);
     $count++;
 
-    //echo "duser: ".$duser->id." ".$duser->username."\r\n";
+    echo "duser: ".$duser->id." ".$duser->username."\r\n";
    
     // Get external_id from Discourse ie MT user id - and last_emailed_at 
     $duser->external_id = false;
@@ -195,7 +209,10 @@ try{
 
   $count = 0;
   $notondiscourse = 0;
-  foreach ($allactivemods as $activemod) {
+  $lastmodid = 0;
+  foreach ($allactivemodsgroups as $activemod) {
+    $modfirstseen = $lastmodid != $activemod['id'];
+    $lastmodid = $activemod['id'];
     $count++;
     //echo "CHECKING: ".$activemod['id']." ".$activemod['fullname']."\r\n";
     $found = false;
@@ -205,22 +222,51 @@ try{
         break;
       }
     }
-    if( !$found) {
+    //echo "CHECKING: ".$lastmodid." ".$modfirstseen." ".$found."\r\n";
+    if( $modfirstseen && !$found) {
+      //echo "NOT ON DISCOURSE\r\n";
       $report .= "* ".$activemod['id'].": ".$activemod['fullname']." - ".$activemod['lastaccess']."\r\n";
       $notondiscourse++;
+    }
+    if( $found) {
+      $groupid = $activemod['groupid'];
+      //echo "ON DISCOURSE $groupid\r\n";
+      $found = false;
+
+      $groups[$groupid] = true;
     }
     //if( $count>10) break;
   }
 
-
   $report .= "\r\n";
-  $report .= "notondiscourse: $notondiscourse\r\n";
+  $report .= "Active volunteers not on discourse: $notondiscourse\r\n\r\n";
+
+  $notrepresentedcount = 0;
+  $count = 0;
+  foreach ($allgroups as $group) {
+    $groupid = $group['id'];
+    //echo "CHECK:".$groupid."\r\n";
+    if( !$groups[$groupid]){
+      $report .= "NOT REPRESENTED ".$groupid." - ".$group['nameshort']."\r\n";
+      foreach ($allactivemodsgroups as $activemod) {
+        if( $activemod['groupid']==$groupid){
+          $report .= "* Moderator: ".$activemod['id']." - ".$activemod['fullname']."\r\n";
+        }
+      }
+ 
+      $notrepresentedcount++;
+    }
+    //if( $count>10) break;
+  }
+  $report .= "\r\n";
+  $report .= "Groups without active volunteers on Discourse: $notrepresentedcount\r\n\r\n";
 
   echo $report;
   echo "\r\n";
 
   $subject = 'Discourse: all active volunteers on here';
   if( $notondiscourse>0) $subject = 'Discourse: '.$notondiscourse.' volunteers not signed up';
+  if( $notrepresentedcount>0) $subject .= ". $notrepresentedcount groups not represented";
 
   $mailedcentralmods = false;
   /*if( $notmod || $notuser){
@@ -239,7 +285,7 @@ try{
   //$report = wordwrap($report, 70, "\r\n");
   $sent = mail(GEEKSALERTS_ADDR, $subject, $report,$headers);
   echo "Mail sent to geeks: ".$sent."\r\n";
-} 
+}
 catch (\Exception $e) {
   echo $e->getMessage();
   error_log("Failed with " . $e->getMessage());
