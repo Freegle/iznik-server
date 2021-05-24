@@ -2596,7 +2596,7 @@ ORDER BY lastdate DESC;";
             }
         }
 
-        if ($this->prune) {
+        if ($prune) {
             # Reduce the size of the message source
             $this->message = $this->pruneMessage();
         }
@@ -4368,6 +4368,7 @@ WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND message
                 # - aren't promised
                 # - we originally sent
                 # - we are still a member of the group
+                # - we have been active since the original post
                 #
                 # The replies part is because we can't really rely on members to let us know what happens to a message,
                 # especially if they are not receiving emails reliably.  At least this way it avoids the case where a
@@ -4375,8 +4376,9 @@ WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND message
                 #
                 # The sending user must also still be a member of the group.
                 # TODO Remove mention of 2021-03-29 after 2021-08-01.
-                $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, autoreposts, lastautopostwarning, messages.type, messages.fromaddr 
+                $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, autoreposts, lastautopostwarning, messages.type, messages.fromaddr, TIMESTAMPDIFF(HOUR, users.lastaccess, NOW()) AS activehoursago
 FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid 
+INNER JOIN users ON messages.fromuser = users.id
 INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid 
 LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid 
 LEFT OUTER JOIN messages_promises ON messages_promises.msgid = messages.id 
@@ -4414,9 +4416,13 @@ WHERE messages_groups.arrival > ? AND messages.arrival >= '2021-03-29' AND messa
                             # If we have messages which are older than we could have been trying for, ignore them.
                             $maxage = $interval * ($reposts['max'] + 1);
 
-                            error_log("Consider repost {$message['msgid']}, posted {$message['hoursago']} interval $interval lastwarning $lastwarnago maxage $maxage last reply $max");
+                            # We get some users who post and then never come back.  We only want to autorepost if they
+                            # have been active since the original post.
+                            $activesince = $message['hoursago'] >= $message['activehoursago'] + 1;
 
-                            if (!$recentreply && $message['hoursago'] < $maxage * 24) {
+                            error_log("Consider repost {$message['msgid']}, posted {$message['hoursago']} active {$message['activehoursago']} activesince $activesince interval $interval lastwarning $lastwarnago maxage $maxage last reply $max");
+
+                            if (!$recentreply && $message['hoursago'] < $maxage * 24 && $activesince) {
                                 # Reposts might be turned off.
                                 if ($interval > 0 && $reposts['max'] > 0) {
                                     if ($message['hoursago'] <= $interval * 24 &&
