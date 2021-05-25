@@ -3145,9 +3145,10 @@ CREATE TABLE `ratings` (
   `tn_rating_id` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `rater_2` (`rater`,`ratee`),
+  UNIQUE KEY `tn_rating_id` (`tn_rating_id`) USING BTREE,
   KEY `rater` (`rater`),
   KEY `ratee` (`ratee`),
-  KEY `tn_rating_id` (`tn_rating_id`),
+  KEY `timestamp` (`timestamp`),
   CONSTRAINT `ratings_ibfk_1` FOREIGN KEY (`rater`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `ratings_ibfk_2` FOREIGN KEY (`ratee`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=133 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -5390,4 +5391,4 @@ CREATE TABLE `worrywords` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-05-25  7:10:26
+-- Dump completed on 2021-05-25  7:29:23
