@@ -5782,8 +5782,8 @@ class User extends Entity
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
-        # We show visible ratings, or ones we have made ourselves.
-        $sql = "SELECT ratee, COUNT(*) AS count, rating FROM ratings WHERE ratee IN (" . implode(',', $uids) . ") AND timestamp >= '$mysqltime' AND (rater = ? OR visible = 1) GROUP BY rating, ratee;";
+        # We show visible ratings, ones we have made ourselves, or those from TN.
+        $sql = "SELECT ratee, COUNT(*) AS count, rating FROM ratings WHERE ratee IN (" . implode(',', $uids) . ") AND timestamp >= '$mysqltime' AND (tn_rating_id IS NOT NULL OR rater = ? OR visible = 1) GROUP BY rating, ratee;";
         $ratings = $this->dbhr->preQuery($sql, [ $myid ]);
 
         foreach ($uids as $uid) {
