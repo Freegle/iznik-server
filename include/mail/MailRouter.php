@@ -14,6 +14,7 @@ class MailRouter
     private $dbhr;
     /** @var  $dbhm LoggedPDO */
     private $dbhm;
+    /** @var Message */
     private $msg;
     private $spamc;
 
@@ -798,23 +799,30 @@ class MailRouter
                         }
                     } else if (preg_match('/notify-(.*)-(.*)@/', $to, $matches)) {
                         # It's a reply to an email notification.
+                        $chatid = intval($matches[1]);
+                        $userid = intval($matches[2]);
+
+                        $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
+                        $u = User::get($this->dbhr, $this->dbhm, $userid);
+
+                        # We want to filter out autoreplies.  But occasionally a genuine message can contain auto
+                        # reply text.  Most autoreplies will happen rapidly, so don't count it as an autoreply if
+                        # it is a bit later.  This avoids us dropped genuine messages.
+                        $latestmessage = $r->getPrivate('latestmessage');
+                        $recentmessage = $latestmessage && (time() - strtotime($latestmessage) < 5 * 60 * 60);
+
                         if (stripos($this->msg->getSubject(), 'Read report') === 0 ||
                             stripos($this->msg->getSubject(), 'Checked') === 0) {
                             # This is a read receipt which has been sent to the wrong place by a silly email client.
                             # Just drop these.
                             if ($log) { error_log("Misdirected read receipt drop"); }
                             $ret = MailRouter::DROPPED;
-                        } else if (!$this->msg->isBounce() && !$this->msg->isAutoreply()) {
+                        } else if (!$this->msg->isBounce() && (!$recentmessage || !$this->msg->isAutoreply())) {
                             # Bounces shouldn't get through - might reveal info.
                             #
                             # Auto-replies shouldn't get through.  They're used by spammers, and generally the
                             # content isn't very relevant in our case, e.g. if you're not in the office.
-                            $chatid = intval($matches[1]);
-                            $userid = intval($matches[2]);
                             $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $userid;");
-                            $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
-                            $u = User::get($this->dbhr, $this->dbhm, $userid);
-
                             if ($r->getId()) {
                                 # It's a valid chat.
                                 if ($r->getPrivate('user1') == $userid || $r->getPrivate('user2') == $userid || $u->isModerator()) {
