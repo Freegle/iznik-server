@@ -174,7 +174,7 @@ if (count($seen)) {
 
 # There are some "spammy" jobs which are posted with identical descriptions across the UK.  They feel scuzzy,
 $spamcount = 0;
-$spams = $dbhr->preQuery("SELECT COUNT(*) as count, title, bodyhash FROM jobs GROUP BY bodyhash HAVING count > 1000 AND bodyhash IS NOT NULL;");
+$spams = $dbhr->preQuery("SELECT COUNT(*) as count, title, bodyhash FROM jobs GROUP BY bodyhash HAVING count > 400 AND bodyhash IS NOT NULL;");
 
 error_log(date("Y-m-d H:i:s", time()) . "Delete spammy jobs");
 
