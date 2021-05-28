@@ -901,7 +901,7 @@ class Message
 
             if ($blur && ($role === User::ROLE_NONMEMBER || $role === User::ROLE_MEMBER)) {
                 // Blur lat/lng slightly for privacy.
-                list ($ret['lat'], $ret['lng']) = Message::blur($ret['lat'], $ret['lng']);
+                list ($ret['lat'], $ret['lng']) = Utils::blur($ret['lat'], $ret['lng'], Utils::BLUR_100M);
             }
 
             # URL people can follow to get to the message on our site.
@@ -965,12 +965,6 @@ class Message
                 $ret['lovejunkhash'] = defined('LOVEJUNK_SECRET') ? hash_hmac('sha256', $ret['id'], LOVEJUNK_SECRET, FALSE) : NULL;
             }
         }
-    }
-
-    public static function blur($lat, $lng) {
-        $lat = round($lat / 2, User::BLUR_100M) * 2;
-        $lng = round($lng / 2, User::BLUR_100M) * 2;
-        return [ $lat, $lng ];
     }
 
     private function getThisAsArray() {

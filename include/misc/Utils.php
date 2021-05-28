@@ -10,6 +10,12 @@ class Utils {
     # ...but this matches some bad character patterns.
     const URL_BAD = [ '%', '{', ';', '#', ':' ];
 
+    const BLUR_NONE = NULL;
+    # 3 decimal places is roughly 100m.
+    const BLUR_100M = 3;
+    # 2 decimal places is roughly 1km.
+    const BLUR_1K = 2;
+
     public static function tmpdir() {
         $tempfile = tempnam(sys_get_temp_dir(),'');
         if (file_exists($tempfile)) { unlink($tempfile); }
@@ -503,5 +509,14 @@ class Utils {
             return $key;
         }
         return NULL;
+    }
+
+    public static function blur($lat, $lng, $blur) {
+        if ($blur) {
+            $lat = round($lat / 2, $blur) * 2;
+            $lng = round($lng / 2, $blur) * 2;
+        }
+
+        return [ $lat, $lng ];
     }
 }

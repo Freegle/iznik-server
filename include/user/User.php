@@ -107,11 +107,6 @@ class User extends Entity
     const NEWSFEED_MODERATED = 'Moderated';
     const NEWSFEED_SUPPRESSED = 'Suppressed';
 
-    # 2 decimal places is roughly 1km.
-    const BLUR_NONE = NULL;
-    const BLUR_100M = 3;
-    const BLUR_1K = 2;
-
     /** @var  $log Log */
     private $log;
     var $user;
@@ -4312,7 +4307,7 @@ class User extends Entity
         return ($ret);
     }
 
-    public function getLatLng($usedef = TRUE, $usegroup = TRUE, $blur = self::BLUR_NONE)
+    public function getLatLng($usedef = TRUE, $usegroup = TRUE, $blur = Utils::BLUR_NONE)
     {
         $ret = [ 0, 0, NULL ];
 
@@ -4321,8 +4316,7 @@ class User extends Entity
             $loc = $locs[$this->id];
 
             if ($blur && ($loc['lat'] || $loc['lng'])) {
-                $loc['lat'] = round($loc['lat'], $blur);
-                $loc['lng'] = round($loc['lng'], $blur);
+                list ($loc['lat'], $loc['lng']) = Utils::blur($loc['lat'], $loc['lng'], $blur);
             }
 
             $ret = [ $loc['lat'], $loc['lng'], Utils::presdef('loc', $loc, NULL) ];
@@ -4621,9 +4615,7 @@ class User extends Entity
         if ($blur) {
             foreach ($ret as &$memb) {
                 if ($memb['lat'] || $memb['lng']) {
-                    # 3 decimal places is roughly 100m.
-                    $memb['lat'] = round($memb['lat'], 3);
-                    $memb['lng'] = round($memb['lng'], 3);
+                    list ($memb['lat'], $memb['lng']) = Utils::blur($memb['lat'], $memb['lng'], $blur);
                 }
             }
         }
