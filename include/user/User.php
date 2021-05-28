@@ -4136,7 +4136,7 @@ class User extends Entity
                 'pending' => [ 'pending message', 'pending messages', '/modtools/messages/pending' ]
             ];
 
-            $title = '';
+            $title = $chatcount ? ("$chatcount chat message" . ($chatcount != 1 ? 's' : '') . "\n") : '';
             $route = NULL;
 
             foreach ($types as $type => $vals) {
