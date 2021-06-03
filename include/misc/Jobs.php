@@ -42,6 +42,7 @@ class Jobs {
 WHERE ST_Within(geometry, GeomFromText('$poly')) 
     AND ST_Area(geometry) / ST_Area(GeomFromText('$poly')) < 2
     AND cpc >= " . Jobs::MINIMUM_CPC . "
+    AND visible = 1
     $categoryq
 ORDER BY cpc DESC, dist ASC, posted_at DESC LIMIT $qlimit;";
             $jobs = $this->dbhr->preQuery($sql);

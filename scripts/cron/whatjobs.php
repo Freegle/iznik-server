@@ -172,9 +172,10 @@ if (count($seen)) {
     $dbhm->preExec("UPDATE jobs SET seenat = NOW() WHERE id IN (" . implode(',', $seen) . ");");
 }
 
-# There are some "spammy" jobs which are posted with identical descriptions across the UK.  They feel scuzzy,
+# There are some "spammy" jobs which are posted with identical descriptions across the UK.  They feel scuzzy, so
+# remove them.
 $spamcount = 0;
-$spams = $dbhr->preQuery("SELECT COUNT(*) as count, title, bodyhash FROM jobs GROUP BY bodyhash HAVING count > 400 AND bodyhash IS NOT NULL;");
+$spams = $dbhr->preQuery("SELECT COUNT(*) as count, title, bodyhash FROM jobs GROUP BY bodyhash HAVING count > 50 AND bodyhash IS NOT NULL;");
 
 error_log(date("Y-m-d H:i:s", time()) . "Delete spammy jobs");
 
@@ -187,6 +188,13 @@ foreach ($spams as $spam) {
         ]);
     } while ($dbhm->rowsAffected());
 }
+
+# Now make new jobs visible.
+do {
+    $dbhm->preExec("UPDATE jobs SET visible = 1 WHERE visible = 0 LIMIT 1000;");
+    $done = $dbhm->rowsAffected();
+    error_log("...set visible $done");
+} while ($done > 0);
 
 # Purge old jobs.  whatjobs_purge should have kept this to a minimum.
 $purged = 0;
