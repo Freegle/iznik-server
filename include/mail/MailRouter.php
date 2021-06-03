@@ -845,7 +845,7 @@ class MailRouter
                                             $userid,
                                             $textbody,
                                             ChatMessage::TYPE_DEFAULT,
-                                            $this->msg->getID(),
+                                            NULL,
                                             FALSE,
                                             NULL,
                                             NULL,
