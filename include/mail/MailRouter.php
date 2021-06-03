@@ -854,7 +854,9 @@ class MailRouter
                                             NULL,
                                             $spamfound);
 
-                                        $cm->chatByEmail($mid, $this->msg->getID());
+                                        if ($mid) {
+                                            $cm->chatByEmail($mid, $this->msg->getID());
+                                        }
                                     }
 
                                     # Add any photos.
@@ -979,21 +981,24 @@ class MailRouter
         $atts = $this->msg->getAttachments();
         foreach ($atts as $att) {
             list ($aid, $banned) = $m->create($rid, $this->msg->getFromuser(), NULL, ChatMessage::TYPE_IMAGE, NULL, FALSE);
-            $data = $att->getData();
-            $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_CHAT_MESSAGE);
-            try {
-                $aid2 = $a->create($aid, $data);
 
-                $hash = $a->getHash();
+            if ($aid) {
+                $data = $att->getData();
+                $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_CHAT_MESSAGE);
+                try {
+                    $aid2 = $a->create($aid, $data);
 
-                if ($hash == '61e4d4a2e4bb8a5d' || $hash == '61e4d4a2e4bb8a59') {
-                    # Images to suppress, e.g. our logo.
-                    $a->delete();
-                } else {
-                    $m->setPrivate('imageid', $aid2);
-                    $count++;
-                }
-            } catch (\Exception $e) { error_log("Create failed " . $e->getMessage()); }
+                    $hash = $a->getHash();
+
+                    if ($hash == '61e4d4a2e4bb8a5d' || $hash == '61e4d4a2e4bb8a59') {
+                        # Images to suppress, e.g. our logo.
+                        $a->delete();
+                    } else {
+                        $m->setPrivate('imageid', $aid2);
+                        $count++;
+                    }
+                } catch (\Exception $e) { error_log("Create failed " . $e->getMessage()); }
+            }
         }
 
         return($count);

@@ -148,7 +148,7 @@ class ChatMessage extends Entity
                 ]);
 
                 if (count($banned) > 0) {
-                    return [ NULL, TRUE] ;
+                    return [ NULL, TRUE];
                 }
             }
 
@@ -162,8 +162,16 @@ class ChatMessage extends Entity
 
             $u = User::get($this->dbhr, $this->dbhm, $userid);
 
-            # Holding for review only applies to user2user chats.
             if ($chattype == ChatRoom::TYPE_USER2USER) {
+                # Check whether the sender is banned on all the groups they have in common with the recipient.  If so
+                # then they shouldn't be able to send a message.
+                $otheru = $r->getPrivate('user1') == $userid ? $r->getPrivate('user2') : $r->getPrivate('user1');
+                $banned = $r->bannedInCommon($userid, $otheru);
+
+                if ($banned) {
+                    return [ NULL, TRUE];
+                }
+
                 # If the last message in this chat is held for review, then hold this one too.
                 $last = $this->dbhr->preQuery("SELECT reviewrequired FROM chat_messages WHERE chatid = ? AND userid = ? ORDER BY id DESC LIMIT 1;", [
                     $chatid,

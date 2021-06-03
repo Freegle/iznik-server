@@ -632,6 +632,36 @@ class chatMessagesTest extends IznikTestCase {
         ]);
         assertEquals(1, $review[0]['count']);
     }
+
+    public function testBannedInCommon() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+        $u->addMembership($this->groupid);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($rid, $banned) = $r->createConversation($this->uid, $uid2);
+        assertNotNull($rid);
+        assertFalse($banned);
+
+        # Send message from one to the other - should work.
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($mid, $banned) = $m->create($rid, $this->uid, 'Test');
+        assertNotNull($mid);
+
+        # Ban the sender on the sole group they have in common.
+        $this->user->removeMembership($this->groupid, TRUE);
+
+        # Shouldn't be able to message.
+        list ($mid, $banned) = $m->create($rid, $this->uid, 'Test');
+        assertTrue($banned);
+        assertNull($mid);
+
+        # ...or even start the conversation.
+        $r->delete();
+        list ($rid, $banned) = $r->createConversation($this->uid, $uid2);
+        assertNull($rid);
+        assertTrue($banned);
+    }
 }
 
 
