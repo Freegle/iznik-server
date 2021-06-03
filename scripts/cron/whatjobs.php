@@ -190,13 +190,17 @@ foreach ($spams as $spam) {
 }
 
 # Now make new jobs visible.
-do {
-    $dbhm->preExec("UPDATE jobs SET visible = 1 WHERE visible = 0 LIMIT 1000;");
-    $done = $dbhm->rowsAffected();
-    error_log("...set visible $done");
-} while ($done > 0);
+$invis = $dbhr->preQuery("SELECT id FROM jobs WHERE visible = 0;");
+error_log("Set new jobs visible");
+
+foreach ($invis as $inv) {
+    $dbhm->preExec("UPDATE jobs SET visible = 1 WHERE id = ?;", [
+        $inv['id']
+    ]);
+}
 
 # Purge old jobs.  whatjobs_purge should have kept this to a minimum.
+error_log("Purge old jobs");
 $purged = 0;
 
 do {
