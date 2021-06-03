@@ -502,7 +502,7 @@ class Digest
                                     $htmlPart->setContentType('text/html');
 
                                     # {{nearby}} doesn't expand correctly inside the decorator, so do it manually here.
-                                    $htmlPart->setBody(str_replace('{{nearby}}', $nearby, $html));
+                                    $htmlPart->setBody(str_replace('{{nearby}}', $rep['{{nearby}}'], $html));
 
                                     $message->attach($htmlPart);
 
