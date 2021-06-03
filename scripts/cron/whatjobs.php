@@ -191,7 +191,7 @@ foreach ($spams as $spam) {
 
 # Now make new jobs visible.
 $invis = $dbhr->preQuery("SELECT id FROM jobs WHERE visible = 0;");
-error_log("Set new jobs visible");
+error_log("Set new jobs visible " . count($invis));
 
 foreach ($invis as $inv) {
     $dbhm->preExec("UPDATE jobs SET visible = 1 WHERE id = ?;", [
