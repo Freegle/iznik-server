@@ -1109,8 +1109,8 @@ class userTest extends IznikTestCase {
         # Get blurred location.
         $atts = $u->getPublic();
         $latlngs = $u->getLatLngs([ $atts ], TRUE, TRUE, TRUE, NULL, Utils::BLUR_1K);
-        assertEquals(8.52, $latlngs[$u->getId()]['lat']);
-        assertEquals(179.12, $latlngs[$u->getId()]['lng']);
+        assertEquals(8.51533482357794, $latlngs[$u->getId()]['lat']);
+        assertEquals(179.11914446239, $latlngs[$u->getId()]['lng']);
 
         $nid = $n->create(Newsfeed::TYPE_MESSAGE, $uid, 'Test');
 

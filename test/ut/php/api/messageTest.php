@@ -2863,8 +2863,8 @@ class messageAPITest extends IznikAPITestCase
         ]);
 
         # Lat/lng  blurred.
-        assertEquals(8.534, $ret['message']['lat']);
-        assertEquals(179.216, $ret['message']['lng']);
+        assertEquals(8.531557487729005, $ret['message']['lat']);
+        assertEquals(179.21638396072, $ret['message']['lng']);
         assertFalse(array_key_exists('location', $ret['message']));
         assertEquals(1, count($ret['message']['fromuser']['emails']));
         assertEquals($email, $ret['message']['fromuser']['emails'][0]['email']);

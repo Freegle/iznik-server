@@ -899,15 +899,16 @@ class Message
                 }
             }
 
-            if ($blur && ($role === User::ROLE_NONMEMBER || $role === User::ROLE_MEMBER)) {
-                // Blur lat/lng slightly for privacy.
-                list ($ret['lat'], $ret['lng']) = Utils::blur($ret['lat'], $ret['lng'], Utils::BLUR_USER);
-            }
-
             # URL people can follow to get to the message on our site.
             $ret['url'] = 'https://' . USER_SITE . '/message/' . $msg['id'];
 
             $ret['mine'] = $myid && $msg['fromuser'] == $myid;
+
+            if ($blur && ($role === User::ROLE_NONMEMBER || $role === User::ROLE_MEMBER || $ret['mine'])) {
+                # Blur lat/lng slightly for privacy.  Blur our own messags otherwise it looks like other people
+                # could see our location.
+                list ($ret['lat'], $ret['lng']) = Utils::blur($ret['lat'], $ret['lng'], Utils::BLUR_USER);
+            }
 
             # If we are a mod with sufficient rights on this message, we can edit it.
             #
