@@ -157,7 +157,7 @@ class Nearby
             $u = new User($this->dbhr, $this->dbhm, $user['id']);
 
             # Get approximate location where we have one.
-            list($lat, $lng, $loc) = $u->getLatLng(FALSE, FALSE, Utils::BLUR_100M);
+            list($lat, $lng, $loc) = $u->getLatLng(FALSE, FALSE, Utils::BLUR_USER);
 
             if ($lat || $lng) {
                 # We found one.

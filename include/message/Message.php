@@ -901,7 +901,7 @@ class Message
 
             if ($blur && ($role === User::ROLE_NONMEMBER || $role === User::ROLE_MEMBER)) {
                 // Blur lat/lng slightly for privacy.
-                list ($ret['lat'], $ret['lng']) = Utils::blur($ret['lat'], $ret['lng'], Utils::BLUR_100M);
+                list ($ret['lat'], $ret['lng']) = Utils::blur($ret['lat'], $ret['lng'], Utils::BLUR_USER);
             }
 
             # URL people can follow to get to the message on our site.

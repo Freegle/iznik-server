@@ -11,10 +11,8 @@ class Utils {
     const URL_BAD = [ '%', '{', ';', '#', ':' ];
 
     const BLUR_NONE = NULL;
-    # 3 decimal places is roughly 100m.
-    const BLUR_100M = 3;
-    # 2 decimal places is roughly 1km.
-    const BLUR_1K = 2;
+    const BLUR_USER = 200;
+    const BLUR_1K = 1000;
 
     public static function tmpdir() {
         $tempfile = tempnam(sys_get_temp_dir(),'');
@@ -513,8 +511,14 @@ class Utils {
 
     public static function blur($lat, $lng, $blur) {
         if ($blur) {
-            $lat = round($lat / 2, $blur) * 2;
-            $lng = round($lng / 2, $blur) * 2;
+            # Blur by the requested amount.  The direction we blur in depends on the original lat/lng, and so is
+            # deterministic.  We want it to be deterministic otherwise things will jump around the map in a weird way.
+            # Creating a secure deterministic random number generator is tricky.
+            $dir = ($lat * 1000 + $lng * 1000) % 360;
+            $pos = \GreatCircle::getPositionByDistance($blur, $dir, $lat, $lng);
+
+            $lat = $pos['lat'];
+            $lng = $pos['lng'];
         }
 
         return [ $lat, $lng ];
