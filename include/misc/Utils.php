@@ -2,6 +2,8 @@
 
 namespace Freegle\Iznik;
 
+require_once(IZNIK_BASE . '/lib/GreatCircle.php');
+
 class Utils {
     # Use matching based on https://gist.github.com/gruber/249502, but changed:
     # - to only look for http/https, otherwise here:http isn't caught
