@@ -4455,7 +4455,7 @@ WHERE messages_groups.arrival > ? AND messages.arrival >= '2021-03-29' AND messa
                                                     'type' => $othertype,
                                                     'completed' => $completed,
                                                     'withdraw' => $withdraw,
-                                                    'promise' => $promise
+                                                    'promised' => $promise
                                                 ]);
 
                                                 list ($transport, $mailer) = Mail::getMailer();
