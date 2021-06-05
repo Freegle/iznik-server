@@ -746,6 +746,21 @@ class userAPITest extends IznikAPITestCase {
         $rated = $this->user->getRated();
         self::assertEquals($uid, $rated[0]['ratee']);
 
+        # Test remove rating.
+        $ret = $this->call('user', 'POST', [
+            'action' => 'Rate',
+            'ratee' => $uid,
+            'rating' => NULL
+        ]);
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $uid,
+            'info' => TRUE
+        ]);
+
+        self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_UP]);
+        self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_DOWN]);
+
         $ret = $this->call('user', 'POST', [
             'action' => 'Rate',
             'ratee' => $uid,

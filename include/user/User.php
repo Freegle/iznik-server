@@ -5554,16 +5554,17 @@ class User extends Entity
         $count = 0;
         $userq = $userid ? " users.id = $userid AND " : '';
         $mysqltime = date("Y-m-d", strtotime("6 months ago"));
-        $sql = "SELECT users.id FROM users LEFT JOIN memberships ON users.id = memberships.userid LEFT JOIN spam_users ON users.id = spam_users.userid LEFT JOIN users_comments ON users.id = users_comments.userid WHERE $userq memberships.userid IS NULL AND spam_users.userid IS NULL AND users.lastaccess < '$mysqltime' AND systemrole = ?;";
+        $sql = "SELECT users.id FROM users LEFT JOIN memberships ON users.id = memberships.userid LEFT JOIN spam_users ON users.id = spam_users.userid LEFT JOIN users_comments ON users.id = users_comments.userid WHERE $userq memberships.userid IS NULL AND spam_users.userid IS NULL AND users.lastaccess < '$mysqltime' AND systemrole = ? AND users.deleted IS NULL;";
         $users = $this->dbhr->preQuery($sql, [
             User::SYSTEMROLE_USER
         ]);
 
         foreach ($users as $user) {
-            $logs = $this->dbhr->preQuery("SELECT DATEDIFF(NOW(), timestamp) AS logsago FROM logs WHERE user = ? AND (type != ? OR subtype != ?) ORDER BY id DESC LIMIT 1;", [
+            $logs = $this->dbhr->preQuery("SELECT DATEDIFF(NOW(), timestamp) AS logsago FROM logs WHERE user = ? AND (type != ? OR (subtype != ? AND subtype != ?)) ORDER BY id DESC LIMIT 1;", [
                 $user['id'],
                 Log::TYPE_USER,
-                Log::SUBTYPE_CREATED
+                Log::SUBTYPE_CREATED,
+                Log::SUBTYPE_DELETED
             ]);
 
             error_log("#{$user['id']} Found logs " . count($logs) . " age " . (count($logs) > 0 ? $logs['0']['logsago'] : ' none '));
@@ -5580,7 +5581,33 @@ class User extends Entity
             gc_collect_cycles();
         }
 
-        error_log("...removed $count");
+        error_log("...forgot $count");
+
+        # The only reason for preserving deleted users is as a placeholder user for messages they sent.  If they
+        # don't have any messages, they can go.
+        $ids = $this->dbhr->preQuery("SELECT users.id FROM `users` LEFT JOIN messages ON messages.fromuser = users.id WHERE users.deleted IS NOT NULL AND users.lastaccess < ? AND messages.id IS NULL;", [
+            $mysqltime
+        ]);
+
+        $total = count($ids);
+        $count = 0;
+
+        foreach ($ids as $id) {
+            $u = new User($this->dbhr, $this->dbhm, $id['id']);
+            #error_log("...delete user #{$id['id']}");
+            $u->delete();
+
+            $count++;
+
+            if ($count % 1000 == 0) {
+                error_log("...delete $count / $total");
+            }
+
+
+            # Prod garbage collection, as we've seen high memory usage by this.
+            User::clearCache();
+            gc_collect_cycles();
+        }
 
         return ($count);
     }
@@ -5745,22 +5772,13 @@ class User extends Entity
 
         if ($rater != $ratee) {
             # Can't rate yourself.
-            if ($rating !== NULL) {
-                $this->dbhm->preExec("REPLACE INTO ratings (rater, ratee, rating, timestamp) VALUES (?, ?, ?, NOW());", [
-                    $rater,
-                    $ratee,
-                    $rating
-                ]);
+            $this->dbhm->preExec("REPLACE INTO ratings (rater, ratee, rating, timestamp) VALUES (?, ?, ?, NOW());", [
+                $rater,
+                $ratee,
+                $rating
+            ]);
 
-                $ret = $this->dbhm->lastInsertId();
-            } else {
-                $this->dbhm->preExec("DELETE FROM ratings WHERE rater = ? AND ratee = ?;", [
-                    $rater,
-                    $ratee
-                ]);
-
-                $ret = NULL;
-            }
+            $ret = $this->dbhm->lastInsertId();
 
             $this->dbhm->background("UPDATE users SET lastupdated = NOW() WHERE id IN ($rater, $ratee);");
         }
