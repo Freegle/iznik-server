@@ -2771,8 +2771,8 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'PATCH', [
             'id' => $id,
             'textbody' => 'Test edit',
-            'lat' => 123.4,
-            'lng' => 0.12,
+            'lat' => 56.1,
+            'lng' => 1.23,
             'partner' => $key
         ]);
 
@@ -2785,8 +2785,8 @@ class messageAPITest extends IznikAPITestCase
 
         assertEquals(0, $ret['ret']);
         assertEquals('Test edit', $ret['message']['textbody']);
-        assertEquals(123.4, $ret['message']['lat']);
-        assertEquals(0.12, $ret['message']['lng']);
+        assertEquals(56.09999995793, $ret['message']['lat']);
+        assertEquals(1.2332270226975, $ret['message']['lng']);
     }
 
     public function testPartnerConsent() {
