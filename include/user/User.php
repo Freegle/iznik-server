@@ -5585,7 +5585,7 @@ class User extends Entity
 
         # The only reason for preserving deleted users is as a placeholder user for messages they sent.  If they
         # don't have any messages, they can go.
-        $ids = $this->dbhr->preQuery("SELECT users.id FROM `users` LEFT JOIN messages ON messages.fromuser = users.id WHERE users.deleted IS NOT NULL AND users.lastaccess < ? AND messages.id IS NULL;", [
+        $ids = $this->dbhr->preQuery("SELECT users.id FROM `users` LEFT JOIN messages ON messages.fromuser = users.id WHERE users.deleted IS NOT NULL AND users.lastaccess < ? AND messages.id IS NULL LIMIT 100000;", [
             $mysqltime
         ]);
 
