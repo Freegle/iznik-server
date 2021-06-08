@@ -1053,6 +1053,60 @@ class chatRoomsTest extends IznikTestCase {
         $r->notifyByEmail($rid, ChatRoom::TYPE_USER2MOD);
         assertEquals(1, count($this->msgsSent));
     }
+
+    public function testNotifyReview() {
+        $this->log(__METHOD__ );
+
+        # Set up a chatroom
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test1@test.com');
+        $u->addEmail('test1@' . USER_DOMAIN);
+
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
+        assertNotNull($id);
+        $this->log("Chat room $id for $u1 <-> $u2");
+
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cm, $banned) = $m->create($id, $u1, "Testing", ChatMessage::TYPE_IMAGE, NULL, TRUE, NULL, NULL, NULL, NULL);
+        $this->log("Created chat message $cm");
+
+        # Mark it as requiring review.
+        $m->setPrivate('reviewrequired', 1);
+
+        $r = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
+            ->setMethods(array('mailer'))
+            ->getMock();
+
+        $r->method('mailer')->will($this->returnCallback(function($message) {
+            return($this->mailer($message));
+        }));
+
+        $this->msgsSent = [];
+
+        // Shouldn't notify - held for review.
+        assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
+
+        // Mark as reviewed but rejected.
+        $m->setPrivate('reviewrequired', 0);
+        $m->setPrivate('reviewrejected', 1);
+
+        assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
+
+        // Mark as ok.
+        $m->setPrivate('reviewrejected', 0);
+
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
+        assertEquals('You have a new message', $this->msgsSent[0]['subject']);
+    }
 }
 
 
