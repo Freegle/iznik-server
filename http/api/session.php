@@ -83,7 +83,7 @@ function session() {
 
                     if (!$components || (gettype($components) == 'array' && in_array('me', $components))) {
                         # Don't want to use cached information when looking at our own session.
-                        $ret['me'] = $me->getPublic();
+                        $ret['me'] = $me->getPublic(NULL, FALSE, FALSE, FALSE, FALSE);
                         $loc = $me->getCity();
                         $ret['me']['city'] = $loc[0];
                         $ret['me']['lat'] = $loc[1];
@@ -217,49 +217,47 @@ function session() {
                             }
                         }
 
-                        # We should always return complete groups objects because they are stored in the client session.
-                        #
-                        # If we have many groups this can generate many DB calls, so quicker to prefetch for Twitter and
-                        # Facebook, even though that makes the code hackier.
-                        $facebooks = GroupFacebook::listForGroups($dbhr, $dbhm, $gids);
-                        $twitters = [];
+                        if ($modtools) {
+                            # If we have many groups this can generate many DB calls, so quicker to prefetch for Twitter and
+                            # Facebook, even though that makes the code hackier.
+                            $facebooks = GroupFacebook::listForGroups($dbhr, $dbhm, $gids);
+                            $twitters = [];
 
-                        if (count($gids) > 0) {
-                            # We don't want to show any ones which aren't properly linked (yet), i.e. name is null.
-                            $tws = $dbhr->preQuery("SELECT * FROM groups_twitter WHERE groupid IN (" . implode(',', $gids) . ") AND name IS NOT NULL;");
-                            foreach ($tws as $tw) {
-                                $twitters[$tw['groupid']] = $tw;
-                            }
-                        }
-
-                        foreach ($ret['groups'] as &$group) {
-                            if ($group['role'] == User::ROLE_MODERATOR || $group['role'] == User::ROLE_OWNER) {
-                                # Return info on Twitter status.  This isn't secret info - we don't put anything confidential
-                                # in here - but it's of no interest to members so there's no point delaying them by
-                                # fetching it.
-                                #
-                                # Similar code in group.php.
-                                if (array_key_exists($group['id'], $twitters)) {
-                                    $t = new Twitter($dbhr, $dbhm, $group['id'], $twitters[$group['id']]);
-                                    $atts = $t->getPublic();
-                                    unset($atts['token']);
-                                    unset($atts['secret']);
-                                    $atts['authdate'] = Utils::ISODate($atts['authdate']);
-                                    $group['twitter'] = $atts;
+                            if (count($gids) > 0) {
+                                # We don't want to show any ones which aren't properly linked (yet), i.e. name is null.
+                                $tws = $dbhr->preQuery("SELECT * FROM groups_twitter WHERE groupid IN (" . implode(',', $gids) . ") AND name IS NOT NULL;");
+                                foreach ($tws as $tw) {
+                                    $twitters[$tw['groupid']] = $tw;
                                 }
+                            }
 
-                                # Ditto Facebook.
-                                if (array_key_exists($group['id'], $facebooks)) {
-                                    $group['facebook'] = [];
+                            foreach ($ret['groups'] as &$group) {
+                                if ($group['role'] == User::ROLE_MODERATOR || $group['role'] == User::ROLE_OWNER) {
+                                    # Return info on Twitter status.  This isn't secret info - we don't put anything confidential
+                                    # in here - but it's of no interest to members so there's no point delaying them by
+                                    # fetching it.
+                                    #
+                                    # Similar code in group.php.
+                                    if (array_key_exists($group['id'], $twitters)) {
+                                        $t = new Twitter($dbhr, $dbhm, $group['id'], $twitters[$group['id']]);
+                                        $atts = $t->getPublic();
+                                        unset($atts['token']);
+                                        unset($atts['secret']);
+                                        $atts['authdate'] = Utils::ISODate($atts['authdate']);
+                                        $group['twitter'] = $atts;
+                                    }
 
-                                    foreach ($facebooks[$group['id']] as $atts) {
-                                        $group['facebook'][] = $atts;
+                                    # Ditto Facebook.
+                                    if (array_key_exists($group['id'], $facebooks)) {
+                                        $group['facebook'] = [];
+
+                                        foreach ($facebooks[$group['id']] as $atts) {
+                                            $group['facebook'][] = $atts;
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        if ($modtools) {
                             if (!$components || in_array('work', $components)) {
                                 $ret['work'] = $me->getWorkCounts($ret['groups']);
 
