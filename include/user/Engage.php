@@ -183,21 +183,11 @@ class Engage
 
         # New, Inactive, Dormant => Occasional.
         $activeon = date("Y-m-d", strtotime("midnight 14 days ago"));
-        $users = $this->dbhr->preQuery("SELECT DISTINCT userid AS id FROM chat_messages 
-    INNER JOIN users ON users.id = chat_messages.userid 
-    WHERE $uq chat_messages.date >= ? AND (engagement IS NULL OR engagement = ? OR engagement = ?  OR engagement = ?)
-    UNION
-    SELECT DISTINCT fromuser AS id FROM messages 
-    INNER JOIN users ON users.id = messages.fromuser
-    WHERE $uq messages.arrival >= ? AND (engagement IS NULL OR engagement = ? OR engagement = ?  OR engagement = ?);", [
+        $users = $this->dbhr->preQuery("SELECT id FROM users WHERE lastaccess >= ? AND (engagement IS NULL OR engagement = ? OR engagement = ?  OR engagement = ?);", [
             $activeon,
             Engage::ENGAGEMENT_NEW,
             Engage::ENGAGEMENT_INACTIVE,
-            Engage::ENGAGEMENT_DORMANT,
-            $activeon,
-            Engage::ENGAGEMENT_NEW,
-            Engage::ENGAGEMENT_INACTIVE,
-            Engage::ENGAGEMENT_DORMANT,
+            Engage::ENGAGEMENT_DORMANT
         ]);
 
         error_log("New, Inactive, Dormant => Occasional " . count($users));
