@@ -353,8 +353,9 @@ class Group extends Entity
                 MailRouter::TO_SYSTEM
             ]);
 
-            $spammembercounts = $this->dbhr->preQuery(
-                "SELECT memberships.groupid, COUNT(*) AS count, memberships.heldby IS NOT NULL AS held FROM memberships
+            if ($me->isAdminOrSupport() || $me->hasPermission(User::PERM_SPAM_ADMIN)) {
+                $spammembercounts = $this->dbhr->preQuery(
+                    "SELECT memberships.groupid, COUNT(*) AS count, memberships.heldby IS NOT NULL AS held FROM memberships
 WHERE reviewrequestedat IS NOT NULL AND groupid IN $groupq
 GROUP BY memberships.groupid, held
 UNION
@@ -363,6 +364,9 @@ INNER JOIN spam_users ON spam_users.userid = memberships.userid AND spam_users.c
 WHERE groupid IN $groupq
 GROUP BY memberships.groupid, held;
 ", []);
+            } else {
+                $spammembercounts = [];
+            }
 
             $pendingeventcounts = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT communityevents.id) AS count FROM communityevents INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id INNER JOIN communityevents_groups ON communityevents.id = communityevents_groups.eventid WHERE communityevents_groups.groupid IN $groupq AND communityevents.pending = 1 AND communityevents.deleted = 0 AND end >= ? GROUP BY groupid;", [
                 $eventsqltime
