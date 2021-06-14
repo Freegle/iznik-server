@@ -129,7 +129,7 @@ function status()
         $queuesize = trim(shell_exec("ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@$host \"ls -1 /var/www/iznik/spool*/* | wc -l\" 2>&1"));
         error_log("Spool queue $queuesize");
 
-        if (intval($queuesize) > 1000) {
+        if (intval($queuesize) > 2000) {
             $warning = TRUE;
             $overallwarning = TRUE;
             $warningtext = "Mail spool folder large ($queuesize)";
