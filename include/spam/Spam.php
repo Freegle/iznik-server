@@ -570,7 +570,7 @@ class Spam {
             Spam::TYPE_PENDING_REMOVE => 0
         ];
 
-        if ($me->hasPermission(User::PERM_SPAM_ADMIN)) {
+        if ($me && $me->hasPermission(User::PERM_SPAM_ADMIN)) {
             $sql = "SELECT COUNT(*) AS count, collection FROM spam_users WHERE collection IN (?, ?) GROUP BY collection;";
             $counts = $this->dbhr->preQuery(
                 $sql,
