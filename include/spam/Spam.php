@@ -563,19 +563,26 @@ class Spam {
     }
 
     public function collectionCounts() {
-        $sql = "SELECT COUNT(*) AS count, collection FROM spam_users WHERE collection IN (?, ?) GROUP BY collection;";
-        $counts = $this->dbhr->preQuery($sql, [
-            Spam::TYPE_PENDING_ADD,
-            Spam::TYPE_PENDING_REMOVE
-        ]);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         $ret = [
             Spam::TYPE_PENDING_ADD => 0,
             Spam::TYPE_PENDING_REMOVE => 0
         ];
 
-        foreach ($counts as $count) {
-            $ret[$count['collection']] = $count['count'];
+        if ($me->hasPermission(User::PERM_SPAM_ADMIN)) {
+            $sql = "SELECT COUNT(*) AS count, collection FROM spam_users WHERE collection IN (?, ?) GROUP BY collection;";
+            $counts = $this->dbhr->preQuery(
+                $sql,
+                [
+                    Spam::TYPE_PENDING_ADD,
+                    Spam::TYPE_PENDING_REMOVE
+                ]
+            );
+
+            foreach ($counts as $count) {
+                $ret[$count['collection']] = $count['count'];
+            }
         }
 
         return($ret);
