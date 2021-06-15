@@ -331,25 +331,15 @@ class messageTest extends IznikTestCase {
     }
     
     public function testPrune() {
+        $m = new Message($this->dbhr, $this->dbhm);
+
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/prune'));
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $pruned = $m->pruneMessage($msg);
+        assertGreaterThan(0, strlen($pruned));
 
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
-        $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertGreaterThan(0, strlen($m->getMessage()));
-
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/prune2'));
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
-        $m = new Message($this->dbhr, $this->dbhm, $id);
-        $this->log("Pruned to " . $m->getMessage());
-        assertLessThan(20000, strlen($m->getMessage()));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/prune'));
+        $pruned = $m->pruneMessage($msg);
+        assertLessThan(20000, strlen($pruned));
     }
 
     public function testReverseSubject() {

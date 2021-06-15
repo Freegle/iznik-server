@@ -188,14 +188,43 @@ try {
     $id = NULL;
 
     do {
-        $sql = "SELECT id FROM messages WHERE arrival >= '$end' AND arrival <= '$start' AND htmlbody IS NOT NULL LIMIT 1000;";
+        $sql = "SELECT id, message FROM messages WHERE arrival >= '$end' AND arrival <= '$start' AND htmlbody IS NOT NULL LIMIT 1000;";
         $msgs = $dbhr->query($sql);
         $count = 0;
         foreach ($msgs as $msg) {
             $sql = "UPDATE messages SET htmlbody = NULL WHERE id = {$msg['id']};";
-
             $count = $dbhm->preExec($sql);
+
+            if ($msg['message']) {
+                # We want to prune the message source of emailed messages - but not if it is to a mod chat, as
+                # these can sometimes include complex forwarded messages which would then become inaccessible.  The
+                # MT client has a pretty viewer.
+                $modchats = $dbhr->preQuery("SELECT chat_rooms.id FROM chat_messages_byemail
+                    INNER JOIN chat_messages on chat_messages_byemail.chatmsgid = chat_messages.id
+                    INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid
+                    WHERE chat_messages_byemail.msgid = ? AND chat_rooms.chattype = ?", [
+                    $msg['id'],
+                    ChatRoom::TYPE_USER2MOD
+                ]);
+
+                error_log("Got mod chats " . count($modchats));
+
+                if (!count($modchats)) {
+                    $m = new Message($dbhr, $dbhm);
+                    $pruned = $m->pruneMessage($msg['message']);
+                    error_log("Pruned " . strlen($msg['message']) . " to " . strlen($pruned));
+
+                    if (strlen($pruned) < strlen($msg['message'])) {
+                        $dbhm->preExec("UPDATE messages SET message = ? WHERE id = ?;", [
+                            $pruned,
+                            $msg['id']
+                        ]);
+                    }
+                }
+            }
+
             $total += $count;
+
             if ($total % 1000 == 0) {
                 error_log("...$total");
             }

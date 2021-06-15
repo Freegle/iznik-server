@@ -2432,7 +2432,7 @@ ORDER BY lastdate DESC;";
         return preg_replace('/Check out the pictures[\s\S]*?https:\/\/trashnothing[\s\S]*?pics\/[a-zA-Z0-9]*/', '', $textbody);
     }
 
-    public function pruneMessage() {
+    public function pruneMessage($original) {
         # We are only interested in image attachments; those are what we hive off into the attachments table,
         # and what we display.  They bulk up the message source considerably, which chews up disk space.  Worse,
         # we might have message attachments which are not even image attachments, just for messages we are
@@ -2440,7 +2440,7 @@ ORDER BY lastdate DESC;";
         #
         # So we remove all attachment data within the message.  We do this with a handrolled lame parser, as we
         # don't have a full MIME reassembler.
-        $current = $this->message;
+        $current = $original;
         #error_log("Start prune len " . strlen($current));
 
         # Might have wrong LF format.
@@ -2491,7 +2491,6 @@ ORDER BY lastdate DESC;";
                             $current = substr($current, 0, $breakpos + 2) .
                                 "\r\n...Content of size " . ($nextboundpos - $breakpos + 2) . " removed...\r\n\r\n" .
                                 substr($current, $nextboundpos);
-                            #error_log($this->id . " Content of size " . ($nextboundpos - $breakpos + 2) . " removed...");
                         }
                     }
                 }
@@ -2500,11 +2499,8 @@ ORDER BY lastdate DESC;";
             $p++;
         } while ($found);
 
-        #error_log("End prune len " . strlen($current));
-
         # Something went horribly wrong?
-        # TODO Test.
-        $current = (strlen($current) == 0) ? $this->message : $current;
+        $current = (strlen($current) == 0) ? $original : $current;
 
         return($current);
     }
@@ -2565,7 +2561,7 @@ ORDER BY lastdate DESC;";
     }
 
     # Save a parsed message to the DB
-    public function save($log = TRUE, $prune = TRUE) {
+    public function save($log = TRUE) {
         # Despite what the RFCs might say, it's possible that a message can appear on Yahoo without a Message-ID.  We
         # require unique message ids, so this causes us a problem.  Invent one.
         $this->messageid = $this->messageid ? $this->messageid : (microtime(TRUE). '@' . USER_DOMAIN);
@@ -2589,11 +2585,6 @@ ORDER BY lastdate DESC;";
                 $u = new User($this->dbhr, $this->dbhm);
                 $approvedby = $u->findByYahooId($yid);
             }
-        }
-
-        if ($prune) {
-            # Reduce the size of the message source
-            $this->message = $this->pruneMessage();
         }
 
         $this->id = NULL;
