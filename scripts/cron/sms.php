@@ -9,7 +9,7 @@ require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
-$srcs = $dbhr->preQuery("SELECT * FROM logs_src ORDER BY date ASC;");
+$srcs = $dbhr->preQuery("SELECT * FROM logs_src WHERE src = 'sms' ORDER BY date ASC;");
 
 foreach ($srcs as $src) {
     #error_log("{$src['date']} user {$src['userid']} session {$src['session']}");
