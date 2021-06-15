@@ -694,6 +694,46 @@ class messageTest extends IznikTestCase {
         self::assertNotNull($log);
     }
 
+    public function testAutoRepostOff() {
+        $m = new Message($this->dbhr, $this->dbhm);
+
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $this->user->addEmail($email);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment'));
+        $msg = str_replace('test@test.com', $email, $msg);
+        $msg = str_replace('Test att', 'OFFER: Test due (Tuvalu High Street)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id2 = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+        $this->log("Due message $id2");
+        $m = new Message($this->dbhr, $this->dbhm, $id2);
+        $m->setPrivate('sourceheader', 'Platform');
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Turn autorepost off for this user.
+        $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
+        $u->setSetting('autorepostsdisable', TRUE);
+
+        # Call when repost not due.  Expect no warning as off.
+        $this->log("Expect no warning for $id2");
+        list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $this->gid);
+        assertEquals(0, $count);
+        assertEquals(0, $warncount);
+
+        # Make the message and warning look longer ago.  Then call - still no repost as off.
+        $this->log("Expect no repost");
+        $mysqltime = date("Y-m-d H:i:s", strtotime('77 hours ago'));
+        $this->dbhm->preExec("UPDATE messages_groups SET arrival = '$mysqltime' WHERE msgid = ?;", [ $id2 ]);
+        $this->dbhm->preExec("UPDATE messages_groups SET lastautopostwarning = '2016-01-01' WHERE msgid = ?;", [ $id2 ]);
+
+        list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $this->gid);
+        assertEquals(0, $count);
+        assertEquals(0, $warncount);
+    }
+
     public function testChaseup() {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test (Tuvalu High Street)', $msg);

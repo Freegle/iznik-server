@@ -4409,8 +4409,11 @@ WHERE messages_groups.arrival > ? AND messages.arrival >= '2021-03-29' AND messa
                             error_log("Consider repost {$message['msgid']}, posted {$message['hoursago']} active {$message['activehoursago']} activesince $activesince interval $interval lastwarning $lastwarnago maxage $maxage last reply $max");
 
                             if (!$recentreply && $message['hoursago'] < $maxage * 24 && $activesince) {
-                                # Reposts might be turned off.
-                                if ($interval > 0 && $reposts['max'] > 0) {
+                                $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
+                                $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
+
+                                # Reposts might be turned off, either in the group or the user.
+                                if ($interval > 0 && $reposts['max'] > 0 && !$u->getSetting('autorepostsdisable', FALSE)) {
                                     if ($message['hoursago'] <= $interval * 24 &&
                                         $message['hoursago'] > ($interval - 1) * 24 &&
                                         ($lastwarnago === NULL || $lastwarnago > 24)
@@ -4422,8 +4425,6 @@ WHERE messages_groups.arrival > ? AND messages.arrival >= '2021-03-29' AND messa
                                             $this->dbhm->preExec("UPDATE messages_groups SET lastautopostwarning = NOW() WHERE msgid = ?;", [$message['msgid']]);
                                             $warncount++;
 
-                                            $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
-                                            $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
                                             $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
                                             $gatts = $g->getPublic();
 
@@ -4474,7 +4475,6 @@ WHERE messages_groups.arrival > ? AND messages.arrival >= '2021-03-29' AND messa
                                         }
                                     } else if ($message['hoursago'] > $interval * 24) {
                                         # We can autorepost this one.
-                                        $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
                                         error_log($g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr() . " " . $m->getSubject() . " repost due");
                                         $m->autoRepost($message['autoreposts'] + 1, $reposts['max']);
 
