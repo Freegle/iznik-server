@@ -61,6 +61,14 @@
           <mj-button align="center" href="{{ promised }}" background-color="darkgreen">Mark as Promised</mj-button>
         </mj-column>
       </mj-section>
+      <mj-section background-color="#F7F6EC">
+        <mj-column>
+          <mj-text>
+            If you don't want your posts to be "bumped" by autoreposting, you can turn this off in
+            <a href="https://www.ilovefreegle.org/settings">Settings</a>.
+          </mj-text>
+        </mj-column>
+      </mj-section>
       <mj-section background-color="#E0E0E0">
         <mj-column>
           <mj-text font-size="9px" color="#707070">This mail was sent to&nbsp;{{ email }}. You can unsubscribe by clicking <a href="{{ unsubscribe }}">here</a>.

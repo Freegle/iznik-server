@@ -4439,7 +4439,7 @@ WHERE messages_groups.arrival > ? AND messages.arrival >= '2021-03-29' AND messa
                                                 $withdraw = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/withdraw", User::SRC_REPOST_WARNING);
                                                 $promise = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/promise", User::SRC_REPOST_WARNING);
                                                 $othertype = $m->getType() == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
-                                                $text = "We will automatically repost your message $subj soon, so that more people will see it.  If you don't want us to do that, please go to $completed to mark as $othertype or $withdraw to withdraw it.";
+                                                $text = "We will automatically repost your message $subj soon, so that more people will see it.  If you don't want us to do that, please go to $completed to mark as $othertype or $withdraw to withdraw it.  You can change this in Settings.";
                                                 $html = $twig->render('autorepost.html', [
                                                     'subject' => $subj,
                                                     'name' => $u->getName(),
