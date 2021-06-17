@@ -1,9 +1,10 @@
 <?php
 
+namespace Freegle\Iznik;
+
 require_once dirname(__FILE__) . '/../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 
-require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 
 $opts = getopt('f:');
@@ -28,7 +29,7 @@ if (count($opts) < 1) {
                     $name = NULL;
 
                     foreach ($data as $ent) {
-                        $name = $ent->SimpleData[1];
+                        $name = $ent->SimpleData[0];
                     }
 
                     if ($name) {
