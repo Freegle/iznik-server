@@ -263,7 +263,7 @@ class Engage
                         $enabled = FALSE;
 
                         foreach ($membs as $memb) {
-                            $enabled |= Utils::presdef('engagement', $memb['settings'], TRUE);
+                            $enabled |= array_key_exists('engagement', $memb['settings']) ? $memb['settings']['engagement'] : TRUE;
                         }
 
                         #error_log("...has membership");
