@@ -260,8 +260,14 @@ class Engage
 
                     if (count($membs)) {
                         // ...and where that group allows engagement.
+                        $enabled = FALSE;
+
+                        foreach ($membs as $memb) {
+                            $enabled |= Utils::presdef('engagement', $memb['settings'], TRUE);
+                        }
+
                         #error_log("...has membership");
-                        if ($u->getSetting('engagement', TRUE)) {
+                        if ($enabled) {
                             // ...and where we've not tried them in the last week.
                             $last = $this->dbhr->preQuery("SELECT MAX(timestamp) AS last FROM engage WHERE userid = ?;", [
                                 $uid
