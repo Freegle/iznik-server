@@ -107,11 +107,6 @@ class User extends Entity
     const NEWSFEED_MODERATED = 'Moderated';
     const NEWSFEED_SUPPRESSED = 'Suppressed';
 
-    # 2 decimal places is roughly 1km.
-    const BLUR_NONE = NULL;
-    const BLUR_100M = 3;
-    const BLUR_1K = 2;
-
     /** @var  $log Log */
     private $log;
     var $user;
@@ -4136,7 +4131,7 @@ class User extends Entity
                 'pending' => [ 'pending message', 'pending messages', '/modtools/messages/pending' ]
             ];
 
-            $title = '';
+            $title = $chatcount ? ("$chatcount chat message" . ($chatcount != 1 ? 's' : '') . "\n") : '';
             $route = NULL;
 
             foreach ($types as $type => $vals) {
@@ -4312,7 +4307,7 @@ class User extends Entity
         return ($ret);
     }
 
-    public function getLatLng($usedef = TRUE, $usegroup = TRUE, $blur = self::BLUR_NONE)
+    public function getLatLng($usedef = TRUE, $usegroup = TRUE, $blur = Utils::BLUR_NONE)
     {
         $ret = [ 0, 0, NULL ];
 
@@ -4321,8 +4316,7 @@ class User extends Entity
             $loc = $locs[$this->id];
 
             if ($blur && ($loc['lat'] || $loc['lng'])) {
-                $loc['lat'] = round($loc['lat'], $blur);
-                $loc['lng'] = round($loc['lng'], $blur);
+                list ($loc['lat'], $loc['lng']) = Utils::blur($loc['lat'], $loc['lng'], $blur);
             }
 
             $ret = [ $loc['lat'], $loc['lng'], Utils::presdef('loc', $loc, NULL) ];
@@ -4621,9 +4615,7 @@ class User extends Entity
         if ($blur) {
             foreach ($ret as &$memb) {
                 if ($memb['lat'] || $memb['lng']) {
-                    # 3 decimal places is roughly 100m.
-                    $memb['lat'] = round($memb['lat'], 3);
-                    $memb['lng'] = round($memb['lng'], 3);
+                    list ($memb['lat'], $memb['lng']) = Utils::blur($memb['lat'], $memb['lng'], $blur);
                 }
             }
         }
@@ -5562,16 +5554,17 @@ class User extends Entity
         $count = 0;
         $userq = $userid ? " users.id = $userid AND " : '';
         $mysqltime = date("Y-m-d", strtotime("6 months ago"));
-        $sql = "SELECT users.id FROM users LEFT JOIN memberships ON users.id = memberships.userid LEFT JOIN spam_users ON users.id = spam_users.userid LEFT JOIN users_comments ON users.id = users_comments.userid WHERE $userq memberships.userid IS NULL AND spam_users.userid IS NULL AND spam_users.userid IS NULL AND users.lastaccess < '$mysqltime' AND systemrole = ?;";
+        $sql = "SELECT users.id FROM users LEFT JOIN memberships ON users.id = memberships.userid LEFT JOIN spam_users ON users.id = spam_users.userid LEFT JOIN users_comments ON users.id = users_comments.userid WHERE $userq memberships.userid IS NULL AND spam_users.userid IS NULL AND users.lastaccess < '$mysqltime' AND systemrole = ? AND users.deleted IS NULL;";
         $users = $this->dbhr->preQuery($sql, [
             User::SYSTEMROLE_USER
         ]);
 
         foreach ($users as $user) {
-            $logs = $this->dbhr->preQuery("SELECT DATEDIFF(NOW(), timestamp) AS logsago FROM logs WHERE user = ? AND (type != ? OR subtype != ?) ORDER BY id DESC LIMIT 1;", [
+            $logs = $this->dbhr->preQuery("SELECT DATEDIFF(NOW(), timestamp) AS logsago FROM logs WHERE user = ? AND (type != ? OR (subtype != ? AND subtype != ?)) ORDER BY id DESC LIMIT 1;", [
                 $user['id'],
                 Log::TYPE_USER,
-                Log::SUBTYPE_CREATED
+                Log::SUBTYPE_CREATED,
+                Log::SUBTYPE_DELETED
             ]);
 
             error_log("#{$user['id']} Found logs " . count($logs) . " age " . (count($logs) > 0 ? $logs['0']['logsago'] : ' none '));
@@ -5588,7 +5581,33 @@ class User extends Entity
             gc_collect_cycles();
         }
 
-        error_log("...removed $count");
+        error_log("...forgot $count");
+
+        # The only reason for preserving deleted users is as a placeholder user for messages they sent.  If they
+        # don't have any messages, they can go.
+        $ids = $this->dbhr->preQuery("SELECT users.id FROM `users` LEFT JOIN messages ON messages.fromuser = users.id WHERE users.deleted IS NOT NULL AND users.lastaccess < ? AND messages.id IS NULL LIMIT 100000;", [
+            $mysqltime
+        ]);
+
+        $total = count($ids);
+        $count = 0;
+
+        foreach ($ids as $id) {
+            $u = new User($this->dbhr, $this->dbhm, $id['id']);
+            #error_log("...delete user #{$id['id']}");
+            $u->delete();
+
+            $count++;
+
+            if ($count % 1000 == 0) {
+                error_log("...delete $count / $total");
+            }
+
+
+            # Prod garbage collection, as we've seen high memory usage by this.
+            User::clearCache();
+            gc_collect_cycles();
+        }
 
         return ($count);
     }
@@ -5753,22 +5772,13 @@ class User extends Entity
 
         if ($rater != $ratee) {
             # Can't rate yourself.
-            if ($rating !== NULL) {
-                $this->dbhm->preExec("REPLACE INTO ratings (rater, ratee, rating, timestamp) VALUES (?, ?, ?, NOW());", [
-                    $rater,
-                    $ratee,
-                    $rating
-                ]);
+            $this->dbhm->preExec("REPLACE INTO ratings (rater, ratee, rating, timestamp) VALUES (?, ?, ?, NOW());", [
+                $rater,
+                $ratee,
+                $rating
+            ]);
 
-                $ret = $this->dbhm->lastInsertId();
-            } else {
-                $this->dbhm->preExec("DELETE FROM ratings WHERE rater = ? AND ratee = ?;", [
-                    $rater,
-                    $ratee
-                ]);
-
-                $ret = NULL;
-            }
+            $ret = $this->dbhm->lastInsertId();
 
             $this->dbhm->background("UPDATE users SET lastupdated = NOW() WHERE id IN ($rater, $ratee);");
         }
@@ -5782,8 +5792,8 @@ class User extends Entity
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
 
-        # We show visible ratings, or ones we have made ourselves.
-        $sql = "SELECT ratee, COUNT(*) AS count, rating FROM ratings WHERE ratee IN (" . implode(',', $uids) . ") AND timestamp >= '$mysqltime' AND (rater = ? OR visible = 1) GROUP BY rating, ratee;";
+        # We show visible ratings, ones we have made ourselves, or those from TN.
+        $sql = "SELECT ratee, COUNT(*) AS count, rating FROM ratings WHERE ratee IN (" . implode(',', $uids) . ") AND timestamp >= '$mysqltime' AND (tn_rating_id IS NOT NULL OR rater = ? OR visible = 1) GROUP BY rating, ratee;";
         $ratings = $this->dbhr->preQuery($sql, [ $myid ]);
 
         foreach ($uids as $uid) {
@@ -5817,6 +5827,20 @@ class User extends Entity
         }
 
         return($ret);
+    }
+
+    public function getAllRatings($since) {
+        $mysqltime = date("Y-m-d H:i:s", strtotime($since));
+
+        $ratings = $this->dbhr->preQuery("SELECT * FROM ratings WHERE timestamp >= ? AND visible = 1;", [
+            $mysqltime
+        ]);
+
+        foreach ($ratings as &$rating) {
+            $rating['timestamp'] = Utils::ISODate($rating['timestamp']);
+        }
+
+        return $ratings;
     }
 
     public function getChanges($since) {
@@ -6339,15 +6363,18 @@ memberships.groupid IN $groupq
             $me = Session::whoAmI($this->dbhr, $this->dbhm);
             $myid = $me ? $me->getId() : null;
 
-            # A supporter is someone who has donated recently, or done microvolunteering recently.
+            # A supporter is a mod, someone who has donated recently, or done microvolunteering recently.
             if (count($idsleft)) {
                 $start = date('Y-m-d', strtotime("60 days ago"));
                 $info = $this->dbhr->preQuery(
-                    "SELECT DISTINCT userid, settings FROM microactions INNER JOIN users ON users.id = microactions.userid WHERE microactions.timestamp >= ? AND microactions.userid IN (" . implode(
+                    "SELECT DISTINCT users.id AS userid, settings, systemrole FROM users LEFT JOIN microactions ON users.id = microactions.userid WHERE users.id IN (" . implode(
                         ',',
                         $idsleft
-                    ) . ");",
+                    ) . ") AND (systemrole IN (?, ?, ?) OR microactions.timestamp >= ?);",
                     [
+                        User::SYSTEMROLE_ADMIN,
+                        User::SYSTEMROLE_SUPPORT,
+                        User::SYSTEMROLE_MODERATOR,
                         $start
                     ]
                 );

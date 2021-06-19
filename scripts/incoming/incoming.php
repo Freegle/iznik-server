@@ -4,7 +4,7 @@ namespace Freegle\Iznik;
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-
+global $dbhr, $dbhm;
 
 $tusage = NULL;
 $rusage = NULL;
@@ -38,7 +38,9 @@ $groupname = NULL;
 # the logs.
 $chat = preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $envto);
 
-error_log("Email");
+# We don't want to prune mails to mods, because we will relay on the full message.
+$tomods = preg_match('/' . GROUP_DOMAIN. '/', $envto);
+
 $id = $r->received(Message::EMAIL, $envfrom, $envto, $msg, NULL, !$chat);
 
 if ($id) {

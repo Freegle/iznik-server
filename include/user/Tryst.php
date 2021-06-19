@@ -211,7 +211,14 @@ class Tryst extends Entity
 
                 $u1phone = $u1->getPhone();
                 $u2phone = $u2->getPhone();
-                $time = date('h:i A', strtotime($t->getPrivate('arrangedfor')));
+
+                $tz1 = new \DateTimeZone('UTC');
+                $tz2 = new \DateTimeZone('Europe/London');
+
+                $datetime = new \DateTime('@' . strtotime($t->getPrivate('arrangedfor')), $tz1);
+                $datetime->setTimezone($tz2);
+                $time = $datetime->format('h:i A');
+
                 $r = new ChatRoom($this->dbhr, $this->dbhm);
                 list ($rid, $blocked) = $r->createConversation($u1id, $u2id);
                 $url = "https://" . USER_SITE . "/handover/" . $due['id'] . '?src=sms';

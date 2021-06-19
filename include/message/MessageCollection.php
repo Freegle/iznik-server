@@ -503,7 +503,7 @@ UNION SELECT msgid AS id, timestamp, 'Reneged' AS `type` FROM messages_reneged W
 
         # Blur them.
         foreach ($msgs as &$msg) {
-            list ($msg['lat'], $msg['lng']) = Message::blur($msg['lat'], $msg['lng']);
+            list ($msg['lat'], $msg['lng']) = Utils::blur($msg['lat'], $msg['lng'], Utils::BLUR_USER);
             $msg['arrival'] = Utils::ISODate($msg['arrival']);
         }
 
@@ -527,7 +527,7 @@ UNION SELECT msgid AS id, timestamp, 'Reneged' AS `type` FROM messages_reneged W
 
             # Blur them.
             foreach ($msgs as &$msg) {
-                list ($msg['lat'], $msg['lng']) = Message::blur($msg['lat'], $msg['lng']);
+                list ($msg['lat'], $msg['lng']) = Utils::blur($msg['lat'], $msg['lng'], Utils::BLUR_USER);
                 $msg['arrival'] = Utils::ISODate($msg['arrival']);
                 $ctx['msgid'] = $msg['id'];
                 $ctx['arrival'] = $msg['arrival'];

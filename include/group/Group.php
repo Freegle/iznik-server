@@ -667,7 +667,9 @@ HAVING logincount > 0
                 #
                 # This is to avoid moving members into a spam collection and then having to remember whether they
                 # came from Pending or Approved.
-                $collectionq = " AND reviewrequestedat IS NOT NULL";
+                #
+                # If we have reviewed someone today, don't show them again as it gets annoying.
+                $collectionq = " AND reviewrequestedat IS NOT NULL AND (reviewedat IS NULL OR DATE(reviewedat) < CURDATE())";
             } else if ($collection) {
                 $collectionq = ' AND memberships.collection = ' . $this->dbhr->quote($collection) . ' ';
             }

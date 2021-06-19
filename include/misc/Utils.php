@@ -2,6 +2,8 @@
 
 namespace Freegle\Iznik;
 
+require_once(IZNIK_BASE . '/lib/GreatCircle.php');
+
 class Utils {
     # Use matching based on https://gist.github.com/gruber/249502, but changed:
     # - to only look for http/https, otherwise here:http isn't caught
@@ -9,6 +11,10 @@ class Utils {
 
     # ...but this matches some bad character patterns.
     const URL_BAD = [ '%', '{', ';', '#', ':' ];
+
+    const BLUR_NONE = NULL;
+    const BLUR_USER = 200;
+    const BLUR_1K = 1000;
 
     public static function tmpdir() {
         $tempfile = tempnam(sys_get_temp_dir(),'');
@@ -503,5 +509,20 @@ class Utils {
             return $key;
         }
         return NULL;
+    }
+
+    public static function blur($lat, $lng, $blur) {
+        if ($blur) {
+            # Blur by the requested amount.  The direction we blur in depends on the original lat/lng, and so is
+            # deterministic.  We want it to be deterministic otherwise things will jump around the map in a weird way.
+            # Creating a secure deterministic random number generator is tricky.
+            $dir = ($lat * 1000 + $lng * 1000) % 360;
+            $pos = \GreatCircle::getPositionByDistance($blur, $dir, $lat, $lng);
+
+            $lat = $pos['lat'];
+            $lng = $pos['lng'];
+        }
+
+        return [ $lat, $lng ];
     }
 }

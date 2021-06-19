@@ -126,9 +126,8 @@ class Visualise extends Entity
         $ret['timestamp'] = Utils::ISODate($ret['timestamp']);
 
         # Blur the exact locations by rounding.
-        foreach (['fromlat', 'fromlng', 'tolat', 'tolng'] as $f) {
-            $ret[$f] = round($ret[$f], 3);
-        }
+        list ($ret['fromlat'], $ret['fromlng']) = Utils::blur($ret['fromlat'], $ret['fromlng'], Utils::BLUR_USER);
+        list ($ret['tolat'], $ret['tolng']) = Utils::blur($ret['tolat'], $ret['tolng'], Utils::BLUR_USER);
 
         $a = new Attachment($this->dbhr, $this->dbhm, $ret['attid']);
         $a->getPath(TRUE);
@@ -167,15 +166,15 @@ class Visualise extends Entity
             $u = User::get($this->dbhr, $this->dbhm, $other['userid']);
             $atts = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
             $u->ensureAvatar($atts);
-            list ($lat, $lng) = $u->getLatLng(FALSE, FALSE, User::BLUR_100M);
-            list ($lat, $lng) = Message::blur($lat, $lng);
+            list ($lat, $lng) = $u->getLatLng(FALSE, FALSE, Utils::BLUR_USER);
+            list ($lat, $lng) = Utils::blur($lat, $lng, Utils::BLUR_USER);
 
             if ($lat || $lng) {
                 $ret['others'][] = [
                     'id' => $other['userid'],
                     'icon' => $atts['profile']['turl'],
-                    'lat' => round($lat, 3),
-                    'lng' => round($lng, 3)
+                    'lat' => $lat,
+                    'lng' => $lng
                 ];
             }
         }

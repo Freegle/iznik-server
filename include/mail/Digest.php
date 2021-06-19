@@ -441,7 +441,8 @@ class Digest
                                 '{{creds}}' => $creds,
                                 '{{replyto}}' => $u->getId(),
                                 '{{jobads}}' => $jobads['jobs'],
-                                '{{joblocation}}' => $jobads['location']
+                                '{{joblocation}}' => $jobads['location'],
+                                '{{nearby}}' => $nearby
                             ];
 
                             $emailToId[$email] = $u->getId();
@@ -483,7 +484,7 @@ class Digest
 
                                     if ($nearbyintext) {
                                         # This is used in UT.
-                                        $msg['text'] .= $nearby;
+                                        $msg['text'] .= $rep['{{nearby}}'];
                                     }
 
                                     $message = \Swift_Message::newInstance()
@@ -501,7 +502,7 @@ class Digest
                                     $htmlPart->setContentType('text/html');
 
                                     # {{nearby}} doesn't expand correctly inside the decorator, so do it manually here.
-                                    $htmlPart->setBody(str_replace('{{nearby}}', $nearby, $html));
+                                    $htmlPart->setBody(str_replace('{{nearby}}', $rep['{{nearby}}'], $html));
 
                                     $message->attach($htmlPart);
 
@@ -536,7 +537,7 @@ class Digest
         return($sent);
     }
 
-    private function getMessagesOnNearbyGroups($twig, User $u, Group $g, $frequency) {
+    public function getMessagesOnNearbyGroups($twig, User $u, Group $g, $frequency) {
         $ret = '';
 
         if ($frequency != Digest::IMMEDIATE) {
@@ -580,8 +581,15 @@ class Digest
                     #error_log("Post is $away away, group limits $distance and $distance2");
 
                     if (($nearby2 && $away <= $distance) && ($away <= $distance2)) {
-                        $post['replyweb'] = "https://" . USER_SITE . "/message/{$post['msgid']}";
+                        $now = microtime(TRUE);
+                        error_log("$now Add nearby for user {$u->getId()} $lat,$lng group {$g->getId()} post {$post['msgid']} which is at {$post['lat']},{$post['lng']} distance away $away vs $distance/$distance2");
+                        $post['replyweb'] = "https://" . USER_SITE . "/message/{$post['msgid']}?destinedfor=" . $u->getId() . "&timestamp=$now";
                         $include[] = $post;
+
+                        if (count($include) >= 5) {
+                            # Don't add too many, otherwise the mail gets stupid long.
+                            break;
+                        }
                     }
                 }
 

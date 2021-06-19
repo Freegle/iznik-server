@@ -331,13 +331,18 @@ function user() {
                     if ($action == 'Merge') {
                         $email1 = Utils::presdef('email1', $_REQUEST, NULL);
                         $email2 = Utils::presdef('email2', $_REQUEST, NULL);
+                        $uid1 = Utils::presint('id1', $_REQUEST, NULL);
+                        $uid2 = Utils::presint('id2', $_REQUEST, NULL);
                         $reason = Utils::presdef('reason', $_REQUEST, NULL);
                         $ret = ['ret' => 5, 'status' => 'Invalid parameters'];
 
-                        if (strlen($email1) && strlen($email2)) {
+                        if ((strlen($email1) && strlen($email2)) || ($uid1 && $uid2)) {
                             $u = new User($dbhr, $dbhm);
-                            $uid1 = $u->findByEmail($email1);
-                            $uid2 = $u->findByEmail($email2);
+
+                            if ($email1 && $email2) {
+                                $uid1 = $u->findByEmail($email1);
+                                $uid2 = $u->findByEmail($email2);
+                            }
 
                             $ret = ['ret' => 3, 'status' => "Can't find those users."];
 

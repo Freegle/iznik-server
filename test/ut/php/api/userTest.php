@@ -600,6 +600,69 @@ class userAPITest extends IznikAPITestCase {
         self::assertTrue($u->isModOrOwner($this->groupid));
     }
 
+    public function testMergeById() {
+        $u1 = User::get($this->dbhm, $this->dbhm);
+        $id1 = $u1->create('Test', 'User', NULL);
+        $u1->addMembership($this->groupid);
+        $u2 = User::get($this->dbhm, $this->dbhm);
+        $id2 = $u2->create('Test', 'User', NULL);
+        $u2->addMembership($this->groupid);
+        $u2->addEmail('test2@test.com', 0);
+        $u3 = User::get($this->dbhm, $this->dbhm);
+        $id3 = $u3->create('Test', 'User', NULL);
+        $u3->addEmail('test3@test.com', 0);
+        $u3->addMembership($this->groupid);
+        $u4 = User::get($this->dbhm, $this->dbhm);
+        $id4 = $u4->create('Test', 'User', NULL);
+        $u4->addMembership($this->groupid, User::ROLE_MODERATOR);
+        $u4->addEmail('test4@test.com', 0);
+        $u5 = User::get($this->dbhm, $this->dbhm);
+        $id5 = $u5->create('Test', 'User', NULL);
+        $u5->addEmail('test5@test.com', 0);
+        $u5->addMembership($this->groupid);
+
+        # Can't merge not a mod
+        assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u1->login('testpw'));
+
+        $ret = $this->call('user', 'POST', [
+            'action' => 'Merge',
+            'id1' => $id2,
+            'id2' => $id3,
+            'reason' => 'UT'
+        ]);
+        assertEquals(4, $ret['ret']);
+
+        # Invalid id.
+
+        $ret = $this->call('user', 'POST', [
+            'action' => 'Merge',
+            'id1' => -$id2,
+            'id2' => $id3,
+            'reason' => 'UT'
+        ]);
+        assertEquals(4, $ret['ret']);
+
+        # As mod should work
+        assertGreaterThan(0, $u4->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u4->login('testpw'));
+
+        $ret = $this->call('user', 'POST', [
+            'action' => 'Merge',
+            'id1' => $id2,
+            'id2' => $id3,
+            'reason' => 'UT'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # id2 now gone.
+        User::clearCache();
+        $u = new User($this->dbhr, $this->dbhm, $id2);
+        assertNull($u->getId());
+        $u = new User($this->dbhr, $this->dbhm, $id1);
+        assertEquals($id1, $u->getId());
+    }
+
     public function testCantMerge() {
         $u1 = User::get($this->dbhm, $this->dbhm);
         $id1 = $u1->create('Test', 'User', NULL);
@@ -745,6 +808,21 @@ class userAPITest extends IznikAPITestCase {
         # No API call for showing rated except export which is a bit of a faff.
         $rated = $this->user->getRated();
         self::assertEquals($uid, $rated[0]['ratee']);
+
+        # Test remove rating.
+        $ret = $this->call('user', 'POST', [
+            'action' => 'Rate',
+            'ratee' => $uid,
+            'rating' => NULL
+        ]);
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $uid,
+            'info' => TRUE
+        ]);
+
+        self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_UP]);
+        self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_DOWN]);
 
         $ret = $this->call('user', 'POST', [
             'action' => 'Rate',

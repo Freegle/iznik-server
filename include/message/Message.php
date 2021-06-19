@@ -899,15 +899,16 @@ class Message
                 }
             }
 
-            if ($blur && ($role === User::ROLE_NONMEMBER || $role === User::ROLE_MEMBER)) {
-                // Blur lat/lng slightly for privacy.
-                list ($ret['lat'], $ret['lng']) = Message::blur($ret['lat'], $ret['lng']);
-            }
-
             # URL people can follow to get to the message on our site.
             $ret['url'] = 'https://' . USER_SITE . '/message/' . $msg['id'];
 
             $ret['mine'] = $myid && $msg['fromuser'] == $myid;
+
+            if ($blur && ($role === User::ROLE_NONMEMBER || $role === User::ROLE_MEMBER || $ret['mine'])) {
+                # Blur lat/lng slightly for privacy.  Blur our own messags otherwise it looks like other people
+                # could see our location.
+                list ($ret['lat'], $ret['lng']) = Utils::blur($ret['lat'], $ret['lng'], Utils::BLUR_USER);
+            }
 
             # If we are a mod with sufficient rights on this message, we can edit it.
             #
@@ -965,12 +966,6 @@ class Message
                 $ret['lovejunkhash'] = defined('LOVEJUNK_SECRET') ? hash_hmac('sha256', $ret['id'], LOVEJUNK_SECRET, FALSE) : NULL;
             }
         }
-    }
-
-    public static function blur($lat, $lng) {
-        $lat = round($lat / 2, User::BLUR_100M) * 2;
-        $lng = round($lng / 2, User::BLUR_100M) * 2;
-        return [ $lat, $lng ];
     }
 
     private function getThisAsArray() {
@@ -2437,7 +2432,7 @@ ORDER BY lastdate DESC;";
         return preg_replace('/Check out the pictures[\s\S]*?https:\/\/trashnothing[\s\S]*?pics\/[a-zA-Z0-9]*/', '', $textbody);
     }
 
-    public function pruneMessage() {
+    public function pruneMessage($original) {
         # We are only interested in image attachments; those are what we hive off into the attachments table,
         # and what we display.  They bulk up the message source considerably, which chews up disk space.  Worse,
         # we might have message attachments which are not even image attachments, just for messages we are
@@ -2445,7 +2440,7 @@ ORDER BY lastdate DESC;";
         #
         # So we remove all attachment data within the message.  We do this with a handrolled lame parser, as we
         # don't have a full MIME reassembler.
-        $current = $this->message;
+        $current = $original;
         #error_log("Start prune len " . strlen($current));
 
         # Might have wrong LF format.
@@ -2496,7 +2491,6 @@ ORDER BY lastdate DESC;";
                             $current = substr($current, 0, $breakpos + 2) .
                                 "\r\n...Content of size " . ($nextboundpos - $breakpos + 2) . " removed...\r\n\r\n" .
                                 substr($current, $nextboundpos);
-                            #error_log($this->id . " Content of size " . ($nextboundpos - $breakpos + 2) . " removed...");
                         }
                     }
                 }
@@ -2505,11 +2499,8 @@ ORDER BY lastdate DESC;";
             $p++;
         } while ($found);
 
-        #error_log("End prune len " . strlen($current));
-
         # Something went horribly wrong?
-        # TODO Test.
-        $current = (strlen($current) == 0) ? $this->message : $current;
+        $current = (strlen($current) == 0) ? $original : $current;
 
         return($current);
     }
@@ -2595,9 +2586,6 @@ ORDER BY lastdate DESC;";
                 $approvedby = $u->findByYahooId($yid);
             }
         }
-
-        # Reduce the size of the message source
-        $this->message = $this->pruneMessage();
 
         $this->id = NULL;
 
@@ -4366,6 +4354,7 @@ WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND message
                 # - aren't promised
                 # - we originally sent
                 # - we are still a member of the group
+                # - we have been active since the original post
                 #
                 # The replies part is because we can't really rely on members to let us know what happens to a message,
                 # especially if they are not receiving emails reliably.  At least this way it avoids the case where a
@@ -4373,8 +4362,9 @@ WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND message
                 #
                 # The sending user must also still be a member of the group.
                 # TODO Remove mention of 2021-03-29 after 2021-08-01.
-                $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, autoreposts, lastautopostwarning, messages.type, messages.fromaddr 
+                $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, autoreposts, lastautopostwarning, messages.type, messages.fromaddr, TIMESTAMPDIFF(HOUR, users.lastaccess, NOW()) AS activehoursago
 FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid 
+INNER JOIN users ON messages.fromuser = users.id
 INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid 
 LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid 
 LEFT OUTER JOIN messages_promises ON messages_promises.msgid = messages.id 
@@ -4412,11 +4402,18 @@ WHERE messages_groups.arrival > ? AND messages.arrival >= '2021-03-29' AND messa
                             # If we have messages which are older than we could have been trying for, ignore them.
                             $maxage = $interval * ($reposts['max'] + 1);
 
-                            error_log("Consider repost {$message['msgid']}, posted {$message['hoursago']} interval $interval lastwarning $lastwarnago maxage $maxage last reply $max");
+                            # We get some users who post and then never come back.  We only want to autorepost if they
+                            # have been active since the original post.
+                            $activesince = $message['hoursago'] >= $message['activehoursago'] + 1;
 
-                            if (!$recentreply && $message['hoursago'] < $maxage * 24) {
-                                # Reposts might be turned off.
-                                if ($interval > 0 && $reposts['max'] > 0) {
+                            error_log("Consider repost {$message['msgid']}, posted {$message['hoursago']} active {$message['activehoursago']} activesince $activesince interval $interval lastwarning $lastwarnago maxage $maxage last reply $max");
+
+                            if (!$recentreply && $message['hoursago'] < $maxage * 24 && $activesince) {
+                                $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
+                                $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
+
+                                # Reposts might be turned off, either in the group or the user.
+                                if ($interval > 0 && $reposts['max'] > 0 && !$u->getSetting('autorepostsdisable', FALSE)) {
                                     if ($message['hoursago'] <= $interval * 24 &&
                                         $message['hoursago'] > ($interval - 1) * 24 &&
                                         ($lastwarnago === NULL || $lastwarnago > 24)
@@ -4428,8 +4425,6 @@ WHERE messages_groups.arrival > ? AND messages.arrival >= '2021-03-29' AND messa
                                             $this->dbhm->preExec("UPDATE messages_groups SET lastautopostwarning = NOW() WHERE msgid = ?;", [$message['msgid']]);
                                             $warncount++;
 
-                                            $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
-                                            $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
                                             $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
                                             $gatts = $g->getPublic();
 
@@ -4444,7 +4439,7 @@ WHERE messages_groups.arrival > ? AND messages.arrival >= '2021-03-29' AND messa
                                                 $withdraw = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/withdraw", User::SRC_REPOST_WARNING);
                                                 $promise = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/promise", User::SRC_REPOST_WARNING);
                                                 $othertype = $m->getType() == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
-                                                $text = "We will automatically repost your message $subj soon, so that more people will see it.  If you don't want us to do that, please go to $completed to mark as $othertype or $withdraw to withdraw it.";
+                                                $text = "We will automatically repost your message $subj soon, so that more people will see it.  If you don't want us to do that, please go to $completed to mark as $othertype or $withdraw to withdraw it.  You can change this in Settings.";
                                                 $html = $twig->render('autorepost.html', [
                                                     'subject' => $subj,
                                                     'name' => $u->getName(),
@@ -4452,7 +4447,7 @@ WHERE messages_groups.arrival > ? AND messages.arrival >= '2021-03-29' AND messa
                                                     'type' => $othertype,
                                                     'completed' => $completed,
                                                     'withdraw' => $withdraw,
-                                                    'promise' => $promise
+                                                    'promised' => $promise
                                                 ]);
 
                                                 list ($transport, $mailer) = Mail::getMailer();
@@ -4480,7 +4475,6 @@ WHERE messages_groups.arrival > ? AND messages.arrival >= '2021-03-29' AND messa
                                         }
                                     } else if ($message['hoursago'] > $interval * 24) {
                                         # We can autorepost this one.
-                                        $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
                                         error_log($g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr() . " " . $m->getSubject() . " repost due");
                                         $m->autoRepost($message['autoreposts'] + 1, $reposts['max']);
 

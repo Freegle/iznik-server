@@ -331,25 +331,15 @@ class messageTest extends IznikTestCase {
     }
     
     public function testPrune() {
+        $m = new Message($this->dbhr, $this->dbhm);
+
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/prune'));
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $pruned = $m->pruneMessage($msg);
+        assertGreaterThan(0, strlen($pruned));
 
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
-        $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertGreaterThan(0, strlen($m->getMessage()));
-
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/prune2'));
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
-        $m = new Message($this->dbhr, $this->dbhm, $id);
-        $this->log("Pruned to " . $m->getMessage());
-        assertLessThan(20000, strlen($m->getMessage()));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/prune'));
+        $pruned = $m->pruneMessage($msg);
+        assertLessThan(20000, strlen($pruned));
     }
 
     public function testReverseSubject() {
@@ -702,6 +692,46 @@ class messageTest extends IznikTestCase {
         $u->getPublicLogs($u, $logs, FALSE, $ctx);
         $log = $this->findLog(Log::TYPE_MESSAGE, Log::SUBTYPE_AUTO_REPOSTED, $logs[$u->getId()]['logs']);
         self::assertNotNull($log);
+    }
+
+    public function testAutoRepostOff() {
+        $m = new Message($this->dbhr, $this->dbhm);
+
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $this->user->addEmail($email);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment'));
+        $msg = str_replace('test@test.com', $email, $msg);
+        $msg = str_replace('Test att', 'OFFER: Test due (Tuvalu High Street)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id2 = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+        $this->log("Due message $id2");
+        $m = new Message($this->dbhr, $this->dbhm, $id2);
+        $m->setPrivate('sourceheader', 'Platform');
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Turn autorepost off for this user.
+        $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
+        $u->setSetting('autorepostsdisable', TRUE);
+
+        # Call when repost not due.  Expect no warning as off.
+        $this->log("Expect no warning for $id2");
+        list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $this->gid);
+        assertEquals(0, $count);
+        assertEquals(0, $warncount);
+
+        # Make the message and warning look longer ago.  Then call - still no repost as off.
+        $this->log("Expect no repost");
+        $mysqltime = date("Y-m-d H:i:s", strtotime('77 hours ago'));
+        $this->dbhm->preExec("UPDATE messages_groups SET arrival = '$mysqltime' WHERE msgid = ?;", [ $id2 ]);
+        $this->dbhm->preExec("UPDATE messages_groups SET lastautopostwarning = '2016-01-01' WHERE msgid = ?;", [ $id2 ]);
+
+        list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $this->gid);
+        assertEquals(0, $count);
+        assertEquals(0, $warncount);
     }
 
     public function testChaseup() {

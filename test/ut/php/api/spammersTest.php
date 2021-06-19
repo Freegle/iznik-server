@@ -155,7 +155,17 @@ class spammersAPITest extends IznikAPITestCase {
 
         assertTrue($found);
 
-        # Check shows in work.
+        # Check shows in work if we have perms.
+        $ret = $this->call('session', 'GET', [
+            'components' => [
+                'work'
+            ]
+        ]);
+        $this->log("Work " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertGreaterThanOrEqual(0, $ret['work']['spammerpendingadd']);
+
+        $this->user->setPrivate('permissions', User::PERM_SPAM_ADMIN);
         $ret = $this->call('session', 'GET', [
             'components' => [
                 'work'
@@ -164,6 +174,7 @@ class spammersAPITest extends IznikAPITestCase {
         $this->log("Work " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertGreaterThanOrEqual(1, $ret['work']['spammerpendingadd']);
+        $this->user->setPrivate('permissions', NULL);
 
         $ret = $this-> call('spammers', 'POST', [
             'userid' => $uid,
