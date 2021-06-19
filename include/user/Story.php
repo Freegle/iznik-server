@@ -1,10 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-
 require_once(IZNIK_BASE . '/mailtemplates/stories/story_central.php');
-require_once(IZNIK_BASE . '/mailtemplates/stories/story_one.php');
-require_once(IZNIK_BASE . '/mailtemplates/stories/story_newsletter.php');
 
 class Story extends Entity
 {
@@ -391,6 +388,7 @@ class Story extends Entity
     public function generateNewsletter($min = 3, $max = 10, $id = NULL) {
         # We generate a newsletter from stories which have been marked as suitable for publication.
         $nid = NULL;
+        $html = NULL;
         $count = 0;
 
         # Find the date of the last newsletter; we're only interested in stories since then.
@@ -398,8 +396,8 @@ class Story extends Entity
         $since = $last[0]['max'];
 
         # Get unsent stories.  Pick the ones we have voted for most often.
-        $idq = $id ? " AND id = $id " : "";
-        $stories = $this->dbhr->preQuery("SELECT id, COUNT(*) AS count FROM users_stories LEFT JOIN users_stories_likes ON storyid = users_stories.id WHERE newsletterreviewed = 1 AND newsletter = 1 AND mailedtomembers = 0 $idq AND (? IS NULL OR date > ?) GROUP BY id ORDER BY count DESC LIMIT $max;", [
+        $idq = $id ? " AND users_stories.id = $id " : "";
+        $stories = $this->dbhr->preQuery("SELECT users_stories.id, users_stories_images.id AS photoid, COUNT(*) AS count FROM users_stories LEFT JOIN users_stories_likes ON storyid = users_stories.id LEFT JOIN users_stories_images ON users_stories_images.storyid = users_stories.id WHERE newsletterreviewed = 1 AND newsletter = 1 AND mailedtomembers = 0 $idq AND (? IS NULL OR date > ?) GROUP BY id ORDER BY count DESC LIMIT $max;", [
             $since,
             $since
         ]);
@@ -409,27 +407,49 @@ class Story extends Entity
             shuffle($stories);
 
             $n = new Newsletter($this->dbhr, $this->dbhm);
+            $preview = "This is a selection of recent stories from other freeglers.  If you can't read the HTML version, have a look at https://" . USER_SITE . '/stories';
             $nid = $n->create(NULL,
                 "Lovely stories from other freeglers!",
-                "This is a selection of recent stories from other freeglers.  If you can't read the HTML version, have a look at https://" . USER_SITE . '/stories');
+                $preview);
             $n->setPrivate('type', 'Stories');
 
-            # Heading intro.
-            $header = story_newsletter();
-            $n->addArticle(Newsletter::TYPE_HEADER, 0, $header, NULL);
+            $thestories = [];
 
             foreach ($stories as $story) {
                 $s = new Story($this->dbhr, $this->dbhm, $story['id']);
                 $atts = $s->getPublic();
 
+                $thestories[] = [
+                    'headline' => $atts['headline'],
+                    'story' => $atts['story'],
+                    'groupname' => $atts['groupname'],
+                    'photo' => Utils::presdef('photo', $atts, NULL) ? $atts['photo']['path'] : NULL
+                ];
+
                 $count++;
 
-                $n->addArticle(Newsletter::TYPE_ARTICLE, $count, story_one($atts['groupname'], $atts['headline'], $atts['story'], FALSE), NULL);
                 $this->dbhm->preExec("UPDATE users_stories SET mailedtomembers = 1 WHERE id = ?;", [ $story['id'] ]);
             }
+
+            $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/stories');
+            $twig = new \Twig_Environment($loader);
+
+            $img = rand(1, 5);
+            $image = 'https://' . USER_SITE  . "/images/story$img.png";
+
+            $html = $twig->render('newsletter.html', [
+                'previewtext' => $preview,
+                'headerimage' => $image,
+                'tell' => 'https://' . USER_SITE . '/stories?src=storynewsletter',
+                'give' => 'https://' . USER_SITE . '/give?src=storynewsletter',
+                'find' => 'https://' . USER_SITE . '/find?src=storynewsletter',
+                'email' => '{{email}}',
+                'noemail' => '{{noemail}}',
+                'stories' => $thestories
+            ]);
         }
 
-        return ($count >= $min ? $nid : NULL);
+        return ($count >= $min ? [ $nid, $html ] : [ NULL, NULL ]);
     }
 
     public function like() {

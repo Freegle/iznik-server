@@ -64,7 +64,7 @@ class StoryTest extends IznikTestCase {
 
         $this->dbhm->preExec("UPDATE users_stories SET newsletterreviewed = 1, newsletter = 1 WHERE id = ?;", [ $sid ]);
 
-        $nid = $s->generateNewsletter(1, 10, $sid);
+        list ($nid, $html) = $s->generateNewsletter(1, 10, $sid);
         assertNotNull($nid);
         $this->dbhm->preExec("DELETE FROM newsletters WHERE id = ?;", [ $nid ]);
     }

@@ -101,7 +101,7 @@ class Newsletter extends Entity
         }
     }
 
-    public function send($groupid, $uid = NULL, $grouptype = Group::GROUP_FREEGLE) {
+    public function send($groupid, $uid = NULL, $grouptype = Group::GROUP_FREEGLE, $html = NULL) {
         # This might be to a specific group or all groups, so the mail we construct varies a bit based on that.
         $g = NULL;
         $gatts = NULL;
@@ -111,30 +111,39 @@ class Newsletter extends Entity
         }
 
         $sent = 0;
-        $html = '';
 
-        $articles = $this->dbhr->preQuery("SELECT * FROM newsletters_articles WHERE newsletterid = ? ORDER BY position ASC;", [ $this->id ]);
+        # The HTML for the newsletter might already be supplied in full (e.g. for stories).
+        if (!$html) {
+            # Construct the HTML from the articles.
+            $html = '';
 
-        if (count($articles) > 0) {
-            foreach ($articles as &$article) {
-                $photo = Utils::pres('photoid', $article);
+            $articles = $this->dbhr->preQuery("SELECT * FROM newsletters_articles WHERE newsletterid = ? ORDER BY position ASC;", [ $this->id ]);
 
-                if ($photo) {
-                    $a = new Attachment($this->dbhr, $this->dbhm, $photo, Attachment::TYPE_NEWSLETTER);
-                    $article['photo'] = $a->getPublic();
+            if (count($articles) > 0) {
+                foreach ($articles as &$article) {
+                    $photo = Utils::pres('photoid', $article);
 
-                    $article['photo']['path'] .= '?w=' . $article['width'];
+                    if ($photo) {
+                        $a = new Attachment($this->dbhr, $this->dbhm, $photo, Attachment::TYPE_NEWSLETTER);
+                        $article['photo'] = $a->getPublic();
+
+                        $article['photo']['path'] .= '?w=' . $article['width'];
+                    }
+
+                    $html .= newsletter_article($article);
                 }
 
-                $html .= newsletter_article($article);
+                $html = newsletter(USER_SITE, SITE_NAME, $html);
             }
+        }
 
+        if ($html) {
             $tosend = [
                 'subject' => $this->newsletter['subject'],
                 'from' => $g ? $g->getAutoEmail() : NOREPLY_ADDR,
                 'replyto' => $g ? $g->getModsEmail() : NOREPLY_ADDR,
                 'fromname' => $g ? $gatts['namedisplay'] : SITE_NAME,
-                'html' => newsletter(USER_SITE, SITE_NAME, $html),
+                'html' => $html,
                 'text' => $this->newsletter['textbody']
             ];
 
@@ -160,7 +169,6 @@ class Newsletter extends Entity
                     $email = $u->getEmailPreferred();
 
                     if ($email) {
-                        # TODO These are the replacements for the mails sent before FDv2 is retired.  These will change.
                         $replacements[$email] = [
                             '{{id}}' => $user['userid'],
                             '{{toname}}' => $u->getName(),
