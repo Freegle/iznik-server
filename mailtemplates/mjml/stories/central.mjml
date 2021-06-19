@@ -11,32 +11,26 @@
       <mj-raw>
         <!-- header section -->
       </mj-raw>
-      <mj-section>
-        <mj-column>
-          <mj-image fluid-on-mobile="true" alt="Story picture" src="{{ headerimage }}"></mj-image>
-        </mj-column>
-      </mj-section>
-      <mj-section background-color="#F7F6EC">
-        <mj-column width="33%">
-          <mj-button align="center" href="{{ tell }}" background-color="darkblue">Tell your story</mj-button>
-        </mj-column>
-        <mj-column width="33%">
-          <mj-button align="center" href="{{ give }}" background-color="darkgreen">Give something</mj-button>
-        </mj-column>
-        <mj-column width="33%">
-          <mj-button align="center" href="{{ find }}" background-color="darkgreen">Find something</mj-button>
-        </mj-column>
-      </mj-section>
       <mj-section background-color="#FFF8DC" padding="0px">
         <mj-column>
-          <mj-text background-color="#FFF8DC" color="#1D6607" font-size="20px" line-height="1.25" padding-bottom="0px">We love your stories!</mj-text>
           <mj-text background-color="#FFF8DC" color="#1D6607" line-height="1.25">
-            <p>It's great to hear why people freegle - and here are some recent tales from other freeglers.</p>
-            <p>Be inspired - tell us your story, or get freegling!</p>
+            <p>
+              We mail out stories to members.  Please vote for the ones you think are best
+              for members to see.  This helps improve the mail we send.
+            </p>
           </mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-section background-color="#FFF8DC">
+        <mj-column width="33%">
+        </mj-column>
+        <mj-column width="33%">
+          <mj-button align="center" href="{{ vote }}" background-color="darkgreen">Vote for stories</mj-button>
           <mj-text padding-bottom="0px">
             <hr style="border: 0; border-top: 1px solid #aaa; " />
           </mj-text>
+        </mj-column>
+        <mj-column width="33%">
         </mj-column>
       </mj-section>
       <mj-raw>{% for story in stories %}</mj-raw>
@@ -75,16 +69,6 @@
         </mj-column>
       </mj-section>
       <mj-raw>{% endfor %}</mj-raw>
-      <mj-section background-color="#E0E0E0">
-        <mj-column>
-          <mj-text font-size="9px" color="#707070">You've received this automated mail because you're a member of Freegle, and you are set to receive newsletters.<br /> <br /> You can change your settings by clicking
-            <a
-              href="{{ settings }}">here</a>, or turn these newsletter emails off by emailing <a href="mailto:{{ noemail }}">{{ noemail }}</a>
-              <br /> <br /> This mail was sent to&nbsp;{{ email }}.
-              <br />
-              <hr style="border: 0; border-top: 1px solid #AAA; " /> Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.</mj-text>
-        </mj-column>
-      </mj-section>
     </mj-wrapper>
   </mj-body>
 </mjml>

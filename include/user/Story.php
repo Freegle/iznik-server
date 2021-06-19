@@ -1,8 +1,6 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/mailtemplates/stories/story_central.php');
-
 class Story extends Entity
 {
     /** @var  $dbhm LoggedPDO */
@@ -343,30 +341,42 @@ class Story extends Entity
         $idq = $id ? " AND id = $id " : "";
         $stories = $this->dbhr->preQuery("SELECT id FROM users_stories WHERE mailedtocentral = 0 AND public = 1 AND reviewed = 1 $idq;");
         $url = "https://" . USER_SITE . "/stories/fornewsletter";
-        $html = "<p><span style=\"color: red\">Please go  <a href=\"$url\">here</a> to vote for which go into the next member newsletter.</span></p>";
-        $text = "Please go to $url to vote for which go into the next member newsletter\n\n";
-        $count = 0;
+        $preview = "Please go to $url to vote for which go into the next member newsletter.";
+
+        $thestories = [];
 
         foreach ($stories as $story) {
             $s = new Story($this->dbhr, $this->dbhm, $story['id']);
             $atts = $s->getPublic();
 
-            $html .= story_one($atts['groupname'], $atts['headline'], $atts['story']);
-            $text = $atts['headline'] . "\nFrom a freegler on {$atts['groupname']}\n\n{$atts['story']}\n\n";
-            $this->dbhm->preExec("UPDATE users_stories SET mailedtocentral = 1 WHERE id = ?;", [ $story['id'] ]);
-            $count++;
+            $thestories[] = [
+                'headline' => $atts['headline'],
+                'story' => $atts['story'],
+                'groupname' => $atts['groupname'],
+                'photo' => Utils::presdef('photo', $atts, NULL) ? $atts['photo']['path'] : NULL
+            ];
+
+            #TODO
+            #$this->dbhm->preExec("UPDATE users_stories SET mailedtocentral = 1 WHERE id = ?;", [ $story['id'] ]);
         }
 
-        if ($count > 0) {
-            $url = 'https://' . USER_SITE . '/stories';
-            $html = story_central(CENTRAL_MAIL_TO, CENTRAL_MAIL_TO, $url, $html);
+        if (count($thestories) > 0) {
+            $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/stories');
+            $twig = new \Twig_Environment($loader);
+
+            $html = $twig->render('central.html', [
+                'previewtext' => $preview,
+                'vote' => $url,
+                'stories' => $thestories
+            ]);
 
             $message = \Swift_Message::newInstance()
-                ->setSubject(date("d-M-Y")." Recent stories from freeglers")
+                ->setSubject(date("d-M-Y")." Recent stories from freeglers - please vote")
                 ->setFrom([CENTRAL_MAIL_FROM => SITE_NAME])
                 ->setReturnPath(CENTRAL_MAIL_FROM)
-                ->setTo(CENTRAL_MAIL_TO)
-                ->setBody($text);
+                ->setTo('edward@ehibbert.org.uk')
+                #->setTo(CENTRAL_MAIL_TO)
+                ->setBody($preview);
 
             # Add HTML in base-64 as default quoted-printable encoding leads to problems on
             # Outlook.
@@ -382,7 +392,7 @@ class Story extends Entity
             $this->sendIt($mailer, $message);
         }
 
-        return($count);
+        return(count($thestories));
     }
 
     public function generateNewsletter($min = 3, $max = 10, $id = NULL) {
