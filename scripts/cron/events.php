@@ -35,7 +35,7 @@ if (count($opts) < 1) {
         $g = Group::get($dbhr, $dbhm, $group['id']);
 
         # Don't send to closed groups.
-        if (!$g->getSetting('closed') && $g->getSetting('communityevents')) {
+        if (!$g->getSetting('closed', FALSE) && $g->getSetting('communityevents', 1)) {
             $total += $e->send($group['id']);
         }
     }
