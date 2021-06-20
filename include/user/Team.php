@@ -1,11 +1,6 @@
 <?php
 namespace Freegle\Iznik;
 
-
-require_once(IZNIK_BASE . '/mailtemplates/stories/story_central.php');
-require_once(IZNIK_BASE . '/mailtemplates/stories/story_one.php');
-require_once(IZNIK_BASE . '/mailtemplates/stories/story_newsletter.php');
-
 class Team extends Entity
 {
     var $publicatts = array('id', 'name', 'description', 'type', 'email', 'active', 'wikiurl');

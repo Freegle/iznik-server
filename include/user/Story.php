@@ -1,11 +1,6 @@
 <?php
 namespace Freegle\Iznik;
 
-
-require_once(IZNIK_BASE . '/mailtemplates/stories/story_central.php');
-require_once(IZNIK_BASE . '/mailtemplates/stories/story_one.php');
-require_once(IZNIK_BASE . '/mailtemplates/stories/story_newsletter.php');
-
 class Story extends Entity
 {
     /** @var  $dbhm LoggedPDO */
@@ -346,30 +341,42 @@ class Story extends Entity
         $idq = $id ? " AND id = $id " : "";
         $stories = $this->dbhr->preQuery("SELECT id FROM users_stories WHERE mailedtocentral = 0 AND public = 1 AND reviewed = 1 $idq;");
         $url = "https://" . USER_SITE . "/stories/fornewsletter";
-        $html = "<p><span style=\"color: red\">Please go  <a href=\"$url\">here</a> to vote for which go into the next member newsletter.</span></p>";
-        $text = "Please go to $url to vote for which go into the next member newsletter\n\n";
-        $count = 0;
+        $preview = "Please go to $url to vote for which go into the next member newsletter.";
+
+        $thestories = [];
 
         foreach ($stories as $story) {
             $s = new Story($this->dbhr, $this->dbhm, $story['id']);
             $atts = $s->getPublic();
 
-            $html .= story_one($atts['groupname'], $atts['headline'], $atts['story']);
-            $text = $atts['headline'] . "\nFrom a freegler on {$atts['groupname']}\n\n{$atts['story']}\n\n";
-            $this->dbhm->preExec("UPDATE users_stories SET mailedtocentral = 1 WHERE id = ?;", [ $story['id'] ]);
-            $count++;
+            $thestories[] = [
+                'headline' => $atts['headline'],
+                'story' => $atts['story'],
+                'groupname' => $atts['groupname'],
+                'photo' => Utils::presdef('photo', $atts, NULL) ? $atts['photo']['path'] : NULL
+            ];
+
+            #TODO
+            #$this->dbhm->preExec("UPDATE users_stories SET mailedtocentral = 1 WHERE id = ?;", [ $story['id'] ]);
         }
 
-        if ($count > 0) {
-            $url = 'https://' . USER_SITE . '/stories';
-            $html = story_central(CENTRAL_MAIL_TO, CENTRAL_MAIL_TO, $url, $html);
+        if (count($thestories) > 0) {
+            $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/stories');
+            $twig = new \Twig_Environment($loader);
+
+            $html = $twig->render('central.html', [
+                'previewtext' => $preview,
+                'vote' => $url,
+                'stories' => $thestories
+            ]);
 
             $message = \Swift_Message::newInstance()
-                ->setSubject(date("d-M-Y")." Recent stories from freeglers")
+                ->setSubject(date("d-M-Y")." Recent stories from freeglers - please vote")
                 ->setFrom([CENTRAL_MAIL_FROM => SITE_NAME])
                 ->setReturnPath(CENTRAL_MAIL_FROM)
-                ->setTo(CENTRAL_MAIL_TO)
-                ->setBody($text);
+                ->setTo('edward@ehibbert.org.uk')
+                #->setTo(CENTRAL_MAIL_TO)
+                ->setBody($preview);
 
             # Add HTML in base-64 as default quoted-printable encoding leads to problems on
             # Outlook.
@@ -385,12 +392,13 @@ class Story extends Entity
             $this->sendIt($mailer, $message);
         }
 
-        return($count);
+        return(count($thestories));
     }
 
     public function generateNewsletter($min = 3, $max = 10, $id = NULL) {
         # We generate a newsletter from stories which have been marked as suitable for publication.
         $nid = NULL;
+        $html = NULL;
         $count = 0;
 
         # Find the date of the last newsletter; we're only interested in stories since then.
@@ -398,8 +406,8 @@ class Story extends Entity
         $since = $last[0]['max'];
 
         # Get unsent stories.  Pick the ones we have voted for most often.
-        $idq = $id ? " AND id = $id " : "";
-        $stories = $this->dbhr->preQuery("SELECT id, COUNT(*) AS count FROM users_stories LEFT JOIN users_stories_likes ON storyid = users_stories.id WHERE newsletterreviewed = 1 AND newsletter = 1 AND mailedtomembers = 0 $idq AND (? IS NULL OR date > ?) GROUP BY id ORDER BY count DESC LIMIT $max;", [
+        $idq = $id ? " AND users_stories.id = $id " : "";
+        $stories = $this->dbhr->preQuery("SELECT users_stories.id, users_stories_images.id AS photoid, COUNT(*) AS count FROM users_stories LEFT JOIN users_stories_likes ON storyid = users_stories.id LEFT JOIN users_stories_images ON users_stories_images.storyid = users_stories.id WHERE newsletterreviewed = 1 AND newsletter = 1 AND mailedtomembers = 0 $idq AND (? IS NULL OR date > ?) GROUP BY id ORDER BY count DESC LIMIT $max;", [
             $since,
             $since
         ]);
@@ -409,27 +417,49 @@ class Story extends Entity
             shuffle($stories);
 
             $n = new Newsletter($this->dbhr, $this->dbhm);
+            $preview = "This is a selection of recent stories from other freeglers.  If you can't read the HTML version, have a look at https://" . USER_SITE . '/stories';
             $nid = $n->create(NULL,
                 "Lovely stories from other freeglers!",
-                "This is a selection of recent stories from other freeglers.  If you can't read the HTML version, have a look at https://" . USER_SITE . '/stories');
+                $preview);
             $n->setPrivate('type', 'Stories');
 
-            # Heading intro.
-            $header = story_newsletter();
-            $n->addArticle(Newsletter::TYPE_HEADER, 0, $header, NULL);
+            $thestories = [];
 
             foreach ($stories as $story) {
                 $s = new Story($this->dbhr, $this->dbhm, $story['id']);
                 $atts = $s->getPublic();
 
+                $thestories[] = [
+                    'headline' => $atts['headline'],
+                    'story' => $atts['story'],
+                    'groupname' => $atts['groupname'],
+                    'photo' => Utils::presdef('photo', $atts, NULL) ? $atts['photo']['path'] : NULL
+                ];
+
                 $count++;
 
-                $n->addArticle(Newsletter::TYPE_ARTICLE, $count, story_one($atts['groupname'], $atts['headline'], $atts['story'], FALSE), NULL);
                 $this->dbhm->preExec("UPDATE users_stories SET mailedtomembers = 1 WHERE id = ?;", [ $story['id'] ]);
             }
+
+            $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/stories');
+            $twig = new \Twig_Environment($loader);
+
+            $img = rand(1, 5);
+            $image = 'https://' . USER_SITE  . "/images/story$img.png";
+
+            $html = $twig->render('newsletter.html', [
+                'previewtext' => $preview,
+                'headerimage' => $image,
+                'tell' => 'https://' . USER_SITE . '/stories?src=storynewsletter',
+                'give' => 'https://' . USER_SITE . '/give?src=storynewsletter',
+                'find' => 'https://' . USER_SITE . '/find?src=storynewsletter',
+                'email' => '{{email}}',
+                'noemail' => '{{noemail}}',
+                'stories' => $thestories
+            ]);
         }
 
-        return ($count >= $min ? $nid : NULL);
+        return ($count >= $min ? [ $nid, $html ] : [ NULL, NULL ]);
     }
 
     public function like() {

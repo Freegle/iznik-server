@@ -14,7 +14,7 @@ $_SERVER['HTTP_HOST'] = "www.ilovefreegle.org";
 $lockh = Utils::lockScript(basename(__FILE__));
 
 $s = new Story($dbhr, $dbhm);
-$nid = $s->generateNewsletter();
+list ($nid, $html) = $s->generateNewsletter();
 $n = new Newsletter($dbhr, $dbhm, $nid);
 
 if ($nid && $n->getId() == $nid) {

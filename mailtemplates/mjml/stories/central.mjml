@@ -1,0 +1,74 @@
+<mjml>
+  <mj-head>
+    <mj-style inline="inline">a { color: #1d6607; text-decoration: none; font-weight: bold } ol { margin-top: 0; margin-bottom: 0; /* margin-left: 2.2em; For Outlook */ padding-left: 2.4em; /* For the rest */ } li { margin: 0.5em 0; }</mj-style>
+    <mj-attributes>
+      <mj-all font-family="Trebuchet MS, Helvetica, Arial"></mj-all>
+    </mj-attributes>
+    <mj-preview>{{ previewtext }}</mj-preview>
+  </mj-head>
+  <mj-body>
+    <mj-wrapper full-width="full-width">
+      <mj-raw>
+        <!-- header section -->
+      </mj-raw>
+      <mj-section background-color="#FFF8DC" padding="0px">
+        <mj-column>
+          <mj-text background-color="#FFF8DC" color="#1D6607" line-height="1.25">
+            <p>
+              We mail out stories to members.  Please vote for the ones you think are best
+              for members to see.  This helps improve the mail we send.
+            </p>
+          </mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-section background-color="#FFF8DC">
+        <mj-column width="33%">
+        </mj-column>
+        <mj-column width="33%">
+          <mj-button align="center" href="{{ vote }}" background-color="darkgreen">Vote for stories</mj-button>
+          <mj-text padding-bottom="0px">
+            <hr style="border: 0; border-top: 1px solid #aaa; " />
+          </mj-text>
+        </mj-column>
+        <mj-column width="33%">
+        </mj-column>
+      </mj-section>
+      <mj-raw>{% for story in stories %}</mj-raw>
+      <mj-section background-color="#FFF8DC" padding="0px">
+        <mj-column>
+          <mj-text padding-top="0" padding-bottom="0px" color="#1D6607" font-size="18px" line-height="1.25">{{ story.headline }}</mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-section background-color="#FFF8DC" padding-top="0" padding-bottom="0px">
+        <mj-column>
+          <mj-text color="darkgrey" padding-top="0" padding-bottom="0px">From a freegler on&nbsp;{{ story.groupname }}.
+          </mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-raw>{% if story.photo is defined and story.photo is not null %}</mj-raw>
+      <mj-section background-color="#FFF8DC" padding-top="0" padding-bottom="0px">
+        <mj-column width="66%">
+          <mj-text font-size="18px">{{ story.story|nl2br }}</mj-text>
+        </mj-column>
+        <mj-column width="34%">
+          <mj-image fluid-on-mobile="true" alt="Story picture" align="right" border-radius="5px" src="{{ story.photo }}"></mj-image>
+        </mj-column>
+      </mj-section>
+      <mj-raw>{% else %}</mj-raw>
+      <mj-section background-color="#FFF8DC" padding-top="0" padding-bottom="0px">
+        <mj-column>
+          <mj-text font-size="18px">{{ story.story|nl2br }}</mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-raw>{% endif %}</mj-raw>
+      <mj-section background-color="#FFF8DC" padding="0px">
+        <mj-column>
+          <mj-text padding-top="0" padding-bottom="0px">
+            <hr style="border: 0; border-top: 1px solid #aaa; " />
+          </mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-raw>{% endfor %}</mj-raw>
+    </mj-wrapper>
+  </mj-body>
+</mjml>
