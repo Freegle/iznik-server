@@ -128,5 +128,5 @@ error_log('discourse_sso - redirect to MT login');
 
 // Redirect.  This will force sign-in, which will set up the cookie, then redirect back here so that
 // we then successfully log in.
-header('Location: http://modtools.org/discourse' );
+header('Location: https://modtools.org/discourse' );
 die();
