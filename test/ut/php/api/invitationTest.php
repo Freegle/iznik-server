@@ -48,7 +48,8 @@ class invitationAPITest extends IznikAPITestCase
         assertTrue($this->user->login('testpw'));
 
         $ret = $this->call('invitation', 'PUT', [
-            'email' => 'test@test.com'
+            'email' => 'test@test.com',
+            'dup' => 1
         ]);
         assertEquals(0, $ret['ret']);
 

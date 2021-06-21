@@ -59,15 +59,18 @@ class alertAPITest extends IznikAPITestCase
 
         # Or logged in as non-support
         assertTrue($this->user->login('testpw'));
+        $alertdata['dup'] = 1;
         $ret = $this->call('alert', 'PUT', $alertdata);
         assertEquals(1, $ret['ret']);
 
         # Can create as support.
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
+        $alertdata['dup'] = 2;
         $ret = $this->call('alert', 'PUT', $alertdata);
         $this->log("Got result " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
 
+        $alertdata['dup'] = 3;
         $ret = $this->call('alert', 'PUT', $alertdata);
         assertEquals(0, $ret['ret']);
         $id = $ret['id'];
@@ -79,6 +82,7 @@ class alertAPITest extends IznikAPITestCase
         assertEquals($id, $ret['alert']['id']);
         assertTrue(array_key_exists('stats', $ret['alert']));
 
+        unset( $alertdata['dup']);
         foreach ($alertdata as $key => $val) {
             assertEquals($val, $ret['alert'][$key]);
         }

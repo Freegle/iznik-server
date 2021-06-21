@@ -79,7 +79,8 @@ class membershipsAPITest extends IznikAPITestCase {
             'groupid' => $this->groupid,
             'userid' => $this->uid2,
             'role' => 'Member',
-            'email' => 'test2@test.com'
+            'email' => 'test2@test.com',
+            'dup' => 1
         ]);
 
         assertEquals(0, $ret['ret']);
