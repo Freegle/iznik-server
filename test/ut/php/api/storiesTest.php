@@ -50,7 +50,7 @@ class storiesAPITest extends IznikAPITestCase {
         assertTrue($this->user->login('testpw'));
         $ret = $this->call('stories', 'PUT', [
             'headline' => 'Test',
-            'story' => 'Test'
+            'story' => 'Test2'
         ]);
         assertEquals(0, $ret['ret']);
 
@@ -62,7 +62,7 @@ class storiesAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['story']['id']);
         self::assertEquals('Test', $ret['story']['headline']);
-        self::assertEquals('Test', $ret['story']['story']);
+        self::assertEquals('Test2', $ret['story']['story']);
 
         # Edit
         $ret = $this->call('stories', 'PATCH', [

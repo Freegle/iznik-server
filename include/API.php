@@ -160,9 +160,10 @@ class API
                     }
                 }
 
-                # Duplicate POST protection.  We upload multiple images so don't protect against those.
+                # Duplicate protection.  We upload multiple images so don't protect against those.
                 if ((DUPLICATE_POST_PROTECTION > 0) &&
-                    array_key_exists('REQUEST_METHOD', $_SERVER) && (Utils::presdef('type', $_REQUEST, null) == 'POST') &&
+                    array_key_exists('REQUEST_METHOD', $_SERVER) &&
+                    ((Utils::presdef('type', $_REQUEST, null) == 'POST' || Utils::presdef('type', $_REQUEST, null) == 'PUT')) &&
                     $call != 'image') {
                     # We want to make sure that we don't get duplicate POST requests within the same session.  We can't do this
                     # using information stored in the session because when Redis is used as the session handler, there is

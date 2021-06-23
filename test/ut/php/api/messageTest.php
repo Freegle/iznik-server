@@ -1548,7 +1548,8 @@ class messageAPITest extends IznikAPITestCase
             'textbody' => 'Text body',
             'locationid' => $locid,
             'groupid' => $this->gid,
-            'attachments' => [ $attid ]
+            'attachments' => [ $attid ],
+            'dup' => 1
         ]);
         $this->log(var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
@@ -1584,7 +1585,8 @@ class messageAPITest extends IznikAPITestCase
             'item' => 'a thing2',
             'locationid' => $locid,
             'textbody' => 'Text body2',
-            'attachments' => [ $attid2 ]
+            'attachments' => [ $attid2 ],
+            'dup' => 2
         ]);
 
         assertEquals(0, $ret['ret']);
@@ -1620,7 +1622,8 @@ class messageAPITest extends IznikAPITestCase
             'messagetype' => 'Wanted',
             'locationid' => $locid,
             'item' => 'a thing2',
-            'textbody' => 'Text body2'
+            'textbody' => 'Text body2',
+            'dup' => 3
         ]);
 
         assertEquals(0, $ret['ret']);

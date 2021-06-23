@@ -326,7 +326,8 @@ class locationsAPITest extends IznikAPITestCase
         # Member only
         $ret = $this->call('locations', 'PUT', [
             'name' => 'Tuvalu Central',
-            'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))'
+            'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))',
+            'dup' => 1
         ]);
         assertEquals(2, $ret['ret']);
 
@@ -335,7 +336,8 @@ class locationsAPITest extends IznikAPITestCase
         $ret = $this->call('locations', 'PUT', [
             'name' => 'Tuvalu Central',
             'osmparentsonly' => 0,
-            'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))'
+            'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))',
+            'dup' => 2
         ]);
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
