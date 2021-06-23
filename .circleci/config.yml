@@ -20,20 +20,7 @@ jobs:
       - run: sudo apt-get update
 
       # PHP extensions
-      - run: sudo apt install -y libgmp-dev libxml2-dev libgd-dev libpng-dev libjpeg-turbo8-dev
-      - run: sudo -E docker-php-ext-install exif
-      - run: sudo -E docker-php-ext-install gmp
-      - run: sudo -E docker-php-ext-install soap
-      - run: sudo -E docker-php-ext-configure gd  --with-jpeg-dir=/usr/include/
-      - run: sudo -E docker-php-ext-install gd
-      - run: sudo pecl install mailparse
-      - run: sudo -E docker-php-ext-enable mailparse
-      - run: sudo docker-php-ext-install pdo_mysql
-      - run: sudo -E docker-php-ext-enable pdo_mysql
-      - run: sudo pecl install xdebug
-      - run: sudo -E docker-php-ext-enable xdebug
-      - run: sudo -E pecl install redis
-      - run: sudo -E docker-php-ext-enable redis
+      - run: sudo apt install -y libgmp-dev libxml2-dev libgd-dev libpng-dev libjpeg-turbo8-dev php-gmp php-soap php-gd php-mbstring php-redis php-xdebug php-mailparse
 
       # Spamassassin for filtering
       - run: sudo apt-get install -y spamassassin spamc psmisc
