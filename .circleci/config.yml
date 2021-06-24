@@ -5,7 +5,7 @@ jobs:
       - STANDALONE=TRUE
       - XDEBUG_MODE=coverage
     docker:
-      - image: cimg/php:8.0
+      - image: circleci/php:7.4
       - image: circleci/redis
       - image: schickling/beanstalkd
       - image: circleci/mysql:5.7.32
@@ -20,7 +20,20 @@ jobs:
       - run: sudo apt-get update
 
       # PHP extensions
-      - run: sudo apt install -y libgmp-dev libxml2-dev libgd-dev libpng-dev libjpeg-turbo8-dev php-gmp php-soap php-gd php-mbstring php-redis php-xdebug php-mailparse
+      - run: sudo apt install -y libgmp-dev libxml2-dev libgd-dev libpng-dev libjpeg62-turbo-dev
+      - run: sudo -E docker-php-ext-install exif
+      - run: sudo -E docker-php-ext-install gmp
+      - run: sudo -E docker-php-ext-install soap
+      - run: sudo -E docker-php-ext-configure gd  --with-jpeg-dir=/usr/include/
+      - run: sudo -E docker-php-ext-install gd
+      - run: sudo pecl install mailparse
+      - run: sudo -E docker-php-ext-enable mailparse
+      - run: sudo docker-php-ext-install pdo_mysql
+      - run: sudo -E docker-php-ext-enable pdo_mysql
+      - run: sudo pecl install xdebug
+      - run: sudo -E docker-php-ext-enable xdebug
+      - run: sudo -E pecl install redis
+      - run: sudo -E docker-php-ext-enable redis
 
       # Spamassassin for filtering
       - run: sudo apt-get install -y spamassassin spamc psmisc
@@ -81,7 +94,7 @@ jobs:
       - run: mysql --host="127.0.0.1" -u root -e "set global max_allowed_packet=33554432"
 
       # Install composer dependencies.  Use v1 as we're not compatible with v2.
-      - run: cd composer; wget https://getcomposer.org/composer-1.phar; php composer-1.phar install --ignore-platform-reqs; cd ..
+      - run: cd composer; wget https://getcomposer.org/composer-1.phar; php composer-1.phar install; cd ..
       - run:
           name: Background job
           command: php scripts/cron/background.php
