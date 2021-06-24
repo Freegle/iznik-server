@@ -1,8 +1,6 @@
 <?php
 namespace Freegle\Iznik;
 
-use Redis;
-
 class GroupCollection
 {
     /**
@@ -26,11 +24,6 @@ class GroupCollection
     protected $groups = [];
 
     /**
-     * @var Redis
-     */
-    protected $redis;
-
-    /**
      * GroupCollection constructor.
      * @param LoggedPDO $dbhr
      * @param LoggedPDO $dbhm
@@ -42,42 +35,19 @@ class GroupCollection
         $this->dbhm = $dbhm;
         $this->ids = $ids;
 
-        # We cache groups in Redis, so we might have some, all or none of them.
-        $cachekeys = array_map(function ($id) {
-            return ("group-$id");
-        }, $ids);
+        # We want to get them all in a single DB query for performance.
+        $groups = $this->dbhr->preQuery("SELECT * FROM groups WHERE id IN (" . implode(',', $ids) . ");", []);
 
-        $cached = $this->getRedis()->mget($cachekeys);
-        $cachedids = [];
-        $cachedgroups = [];
-
-        # See which ones we have still to get.
-        $missing = array_diff($ids, $cachedids);
-
-        $fromdb = [];
-
-        if ($missing) {
-            # We have some to fetch.  We want to get them all in a single DB query for performance.
-            $groups = $this->dbhr->preQuery("SELECT * FROM groups WHERE id IN (" . implode(',', $missing) . ");", []);
-
-            foreach ($groups as $group) {
-                # Create the group object, passing in the attributes so it won't do a DB op.
-                $g = new Group($this->dbhr, $this->dbhm, $group['id'], $group);
-                $fromdb[$group['id']] = $g;
-
-                # Explicitly don't save these into redis for next time.  There is no way to set multiple items
-                # with a TTL, so we would have to do a call per group, which is the kind of scalability fail we're
-                # trying to avoid.
-            }
+        foreach ($groups as $group) {
+            # Create the group object, passing in the attributes so it won't do a DB op.
+            $g = new Group($this->dbhr, $this->dbhm, $group['id'], $group);
+            $fromdb[$group['id']] = $g;
         }
 
-        # Now combine the redis and DB results.  This preserves the order of the the ids passed to us, which
-        # is important.
+        # This preserves the order of the the ids passed to us, which is important.
         foreach ($ids as $id) {
-            $this->groups[] = Utils::pres($id, $cachedgroups) ? $cachedgroups[$id] : Utils::pres($id, $fromdb);
+            $this->groups[] = Utils::pres($id, $fromdb);
         }
-
-        # Now we have the combined groups.
     }
 
     /**
@@ -85,18 +55,5 @@ class GroupCollection
      */
     public function get() {
         return($this->groups);
-    }
-
-    /**
-     * @return Redis
-     */
-    public function getRedis()
-    {
-        if (!$this->redis) {
-            $this->redis = new \Redis();
-            @$this->redis->pconnect(REDIS_CONNECT);
-        }
-
-        return ($this->redis);
     }
 }
