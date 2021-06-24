@@ -24,7 +24,7 @@ jobs:
       - run: sudo -E docker-php-ext-install exif
       - run: sudo -E docker-php-ext-install gmp
       - run: sudo -E docker-php-ext-install soap
-      - run: sudo -E docker-php-ext-configure gd  --with-jpeg-dir=/usr/include/
+      - run: sudo -E docker-php-ext-configure gd  --with-jpeg
       - run: sudo -E docker-php-ext-install gd
       - run: sudo pecl install mailparse
       - run: sudo -E docker-php-ext-enable mailparse
