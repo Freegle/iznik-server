@@ -30,8 +30,6 @@ jobs:
       - run: sudo -E docker-php-ext-enable mailparse
       - run: sudo docker-php-ext-install pdo_mysql
       - run: sudo -E docker-php-ext-enable pdo_mysql
-      - run: sudo pecl install xdebug
-      - run: sudo -E docker-php-ext-enable xdebug
       - run: sudo -E pecl install redis
       - run: sudo -E docker-php-ext-enable redis
 
