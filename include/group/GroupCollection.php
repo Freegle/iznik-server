@@ -35,18 +35,20 @@ class GroupCollection
         $this->dbhm = $dbhm;
         $this->ids = $ids;
 
-        # We want to get them all in a single DB query for performance.
-        $groups = $this->dbhr->preQuery("SELECT * FROM groups WHERE id IN (" . implode(',', $ids) . ");", []);
+        if (count($ids)) {
+            # We want to get them all in a single DB query for performance.
+            $groups = $this->dbhr->preQuery("SELECT * FROM groups WHERE id IN (" . implode(',', $ids) . ");", []);
 
-        foreach ($groups as $group) {
-            # Create the group object, passing in the attributes so it won't do a DB op.
-            $g = new Group($this->dbhr, $this->dbhm, $group['id'], $group);
-            $fromdb[$group['id']] = $g;
-        }
+            foreach ($groups as $group) {
+                # Create the group object, passing in the attributes so it won't do a DB op.
+                $g = new Group($this->dbhr, $this->dbhm, $group['id'], $group);
+                $fromdb[$group['id']] = $g;
+            }
 
-        # This preserves the order of the the ids passed to us, which is important.
-        foreach ($ids as $id) {
-            $this->groups[] = Utils::pres($id, $fromdb);
+            # This preserves the order of the the ids passed to us, which is important.
+            foreach ($ids as $id) {
+                $this->groups[] = Utils::pres($id, $fromdb);
+            }
         }
     }
 
