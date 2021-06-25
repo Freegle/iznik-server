@@ -28,7 +28,7 @@ if ($id) {
         $snippet = addslashes(Utils::presdef('snippet', $atts, 'Click for more details') . '...');
         $image = Utils::pres('attachments', $atts) && count($atts['attachments']) > 0 ? $atts['attachments'][0]['path'] : ('https://' . USER_SITE . '/icon.png');
 
-        $page = file_get_contents('https://www.ilovefreegle.org');
+        $page = file_get_contents('https://' . $_SERVER['SERVER_NAME'] . '/200.html');
 
         if ($page) {
             $page = preg_replace('/<title>.*?<\/title>/', "<title>$subj</title>", $page);
