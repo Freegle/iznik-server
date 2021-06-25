@@ -1467,6 +1467,10 @@ ORDER BY lastdate DESC;";
                 # to republish it.
                 $rets[$msg['id']]['fromuser'] = $fromusers[$rets[$msg['id']]['fromuser']];
 
+                # It's possible that someone has changed their name.  So overwrite the fromname field in the message,
+                # which dates from when it was posted, with what it is now.
+                $rets[$msg['id']]['fromname'] = $rets[$msg['id']]['fromuser']['displayname'];
+
                 if ($role == User::ROLE_OWNER || $role == User::ROLE_MODERATOR) {
                     # We can see their emails.
                     if (Utils::pres($msg['fromuser'], $emails)) {

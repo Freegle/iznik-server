@@ -1005,6 +1005,30 @@ class messageTest extends IznikTestCase {
         assertEquals([ 'OFFER', 'item (with brackets', 'Place (with) brackets' ], Message::parseSubject('OFFER: item (with brackets (Place (with) brackets)'));
     }
 
+    public function testNameChange() {
+        $m = new Message($this->dbhr, $this->dbhm);
+
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $this->user->addEmail($email);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('test@test.com', $email, $msg);
+        $msg = str_replace('Test att', 'OFFER: Test due (Tuvalu High Street)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id2 = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+        $m = new Message($this->dbhr, $this->dbhm, $id2);
+
+        // Test the fromname.
+        $_SESSION['id'] = $m->getPrivate('fromuser');
+        assertEquals('Test User', $m->getPublic()['fromname']);
+
+        // Change the name of the user.
+        $this->user->setPrivate('fullname', 'Changed Name');
+        assertEquals('Changed Name', $m->getPublic()['fromname']);
+    }
+
     // For manual testing
 //    public function testSpecial() {
 //        //
