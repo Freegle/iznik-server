@@ -12,7 +12,7 @@ require_once(UT_DIR . '/../../include/db.php');
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class configTest extends IznikTestCase {
+class ModConfigTest extends IznikTestCase {
     private $dbhr, $dbhm;
 
     protected function setUp() {

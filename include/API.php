@@ -254,6 +254,9 @@ class API
                         case 'admin':
                             $ret = admin();
                             break;
+                        case 'config':
+                            $ret = config();
+                            break;
                         case 'changes':
                             $ret = changes();
                             break;
