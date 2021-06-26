@@ -2,7 +2,7 @@
 
 // NOT DONE YET
 // BUT USE
-// SELECT DISTINCT users.* FROM users INNER JOIN memberships ON users.id = memberships.userid INNER JOIN groups ON groups.id = memberships.groupid WHERE memberships.role IN ('Owner', 'Moderator') AND groups.type = 'Freegle' AND `lastaccess` > '2020-09-01 00:00:00' 
+// SELECT DISTINCT users.* FROM users INNER JOIN memberships ON users.id = memberships.userid INNER JOIN `groups` ON groups.id = memberships.groupid WHERE memberships.role IN ('Owner', 'Moderator') AND groups.type = 'Freegle' AND `lastaccess` > '2020-09-01 00:00:00' 
 
 // hub/archive scripts/cron/discourse_checkusers.php
 //
@@ -167,14 +167,14 @@ try{
   }
 
   $sql = "SELECT DISTINCT users.*,groups.id as groupid FROM users INNER JOIN memberships ON users.id = memberships.userid ".
-  "INNER JOIN groups ON groups.id = memberships.groupid ".
+  "INNER JOIN `groups` ON groups.id = memberships.groupid ".
   "WHERE memberships.role IN ('Owner', 'Moderator') AND groups.type = 'Freegle' AND `lastaccess` > DATE_SUB(now(), INTERVAL 6 MONTH) ".
   "ORDER BY users.id";
   $allactivemodsgroups = $dbhr->preQuery($sql);
 
   // id, fullname, systemrole, lastaccess
   $sql = "SELECT DISTINCT users.* FROM users INNER JOIN memberships ON users.id = memberships.userid ".
-  "INNER JOIN groups ON groups.id = memberships.groupid ".
+  "INNER JOIN `groups` ON groups.id = memberships.groupid ".
   "WHERE memberships.role IN ('Owner', 'Moderator') AND groups.type = 'Freegle' AND `lastaccess` > DATE_SUB(now(), INTERVAL 6 MONTH) ".
   "ORDER BY users.id";
   $allactivemods = $dbhr->preQuery($sql);

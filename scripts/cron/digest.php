@@ -31,7 +31,7 @@ if (count($opts) < 1) {
 
     # We only send digests for Freegle groups.
     $groupq = $gid ? (" AND id = " . intval($gid)) : '';
-    $groups = $dbhr->preQuery("SELECT id, nameshort, settings FROM groups WHERE `type` = 'Freegle' AND onhere = 1 AND MOD(id, ?) = ? AND publish = 1 $groupq ORDER BY LOWER(nameshort) ASC;", [$mod, $val]);
+    $groups = $dbhr->preQuery("SELECT id, nameshort, settings FROM `groups` WHERE `type` = 'Freegle' AND onhere = 1 AND MOD(id, ?) = ? AND publish = 1 $groupq ORDER BY LOWER(nameshort) ASC;", [$mod, $val]);
     $d = new Digest($dbhr, $dbhm);
 
     foreach ($groups as $group) {

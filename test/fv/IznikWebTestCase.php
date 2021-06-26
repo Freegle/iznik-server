@@ -39,7 +39,7 @@ abstract class IznikWebTestCase extends PHPUnit_Framework_TestCase {
         $this->dbhm = $dbhm;
 
         $this->dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE users_emails.backwards LIKE 'oi.elohkcalb%';");
-        $dbhm->preExec("DELETE FROM groups WHERE nameshort LIKE 'testgroup%';");
+        $dbhm->preExec("DELETE FROM `groups` WHERE nameshort LIKE 'testgroup%';");
     }
 
     protected function tearDown() {

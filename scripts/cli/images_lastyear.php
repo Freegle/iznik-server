@@ -10,7 +10,7 @@ global $dbhr, $dbhm;
 
 # Get all distinct images
 $start = date('Y-m-d', strtotime("365 days ago"));
-$hashes = $dbhr->preQuery("SELECT DISTINCT(hash) FROM messages_attachments INNER JOIN messages_groups ON messages_attachments.msgid = messages_groups.msgid INNER JOIN groups ON messages_groups.groupid = groups.id WHERE messages_groups.arrival > ? AND groups.type = 'Freegle';", [ $start ]);
+$hashes = $dbhr->preQuery("SELECT DISTINCT(hash) FROM messages_attachments INNER JOIN messages_groups ON messages_attachments.msgid = messages_groups.msgid INNER JOIN `groups` ON messages_groups.groupid = groups.id WHERE messages_groups.arrival > ? AND groups.type = 'Freegle';", [ $start ]);
 $frame = 0;
 $count = 0;
 

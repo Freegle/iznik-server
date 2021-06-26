@@ -5,7 +5,7 @@ require_once(IZNIK_BASE . '/include/db.php');
 
 global $dbhr, $dbhm;
 
-$groups = $dbhr->preQuery("SELECT * FROM groups  WHERE type = 'Freegle' ORDER BY nameshort ASC;");
+$groups = $dbhr->preQuery("SELECT * FROM `groups`  WHERE type = 'Freegle' ORDER BY nameshort ASC;");
 foreach ($groups as $group) {
     error_log("...{$group['nameshort']}");
     $epoch = strtotime("today");

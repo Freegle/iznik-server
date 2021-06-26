@@ -11,8 +11,8 @@ $dbhd = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass']);
 
 $g = Group::get($dbhr, $dbhm);
 
-$dbhm->preExec("UPDATE groups SET legacyid = NULL;");
-$groups = $dbhd->query("SELECT * FROM groups;");
+$dbhm->preExec("UPDATE `groups` SET legacyid = NULL;");
+$groups = $dbhd->query("SELECT * FROM `groups`;");
 foreach ($groups as $group) {
     $nameshort = $group['groupname'];
     $gid = $g->findByShortName($nameshort);

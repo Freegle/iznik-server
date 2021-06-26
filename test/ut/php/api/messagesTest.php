@@ -23,7 +23,7 @@ class messagesTest extends IznikAPITestCase {
         $this->dbhm = $dbhm;
 
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
-        $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
+        $dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup';");
         $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
         
         $this->group = Group::get($this->dbhr, $this->dbhm);

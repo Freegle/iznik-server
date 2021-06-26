@@ -981,7 +981,7 @@ class Newsfeed extends Entity
                 if ($mod->activeModForGroup($groupid)) {
                     # Find posts relating to this group or in its area.
                     $start = date('Y-m-d', strtotime($timeago));
-                    $sql = "SELECT DISTINCT newsfeed.* FROM newsfeed INNER JOIN groups ON (newsfeed.groupid = groups.id OR MBRContains(groups.polyindex, newsfeed.position)) WHERE added >= ? AND newsfeed.id > ? AND groups.id = ? AND deleted IS NULL AND newsfeed.type IN (?, ?, ?) AND newsfeed.replyto IS NULL AND newsfeed.hidden IS NULL AND newsfeed.userid != ? ORDER BY added ASC";
+                    $sql = "SELECT DISTINCT newsfeed.* FROM newsfeed INNER JOIN `groups` ON (newsfeed.groupid = groups.id OR MBRContains(groups.polyindex, newsfeed.position)) WHERE added >= ? AND newsfeed.id > ? AND groups.id = ? AND deleted IS NULL AND newsfeed.type IN (?, ?, ?) AND newsfeed.replyto IS NULL AND newsfeed.hidden IS NULL AND newsfeed.userid != ? ORDER BY added ASC";
                     $thislot = $this->dbhr->preQuery($sql, [
                         $start,
                         $lastseen,

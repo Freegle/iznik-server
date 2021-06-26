@@ -50,7 +50,7 @@ if (count($opts) < 2) {
         }
 
         # Hide the old group.
-        $dbhm->preExec("UPDATE groups SET publish = 0, onmap = 0 WHERE id = $srcid;");
+        $dbhm->preExec("UPDATE `groups` SET publish = 0, onmap = 0 WHERE id = $srcid;");
 
         # Regenerate the stats on the group.
         $i = 0;

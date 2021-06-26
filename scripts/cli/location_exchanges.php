@@ -29,7 +29,7 @@ if (count($opts) != 2) {
         error_log("Centre is at $clat, $clng");
 
         # Find the groups which overlap this area.
-        $groups = $dbhr->preQuery("SELECT id FROM groups WHERE ST_Intersects(polyindex, GeomFromText(?));", [
+        $groups = $dbhr->preQuery("SELECT id FROM `groups` WHERE ST_Intersects(polyindex, GeomFromText(?));", [
             $polygon
         ]);
 

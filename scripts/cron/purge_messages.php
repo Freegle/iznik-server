@@ -146,7 +146,7 @@ try {
 
     $total = 0;
     do {
-        $sql = "SELECT msgid FROM messages_groups INNER JOIN groups ON messages_groups.groupid = groups.id WHERE `arrival` <= '$start' AND groups.type != 'Freegle' LIMIT 1000;";
+        $sql = "SELECT msgid FROM messages_groups INNER JOIN `groups` ON messages_groups.groupid = groups.id WHERE `arrival` <= '$start' AND groups.type != 'Freegle' LIMIT 1000;";
         $msgs = $dbhm->query($sql)->fetchAll();
         foreach ($msgs as $msg) {
             $dbhm->preExec("DELETE FROM messages WHERE id = {$msg['msgid']};");

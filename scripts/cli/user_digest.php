@@ -22,7 +22,7 @@ if (count($opts) < 3) {
     $uid = $u->findByEmail($email);
 
     if ($gid && $uid) {
-        $groups = $dbhr->preQuery("SELECT id, nameshort FROM groups WHERE id = ?;", [ $gid ]);
+        $groups = $dbhr->preQuery("SELECT id, nameshort FROM `groups` WHERE id = ?;", [ $gid ]);
         $d = new Digest($dbhr, $dbhm, FALSE, TRUE);
         $d->errorLog = true;
 

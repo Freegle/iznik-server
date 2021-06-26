@@ -14,7 +14,7 @@ $g = Group::get($dbhr, $dbhm);
 
 $mods = $dbhold->query("SELECT groups.groupname, moderators.email, moderators.name, moderators.yahooid,
  groupsmoderated.showinallmessages, groupsmoderated.showinallmembers
-FROM groups
+FROM `groups`
 INNER JOIN groupsmoderated ON groups.groupid = groupsmoderated.groupid
 INNER JOIN moderators ON moderators.uniqueid = groupsmoderated.moderatorid;");
 

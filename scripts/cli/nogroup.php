@@ -29,7 +29,7 @@ $dnode = $dom->createElement('Document');
 $docNode = $parNode->appendChild($dnode);
 
 foreach ($locs as $loc) {
-    $groups = $dbhr->preQuery("SELECT * FROM groups WHERE (poly IS NOT NULL AND ST_Intersects(GeomFromText(poly), ?)) OR (polyofficial IS NOT NULL AND ST_INTERSECTS(GeomFromText(polyofficial), ?)) LIMIT 1;", [
+    $groups = $dbhr->preQuery("SELECT * FROM `groups` WHERE (poly IS NOT NULL AND ST_Intersects(GeomFromText(poly), ?)) OR (polyofficial IS NOT NULL AND ST_INTERSECTS(GeomFromText(polyofficial), ?)) LIMIT 1;", [
         $loc['geometry'],
         $loc['geometry']
     ]);

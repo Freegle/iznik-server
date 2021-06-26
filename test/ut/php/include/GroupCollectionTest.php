@@ -25,9 +25,9 @@ class groupCollectionTest extends IznikTestCase
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
-        $this->dbhm->exec("DELETE FROM groups WHERE nameshort = 'testgroup1';");
-        $this->dbhm->exec("DELETE FROM groups WHERE nameshort = 'testgroup2';");
-        $this->dbhm->exec("DELETE FROM groups WHERE nameshort = 'testgroup3';");
+        $this->dbhm->exec("DELETE FROM `groups` WHERE nameshort = 'testgroup1';");
+        $this->dbhm->exec("DELETE FROM `groups` WHERE nameshort = 'testgroup2';");
+        $this->dbhm->exec("DELETE FROM `groups` WHERE nameshort = 'testgroup3';");
     }
 
     public function testDefaults() {

@@ -18,7 +18,7 @@ $mail = [];
 
 if ($hour >= 8 && $hour <= 21)
 {
-    $sql = "SELECT id, nameshort FROM groups WHERE `type` = ? AND onhere = 1 AND publish = 1 ORDER BY nameshort ASC;";
+    $sql = "SELECT id, nameshort FROM `groups` WHERE `type` = ? AND onhere = 1 AND publish = 1 ORDER BY nameshort ASC;";
 
     $groups = $dbhr->preQuery($sql, [
         Group::GROUP_FREEGLE

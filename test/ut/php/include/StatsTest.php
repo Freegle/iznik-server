@@ -22,7 +22,7 @@ class statsTest extends IznikTestCase {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
-        $this->dbhm->exec("DELETE FROM groups WHERE nameshort = 'testgroup';");
+        $this->dbhm->exec("DELETE FROM `groups` WHERE nameshort = 'testgroup';");
         $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
     }
 

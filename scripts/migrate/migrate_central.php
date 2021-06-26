@@ -11,7 +11,7 @@ $dbhd = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass']);
 
 $g = Group::get($dbhr, $dbhm);
 
-$sql = "SELECT * FROM groups WHERE grouppublish = 1;";
+$sql = "SELECT * FROM `groups` WHERE grouppublish = 1;";
 $fgroups = $dbhd->query($sql);
 
 foreach ($fgroups as $fgroup) {

@@ -10,9 +10,9 @@ global $dbhr, $dbhm;
 # Update record of which groups are on TN.
 #
 # Not in a single call as this seems to hit a deadlock.
-$groups = $dbhr->preQuery("SELECT id FROM groups WHERE ontn = 1;");
+$groups = $dbhr->preQuery("SELECT id FROM `groups` WHERE ontn = 1;");
 foreach ($groups as $group) {
-    $dbhm->preExec("UPDATE groups SET ontn = 0 WHERE id = ?;", [
+    $dbhm->preExec("UPDATE `groups` SET ontn = 0 WHERE id = ?;", [
         $group['id']
     ]);
 }
@@ -29,7 +29,7 @@ $tngroups = json_decode($tngroups, TRUE);
 #
 # SELECT ST_AsText(ST_Simplify(St_Buffer(GeomFromText('...'), 0.001), 0.001))
 #
-$groups = $dbhr->preQuery("SELECT id, nameshort FROM groups WHERE ST_IsValid(polyindex) = 0 OR ST_IsValid(GeomFromText(poly)) = 0 OR ST_IsValid(GeomFromText(polyofficial)) = 0 AND type = ?;", [
+$groups = $dbhr->preQuery("SELECT id, nameshort FROM `groups` WHERE ST_IsValid(polyindex) = 0 OR ST_IsValid(GeomFromText(poly)) = 0 OR ST_IsValid(GeomFromText(polyofficial)) = 0 AND type = ?;", [
     Group::GROUP_FREEGLE
 ]);
 
@@ -42,12 +42,12 @@ $g = new Group($dbhr, $dbhm);
 foreach ($tngroups as $gname => $tngroup) {
     if ($tngroup['listed']) {
         $gid = $g->findByShortName($gname);
-        $dbhm->preExec("UPDATE groups SET ontn = 1 WHERE id = ?;", [$gid]);
+        $dbhm->preExec("UPDATE `groups` SET ontn = 1 WHERE id = ?;", [$gid]);
     }
 }
 
 $date = date('Y-m-d', strtotime("yesterday"));
-$groups = $dbhr->preQuery("SELECT * FROM groups;");
+$groups = $dbhr->preQuery("SELECT * FROM `groups`;");
 foreach ($groups as $group) {
     error_log($group['nameshort']);
     $s = new Stats($dbhr, $dbhm, $group['id']);
@@ -57,7 +57,7 @@ foreach ($groups as $group) {
 # Find what proportion of overall activity an individual group is responsible for.  We will use this when calculating
 # a fundraising target.
 $date = date('Y-m-d', strtotime("30 days ago"));
-$totalact = $dbhr->preQuery("SELECT SUM(count) AS total FROM stats INNER JOIN groups ON stats.groupid = groups.id WHERE stats.type = ? AND groups.type = ? AND publish = 1 AND onhere = 1 AND date >= ?;", [
+$totalact = $dbhr->preQuery("SELECT SUM(count) AS total FROM stats INNER JOIN `groups` ON stats.groupid = groups.id WHERE stats.type = ? AND groups.type = ? AND publish = 1 AND onhere = 1 AND date >= ?;", [
     Stats::APPROVED_MESSAGE_COUNT,
     Group::GROUP_FREEGLE,
     $date
@@ -69,7 +69,7 @@ $fundingcalc = 0;
 foreach ($totalact as $total) {
     $tot = $total['total'];
 
-    $groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = ? AND publish = 1 AND onhere = 1 ORDER BY LOWER(nameshort) ASC;", [
+    $groups = $dbhr->preQuery("SELECT * FROM `groups` WHERE type = ? AND publish = 1 AND onhere = 1 ORDER BY LOWER(nameshort) ASC;", [
         Group::GROUP_FREEGLE
     ]);
 
@@ -83,7 +83,7 @@ foreach ($totalact as $total) {
         #error_log("#{$group['id']} {$group['nameshort']} pc = $pc from {$acts[0]['count']} vs $tot");
         $pc = 100 * $acts[0]['count'] / $tot;
 
-        $dbhm->preExec("UPDATE groups SET activitypercent = ? WHERE id = ?;", [
+        $dbhm->preExec("UPDATE `groups` SET activitypercent = ? WHERE id = ?;", [
             $pc,
             $group['id']
         ]);
@@ -97,7 +97,7 @@ foreach ($totalact as $total) {
         error_log("{$group['nameshort']} target £$portion");
         $fundingcalc += $portion;
 
-        $dbhm->preExec("UPDATE groups SET fundingtarget = ? WHERE id = ?;", [
+        $dbhm->preExec("UPDATE `groups` SET fundingtarget = ? WHERE id = ?;", [
             $portion,
             $group['id']
         ]);
@@ -105,7 +105,7 @@ foreach ($totalact as $total) {
         # Find when the group was last moderated.
         $sql = "SELECT MAX(approvedat) AS max FROM messages_groups WHERE groupid = ? AND approvedby IS NOT NULL;";
         $maxs = $dbhr->preQuery($sql, [$group['id']]);
-        $dbhm->preExec("UPDATE groups SET lastmoderated = ? WHERE id = ?;", [
+        $dbhm->preExec("UPDATE `groups` SET lastmoderated = ? WHERE id = ?;", [
             $maxs[0]['max'],
             $group['id']
         ]);
@@ -115,7 +115,7 @@ foreach ($totalact as $total) {
         $logs = $dbhr->preQuery("SELECT MAX(timestamp) AS max FROM logs WHERE groupid = ? $timeq AND logs.type = 'Message' AND logs.subtype = 'Autoapproved';", [
             $group['id']
         ]);
-        $dbhm->preExec("UPDATE groups SET lastautoapprove = ? WHERE id = ? AND lastautoapprove < ?;", [
+        $dbhm->preExec("UPDATE `groups` SET lastautoapprove = ? WHERE id = ? AND lastautoapprove < ?;", [
             $logs[0]['max'],
             $group['id'],
             $logs[0]['max']
@@ -129,7 +129,7 @@ foreach ($totalact as $total) {
             $start
         ]);
 
-        $dbhm->preExec("UPDATE groups SET activemodcount = ? WHERE id = ?;", [
+        $dbhm->preExec("UPDATE `groups` SET activemodcount = ? WHERE id = ?;", [
             $actives[0]['count'],
             $group['id']
         ]);
@@ -143,7 +143,7 @@ foreach ($totalact as $total) {
             $group['id'],
             $start
         ]);
-        $dbhm->preExec("UPDATE groups SET backupownersactive = ? WHERE id = ?;", [
+        $dbhm->preExec("UPDATE `groups` SET backupownersactive = ? WHERE id = ?;", [
             $mods[0]['count'],
             $group['id']
         ]);
@@ -155,7 +155,7 @@ foreach ($totalact as $total) {
             $group['id'],
             $start
         ]);
-        $dbhm->preExec("UPDATE groups SET backupmodsactive = ? WHERE id = ?;", [
+        $dbhm->preExec("UPDATE `groups` SET backupmodsactive = ? WHERE id = ?;", [
             $mods[0]['count'],
             $group['id']
         ]);

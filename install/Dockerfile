@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 MAINTAINER "Edward Hibbert" <edward@ehibbert.org.uk>
 
@@ -16,10 +16,7 @@ ENV MYSQL_USER=mysql \
 RUN apt-get update \
 	&& apt-get install -y mysql-server \
 	&& rm -rf /var/lib/mysql \
-	&& echo [server] >> /etc/mysql/my.cnf \
-	&& echo max_allowed_packet=32MB >> /etc/mysql/my.cnf \
-	&& echo "sql_mode = \"NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION\"" >> /etc/mysql/my.cnf \
-	&& mkdir /var/lib/mysql \	
+	&& mkdir /var/lib/mysql \
 	&& apt-get install -y redis-server \
 	&& apt-get install -y beanstalkd 
 
@@ -47,7 +44,7 @@ RUN apt-get install -y autoconf automake libtool re2c flex make libxml2-dev libs
 	sysstat libwww-perl nasm php-zip unzip mysql-client php-mysql php-xdebug pflogsumm mailutils nginx psmisc \
 	build-essential chrpath libssl-dev libxft-dev libfreetype6-dev libfreetype6 libfontconfig1-dev libfontconfig1  \
 	monit iotop openssh-client php-dev php-gd gsutil php-redis php-gmp xfsprogs php-soap php-mbstring php-curl \
-	php-xml php-mailparse php-mysql php-zip vim net-tools telnet git
+	php-xml php-mailparse php-mysql php-zip vim net-tools telnet git rsyslog
 RUN apt-get remove -y apache2* sendmail* mlocate php-ssh2
 
 # GeoIP
@@ -103,21 +100,20 @@ RUN cat install/crontab | crontab -u root -
 # Tidy image
 RUN rm -rf /var/lib/apt/lists/*
 
-# Need to resolve google.
-RUN echo "8.8.8.8 dns.google" >> /etc/hosts
-
 # What happens when we start the container
 # First start some services.  MySQL is a bit of a faff.
 #
 # This isn't very Docker, as each container should really only have one command.  I don't want to require docker-compose
 # as that's extra faff for the user.  If you are reading this and know why this is obviously stupid, perhaps you
 # could fix it.
-CMD rm -r /var/lib/mysql \
-    && rm /var/log/mysql/error.log \
-	&& mkdir /var/lib/mysql \
+CMD rm -rf /var/lib/mysql/* \
+  && rm -f /var/log/mysql/error.log \
+	&& usermod -d /var/lib/mysql/ mysql \
+	&& mkdir -p /var/lib/mysql \
 	&& chown -R mysql:mysql /var/lib/mysql \
 	&& mysqld --initialize-insecure \
-	&& chown -R mysql:mysql /var/lib/mysql \
+	&& echo [server] >> /etc/mysql/my.cnf \
+	&& echo max_allowed_packet=32MB >> /etc/mysql/my.cnf \
 	&& /etc/init.d/mysql start \
 	&& mysql -u root -e 'CREATE DATABASE IF NOT EXISTS iznik;' \
 	&& /etc/init.d/redis-server start \
@@ -126,9 +122,9 @@ CMD rm -r /var/lib/mysql \
 	&& /etc/init.d/ssh start \
 	&& /etc/init.d/spamassassin start \
 	&& /etc/init.d/cron start \
-    # Set up the environment we need for running our UT.  Putting this here means it gets reset each
-    # time we start the container.
-	# 
+  # Set up the environment we need for running our UT.  Putting this here means it gets reset each
+  # time we start the container.
+	#
 	# We need to make some minor schema tweaks otherwise the schema fails to install.
     && sed -ie 's/ROW_FORMAT=DYNAMIC//g' install/schema.sql \
     && sed -ie 's/timestamp(3)/timestamp/g' install/schema.sql \
@@ -138,7 +134,7 @@ CMD rm -r /var/lib/mysql \
 	&& mysql -u root -e 'CREATE DATABASE IF NOT EXISTS iznik;' \
     && mysql -u root iznik < install/schema.sql \
     && mysql -u root iznik < install/functions.sql \
-    && mysql -u root -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'" \
+    && mysql -u root -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'" \
     && mysql -u root -e "CREATE FUNCTION damlevlim RETURNS INT SONAME 'mysqldamlevlim.so'" \
     && php install/testenv.php \
     # Keep the container alive

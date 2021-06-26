@@ -3201,7 +3201,7 @@ ORDER BY lastdate DESC;";
         #
         # We only expect to be matching replies for reuse/Freegle groups, and it's not worth matching against any
         # old messages.
-        $sql = "SELECT messages.id, subject, messages.date FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND fromuser = ? INNER JOIN groups ON groups.id = messages_groups.groupid AND groups.type IN ('Freegle', 'Reuse') AND DATEDIFF(NOW(), messages.arrival) < 90 LIMIT 1000;";
+        $sql = "SELECT messages.id, subject, messages.date FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND fromuser = ? INNER JOIN `groups` ON groups.id = messages_groups.groupid AND groups.type IN ('Freegle', 'Reuse') AND DATEDIFF(NOW(), messages.arrival) < 90 LIMIT 1000;";
         $messages = $this->dbhr->preQuery($sql, [ $userid ]);
 
         $thissubj = Message::canonSubj($this->subject);
@@ -3835,7 +3835,7 @@ ORDER BY lastdate DESC;";
         $poly = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
 
         if (!$groupid) {
-            $sql = "SELECT id FROM groups WHERE ST_Intersects(polyindex, GeomFromText('$poly')) AND onmap = 1 AND publish = 1;";
+            $sql = "SELECT id FROM `groups` WHERE ST_Intersects(polyindex, GeomFromText('$poly')) AND onmap = 1 AND publish = 1;";
             $groups = $this->dbhr->preQuery($sql);
             $groupids = array_filter(array_column($groups, 'id'));
         } else {
@@ -4346,7 +4346,7 @@ WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND message
         $msgq = $msgid ? " AND messages_groups.msgid = $msgid " : "";
 
         # Randomise the order to give all groups a chance if the script gets killed or something.
-        $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE type = ? AND onhere = 1 $groupq ORDER BY RAND();", [ $type ]);
+        $groups = $this->dbhr->preQuery("SELECT id FROM `groups` WHERE type = ? AND onhere = 1 $groupq ORDER BY RAND();", [ $type ]);
 
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
@@ -4501,7 +4501,7 @@ WHERE messages_groups.arrival > ? AND messages.arrival >= '2021-03-29' AND messa
         $groupq = $groupid ? " AND id = $groupid " : "";
 
         # Randomise the order in case the script gets killed or something - gives all groups a chance.
-        $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE type = ? $groupq ORDER BY RAND();", [ $type ]);
+        $groups = $this->dbhr->preQuery("SELECT id FROM `groups` WHERE type = ? $groupq ORDER BY RAND();", [ $type ]);
 
         $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
         $twig = new \Twig_Environment($loader);

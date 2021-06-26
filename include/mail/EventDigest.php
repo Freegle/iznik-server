@@ -260,7 +260,7 @@ class EventDigest
             }
         }
 
-        $this->dbhm->preExec("UPDATE groups SET lasteventsroundup = NOW() WHERE id = ?;", [ $groupid ]);
+        $this->dbhm->preExec("UPDATE `groups` SET lasteventsroundup = NOW() WHERE id = ?;", [ $groupid ]);
         Group::clearCache($groupid);
 
         return($sent);

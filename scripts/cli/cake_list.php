@@ -8,7 +8,7 @@ require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
-$users = $dbhr->preQuery("SELECT DISTINCT users.id FROM users INNER JOIN memberships ON users.id = memberships.userid INNER JOIN groups ON groups.id = memberships.groupid WHERE memberships.role IN (?, ?) AND groups.type = 'Freegle' ORDER BY RAND();", [
+$users = $dbhr->preQuery("SELECT DISTINCT users.id FROM users INNER JOIN memberships ON users.id = memberships.userid INNER JOIN `groups` ON groups.id = memberships.groupid WHERE memberships.role IN (?, ?) AND groups.type = 'Freegle' ORDER BY RAND();", [
     User::ROLE_OWNER,
     User::ROLE_MODERATOR
 ]);

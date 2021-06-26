@@ -26,8 +26,8 @@ class messageTest extends IznikTestCase {
         $dbhm->preExec("DELETE users, users_logins FROM users INNER JOIN users_logins ON users.id = users_logins.userid WHERE uid IN ('testid', '1234');");
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM users WHERE firstname = 'Test' AND lastname = 'User';");
-        $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup1';");
-        $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup2';");
+        $dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup1';");
+        $dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup2';");
 
         # We test around Tuvalu.  If you're setting up Tuvalu Freegle you may need to change that.
         $dbhm->preExec("DELETE FROM locations_grids WHERE swlat >= 8.3 AND swlat <= 8.7;");

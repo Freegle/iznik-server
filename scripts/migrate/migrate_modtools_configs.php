@@ -113,7 +113,7 @@ foreach ($oldconfs as $config) {
     $mods = $dbhold->query($sql);
 
     foreach ($mods as $mod) {
-        $sql = "SELECT * FROM groups WHERE groupid = {$mod['groupid']};";
+        $sql = "SELECT * FROM `groups` WHERE groupid = {$mod['groupid']};";
         $groups = $dbhold->query($sql);
 
         foreach ($groups as $group) {

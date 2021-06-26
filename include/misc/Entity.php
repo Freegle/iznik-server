@@ -36,7 +36,7 @@ class Entity
         $this->table = $table;
 
         if ($id) {
-            $entities = $fetched ? [ $fetched ] : $dbhr->preQuery("SELECT * FROM $table WHERE id = ?;",
+            $entities = $fetched ? [ $fetched ] : $dbhr->preQuery("SELECT * FROM `$table` WHERE id = ?;",
                 [
                     $id
                 ],
@@ -99,7 +99,7 @@ class Entity
 
     public function setPrivate($att, $val) {
         if (!array_key_exists($att, $this->{$this->name}) || $this->{$this->name}[$att] !== $val) {
-            $rc = $this->dbhm->preExec("UPDATE {$this->table} SET `$att` = ? WHERE id = {$this->id};", [$val]);
+            $rc = $this->dbhm->preExec("UPDATE `{$this->table}` SET `$att` = ? WHERE id = {$this->id};", [$val]);
             #error_log("RC $rc for set of $att = $val for {$this->id} in {$this->table}");
             if ($rc) {
                 $this->{$this->name}[$att] = $val;

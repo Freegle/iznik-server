@@ -11,7 +11,7 @@ global $dbhr, $dbhm;
 $start = date('Y-m-d', strtotime("1000 days ago"));
 $recent = date('Y-m-d', strtotime("30 days ago"));
 
-$recents = $dbhr->preQuery("SELECT DISTINCT(byuser) FROM logs INNER JOIN groups ON logs.groupid = groups.id LEFT OUTER JOIN teams_members ON teams_members.userid = logs.byuser WHERE timestamp >= '$recent' AND logs.type = 'Message' AND subtype = 'Approved' AND groups.type = 'Freegle' AND teams_members.userid IS NULL;");
+$recents = $dbhr->preQuery("SELECT DISTINCT(byuser) FROM logs INNER JOIN `groups` ON logs.groupid = groups.id LEFT OUTER JOIN teams_members ON teams_members.userid = logs.byuser WHERE timestamp >= '$recent' AND logs.type = 'Message' AND subtype = 'Approved' AND groups.type = 'Freegle' AND teams_members.userid IS NULL;");
 $userids = array_column($recents, 'byuser');
 
 $counts = $dbhr->preQuery("SELECT COUNT(DISTINCT(CONCAT(YEAR(timestamp), '-', MONTH(timestamp)))) AS months, byuser FROM logs WHERE timestamp >= '$start' AND type = 'Message' AND subtype = 'Approved' AND byuser IN (-1" . implode(',', $userids) . ") GROUP BY byuser;");

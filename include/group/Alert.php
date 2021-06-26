@@ -119,7 +119,7 @@ class Alert extends Entity
             $groupid = $a->getPrivate('groupid');
             $groupq =  $groupid ? " WHERE id = $groupid " : (" WHERE `type` = '$type' AND id > {$alert['groupprogress']} AND publish = 1 ORDER BY id ASC LIMIT 1");
 
-            $groups = $this->dbhr->preQuery("SELECT id, nameshort FROM groups $groupq;");
+            $groups = $this->dbhr->preQuery("SELECT id, nameshort FROM `groups` $groupq;");
             $complete = count($groups) == 0;
             #error_log("Count " . count($groups) . " done $done");
 

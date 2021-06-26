@@ -31,7 +31,7 @@ class userTest extends IznikTestCase {
         $dbhm->preExec("DELETE users, users_logins FROM users INNER JOIN users_logins ON users.id = users_logins.userid WHERE uid IN ('testid', '1234');");
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM users WHERE firstname = 'Test' AND lastname = 'User';");
-        $dbhm->preExec("DELETE FROM groups WHERE nameshort LIKE 'testgroup%';");
+        $dbhm->preExec("DELETE FROM `groups` WHERE nameshort LIKE 'testgroup%';");
         $dbhm->preExec("DELETE FROM users_emails WHERE email = 'bit-bucket@test.smtp.org'");
         $dbhm->preExec("DELETE FROM users_emails WHERE email = 'test@test.com'");
     }

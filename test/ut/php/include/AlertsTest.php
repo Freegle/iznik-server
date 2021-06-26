@@ -23,7 +23,7 @@ class AlertTest extends IznikTestCase {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
-        $this->dbhm->preExec("DELETE FROM groups WHERE `type` = 'UnitTest';");
+        $this->dbhm->preExec("DELETE FROM `groups` WHERE `type` = 'UnitTest';");
     }
 
     protected function tearDown() {

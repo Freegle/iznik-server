@@ -17,7 +17,7 @@ if (count($opts) > 1) {
     $g = Group::get($dbhr, $dbhm);
     $gid = $groupname ? $g->findByShortName($groupname) : NULL;
 
-    $sql = "SELECT id, nameshort FROM groups WHERE type = 'Freegle' " . ($gid ? " AND id = $gid" : "") . " ORDER BY nameshort ASC;";
+    $sql = "SELECT id, nameshort FROM `groups` WHERE type = 'Freegle' " . ($gid ? " AND id = $gid" : "") . " ORDER BY nameshort ASC;";
     $groups = $dbhr->preQuery($sql);
 
     foreach ($groups as $group) {
@@ -42,7 +42,7 @@ if (count($opts) > 1) {
                 echo $wkt;
             }
             if (preg_match('/.*"(.*)"/', $wkt, $matches)) {
-                $dbhm->preExec("UPDATE groups SET poly = ? WHERE id = ?;", [ $matches[1], $group['id'] ]);
+                $dbhm->preExec("UPDATE `groups` SET poly = ? WHERE id = ?;", [ $matches[1], $group['id'] ]);
             }
         }
     }

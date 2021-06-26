@@ -92,7 +92,7 @@ class Team extends Entity
     public function getVolunteers() {
         # A pseudo-team of all the volunteers who are ok with being public.  We dip into the user tables for performance,
         # otherwise we'd have to instantiate each user.
-        $vols = $this->dbhr->preQuery("SELECT DISTINCT userid, firstname, lastname, fullname, users.added, users.settings FROM memberships INNER JOIN groups ON groups.id = memberships.groupid AND memberships.role IN (?, ?) INNER JOIN users ON users.id = memberships.userid WHERE groups.type = ?;", [
+        $vols = $this->dbhr->preQuery("SELECT DISTINCT userid, firstname, lastname, fullname, users.added, users.settings FROM memberships INNER JOIN `groups` ON groups.id = memberships.groupid AND memberships.role IN (?, ?) INNER JOIN users ON users.id = memberships.userid WHERE groups.type = ?;", [
             User::ROLE_MODERATOR,
             User::ROLE_OWNER,
             Group::GROUP_FREEGLE

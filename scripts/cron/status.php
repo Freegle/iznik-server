@@ -160,7 +160,7 @@ function status()
     if (!$overallwarning) {
         # Check whether we have a backlog sending digests.  This is less important than other warnings.
         error_log("Check mail backlogs");
-        $sql = "SELECT groupid, frequency, backlog FROM (SELECT DISTINCT TIMESTAMPDIFF(HOUR, started, NOW()) AS backlog, groups_digests.* FROM `groups_digests` INNER JOIN groups ON groups.id = groups_digests.groupid WHERE type = 'Freegle' AND onhere = 1 AND publish = 1 HAVING backlog > frequency * 1.5 AND frequency > 0 AND backlog > 0) t
+        $sql = "SELECT groupid, frequency, backlog FROM (SELECT DISTINCT TIMESTAMPDIFF(HOUR, started, NOW()) AS backlog, groups_digests.* FROM `groups_digests` INNER JOIN `groups` ON groups.id = groups_digests.groupid WHERE type = 'Freegle' AND onhere = 1 AND publish = 1 HAVING backlog > frequency * 1.5 AND frequency > 0 AND backlog > 0) t
 ORDER BY backlog DESC LIMIT 1;";
         $backlogs = $dbhr->preQuery($sql);
 
@@ -168,7 +168,7 @@ ORDER BY backlog DESC LIMIT 1;";
             $g = new Group($dbhr, $dbhm, $backlog['groupid']);
 
             if (!$g->getSetting('closed', FALSE)) {
-                $sql = "SELECT count(DISTINCT groupid) AS count FROM (SELECT DISTINCT TIMESTAMPDIFF(HOUR, started, NOW()) AS backlog, groups_digests.* FROM `groups_digests` INNER JOIN groups ON groups.id = groups_digests.groupid WHERE type = 'Freegle' AND onhere = 1 AND publish = 1 HAVING backlog > frequency * 1.5 AND frequency > 0 AND backlog > 0) t;";
+                $sql = "SELECT count(DISTINCT groupid) AS count FROM (SELECT DISTINCT TIMESTAMPDIFF(HOUR, started, NOW()) AS backlog, groups_digests.* FROM `groups_digests` INNER JOIN `groups` ON groups.id = groups_digests.groupid WHERE type = 'Freegle' AND onhere = 1 AND publish = 1 HAVING backlog > frequency * 1.5 AND frequency > 0 AND backlog > 0) t;";
                 $counts = $dbhr->preQuery($sql);
                 $overallwarning = TRUE;
                 $info["Mailer"]['warning'] = TRUE;

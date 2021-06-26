@@ -15,11 +15,11 @@ $pgroups = $dbhf->query("SELECT * FROM perch_groups;");
 foreach ($pgroups as $pgroup) {
     $p = strrpos($pgroup['groupURL'], '/');
     $name = substr($pgroup['groupURL'], $p + 1);
-    $sql = "SELECT * FROM groups WHERE nameshort = ?;";
+    $sql = "SELECT * FROM `groups` WHERE nameshort = ?;";
     $groups = $dbhr->preQuery($sql, [ $name ]);
     $found = FALSE;
     foreach ($groups as $group) {
         $found = TRUE;
-        $dbhm->preExec("UPDATE groups SET namefull = ?, publish = ? WHERE id = ?;", [ $pgroup['groupTitle'], $pgroup['groupPublished'], $group['id'] ]);
+        $dbhm->preExec("UPDATE `groups` SET namefull = ?, publish = ? WHERE id = ?;", [ $pgroup['groupTitle'], $pgroup['groupPublished'], $group['id'] ]);
     }
 }

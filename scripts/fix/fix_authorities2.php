@@ -12,7 +12,7 @@ $opts = getopt('i:');
 
 $authorityid = $opts['i'];
 
-$groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = ? AND publish = 1 AND onmap = 1", [
+$groups = $dbhr->preQuery("SELECT * FROM `groups` WHERE type = ? AND publish = 1 AND onmap = 1", [
   Group::GROUP_FREEGLE
 ]);
 

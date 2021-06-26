@@ -924,7 +924,7 @@ class User extends Entity
         if (!$this->memberships) {
             $this->memberships = [];
 
-            $membs = $this->dbhr->preQuery("SELECT memberships.*, groups.type FROM memberships INNER JOIN groups ON groups.id = memberships.groupid WHERE userid = ?;", [ $id ]);
+            $membs = $this->dbhr->preQuery("SELECT memberships.*, groups.type FROM memberships INNER JOIN `groups` ON groups.id = memberships.groupid WHERE userid = ?;", [ $id ]);
             foreach ($membs as $memb) {
                 $this->memberships[$memb['groupid']] = $memb;
             }
@@ -1028,7 +1028,7 @@ class User extends Entity
         $modq = $modonly ? " AND role IN ('Owner', 'Moderator') " : "";
         $typeq = $grouptype ? (" AND `type` = " . $this->dbhr->quote($grouptype)) : '';
         $publishq = Session::modtools() ? "" : "AND groups.publish = 1";
-        $sql = "SELECT groupid FROM memberships INNER JOIN groups ON groups.id = memberships.groupid $publishq WHERE userid = ? $modq $typeq;";
+        $sql = "SELECT groupid FROM memberships INNER JOIN `groups` ON groups.id = memberships.groupid $publishq WHERE userid = ? $modq $typeq;";
         $groups = $this->dbhr->preQuery($sql, [$id]);
         #error_log("getMemberships $sql {$id} " . var_export($groups, TRUE));
         $groupids = array_filter(array_column($groups, 'groupid'));
@@ -1043,7 +1043,7 @@ class User extends Entity
         $modq = $modonly ? " AND role IN ('Owner', 'Moderator') " : "";
         $typeq = $grouptype ? (" AND `type` = " . $this->dbhr->quote($grouptype)) : '';
         $publishq = Session::modtools() ? "" : "AND groups.publish = 1";
-        $sql = "SELECT type, memberships.settings, collection, emailfrequency, eventsallowed, volunteeringallowed, groupid, role, configid, ourPostingStatus, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN groups ON groups.id = memberships.groupid $publishq WHERE userid = ? $modq $typeq ORDER BY LOWER(namedisplay) ASC;";
+        $sql = "SELECT type, memberships.settings, collection, emailfrequency, eventsallowed, volunteeringallowed, groupid, role, configid, ourPostingStatus, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN `groups` ON groups.id = memberships.groupid $publishq WHERE userid = ? $modq $typeq ORDER BY LOWER(namedisplay) ASC;";
         $groups = $this->dbhr->preQuery($sql, [$id]);
         #error_log("getMemberships $sql {$id} " . var_export($groups, TRUE));
 
@@ -2134,7 +2134,7 @@ class User extends Entity
             $addmax = ($systemrole == User::SYSTEMROLE_ADMIN || $systemrole == User::SYSTEMROLE_SUPPORT) ? PHP_INT_MAX : 31;
             $modids = array_merge([0], $me->getModeratorships());
             $freegleq = $freeglemod ? " OR groups.type = 'Freegle' " : '';
-            $sql = "SELECT DISTINCT memberships.*, memberships.collection AS coll, groups.onhere, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships INNER JOIN groups ON memberships.groupid = groups.id WHERE userid IN (" . implode(',', $userids) . ") AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . ") $freegleq);";
+            $sql = "SELECT DISTINCT memberships.*, memberships.collection AS coll, groups.onhere, groups.nameshort, groups.namefull, groups.lat, groups.lng, groups.type FROM memberships INNER JOIN `groups` ON memberships.groupid = groups.id WHERE userid IN (" . implode(',', $userids) . ") AND (DATEDIFF(NOW(), memberships.added) <= $addmax OR memberships.groupid IN (" . implode(',', $modids) . ") $freegleq);";
             $groups = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
             #error_log("Get groups $sql, {$this->id}");
 
@@ -2213,7 +2213,7 @@ class User extends Entity
             if (count($idsleft)) {
                 # As well as being a member of a group, they might have joined and left, or applied and been rejected.
                 # This is useful info for moderators.
-                $sql = "SELECT DISTINCT memberships_history.*, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships_history INNER JOIN groups ON memberships_history.groupid = groups.id WHERE userid IN (" . implode(
+                $sql = "SELECT DISTINCT memberships_history.*, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM memberships_history INNER JOIN `groups` ON memberships_history.groupid = groups.id WHERE userid IN (" . implode(
                         ',',
                         $idsleft
                     ) . ") AND DATEDIFF(NOW(), added) <= 31 AND groups.publish = 1 AND groups.onmap = 1 ORDER BY added DESC;";
@@ -4399,7 +4399,7 @@ class User extends Entity
 
                     # Get all the memberships.
                     if (!$membs) {
-                        $sql = "SELECT memberships.userid, groups.id, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid IN (" . implode(
+                        $sql = "SELECT memberships.userid, groups.id, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM `groups` INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid IN (" . implode(
                                 ',',
                                 $idsleft
                             ) . ") ORDER BY added ASC;";
@@ -4476,7 +4476,7 @@ class User extends Entity
                 # Now check just membership.
                 if (count($idsleft)) {
                     if (!$membs) {
-                        $sql = "SELECT memberships.userid, groups.id, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM groups INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid IN (" . implode(
+                        $sql = "SELECT memberships.userid, groups.id, groups.nameshort, groups.namefull, groups.lat, groups.lng FROM `groups` INNER JOIN memberships ON groups.id = memberships.groupid WHERE memberships.userid IN (" . implode(
                                 ',',
                                 $idsleft
                             ) . ") ORDER BY added ASC;";
@@ -4572,7 +4572,7 @@ class User extends Entity
 
         if ($userids && count($userids) && $usegroup) {
             # Still some we haven't handled.  Get the memberships.  Logic will choose most recently joined.
-            $membs = $this->dbhr->preQuery("SELECT userid, lat, lng, nameshort, namefull FROM groups INNER JOIN memberships ON memberships.groupid = groups.id WHERE userid IN (" . implode(',', $userids) . ") ORDER BY added ASC;", NULL, FALSE, FALSE);
+            $membs = $this->dbhr->preQuery("SELECT userid, lat, lng, nameshort, namefull FROM `groups` INNER JOIN memberships ON memberships.groupid = groups.id WHERE userid IN (" . implode(',', $userids) . ") ORDER BY added ASC;", NULL, FALSE, FALSE);
             foreach ($membs as $memb) {
                 $ret[$memb['userid']] = [
                     'lat' => $memb['lat'],
@@ -4604,7 +4604,7 @@ class User extends Entity
 
         if ($needgroup) {
             # Get a group name.
-            $membs = $this->dbhr->preQuery("SELECT userid, nameshort, namefull FROM groups INNER JOIN memberships ON memberships.groupid = groups.id WHERE userid IN (" . implode(',', array_filter(array_column($users, 'id'))) . ") ORDER BY added ASC;", NULL, FALSE, FALSE);
+            $membs = $this->dbhr->preQuery("SELECT userid, nameshort, namefull FROM `groups` INNER JOIN memberships ON memberships.groupid = groups.id WHERE userid IN (" . implode(',', array_filter(array_column($users, 'id'))) . ") ORDER BY added ASC;", NULL, FALSE, FALSE);
             foreach ($membs as $memb) {
                 $ret[$memb['userid']] = [
                     'group' => Utils::presdef('namefull', $memb, $memb['nameshort'])
@@ -4774,7 +4774,7 @@ class User extends Entity
         # - have a Facebook login, as they are more likely to do publicity.
         $limit = intval($limit);
         $start = date('Y-m-d', strtotime("60 days ago"));
-        $sql = "SELECT users_kudos.* FROM users_kudos INNER JOIN users ON users.id = users_kudos.userid INNER JOIN memberships ON memberships.userid = users_kudos.userid AND memberships.groupid = ? INNER JOIN groups ON groups.id = memberships.groupid INNER JOIN locations_spatial ON users.lastlocation = locations_spatial.locationid WHERE memberships.role = ? AND users_kudos.platform = 1 AND users_kudos.facebook = 1 AND ST_Contains(GeomFromText(groups.poly), locations_spatial.geometry) AND bouncing = 0 AND lastaccess >= '$start' ORDER BY kudos DESC LIMIT $limit;";
+        $sql = "SELECT users_kudos.* FROM users_kudos INNER JOIN users ON users.id = users_kudos.userid INNER JOIN memberships ON memberships.userid = users_kudos.userid AND memberships.groupid = ? INNER JOIN `groups` ON groups.id = memberships.groupid INNER JOIN locations_spatial ON users.lastlocation = locations_spatial.locationid WHERE memberships.role = ? AND users_kudos.platform = 1 AND users_kudos.facebook = 1 AND ST_Contains(GeomFromText(groups.poly), locations_spatial.geometry) AND bouncing = 0 AND lastaccess >= '$start' ORDER BY kudos DESC LIMIT $limit;";
         $kudos = $this->dbhr->preQuery($sql, [
             $gid,
             User::ROLE_MEMBER
@@ -4978,7 +4978,7 @@ class User extends Entity
         $d['memberships'] = $this->getMemberships();
 
         error_log("...memberships history");
-        $sql = "SELECT DISTINCT memberships_history.*, groups.nameshort, groups.namefull FROM memberships_history INNER JOIN groups ON memberships_history.groupid = groups.id WHERE userid = ? ORDER BY added ASC;";
+        $sql = "SELECT DISTINCT memberships_history.*, groups.nameshort, groups.namefull FROM memberships_history INNER JOIN `groups` ON memberships_history.groupid = groups.id WHERE userid = ? ORDER BY added ASC;";
         $membs = $this->dbhr->preQuery($sql, [$this->id]);
         foreach ($membs as &$memb) {
             $name = $memb['namefull'] ? $memb['namefull'] : $memb['nameshort'];
@@ -5914,7 +5914,7 @@ class User extends Entity
 
     public function microVolunteering() {
         // Are we on a group where microvolunteering is enabled.
-        $groups = $this->dbhr->preQuery("SELECT memberships.id FROM memberships INNER JOIN groups ON groups.id = memberships.groupid WHERE userid = ? AND microvolunteering = 1 LIMIT 1;", [
+        $groups = $this->dbhr->preQuery("SELECT memberships.id FROM memberships INNER JOIN `groups` ON groups.id = memberships.groupid WHERE userid = ? AND microvolunteering = 1 LIMIT 1;", [
             $this->id
         ]);
 
@@ -5987,7 +5987,7 @@ class User extends Entity
 
     public function getModGroupsByActivity() {
         $start = date('Y-m-d', strtotime("60 days ago"));
-        $sql = "SELECT COUNT(*) AS count, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM messages_groups INNER JOIN groups ON groups.id = messages_groups.groupid WHERE approvedby = ? AND arrival >= '$start' AND groups.publish = 1 AND groups.onmap = 1 AND groups.type = 'Freegle' GROUP BY groupid ORDER BY count DESC";
+        $sql = "SELECT COUNT(*) AS count, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM messages_groups INNER JOIN `groups` ON groups.id = messages_groups.groupid WHERE approvedby = ? AND arrival >= '$start' AND groups.publish = 1 AND groups.onmap = 1 AND groups.type = 'Freegle' GROUP BY groupid ORDER BY count DESC";
         return $this->dbhr->preQuery($sql, [
             $this->id
         ]);

@@ -10,7 +10,7 @@ global $dbhr, $dbhm;
 
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 
-$sql = "SELECT id, nameshort, poly FROM groups WHERE type = 'Freegle' AND poly IS NOT NULL AND publish = 1 ORDER BY nameshort ASc;";
+$sql = "SELECT id, nameshort, poly FROM `groups` WHERE type = 'Freegle' AND poly IS NOT NULL AND publish = 1 ORDER BY nameshort ASc;";
 $groups = $dbhr->preQuery($sql);
 
 $kml = "<?xml version='1.0' encoding='UTF-8'?>

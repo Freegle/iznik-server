@@ -26,8 +26,8 @@ class groupAPITest extends IznikAPITestCase {
 
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test';");
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
-        $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
-        $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup2';");
+        $dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup';");
+        $dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup2';");
 
         # Create a moderator
         $g = Group::get($this->dbhr, $this->dbhm);

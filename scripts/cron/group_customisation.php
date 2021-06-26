@@ -8,7 +8,7 @@ require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
-$groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle' AND publish = 1 AND onhere = 1 ORDER BY RAND();");
+$groups = $dbhr->preQuery("SELECT * FROM `groups` WHERE type = 'Freegle' AND publish = 1 AND onhere = 1 ORDER BY RAND();");
 
 foreach ($groups as $group) {
     error_log("Check {$group['id']} {$group['nameshort']}");

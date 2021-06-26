@@ -8,7 +8,7 @@ require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
-$cs = $dbhr->preQuery("SELECT * FROM groups where settings like '%closed\":1%'");
+$cs = $dbhr->preQuery("SELECT * FROM `groups` where settings like '%closed\":1%'");
 
 foreach ($cs as $c) {
     $g = new Group($dbhr, $dbhm, $c['id']);

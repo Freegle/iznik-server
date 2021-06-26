@@ -9,7 +9,7 @@ $dsn = "mysql:host={$dbconfig['host']};dbname=ilovefreegle;charset=utf8";
 
 $dbhf = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass']);
 
-$groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle';");
+$groups = $dbhr->preQuery("SELECT * FROM `groups` WHERE type = 'Freegle';");
 
 foreach ($groups as $group) {
     $fgroups = $dbhf->preQuery("SELECT regionTitle FROM perch_groups INNER JOIN perch_regions ON perch_regions.regionID = perch_groups.regionID WHERE groupURL = ?;", [
@@ -17,7 +17,7 @@ foreach ($groups as $group) {
     ]);
     $found = FALSE;
     foreach ($fgroups as $fgroup) {
-        $dbhm->preExec("UPDATE groups SET region = ? WHERE id = ?;", [
+        $dbhm->preExec("UPDATE `groups` SET region = ? WHERE id = ?;", [
             $fgroup['regionTitle'],
             $group['id']
         ]);

@@ -39,7 +39,7 @@ class Donations
     }
 
     public function get() {
-        $target = $this->groupid ? $this->dbhr->preQuery("SELECT fundingtarget FROM groups WHERE id = {$this->groupid};")[0]['fundingtarget'] : DONATION_TARGET;
+        $target = $this->groupid ? $this->dbhr->preQuery("SELECT fundingtarget FROM `groups` WHERE id = {$this->groupid};")[0]['fundingtarget'] : DONATION_TARGET;
         $ret = [
             'target' => $target
         ];

@@ -102,7 +102,7 @@ chat_messages.id AS lastmsg, chat_messages.message AS chatmsg, chat_messages.dat
 ELSE
   (SELECT chat_roster.lastmsgseen FROM chat_roster WHERE chatid = chat_rooms.id AND userid = $myid)
 END AS lastmsgseen" : '') . "     
-FROM chat_rooms LEFT JOIN groups ON groups.id = chat_rooms.groupid 
+FROM chat_rooms LEFT JOIN `groups` ON groups.id = chat_rooms.groupid 
 LEFT JOIN users u1 ON chat_rooms.user1 = u1.id
 LEFT JOIN users u2 ON chat_rooms.user2 = u2.id 
 LEFT JOIN users_images i1 ON i1.userid = u1.id
@@ -1384,7 +1384,7 @@ LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messag
 INNER JOIN chat_rooms ON reviewrequired = 1 AND reviewrejected = 0 AND chat_rooms.id = chat_messages.chatid
 INNER JOIN memberships m1 ON m1.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND m1.groupid IN ($groupq)
 LEFT JOIN memberships m2 ON m2.userid = chat_messages.userid AND m2.groupid IN ($groupq)
-INNER JOIN groups ON m1.groupid = groups.id AND groups.type = ?
+INNER JOIN `groups` ON m1.groupid = groups.id AND groups.type = ?
 WHERE chat_messages.id > ?
 ORDER BY chat_messages.id, m1.added, groupid ASC;";
         $msgs = $this->dbhr->preQuery($sql, [Group::GROUP_FREEGLE, $msgid]);

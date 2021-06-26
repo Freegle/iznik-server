@@ -5,7 +5,7 @@ require_once(IZNIK_BASE . '/include/db.php');
 
 require_once(IZNIK_BASE . '/include/group/Group.php');
 
-$groups = $dbhr->preQuery("SELECT id FROM groups WHERE type = 'Other';");
+$groups = $dbhr->preQuery("SELECT id FROM `groups` WHERE type = 'Other';");
 
 foreach ($groups as $group) {
     $g = Group::get($dbhr, $dbhm, $group['id']);

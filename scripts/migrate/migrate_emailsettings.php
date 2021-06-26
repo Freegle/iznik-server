@@ -16,7 +16,7 @@ $u = User::get($dbhr, $dbhm);
 $dbhfd = new \PDO($dsnfd, $dbconfig['user'], $dbconfig['pass']);
 
 error_log("Migrate FD memberships");
-$groups = $dbhfd->query("SELECT * FROM groups WHERE grouppublish = 1 ORDER BY LOWER(groupname) ASC;");
+$groups = $dbhfd->query("SELECT * FROM `groups` WHERE grouppublish = 1 ORDER BY LOWER(groupname) ASC;");
 $groupcount = 0;
 
 foreach ($groups as $group) {

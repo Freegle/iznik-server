@@ -155,7 +155,7 @@ try {
     # Non-Freegle groups only keep data for 31 days.
     $start = date('Y-m-d', strtotime("midnight 31 days ago"));
     error_log("Non-Freegle logs");
-    $groups = $dbhr->preQuery("SELECT id FROM groups WHERE type != 'Freegle';");
+    $groups = $dbhr->preQuery("SELECT id FROM `groups` WHERE type != 'Freegle';");
     foreach ($groups as $group) {
         $total = 0;
         do {

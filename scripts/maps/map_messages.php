@@ -10,8 +10,8 @@ $at = 0;
 #$dbhm->preExec("UPDATE messages SET locationid = NULL, lat = NULL, lng = NULL WHERE lat IS NOT NULL;");
 
 do {
-    #$sql = "SELECT messages.id, groups.id AS groupid, groups.nameshort FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.deleted = 0 AND messages.locationid IS NULL INNER JOIN groups ON groups.id = messages_groups.groupid AND groups.type = 'Freegle' AND subject IS NOT NULL AND groupid = 21354 ORDER BY id DESC;";
-    $sql = "SELECT messages.id, groups.id AS groupid, groups.nameshort FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.deleted = 0 AND messages.locationid IS NULL INNER JOIN groups ON groups.id = messages_groups.groupid AND groups.type = 'Freegle' AND subject IS NOT NULL ORDER BY id DESC;";
+    #$sql = "SELECT messages.id, groups.id AS groupid, groups.nameshort FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.deleted = 0 AND messages.locationid IS NULL INNER JOIN `groups` ON groups.id = messages_groups.groupid AND groups.type = 'Freegle' AND subject IS NOT NULL AND groupid = 21354 ORDER BY id DESC;";
+    $sql = "SELECT messages.id, groups.id AS groupid, groups.nameshort FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.deleted = 0 AND messages.locationid IS NULL INNER JOIN `groups` ON groups.id = messages_groups.groupid AND groups.type = 'Freegle' AND subject IS NOT NULL ORDER BY id DESC;";
 
     $msgs = $dbhr->query($sql);
     $found = false;

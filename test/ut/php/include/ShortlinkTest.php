@@ -23,7 +23,7 @@ class shortlinkTest extends IznikTestCase {
         $this->dbhm = $dbhm;
 
         $dbhm->preExec("DELETE FROM shortlinks WHERE name LIKE 'test%';");
-        $this->dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
+        $this->dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup';");
     }
 
     public function testGroup() {

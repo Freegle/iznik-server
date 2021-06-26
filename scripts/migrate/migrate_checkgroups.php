@@ -9,7 +9,7 @@ $dsn = "mysql:host={$dbconfig['host']};dbname=ilovefreegle;charset=utf8";
 
 $dbhf = new LoggedPDO($dsn, $dbconfig['user'], $dbconfig['pass']);
 
-$groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle' AND publish = 1 and listable = 1;");
+$groups = $dbhr->preQuery("SELECT * FROM `groups` WHERE type = 'Freegle' AND publish = 1 and listable = 1;");
 foreach ($groups as $group) {
     $pgroups = $dbhf->query("SELECT * FROM perch_groups WHERE groupURL like '%/{$group['nameshort']}';'")->fetchAll();
     if (count($pgroups) == 0) {
@@ -20,10 +20,10 @@ foreach ($groups as $group) {
 $pgroups = $dbhf->query("SELECT * FROM perch_groups WHERE groupPublished = 1;");
 foreach ($pgroups as $pgroup) {
     $nameshort = substr($pgroup['groupURL'], strrpos($pgroup['groupURL'], '/') + 1);
-    $groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle' AND publish = 1 AND nameshort LIKE ?;", [ $nameshort ]);
+    $groups = $dbhr->preQuery("SELECT * FROM `groups` WHERE type = 'Freegle' AND publish = 1 AND nameshort LIKE ?;", [ $nameshort ]);
     if (count($groups) == 0) {
         error_log("{$pgroup['groupURL']} not on new system");
     } else {
-        $dbhm->preExec("UPDATE groups SET namefull = ? WHERE id = {$groups[0]['id']};", [ $pgroup['groupTitle'] ]);
+        $dbhm->preExec("UPDATE `groups` SET namefull = ? WHERE id = {$groups[0]['id']};", [ $pgroup['groupTitle'] ]);
     }
 }

@@ -49,7 +49,7 @@ for ($year = 2003; $year < 2018; $year++) {
         #   it's not bouncing now, and that's probably more reliable than BriteVerify
         # - they've not been active for a year - otherwise there's a reasonable chance the email is ok.
         # - we're sending digest, events or volunteer emails - and therefore likely to hit spam traps.
-        $sql = "SELECT users_emails.id, users_emails.email FROM users_emails LEFT JOIN users_emails_verify ON users_emails.id = users_emails_verify.emailid INNER JOIN memberships ON memberships.userid = users_emails.userid INNER JOIN groups ON groups.id = memberships.groupid INNER JOIN users ON users.id = users_emails.userid WHERE users_emails_verify.emailid IS NULL AND bounced IS NULL AND groups.type = 'Freegle' AND users_emails.added BETWEEN '$start' AND '$end' AND (emailfrequency != 0 OR eventsallowed != 0 OR volunteeringallowed != 0) AND bouncing = 0 AND bounced IS NULL GROUP BY users_emails.id, users_emails.email ORDER BY users_emails.added ASC LIMIT 50;";
+        $sql = "SELECT users_emails.id, users_emails.email FROM users_emails LEFT JOIN users_emails_verify ON users_emails.id = users_emails_verify.emailid INNER JOIN memberships ON memberships.userid = users_emails.userid INNER JOIN `groups` ON groups.id = memberships.groupid INNER JOIN users ON users.id = users_emails.userid WHERE users_emails_verify.emailid IS NULL AND bounced IS NULL AND groups.type = 'Freegle' AND users_emails.added BETWEEN '$start' AND '$end' AND (emailfrequency != 0 OR eventsallowed != 0 OR volunteeringallowed != 0) AND bouncing = 0 AND bounced IS NULL GROUP BY users_emails.id, users_emails.email ORDER BY users_emails.added ASC LIMIT 50;";
         $emails = $dbhr->preQuery($sql);
         error_log("...scan " . count($emails));
 

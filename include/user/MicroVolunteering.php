@@ -142,7 +142,7 @@ class MicroVolunteering
                         "SELECT messages_groups.msgid
     FROM messages_groups
     INNER JOIN messages ON messages.id = messages_groups.msgid
-    INNER JOIN groups ON groups.id = messages_groups.groupid
+    INNER JOIN `groups` ON groups.id = messages_groups.groupid
     LEFT JOIN microactions ON microactions.msgid = messages_groups.msgid AND microactions.userid = ?    
     WHERE messages_groups.groupid IN (" . implode(',', $groupids) . " ) 
         AND fromuser != ?
@@ -188,7 +188,7 @@ class MicroVolunteering
     FROM messages_spatial 
     INNER JOIN messages_groups ON messages_spatial.msgid = messages_groups.msgid
     INNER JOIN messages ON messages.id = messages_spatial.msgid
-    INNER JOIN groups ON groups.id = messages_groups.groupid
+    INNER JOIN `groups` ON groups.id = messages_groups.groupid
     LEFT JOIN microactions ON microactions.msgid = messages_spatial.msgid AND microactions.userid = ?    
     LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages_spatial.msgid
     WHERE messages_groups.groupid IN (" . implode(',', $groupids) . " ) 
@@ -247,7 +247,7 @@ class MicroVolunteering
     FROM messages_groups 
     INNER JOIN messages_attachments ON messages_attachments.msgid = messages_groups.msgid
     LEFT JOIN microactions ON microactions.rotatedimage = messages_attachments.id AND userid = ?
-    INNER JOIN groups ON groups.id = messages_groups.groupid AND microvolunteering = 1 AND (microvolunteeringoptions IS NULL OR JSON_EXTRACT(microvolunteeringoptions, '$.photorotate') = 1)
+    INNER JOIN `groups` ON groups.id = messages_groups.groupid AND microvolunteering = 1 AND (microvolunteeringoptions IS NULL OR JSON_EXTRACT(microvolunteeringoptions, '$.photorotate') = 1)
     WHERE arrival >= ? AND groupid IN (" . implode(',', $groupids) . ") AND microactions.id IS NULL
     HAVING reviewcount < ?
     ORDER BY RAND() LIMIT 9;",
@@ -281,7 +281,7 @@ class MicroVolunteering
                 #
                 # We choose 10 random distinct popular items, and ask which are related.
                 $enabled = $this->dbhr->preQuery(
-                    "SELECT memberships.id FROM memberships INNER JOIN groups ON memberships.groupid = groups.id WHERE memberships.userid = ? AND (microvolunteeringoptions IS NULL OR JSON_EXTRACT(microvolunteeringoptions, '$.wordmatch') = 1);",
+                    "SELECT memberships.id FROM memberships INNER JOIN `groups` ON memberships.groupid = groups.id WHERE memberships.userid = ? AND (microvolunteeringoptions IS NULL OR JSON_EXTRACT(microvolunteeringoptions, '$.wordmatch') = 1);",
                     [
                         $userid
                     ]

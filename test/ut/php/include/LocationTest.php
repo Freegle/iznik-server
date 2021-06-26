@@ -22,7 +22,7 @@ class locationTest extends IznikTestCase {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
-        $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
+        $dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup';");
 
         # We test around Tuvalu.  If you're setting up Tuvalu Freegle you may need to change that.
         $dbhm->preExec("DELETE FROM locations_grids WHERE swlat >= 8.3 AND swlat <= 8.7;");

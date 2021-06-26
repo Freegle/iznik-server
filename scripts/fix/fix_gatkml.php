@@ -461,14 +461,14 @@ if ($kml) {
                             if (stripos($kname, trim($name[2])) === 0) {
                                 error_log("Found $kname as {$name[0]} {$name[1]}");
                                 $found = TRUE;
-                                $gs = $dbhr->preQuery("SELECT * FROM groups WHERE id = ? AND (polyofficial != ? OR polyofficial IS NULL);", [
+                                $gs = $dbhr->preQuery("SELECT * FROM `groups` WHERE id = ? AND (polyofficial != ? OR polyofficial IS NULL);", [
                                     $name[0],
                                     $wkt
                                 ]);
 
                                 foreach ($gs as $g) {
                                     error_log("Change {$name[1]} from {$g['polyofficial']} to $wkt");
-                                    $dbhm->preExec("UPDATE groups SET polyofficial = ? WHERE id = ?;", [ $wkt, $name[0]] );
+                                    $dbhm->preExec("UPDATE `groups` SET polyofficial = ? WHERE id = ?;", [ $wkt, $name[0]] );
                                 }
                             }
                         }

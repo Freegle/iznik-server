@@ -25,7 +25,7 @@ foreach ($atts['groups'] as $group) {
         error_log("Moderate {$group['id']} " . $g->getName() . " overlap " . $group['overlap']);
         $settings = json_decode($g->getPrivate('settings'), TRUE);
 
-        $dbhm->preExec("UPDATE groups SET precovidmoderated = ?, groups.overridemoderation = 'None', autofunctionoverride = 1  WHERE id = ?", [
+        $dbhm->preExec("UPDATE `groups` SET precovidmoderated = ?, groups.overridemoderation = 'None', autofunctionoverride = 1  WHERE id = ?", [
             $g->getPrivate('autofunctionoverride') ? $g->getPrivate('precovidmoderated') : $settings['moderated'],
             $group['id']
         ]);

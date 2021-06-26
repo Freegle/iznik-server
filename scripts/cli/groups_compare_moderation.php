@@ -10,10 +10,10 @@ global $dbhr, $dbhm, $dbconfig;
 
 $dbhback = new LoggedPDO('localhost:3309', $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE);
 
-$groupsback = $dbhback->preQuery("SELECT id, nameshort, settings FROM groups WHERE type = 'Freegle' ORDER BY LOWER(nameshort) ASC;");
+$groupsback = $dbhback->preQuery("SELECT id, nameshort, settings FROM `groups` WHERE type = 'Freegle' ORDER BY LOWER(nameshort) ASC;");
 
 foreach ($groupsback as $groupback) {
-    $groupslive = $dbhr->preQuery("SELECT id, settings FROM groups WHERE id = ?;", [
+    $groupslive = $dbhr->preQuery("SELECT id, settings FROM `groups` WHERE id = ?;", [
         $groupback['id']
     ]);
 
@@ -26,7 +26,7 @@ foreach ($groupsback as $groupback) {
         if ($moderatedlive && !$moderatedback) {
             error_log("{$groupback['nameshort']} backup $moderatedback vs live $moderatedlive");
             $settingslive['moderated'] = 0;
-            $dbhm->preExec("UPDATE groups SET settings = ? WHERE id = ?", [
+            $dbhm->preExec("UPDATE `groups` SET settings = ? WHERE id = ?", [
                 json_encode($settingslive),
                 $grouplive['id']
             ]);

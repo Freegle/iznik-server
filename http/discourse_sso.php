@@ -63,7 +63,7 @@ if (($sso->validatePayload($payload,$signature))) {
                         # they're a mod on.
                         $modlist = $u->getModeratorships();
                         if (count($modlist)) {
-                            $memberships = $dbhr->preQuery("SELECT COALESCE(namefull, nameshort) AS namedisplay FROM groups WHERE id IN (" . implode(', ', $modlist) . ")");
+                            $memberships = $dbhr->preQuery("SELECT COALESCE(namefull, nameshort) AS namedisplay FROM `groups` WHERE id IN (" . implode(', ', $modlist) . ")");
                         }
                     }
 

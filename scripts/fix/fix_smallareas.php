@@ -7,7 +7,7 @@ require_once(IZNIK_BASE . '/include/misc/Location.php');
 
 $opts = getopt('g:');
 
-$groups = $dbhr->preQuery("SELECT id, region, nameshort FROM groups WHERE type = 'Freegle' AND publish = 1 AND onhere = 1 AND nameshort LIKE '%{$opts['g']}%' AND lower(nameshort) >= 'northdown-ardspeninsula_greencycle' ORDER BY LOWER(nameshort) ASC;");
+$groups = $dbhr->preQuery("SELECT id, region, nameshort FROM `groups` WHERE type = 'Freegle' AND publish = 1 AND onhere = 1 AND nameshort LIKE '%{$opts['g']}%' AND lower(nameshort) >= 'northdown-ardspeninsula_greencycle' ORDER BY LOWER(nameshort) ASC;");
 $l = new Location($dbhr, $dbhm);
 
 foreach ($groups as $group) {

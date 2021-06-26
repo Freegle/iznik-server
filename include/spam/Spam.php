@@ -130,7 +130,7 @@ class Spam {
 
             # Now see if this IP has been used for too many different groups.  That's likely to
             # be someone spamming.
-            $sql = "SELECT groups.nameshort FROM messages_history INNER JOIN groups ON groups.id = messages_history.groupid WHERE fromip = ? GROUP BY groupid;";
+            $sql = "SELECT groups.nameshort FROM messages_history INNER JOIN `groups` ON groups.id = messages_history.groupid WHERE fromip = ? GROUP BY groupid;";
             $groups = $this->dbhr->preQuery($sql, [$ip]);
             $numgroups = count($groups);
 
@@ -490,7 +490,7 @@ class Spam {
             $dists = $this->dbhm->preQuery("SELECT DISTINCT MAX(messages.lat) AS maxlat, MIN(messages.lat) AS minlat, MAX(messages.lng) AS maxlng, MIN(messages.lng) AS minlng, groups.id AS groupid, groups.nameshort, groups.settings FROM chat_messages 
     INNER JOIN messages ON messages.id = chat_messages.refmsgid 
     INNER JOIN messages_groups ON messages_groups.msgid = messages.id
-    INNER JOIN groups ON groups.id = messages_groups.groupid
+    INNER JOIN `groups` ON groups.id = messages_groups.groupid
     WHERE userid = ? AND chat_messages.date >= ? AND chat_messages.type = ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL AND
      messages.lng >= -7.57216793459 AND messages.lat >= 49.959999905 AND messages.lng <= 1.68153079591 AND messages.lat <= 58.6350001085;", [
                 $userid,

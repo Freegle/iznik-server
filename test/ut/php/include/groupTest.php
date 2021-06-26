@@ -24,8 +24,8 @@ class groupTest extends IznikTestCase
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
-        $this->dbhm->exec("DELETE FROM groups WHERE nameshort = 'testgroup2';");
-        $this->dbhm->exec("DELETE FROM groups WHERE nameshort = 'testgroup';");
+        $this->dbhm->exec("DELETE FROM `groups` WHERE nameshort = 'testgroup2';");
+        $this->dbhm->exec("DELETE FROM `groups` WHERE nameshort = 'testgroup';");
         $this->dbhm->preExec("DELETE FROM users WHERE yahooid = '-testid1';");
         $this->dbhm->preExec("DELETE FROM users WHERE yahooid = '-testyahooid';");
         $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
@@ -39,7 +39,7 @@ class groupTest extends IznikTestCase
     {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
-        $this->dbhm->preExec("UPDATE groups SET settings = NULL WHERE id = ?;", [$gid]);
+        $this->dbhm->preExec("UPDATE `groups` SET settings = NULL WHERE id = ?;", [$gid]);
         $g = Group::get($this->dbhr, $this->dbhm, $gid);
         $atts = $g->getPublic();
 
@@ -101,7 +101,7 @@ class groupTest extends IznikTestCase
     {
         $this->log(__METHOD__);
 
-        $sql = "SELECT id, legacyid FROM groups WHERE legacyid IS NOT NULL AND legacyid NOT IN (SELECT id FROM groups);";
+        $sql = "SELECT id, legacyid FROM `groups` WHERE legacyid IS NOT NULL AND legacyid NOT IN (SELECT id FROM `groups`);";
         $groups = $this->dbhr->preQuery($sql);
         foreach ($groups as $group) {
             $this->log("Get legacy {$group['legacyid']}");

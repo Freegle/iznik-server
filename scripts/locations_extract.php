@@ -4,7 +4,7 @@ require_once dirname(__FILE__) . '/../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 
 
-$sql = "SELECT subject, groupid FROM messages_approved WHERE groupid IN (SELECT id FROM groups WHERE type IN ('Reuse', 'Freegle')) AND message LIKE '%X-eGroups-Approved-By:%';";
+$sql = "SELECT subject, groupid FROM messages_approved WHERE groupid IN (SELECT id FROM `groups` WHERE type IN ('Reuse', 'Freegle')) AND message LIKE '%X-eGroups-Approved-By:%';";
 $msgs = $dbhr->preQuery($sql);
 
 foreach ($msgs as $msg) {

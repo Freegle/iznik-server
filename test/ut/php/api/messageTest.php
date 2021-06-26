@@ -26,7 +26,7 @@ class messageAPITest extends IznikAPITestCase
         $this->dbhm = $dbhm;
 
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
-        $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
+        $dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup';");
         $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
         $dbhm->preExec("DELETE FROM messages_drafts WHERE (SELECT fromuser FROM messages WHERE id = msgid) IS NULL;");
         $dbhm->preExec("DELETE FROM worrywords WHERE keyword LIKE 'UTtest%';");

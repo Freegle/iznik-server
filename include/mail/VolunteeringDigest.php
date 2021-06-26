@@ -237,7 +237,7 @@ class VolunteeringDigest
             }
         }
 
-        $this->dbhm->preExec("UPDATE groups SET lastvolunteeringroundup = NOW() WHERE id = ?;", [ $groupid ]);
+        $this->dbhm->preExec("UPDATE `groups` SET lastvolunteeringroundup = NOW() WHERE id = ?;", [ $groupid ]);
         Group::clearCache($groupid);
 
         return($sent);

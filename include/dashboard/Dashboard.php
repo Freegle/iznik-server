@@ -42,14 +42,14 @@ class Dashboard {
 
         # Get the possible groups.
         if ($systemwide) {
-            $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE publish = 1;");
+            $groups = $this->dbhr->preQuery("SELECT id FROM `groups` WHERE publish = 1;");
             foreach ($groups as $group) {
                 $groupids[] = $group['id'];
             }
 
             $usecache = "SELECT * FROM users_dashboard WHERE $userq systemwide = 1 $typeq $startq;";
         } else if ($region) {
-            $groups = $this->dbhr->preQuery("SELECT groups.id FROM groups WHERE region LIKE ?;", [ $region ]);
+            $groups = $this->dbhr->preQuery("SELECT groups.id FROM `groups` WHERE region LIKE ?;", [ $region ]);
             foreach ($groups as $group) {
                 $groupids[] = $group['id'];
             }
@@ -75,7 +75,7 @@ class Dashboard {
 
         if ($type) {
             # Filter by type
-            $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE id IN (" . implode(',', $groupids) . ") AND type = ?;", [ $type ]);
+            $groups = $this->dbhr->preQuery("SELECT id FROM `groups` WHERE id IN (" . implode(',', $groupids) . ") AND type = ?;", [ $type ]);
             $groupids = [0];
             foreach ($groups as $group) {
                 $groupids[] = $group['id'];

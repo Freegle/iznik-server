@@ -26,7 +26,7 @@ class spammersAPITest extends IznikAPITestCase {
 
         $dbhm->preExec("DELETE FROM spam_users WHERE reason LIKE 'Test reason%';");
         $dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE email IN ('test@test.com', 'test2@test.com', 'test3@test.com', 'test4@test.com');");
-        $dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
+        $dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup';");
 
         $this->group = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $this->group->create('testgroup', Group::GROUP_FREEGLE);

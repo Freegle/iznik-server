@@ -27,7 +27,7 @@ if (count($opts) < 2) {
         error_log("Added #$added");
     } else if ($gid) {
         if ($gid == -1) {
-            $membs = $dbhr->preQuery("SELECT DISTINCT userid FROM memberships WHERE groupid IN (SELECT id FROM groups WHERE type = 'Freegle' AND publish = 1 AND onhere = 1) AND collection = ?;", [
+            $membs = $dbhr->preQuery("SELECT DISTINCT userid FROM memberships WHERE groupid IN (SELECT id FROM `groups` WHERE type = 'Freegle' AND publish = 1 AND onhere = 1) AND collection = ?;", [
                 MembershipCollection::APPROVED
             ]);
         } else {

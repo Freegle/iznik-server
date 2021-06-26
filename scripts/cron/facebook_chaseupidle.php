@@ -18,7 +18,7 @@ $lockh = Utils::lockScript(basename(__FILE__));
 $f = new Facebook($dbhr, $dbhm);
 
 # Randomise the order in case we get blocked by Facebook, so that all groups get a lookin.
-$sql = "SELECT id, nameshort FROM groups WHERE `type` = 'Freegle' AND onhere = 1 AND publish = 1 ORDER BY RAND() ASC;";
+$sql = "SELECT id, nameshort FROM `groups` WHERE `type` = 'Freegle' AND onhere = 1 AND publish = 1 ORDER BY RAND() ASC;";
 $groups = $dbhr->preQuery($sql);
 
 foreach ($groups as $group) {

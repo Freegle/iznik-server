@@ -15,7 +15,7 @@ for ($i = 1; $i < 1620; $i++) {
         break;
     }
 
-    $groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle' ORDER BY nameshort ASC;");
+    $groups = $dbhr->preQuery("SELECT * FROM `groups` WHERE type = 'Freegle' ORDER BY nameshort ASC;");
     foreach ($groups as $group) {
         #error_log("...{$group['nameshort']}");
         $s = new Stats($dbhr, $dbhm, $group['id']);

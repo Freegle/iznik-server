@@ -7,7 +7,7 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/group/Alerts.php');
 
 
-$missings = $dbhr->preQuery("SELECT id, nameshort FROM groups WHERE id NOT IN (SELECT groupid FROM alerts_tracking WHERE alertid = 8829) AND type = 'Freegle' AND publish = 1 AND onmap = 1 ORDER BY nameshort ASC;");
+$missings = $dbhr->preQuery("SELECT id, nameshort FROM `groups` WHERE id NOT IN (SELECT groupid FROM alerts_tracking WHERE alertid = 8829) AND type = 'Freegle' AND publish = 1 AND onmap = 1 ORDER BY nameshort ASC;");
 error_log(count($missings) . " missing");
 $a = new Alert($dbhr, $dbhm, 8829);
 

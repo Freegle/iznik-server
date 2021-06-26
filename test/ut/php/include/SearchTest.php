@@ -24,7 +24,7 @@ class searchTest extends IznikTestCase
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
-        $this->dbhm->preExec("DELETE FROM groups WHERE nameshort = 'testgroup';");
+        $this->dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup';");
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $this->gid = $g->create('testgroup', Group::GROUP_REUSE);

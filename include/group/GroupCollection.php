@@ -37,7 +37,7 @@ class GroupCollection
 
         if (count($ids)) {
             # We want to get them all in a single DB query for performance.
-            $groups = $this->dbhr->preQuery("SELECT * FROM groups WHERE id IN (" . implode(',', $ids) . ");", []);
+            $groups = $this->dbhr->preQuery("SELECT * FROM `groups` WHERE id IN (" . implode(',', $ids) . ");", []);
 
             foreach ($groups as $group) {
                 # Create the group object, passing in the attributes so it won't do a DB op.

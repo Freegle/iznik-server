@@ -10,7 +10,7 @@ $dsn = "mysql:host={$dbconfig['host']};dbname=republisher;charset=utf8";
 
 $dbhold = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass']);
 
-$msgs = $dbhr->preQuery("SELECT messageid, nameshort, message FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.deleted = 1 AND messages_groups.collection = 'Approved' INNER JOIN groups ON groups.id = messages_groups.groupid;");
+$msgs = $dbhr->preQuery("SELECT messageid, nameshort, message FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.deleted = 1 AND messages_groups.collection = 'Approved' INNER JOIN `groups` ON groups.id = messages_groups.groupid;");
 error_log("Check " . count($msgs));
 
 foreach ($msgs as $msg) {

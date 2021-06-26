@@ -32,7 +32,7 @@ if (count($opts) < 1) {
     # We only send opportunities for Freegle groups.
     #
     # Cron should run this every week, but restrict to not sending them more than every few days to allow us to tweak the time.
-    $sql = "SELECT id, nameshort FROM groups WHERE `type` = 'Freegle' AND onhere = 1 AND MOD(id, ?) = ? AND publish = 1 AND (lastvolunteeringroundup IS NULL OR DATEDIFF(NOW(), lastvolunteeringroundup) >= 3) ORDER BY LOWER(nameshort) ASC;";
+    $sql = "SELECT id, nameshort FROM `groups` WHERE `type` = 'Freegle' AND onhere = 1 AND MOD(id, ?) = ? AND publish = 1 AND (lastvolunteeringroundup IS NULL OR DATEDIFF(NOW(), lastvolunteeringroundup) >= 3) ORDER BY LOWER(nameshort) ASC;";
     $groups = $dbhr->preQuery($sql, [$mod, $val]);
 
     foreach ($groups as $group) {

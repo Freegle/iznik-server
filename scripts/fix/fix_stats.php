@@ -9,7 +9,7 @@ require_once(IZNIK_BASE . '/include/misc/Stats.php');
     $date = '2019-10-13';
     error_log($date);
 
-    $groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle' ORDER BY nameshort ASC;");
+    $groups = $dbhr->preQuery("SELECT * FROM `groups` WHERE type = 'Freegle' ORDER BY nameshort ASC;");
     foreach ($groups as $group) {
         error_log("...{$group['nameshort']}");
         $s = new Stats($dbhr, $dbhm, $group['id']);

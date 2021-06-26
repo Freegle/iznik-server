@@ -11,7 +11,7 @@ global $dbhr, $dbhm;
 $opts = getopt('g:');
 $gid = count($opts) > 0 ? $opts['g'] : NULL;
 
-$sql = "SELECT id FROM groups " . ($gid ? " WHERE id = $gid" : "") . " ORDER BY nameshort ASC;";
+$sql = "SELECT id FROM `groups` " . ($gid ? " WHERE id = $gid" : "") . " ORDER BY nameshort ASC;";
 $groups = $dbhr->query($sql);
 
 $r = new ChatRoom($dbhr, $dbhm);

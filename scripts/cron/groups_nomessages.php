@@ -10,7 +10,7 @@ global $dbhr, $dbhm;
 
 $none = '';
 $count = 0;
-$groups = $dbhr->preQuery("SELECT * FROM groups WHERE type = 'Freegle' AND onhere = 1 AND nameshort NOT LIKE '%playground%' ORDER BY LOWER(nameshort);");
+$groups = $dbhr->preQuery("SELECT * FROM `groups` WHERE type = 'Freegle' AND onhere = 1 AND nameshort NOT LIKE '%playground%' ORDER BY LOWER(nameshort);");
 foreach ($groups as $group) {
     $sql = "SELECT DATEDIFF(NOW(), MAX(arrival)) AS latest FROM messages_groups WHERE groupid = ?;";
     $latest = $dbhr->preQuery($sql, [ $group['id'] ]);

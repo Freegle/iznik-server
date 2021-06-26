@@ -6,7 +6,7 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/group/Group.php');
 require_once(IZNIK_BASE . '/include/misc/Stats.php');
 
-$groups = $dbhr->preQuery("SELECT * FROM groups  WHERE id IN (515504,
+$groups = $dbhr->preQuery("SELECT * FROM `groups`  WHERE id IN (515504,
 515507,
 515510,
 515513,

@@ -53,7 +53,7 @@ class Group extends Entity
                 # We were passed an id, but didn't find the group.  See if the id is a legacyid.
                 #
                 # This assumes that the legacy and current ids don't clash.  Which they don't.  So that's a good assumption.
-                $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE legacyid = ?;", [ $id ]);
+                $groups = $this->dbhr->preQuery("SELECT id FROM `groups` WHERE legacyid = ?;", [ $id ]);
                 foreach ($groups as $group) {
                     $this->fetch($dbhr, $dbhm, $group['id'], 'groups', 'group', $this->publicatts, NULL, FALSE);
                 }
@@ -204,7 +204,7 @@ class Group extends Entity
 
                 foreach ($valid as $v) {
                     if ($v['valid']) {
-                        $this->dbhm->preExec("UPDATE groups SET polyindex = GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)')) WHERE id = ?;", [
+                        $this->dbhm->preExec("UPDATE `groups` SET polyindex = GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)')) WHERE id = ?;", [
                             $this->id
                         ]);
 
@@ -225,12 +225,12 @@ class Group extends Entity
         try {
             # Check for duplicate.  Might still occur in a timing window but in that rare case we'll get an exception
             # and catch that, failing the call.
-            $groups = $this->dbhm->preQuery("SELECT id FROM groups WHERE nameshort = ?;", [ $shortname ]);
+            $groups = $this->dbhm->preQuery("SELECT id FROM `groups` WHERE nameshort = ?;", [ $shortname ]);
             foreach ($groups as $group) {
                 return(NULL);
             }
 
-            $rc = $this->dbhm->preExec("INSERT INTO groups (nameshort, type, founded, licenserequired, polyindex) VALUES (?, ?, NOW(),?,POINT(0, 0))", [
+            $rc = $this->dbhm->preExec("INSERT INTO `groups` (nameshort, type, founded, licenserequired, polyindex) VALUES (?, ?, NOW(),?,POINT(0, 0))", [
                 $shortname,
                 $type,
                 $type != Group::GROUP_FREEGLE ? 0 : 1
@@ -310,7 +310,7 @@ class Group extends Entity
     }
 
     public function delete() {
-        $rc = $this->dbhm->preExec("DELETE FROM groups WHERE id = ?;", [$this->id]);
+        $rc = $this->dbhm->preExec("DELETE FROM `groups` WHERE id = ?;", [$this->id]);
         if ($rc) {
             $this->log->log([
                 'type' => Log::TYPE_GROUP,
@@ -323,7 +323,7 @@ class Group extends Entity
     }
 
     public function findByShortName($name) {
-        $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE nameshort LIKE ?;",
+        $groups = $this->dbhr->preQuery("SELECT id FROM `groups` WHERE nameshort LIKE ?;",
             [
                 trim($name)
             ]);
@@ -678,7 +678,7 @@ HAVING logincount > 0
         }
 
         $sqlpref = "SELECT DISTINCT memberships.* FROM memberships 
-              INNER JOIN groups ON groups.id = memberships.groupid
+              INNER JOIN `groups` ON groups.id = memberships.groupid
               $uq
               $filterq";
 
@@ -975,7 +975,7 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
     {
         $str = json_encode($settings);
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $this->dbhm->preExec("UPDATE groups SET settings = ? WHERE id = ?;", [ $str, $this->id ]);
+        $this->dbhm->preExec("UPDATE `groups` SET settings = ? WHERE id = ?;", [ $str, $this->id ]);
         Group::clearCache($this->id);
         $this->group['settings'] = $str;
         $this->log->log([
@@ -1008,14 +1008,14 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
 
         # Don't reset the key each time, otherwise we can have timing windows where the key is reset, thereby
         # invalidating an invitation which is in progress.
-        $groups = $this->dbhr->preQuery("SELECT confirmkey FROM groups WHERE id = ?;" , [ $this->id ]);
+        $groups = $this->dbhr->preQuery("SELECT confirmkey FROM `groups` WHERE id = ?;" , [ $this->id ]);
         foreach ($groups as $group) {
             $key = $group['confirmkey'];
         }
 
         if (!$key) {
             $key = Utils::randstr(32);
-            $sql = "UPDATE groups SET confirmkey = ? WHERE id = ?;";
+            $sql = "UPDATE `groups` SET confirmkey = ? WHERE id = ?;";
             $rc = $this->dbhm->preExec($sql, [ $key, $this->id ]);
             Group::clearCache($this->id);
         }
@@ -1033,7 +1033,7 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
         $suppfields = $support ? ", founded, lastmoderated, lastmodactive, lastautoapprove, activemodcount, backupmodsactive, backupownersactive, onmap, affiliationconfirmed, affiliationconfirmedby": '';
         $polyfields = $polys ? ", CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial" : '';
 
-        $sql = "SELECT groups.id, groups_images.id AS attid, nameshort, region, namefull, lat, lng, altlat, altlng, publish $suppfields $polyfields, mentored, onhere, ontn, onmap, external, profile, tagline, contactmail FROM groups LEFT JOIN groups_images ON groups_images.groupid = groups.id WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END, groups_images.id DESC;";
+        $sql = "SELECT groups.id, groups_images.id AS attid, nameshort, region, namefull, lat, lng, altlat, altlng, publish $suppfields $polyfields, mentored, onhere, ontn, onmap, external, profile, tagline, contactmail FROM `groups` LEFT JOIN groups_images ON groups_images.groupid = groups.id WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END, groups_images.id DESC;";
         $groups = $this->dbhr->preQuery($sql, [ $type ]);
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
 
@@ -1102,7 +1102,7 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
         $idq = $gid ? " AND id = $gid " : "";
         $count = 0;
 
-        $groups = $this->dbhr->preQuery("SELECT id FROM groups WHERE (welcomereview IS NULL OR DATEDIFF(NOW(), welcomereview) >= 365) AND welcomemail IS NOT NULL $idq LIMIT $limit;");
+        $groups = $this->dbhr->preQuery("SELECT id FROM `groups` WHERE (welcomereview IS NULL OR DATEDIFF(NOW(), welcomereview) >= 365) AND welcomemail IS NOT NULL $idq LIMIT $limit;");
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
             $mods = $g->getMods();
@@ -1114,7 +1114,7 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
                     $u->sendWelcome($g->getPrivate('welcomemail'), $group['id'], NULL, NULL, TRUE);
                     $count++;
 
-                    $this->dbhm->preExec("UPDATE groups SET welcomereview = NOW() WHERE id = ?;", [
+                    $this->dbhm->preExec("UPDATE `groups` SET welcomereview = NOW() WHERE id = ?;", [
                         $group['id']
                     ]);
                 }

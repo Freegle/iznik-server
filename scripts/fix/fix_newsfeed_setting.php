@@ -5,7 +5,7 @@ require_once(IZNIK_BASE . '/include/db.php');
 
 require_once(IZNIK_BASE . '/include/group/Group.php');
 
-$groups = $dbhr->preQuery("SELECT id FROM groups;");
+$groups = $dbhr->preQuery("SELECT id FROM `groups`;");
 foreach ($groups as $group) {
     $g = new Group($dbhr, $dbhm, $group['id']);
     $rel = $g->getSetting('relevant', 1);

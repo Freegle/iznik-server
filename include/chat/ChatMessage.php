@@ -515,7 +515,7 @@ class ChatMessage extends Entity
         $dontshowcount = 0;
 
         if (count($show) > 0) {
-            $sql = "SELECT COUNT(DISTINCT chat_messages.id) AS count FROM chat_messages LEFT JOIN chat_messages_held ON chat_messages_held.msgid = chat_messages.id INNER JOIN chat_rooms ON reviewrequired = 1 AND reviewrejected = 0 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN ($showq) AND chat_messages_held.userid IS NULL INNER JOIN groups ON memberships.groupid = groups.id AND groups.type = 'Freegle'  WHERE chat_messages.date > '$mysqltime' $minageq;";
+            $sql = "SELECT COUNT(DISTINCT chat_messages.id) AS count FROM chat_messages LEFT JOIN chat_messages_held ON chat_messages_held.msgid = chat_messages.id INNER JOIN chat_rooms ON reviewrequired = 1 AND reviewrejected = 0 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN ($showq) AND chat_messages_held.userid IS NULL INNER JOIN `groups` ON memberships.groupid = groups.id AND groups.type = 'Freegle'  WHERE chat_messages.date > '$mysqltime' $minageq;";
             #error_log("Show SQL $sql");
             $showcount = $this->dbhr->preQuery($sql)[0]['count'];
         }
@@ -533,7 +533,7 @@ class ChatMessage extends Entity
     LEFT JOIN chat_messages_held ON chat_messages_held.msgid = chat_messages.id 
     INNER JOIN chat_rooms ON reviewrequired = 1 AND reviewrejected = 0 AND chat_rooms.id = chat_messages.chatid 
     INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND ($q) 
-    INNER JOIN groups ON memberships.groupid = groups.id AND groups.type = 'Freegle' WHERE chat_messages.date > '$mysqltime' $minageq;";
+    INNER JOIN `groups` ON memberships.groupid = groups.id AND groups.type = 'Freegle' WHERE chat_messages.date > '$mysqltime' $minageq;";
             #error_log("No Show SQL $sql");
             $dontshowcount = $this->dbhr->preQuery($sql)[0]['count'];
         }
@@ -573,7 +573,7 @@ class ChatMessage extends Entity
     LEFT JOIN chat_messages_held ON chat_messages_held.msgid = chat_messages.id 
     INNER JOIN chat_rooms ON reviewrequired = 1 AND reviewrejected = 0 AND chat_rooms.id = chat_messages.chatid 
     INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN ($showq) $holdq 
-    INNER JOIN groups ON memberships.groupid = groups.id AND groups.type = 'Freegle' WHERE chat_messages.date > '$mysqltime' $minageq ORDER BY groupid;";
+    INNER JOIN `groups` ON memberships.groupid = groups.id AND groups.type = 'Freegle' WHERE chat_messages.date > '$mysqltime' $minageq ORDER BY groupid;";
                 #error_log("Show SQL $sql");
                 $counts = $this->dbhr->preQuery($sql);
 
