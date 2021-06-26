@@ -12,10 +12,10 @@ global $dbhr, $dbhm;
 
 echo "get_app_release_versions\r\n";
 
-//define('GEEKSALERTS_ADDR','geek-alerts@ilovefreegle.org');
-define('GEEKSALERTS_ADDR','cc@phdcc.com');
+define('GEEKSALERTS_ADDR','geek-alerts@ilovefreegle.org');
 
 try{
+  $headers = 'From: geeks@ilovefreegle.org';
 
   $FD_iOS_currentVersionReleaseDate = false;
   $FD_iOS_version = false;
@@ -109,6 +109,20 @@ try{
   $gotIOS_MT = $MT_iOS_version !== false;
   $gotAndroid_FD = $FD_Android_version !== false;
   $gotAndroid_MT = $MT_Android_version !== false;
+  
+  if( $gotIOS_FD){
+    $dbhm->preExec("UPDATE config SET value = ? WHERE `key` = 'app_fd_version_ios_latest';", [ $FD_iOS_version ]);
+  }
+  if( $gotIOS_MT){
+    $dbhm->preExec("UPDATE config SET value = ? WHERE `key` = 'app_mt_version_ios_latest';", [ $MT_iOS_version ]);
+  }
+  if( $gotAndroid_FD){
+    $dbhm->preExec("UPDATE config SET value = ? WHERE `key` = 'app_fd_version_android_latest';", [ $FD_Android_version ]);
+  }
+  if( $gotAndroid_MT){
+    $dbhm->preExec("UPDATE config SET value = ? WHERE `key` = 'app_mt_version_android_latest';", [ $MT_Android_version ]);
+  }
+  
   if( $gotIOS_FD && $gotIOS_MT && $gotAndroid_FD && $gotAndroid_MT){
     $subject .= "OK";
   } else {
@@ -121,7 +135,6 @@ try{
   $report .= "FD: ".$FD_Android_version.": ".$FD_Android_currentVersionReleaseDate."\r\n";
   $report .= "MT: ".$MT_Android_version.": ".$MT_Android_currentVersionReleaseDate."\r\n";
 
-  $headers = 'From: geeks@ilovefreegle.org';
   $sent = mail(GEEKSALERTS_ADDR, $subject, $report,$headers);
   echo "Mail sent to geeks: ".$sent."\r\n";
 
