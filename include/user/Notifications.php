@@ -49,28 +49,75 @@ class Notifications
         $sql = "SELECT users_notifications.* FROM users_notifications WHERE touser = ? $idq ORDER BY users_notifications.id DESC LIMIT 10;";
         $notifs = $this->dbhr->preQuery($sql, [ $userid ]);
 
+        // Get all the users in one go for speed.
+        $userids = array_filter(array_column($notifs, 'fromuser'));
+        $users = [];
+
+        if (count($userids)) {
+            $u = new User($this->dbhr, $this->dbhm);
+            $users = $u->getPublicsById($userids, NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
+        }
+
+        // Similarly newsfeed.
+        $newsids = array_filter(array_column($notifs, 'newsfeedid'));
+        $news = [];
+
+        if (count($newsids)) {
+            $threads = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE id IN (" . implode(',', $newsids) . ");");
+
+            foreach ($threads as $thread) {
+                $news[$thread['id']] = $thread;
+            }
+
+            $replyids = array_filter(array_column($threads, 'replyto'));
+
+            if (count($replyids)) {
+                $replies = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE id IN (" . implode(',', $replyids) . ");");
+
+                foreach ($replies as $thread) {
+                    $news[$thread['id']] = $thread;
+                }
+            }
+        }
+
         foreach ($notifs as &$notif) {
             $notif['timestamp'] = Utils::ISODate($notif['timestamp']);
 
             if (Utils::pres('fromuser', $notif)) {
-                $u = User::get($this->dbhr, $this->dbhm, $notif['fromuser']);
-                $notif['fromuser'] = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
+                $notif['fromuser'] = $users[$notif['fromuser']];
             }
 
             if (Utils::pres('newsfeedid', $notif)) {
-                $nots = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE id = ?;", [
-                    $notif['newsfeedid']
-                ]);
+                $not = $news[$notif['newsfeedid']];
+                unset($not['position']);
 
-                foreach ($nots as $not) {
-                    unset($not['position']);
+                if ($not['type'] != Newsfeed::TYPE_NOTICEBOARD) {
+                    $this->snip($not['message']);
+                }
 
-                    if ($not['type'] != Newsfeed::TYPE_NOTICEBOARD) {
-                        $this->snip($not['message']);
+                if (Utils::pres('deleted', $not)) {
+                    # This item has been deleted - don't show the corresponding notification.
+                    if (!$notif['seen']) {
+                        # This notification hasn't been seen, and would therefore show in the count. Mark it
+                        # as seen for next time.
+                        $this->dbhm->background("UPDATE users_notifications SET seen = 1 WHERE id = {$notif['id']}");
                     }
 
-                    if (Utils::pres('deleted', $not)) {
-                        # This item has been deleted - don't show the corresponding notification.
+                    $notif = NULL;
+                } else {
+                    if ($not['replyto']) {
+                        $orig = $news[$not['replyto']];
+                        $this->snip($orig['message']);
+                        unset($orig['position']);
+                        $not['replyto'] = $orig;
+                    }
+
+                    unset($not['position']);
+                    $notif['newsfeed'] = $not;
+
+                    if (Utils::pres('deleted', $not['replyto'])) {
+                        # This notification is for a newsfeed item which is in a deleted thread.  Don't show it.
+
                         if (!$notif['seen']) {
                             # This notification hasn't been seen, and would therefore show in the count. Mark it
                             # as seen for next time.
@@ -78,33 +125,6 @@ class Notifications
                         }
 
                         $notif = NULL;
-                    } else {
-                        if ($not['replyto']) {
-                            $origs = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE id = ?;", [
-                                $not['replyto']
-                            ]);
-
-                            foreach ($origs as &$orig) {
-                                $this->snip($orig['message']);
-                                unset($orig['position']);
-                                $not['replyto'] = $orig;
-                            }
-                        }
-
-                        unset($not['position']);
-                        $notif['newsfeed'] = $not;
-
-                        if (Utils::pres('deleted', $not['replyto'])) {
-                            # This notification is for a newsfeed item which is in a deleted thread.  Don't show it.
-
-                            if (!$notif['seen']) {
-                                # This notification hasn't been seen, and would therefore show in the count. Mark it
-                                # as seen for next time.
-                                $this->dbhm->background("UPDATE users_notifications SET seen = 1 WHERE id = {$notif['id']}");
-                            }
-
-                            $notif = NULL;
-                        }
                     }
                 }
             }
