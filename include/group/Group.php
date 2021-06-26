@@ -64,56 +64,58 @@ class Group extends Entity
     }
 
     public function setDefaults() {
-        $this->defaultSettings = [
-            'showchat' => 1,
-            'communityevents' => 1,
-            'volunteering' => 1,
-            'stories' => 1,
-            'includearea' => 1,
-            'includepc' => 1,
-            'moderated' => 0,
-            'allowedits' => [
-                'moderated' => 1,
-                'group' => 1
-            ],
-            'autoapprove' => [
-                'members' => 0,
-                'messages' => 0
-            ], 'duplicates' => [
-                'check' => 1,
-                'offer' => 14,
-                'taken' => 14,
-                'wanted' => 14,
-                'received' => 14
-            ], 'spammers' => [
-                'chatreview' => $this->group['type'] == Group::GROUP_FREEGLE,
-                'messagereview' => 1
-            ], 'joiners' => [
-                'check' => 1,
-                'threshold' => 5
-            ], 'keywords' => [
-                'OFFER' => 'OFFER',
-                'TAKEN' => 'TAKEN',
-                'WANTED' => 'WANTED',
-                'RECEIVED' => 'RECEIVED'
-            ], 'reposts' => [
-                'offer' => 3,
-                'wanted' => 7,
-                'max' => 5,
-                'chaseups' => 5
-            ],
-            'relevant' => 1,
-            'newsfeed' => 1,
-            'newsletter' => 1,
-            'businesscards' => 1,
-            'autoadmins' => 1,
-            'mentored' => 0,
-            'nearbygroups' => 5,
-            'engagement' => 1
-        ];
+        if ($this->id) {
+            $this->defaultSettings = [
+                'showchat' => 1,
+                'communityevents' => 1,
+                'volunteering' => 1,
+                'stories' => 1,
+                'includearea' => 1,
+                'includepc' => 1,
+                'moderated' => 0,
+                'allowedits' => [
+                    'moderated' => 1,
+                    'group' => 1
+                ],
+                'autoapprove' => [
+                    'members' => 0,
+                    'messages' => 0
+                ], 'duplicates' => [
+                    'check' => 1,
+                    'offer' => 14,
+                    'taken' => 14,
+                    'wanted' => 14,
+                    'received' => 14
+                ], 'spammers' => [
+                    'chatreview' => $this->group['type'] == Group::GROUP_FREEGLE,
+                    'messagereview' => 1
+                ], 'joiners' => [
+                    'check' => 1,
+                    'threshold' => 5
+                ], 'keywords' => [
+                    'OFFER' => 'OFFER',
+                    'TAKEN' => 'TAKEN',
+                    'WANTED' => 'WANTED',
+                    'RECEIVED' => 'RECEIVED'
+                ], 'reposts' => [
+                    'offer' => 3,
+                    'wanted' => 7,
+                    'max' => 5,
+                    'chaseups' => 5
+                ],
+                'relevant' => 1,
+                'newsfeed' => 1,
+                'newsletter' => 1,
+                'businesscards' => 1,
+                'autoadmins' => 1,
+                'mentored' => 0,
+                'nearbygroups' => 5,
+                'engagement' => 1
+            ];
 
-        if (!$this->group['settings'] || strlen($this->group['settings']) == 0) {
-            $this->group['settings'] = json_encode($this->defaultSettings);
+            if (!$this->group['settings'] || strlen($this->group['settings']) == 0) {
+                $this->group['settings'] = json_encode($this->defaultSettings);
+            }
         }
 
         $this->log = new Log($this->dbhr, $this->dbhm);
