@@ -2985,7 +2985,7 @@ ORDER BY lastdate DESC;";
                 $gid = $g['groupid'];
                 $arrival = $g['arrival'];
 
-                $sql = "INSERT INTO messages_spatial (msgid, point, groupid, msgtype, arrival) VALUES (?, GeomFromText('POINT({$this->lng} {$this->lat})'), ?, ?, ?) ON DUPLICATE KEY UPDATE point = GeomFromText('POINT({$this->lng} {$this->lat})'), groupid = ?, msgtype = ?, arrival = ?;";
+                $sql = "INSERT INTO messages_spatial (msgid, point, groupid, msgtype, arrival) VALUES (?, ST_GeomFromText('POINT({$this->lng} {$this->lat})'), ?, ?, ?) ON DUPLICATE KEY UPDATE point = ST_GeomFromText('POINT({$this->lng} {$this->lat})'), groupid = ?, msgtype = ?, arrival = ?;";
                 $this->dbhm->preExec(
                     $sql,
                     [
@@ -3835,7 +3835,7 @@ ORDER BY lastdate DESC;";
         $poly = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
 
         if (!$groupid) {
-            $sql = "SELECT id FROM `groups` WHERE ST_Intersects(polyindex, GeomFromText('$poly')) AND onmap = 1 AND publish = 1;";
+            $sql = "SELECT id FROM `groups` WHERE ST_Intersects(polyindex, ST_GeomFromText('$poly')) AND onmap = 1 AND publish = 1;";
             $groups = $this->dbhr->preQuery($sql);
             $groupids = array_filter(array_column($groups, 'id'));
         } else {
@@ -5180,7 +5180,7 @@ $mq", [
         ]);
 
         foreach ($msgs as $msg) {
-            $sql = "INSERT INTO messages_spatial (msgid, point, groupid, msgtype, arrival) VALUES (?, GeomFromText('POINT({$msg['lng']} {$msg['lat']})'), ?, ?, ?) ON DUPLICATE KEY UPDATE point = GeomFromText('POINT({$msg['lng']} {$msg['lat']})'), groupid = ?, msgtype = ?, arrival = ?;";
+            $sql = "INSERT INTO messages_spatial (msgid, point, groupid, msgtype, arrival) VALUES (?, ST_GeomFromText('POINT({$msg['lng']} {$msg['lat']})'), ?, ?, ?) ON DUPLICATE KEY UPDATE point = ST_GeomFromText('POINT({$msg['lng']} {$msg['lat']})'), groupid = ?, msgtype = ?, arrival = ?;";
             $this->dbhm->preExec($sql, [
                 $msg['id'],
                 $msg['groupid'],

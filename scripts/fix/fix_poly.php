@@ -9,11 +9,11 @@ $groups = $dbhr->preQuery("SELECT id FROM `groups` ORDER BY id;");
 
 foreach ($groups as $group) {
     error_log($group['id']);
-    $g = $dbhr->preQuery("SELECT AsText(GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)'))) AS geomtext FROM `groups` WHERE id = ?;", [
+    $g = $dbhr->preQuery("SELECT AsText(ST_GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)'))) AS geomtext FROM `groups` WHERE id = ?;", [
         $group['id']
     ]);
 
-    $dbhm->preExec("UPDATE `groups` SET polyindex = GeomFromText(?) WHERE id = ?;", [
+    $dbhm->preExec("UPDATE `groups` SET polyindex = ST_GeomFromText(?) WHERE id = ?;", [
         $g[0]['geomtext'],
         $group['id']
     ]);

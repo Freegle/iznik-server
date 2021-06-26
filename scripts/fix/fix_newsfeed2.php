@@ -15,7 +15,7 @@ foreach ($feeds as $feed) {
 
     if($lat != $feed['lat'] || $lng != $feed['lng']) {
         error_log("{$feed['id']} {$feed['lat']}, {$feed['lng']} => $lat, $lng");
-        $dbhm->preExec("UPDATE newsfeed SET position = GeomFromText('POINT($lng $lat)') WHERE id = ?;", [
+        $dbhm->preExec("UPDATE newsfeed SET position = ST_GeomFromText('POINT($lng $lat)') WHERE id = ?;", [
             $feed['id']
         ]);
     }

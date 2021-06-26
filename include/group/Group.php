@@ -198,13 +198,13 @@ class Group extends Entity
             $ret = FALSE;
 
             try {
-                $valid = $this->dbhm->preQuery("SELECT ST_IsValid(GeomFromText(?)) AS valid;", [
+                $valid = $this->dbhm->preQuery("SELECT ST_IsValid(ST_GeomFromText(?)) AS valid;", [
                     $val
                 ]);
 
                 foreach ($valid as $v) {
                     if ($v['valid']) {
-                        $this->dbhm->preExec("UPDATE `groups` SET polyindex = GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)')) WHERE id = ?;", [
+                        $this->dbhm->preExec("UPDATE `groups` SET polyindex = ST_GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)')) WHERE id = ?;", [
                             $this->id
                         ]);
 

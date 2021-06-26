@@ -43,7 +43,7 @@ foreach ($points as $point) {
 $str .= "))";
 
 if ($auth) {
-    $dbhm->preExec("UPDATE authorities SET polygon = GeomFromText(?) WHERE id = ?;", [
+    $dbhm->preExec("UPDATE authorities SET polygon = ST_GeomFromText(?) WHERE id = ?;", [
         $auth,
         $str
     ]);
@@ -52,7 +52,7 @@ if ($auth) {
     $name = str_ireplace('Council', '', $name);
     $name = str_replace('-', ' ', $name);
     $name = str_replace('.txt', '', $name);
-    $dbhm->preExec("INSERT INTO authorities (name, polygon) VALUES (?, GeomFromText(?));", [
+    $dbhm->preExec("INSERT INTO authorities (name, polygon) VALUES (?, ST_GeomFromText(?));", [
         $name,
         $str
     ]);

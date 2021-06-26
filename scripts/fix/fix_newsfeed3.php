@@ -29,7 +29,7 @@ foreach ($feeds as $feed) {
         $lat = $g->getPrivate('lat');
         $lng = $g->getPrivate('lng');
         error_log("{$feed['id']} => $lat, $lng");
-        $dbhm->preExec("UPDATE newsfeed SET position = GeomFromText('POINT($lng $lat)') WHERE id = ?;", [
+        $dbhm->preExec("UPDATE newsfeed SET position = ST_GeomFromText('POINT($lng $lat)') WHERE id = ?;", [
             $feed['id']
         ]);
     }

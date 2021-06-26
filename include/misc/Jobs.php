@@ -39,8 +39,8 @@ class Jobs {
 
             # We use ST_Within because that takes advantage of the spatial index, whereas ST_Intersects does not.
             $sql = "SELECT ST_Distance(geometry, POINT($lng, $lat)) AS dist, ST_Area(geometry) AS area, jobs.* FROM `jobs`
-WHERE ST_Within(geometry, GeomFromText('$poly')) 
-    AND ST_Area(geometry) / ST_Area(GeomFromText('$poly')) < 2
+WHERE ST_Within(geometry, ST_GeomFromText('$poly')) 
+    AND ST_Area(geometry) / ST_Area(ST_GeomFromText('$poly')) < 2
     AND cpc >= " . Jobs::MINIMUM_CPC . "
     AND visible = 1
     $categoryq

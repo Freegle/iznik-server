@@ -29,7 +29,7 @@ if (count($opts) != 2) {
         error_log("Centre is at $clat, $clng");
 
         # Find the groups which overlap this area.
-        $groups = $dbhr->preQuery("SELECT id FROM `groups` WHERE ST_Intersects(polyindex, GeomFromText(?));", [
+        $groups = $dbhr->preQuery("SELECT id FROM `groups` WHERE ST_Intersects(polyindex, ST_GeomFromText(?));", [
             $polygon
         ]);
 
@@ -111,7 +111,7 @@ if (count($opts) != 2) {
         }
 
 //        # Find the messages within the polygon.
-//        $sql = "SELECT id FROM messages WHERE ST_CONTAINS(GeomFromText(?), POINT(lng, lat));";
+//        $sql = "SELECT id FROM messages WHERE ST_CONTAINS(ST_GeomFromText(?), POINT(lng, lat));";
 //        $points = $dbhr->preQuery($sql, [
 //            $polygon
 //        ]);

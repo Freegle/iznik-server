@@ -19,7 +19,7 @@ foreach ($groups as $group) {
     try {
         $poly = $group['poly'] ? $group['poly'] : $group['polyofficial'];
         #$poly = $group['polyofficial'];
-        $sql = "SELECT id, nameshort, (ST_Area(ST_Intersection(GeomFromText($polyname), GeomFromText(?)))/LEAST(ST_Area(GeomFromText($polyname)), ST_Area(GeomFromText(?)))) AS area, AsText(ST_Intersection(GeomFromText($polyname), GeomFromText(?))) AS overlap FROM `groups` WHERE id != ? AND ST_Overlaps(GeomFromText($polyname), GeomFromText(?)) AND publish = 1;";
+        $sql = "SELECT id, nameshort, (ST_Area(ST_Intersection(ST_GeomFromText($polyname), ST_GeomFromText(?)))/LEAST(ST_Area(ST_GeomFromText($polyname)), ST_Area(ST_GeomFromText(?)))) AS area, AsText(ST_Intersection(ST_GeomFromText($polyname), ST_GeomFromText(?))) AS overlap FROM `groups` WHERE id != ? AND ST_Overlaps(ST_GeomFromText($polyname), ST_GeomFromText(?)) AND publish = 1;";
         $overlaps = $dbhr->preQuery($sql,
             [
                 $poly,

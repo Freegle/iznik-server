@@ -20,7 +20,7 @@ foreach ($authorities as $a) {
     $count++;
     error_log($count);
 
-    $dbhm->preExec("UPDATE authorities SET simplified = GeomFromText(?) WHERE id = ?;", [
+    $dbhm->preExec("UPDATE authorities SET simplified = ST_GeomFromText(?) WHERE id = ?;", [
         $a['id'],
         $a['simp']
     ]);

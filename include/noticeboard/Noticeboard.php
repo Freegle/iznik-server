@@ -24,7 +24,7 @@ class Noticeboard extends Entity
         $id = NULL;
 
         $rc = $this->dbhm->preExec("INSERT INTO noticeboards (`name`, `lat`, `lng`, `position`, `added`, `addedby`, `description`, `active`, `lastcheckedat`) VALUES 
-(?,?,?,GeomFromText('POINT($lng $lat)'), NOW(), ?, ?, 1, NOW());", [
+(?,?,?,ST_GeomFromText('POINT($lng $lat)'), NOW(), ?, ?, 1, NOW());", [
             $name, $lat, $lng, $addedby, $description
         ]);
 
