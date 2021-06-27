@@ -13,7 +13,7 @@ class Utils {
     const URL_BAD = [ '%', '{', ';', '#', ':' ];
 
     const BLUR_NONE = NULL;
-    const BLUR_USER = 200;
+    const BLUR_USER = 400;
     const BLUR_1K = 1000;
 
     public static function tmpdir() {

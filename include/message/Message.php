@@ -905,9 +905,10 @@ class Message
             $ret['mine'] = $myid && $msg['fromuser'] == $myid;
 
             if ($blur && ($role === User::ROLE_NONMEMBER || $role === User::ROLE_MEMBER || $ret['mine'])) {
-                # Blur lat/lng slightly for privacy.  Blur our own messags otherwise it looks like other people
+                # Blur lat/lng slightly for privacy.  Blur our own messages otherwise it looks like other people
                 # could see our location.
                 list ($ret['lat'], $ret['lng']) = Utils::blur($ret['lat'], $ret['lng'], Utils::BLUR_USER);
+                $ret['blurred'] = TRUE;
             }
 
             # If we are a mod with sufficient rights on this message, we can edit it.
