@@ -7,7 +7,7 @@ require_once(IZNIK_BASE . '/include/newsfeed/Newsfeed.php');
 
 $n = new Newsfeed($dbhr, $dbhm);
 
-$feeds = $dbhr->preQuery("SELECT id, userid, Y(position) AS lat, X(position) AS lng FROM newsfeed WHERE AsText(position) = 'POINT(-2.5209 53.945)';");
+$feeds = $dbhr->preQuery("SELECT id, userid, ST_Y(position) AS lat, ST_X(position) AS lng FROM newsfeed WHERE  ST_AsText(position) = 'POINT(-2.5209 53.945)';");
 
 foreach ($feeds as $feed) {
     $u = new User($dbhr, $dbhm, $feed['userid']);

@@ -287,7 +287,7 @@ function user() {
                 if ($action == 'Mail') {
                     $role = $me ? $me->getRoleForGroup($groupid) : User::ROLE_NONMEMBER;
                 } else {
-                    $role = $me->moderatorForUser($id) ? User::ROLE_MODERATOR : User::ROLE_NONMEMBER;
+                    $role = $me && $me->moderatorForUser($id) ? User::ROLE_MODERATOR : User::ROLE_NONMEMBER;
                 }
 
                 if ($me && $me->isAdminOrSupport() && $action == 'AddEmail') {

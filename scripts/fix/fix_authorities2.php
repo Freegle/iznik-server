@@ -34,7 +34,7 @@ foreach ($groups as $group) {
                            St_intersection(polyindex, 
                                    Coalesce(simplified, polygon))) 
              end                          AS overlap2 
-      FROM   groups 
+      FROM   `groups` 
              INNER JOIN authorities 
                      ON ( polyindex = 
                           Coalesce(simplified, polygon) 

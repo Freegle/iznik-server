@@ -188,7 +188,7 @@ class userTest extends IznikTestCase {
         $u->removeMembership($group1);
         $u->addMembership($group1, User::ROLE_MEMBER, $emailid3);
         $u->addMembership($group1, User::ROLE_MEMBER, $emailid3);
-        assertNull($u->getIdForEmail('wibble@test.com'))['id'];
+        assertNull($u->getIdForEmail('wibble@test.com'));
     }
 
     public function testLogins() {

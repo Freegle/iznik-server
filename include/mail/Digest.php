@@ -553,7 +553,7 @@ class Digest
                 $sw = \GreatCircle::getPositionByDistance($distance, 255, $lat, $lng);
                 $box = "ST_GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
 
-                $sql = "SELECT Y(point) AS lat, X(point) AS lng, messages_spatial.msgid, messages_spatial.groupid, messages.subject FROM messages_spatial 
+                $sql = "SELECT ST_Y(point) AS lat, ST_X(point) AS lng, messages_spatial.msgid, messages_spatial.groupid, messages.subject FROM messages_spatial 
     INNER JOIN messages ON messages_spatial.msgid = messages.id
     LEFT JOIN memberships ON memberships.userid = ? AND memberships.groupid = messages_spatial.groupid
     WHERE ST_Contains($box, point)

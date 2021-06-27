@@ -138,7 +138,7 @@ class Volunteering extends Entity
         ]);
 
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : $me;
+        $myid = $me ? $me->getId() : NULL;
 
         foreach ($volunteerings as $volunteering) {
             if ((!Utils::pres('applyby', $volunteering) || time() < strtotime($volunteering['applyby'])) &&
@@ -219,18 +219,22 @@ class Volunteering extends Entity
         # We can modify volunteerings which we created, or where we are a mod on any of the groups on which this volunteering
         # appears, or if we're support/admin.
         #error_log("Check user {$this->volunteering['userid']}, $userid");
-        $u = User::get($this->dbhr, $this->dbhm, $userid);
-        $canmodify = Utils::presdef('userid', $this->volunteering, NULL) == $userid || ($u && $u->isAdminOrSupport());
+        $canmodify = FALSE;
 
-        #error_log("Can mod? $canmodify");
-        if (!$canmodify) {
-            $groups = $this->dbhr->preQuery("SELECT * FROM volunteering_groups WHERE volunteeringid = ?;", [ $this->id ]);
-            #error_log("SELECT * FROM volunteering_groups WHERE volunteeringid = {$this->id};");
-            foreach ($groups as $group) {
-                #error_log("Check for group {$group['groupid']} " . $u->isAdminOrSupport() . ", " . $u->isModOrOwner($group['groupid']));
-                if ($u->isAdminOrSupport() || $u->isModOrOwner($group['groupid'])) {
-                    #error_log("Can");
-                    $canmodify = TRUE;
+        if ($userid) {
+            $u = User::get($this->dbhr, $this->dbhm, $userid);
+            $canmodify = Utils::presdef('userid', $this->volunteering, NULL) == $userid || ($u && $u->isAdminOrSupport());
+
+            #error_log("Can mod? $canmodify");
+            if (!$canmodify) {
+                $groups = $this->dbhr->preQuery("SELECT * FROM volunteering_groups WHERE volunteeringid = ?;", [ $this->id ]);
+                #error_log("SELECT * FROM volunteering_groups WHERE volunteeringid = {$this->id};");
+                foreach ($groups as $group) {
+                    #error_log("Check for group {$group['groupid']} " . $u->isAdminOrSupport() . ", " . $u->isModOrOwner($group['groupid']));
+                    if ($u->isAdminOrSupport() || $u->isModOrOwner($group['groupid'])) {
+                        #error_log("Can");
+                        $canmodify = TRUE;
+                    }
                 }
             }
         }

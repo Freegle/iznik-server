@@ -88,7 +88,7 @@ class Authority extends Entity
 
     public function getPublic()
     {
-        $auths = $this->dbhr->preQuery("SELECT id, name, area_code, AsText(COALESCE(simplified, polygon)) AS polygon, Y(CENTROID(polygon)) AS lat, X(CENTROID(polygon)) AS lng FROM authorities WHERE id = ?;", [
+        $auths = $this->dbhr->preQuery("SELECT id, name, area_code,  ST_AsText(COALESCE(simplified, polygon)) AS polygon, ST_Y(ST_CENTROID(polygon)) AS lat, ST_X(ST_CENTROID(polygon)) AS lng FROM authorities WHERE id = ?;", [
             $this->id
         ]);
 
@@ -122,7 +122,7 @@ class Authority extends Entity
                      St_intersection(polyindex, 
                              Coalesce(simplified, polygon))) 
        end                          AS overlap2 
-FROM   groups 
+FROM   `groups` 
        INNER JOIN authorities 
                ON ( polyindex = 
                     Coalesce(simplified, polygon) 

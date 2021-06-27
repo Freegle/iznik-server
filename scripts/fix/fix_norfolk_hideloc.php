@@ -5,7 +5,7 @@ require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 
 
-$locs = $dbhr->preQuery("SELECT id FROM locations WHERE LOCATE('POINT', AsText(locations.geometry)) > 0");
+$locs = $dbhr->preQuery("SELECT id FROM locations WHERE LOCATE('POINT',  ST_AsText(locations.geometry)) > 0");
 
 error_log("Found polygons: " . count($locs));
 $count = 0;

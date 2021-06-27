@@ -31,7 +31,7 @@ class Nearby
 
         if ($g->getSetting('relevant', 1)) {
             # Find the recent extant messages
-            $sql = "SELECT DISTINCT messages_spatial.msgid AS id, messages_spatial.msgtype AS type, Y(messages_spatial.point) AS lat, X(messages_spatial.point) AS lng, messages.fromuser, messages.subject FROM messages_spatial INNER JOIN messages ON messages_spatial.msgid = messages.id WHERE groupid = ? AND messages.fromuser IS NOT NULL;";
+            $sql = "SELECT DISTINCT messages_spatial.msgid AS id, messages_spatial.msgtype AS type, ST_Y(messages_spatial.point) AS lat, ST_X(messages_spatial.point) AS lng, messages.fromuser, messages.subject FROM messages_spatial INNER JOIN messages ON messages_spatial.msgid = messages.id WHERE groupid = ? AND messages.fromuser IS NOT NULL;";
             $msgs = $this->dbhr->preQuery($sql, [ $groupid ] );
             #error_log("Look for extant messages for $groupid found " . count($msgs));
 
@@ -161,7 +161,7 @@ class Nearby
 
             if ($lat || $lng) {
                 # We found one.
-                $this->dbhm->preExec("INSERT INTO users_approxlocs (userid, lat, lng, position, timestamp) VALUES (?, ?, ?, GEOMFROMTEXT(CONCAT('POINT(', ?, ' ', ?, ')')), ?) ON DUPLICATE KEY UPDATE lat = ?, lng = ?, position = GEOMFROMTEXT(CONCAT('POINT(', ?, ' ', ?, ')')), timestamp = ?;", [
+                $this->dbhm->preExec("INSERT INTO users_approxlocs (userid, lat, lng, position, timestamp) VALUES (?, ?, ?, ST_GeomFromText(CONCAT('POINT(', ?, ' ', ?, ')')), ?) ON DUPLICATE KEY UPDATE lat = ?, lng = ?, position = ST_GeomFromText(CONCAT('POINT(', ?, ' ', ?, ')')), timestamp = ?;", [
                     $user['id'],
                     $lat,
                     $lng,

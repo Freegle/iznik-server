@@ -9,7 +9,7 @@ $groups = $dbhr->preQuery("SELECT id FROM `groups` ORDER BY id;");
 
 foreach ($groups as $group) {
     error_log($group['id']);
-    $g = $dbhr->preQuery("SELECT AsText(ST_GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)'))) AS geomtext FROM `groups` WHERE id = ?;", [
+    $g = $dbhr->preQuery("SELECT  ST_AsText(ST_GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)'))) AS geomtext FROM `groups` WHERE id = ?;", [
         $group['id']
     ]);
 

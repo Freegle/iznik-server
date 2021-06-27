@@ -343,7 +343,7 @@ class Facebook
 
             $str = json_encode(array(
                 'type' => 'facebooknotif',
-                'queued' => time(),
+                'queued' => microtime(TRUE),
                 'fbid' => $fbid,
                 'message' => $message,
                 'href' => $href

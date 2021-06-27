@@ -441,6 +441,7 @@ class Newsfeed extends Entity
                                 # disruptive member it looks like their posts are there but no other user can see them.
                                 if (!$hidden || $myid == $reply['userid'] || $me->isModerator()) {
                                     if ($reply['visible'] &&
+                                        $last &&
                                         $last['userid'] == $reply['userid'] &&
                                         $last['type'] == $reply['type'] &&
                                         $last['message'] == $reply['message'] &&
@@ -595,6 +596,7 @@ class Newsfeed extends Entity
                 if ($fillin) {
                     # We return invisible entries - they are filtered on the client, and it makes the paging work.
                     if ($entry['visible'] &&
+                        $last &&
                         $last['userid'] == $entry['userid'] &&
                         $last['type'] == $entry['type'] &&
                         $last['message'] == $entry['message']) {

@@ -28,9 +28,18 @@ class LoggedPDO {
     private $password = NULL;
     private $sqllog = SQLLOG;
     private $preparedStatements = [];
+    private $version;
 
     const MAX_LOG_SIZE = 100000;
     const MAX_BACKGROUND_SIZE = 100000;  # Max size of sql that we can pass to beanstalk directly; larger goes in file
+
+    public function getVersion() {
+        return $this->version;
+    }
+
+    public function isV8() {
+        return strpos($this->version, '8') === 0;
+    }
 
     /**
      * @param int $tries
@@ -103,6 +112,8 @@ class LoggedPDO {
                         \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
                         \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
                     ]);
+
+                    $this->version = $this->_db->getAttribute(PDO::ATTR_SERVER_VERSION);
 
                     $gotit = TRUE;
                 } catch (\Exception $e) {
@@ -564,7 +575,7 @@ class LoggedPDO {
 
                     $id = $this->pheanstalk->put(json_encode(array(
                                                                  'type' => 'sqlfile',
-                                                                 'queued' => time(),
+                                                                 'queued' => microtime(TRUE),
                                                                  'file' => $fn,
                                                                  'ttr' => 300
                                                              )));
@@ -572,7 +583,7 @@ class LoggedPDO {
                     # Can pass inline and save the disk write.
                     $id = $this->pheanstalk->put(json_encode(array(
                                                                  'type' => 'sql',
-                                                                 'queued' => time(),
+                                                                 'queued' => microtime(TRUE),
                                                                  'sql' => $sql,
                                                                  'ttr' => 300
                                                              )));

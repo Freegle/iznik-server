@@ -64,7 +64,7 @@ class Location extends Entity
             
             if ($rc) {
                 # Although this is something we can derive from the geometry, it speeds things up a lot to have it cached.
-                $rc = $this->dbhm->preExec("UPDATE locations SET lng = X(ST_Centroid(geometry)), lat = Y(ST_Centroid(geometry)) WHERE id = ?;",
+                $rc = $this->dbhm->preExec("UPDATE locations SET lng = ST_X(ST_Centroid(geometry)), lat = ST_Y(ST_Centroid(geometry)) WHERE id = ?;",
                     [ $id ]);
             }
 
@@ -190,7 +190,7 @@ class Location extends Entity
 
                         # Exclude locations which are very large, e.g. Greater London or too small (probably just a
                         # single building.
-                        $sql = "SELECT locations.name, locations.geometry, locations.ourgeometry, locations.id, AsText(locations_spatial.geometry) AS geom, ST_Contains(locations_spatial.geometry, POINT({$loc['lng']},{$loc['lat']})) AS within, ST_Distance(locations_spatial.geometry, POINT({$loc['lng']},{$loc['lat']})) AS dist FROM locations_spatial INNER JOIN  `locations` ON locations.id = locations_spatial.locationid LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE MBRWithin(locations_spatial.geometry, ST_GeomFromText('$poly')) AND osm_place = $osmonly AND type != 'Postcode' AND ST_Dimension(locations_spatial.geometry) = 2 AND locations_excluded.locationid IS NULL HAVING id != $id AND GetMaxDimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) < " . Location::TOO_LARGE . " AND GetMaxDimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) > " . Location::TOO_SMALL . " ORDER BY within DESC, dist ASC LIMIT 1;";
+                        $sql = "SELECT locations.name, locations.geometry, locations.ourgeometry, locations.id,  ST_AsText(locations_spatial.geometry) AS geom, ST_Contains(locations_spatial.geometry, POINT({$loc['lng']},{$loc['lat']})) AS within, ST_Distance(locations_spatial.geometry, POINT({$loc['lng']},{$loc['lat']})) AS dist FROM locations_spatial INNER JOIN  `locations` ON locations.id = locations_spatial.locationid LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE MBRWithin(locations_spatial.geometry, ST_GeomFromText('$poly')) AND osm_place = $osmonly AND type != 'Postcode' AND ST_Dimension(locations_spatial.geometry) = 2 AND locations_excluded.locationid IS NULL HAVING id != $id AND GetMaxDimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) < " . Location::TOO_LARGE . " AND GetMaxDimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) > " . Location::TOO_SMALL . " ORDER BY within DESC, dist ASC LIMIT 1;";
                         $nearbyes = $this->dbhr->preQuery($sql);
 
                         #error_log($sql . " gives " . var_export($nearbyes));
@@ -288,7 +288,8 @@ class Location extends Entity
                 # (you might have 'Stockbridge' and 'Stockbridge Church Of England Primary School'), then ordered
                 # by most popular.
                 if ($limit > 0) {
-                    $sql = "SELECT locations.* FROM locations FORCE INDEX (gridid) $exclgroup WHERE LENGTH(name) >= " . strlen($termt) . " AND name REGEXP CONCAT('[[:<:]]', " . $this->dbhr->quote($termt) . ", '[[:>:]]') AND gridid IN (" . implode(',', $gridids) . ") $exclude ORDER BY ABS(LENGTH(name) - " . strlen($term) . ") ASC, popularity DESC LIMIT $limit;";
+                    $reg = $this->dbhr->isV8() ? ("'\\\\b', " . $this->dbhr->quote($termt) . ", '\\\\b'"): ("'[[:<:]]', " . $this->dbhr->quote($termt) . ", '[[:>:]]'");
+                    $sql = "SELECT locations.* FROM locations FORCE INDEX (gridid) $exclgroup WHERE LENGTH(name) >= " . strlen($termt) . " AND name REGEXP CONCAT($reg) AND gridid IN (" . implode(',', $gridids) . ") $exclude ORDER BY ABS(LENGTH(name) - " . strlen($term) . ") ASC, popularity DESC LIMIT $limit;";
                     $locs = $this->dbhr->preQuery($sql);
 
                     foreach ($locs as $loc) {
@@ -304,7 +305,8 @@ class Location extends Entity
                     # ones which are less than half the length of what we're looking for (to speed up the search).
                     #
                     # We also order to find the one most similar in length.
-                    $sql = "SELECT locations.* FROM locations $exclgroup WHERE gridid IN (" . implode(',', $gridids) . ") AND LENGTH(canon) > 2 AND LENGTH(name) >= " . strlen($termt)/2 . " AND " . $this->dbhr->quote($termt) . " REGEXP CONCAT('[[:<:]]', name, '[[:>:]]') $exclude ORDER BY ABS(LENGTH(name) - " . strlen($term) . "), GetMaxDimension(locations.geometry) ASC, popularity DESC LIMIT $limit;";
+                    $reg = $this->dbhr->isV8() ? "'\\\\b', name, '\\\\b'": "'[[:<:]]', name, '[[:>:]]'";
+                    $sql = "SELECT locations.* FROM locations $exclgroup WHERE gridid IN (" . implode(',', $gridids) . ") AND LENGTH(canon) > 2 AND LENGTH(name) >= " . strlen($termt)/2 . " AND " . $this->dbhr->quote($termt) . " REGEXP CONCAT($reg) $exclude ORDER BY ABS(LENGTH(name) - " . strlen($term) . "), GetMaxDimension(locations.geometry) ASC, popularity DESC LIMIT $limit;";
                     $locs = $this->dbhr->preQuery($sql);
 
                     foreach ($locs as $loc) {
@@ -440,8 +442,8 @@ class Location extends Entity
         $ret = NULL;
 
         do {
-            $sql = "SELECT id, name, areaid, lat, lng, ST_distance(locations_spatial.geometry, Point(?, ?)) AS dist FROM locations_spatial INNER JOIN locations ON locations.id = locations_spatial.locationid WHERE MBRContains(envelope(linestring(point(?, ?), point(?, ?))), locations_spatial.geometry) AND type = 'Postcode' ORDER BY dist ASC, ST_AREA(locations_spatial.geometry) ASC LIMIT 1;";
-            #error_log("SELECT id, name, areaid, lat, lng, ST_distance(locations_spatial.geometry, Point($lng, $lng)) AS dist FROM locations_spatial INNER JOIN locations ON locations.id = locations_spatial.locationid WHERE MBRContains(envelope(linestring(point(" . ($lng - $scan) . ", " . ($lat - $scan) . "), point(" . ($lng + $scan) . ", "  . ($lat + $scan) . "))), locations_spatial.geometry) ORDER BY dist ASC LIMIT 1;");
+            $sql = "SELECT id, name, areaid, lat, lng, ST_distance(locations_spatial.geometry, Point(?, ?)) AS dist FROM locations_spatial INNER JOIN locations ON locations.id = locations_spatial.locationid WHERE MBRContains(ST_Envelope(linestring(point(?, ?), point(?, ?))), locations_spatial.geometry) AND type = 'Postcode' ORDER BY dist ASC, CASE WHEN ST_Dimension(locations_spatial.geometry) < 2 THEN 0 ELSE ST_AREA(locations_spatial.geometry) END ASC LIMIT 1;";
+            #error_log("SELECT id, name, areaid, lat, lng, ST_distance(locations_spatial.geometry, Point($lng, $lng)) AS dist FROM locations_spatial INNER JOIN locations ON locations.id = locations_spatial.locationid WHERE MBRContains(ST_Envelope(linestring(point(" . ($lng - $scan) . ", " . ($lat - $scan) . "), point(" . ($lng + $scan) . ", "  . ($lat + $scan) . "))), locations_spatial.geometry) ORDER BY dist ASC LIMIT 1;");
             $locs = $this->dbhr->preQuery($sql, [
                 $lng,
                 $lat,
@@ -575,7 +577,7 @@ class Location extends Entity
     }
 
     public function geomAsText() {
-        $locs = $this->dbhr->preQuery("SELECT CASE WHEN ourgeometry IS NOT NULL THEN AsText(ourgeometry) ELSE AsText(geometry) END AS geomtext FROM locations WHERE id = ?;", [ $this->id ]);
+        $locs = $this->dbhr->preQuery("SELECT CASE WHEN ourgeometry IS NOT NULL THEN  ST_AsText(ourgeometry) ELSE  ST_AsText(geometry) END AS geomtext FROM locations WHERE id = ?;", [ $this->id ]);
         $ret = count($locs) == 1 ? $locs[0]['geomtext'] : NULL;
         return($ret);
     }
@@ -630,7 +632,7 @@ class Location extends Entity
 
                     # The centre point and max dimensions will also have changed.
                     $rc = $this->dbhm->preExec(
-                        "UPDATE locations SET maxdimension = GetMaxDimension(ourgeometry), lat = Y(ST_Centroid(ourgeometry)), lng = X(ST_Centroid(ourgeometry)) WHERE id = {$this->id};",
+                        "UPDATE locations SET maxdimension = GetMaxDimension(ourgeometry), lat = ST_Y(ST_Centroid(ourgeometry)), lng = ST_X(ST_Centroid(ourgeometry)) WHERE id = {$this->id};",
                         [$val]
                     );
 

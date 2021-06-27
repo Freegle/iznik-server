@@ -59,6 +59,14 @@ class notificationsTest extends IznikTestCase {
         }
     }
 
+    public function tearDown()
+    {
+        parent::tearDown();
+
+        $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test Original Poster';", []);
+        $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test Commenter';", []);
+    }
+
     public function sendMock($mailer, $message) {
         $this->msgsSent[] = $message->toString();
     }

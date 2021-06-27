@@ -814,7 +814,8 @@ class sessionTest extends IznikAPITestCase
     public function testVersion() {
         $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
-        $_SESSION['id'] = $id;
+        $u->addLogin(User::LOGIN_NATIVE, $u->getId(), 'testpw');
+        $u->login('testpw');
 
         $ret = $this->call('session', 'GET', [
             'modtools' => FALSE,
@@ -866,5 +867,6 @@ class sessionTest extends IznikAPITestCase
         $_SERVER['HTTP_X_IZNIK_PHP_SESSION'] = $session;
         $ret = $this->call('session', 'GET', []);
         assertEquals($session, $ret['session']);
+        $_SERVER['HTTP_X_IZNIK_PHP_SESSION'] = NULL;
     }
 }

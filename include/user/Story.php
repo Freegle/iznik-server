@@ -136,19 +136,23 @@ class Story extends Entity
     }
 
     public function canMod() {
-        # We can modify if it's ours, we are an admin, or a mod on a group that the author is a member of.
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
-        $author = User::get($this->dbhr, $this->dbhm, $this->story['userid']);
-        $authormembs = $author->getMemberships(FALSE);
-        $ret = ($this->story['userid'] == $myid) || ($me && $me->isAdminOrSupport());
+        $ret = FALSE;
 
-        if ($myid) {
-            $membs = $me->getMemberships(TRUE);
-            foreach ($membs as $memb) {
-                foreach ($authormembs as $authormemb) {
-                    if ($authormemb['id'] == $memb['id']) {
-                        $ret = TRUE;
+        if ($this->story) {
+            # We can modify if it's ours, we are an admin, or a mod on a group that the author is a member of.
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
+            $myid = $me ? $me->getId() : NULL;
+            $author = User::get($this->dbhr, $this->dbhm, $this->story['userid']);
+            $authormembs = $author->getMemberships(FALSE);
+            $ret = ($this->story['userid'] == $myid) || ($me && $me->isAdminOrSupport());
+
+            if ($myid) {
+                $membs = $me->getMemberships(TRUE);
+                foreach ($membs as $memb) {
+                    foreach ($authormembs as $authormemb) {
+                        if ($authormemb['id'] == $memb['id']) {
+                            $ret = TRUE;
+                        }
                     }
                 }
             }
@@ -204,7 +208,8 @@ class Story extends Entity
         if ($reviewnewsletter) {
             $last = $this->dbhr->preQuery("SELECT MAX(created) AS max FROM newsletters WHERE type = 'Stories';");
             $since = $last[0]['max'];
-            $sql = "SELECT DISTINCT users_stories.id FROM users_stories WHERE newsletter = 1 AND mailedtomembers = 0 AND date >= '$since' ORDER BY RAND();";
+            $dateq = $since ? "AND date >= '$since'": '';
+            $sql = "SELECT DISTINCT users_stories.id FROM users_stories WHERE newsletter = 1 AND mailedtomembers = 0 $dateq ORDER BY RAND();";
             $ids = $this->dbhr->preQuery($sql);
         } else {
             if ($groupid) {

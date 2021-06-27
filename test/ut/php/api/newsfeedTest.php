@@ -29,6 +29,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->dbhm = $dbhm;
 
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
+        $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test Commenter';");
         $dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup';");
         $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
         $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'TV13%';");
@@ -73,6 +74,12 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->msgsSent[] = $message->toString();
     }
 
+    private function stripPublicity($arr) {
+        return array_filter($arr, function($a) {
+            return $a['type'] != Newsfeed::TYPE_CENTRAL_PUBLICITY;
+        });
+    }
+
     public function testBasic() {
         # Logged out.
         $this->log("Logged out");
@@ -85,8 +92,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $ret = $this->call('newsfeed', 'GET', []);
         $this->log("Returned " . gettype($ret['newsfeed']));
         assertEquals(0, $ret['ret']);
-        assertEquals(0, count((array)$ret['ret']['newsfeed']));
-        assertEquals(0, count((array)$ret['ret']['users']));
+        assertEquals(0, count($this->stripPublicity($ret['newsfeed'])));
 
         # Create an attachment.
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/giveandtake.jpg');

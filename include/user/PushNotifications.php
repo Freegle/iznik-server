@@ -98,7 +98,7 @@ class PushNotifications
             $str = json_encode(array(
                 'type' => 'webpush',
                 'notiftype' => $type,
-                'queued' => time(),
+                'queued' => microtime(TRUE),
                 'userid' => $userid,
                 'params' => $params,
                 'endpoint' => $endpoint,
@@ -395,7 +395,7 @@ class PushNotifications
 
             $str = json_encode(array(
                 'type' => 'poke',
-                'queued' => time(),
+                'queued' => microtime(TRUE),
                 'groupid' => $userid,
                 'data' => $data,
                 'modtools' => $modtools

@@ -61,7 +61,7 @@ while ($node = $streamer->getNode()) {
                 $addr = "{$job->city}, {$job->state}, {$job->country}";
 
                 # See if we already have the address geocoded - would save hitting the geocoder.
-                $geo = $dbhr->preQuery("SELECT AsText(geometry) AS geom FROM jobs WHERE city = ? AND state = ? AND country = ? LIMIT 1;", [
+                $geo = $dbhr->preQuery("SELECT  ST_AsText(geometry) AS geom FROM jobs WHERE city = ? AND state = ? AND country = ? LIMIT 1;", [
                     $job->city,
                     $job->state,
                     $job->country

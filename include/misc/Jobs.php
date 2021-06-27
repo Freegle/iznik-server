@@ -38,9 +38,9 @@ class Jobs {
             $categoryq = $category ? (" AND category = " . $this->dbhr->quote($category)) : '';
 
             # We use ST_Within because that takes advantage of the spatial index, whereas ST_Intersects does not.
-            $sql = "SELECT ST_Distance(geometry, POINT($lng, $lat)) AS dist, ST_Area(geometry) AS area, jobs.* FROM `jobs`
+            $sql = "SELECT ST_Distance(geometry, POINT($lng, $lat)) AS dist, CASE WHEN ST_Dimension(geometry) < 2 THEN 0 ELSE ST_Area(geometry) END AS area, jobs.* FROM `jobs`
 WHERE ST_Within(geometry, ST_GeomFromText('$poly')) 
-    AND ST_Area(geometry) / ST_Area(ST_GeomFromText('$poly')) < 2
+    AND (ST_Dimension(geometry) < 2 OR ST_Area(geometry) / ST_Area(ST_GeomFromText('$poly')) < 2)
     AND cpc >= " . Jobs::MINIMUM_CPC . "
     AND visible = 1
     $categoryq

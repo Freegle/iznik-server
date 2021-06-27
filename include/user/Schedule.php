@@ -130,19 +130,21 @@ class Schedule extends Entity
 
     public function getSummary() {
         # Get human readable version of a schedule.
-        $schedule = $this->filterPast(json_decode($this->schedule['schedule'], TRUE));
-
         $slots = [];
 
-        if ($schedule) {
-            foreach ($schedule as $s) {
-                if ($s['available']) {
-                    $t = strtotime($s['date']);
-                    $slots[$t] = date("l", $t) . " " . self::TEXTS[$s['hour']];
-                }
-            }
+        if ($this->schedule) {
+            $schedule = $this->filterPast(json_decode($this->schedule['schedule'], TRUE));
 
-            ksort($slots);
+            if ($schedule) {
+                foreach ($schedule as $s) {
+                    if ($s['available']) {
+                        $t = strtotime($s['date']);
+                        $slots[$t] = date("l", $t) . " " . self::TEXTS[$s['hour']];
+                    }
+                }
+
+                ksort($slots);
+            }
         }
 
         $str = '';

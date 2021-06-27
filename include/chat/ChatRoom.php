@@ -1644,7 +1644,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
             # seen/been chased, and all the mods if none of them have seen/been chased.
             #
             # First the user.
-            $readyq = $forceall ? '' : "HAVING lastemailed IS NULL OR lastemailed = '0000-00-00 00:00:00' OR (lastmsgemailed < ? AND TIMESTAMPDIFF(SECOND, lastemailed, NOW()) > $delay)";
+            $readyq = $forceall ? '' : "HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(SECOND, lastemailed, NOW()) > $delay)";
             $sql = "SELECT chat_roster.* FROM chat_roster INNER JOIN chat_rooms ON chat_rooms.id = chat_roster.chatid WHERE chatid = ? AND chat_roster.userid = chat_rooms.user1 $readyq;";
             #error_log("Check User2Mod $sql, {$this->id}, $lastmessage");
             $users = $this->dbhr->preQuery($sql, $forceall ? [$this->id] : [$this->id, $lastmessage]);
@@ -1921,9 +1921,8 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
             foreach ($notmailed as $member) {
                 # Now we have a member who has not been mailed the messages in this chat.  That's who we're sending to.
-                #error_log("{$chat['chatid']} Not mailed {$member['userid']} last mailed {$member['lastmsgemailed']}");
                 $sendingto = User::get($this->dbhr, $this->dbhm, $member['userid']);
-                $other = $member['userid'] == $chatatts['user1']['id'] ? $chatatts['user2']['id'] : $chatatts['user1']['id'];
+                $other = $member['userid'] == $chatatts['user1']['id'] ? Utils::presdef('id', $chatatts['user2'], NULL) : $chatatts['user1']['id'];
                 $sendingfrom = User::get($this->dbhr, $this->dbhm, $other);
 
                 # For User2Mod chats we do different things based on whether we're notifying the member or the mods.
@@ -2156,7 +2155,6 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                             $to = $sendingto->getEmailPreferred();
 
                             #$to = 'log@ehibbert.org.uk';
-                            #$to = 'activate@liveintent.com';
 
                             $jobads = $sendingto->getJobAds();
 
@@ -2170,6 +2168,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                             try {
                                 switch ($chattype) {
                                     case ChatRoom::TYPE_USER2USER:
+                                        $aboutme = $sendingfrom->getAboutMe();
                                         $html = $twig->render('chat_notify.html', [
                                             'unsubscribe' => $sendingto->getUnsubLink($site, $member['userid'], User::SRC_CHATNOTIF),
                                             'fromname' => $fromname ? $fromname : $sendingfrom->getName(),
@@ -2178,7 +2177,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                             'messages' => $twigmessages,
                                             'backcolour' => '#FFF8DC',
                                             'email' => $to,
-                                            'aboutme' => $sendingfrom->getAboutMe()['text'],
+                                            'aboutme' => $aboutme ? $aboutme['text'] : '',
                                             'previousmessages' => $prevmsg,
                                             'jobads' => $jobads['jobs'],
                                             'joblocation' => $jobads['location'],

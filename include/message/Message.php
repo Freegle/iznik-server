@@ -3726,7 +3726,7 @@ ORDER BY lastdate DESC;";
                         }
                     }
 
-                    $residue = preg_replace('/' . preg_quote($loc['name']) . '/i', '', $subject);
+                    $residue = $loc ? preg_replace('/' . preg_quote($loc['name']) . '/i', '', $subject) : '';
                 }
 
                 if ($loc) {
@@ -3982,7 +3982,7 @@ ORDER BY lastdate DESC;";
         }
 
         if ($myid) {
-            $this->dbhm->preExec("INSERT INTO search_history (userid, term, locationid, groups) VALUES (?, ?, ?, ?);", [
+            $this->dbhm->preExec("INSERT INTO search_history (userid, term, locationid, `groups`) VALUES (?, ?, ?, ?);", [
                 $myid,
                 $string,
                 $locationid,
@@ -5173,7 +5173,7 @@ $mq", [
     INNER JOIN messages_groups ON messages_groups.msgid = messages.id
     LEFT JOIN messages_spatial ON messages_spatial.msgid = messages_groups.msgid
     WHERE messages_groups.arrival >= ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL AND messages.deleted IS NULL AND messages_groups.collection = ? AND 
-          (messages_spatial.msgid IS NULL OR X(point) != messages.lng OR Y(point) != messages.lat OR messages_spatial.groupid IS NULL OR messages_spatial.groupid != messages_groups.groupid OR messages_groups.arrival != messages_spatial.arrival);";
+          (messages_spatial.msgid IS NULL OR ST_X(point) != messages.lng OR ST_Y(point) != messages.lat OR messages_spatial.groupid IS NULL OR messages_spatial.groupid != messages_groups.groupid OR messages_groups.arrival != messages_spatial.arrival);";
         $msgs = $this->dbhr->preQuery($sql, [
             $mysqltime,
             MessageCollection::APPROVED

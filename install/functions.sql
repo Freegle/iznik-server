@@ -7,11 +7,11 @@ DETERMINISTIC
     DECLARE sw, ne POINT;
     DECLARE lat, lng DOUBLE;
 
-    SET envelope = ExteriorRing(Envelope(g));
+    SET envelope = ExteriorRing(ST_Envelope(g));
     SET sw = PointN(envelope, 1);
     SET ne = PointN(envelope, 3);
-    SET lat = X(sw) + (X(ne)-X(sw))/2;
-    SET lng = Y(sw) + (Y(ne)-Y(sw))/2;
+    SET lat = ST_X(sw) + (X(ne)-X(sw))/2;
+    SET lng = ST_Y(sw) + (Y(ne)-Y(sw))/2;
     RETURN POINT(lat, lng);
   END$$
 DELIMITER ;
@@ -23,25 +23,14 @@ DETERMINISTIC
   BEGIN
     DECLARE area, radius, diag DOUBLE;
 
-    SET area = AREA(g);
-    SET radius = SQRT(area / PI());
-    SET diag = SQRT(radius * radius * 2);
-    RETURN(diag);
-
-    /* Previous implementation returns odd geometry exceptions
-    DECLARE envelope POLYGON;
-    DECLARE sw, ne POINT;
-    DECLARE xsize, ysize DOUBLE;
-
-    DECLARE EXIT HANDLER FOR 1416
-      RETURN(10000);
-
-    SET envelope = ExteriorRing(Envelope(g));
-    SET sw = PointN(envelope, 1);
-    SET ne = PointN(envelope, 3);
-    SET xsize = X(ne) - X(sw);
-    SET ysize = Y(ne) - Y(sw);
-    RETURN(GREATEST(xsize, ysize)); */
+    IF ST_Dimension(g) > 1 THEN
+        SET area = ST_AREA(g);
+        SET radius = SQRT(area / PI());
+        SET diag = SQRT(radius * radius * 2);
+        RETURN(diag);
+    ELSE
+        RETURN 0;
+    END IF;
   END$$
 DELIMITER ;
 
@@ -51,10 +40,14 @@ NO SQL
   BEGIN
     DECLARE area, radius, diag DOUBLE;
 
-    SET area = AREA(g);
-    SET radius = SQRT(area / PI());
-    SET diag = SQRT(radius * radius * 2);
-    RETURN(diag);
+    IF ST_Dimension(g) > 1 THEN
+        SET area = ST_AREA(g);
+        SET radius = SQRT(area / PI());
+        SET diag = SQRT(radius * radius * 2);
+        RETURN(diag);
+    ELSE
+        RETURN 0;
+    END IF;
   END$$
 DELIMITER ;
 

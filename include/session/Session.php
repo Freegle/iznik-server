@@ -43,11 +43,8 @@ class Session {
             $headers = Session::getallheaders();
             $sessid = Utils::presdef('X-Iznik-Php-Session', $headers, NULL);
             if ($sessid && strlen($sessid) >= 26 && ctype_alnum($sessid)) {
+                @session_destroy();
                 session_id($sessid);
-            }
-
-            if (session_status() == PHP_SESSION_NONE) {
-                @session_start();
             }
 
             # We need to also be prepared to do a session_start here, because if we're running in the UT then the session_start
@@ -212,8 +209,8 @@ class Session {
         $this->id = $id;
 
         $_SESSION['id'] = $userid;
+        #error_log("Created session for $userid in " . session_id());
         $_SESSION['logged_in'] = TRUE;
-        #error_log("Logged in as $userid in " . session_id());
 
         $_SESSION['persistent'] = [
             'id' => $id,

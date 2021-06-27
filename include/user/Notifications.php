@@ -131,11 +131,11 @@ class Notifications
 
             if ($notif) {
                 $ret[] = $notif;
-            }
 
-            $ctx = [
-                'id' => $notif['id']
-            ];
+                $ctx = [
+                    'id' => $notif['id']
+                ];
+            }
         }
 
         return($ret);

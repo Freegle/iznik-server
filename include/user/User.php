@@ -217,6 +217,7 @@ class User extends Entity
         # TODO lockout
         if ($this->id) {
             $logins = $this->getLogins(TRUE);
+
             foreach ($logins as $login) {
                 $pw = $this->hashPassword($suppliedpw, Utils::presdef('salt', $login, PASSWORD_SALT));
 
@@ -869,7 +870,7 @@ class User extends Entity
 
         # Check whether this user now counts as a possible spammer.
         $s = new Spam($this->dbhr, $this->dbhm);
-        $s->checkUser($this->id);
+        $s->checkUser($this->id, $groupid);
 
         return ($rc);
     }
@@ -4315,11 +4316,13 @@ class User extends Entity
             $locs = $this->getLatLngs([ $this->user ], $usedef, $usegroup, FALSE, [ $this->user ]);
             $loc = $locs[$this->id];
 
-            if ($blur && ($loc['lat'] || $loc['lng'])) {
-                list ($loc['lat'], $loc['lng']) = Utils::blur($loc['lat'], $loc['lng'], $blur);
-            }
+            if ($loc) {
+                if ($blur && ($loc['lat'] || $loc['lng'])) {
+                    list ($loc['lat'], $loc['lng']) = Utils::blur($loc['lat'], $loc['lng'], $blur);
+                }
 
-            $ret = [ $loc['lat'], $loc['lng'], Utils::presdef('loc', $loc, NULL) ];
+                $ret = [ $loc['lat'], $loc['lng'], Utils::presdef('loc', $loc, NULL) ];
+            }
         }
 
         return $ret;

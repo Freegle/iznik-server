@@ -209,7 +209,7 @@ class ChatMessage extends Entity
                                 $s = new Spam($this->dbhr, $this->dbhm);
 
                                 # Don't check memberships otherwise they might show up repeatedly.
-                                $review = $s->checkUser($userid, $m['lat'], $m['lng'], FALSE);
+                                $review = $s->checkUser($userid, NULL, $m['lat'], $m['lng'], FALSE);
                             }
                         }
                     }

@@ -11,7 +11,7 @@ global $dbhr, $dbhm, $dbconfig;
 
 $dbhback = new LoggedPDO('localhost:3309', $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE);
 
-$authorities = $dbhback->preQuery("SELECT id, AsText(simplified) AS simp FROM authorities WHERE simplified IS NOT NULL;");
+$authorities = $dbhback->preQuery("SELECT id,  ST_AsText(simplified) AS simp FROM authorities WHERE simplified IS NOT NULL;");
 
 error_log("Got " . count($authorities));
 $count = 0;

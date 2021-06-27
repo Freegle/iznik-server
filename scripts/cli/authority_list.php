@@ -10,7 +10,7 @@ global $dbhr, $dbhm;
 
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 
-$sql = "SELECT id, name, AsText(st_simplify(polygon, 0.001)) AS polygon FROM authorities WHERE level = 'Primary' ORDER BY name ASC;";
+$sql = "SELECT id, name,  ST_AsText(st_simplify(polygon, 0.001)) AS polygon FROM authorities WHERE level = 'Primary' ORDER BY name ASC;";
 $authoritys = $dbhr->preQuery($sql);
 
 $kml = "<?xml version='1.0' encoding='UTF-8'?>

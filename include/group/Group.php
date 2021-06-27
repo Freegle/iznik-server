@@ -992,7 +992,7 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
     }
 
     public function getSetting($key, $def) {
-        $settings = json_decode($this->group['settings'], true);
+        $settings = $this->id ? json_decode($this->group['settings'], true) : NULL;
         return($settings && array_key_exists($key, $settings) ? $settings[$key] : $def);
     }
 

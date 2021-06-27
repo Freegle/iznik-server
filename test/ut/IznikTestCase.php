@@ -124,7 +124,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
     public function waitBackground() {
         # We wait until either the queue is empty, or the first item on it has been put there since we started
         # waiting (and therefore anything we put on has been handled).
-        $start = time();
+        $start = microtime(TRUE);
 
         $pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
         $count = 0;
@@ -136,6 +136,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
             $this->log("...waiting for background work, current $ready/$reserved, try $count");
 
             if ($ready + $reserved == 0) {
+                $this->log("Queue is empty, exit");
                 break;
             }
 
@@ -144,12 +145,18 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
                 $data = json_decode($job->getData(), true);
 
                 if ($data['queued'] > $start) {
+                    $this->log("Queue now newer than when we started");
                     sleep(2);
                     break;
                 }
             } catch (\Exception $e) {
                 if (strpos($e->getMessage(), "NOT_FOUND: There are no jobs in the 'ready' status") !== FALSE) {
-                    break;
+                    if ($reserved) {
+                        $this->log("...no jobs ready but $reserved reserved, continue");
+                    } else {
+                        $this->log("...no jobs ready and no reserved");
+                        break;
+                    }
                 } else {
                     error_log("Exception waiting for background " . $e->getMessage());
                 }

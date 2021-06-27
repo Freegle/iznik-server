@@ -39,7 +39,7 @@ foreach ($locs as $loc) {
 $count = 0;
 $found = 0;
 
-$sql = "SELECT id, gridid, name, type, lat, lng, geometry, AsText(geometry) AS geomtext FROM locations WHERE LOCATE(' ', name) > 0 AND type = 'Postcode' AND areaid IS NULL ORDER BY name ASC;";
+$sql = "SELECT id, gridid, name, type, lat, lng, geometry,  ST_AsText(geometry) AS geomtext FROM locations WHERE LOCATE(' ', name) > 0 AND type = 'Postcode' AND areaid IS NULL ORDER BY name ASC;";
 
 $locs = $dbhr->preQuery($sql);
 $total = count($locs);
@@ -64,7 +64,7 @@ foreach ($locs as $loc) {
         # We choose the smallest non-postcode place location.  A place location is either one where the OSM data
         # says it's a place (osm_place) or the type of the location means it would work as one (not point,
         # basically).  We can't use MBRContains or MBRIntersects as some places are only present in OSM as points.
-        $sql = "SELECT id, name, AsText(geometry) AS geomtext, haversine(lat, lng, ?, ?) AS dist FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND osm_place = 1 ORDER BY dist ASC LIMIT 2;";
+        $sql = "SELECT id, name,  ST_AsText(geometry) AS geomtext, haversine(lat, lng, ?, ?) AS dist FROM locations WHERE gridid IN (" . implode(',', $gridids) . ") AND osm_place = 1 ORDER BY dist ASC LIMIT 2;";
         #error_log("For $id $sql, {$loc['lat']}, {$loc['lng']}");
         $intersects = $dbhr->preQuery($sql, [
             $loc['lat'],
