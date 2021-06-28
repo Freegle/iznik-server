@@ -1067,7 +1067,7 @@ class Message
                 $maxreposts = $repost * ($reposts['max'] + 1);
                 $rets[$msg['id']]['expiretime'] = max($maxreposts, $maxagetoshow);
 
-                if (array_key_exists('canedit', $rets[$msg['id']]) && !$rets[$msg['id']]['canedit'] && $myid && $myid === $msg['fromuser']) {
+                if (array_key_exists('canedit', $rets[$msg['id']]) && !$rets[$msg['id']]['canedit'] && $myid && $myid == $msg['fromuser']) {
                     # This is our own message, which we may be able to edit if the group allows it.  Allow this even if
                     # it wasn't originally posted on here.
                     $allowedits = $g->getSetting('allowedits', [ 'moderated' => TRUE, 'group' => TRUE ]);
