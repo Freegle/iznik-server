@@ -249,7 +249,7 @@ class chatRoomsTest extends IznikTestCase {
         # Make the first user block the second.
         $r->updateRoster($u1, NULL, ChatRoom::STATUS_BLOCKED);
 
-        # Now send an email.
+        # Now send an email from the blocked member.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
         $mr = new MailRouter($this->dbhm, $this->dbhm);
         $mid = $mr->received(Message::EMAIL, 'test2@test.com', "notify-$id-$u2@" . USER_DOMAIN, $msg);
@@ -270,6 +270,26 @@ class chatRoomsTest extends IznikTestCase {
 
         $r->expects($this->never())->method('mailer');
         assertEquals(0, $r->notifyByEmail($id,  ChatRoom::TYPE_USER2USER, NULL, 0));
+
+        # Now send an email from the unblocked member - should reopen the chat.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
+        $mr = new MailRouter($this->dbhm, $this->dbhm);
+        $mid = $mr->received(Message::EMAIL, 'test1@test.com', "notify-$id-$u1@" . USER_DOMAIN, $msg);
+        $rc = $mr->route();
+        assertEquals(MailRouter::TO_USER, $rc);
+
+        $r = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
+            ->setMethods(array('mailer'))
+            ->getMock();
+
+        $r->method('mailer')->will($this->returnCallback(function($message) {
+            return($this->mailer($message));
+        }));
+
+        $this->msgsSent = [];
+
+        assertEquals(1, $r->notifyByEmail($id,  ChatRoom::TYPE_USER2USER, NULL, 0));
     }
 
     public function testNotifyUser2UserInterleaved() {
