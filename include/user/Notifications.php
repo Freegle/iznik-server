@@ -105,7 +105,7 @@ class Notifications
 
                     $notif = NULL;
                 } else {
-                    if ($not['replyto']) {
+                    if ($not['replyto'] && Utils::pres($not['replyto'], $news)) {
                         $orig = $news[$not['replyto']];
                         $this->snip($orig['message']);
                         unset($orig['position']);
