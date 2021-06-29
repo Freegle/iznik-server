@@ -1,8 +1,6 @@
 #!/bin/bash
 echo "Restarting app at `date`" >> /tmp/restartapp.log
-killall -9 hhvm
 killall -9 nginx
 /etc/init.d/php-fpm restart
-/etc/init.d/hhvm start
 /etc/init.d/nginx start
 pm2 restart all
