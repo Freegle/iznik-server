@@ -105,10 +105,15 @@ class Notifications
 
                     $notif = NULL;
                 } else {
-                    if ($not['replyto'] && Utils::pres($not['replyto'], $news)) {
-                        $orig = $news[$not['replyto']];
-                        $this->snip($orig['message']);
-                        unset($orig['position']);
+                    if ($not['replyto']) {
+                        $orig = Utils::presdef($not['replyto'], $news, NULL);
+
+                        if ($orig) {
+                            # Thread we're replying to might have been deleted.
+                            $this->snip($orig['message']);
+                            unset($orig['position']);
+                        }
+
                         $not['replyto'] = $orig;
                     }
 
