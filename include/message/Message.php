@@ -5055,11 +5055,8 @@ $mq", [
     }
 
     public function like($userid, $type) {
-        $this->dbhm->preExec("INSERT INTO messages_likes (msgid, userid, type) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE timestamp = NOW(), count = count + 1 ;", [
-            $this->id,
-            $userid,
-            $type
-        ]);
+        # Background for performance.
+        $this->dbhm->background("INSERT INTO messages_likes (msgid, userid, type) VALUES ({$this->id}, $userid, '$type') ON DUPLICATE KEY UPDATE timestamp = NOW(), count = count + 1 ;");
     }
 
     public function unlike($userid, $type) {

@@ -2521,6 +2521,7 @@ class messageAPITest extends IznikAPITestCase
         ]);
 
         assertEquals(0, $ret['ret']);
+        $this->waitBackground();
 
         assertEquals(1, $m->getLikes(Message::LIKE_LOVE));
         assertEquals(0, $m->getLikes(Message::LIKE_LAUGH));
@@ -2543,6 +2544,7 @@ class messageAPITest extends IznikAPITestCase
         ]);
 
         assertEquals(0, $ret['ret']);
+        $this->waitBackground();
 
         assertEquals(0, $m->getLikes(Message::LIKE_LOVE));
         assertEquals(1, $m->getLikes(Message::LIKE_LAUGH));
@@ -2565,6 +2567,7 @@ class messageAPITest extends IznikAPITestCase
         ]);
 
         assertEquals(0, $ret['ret']);
+        $this->waitBackground();
 
         assertEquals(0, $m->getLikes(Message::LIKE_LOVE));
         assertEquals(0, $m->getLikes(Message::LIKE_LAUGH));
@@ -2591,6 +2594,7 @@ class messageAPITest extends IznikAPITestCase
         ]);
 
         assertEquals(0, $ret['ret']);
+        $this->waitBackground();
         assertTrue($u->login('testpw'));
 
         # Check this shows up in our list of viewed messages.
@@ -2613,6 +2617,7 @@ class messageAPITest extends IznikAPITestCase
         ]);
 
         assertEquals(0, $ret['ret']);
+        $this->waitBackground();
 
         assertEquals(0, $m->getLikes(Message::LIKE_LOVE));
         assertEquals(0, $m->getLikes(Message::LIKE_LAUGH));
