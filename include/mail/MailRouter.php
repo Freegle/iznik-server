@@ -518,8 +518,23 @@ class MailRouter
                     $ret = MailRouter::FAILURE;
 
                     if ($this->markAsSpam($rc[1], $rc[2])) {
-                        $ret = MailRouter::INCOMING_SPAM;
-                        $spamfound = TRUE;
+                        $groups = $this->msg->getGroups(FALSE, FALSE);
+
+                        if (count($groups) > 0) {
+                            foreach ($groups as $group) {
+                                $uid = $this->msg->getFromuser();
+                                $u = User::get($this->dbhr, $this->dbhm, $uid);
+
+                                if ($u->isBanned($group['groupid'])) {
+                                    // If they are banned we just want to drop it.
+                                    error_log("Banned - drop");
+                                    $ret = MailRouter::DROPPED;
+                                } else {
+                                    $ret = MailRouter::INCOMING_SPAM;
+                                    $spamfound = TRUE;
+                                }
+                            }
+                        }
                     }
                 } else if ($contentcheck) {
                     # Now check if we think this is spam according to SpamAssassin.

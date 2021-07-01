@@ -1580,6 +1580,31 @@ class MailRouterTest extends IznikTestCase {
         $msgid = $r->received(Message::EMAIL, 'test2@test.com', 'freegleplayground@' . GROUP_DOMAIN, $msg);
         $rc = $r->route();
         assertEquals(MailRouter::DROPPED, $rc);
+
+        # Including spam/worry words.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_ireplace('a test item', 'viagra', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $msgid = $r->received(Message::EMAIL, 'test2@test.com', 'freegleplayground@' . GROUP_DOMAIN, $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::DROPPED, $rc);
+
+        # Set up worry words.
+        $settings = json_decode($this->group->getPrivate('settings'), TRUE);
+        $settings['spammers'] = [ 'worrywords' => 'wibble,wobble' ];
+        $this->group->setSettings($settings);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_ireplace('Hey', 'wobble', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $id = $m->save();
+
+        $r = new MailRouter($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route();
+        assertEquals(MailRouter::DROPPED, $rc);
     }
 
     public function testCantPost() {
