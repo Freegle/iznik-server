@@ -64,11 +64,11 @@ class Yahoo
             "Content-type: application/x-www-form-urlencoded"
         ]);
         $params = 'client_id=' . urlencode(YAHOO_CLIENT_ID) . '&client_secret=' . urlencode(YAHOO_CLIENT_SECRET) . '&redirect_uri=oob&code=' . $code . '&grant_type=authorization_code';
-        error_log("Login with code $code params $params");
+        #error_log("Login with code $code params $params");
         curl_setopt($curl, CURLOPT_POSTFIELDS, $params);
         $json_response = $loginoverride ? $loginoverride : curl_exec($curl);
         $status = $loginoverride ? 200 : curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        error_log("Yahoo login status 1 $status, JSON $json_response");
+        #error_log("Yahoo login status 1 $status, JSON $json_response");
 
         if ($status == 200) {
             $json = json_decode($json_response, TRUE);
@@ -87,16 +87,16 @@ class Yahoo
 
                 $json_response = $userinfooverride ? $userinfooverride : curl_exec($curl);
                 $status = $userinfooverride ? 200 : curl_getinfo($curl, CURLINFO_HTTP_CODE);
-                error_log("Yahoo login status 2 $status");
+                #error_log("Yahoo login status 2 $status");
 
                 if ($status == 200) {
-                    error_log("Got user info $json_response");
+                    #error_log("Got user info $json_response");
                     $attrs = json_decode($json_response, TRUE);
                     $givenName = Utils::presdef('given_name', $attrs, NULL);
                     $familyName = Utils::presdef('family_name', $attrs, NULL);
                     $email = Utils::presdef('email', $attrs, NULL);
 
-                    error_log("$givenName, $familyName, $email");
+                    #error_log("$givenName, $familyName, $email");
 
                     if ($email) {
                         # We're in.
@@ -105,7 +105,7 @@ class Yahoo
                         # Yahoo ID (which in this method we are assuming is the returned preferred_username).
                         $u = User::get($this->dbhr, $this->dbhm);
                         $id = $email ? $u->findByEmail($email) : NULL;
-                        error_log("Found $id for $email");
+                        #error_log("Found $id for $email");
 
                         if (!$id) {
                             # We don't know them.  Create a user.
@@ -145,7 +145,7 @@ class Yahoo
                             ]);
 
                         if ($id) {
-                            error_log("Logged in");
+                            #error_log("Logged in");
                             # We are logged in.
                             $s = new Session($this->dbhr, $this->dbhm);
                             $s->create($id);
@@ -160,7 +160,7 @@ class Yahoo
                                 'text' => 'Using Yahoo'
                             ]);
 
-                            error_log("Returning success");
+                            #error_log("Returning success");
                             $ret = [$s, ['ret' => 0, 'status' => 'Success']];
                         }
                     }

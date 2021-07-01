@@ -34,7 +34,7 @@ foreach ($transaction as $key => $value) {
     error_log("IPN: $key => $value");
 }
 
-if ($transaction['mc_gross'] > 0) {
+if (Utils::pres('mc_gross', $transaction)) {
     $eid = $u->findByEmail($transaction['payer_email']);
 
     $d = new Donations($dbhr, $dbhm);

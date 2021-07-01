@@ -4114,7 +4114,7 @@ ORDER BY lastdate DESC;";
             $rc = TRUE;
             $n = new PushNotifications($this->dbhr, $this->dbhm);
             $n->notifyGroupMods($groupid);
-            error_log("Submit notify $groupid");
+            #error_log("Submit notify $groupid");
 
             # This message is now not a draft.
             $this->dbhm->preExec("DELETE FROM messages_drafts WHERE msgid = ?;", [ $this->id ]);
