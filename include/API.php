@@ -464,8 +464,8 @@ class API
                             if ($duration > 5000) {
                                 # Slow call.
                                 $stamp = microtime(true);
-                                error_log("Slow API call $call stamp $stamp");
-                                file_put_contents("/tmp/iznik.slowapi.$stamp", var_export($_REQUEST, true));
+                                error_log("Slow API call for user " . Utils::presdef('id', $_SESSION, NULL) . " $call stamp $stamp");
+                                file_put_contents("/tmp/iznik.slowapi.$stamp", "User # " . Utils::presdef('id', $_SESSION, NULL) . " request " . var_export($_REQUEST, true) . " response " . var_export($ret, TRUE));
                             }
                         }
                     }
