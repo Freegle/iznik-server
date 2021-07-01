@@ -529,11 +529,13 @@ class MailRouter
                                     // If they are banned we just want to drop it.
                                     error_log("Banned - drop");
                                     $ret = MailRouter::DROPPED;
-                                } else {
-                                    $ret = MailRouter::INCOMING_SPAM;
-                                    $spamfound = TRUE;
                                 }
                             }
+                        }
+
+                        if ($ret != MailRouter::DROPPED) {
+                            $ret = MailRouter::INCOMING_SPAM;
+                            $spamfound = TRUE;
                         }
                     }
                 } else if ($contentcheck) {
