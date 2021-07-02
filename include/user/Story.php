@@ -29,7 +29,7 @@ class Story extends Entity
                 if ($myid) {
                     if ($att == 'reviewed') {
                         $this->setPrivate('reviewedby', $myid);
-                    } else if ($att == 'reviewednewsletter') {
+                    } else if ($att == 'newsletterreviewed') {
                         $this->setPrivate('newsletterreviewedby', $myid);
                     }
                 }
@@ -163,7 +163,7 @@ class Story extends Entity
 
     public function getForReview($groupids, $newsletter) {
         $mysqltime = date("Y-m-d", strtotime("31 days ago"));
-        $sql = $newsletter ? ("SELECT DISTINCT users_stories.id FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE reviewed = 1 AND public = 1 AND newsletterreviewed = 0 ORDER BY date DESC") :
+        $sql = $newsletter ? ("SELECT DISTINCT users_stories.id FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE reviewed = 1 AND public = 1 AND newsletterreviewed = 0 AND newsletter = 1 ORDER BY date DESC") :
             ("SELECT DISTINCT users_stories.id FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE memberships.groupid IN (" . implode(',', $groupids) . ") AND users_stories.date > '$mysqltime' AND reviewed = 0 ORDER BY date DESC");
         $ids = $this->dbhr->preQuery($sql);
         $ret = [];
@@ -206,10 +206,11 @@ class Story extends Entity
     public function getStories($groupid, $authorityid, $story, $limit = 20, $reviewnewsletter = FALSE) {
         $limit = intval($limit);
         if ($reviewnewsletter) {
+            # This is for mods reviewing stories for inclusion in the newsletter
             $last = $this->dbhr->preQuery("SELECT MAX(created) AS max FROM newsletters WHERE type = 'Stories';");
             $since = $last[0]['max'];
             $dateq = $since ? "AND date >= '$since'": '';
-            $sql = "SELECT DISTINCT users_stories.id FROM users_stories WHERE newsletter = 1 AND mailedtomembers = 0 $dateq ORDER BY RAND();";
+            $sql = "SELECT DISTINCT users_stories.id FROM users_stories WHERE public = 1 AND reviewed = 1 AND mailedtomembers = 0 $dateq ORDER BY RAND();";
             $ids = $this->dbhr->preQuery($sql);
         } else {
             if ($groupid) {

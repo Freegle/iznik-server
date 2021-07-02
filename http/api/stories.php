@@ -31,18 +31,31 @@ function stories() {
                     ];
                 }
             } else if ($reviewnewsletter) {
-                $stories = $s->getStories($groupid, $authorityid, $story, $limit, TRUE);
+                # This is for mods reviewing stories for inclusion in the newsletter.
+                $stories = $s->getStories($groupid, $authorityid, $story, $limit, true);
 
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
                     'stories' => $stories
                 ];
+            } else if ($me && $newsletter) {
+                $stories = [];
+
+                if ($me->hasPermission(User::PERM_NEWSLETTER)) {
+                    $stories = $s->getForReview([], $newsletter);
+                }
+
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success',
+                    'stories' => $stories
+                ];
+
             } else if ($me && $reviewed === 0) {
                 $groupids = [ $groupid ];
-                $newsletter = $me->hasPermission(User::PERM_NEWSLETTER) ? $newsletter : FALSE;
 
-                if (!$newsletter && !$groupid) {
+                if (!$groupid) {
                     # We want to see the ones on groups we mod.
                     $mygroups = $me->getMemberships(TRUE);
                     $groupids = [];
@@ -57,8 +70,8 @@ function stories() {
 
                 $stories = [];
 
-                if ($newsletter || count($groupids) > 0) {
-                    $stories = $s->getForReview($groupids, $newsletter);
+                if (count($groupids) > 0) {
+                    $stories = $s->getForReview($groupids, FALSE);
                 }
 
                 $ret = [
