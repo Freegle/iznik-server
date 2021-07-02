@@ -210,7 +210,7 @@ class Story extends Entity
             $last = $this->dbhr->preQuery("SELECT MAX(created) AS max FROM newsletters WHERE type = 'Stories';");
             $since = $last[0]['max'];
             $dateq = $since ? "AND date >= '$since'": '';
-            $sql = "SELECT DISTINCT users_stories.id FROM users_stories WHERE public = 1 AND reviewed = 1 AND mailedtomembers = 0 $dateq ORDER BY RAND();";
+            $sql = "SELECT DISTINCT users_stories.id FROM users_stories WHERE newsletter = 1 AND public = 1 AND newsletterreviewed = 1 AND mailedtomembers = 0 $dateq ORDER BY RAND();";
             $ids = $this->dbhr->preQuery($sql);
         } else {
             if ($groupid) {
@@ -345,7 +345,7 @@ class Story extends Entity
 
     public function sendToCentral($id = NULL) {
         $idq = $id ? " AND id = $id " : "";
-        $stories = $this->dbhr->preQuery("SELECT id FROM users_stories WHERE mailedtocentral = 0 AND public = 1 AND reviewed = 1 $idq;");
+        $stories = $this->dbhr->preQuery("SELECT id FROM users_stories WHERE newsletter = 1 AND public = 1 AND newsletterreviewed = 1 AND mailedtomembers = 0 AND mailedtocentral = 0 $idq;");
         $url = "https://" . USER_SITE . "/stories/fornewsletter";
         $preview = "Please go to $url to vote for which go into the next member newsletter.";
 
