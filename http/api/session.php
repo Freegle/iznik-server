@@ -347,7 +347,7 @@ function session() {
                                                         'notifications' => $notifcount,
                                                         'unreadtopics' => $unreadcount,
                                                         'newtopics' => $newcount,
-                                                        'tiemstamp' => time()
+                                                        'timestamp' => time()
                                                     ];
                                                 }
                                                 #error_log("$name notifs $notifcount new topics $newcount unread topics $unreadcount");
