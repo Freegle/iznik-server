@@ -100,7 +100,6 @@ class storiesAPITest extends IznikAPITestCase {
         assertEquals(1, count($ret['stories']));
         self::assertEquals($id, $ret['stories'][0]['id']);
 
-        # Mark reviewed
         $ret = $this->call('stories', 'PATCH', [
             'id' => $id,
             'reviewed' => 1,
@@ -121,7 +120,24 @@ class storiesAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['stories'][0]['id']);
 
-        # List for review newsletter - should be there.
+        # List for newsletter - should not be there as not yet reviewed for it.
+        $ret = $this->call('stories', 'GET', [ 'reviewnewsletter' => TRUE ]);
+        assertEquals(0, $ret['ret']);
+        $found = FALSE;
+        foreach ($ret['stories'] as $story) {
+            if ($story['id'] == $id) {
+                $found = TRUE;
+            }
+        }
+        assertFalse($found);
+
+        # Flag as reviewed for newsletter.
+        $s = new Story($this->dbhr, $this->dbhm, $id);
+        $s->setPrivate('newsletter', 1);
+        $s->setPrivate('public', 1);
+        $s->setPrivate('newsletterreviewed', 1);
+        $s->setPrivate('mailedtomembers', 0);
+
         $ret = $this->call('stories', 'GET', [ 'reviewnewsletter' => TRUE ]);
         assertEquals(0, $ret['ret']);
         $found = FALSE;

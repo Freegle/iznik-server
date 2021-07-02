@@ -362,8 +362,7 @@ class Story extends Entity
                 'photo' => Utils::presdef('photo', $atts, NULL) ? $atts['photo']['path'] : NULL
             ];
 
-            #TODO
-            #$this->dbhm->preExec("UPDATE users_stories SET mailedtocentral = 1 WHERE id = ?;", [ $story['id'] ]);
+            $this->dbhm->preExec("UPDATE users_stories SET mailedtocentral = 1 WHERE id = ?;", [ $story['id'] ]);
         }
 
         if (count($thestories) > 0) {

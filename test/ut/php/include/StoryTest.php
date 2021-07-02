@@ -41,10 +41,12 @@ class StoryTest extends IznikTestCase {
 
         $sid = $s->create($uid, 1, "Freecycle", "Test");
         $sid = $s->create($uid, 1, "Test", "Test");
-        $this->dbhm->preExec("UPDATE users_stories SET reviewed = 1 WHERE id = ?;", [ $sid ]);
+        $this->dbhm->preExec("UPDATE users_stories SET reviewed = 1, newsletter = 1, newsletterreviewed = 1, mailedtomembers = 0 WHERE id = ?;", [ $sid ]);
 
         $count = $s->sendToCentral($sid);
         self::assertEquals(1, $count);
+        $count = $s->sendToCentral($sid);
+        self::assertEquals(0, $count);
     }
 
     public function testNewsletter() {
