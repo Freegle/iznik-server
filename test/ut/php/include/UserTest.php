@@ -734,12 +734,13 @@ class userTest extends IznikTestCase {
         $id2 = $u2->create('Test', 'User', NULL);
 
         $g = Group::get($this->dbhr, $this->dbhm);
+
         $groupids = [];
 
         for ($i = 0; $i < Spam::SEEN_THRESHOLD + 1; $i++) {
             $gid = $g->create("testgroup$i", Group::GROUP_REUSE);
-            $g = Group::get($this->dbhr, $this->dbhm);
             $groupids[] = $gid;
+
             $u1->addMembership($gid, User::ROLE_MODERATOR);
             $u2->addMembership($gid);
 
@@ -749,13 +750,30 @@ class userTest extends IznikTestCase {
 
             $this->log("$i");
 
+            # Should not show for review until we exceed the threshold.
             if ($i < Spam::SEEN_THRESHOLD) {
-                assertNull($u2->getMembershipAtt($gid, 'reviewrequestedat'));
+                assertNull($u2->getMembershipAtt($gid, 'reviewrequestedat'), "Shouldn't be flagged as not exceeded threshold");
             } else {
+                # Should now show for review on this group,
                 assertNotNull($u2->getMembershipAtt($gid, 'reviewrequestedat'));
+                $ctx = NULL;
                 $membs = $g->getMembers(10, NULL, $ctx, NULL, MembershipCollection::SPAM, [ $gid ]);
-                assertEquals(2, count($membs));
+                assertEquals(2, count($membs), "Should be flagged on $gid");
+
+                # ...but not any previous groups because we flagged as reviewed on those.
+                foreach ($groupids as $checkgid) {
+                    if ($checkgid != $gid) {
+                        assertNotNull($u2->getMembershipAtt($checkgid, 'reviewrequestedat'));
+                        $ctx = NULL;
+                        $membs = $g->getMembers(10, NULL, $ctx, NULL, MembershipCollection::SPAM, [ $checkgid ]);
+                        assertEquals(0, count($membs), "Shouldn't be flagged on $checkgid");
+                    }
+                }
             }
+
+            # Flag as reviewed.  Should stop us seeing it next time.
+            $u1->memberReview($gid, FALSE, 'UT');
+            $u2->memberReview($gid, FALSE, 'UT');
         }
     }
 

@@ -6323,10 +6323,10 @@ memberships.groupid IN $groupq
         $mysqltime = date('Y-m-d H:i');
 
         if ($request) {
-            # Requesting review.
+            # Requesting review.  Leave reviewedat unchanged, so that we can use it to avoid asking too
+            # frequently.
             $this->setMembershipAtt($groupid, 'reviewreason', $reason);
             $this->setMembershipAtt($groupid, 'reviewrequestedat', $mysqltime);
-            $this->setMembershipAtt($groupid, 'reviewedat', NULL);
         } else {
             # We have reviewed.  Note that they might have been removed, in which case the set will do nothing.
             $this->setMembershipAtt($groupid, 'reviewrequestedat', NULL);
