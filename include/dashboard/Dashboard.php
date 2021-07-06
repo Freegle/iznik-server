@@ -25,6 +25,7 @@ class Dashboard {
     const COMPONENTS_ACTIVE_USERS = 'ActiveUsers';
     const COMPONENTS_HAPPINESS = 'Happiness';
     const COMPONENTS_APPROVED_MEMBERS = 'ApprovedMemberCount';
+    const COMPONENTS_DISCOURSE_TOPICS = 'DiscourseTopics';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $me) {
         $this->dbhr = $dbhr;
@@ -409,6 +410,24 @@ GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
                 $start,
                 $end
             ]);
+        }
+
+        if (in_array(Dashboard::COMPONENTS_DISCOURSE_TOPICS, $components) && $ismod) {
+            # Get Discourse topics.  We need this quick or not at all.  Also need to pass authentication in headers rather
+            # than URL parameters.
+            $ctx = stream_context_create(
+                array(
+                    'http' => [
+                        'timeout' => 1,
+                        "method" => "GET",
+                        "header" => "Accept-language: en\r\n" .
+                            "Api-Key: " . DISCOURSE_APIKEY . "\r\n" .
+                            "Api-Username: system\r\n"
+                    ]
+                )
+            );
+
+            $ret[Dashboard::COMPONENTS_DISCOURSE_TOPICS] = @file_get_contents(DISCOURSE_API . '/posts.json', false, $ctx);
         }
 
         return($ret);
