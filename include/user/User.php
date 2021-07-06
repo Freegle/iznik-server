@@ -998,6 +998,23 @@ class User extends Entity
                 $groupid,
                 $meid
             ]);
+
+            # Mark any messages on this group as withdrawn.  Not strictly true, but it will stop people replying
+            # while keeping the messages around for stats purposes and in case we want to look at them.
+            $msgs = $this->dbhr->preQuery("SELECT messages_groups.msgid FROM messages_groups 
+    INNER JOIN messages ON messages_groups.msgid = messages.id 
+    LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages_groups.msgid 
+    WHERE messages.fromuser = ? AND messages_groups.groupid = ? AND messages.type IN (?, ?);", [
+                $this->id,
+                $groupid,
+                Message::TYPE_OFFER,
+                Message::TYPE_WANTED
+            ]);
+
+            foreach ($msgs as $msg) {
+                $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
+                $m->mark(Message::OUTCOME_WITHDRAWN, "Marked as withdrawn by ban", NULL, NULL);
+            }
         }
 
         # Now remove the membership.

@@ -1569,17 +1569,32 @@ class MailRouterTest extends IznikTestCase {
     }
 
     public function testBanned() {
-        # Ban u1
         $this->user->addMembership($this->gid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED);
+
+        # Post a message first.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $msgid = $r->received(Message::EMAIL, 'test2@test.com', 'freegleplayground@' . GROUP_DOMAIN, $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $msgid);
+        assertNull($m->hasOutcome());
+
+        # Now ban u1
         $this->user->removeMembership($this->gid, TRUE);
 
         # u1 shouldn't be able to post by email.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $msgid = $r->received(Message::EMAIL, 'test2@test.com', 'freegleplayground@' . GROUP_DOMAIN, $msg);
+        $msgid2 = $r->received(Message::EMAIL, 'test2@test.com', 'freegleplayground@' . GROUP_DOMAIN, $msg);
         $rc = $r->route();
         assertEquals(MailRouter::DROPPED, $rc);
+
+        # First message should have been marked as withdrawn.
+        $m = new Message($this->dbhr, $this->dbhm, $msgid);
+        assertEquals(Message::OUTCOME_WITHDRAWN, $m->hasOutcome());
 
         # Including spam/worry words.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
