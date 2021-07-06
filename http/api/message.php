@@ -130,7 +130,7 @@ function message() {
                             $ret = [ 'ret' => 3, 'status' => 'Missing location - client error' ];
 
                             $email = Utils::presdef('email', $_REQUEST, NULL);
-                            $sourceheader = Utils::pres('app' ? Message::FREEGLE_APP : Message::PLATFORM);
+                            $sourceheader = Utils::pres('app', $_REQUEST) ? Message::FREEGLE_APP : Message::PLATFORM;
                             $uid = NULL;
 
                             if ($email) {
