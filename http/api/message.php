@@ -130,6 +130,7 @@ function message() {
                             $ret = [ 'ret' => 3, 'status' => 'Missing location - client error' ];
 
                             $email = Utils::presdef('email', $_REQUEST, NULL);
+                            $sourceheader = Utils::pres('app' ? Message::FREEGLE_APP : Message::PLATFORM);
                             $uid = NULL;
 
                             if ($email) {
@@ -142,7 +143,7 @@ function message() {
                                 # We check the ID on the message object to handle the case where the client passes
                                 # an ID which is not valid on the server.
                                 if (!$m->getID()) {
-                                    $id = $m->createDraft($uid);
+                                    $id = $m->createDraft($uid, $sourceheader);
 
                                     # Use the master to avoid any replication windows.
                                     $m = new Message($dbhm, $dbhm, $id);
@@ -169,7 +170,7 @@ function message() {
                                     # override the one on the client.
                                     if (!$m) {
                                         $m = new Message($dbhr, $dbhm);
-                                        $id = $m->createDraft();
+                                        $id = $m->createDraft(NULL, $sourceheader);
                                         $m = new Message($dbhm, $dbhm, $id);
                                         $_SESSION['lastmessage'] = $id;
                                     }

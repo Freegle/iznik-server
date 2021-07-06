@@ -1832,6 +1832,7 @@ ORDER BY lastdate DESC;";
 
     const EMAIL = 'Email';
     const PLATFORM = 'Platform'; // Us
+    const FREEGLE_APP = 'Freegle App';
 
     /**
      * @return null
@@ -2001,7 +2002,7 @@ ORDER BY lastdate DESC;";
         return($subj);
     }
 
-    public function createDraft($uid = NULL) {
+    public function createDraft($uid = NULL, $sourceheader = Message::PLATFORM) {
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $myid = $me ? $me->getId() : NULL;
         $myid = $myid ? $myid : $uid;
@@ -2009,7 +2010,7 @@ ORDER BY lastdate DESC;";
 
         $rc = $this->dbhm->preExec("INSERT INTO messages (source, sourceheader, date, fromip, message) VALUES(?,?, NOW(), ?, '');", [
             Message::PLATFORM,
-            Message::PLATFORM,
+            $sourceheader,
             Utils::presdef('REMOTE_ADDR', $_SERVER, NULL)
         ]);
 
