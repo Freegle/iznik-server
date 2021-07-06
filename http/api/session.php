@@ -63,12 +63,13 @@ function session() {
                         # Ensure we have the cookie set up for Discourse forum login.
                         if (array_key_exists('persistent', $_SESSION)) {
                             #error_log("Set Discourse Cookie");
-                            setcookie('Iznik-Forum-SSO', json_encode($_SESSION['persistent']), [
+//                            @setcookie('Iznik-Forum-SSO', json_encode($_SESSION['persistent']), 0, '/', 'ilovefreegle.org');
+                            @setcookie('Iznik-Forum-SSO', json_encode($_SESSION['persistent']), [
                                'expires' => 0,
                                'path' => '/',
                                'domain' => 'ilovefreegle.org',
-                               'secure' => TRUE,
-                               'httponly' => TRUE,
+                               'secure' => 'true',
+                               'httponly' => 'false',
                                'samesite' => 'None'
                            ]);
                         }
@@ -76,12 +77,13 @@ function session() {
                         # ModTools.  Ensure we have the cookie set up for Discourse login.
                         if (array_key_exists('persistent', $_SESSION)) {
                             #error_log("Set Discourse Cookie");
-                            setcookie('Iznik-Discourse-SSO', json_encode($_SESSION['persistent']), [
+//                            @setcookie('Iznik-Discourse-SSO', json_encode($_SESSION['persistent']), 0, '/', 'modtools.org');
+                            @setcookie('Iznik-Discourse-SSO', json_encode($_SESSION['persistent']), [
                                 'expires' => 0,
                                 'path' => '/',
                                 'domain' => 'modtools.org',
-                                'secure' => FALSE,
-                                'httponly' => TRUE,
+                                'secure' => 'true',
+                                'httponly' => 'false',
                                 'samesite' => 'None'
                             ]);
                         }
