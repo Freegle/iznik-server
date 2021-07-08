@@ -14,7 +14,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 $opts = getopt('i:q:');
 
 if (count($opts) < 1) {
-    echo "Usage: php authority_stats -i <authority IDs in a CSL> (-q \"quarter start\" \n";
+    echo "Usage: php authority_stats -i <authority IDs in a CSL> (-q \"quarter start\")\n";
 } else {
     $ids = explode(',', $opts['i']);
     $quarter = Utils::presdef('q', $opts, '3 months ago');
