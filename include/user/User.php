@@ -3978,6 +3978,23 @@ class User extends Entity
             $thisone['info'] = $u->getInfo();
             $thisone['trustlevel'] = $u->getPrivate('trustlevel');
 
+            $bans = $this->dbhr->preQuery("SELECT * FROM users_banned WHERE userid = ?;", [
+                $u->getId()
+            ]);
+
+            $thisone['bans'] = [];
+
+            foreach ($bans as $ban) {
+                $g = Group::get($this->dbhr, $this->dbhm, $ban['groupid']);
+                $banner = User::get($this->dbhr, $this->dbhm, $ban['byuser']);
+                $thisone['bans'][] = [
+                    'date' => Utils::ISODate($ban['date']),
+                    'group' => $g->getName(),
+                    'byemail' => $banner->getEmailPreferred(),
+                    'byuserid' => $ban['byuser']
+                ];
+            }
+
             $ret[] = $thisone;
         }
 
