@@ -697,7 +697,7 @@ function message() {
                         switch ($action) {
                             case 'Promise':
                                 if ($userid) {
-                                    # Userid is optional.
+                                    # Userid is optional - TN can promise without a userid.
                                     $m->promise($userid);
                                     list ($mid, $banned) = $cm->create($rid, $myid, NULL, ChatMessage::TYPE_PROMISED, $id);
                                     $ret = ['ret' => 0, 'status' => 'Success', 'id' => $mid];
