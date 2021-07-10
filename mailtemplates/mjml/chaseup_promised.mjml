@@ -1,0 +1,78 @@
+<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-class name="bordersect" border="1px solid #CDCDCD;" background-color="white" padding="10px" inline="inline"></mj-class>
+      <mj-class name="primary" background-color="darkgreen" color="white" font-size="20px" inline="inline"></mj-class>
+      <mj-class name="secondary" background-color="darkgreen" color="white" font-size="16px" inline="inline"></mj-class>
+      <mj-class name="tertiary" background-color="darkblue" color="white" font-size="16px" inline="inline"></mj-class>
+      <mj-class name="quadrenary" background-color="black" color="white" font-size="12px" inline="inline"></mj-class>
+      <mj-class name="date" font-size="14px" padding="0px 0px 15px" font-weight="bold" color="#6c757d" inline="inline"></mj-class>
+      <mj-class name="profilepic" border-radius="50%px" height="30px" width="30px" inline="inline" padding-top="5px"></mj-class>
+      <mj-class name="sectiontitle" align="center" font-size="24px" font-weight="bold" color="black" inline="inline"></mj-class>
+      <mj-class name="messagetext" font-weight="bold" font-size="16px" inline="inline"></mj-class>
+      <mj-class name="padcol" width="5%px" inline="inline"></mj-class>
+      <mj-class name="smallcol" width="12%px" inline="inline"></mj-class>
+      <mj-class name="largecol" width="83%px" inline="inline"></mj-class>
+      <mj-class name="chatimage" border-radius="5px" height="250px"></mj-class>
+      <mj-class name="footer" background-color="#E0E0E0"></mj-class>
+      <mj-divider border-color="#61AE24" padding="0px"></mj-divider>
+      <mj-preview>{{ textbody }}</mj-preview>
+      <mj-section background-color="#F9F7EC"></mj-section>
+      <mj-all font-family="'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"></mj-all>
+    </mj-attributes>
+  </mj-head>
+  <mj-body>
+    <mj-wrapper padding="0px" full-width="full-width">
+      <mj-raw>
+        <!-- header section -->
+      </mj-raw>
+      <mj-section background-url="https://www.ilovefreegle.org/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0px">
+        <mj-group>
+          <mj-column vertical-align="middle" width="66%">
+            <mj-text color="#61AE24" font-size="18px" line-height="1.25">{{ subject }}</mj-text>
+          </mj-column>
+          <mj-column vertical-align="middle" width="34%">
+            <mj-image css-class="logo" src="https://www.ilovefreegle.org/icon.png" alt="Logo" width="80px" align="right" border-radius="5px" padding="20px"></mj-image>
+          </mj-column>
+        </mj-group>
+      </mj-section>
+      <mj-section padding="10px">
+        <mj-column>
+          <mj-text>Dear&nbsp;{{ name }},</mj-text>
+          <mj-text>You promised this to someone.  If they've already collected it, please let us know:</mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-section padding="10px">
+        <mj-column width="185px">
+          <mj-button align="center" href="{{ completed }}" mj-class="primary">Mark as&nbsp;{{ type }}</mj-button>
+        </mj-column>
+      </mj-section>
+      <mj-section padding="10px">
+        <mj-column>
+          <mj-text>If it's not happened yet, just go to <a href="https://www.ilovefreegle.org/myposts">My Posts</a> once it has.  But if it doesn't work out, then you could repost it for other people to see,
+            or withdraw it if you've changed your mind.</mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-section padding="10px">
+        <mj-column width="185px">
+          <mj-button align="center" href="{{ repost }}" mj-class="secondary">Repost</mj-button>
+        </mj-column>
+        <mj-column width="185px">
+          <mj-button align="center" href="{{ withdraw }}" mj-class="tertiary">Withdraw</mj-button>
+        </mj-column>
+      </mj-section>
+      <mj-section padding="10px">
+        <mj-column>
+          <mj-text>This helps us decide whether to keep showing it, and to measure how much freegling happens so that we can persuade councils to support Freegle more.</mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-section background-color="#E0E0E0" padding="10px">
+        <mj-column>
+          <mj-text font-size="9px" color="#707070">This mail was sent to&nbsp;{{ email }}. You can unsubscribe by clicking <a href="{{ unsubscribe }}">here</a>.
+            <hr style="border: 0; border-top: 1px solid #AAA; " /> Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.
+          </mj-text>
+        </mj-column>
+      </mj-section>
+    </mj-wrapper>
+  </mj-body>
+</mjml>

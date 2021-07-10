@@ -4521,8 +4521,8 @@ WHERE messages_groups.arrival > ? AND messages.arrival >= '2021-03-29' AND messa
                 # The sending user must also still be a member of the group.
                 #
                 # Using UNION means we can be more efficiently indexed.
-                $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, lastchaseup, messages.type, messages.fromaddr FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid LEFT OUTER JOIN messages_related ON id1 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid LEFT OUTER JOIN messages_promises ON messages_promises.msgid = messages.id INNER JOIN chat_messages ON messages.id = chat_messages.refmsgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL
-                        UNION SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, lastchaseup, messages.type, messages.fromaddr FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid LEFT OUTER JOIN messages_related ON id2 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid LEFT OUTER JOIN messages_promises ON messages_promises.msgid = messages.id INNER JOIN chat_messages ON messages.id = chat_messages.refmsgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL;";
+                $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, lastchaseup, messages.type, messages.fromaddr FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid LEFT OUTER JOIN messages_related ON id1 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN chat_messages ON messages.id = chat_messages.refmsgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL
+                        UNION SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, lastchaseup, messages.type, messages.fromaddr FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid LEFT OUTER JOIN messages_related ON id2 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN chat_messages ON messages.id = chat_messages.refmsgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL;";
                 #error_log("$sql, $mindate, {$group['id']}");
                 $messages = $this->dbhr->preQuery(
                     $sql,
@@ -4557,13 +4557,7 @@ WHERE messages_groups.arrival > ? AND messages.arrival >= '2021-03-29' AND messa
                                 $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
                                 $gatts = $g->getPublic();
 
-                                if ($u->getId() && $m->canRepost()) {
-                                    error_log(
-                                        $g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr(
-                                        ) . " " . $m->getSubject() . " chaseup due"
-                                    );
-                                    $count++;
-
+                                if ($u->getId()) {
                                     $to = $u->getEmailPreferred();
                                     $subj = $m->getSubject();
 
@@ -4589,60 +4583,95 @@ WHERE messages_groups.arrival > ? AND messages.arrival >= '2021-03-29' AND messa
                                         User::SRC_CHASEUP
                                     );
 
-                                    $lovejunk = NULL;
+                                    $othertype = $m->getType() == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
 
-                                    if ($m->getType() == Message::TYPE_OFFER && Utils::pres('lovejunkhash', $matts)) {
-                                        $lovejunk = $u->loginLink(
-                                            USER_SITE,
-                                            $u->getId(),
-                                            "/mypost/{$message['msgid']}/lovejunk",
-                                            User::SRC_CHASEUP
+                                    $text = NULL;
+                                    $html = NULL;
+
+                                    if ($m->promiseCount()) {
+                                        # If it's promised we want to send a differently worded mail.
+                                        error_log(
+                                            $g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr(
+                                            ) . " " . $m->getSubject() . " chaseup due, promised"
+                                        );
+
+                                        $text = "Did it get collected?  If so click $completed to mark as $othertype, or post it again with $repost or withdraw it with $withdraw.  Thanks.";
+
+                                        $html = $twig->render(
+                                            'chaseup_promised.html',
+                                            [
+                                                'subject' => $subj,
+                                                'name' => $u->getName(),
+                                                'email' => $to,
+                                                'type' => $othertype,
+                                                'repost' => $repost,
+                                                'completed' => $completed,
+                                                'withdraw' => $withdraw,
+                                            ]
+                                        );
+                                    } else if ($m->canRepost()) {
+                                        error_log(
+                                            $g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr(
+                                            ) . " " . $m->getSubject() . " chaseup due"
+                                        );
+
+                                        $lovejunk = NULL;
+
+                                        if ($m->getType() == Message::TYPE_OFFER && Utils::pres('lovejunkhash', $matts)) {
+                                            $lovejunk = $u->loginLink(
+                                                USER_SITE,
+                                                $u->getId(),
+                                                "/mypost/{$message['msgid']}/lovejunk",
+                                                User::SRC_CHASEUP
+                                            );
+                                        }
+
+                                        $text = "Can you let us know what happened with this?  Click $repost to post it again, or $completed to mark as $othertype, or $withdraw to withdraw it.  Thanks.";
+
+                                        $html = $twig->render(
+                                            'chaseup.html',
+                                            [
+                                                'subject' => $subj,
+                                                'name' => $u->getName(),
+                                                'email' => $to,
+                                                'type' => $othertype,
+                                                'repost' => $repost,
+                                                'completed' => $completed,
+                                                'withdraw' => $withdraw,
+                                                'lovejunk' => $lovejunk
+                                            ]
                                         );
                                     }
 
-                                    $othertype = $m->getType(
-                                    ) == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
-                                    $text = "Can you let us know what happened with this?  Click $repost to post it again, or $completed to mark as $othertype, or $withdraw to withdraw it.  Thanks.";
+                                    if ($text && $html) {
+                                        $count++;
 
-                                    $this->dbhm->preExec(
-                                        "UPDATE messages_groups SET lastchaseup = NOW() WHERE msgid = ?;",
-                                        [$message['msgid']]
-                                    );
+                                        $this->dbhm->preExec(
+                                            "UPDATE messages_groups SET lastchaseup = NOW() WHERE msgid = ?;",
+                                            [$message['msgid']]
+                                        );
 
-                                    $html = $twig->render(
-                                        'chaseup.html',
-                                        [
-                                            'subject' => $subj,
-                                            'name' => $u->getName(),
-                                            'email' => $to,
-                                            'type' => $othertype,
-                                            'repost' => $repost,
-                                            'completed' => $completed,
-                                            'withdraw' => $withdraw,
-                                            'lovejunk' => $lovejunk
-                                        ]
-                                    );
+                                        list ($transport, $mailer) = Mail::getMailer();
 
-                                    list ($transport, $mailer) = Mail::getMailer();
+                                        if (\Swift_Validate::email($to)) {
+                                            $message = \Swift_Message::newInstance()
+                                                ->setSubject("Re: " . $subj)
+                                                ->setFrom([$g->getAutoEmail() => $gatts['namedisplay']])
+                                                ->setReplyTo([$g->getModsEmail() => $gatts['namedisplay']])
+                                                ->setTo($to)
+                                                ->setBody($text);
 
-                                    if (\Swift_Validate::email($to)) {
-                                        $message = \Swift_Message::newInstance()
-                                            ->setSubject("Re: " . $subj)
-                                            ->setFrom([$g->getAutoEmail() => $gatts['namedisplay']])
-                                            ->setReplyTo([$g->getModsEmail() => $gatts['namedisplay']])
-                                            ->setTo($to)
-                                            ->setBody($text);
+                                            # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                                            # Outlook.
+                                            $htmlPart = \Swift_MimePart::newInstance();
+                                            $htmlPart->setCharset('utf-8');
+                                            $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                                            $htmlPart->setContentType('text/html');
+                                            $htmlPart->setBody($html);
+                                            $message->attach($htmlPart);
 
-                                        # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-                                        # Outlook.
-                                        $htmlPart = \Swift_MimePart::newInstance();
-                                        $htmlPart->setCharset('utf-8');
-                                        $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
-                                        $htmlPart->setContentType('text/html');
-                                        $htmlPart->setBody($html);
-                                        $message->attach($htmlPart);
-
-                                        $mailer->send($message);
+                                            $mailer->send($message);
+                                        }
                                     }
                                 }
                             }

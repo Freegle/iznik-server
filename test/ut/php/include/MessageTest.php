@@ -734,7 +734,17 @@ class messageTest extends IznikTestCase {
         assertEquals(0, $warncount);
     }
 
-    public function testChaseup() {
+    public function chaseUpProvider() {
+        return [
+            [ FALSE ],
+            [ TRUE ]
+        ];
+    }
+
+    /**
+     * @dataProvider chaseUpProvider
+     */
+    public function testChaseup($promise) {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
@@ -760,6 +770,12 @@ class messageTest extends IznikTestCase {
         list ($cid, $banned) = $c->create($rid, $uid, "Test reply", ChatMessage::TYPE_DEFAULT, $mid);
         assertNotNull($cid);
 
+        if ($promise) {
+            $u = new User($this->dbhr, $this->dbhm);
+            $uid2 = $u->create('Test', 'User', 'Test User');
+            $m->promise($uid2);
+        }
+
         # Chaseup - expect none as too recent.
         $count = $m->chaseUp(Group::GROUP_FREEGLE, '2016-03-01', $this->gid);
         assertEquals(0, $count);
@@ -772,8 +788,13 @@ class messageTest extends IznikTestCase {
         ]);
         $c = new ChatMessage($this->dbhr, $this->dbhm, $cid);
         $c->setPrivate('date', $mysqltime);
+        $this->dbhm->preExec("UPDATE chat_messages SET date = ? WHERE chatid = ?;", [
+            $mysqltime,
+            $cid
+        ]);
 
         # Chaseup again - should get one.
+        error_log("Expect");
         $count = $m->chaseUp(Group::GROUP_FREEGLE, '2016-03-01', $this->gid);
         assertEquals(1, $count);
 
