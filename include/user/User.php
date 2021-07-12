@@ -1841,14 +1841,14 @@ class User extends Entity
 
             $hash = NULL;
 
-            if (!$atts['profile']['default']) {
+            if (!Utils::pres('default', $atts['profile'])) {
                 # We think we have a profile.  Make sure we can fetch it and filter out other people's
                 # default images.
                 $atts['profile']['default'] = TRUE;
                 $this->filterDefault($atts['profile'], $hash);
             }
 
-            if ($atts['profile']['default']) {
+            if (Utils::pres('default', $atts['profile'])) {
                 # Nothing - so get gravatar to generate a default for us.
                 $atts['profile'] = [
                     'url' => $this->gravatar($this->getEmailPreferred(), 200, 'identicon'),
