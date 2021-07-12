@@ -108,21 +108,53 @@ class LoggedPDO {
                     $port = substr($host, strpos($host, ':') + 1);
                     $dsn = "mysql:host=$hostname;port=$port;dbname={$this->database};charset=utf8";
 
-                    $this->_db = new \PDO($dsn, $this->username, $this->password, [
-                        \PDO::ATTR_TIMEOUT => 1,
-                        \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
-                        \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
-                    ]);
+                    # Check if we know that the server is down.  This avoids problems where the server is not
+                    # responding to network connections, which would otherwise cause our connect attempt to hang
+                    # for upto ATTR_TIMEOUT.
+                    $downfile = "/tmp/iznik.dbstatus.$hostname:$port.down";
+                    $wasdown = FALSE;
+                    $checkit = TRUE;
 
-                    $this->version = $this->_db->getAttribute(PDO::ATTR_SERVER_VERSION);
+                    if (file_exists($downfile)) {
+                        # May be down.  Check the timestamp to see if it's time to check again.
+                        $wasdown = TRUE;
 
-                    $gotit = TRUE;
+                        if (time() - filemtime($downfile) < 60) {
+                            # Too soon to check again.
+                            $checkit = FALSE;
+                        }
+                    }
+
+                    if ($checkit) {
+                        $this->_db = new \PDO($dsn, $this->username, $this->password, [
+                            \PDO::ATTR_TIMEOUT => 30,
+                            \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
+                            \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
+                        ]);
+
+                        $this->version = $this->_db->getAttribute(PDO::ATTR_SERVER_VERSION);
+
+                        if ($wasdown) {
+                            # This server is now up.  Note that some other process might have just spotted that
+                            # and removed the file, so suppress any error.
+                            @unlink($downfile);
+                        }
+
+                        $gotit = TRUE;
+                    }
                 } catch (\Exception $e) {
-                    // Try the next host.
+                    # Record the failure so that we don't try this server again.
+                    error_log("DB connect exception on $host error " . $e->getMessage());
+                    touch($downfile);
+                }
+
+                if (!$gotit) {
+                    # Try the next host.
                     $hostindex++;
 
                     if ($hostindex >= count($this->hosts)) {
-                        error_log("DB connect exception on all hosts from " . json_encode($this->hosts) ." error " . $e->getMessage());
+                        # We've checked all hosts.  We'll go round again. Sleep for a second so that if
+                        # one comes back in a few seconds we'll spot it.
                         sleep(1);
                         $count++;
                         $hostindex = 0;
