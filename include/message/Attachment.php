@@ -242,6 +242,7 @@ class Attachment
         if ($rc) {
             # Remove from the DB.
             $sql = "UPDATE {$this->table} SET archived = 1, data = NULL WHERE id = {$this->id};";
+            $this->archived = TRUE;
             $this->dbhm->exec($sql);
         }
 

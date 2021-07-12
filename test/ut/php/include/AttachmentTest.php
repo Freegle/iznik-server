@@ -69,17 +69,20 @@ class AttachmentTest extends IznikTestCase {
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
 
         $a = $this->getMockBuilder('Freegle\Iznik\Attachment')
-            ->setConstructorArgs([ $this->dbhr, $this->dbhm, NULL, $attType ])
+            ->setConstructorArgs([ $this->dbhr, $this->dbhm, 1, $attType ])
             ->setMethods([ 'scp', 'fgc' ])
             ->getMock();
 
-        assertNotNull($a->getPath());
+        $originalPath = $a->getPath();
+        assertNotNull($originalPath);
 
         $a->method('scp')->will($this->returnCallback(function ($host, $data, $fn, &$failed) {
             $this->blobCount++;
         }));
 
-        $a->method('fgc')->willReturn('UT');
+        $a->method('fgc')->willReturnCallback(function($url, $use_include_path, $ctx) {
+            return 'UT';
+        });
 
         $attid = $a->create(NULL, $data);
         assertNotNull($attid);
@@ -90,6 +93,7 @@ class AttachmentTest extends IznikTestCase {
 
         $dat2 = $a->getData();
         assertTrue($data == $dat2 || $dat2 == 'UT');
+
         $a->delete();
     }
 
