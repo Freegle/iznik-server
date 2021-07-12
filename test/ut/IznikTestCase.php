@@ -55,6 +55,13 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         if (defined('_SESSION')) {
             unset($_SESSION['id']);
         }
+
+        $ip = Utils::presdef('REMOTE_ADDR', $_SERVER, NULL);
+        $lockkey = "POST_LOCK_$ip";
+        $datakey = "POST_DATA_$ip";
+        $predis = new \Redis();
+        $predis->pconnect(REDIS_CONNECT);
+        $predis->del($lockkey, $datakey);
     }
 
     protected function setUp() {
