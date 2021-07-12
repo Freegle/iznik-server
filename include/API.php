@@ -441,7 +441,9 @@ class API
                     if ($call == 'upload') {
                         # Output is handled within the lib.
                     } else {
-                        if (Utils::pres('img', $ret)) {
+                        if (Utils::pres('redirectto', $ret)) {
+                            header("Location: {$ret['redirectto']}", true, 302);
+                        } else if (Utils::pres('img', $ret)) {
                             # This is an image we want to output.  Can cache forever - if an image changes it would get a new id
                             @header('Content-Type: image/jpeg');
                             @header('Content-Length: ' . strlen($ret['img']));

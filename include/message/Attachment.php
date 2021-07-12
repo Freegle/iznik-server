@@ -14,7 +14,7 @@ class Attachment
     private $dbhr;
     /** @var  $dbhm LoggedPDO */
     private $dbhm;
-    private $id, $table, $hash, $archived;
+    private $id, $table, $hash, $archived, $url;
 
     /**
      * @return null
@@ -87,6 +87,7 @@ class Attachment
         $this->id = $id;
         $this->type = $type;
         $this->archived = FALSE;
+        $url = '';
 
         switch ($type) {
             case Attachment::TYPE_MESSAGE: $this->table = 'messages_attachments'; $this->idatt = 'msgid'; break;
@@ -95,18 +96,19 @@ class Attachment
             case Attachment::TYPE_COMMUNITY_EVENT: $this->table = 'communityevents_images'; $this->idatt = 'eventid'; break;
             case Attachment::TYPE_VOLUNTEERING: $this->table = 'volunteering_images'; $this->idatt = 'opportunityid'; break;
             case Attachment::TYPE_CHAT_MESSAGE: $this->table = 'chat_images'; $this->idatt = 'chatmsgid'; break;
-            case Attachment::TYPE_USER: $this->table = 'users_images'; $this->idatt = 'userid'; break;
+            case Attachment::TYPE_USER: $this->table = 'users_images'; $this->idatt = 'userid'; $url = ', url'; break;
             case Attachment::TYPE_NEWSFEED: $this->table = 'newsfeed_images'; $this->idatt = 'newsfeedid'; break;
             case Attachment::TYPE_STORY: $this->table = 'users_stories_images'; $this->idatt = 'storyid'; break;
             case Attachment::TYPE_BOOKTASTIC: $this->table = 'booktastic_images'; $this->idatt = 'ocrid'; break;
         }
 
         if ($id) {
-            $sql = "SELECT {$this->idatt}, hash, archived FROM {$this->table} WHERE id = ?;";
+            $sql = "SELECT {$this->idatt}, hash, archived $url FROM {$this->table} WHERE id = ?;";
             $as = $atts ? [ $atts ] : $this->dbhr->preQuery($sql, [$id]);
             foreach ($as as $att) {
                 $this->hash = $att['hash'];
                 $this->archived = $att['archived'];
+                $this->url = Utils::presdef('url', $att, NULL);
                 $this->{$this->idatt} = $att[$this->idatt];
             }
         }
@@ -257,43 +259,56 @@ class Attachment
         return @file_get_contents($url, $use_include_path, $ctx);
     }
 
-    public function getData() {
-        $ret = NULL;
+    public function canRedirect() {
+        if ($this->url) {
+            return $this->url;
+        } else if ($this->archived) {
+            # Only these types are in archive_attachments.
+            switch ($this->type) {
+                case Attachment::TYPE_MESSAGE: $tname = 'timg'; $name = 'img'; break;
+                case Attachment::TYPE_CHAT_MESSAGE: $tname = 'tmimg'; $name = 'mimg'; break;
+                case Attachment::TYPE_NEWSFEED: $tname = 'tfimg'; $name = 'fimg'; break;
+                case Attachment::TYPE_COMMUNITY_EVENT: $tname = 'tcimg'; $name = 'cimg'; break;
+                case Attachment::TYPE_BOOKTASTIC: $tname = 'tzimg'; $name = 'zimg'; break;
+            }
 
-        # Use dbhm to bypass query cache as this data is too large to cache.
-        $sql = "SELECT * FROM {$this->table} WHERE id = ?;";
-        $datas = $this->dbhm->preQuery($sql, [$this->id]);
-        foreach ($datas as $data) {
+            return 'https://' . IMAGE_ARCHIVED_DOMAIN . "/{$name}_{$this->id}.jpg";
+        }
+
+        return FALSE;
+    }
+
+    public function getData()
+    {
+        $ret = null;
+
+        $url = $this->canRedirect();
+
+        if ($url) {
+            # This attachment has been archived out of our database, to a CDN.  Normally we would expect
+            # that we wouldn't come through here, because we'd serve up an image link directly to the CDN, but
+            # there is a timing window where we could archive after we've served up a link, so we have
+            # to handle it.
+            #
+            # We fetch the data - not using SSL as we don't need to, and that host might not have a cert.  And
+            # we put it back in the DB, because we are probably going to fetch it again.
+            #
             # Apply a short timeout to avoid hanging the server if Azure is down.
-            $ctx = stream_context_create(array('http'=>
+            $ctx = stream_context_create(
                 array(
-                    'timeout' => 2,
+                    'http' =>
+                        array(
+                            'timeout' => 2,
+                        )
                 )
-            ));
+            );
 
-            if (Utils::pres('url', $data)) {
-                $ret = $this->fgc($data['url'], false, $ctx);
-            } else if ($data['archived']) {
-                # This attachment has been archived out of our database, to a CDN.  Normally we would expect
-                # that we wouldn't come through here, because we'd serve up an image link directly to the CDN, but
-                # there is a timing window where we could archive after we've served up a link, so we have
-                # to handle it.
-                #
-                # We fetch the data - not using SSL as we don't need to, and that host might not have a cert.  And
-                # we put it back in the DB, because we are probably going to fetch it again.
-                # Only these types are in archive_attachments.
-                switch ($this->type) {
-                    case Attachment::TYPE_MESSAGE: $tname = 'timg'; $name = 'img'; break;
-                    case Attachment::TYPE_CHAT_MESSAGE: $tname = 'tmimg'; $name = 'mimg'; break;
-                    case Attachment::TYPE_NEWSFEED: $tname = 'tfimg'; $name = 'fimg'; break;
-                    case Attachment::TYPE_COMMUNITY_EVENT: $tname = 'tcimg'; $name = 'cimg'; break;
-                    case Attachment::TYPE_BOOKTASTIC: $tname = 'tzimg'; $name = 'zimg'; break;
-                }
+            $ret = $this->fgc($url, false, $ctx);
+        } else {
+            $sql = "SELECT * FROM {$this->table} WHERE id = ?;";
+            $datas = $this->dbhr->preQuery($sql, [$this->id]);
 
-                $url = 'https://' . IMAGE_ARCHIVED_DOMAIN . "/{$name}_{$this->id}.jpg";
-
-                $ret = $this->fgc($url, false, $ctx);
-            } else {
+            foreach ($datas as $data) {
                 $ret = $data['data'];
             }
         }

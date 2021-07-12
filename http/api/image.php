@@ -50,39 +50,48 @@ function image() {
     switch ($_REQUEST['type']) {
         case 'GET': {
             $a = new Attachment($dbhr, $dbhm, $id, $type);
-            $data = $a->getData();
+            $redirect = $a->canRedirect();
 
-            $i = new Image($data);
+            if ($redirect) {
+                $ret = [
+                    'ret' => 0,
+                    'redirectto' => $redirect
+                ];
+            } else {
+                $data = $a->getData();
 
-            $ret = [
-                'ret' => 1,
-                'status' => "Failed to create image $id of type $type",
-                'req'=> $_REQUEST
-            ];
+                $i = new Image($data);
+
+                $ret = [
+                    'ret' => 1,
+                    'status' => "Failed to create image $id of type $type",
+                    'req'=> $_REQUEST
+                ];
 
 
-            if ($i->img) {
-                $w = (Utils::presint('w', $_REQUEST, $i->width()));
-                $h = (Utils::presint('h', $_REQUEST, $i->height()));
+                if ($i->img) {
+                    $w = (Utils::presint('w', $_REQUEST, $i->width()));
+                    $h = (Utils::presint('h', $_REQUEST, $i->height()));
 
-                if (($w > 0) || ($h > 0)) {
-                    # Need to resize
-                    $i->scale($w, $h);
-                }
+                    if (($w > 0) || ($h > 0)) {
+                        # Need to resize
+                        $i->scale($w, $h);
+                    }
 
-                if ($circle) {
-                    $i->circle($w);
-                    $ret = [
-                        'ret' => 0,
-                        'status' => 'Success',
-                        'img' => $i->getDataPNG()
-                    ];
-                } else {
-                    $ret = [
-                        'ret' => 0,
-                        'status' => 'Success',
-                        'img' => $i->getData()
-                    ];
+                    if ($circle) {
+                        $i->circle($w);
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success',
+                            'img' => $i->getDataPNG()
+                        ];
+                    } else {
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success',
+                            'img' => $i->getData()
+                        ];
+                    }
                 }
             }
 
