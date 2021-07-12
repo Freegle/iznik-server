@@ -155,6 +155,7 @@ class LoggedPDO {
                     if ($hostindex >= count($this->hosts)) {
                         # We've checked all hosts.  We'll go round again. Sleep for a second so that if
                         # one comes back in a few seconds we'll spot it.
+                        error_log("Sleep for all DB hosts down");
                         sleep(1);
                         $count++;
                         $hostindex = 0;
@@ -290,7 +291,7 @@ class LoggedPDO {
                 ) {
                     # Try re-opening the connection.
                     $try++;
-                    error_log("Server gone away, sleep and retry");
+                    error_log("Server gone away, sleep and retry 2");
                     sleep(1);
                     $this->close();
                     $this->doConnect();
@@ -363,6 +364,8 @@ class LoggedPDO {
                     if (stripos($msg, 'has gone away') !== FALSE) {
                         # This can happen if we have issues with the DB, e.g. one server dies or the connection is
                         # timed out.  We re-open the connection and try again.
+
+                        error_log("Server gone away, sleep and retry 3");
                         sleep(1);
                         $this->close();
                         $this->doConnect();
@@ -422,6 +425,7 @@ class LoggedPDO {
                     if (stripos($msg, 'has gone away') !== FALSE) {
                         # This can happen if we have issues with the DB, e.g. one server dies or the connection is
                         # timed out.  We re-open the connection and try again.
+                        error_log("Server gone away, sleep and retry 4");
                         sleep(1);
                         $this->close();
                         $this->doConnect();

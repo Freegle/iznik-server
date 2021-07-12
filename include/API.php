@@ -168,18 +168,20 @@ class API
                     # We want to make sure that we don't get duplicate POST requests within the same session.  We can't do this
                     # using information stored in the session because when Redis is used as the session handler, there is
                     # no session locking, and therefore two requests in quick succession could be allowed.  So instead
-                    # we use Redis directly with a roll-your-own mutex.
-                    #
-                    # TODO uniqid() is not actually unique.  Nor is md5.
+                    # we use Redis directly with a roll-your-own mutex.  We use the IP address as a key - if there are
+                    # multiple sessions from the same IP then we might get false positives/negatives.
                     $req = $_SERVER['REQUEST_URI'] . serialize($_REQUEST);
-                    $lockkey = 'POST_LOCK_' . session_id();
-                    $datakey = 'POST_DATA_' . session_id();
+                    $ip = Utils::presdef('REMOTE_ADDR', $_SERVER, NULL);
+                    $lockkey = "POST_LOCK_$ip";
+                    $datakey = "POST_DATA_$ip";
                     $uid = uniqid('', true);
                     $predis = new \Redis();
                     $predis->pconnect(REDIS_CONNECT);
 
                     # Get a lock.
                     $start = time();
+                    $count = 0;
+
                     do {
                         $rc = $predis->setNx($lockkey, $uid);
 
@@ -216,6 +218,8 @@ class API
                             // @codeCoverageIgnoreStart
                         } else {
                             # We didn't get the lock - another request for this session must have it.
+                            $count++;
+                            #error_log("Sleep for duplicate POST lock key $lockkey attempt $count, waited " . (time() - $start));
                             usleep(100000);
                         }
                     } while (time() < $start + 45);
@@ -490,6 +494,7 @@ class API
                                 # Our cluster is unwell.  This can happen if we are rebooting a DB server, so give ourselves
                                 # more time.
                                 $apicallretries = 0;
+                                error_log("Sleep for WSREP");
                                 sleep(1);
                             } else {
                                 $ret = [
