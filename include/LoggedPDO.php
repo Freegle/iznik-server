@@ -126,11 +126,20 @@ class LoggedPDO {
                     }
 
                     if ($checkit) {
+                        $connectStart = microtime(TRUE);
+
                         $this->_db = new \PDO($dsn, $this->username, $this->password, [
                             \PDO::ATTR_TIMEOUT => 30,
                             \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
                             \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
                         ]);
+
+                        $connectEnd = microtime(TRUE);
+                        $duration = $connectEnd - $connectStart;
+
+                        if ($duration > 1) {
+                            error_log("DB to $host connect took $duration");
+                        }
 
                         $this->version = $this->_db->getAttribute(PDO::ATTR_SERVER_VERSION);
 
