@@ -145,7 +145,7 @@ class Session {
     public static function whoAmId(LoggedPDO $dbhr, LoggedPDO $dbhm) {
         Session::prepareSession($dbhr, $dbhm);
 
-        $id = Utils::pres('id', $_SESSION);
+        $id = Utils::presdef('id', $_SESSION, NULL);
         return $id;
     }
 
