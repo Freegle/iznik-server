@@ -5,7 +5,7 @@ function request() {
     global $dbhr, $dbhm;
 
     $me = Session::whoAmI($dbhr, $dbhm);
-    $myid = $me ? $me->getId() : NULL;
+    $myid = Session::whoAmId($dbhr, $dbhm);
 
     $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 
@@ -50,14 +50,14 @@ function request() {
                     $ret = [
                         'status' => 'Success',
                         'ret' => 0,
-                        'requests' => $r->listForUser($me->getId())
+                        'requests' => $r->listForUser($myid)
                     ];
                 }
                 break;
             }
 
             case 'PUT':
-                $id = $r->create($me->getId(),
+                $id = $r->create($myid,
                     Utils::presdef('reqtype', $_REQUEST, NULL),
                     (Utils::presint('addressid', $_REQUEST, NULL)),
                     Utils::presdef('to', $_REQUEST, NULL));

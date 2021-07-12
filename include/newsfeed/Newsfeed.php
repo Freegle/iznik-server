@@ -235,8 +235,7 @@ class Newsfeed extends Entity
         }
 
         if ($unfollowed) {
-            $me = Session::whoAmI($this->dbhr, $this->dbhm);
-            $myid = $me ? $me->getId() : NULL;
+            $myid = Session::whoAmId($this->dbhr, $this->dbhm);
             $atts['unfollowed'] = $this->unfollowed($myid, $this->id);
         }
 
@@ -268,8 +267,7 @@ class Newsfeed extends Entity
     }
 
     private function fillIn(&$entries, &$users, $checkreplies = TRUE, $allreplies = FALSE) {
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
         $ids = array_filter(array_column($entries, 'id'));
 
         # Get all the url previews efficiently.
@@ -292,8 +290,8 @@ class Newsfeed extends Entity
 
         if ($ids && count($ids)) {
             $likes = $this->dbhr->preQuery("SELECT newsfeedid, COUNT(*) AS count FROM newsfeed_likes WHERE newsfeedid IN (" . implode(',', $ids) . ") GROUP BY newsfeedid;", NULL, FALSE, FALSE);
-            $mylikes = $me ? $this->dbhr->preQuery("SELECT newsfeedid, COUNT(*) AS count FROM newsfeed_likes WHERE newsfeedid IN (" . implode(',', $ids) . ") AND userid = ?;", [
-                $me->getId()
+            $mylikes = $myid ? $this->dbhr->preQuery("SELECT newsfeedid, COUNT(*) AS count FROM newsfeed_likes WHERE newsfeedid IN (" . implode(',', $ids) . ") AND userid = ?;", [
+                $myid
             ]) : [];
 
             $imageids = array_filter(array_column($entries, 'imageid'));
@@ -316,6 +314,8 @@ class Newsfeed extends Entity
                     # Noticeboards hackily have JSON data in message.
                     $entries[$entindex]['message'] = trim($entries[$entindex]['message']);
                 }
+
+                $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
                 $use = !Utils::presdef('reviewrequired', $entries[$entindex], FALSE) &&
                     (!Utils::presdef('deleted', $entries[$entindex], FALSE) || $me->isModerator());
@@ -416,7 +416,7 @@ class Newsfeed extends Entity
                         }
                     }
 
-                    if ($me) {
+                    if ($myid) {
                         foreach ($mylikes as $like) {
                             if ($like['newsfeedid'] == $entries[$entindex]['id']) {
                                 $entries[$entindex]['loved'] = $like['count'] > 0;
@@ -439,6 +439,8 @@ class Newsfeed extends Entity
 
                                 # Don't use hidden entries unless they are ours.  This means that to a spammer or a
                                 # disruptive member it looks like their posts are there but no other user can see them.
+                                $me = Session::whoAmI($this->dbhr, $this->dbhm);
+
                                 if (!$hidden || $myid == $reply['userid'] || $me->isModerator()) {
                                     if ($reply['visible'] &&
                                         $last &&
@@ -451,7 +453,7 @@ class Newsfeed extends Entity
                                         $replies[$index]['visible'] = FALSE;
                                     }
 
-                                    if (!$me || !$me->isModerator()) {
+                                    if (!$myid || !$me->isModerator()) {
                                         $replies[$index]['hidden'] = NULL;
                                     }
 
@@ -546,7 +548,7 @@ class Newsfeed extends Entity
             $last = NULL;
 
             $me = Session::whoAmI($this->dbhr, $this->dbhm);
-            $myid = $me ? $me->getId() : NULL;
+            $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
             # Get the users that we need for filling in more efficiently - find their ids and then get them in
             # a single call.
@@ -640,8 +642,7 @@ class Newsfeed extends Entity
     }
 
     public function refer($type) {
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         $referredid = $this->id;
         $userid = $this->feed['userid'];

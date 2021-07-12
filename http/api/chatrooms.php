@@ -5,7 +5,7 @@ function chatrooms() {
     global $dbhr, $dbhm;
 
     $me = Session::whoAmI($dbhr, $dbhm);
-    $myid = $me ? $me->getId() : $me;
+    $myid = Session::whoAmId($dbhr, $dbhm);
 
     $id = (Utils::presint('id', $_REQUEST, NULL));
     $userid = (Utils::presint('userid', $_REQUEST, NULL));
@@ -24,7 +24,7 @@ function chatrooms() {
         case 'GET': {
             if ($count) {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
-                if ($me) {
+                if ($myid) {
                     $ret = ['ret' => 0, 'status' => 'Success', 'count' => $r->countAllUnseenForUser($myid, $chattypes) ];
                 }
             } else  if ($id) {
@@ -47,7 +47,7 @@ function chatrooms() {
                 $ctx = NULL;
                 $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 
-                if ($me) {
+                if ($myid) {
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
                     $rooms = $r->listForUser(Session::modtools(), $myid, $chattypes, $search, NULL, $age);
@@ -67,7 +67,7 @@ function chatrooms() {
             $ret = ['ret' => 1, 'status' => 'Not logged in'];
             $blocked = FALSE;
 
-            if ($me) {
+            if ($myid) {
                 switch ($chattype) {
                     case ChatRoom::TYPE_USER2USER:
                         if ($userid) {
@@ -112,7 +112,7 @@ function chatrooms() {
             $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
             $action = Utils::presdef('action', $_REQUEST, NULL);
 
-            if ($me) {
+            if ($myid) {
                 if ($action == 'AllSeen') {
                     $r->upToDateAll($myid);
                     $ret = ['ret' => 0, 'status' => 'Success'];

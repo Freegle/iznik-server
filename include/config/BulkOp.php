@@ -91,8 +91,7 @@ class BulkOp extends Entity
 
     public function checkDue($id = NULL) {
         # See which (if any) bulk ops are due to start.
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         $idq = $id ? " WHERE mod_bulkops.id = $id " : "";
 

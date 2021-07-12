@@ -5,7 +5,7 @@ function microvolunteering() {
     global $dbhr, $dbhm;
 
     $me = Session::whoAmI($dbhr, $dbhm);
-    $myid = $me ? $me->getId() : NULL;
+    $myid = Session::whoAmId($dbhr, $dbhm);
 
     $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 

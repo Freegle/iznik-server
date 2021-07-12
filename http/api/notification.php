@@ -5,7 +5,7 @@ function notification() {
     global $dbhr, $dbhm;
 
     # We don't need the full user object - save time by not getting it.
-    $myid = Session::whoAmI($dbhr, $dbhm, TRUE);
+    $myid = Session::whoAmId($dbhr, $dbhm);
 
     $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 

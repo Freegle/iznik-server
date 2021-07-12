@@ -5,8 +5,7 @@ function export()
 {
     global $dbhr, $dbhm;
 
-    $me = Session::whoAmI($dbhr, $dbhm);
-    $myid = $me ? $me->getId() : NULL;
+    $myid = Session::whoAmId($dbhr, $dbhm);
 
     $id = (Utils::presint('id', $_REQUEST, NULL));
     $tag = Utils::presdef('tag', $_REQUEST, NULL);
@@ -18,8 +17,6 @@ function export()
         switch ($_REQUEST['type']) {
             case 'GET': {
                 # Return the status of the export, assuming it is for the correct user.
-                $myid = $me ? $me->getId() : NULL;
-
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
@@ -31,6 +28,7 @@ function export()
 
             case 'POST': {
                 $sync = array_key_exists('sync', $_REQUEST) ? filter_var($_REQUEST['sync'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+                $me = Session::whoAmI($dbhr, $dbhm);
 
                 if (!$sync) {
                     # Request an export.  We do this in the background because it can take minutes and we don't want

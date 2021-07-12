@@ -4,8 +4,7 @@ namespace Freegle\Iznik;
 function communityevent() {
     global $dbhr, $dbhm;
 
-    $me = Session::whoAmI($dbhr, $dbhm);
-    $myid = $me ? $me->getId() : NULL;
+    $myid = Session::whoAmId($dbhr, $dbhm);
 
     $id = (Utils::presint('id', $_REQUEST, NULL));
     $groupid = (Utils::presint('groupid', $_REQUEST, NULL));
@@ -50,11 +49,11 @@ function communityevent() {
                     # List all for this user.
                     $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
-                    if ($me) {
+                    if ($myid) {
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',
-                            'communityevents' => $c->listForUser($me->getId(), $pending, $ctx),
+                            'communityevents' => $c->listForUser($myid, $pending, $ctx),
                             'context' => $ctx
                         ];
                     }
@@ -65,7 +64,7 @@ function communityevent() {
             case 'POST': {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
-                if ($me) {
+                if ($myid) {
                     $title = $location = $contactname = $contactphone = $contactemail = $contacturl = $description = $photo = NULL;
 
                     foreach (['title', 'location', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description', 'photo'] as $att) {
@@ -75,7 +74,7 @@ function communityevent() {
                     $id = NULL;
 
                     if ($title && $location && $description) {
-                        $id = $c->create($me->getId(), $title, $location, $contactname, $contactphone, $contactemail, $contacturl, $description, $photo);
+                        $id = $c->create($myid, $title, $location, $contactname, $contactphone, $contactemail, $contacturl, $description, $photo);
                     }
 
                     $ret = $id ? ['ret' => 0, 'status' => 'Success', 'id' => $id] : ['ret' => 2, 'status' => 'Create failed'];
@@ -87,7 +86,7 @@ function communityevent() {
             case 'PUT':
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
-                if ($me && $c->canModify($me->getId())) {
+                if ($myid && $c->canModify($myid)) {
                     $c->setAttributes($_REQUEST);
                     
                     $ret = [
@@ -100,7 +99,7 @@ function communityevent() {
             case 'PATCH': {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
-                if ($me && $c->canModify($me->getId())) {
+                if ($myid && $c->canModify($myid)) {
                     $c->setAttributes($_REQUEST);
 
                     switch (Utils::presdef('action', $_REQUEST, NULL)) {
@@ -110,11 +109,15 @@ function communityevent() {
                         case 'RemoveDate': $c->removeDate((Utils::presint('dateid', $_REQUEST, NULL))); break;
                         case 'SetPhoto': $c->setPhoto((Utils::presint('photoid', $_REQUEST, NULL))); break;
                         case 'Hold':
+                            $me = Session::whoAmI($dbhr, $dbhm);
+
                             if ($me->isModerator()) {
-                                $c->setPrivate('heldby', $me->getId());
+                                $c->setPrivate('heldby', $myid);
                             }
                             break;
                         case 'Release':
+                            $me = Session::whoAmI($dbhr, $dbhm);
+
                             if ($me->isModerator()) {
                                 $c->setPrivate('heldby', NULL);
                             }
@@ -132,7 +135,7 @@ function communityevent() {
             case 'DELETE': {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
-                if ($me && $c->canModify($me->getId())) {
+                if ($myid && $c->canModify($myid)) {
                     $c->delete();
 
                     $ret = [

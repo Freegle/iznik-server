@@ -111,8 +111,7 @@ class CommunityEvent extends Entity
 
     public function listForGroup($pending, $groupid = NULL, &$ctx) {
         $ret = [];
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         # We can only see pending events if we're an owner/mod.
         # We might be called for a specific groupid; if not then use logged in user's groups.
@@ -128,8 +127,7 @@ class CommunityEvent extends Entity
             $mysqltime
         ]);
 
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : $me;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         foreach ($events as $event) {
             $ctx['end'] = $event['end'];

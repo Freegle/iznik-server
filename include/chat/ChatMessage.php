@@ -51,8 +51,7 @@ class ChatMessage extends Entity
 
     public function whitelistURLs($message) {
         if (preg_match_all(Utils::URL_PATTERN, $message, $matches)) {
-            $me = Session::whoAmI($this->dbhr, $this->dbhm);
-            $myid = $me ? $me->getId() : NULL;
+            $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
             foreach ($matches as $val) {
                 foreach ($val as $url) {
@@ -404,10 +403,9 @@ class ChatMessage extends Entity
             # We want to return the currently matching dates.
             $s = new Schedule($this->dbhr, $this->dbhm);
             $r = new ChatRoom($this->dbhr, $this->dbhm, $this->chatmessage['chatid']);
-            $me = Session::whoAmI($this->dbhr, $this->dbhm);
+            $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
-            if ($me) {
-                $myid = $me->getId();
+            if ($myid) {
                 $user1 = $r->getPrivate('user1');
                 $user2 = $r->getPrivate('user2');
                 $other = $myid == $user1 ? $user2 : $user1;
@@ -424,8 +422,7 @@ class ChatMessage extends Entity
     }
 
     public function approve($id) {
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         # We can only approve if we can see this message for review.
         $sql = "SELECT DISTINCT chat_messages.* FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator')) AND chat_messages.id = ?;";
@@ -450,8 +447,7 @@ class ChatMessage extends Entity
     }
 
     public function reject($id) {
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         # We can only reject if we can see this message for review.
         $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.message FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator')) AND chat_messages.id = ?;";
@@ -610,8 +606,7 @@ class ChatMessage extends Entity
     }
 
     public function hold($id) {
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         # We can only hold if we can see this message for review.
         $sql = "SELECT chat_messages.* FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator')) AND chat_messages.id = ?;";
@@ -619,14 +614,13 @@ class ChatMessage extends Entity
         foreach ($msgs as $msg) {
             $this->dbhm->preExec("REPLACE INTO chat_messages_held (msgid, userid) VALUES (?, ?);", [
                 $id,
-                $me->getId()
+                $myid
             ]);
         }
     }
 
     public function release($id) {
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         # We can only release if we can see this message for review.
         $sql = "SELECT chat_messages.* FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator')) AND chat_messages.id = ?;";
@@ -639,8 +633,7 @@ class ChatMessage extends Entity
     }
 
     public function redact($id) {
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         # We can only redact if we can see this message for review.
         $sql = "SELECT chat_messages.* FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator')) AND chat_messages.id = ?;";

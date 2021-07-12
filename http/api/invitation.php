@@ -6,14 +6,13 @@ function invitation()
     global $dbhr, $dbhm;
 
     $me = Session::whoAmI($dbhr, $dbhm);
-    $myid = $me ? $me->getId() : NULL;
 
     $ret = ['ret' => 100, 'status' => 'Unknown verb'];
 
     switch ($_REQUEST['type']) {
         case 'GET': {
             $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
-            if ($myid) {
+            if ($me) {
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
@@ -27,7 +26,7 @@ function invitation()
             $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
             $email = Utils::presdef('email', $_REQUEST, NULL);
 
-            if ($myid && $email) {
+            if ($me && $email) {
                 $me->invite($email);
 
                 # Whether or not it worked, say it did.  This is so that if we have someone abusing the feature,

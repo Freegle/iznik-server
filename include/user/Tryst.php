@@ -253,8 +253,7 @@ class Tryst extends Entity
     }
 
     public function confirm() {
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
         $att = ($this->getPrivate('user1') == $myid) ? 'user1confirmed' : 'user2confirmed';
         $this->dbhm->preExec("UPDATE trysts SET $att = NOW() WHERE id = ?", [
             $this->id
@@ -262,8 +261,7 @@ class Tryst extends Entity
     }
 
     public function decline() {
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
         $att = ($this->getPrivate('user1') == $myid) ? 'user1declined' : 'user2declined';
         $this->dbhm->preExec("UPDATE trysts SET $att = NOW() WHERE id = ?", [
             $this->id

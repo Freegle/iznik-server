@@ -4,11 +4,7 @@ namespace Freegle\Iznik;
 function message() {
     global $dbhr, $dbhm;
 
-//    $dbhr->setErrorLog(TRUE);
-//    $dbhm->setErrorLog(TRUE);
-
-    $me = Session::whoAmI($dbhr, $dbhm);
-    $myid = $me ? $me->getId() : NULL;
+    $myid = Session::whoAmId($dbhr, $dbhm);
 
     $id = (Utils::presint('id', $_REQUEST, NULL));
     $tnpostid = (Utils::presint('tnpostid', $_REQUEST, NULL));
@@ -59,11 +55,13 @@ function message() {
                             break;
                         case MessageCollection::PENDING:
                         case MessageCollection::REJECTED:
-                            if (!$me) {
+                            if (!$myid) {
                                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
                                 $m = NULL;
                             } else {
                                 $groups = $m->getGroups();
+                                $me = Session::whoAmI($dbhr, $dbhm);
+
                                 if (count($groups) == 0 || !$groupid || ($me && !$me->isModOrOwner($groups[0]))) {
                                     $ret = ['ret' => 2, 'status' => 'Permission denied 1'];
                                     $m = NULL;
@@ -73,7 +71,9 @@ function message() {
                         case MessageCollection::CHAT:
                             # We can see the original message for a chat if we're a mod.  This is used in chat
                             # message review when we want to show the source.
-                            if (!$me || !$me->isModerator() || !$m->isChatByEmail()) {
+                            $me = Session::whoAmI($dbhr, $dbhm);
+
+                            if (!$myid || !$me->isModerator() || !$m->isChatByEmail()) {
                                 $ret = ['ret' => 2, 'status' => 'Permission denied 3'];
                                 $m = NULL;
                             } else {
@@ -93,6 +93,7 @@ function message() {
                         $userlist = [];
                         $locationlist = [];
                         $atts = $m->getPublic($messagehistory, FALSE, FALSE, $userlist, $locationlist, $summary);
+                        $me = Session::whoAmI($dbhr, $dbhm);
                         $mod = $me && $me->isModerator();
 
                         if ($mod && count($atts['groups']) == 0) {
@@ -200,7 +201,7 @@ function message() {
                                     $m->deleteItems();
                                     $m->addItem($itemid);
 
-                                    $fromuser = $me ? $me->getId() : NULL;
+                                    $fromuser = $myid;
 
                                     if (!$fromuser) {
                                         # Creating a draft - use the supplied email.
@@ -309,6 +310,8 @@ function message() {
                                 }
                             }
 
+                            $me = Session::whoAmI($dbhr, $dbhm);
+
                             $rc = $m->edit($subject,
                                            $textbody,
                                            $msgtype,
@@ -352,7 +355,7 @@ function message() {
 
                 if ($id && $m->getID() == $id) {
                     # These actions don't require permission, but they do need to be logged in as they record the userid.
-                    if ($me) {
+                    if ($myid) {
                         if ($action =='Love') {
                             $m->like($myid, Message::LIKE_LOVE);
                             $ret = [ 'ret' => 0, 'status' => 'Success' ];
@@ -495,7 +498,7 @@ function message() {
                                             $u->login($pw);
                                             $u->welcome($email, $pw);
                                         }
-                                    } else if ($me && $me->getId() != $uid) {
+                                    } else if ($myid && $myid != $uid) {
                                         # We know the user, but it's not the one we're logged in as.  It's most likely
                                         # that the user is just confused about multiple email addresses.  We will reject
                                         # the message - the client is supposed to detect this case earlier on.
@@ -523,6 +526,8 @@ function message() {
                                         $worry = $w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody());
 
                                         # Assume this post is moderated unless we decide otherwise below.
+                                        $me = Session::whoAmI($dbhr, $dbhm);
+
                                         if (!$u->isApprovedMember($groupid)) {
                                             # We're not yet a member.  Join the group.
                                             $addworked = $u->addMembership($groupid);

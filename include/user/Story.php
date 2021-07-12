@@ -19,8 +19,7 @@ class Story extends Entity
     }
 
     public function setAttributes($settings) {
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         foreach ($this->settableatts as $att) {
             if (array_key_exists($att, $settings)) {
@@ -131,7 +130,7 @@ class Story extends Entity
     public function canSee() {
         # Can see our own, or all if we have permissions, or if it's public
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
         return($this->story['public'] || $this->story['userid'] == $myid || ($me && $me->isAdminOrSupport()));
     }
 
@@ -141,7 +140,7 @@ class Story extends Entity
         if ($this->story) {
             # We can modify if it's ours, we are an admin, or a mod on a group that the author is a member of.
             $me = Session::whoAmI($this->dbhr, $this->dbhm);
-            $myid = $me ? $me->getId() : NULL;
+            $myid = Session::whoAmId($this->dbhr, $this->dbhm);
             $author = User::get($this->dbhr, $this->dbhm, $this->story['userid']);
             $authormembs = $author->getMemberships(FALSE);
             $ret = ($this->story['userid'] == $myid) || ($me && $me->isAdminOrSupport());

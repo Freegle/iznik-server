@@ -4,8 +4,7 @@ namespace Freegle\Iznik;
 function address() {
     global $dbhr, $dbhm;
 
-    $me = Session::whoAmI($dbhr, $dbhm);
-    $myid = $me ? $me->getId() : NULL;
+    $myid = Session::whoAmId($dbhr, $dbhm);
 
     $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 
@@ -47,14 +46,14 @@ function address() {
                     $ret = [
                         'status' => 'Success',
                         'ret' => 0,
-                        'addresses' => $a->listForUser($me->getId())
+                        'addresses' => $a->listForUser($myid)
                     ];
                 }
                 break;
             }
 
             case 'PUT':
-                $id = $a->create($me->getId(),
+                $id = $a->create($myid,
                     (Utils::presint('pafid', $_REQUEST, NULL)),
                     Utils::presdef('instructions', $_REQUEST, NULL));
 

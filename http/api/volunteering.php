@@ -4,8 +4,7 @@ namespace Freegle\Iznik;
 function volunteering() {
     global $dbhr, $dbhm;
 
-    $me = Session::whoAmI($dbhr, $dbhm);
-    $myid = $me ? $me->getId() : NULL;
+    $myid = Session::whoAmId($dbhr, $dbhm);
 
     $id = (Utils::presint('id', $_REQUEST, NULL));
     $groupid = (Utils::presint('groupid', $_REQUEST, NULL));
@@ -52,11 +51,11 @@ function volunteering() {
                     # List all for this user.
                     $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
-                    if ($me) {
+                    if ($myid) {
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',
-                            'volunteerings' => $c->listForUser($me->getId(), $pending, $systemwide, $ctx),
+                            'volunteerings' => $c->listForUser($myid, $pending, $systemwide, $ctx),
                             'context' => $ctx
                         ];
                     }
@@ -67,7 +66,7 @@ function volunteering() {
             case 'POST': {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
-                if ($me) {
+                if ($myid) {
                     $title = $location = $contactname = $contactphone = $contactemail = $contacturl = $description = NULL;
 
                     foreach (['title', 'online', 'location', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description', 'timecommitment'] as $att) {
@@ -77,7 +76,7 @@ function volunteering() {
                     $id = NULL;
 
                     if ($title && $location && $description) {
-                        $id = $c->create($me->getId(), $title, $online, $location, $contactname, $contactphone, $contactemail, $contacturl, $description, $timecommitment);
+                        $id = $c->create($myid, $title, $online, $location, $contactname, $contactphone, $contactemail, $contacturl, $description, $timecommitment);
 
                         $gid = Utils::presint('groupid', $_REQUEST, 0);
                         if ($gid) {
@@ -94,7 +93,7 @@ function volunteering() {
             case 'PUT':
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
-                if ($me && $c->canModify($me->getId())) {
+                if ($myid && $c->canModify($myid)) {
                     $c->setAttributes($_REQUEST);
 
                     $ret = [
@@ -107,7 +106,7 @@ function volunteering() {
             case 'PATCH': {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
-                if ($me && $c->canModify($me->getId())) {
+                if ($myid && $c->canModify($myid)) {
                     $c->setAttributes($_REQUEST);
 
                     switch (Utils::presdef('action', $_REQUEST, NULL)) {
@@ -126,11 +125,15 @@ function volunteering() {
                             $c->setPrivate('expired', 1);
                             break;
                         case 'Hold':
+                            $me = Session::whoAmI($dbhr, $dbhm);
+
                             if ($me->isModerator()) {
-                                $c->setPrivate('heldby', $me->getId());
+                                $c->setPrivate('heldby', $myid);
                             }
                             break;
                         case 'Release':
+                            $me = Session::whoAmI($dbhr, $dbhm);
+
                             if ($me->isModerator()) {
                                 $c->setPrivate('heldby', NULL);
                             }
@@ -148,7 +151,7 @@ function volunteering() {
             case 'DELETE': {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
-                if ($me && $c->canModify($me->getId())) {
+                if ($myid && $c->canModify($myid)) {
                     $c->delete();
 
                     $ret = [

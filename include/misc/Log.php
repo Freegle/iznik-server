@@ -104,13 +104,6 @@ class Log
         $idq = Utils::pres('id', $ctx) ? (" AND logs.id < " . intval($ctx['id']) . " ") : '';
         
         # We might have consecutive logs for the same messages/users, so try to speed that up.
-        $msgs = [];
-        $users = [];
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
-
-        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
-
         if ($uid) {
             $sql = "SELECT logs.* FROM logs 
                 LEFT JOIN users ON users.id = logs.user 

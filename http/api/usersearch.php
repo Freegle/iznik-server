@@ -9,7 +9,7 @@ function usersearch() {
     $id = (Utils::presint('id', $_REQUEST, NULL));
     $s = new UserSearch($dbhr, $dbhm, $id);
     $me = Session::whoAmI($dbhr, $dbhm);
-    $myid = $me ? $me->getId() : NULL;
+    $myid = Session::whoAmId($dbhr, $dbhm);
 
     $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 

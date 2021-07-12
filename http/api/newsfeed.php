@@ -4,12 +4,11 @@ namespace Freegle\Iznik;
 function newsfeed() {
     global $dbhr, $dbhm;
 
-    $me = Session::whoAmI($dbhr, $dbhm);
-    $myid = $me ? $me->getId() : NULL;
+    $myid = Session::whoAmId($dbhr, $dbhm);
 
     $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 
-    if ($me) {
+    if ($myid) {
         $id = (Utils::presint('id', $_REQUEST, NULL));
         $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -36,7 +35,7 @@ function newsfeed() {
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',
-                            'unseencount' => $n->getUnseen($me->getId())
+                            'unseencount' => $n->getUnseen($myid)
                         ];
                     } else {
                         $ctx = Utils::presdef('context', $_REQUEST, NULL);
@@ -47,7 +46,7 @@ function newsfeed() {
                                 # We have a distance from the last request.
                                 $dist = intval($ctx['distance']);
                             } else {
-                                $dist = $n->getNearbyDistance($me->getId());
+                                $dist = $n->getNearbyDistance($myid);
                             }
                         }
 
@@ -55,7 +54,7 @@ function newsfeed() {
 
                         $types = Utils::presdef('types', $_REQUEST, NULL);
 
-                        list ($users, $items) = $n->getFeed($me->getId(), $dist, $types, $ctx);
+                        list ($users, $items) = $n->getFeed($myid, $dist, $types, $ctx);
 
                         $ret = [
                             'ret' => 0,
@@ -99,7 +98,7 @@ function newsfeed() {
                         'status' => 'Success'
                     ];
                 } else if ($action == 'Seen') {
-                    $n->seen($me->getId());
+                    $n->seen($myid);
 
                     $ret = [
                         'ret' => 0,
@@ -146,6 +145,8 @@ function newsfeed() {
                         'status' => 'Permission denied'
                     ];
 
+                    $me = Session::whoAmI($dbhr, $dbhm);
+
                     if ($me->isAdminOrSupport()) {
                         $n->unhide($id);
 
@@ -167,6 +168,8 @@ function newsfeed() {
                         'status' => 'Permission denied'
                     ];
 
+                    $me = Session::whoAmI($dbhr, $dbhm);
+
                     if ($me->isModerator()) {
                         $n->setPrivate('replyto', (Utils::presint('attachto', $_REQUEST, 0)));
 
@@ -177,9 +180,9 @@ function newsfeed() {
                     }
                 } else {
                     $s = new Spam($dbhr, $dbhm);
-                    $spammers = $s->getSpammerByUserid($me->getId());
+                    $spammers = $s->getSpammerByUserid($myid);
                     if (!$spammers) {
-                        $id = $n->create(Newsfeed::TYPE_MESSAGE, $me->getId(), $message, $imageid, NULL, $replyto, NULL);
+                        $id = $n->create(Newsfeed::TYPE_MESSAGE, $myid, $message, $imageid, NULL, $replyto, NULL);
                     }
 
                     $ret = [
@@ -201,7 +204,9 @@ function newsfeed() {
                     'status' => 'Permission denied'
                 ];
 
-                if ($me->isModerator() || ($me->getId() == $n->getPrivate('userid'))) {
+                $me = Session::whoAmI($dbhr, $dbhm);
+
+                if ($me->isModerator() || ($myid == $n->getPrivate('userid'))) {
                     $n->setPrivate('message', $message);
 
                     $ret = [
@@ -222,8 +227,10 @@ function newsfeed() {
                 ];
 
                 # Can delete own posts or if mod.
-                if ($me->isModerator() || ($me->getId() == $n->getPrivate('userid'))) {
-                    $n->delete($me->getId(), $id);
+                $me = Session::whoAmI($dbhr, $dbhm);
+
+                if ($me->isModerator() || ($myid == $n->getPrivate('userid'))) {
+                    $n->delete($myid, $id);
 
                     $ret = [
                         'ret' => 0,

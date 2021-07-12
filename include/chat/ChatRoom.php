@@ -47,8 +47,7 @@ class ChatRoom extends Entity
         $this->chatroom = NULL;
         $this->table = 'chat_rooms';
 
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         $this->ourFetch($id, $myid);
 
@@ -372,8 +371,7 @@ WHERE chat_rooms.id IN $idlist;";
         }
 
         if ($rc && $id) {
-            $me = Session::whoAmI($this->dbhr, $this->dbhm);
-            $myid = $me ? $me->getId() : NULL;
+            $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
             $this->ourFetch($id, $myid);
             $this->chatroom['groupname'] = $this->getGroupName($gid);
@@ -481,8 +479,7 @@ WHERE chat_rooms.id IN $idlist;";
         }
 
         if ($id) {
-            $me = Session::whoAmI($this->dbhr, $this->dbhm);
-            $myid = $me ? $me->getId() : NULL;
+            $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
             $this->ourFetch($id, $myid);
 
@@ -550,8 +547,7 @@ WHERE chat_rooms.id IN $idlist;";
         }
 
         if ($id) {
-            $me = Session::whoAmI($this->dbhr, $this->dbhm);
-            $myid = $me ? $me->getId() : NULL;
+            $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
             $this->ourFetch($id, $myid);
 
@@ -1119,8 +1115,7 @@ WHERE chat_rooms.id IN $idlist;";
         #
         # Don't want to log these - lots of them.
         #error_log("updateRoster: Add $userid into {$this->id}");
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         $this->dbhm->preExec("INSERT INTO chat_roster (chatid, userid, lastip) VALUES (?,?,?) ON DUPLICATE KEY UPDATE lastip = ?, status = ?;",
             [
@@ -1493,13 +1488,13 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
         $lastdate = NULL;
         $lastmsg = NULL;
 
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         $modaccess = FALSE;
 
         if ($myid && $myid != $this->chatroom['user1'] && $myid != $this->chatroom['user2']) {
             #error_log("Check mod access $myid, {$this->chatroom['user1']}, {$this->chatroom['user2']}");
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
             $modaccess = $me->isAdminOrSupport() || $me->moderatorForUser($this->chatroom['user1']) ||
                 $me->moderatorForUser($this->chatroom['user2']);
         }
@@ -2555,8 +2550,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
     }
 
     public function nudge() {
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
         $other = $myid == $this->chatroom['user1'] ? $this->chatroom['user2'] : $this->chatroom['user1'];
 
         # Check that the last message in the chat is not a nudge from us.  That would be annoying.

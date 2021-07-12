@@ -1726,7 +1726,7 @@ ORDER BY lastdate DESC;";
 
     public function getPublics($msgs, $messagehistory = TRUE, $related = TRUE, $seeall = FALSE, &$userlist = NULL, &$locationlist = [], $summary = FALSE) {
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         # We call the methods that handle an array of messages, which are shared with MessageCollection.  Each of
         # these return their info in an array indexed by message id.
@@ -2003,8 +2003,7 @@ ORDER BY lastdate DESC;";
     }
 
     public function createDraft($uid = NULL, $sourceheader = Message::PLATFORM) {
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
         $myid = $myid ? $myid : $uid;
         $sess = session_id();
 
@@ -2796,7 +2795,7 @@ ORDER BY lastdate DESC;";
         if ($subject) {
             # We have a mail to send.
             $me = Session::whoAmI($this->dbhr, $this->dbhm);
-            $myid = $me->getId();
+            $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
             $to = $this->getEnvelopefrom();
             $to = $to ? $to : $this->getFromaddr();
@@ -2934,8 +2933,7 @@ ORDER BY lastdate DESC;";
     public function approve($groupid, $subject = NULL, $body = NULL, $stdmsgid = NULL) {
         # No need for a transaction - if things go wrong, the message will remain in pending, which is the correct
         # behaviour.
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         $this->notSpam();
 
@@ -3974,8 +3972,7 @@ ORDER BY lastdate DESC;";
             $ret = $msgs;
         }
 
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         if (count($ret) > 0) {
             $maxid = $ret[0]['id'];
@@ -4310,8 +4307,7 @@ WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND message
     public function backToDraft() {
         # Convert a message back to a draft.
         $rollback = FALSE;
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         if ($this->dbhm->beginTransaction()) {
             $rollback = TRUE;

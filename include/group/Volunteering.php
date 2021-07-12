@@ -120,8 +120,7 @@ class Volunteering extends Entity
 
     public function listForGroup($pending, $groupid = NULL, &$ctx) {
         $ret = [];
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         # We can only see pending volunteerings if we're an owner/mod.
         # We might be called for a specific groupid; if not then use logged in user's groups.
@@ -137,8 +136,7 @@ class Volunteering extends Entity
             $mysqltime
         ]);
 
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         foreach ($volunteerings as $volunteering) {
             if ((!Utils::pres('applyby', $volunteering) || time() < strtotime($volunteering['applyby'])) &&
@@ -276,8 +274,7 @@ class Volunteering extends Entity
     }
 
     public function delete() {
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
         $this->dbhm->preExec("UPDATE volunteering SET deleted = 1, deletedby = ? WHERE id = ?;", [ $myid, $this->id ]);
     }
 

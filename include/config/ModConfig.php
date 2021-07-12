@@ -307,7 +307,7 @@ class ModConfig extends Entity
 
     public function canModify() {
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
         $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
 
 //        error_log("Canmod {$this->id} systemrole $systemrole");
@@ -331,7 +331,7 @@ class ModConfig extends Entity
     public function canSee() {
         # Not quite see, exactly, as anyone can look at them.  But to be close enough to be able to run bulk ops.
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $myid = $me ? $me->getId() : NULL;
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         $systemrole = $me ? $me->getPrivate('systemrole') : User::SYSTEMROLE_USER;
 
