@@ -43,7 +43,7 @@ class Attachment
         return $this->hash;
     }
 
-    public function getPath($thumb = FALSE, $id = NULL) {
+    public function getPath($thumb = FALSE, $id = NULL, $archived = FALSE) {
         # We serve up our attachment names as though they are files.
         # When these are fetched it will go through image.php
         $id = $id ? $id : $this->id;
@@ -62,7 +62,7 @@ class Attachment
         }
 
         $name = $thumb ? "t$name" : $name;
-        $domain = $this->archived ? IMAGE_ARCHIVED_DOMAIN : IMAGE_DOMAIN;
+        $domain = ($this->archived || $archived) ? IMAGE_ARCHIVED_DOMAIN : IMAGE_DOMAIN;
 
         return("https://$domain/{$name}_$id.jpg");
     }
