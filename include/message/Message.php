@@ -1670,7 +1670,7 @@ ORDER BY lastdate DESC;";
                $groupid = Utils::pres('groups', $msg) ? $msg['groups'][0]['groupid'] : NULL;
                $w = new WorryWords($this->dbhr, $this->dbhm, $groupid);
 
-               $msgs[$msgind]['worry'] = $w->checkMessage($msg['id'], Utils::pres('fromuser', $msg) ? $msg['fromuser']['id'] : NULL, $msg['subject'], $msg['textbody'], FALSE);
+               $msgs[$msgind]['worry'] = $w->checkMessage($msg['id'], Utils::pres('fromuser', $msg) ? $msg['fromuser']['id'] : NULL, $msg['subject'], Utils::presdef('textbody', $msg, ''), FALSE);
            }
        }
     }
