@@ -109,6 +109,7 @@ class LoggedPDO {
                     $dsn = "mysql:host=$hostname;port=$port;dbname={$this->database};charset=utf8";
 
                     $this->_db = new \PDO($dsn, $this->username, $this->password, [
+                        \PDO::ATTR_TIMEOUT => 1,
                         \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
                         \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
                     ]);
