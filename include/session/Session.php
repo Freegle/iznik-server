@@ -142,7 +142,7 @@ class Session {
         return([$ret, $domain]);
     }
 
-    public static function whoAmI(LoggedPDO $dbhr, $dbhm)
+    public static function whoAmI(LoggedPDO $dbhr, $dbhm, $idonly = FALSE)
     {
         Session::prepareSession($dbhr, $dbhm);
 
@@ -150,7 +150,9 @@ class Session {
         $ret = NULL;
         #error_log("Session::whoAmI $id in " . session_id());
 
-        if ($id) {
+        if ($idonly) {
+            $ret = $id;
+        } else if ($id) {
             # We are logged in.  Get our details
             $r = User::get($dbhr, $dbhm, $id);
 

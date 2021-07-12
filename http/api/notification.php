@@ -4,11 +4,12 @@ namespace Freegle\Iznik;
 function notification() {
     global $dbhr, $dbhm;
 
-    $me = Session::whoAmI($dbhr, $dbhm);
+    # We don't need the full user object - save time by not getting it.
+    $myid = Session::whoAmI($dbhr, $dbhm, TRUE);
 
     $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 
-    if ($me) {
+    if ($myid) {
         $n = new Notifications($dbhr, $dbhm);
         $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -20,16 +21,17 @@ function notification() {
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success',
-                        'count' => $n->countUnseen($me->getId())
+                        'count' => $n->countUnseen($myid)
                     ];
 
                     if (!Session::modtools()) {
                         # This request occurs every 30 seconds, so we can piggyback on it to spot when users are active.
+                        $me = Session::whoAmI($dbhr, $dbhm);
                         $me->recordActive();
                     }
                 } else {
                     $ctx = Utils::presdef('context', $_REQUEST, NULL);
-                    $notifs = $n->get($me->getId(), $ctx);
+                    $notifs = $n->get($myid, $ctx);
                     #error_log("Notification context " . var_export($ctx, TRUE));
 
                     $ret = [
@@ -49,7 +51,7 @@ function notification() {
 
                 switch ($action) {
                     case 'Seen': {
-                        $n->seen($me->getId(), $id);
+                        $n->seen($myid, $id);
 
                         $ret = [
                             'ret' => 0,
@@ -59,7 +61,7 @@ function notification() {
                     }
 
                     case 'AllSeen': {
-                        $n->seen($me->getId());
+                        $n->seen($myid);
 
                         $ret = [
                             'ret' => 0,
