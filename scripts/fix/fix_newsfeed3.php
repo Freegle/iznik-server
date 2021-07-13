@@ -10,7 +10,7 @@ require_once(IZNIK_BASE . '/include/group/CommunityEvent.php');
 
 $n = new Newsfeed($dbhr, $dbhm);
 
-$feeds = $dbhr->preQuery("SELECT * FROM newsfeed WHERE position = GEOMFROMTEXT(  'POINT(-2.5209 53.945)' ) AND `type` IN ('VolunteerOpportunity', 'CommunityEvent');");
+$feeds = $dbhr->preQuery("SELECT * FROM newsfeed WHERE position = ST_GeomFromText(  'POINT(-2.5209 53.945)' ) AND `type` IN ('VolunteerOpportunity', 'CommunityEvent');");
 
 foreach ($feeds as $feed) {
     error_log("Check {$feed['id']}");

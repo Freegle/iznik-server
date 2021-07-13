@@ -22,7 +22,7 @@ foreach ([1, 0] AS $osm) {
 
         if (count($locs) == 1) {
             $loc = $locs[0];
-            $dbhm->preExec("UPDATE towns SET lat = ?, lng = ?, position = GEOMFROMTEXT('POINT({$loc['lng']} {$loc['lat']})') WHERE id = ?;", [
+            $dbhm->preExec("UPDATE towns SET lat = ?, lng = ?, position = ST_GeomFromText('POINT({$loc['lng']} {$loc['lat']})') WHERE id = ?;", [
                 $loc['lat'],
                 $loc['lng'],
                 $town['id']
@@ -55,7 +55,7 @@ foreach ([1, 0] AS $osm) {
             }
 
             #error_log("...chose $bestlat, $bestlng");
-            $dbhm->preExec("UPDATE towns SET lat = ?, lng = ?, position = GEOMFROMTEXT('POINT($bestlng $bestlat)') WHERE id = ?;", [
+            $dbhm->preExec("UPDATE towns SET lat = ?, lng = ?, position = ST_GeomFromText('POINT($bestlng $bestlat)') WHERE id = ?;", [
                 $bestlat,
                 $bestlng,
                 $town['id']

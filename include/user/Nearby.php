@@ -45,7 +45,7 @@ class Nearby
                 $dist = 4000;
                 $ne = \GreatCircle::getPositionByDistance($dist, 45, $mlat, $mlng);
                 $sw = \GreatCircle::getPositionByDistance($dist, 225, $mlat, $mlng);
-                $box = "ST_GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
+                $box = "ST_GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))', 3857)";
 
                 $users = $this->dbhr->preQuery("SELECT userid AS id FROM users_approxlocs WHERE ST_Contains($box, position);");
                 #error_log("Look for users near $mlat, $mlng with $box found " . count($users));
@@ -161,7 +161,7 @@ class Nearby
 
             if ($lat || $lng) {
                 # We found one.
-                $this->dbhm->preExec("INSERT INTO users_approxlocs (userid, lat, lng, position, timestamp) VALUES (?, ?, ?, ST_GeomFromText(CONCAT('POINT(', ?, ' ', ?, ')')), ?) ON DUPLICATE KEY UPDATE lat = ?, lng = ?, position = ST_GeomFromText(CONCAT('POINT(', ?, ' ', ?, ')')), timestamp = ?;", [
+                $this->dbhm->preExec("INSERT INTO users_approxlocs (userid, lat, lng, position, timestamp) VALUES (?, ?, ?, ST_GeomFromText(CONCAT('POINT(', ?, ' ', ?, ')'), 3857), ?) ON DUPLICATE KEY UPDATE lat = ?, lng = ?, position = ST_GeomFromText(CONCAT('POINT(', ?, ' ', ?, ')'), 3857), timestamp = ?;", [
                     $user['id'],
                     $lat,
                     $lng,

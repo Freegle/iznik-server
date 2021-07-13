@@ -40,7 +40,7 @@ class RelevantTest extends IznikTestCase
                 $nelng = $swlng + 0.1;
 
                 # Use lng, lat order for geometry because the OSM data uses that.
-                $dbhm->preExec("INSERT IGNORE INTO locations_grids (swlat, swlng, nelat, nelng, box) VALUES (?, ?, ?, ?, ST_GeomFromText('POLYGON(($swlng $swlat, $nelng $swlat, $nelng $nelat, $swlng $nelat, $swlng $swlat))'));",
+                $dbhm->preExec("INSERT IGNORE INTO locations_grids (swlat, swlng, nelat, nelng, box) VALUES (?, ?, ?, ?, ST_GeomFromText('POLYGON(($swlng $swlat, $nelng $swlat, $nelng $nelat, $swlng $nelat, $swlng $swlat))', 3857));",
                     [
                         $swlat,
                         $swlng,
@@ -218,6 +218,7 @@ class RelevantTest extends IznikTestCase
         $u->addEmail('ut-' . rand() . '@' . USER_DOMAIN, 0, FALSE);
         $u->addMembership($gid);
         $m->like($uid, Message::LIKE_VIEW);
+        $this->waitBackground();
 
         $this->msgsSent = [];
         self::assertEquals(1, $mock->sendMessages($uid, NULL, 'tomorrow'));

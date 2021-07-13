@@ -37,7 +37,7 @@ if (count($opts) < 1) {
                             error_log("...$name polygon");
                             $geom = \geoPHP::load($kgroup->Polygon->asXML(), 'kml');
                             $wkt = $geom->out('wkt');
-                            $dbhm->preExec("REPLACE INTO authorities (name, polygon) VALUES (?,ST_GeomFromText(?));", [
+                            $dbhm->preExec("REPLACE INTO authorities (name, polygon) VALUES (?,ST_GeomFromText(?, 3857));", [
                                 $name,
                                 $wkt
                             ]);
@@ -45,7 +45,7 @@ if (count($opts) < 1) {
                             error_log("...$name multigeometry");
                             $geom = \geoPHP::load($kgroup->MultiGeometry->asXML(), 'kml');
                             $wkt = $geom->out('wkt');
-                            $dbhm->preExec("REPLACE INTO authorities (name, polygon) VALUES (?,ST_GeomFromText(?));", [
+                            $dbhm->preExec("REPLACE INTO authorities (name, polygon) VALUES (?,ST_GeomFromText(?, 3857));", [
                                 $name,
                                 $wkt
                             ]);

@@ -1,21 +1,4 @@
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` FUNCTION `GetCenterPoint`(`g` GEOMETRY) RETURNS point
-NO SQL
-DETERMINISTIC
-  BEGIN
-    DECLARE envelope POLYGON;
-    DECLARE sw, ne POINT;
-    DECLARE lat, lng DOUBLE;
-
-    SET envelope = ExteriorRing(ST_Envelope(g));
-    SET sw = PointN(envelope, 1);
-    SET ne = PointN(envelope, 3);
-    SET lat = ST_X(sw) + (X(ne)-X(sw))/2;
-    SET lng = ST_Y(sw) + (Y(ne)-Y(sw))/2;
-    RETURN POINT(lat, lng);
-  END$$
-DELIMITER ;
-
 DELIMITER $$
 CREATE DEFINER=`root`@`localhost` FUNCTION `GetMaxDimension`(`g` GEOMETRY) RETURNS double
 NO SQL
@@ -48,20 +31,6 @@ NO SQL
     ELSE
         RETURN 0;
     END IF;
-  END$$
-DELIMITER ;
-
-DELIMITER $$
-CREATE DEFINER=`root`@`localhost` FUNCTION `ST_IntersectionSafe`(a GEOMETRY, b GEOMETRY) RETURNS geometry
-DETERMINISTIC
-  BEGIN
-    DECLARE ret GEOMETRY;
-    DECLARE CONTINUE HANDLER FOR SQLSTATE '22023'
-    BEGIN
-      SET ret = POINT(0.0000,90.0000);
-    END;
-    SELECT ST_Intersection(a, b) INTO ret;
-    RETURN ret;
   END$$
 DELIMITER ;
 

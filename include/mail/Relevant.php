@@ -159,6 +159,7 @@ class Relevant {
             #error_log("Groups near $lastloc are " . var_export($groups, TRUE));
         } else {
             $groups = $u->getMembershipGroupIds();
+            #error_log("Memberships " . var_export($groups, TRUE));
         }
 
         # Only want groups where this function is allowed.

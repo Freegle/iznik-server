@@ -29,7 +29,7 @@ if (count($opts) != 2) {
         error_log("Centre is at $clat, $clng");
 
         # Find the groups which overlap this area.
-        $groups = $dbhr->preQuery("SELECT id FROM `groups` WHERE ST_Intersects(polyindex, ST_GeomFromText(?));", [
+        $groups = $dbhr->preQuery("SELECT id FROM `groups` WHERE ST_Intersects(polyindex, ST_GeomFromText(?, 3857));", [
             $polygon
         ]);
 
@@ -109,29 +109,6 @@ if (count($opts) != 2) {
             $geom = $hull->asText();
             error_log("Organic area $geom");
         }
-
-//        # Find the messages within the polygon.
-//        $sql = "SELECT id FROM messages WHERE ST_CONTAINS(ST_GeomFromText(?), POINT(lng, lat));";
-//        $points = $dbhr->preQuery($sql, [
-//            $polygon
-//        ]);
-//        error_log("Found " . count($points) . " messages in area");
-//
-//        # Find the people who replied.
-//        $others = [];
-//        foreach ($points as $p) {
-//            $replies = $dbhr->preQuery("SELECT userid FROM chat_messages WHERE regmsgid = ?", [
-//                $p['id']
-//            ]);
-//
-//            foreach ($replies as $reply) {
-//                $otheru = User::get($dbhr, $dbhm, $reply['userid']);
-//            }
-//        }
-//
-//        error_log("Found " . count($others) . " people who replied");
-//        $others = array_values($others);
-//
     }
 }
 

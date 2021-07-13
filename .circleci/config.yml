@@ -8,7 +8,9 @@ jobs:
       - image: circleci/php:7.4
       - image: circleci/redis
       - image: schickling/beanstalkd
-      - image: circleci/mysql:5.7.32
+      # Running on 5.7 for now since the live system is still on that, but will experiment with 8.
+      # - image: circleci/mysql:8.0.25
+      - image: circleci/mysql:5.7
         environment:
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
           MYSQL_ROOT_PASSWORD: ''

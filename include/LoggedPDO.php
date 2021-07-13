@@ -141,6 +141,7 @@ class LoggedPDO {
                             error_log("DB to $host connect took $duration");
                         }
 
+                        # TODO REmove this once we have upgraded to MySQL 8.
                         $this->version = $this->_db->getAttribute(PDO::ATTR_SERVER_VERSION);
 
                         if ($wasdown) {

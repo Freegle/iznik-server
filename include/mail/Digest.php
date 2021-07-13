@@ -551,7 +551,7 @@ class Digest
                 $distance = $nearby * 1609.34;
                 $ne = \GreatCircle::getPositionByDistance($distance, 45, $lat, $lng);
                 $sw = \GreatCircle::getPositionByDistance($distance, 255, $lat, $lng);
-                $box = "ST_GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))')";
+                $box = "ST_GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))', 3857)";
 
                 $sql = "SELECT ST_Y(point) AS lat, ST_X(point) AS lng, messages_spatial.msgid, messages_spatial.groupid, messages.subject FROM messages_spatial 
     INNER JOIN messages ON messages_spatial.msgid = messages.id
