@@ -9,11 +9,11 @@ $groups = $dbhr->preQuery("SELECT * FROM `groups` WHERE type = 'Freegle' AND pub
 
 foreach ($groups as $group) {
     try {
-        $over = $dbhr->preQuery("SELECT ST_Intersection(ST_GeomFromText(polyofficial, 3857), Coalesce(simplified, polygon)) FROM `groups` inner join `authorities` ON type = 'Freegle' AND publish = 1 AND onmap = 1 where authorities.id = 74579 and groups.id = ?", [ $group['id'] ]);
+        $over = $dbhr->preQuery("SELECT ST_Intersection(ST_GeomFromText(polyofficial, 3857), ST_GeomFromText(ST_AsText(Coalesce(simplified, polygon)), 3857)) FROM `groups` inner join `authorities` ON type = 'Freegle' AND publish = 1 AND onmap = 1 where authorities.id = 74579 and groups.id = ?", [ $group['id'] ]);
         #error_log("{$group['id']} {$group['nameshort']} CGA worked");
 
         if ($group['poly']) {
-            $over = $dbhr->preQuery("SELECT ST_Intersection(ST_GeomFromText(poly, 3857), Coalesce(simplified, polygon)) FROM `groups` inner join `authorities` ON type = 'Freegle' AND publish = 1 AND onmap = 1 where authorities.id = 74579 and groups.id = ?", [ $group['id'] ]);
+            $over = $dbhr->preQuery("SELECT ST_Intersection(ST_GeomFromText(poly, 3857), ST_GeomFromText(ST_AsText(Coalesce(simplified, polygon)), 3857)) FROM `groups` inner join `authorities` ON type = 'Freegle' AND publish = 1 AND onmap = 1 where authorities.id = 74579 and groups.id = ?", [ $group['id'] ]);
             #error_log("{$group['id']} {$group['nameshort']} DPA worked");
         }
     } catch (\Throwable $e) {
