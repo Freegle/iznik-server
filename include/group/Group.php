@@ -198,13 +198,13 @@ class Group extends Entity
             $ret = FALSE;
 
             try {
-                $valid = $this->dbhm->preQuery($this->dbhr->isV8() ? "SELECT ST_IsValid(ST_GeomFromText(?, 3857)) AS valid;" : "SELECT ST_IsValid(ST_GeomFromText(?)) AS valid;", [
+                $valid = $this->dbhm->preQuery($this->dbhr->isV8() ? "SELECT ST_IsValid(ST_GeomFromText(?, {$this->dbhr->SRID()})) AS valid;" : "SELECT ST_IsValid(ST_GeomFromText(?)) AS valid;", [
                     $val
                 ]);
 
                 foreach ($valid as $v) {
                     if ($v['valid']) {
-                        $this->dbhm->preExec("UPDATE `groups` SET polyindex = ST_GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)'), 3857) WHERE id = ?;", [
+                        $this->dbhm->preExec("UPDATE `groups` SET polyindex = ST_GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)'), {$this->dbhr->SRID()}) WHERE id = ?;", [
                             $this->id
                         ]);
 
@@ -230,7 +230,7 @@ class Group extends Entity
                 return(NULL);
             }
 
-            $rc = $this->dbhm->preExec("INSERT INTO `groups` (nameshort, type, founded, licenserequired, polyindex) VALUES (?, ?, NOW(),?,ST_GeomFromText('POINT(0 0)', 3857))", [
+            $rc = $this->dbhm->preExec("INSERT INTO `groups` (nameshort, type, founded, licenserequired, polyindex) VALUES (?, ?, NOW(),?,ST_GeomFromText('POINT(0 0)', {$this->dbhr->SRID()}))", [
                 $shortname,
                 $type,
                 $type != Group::GROUP_FREEGLE ? 0 : 1

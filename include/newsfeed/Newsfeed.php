@@ -72,7 +72,7 @@ class Newsfeed extends Entity
             $type == Newsfeed::TYPE_REFER_TO_RECEIVED
         ) {
             # Only put it in the newsfeed if we have a location, otherwise we wouldn't show it.
-            $pos = ($lat || $lng) ? "ST_GeomFromText('POINT($lng $lat)', 3857)" : "ST_GeomFromText('POINT(-2.5209 53.9450)', 3857)";
+            $pos = ($lat || $lng) ? "ST_GeomFromText('POINT($lng $lat)', {$this->dbhr->SRID()})" : "ST_GeomFromText('POINT(-2.5209 53.9450)', {$this->dbhr->SRID()})";
 
             # We've seen cases where we get duplicate POSTS of the same newsfeed item from different sessions, which
             # bypasses the normal duplicate protection. So check.
@@ -493,7 +493,7 @@ class Newsfeed extends Entity
             $sw = \GreatCircle::getPositionByDistance($dist, 225, $lat, $lng);
 
             $mysqltime = date('Y-m-d', strtotime("30 days ago"));
-            $box = "ST_GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))', 3857)";
+            $box = "ST_GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))', {$this->dbhr->SRID()})";
 
             $sql = "SELECT DISTINCT userid FROM newsfeed FORCE INDEX (position) WHERE MBRContains($box, position) AND replyto IS NULL AND type != '" . Newsfeed::TYPE_ALERT . "' AND timestamp >= '$mysqltime' LIMIT $limit;";
             $others = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
@@ -517,7 +517,7 @@ class Newsfeed extends Entity
             $ne = \GreatCircle::getPositionByDistance($dist, 45, $lat, $lng);
             $sw = \GreatCircle::getPositionByDistance($dist, 225, $lat, $lng);
 
-            $box = "ST_GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))', 3857)";
+            $box = "ST_GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))', {$this->dbhr->SRID()})";
 
             # We return most recent first.
             $tq = Utils::pres('timestamp', $ctx) ? ("newsfeed.timestamp < " . $this->dbhr->quote($ctx['timestamp'])) : 'newsfeed.id > 0';
@@ -744,7 +744,7 @@ class Newsfeed extends Entity
             $ne = \GreatCircle::getPositionByDistance($dist, 45, $lat, $lng);
             $sw = \GreatCircle::getPositionByDistance($dist, 225, $lat, $lng);
 
-            $box = "ST_GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))', 3857)";
+            $box = "ST_GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))', {$this->dbhr->SRID()})";
 
             # We return most recent first.
             $first = $dist ? ("(MBRContains($box, position) OR `type` IN ('" . Newsfeed::TYPE_CENTRAL_PUBLICITY . "', '" . Newsfeed::TYPE_ALERT . "')) AND") : '';

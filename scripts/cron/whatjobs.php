@@ -127,7 +127,7 @@ while ($node = $streamer->getNode()) {
                             ($job->url ? $dbhm->quote(html_entity_decode($job->url)) : 'NULL') . ", " .
                             ($job->body ? $dbhm->quote(html_entity_decode($job->body)) : 'NULL') . ", " .
                             ($job->cpc ? $dbhm->quote(html_entity_decode($job->cpc)) : 'NULL') . ", " .
-                            "ST_GeomFromText('$geom', 3857), " .
+                            "ST_GeomFromText('$geom', {$dbhr->SRID()}), " .
                             $clickability . "," .
                             $dbhm->quote(md5(substr($job->body, 0, 256))) . ", " .
                             "NOW());";

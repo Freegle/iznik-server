@@ -53,11 +53,11 @@ class Location extends Entity
     {
         try {
             # TODO osm_place is really just place.
-            $rc = $this->dbhm->preExec("INSERT INTO locations (osm_id, name, type, geometry, canon, osm_place, maxdimension) VALUES (?, ?, ?, ST_GeomFromText(?, 3857), ?, ?, GetMaxDimension(ST_GeomFromText(?, 3857)))",
+            $rc = $this->dbhm->preExec("INSERT INTO locations (osm_id, name, type, geometry, canon, osm_place, maxdimension) VALUES (?, ?, ?, ST_GeomFromText(?, {$this->dbhr->SRID()}), ?, ?, GetMaxDimension(ST_GeomFromText(?, {$this->dbhr->SRID()})))",
                 [$osm_id, $name, $type, $geometry, $this->canon($name), $place, $geometry]);
             $id = $this->dbhm->lastInsertId();
 
-            $this->dbhm->preExec("INSERT INTO locations_spatial (locationid, geometry) VALUES (?, ST_GeomFromText(?, 3857));", [
+            $this->dbhm->preExec("INSERT INTO locations_spatial (locationid, geometry) VALUES (?, ST_GeomFromText(?, {$this->dbhr->SRID()}));", [
                 $id,
                 $geometry
             ]);
@@ -190,7 +190,7 @@ class Location extends Entity
 
                         # Exclude locations which are very large, e.g. Greater London or too small (probably just a
                         # single building.
-                        $sql = "SELECT locations.name, locations.geometry, locations.ourgeometry, locations.id,  ST_AsText(locations_spatial.geometry) AS geom, ST_Contains(locations_spatial.geometry, ST_GeomFromText('POINT({$loc['lng']} {$loc['lat']})', 3857)) AS within, ST_Distance(locations_spatial.geometry, ST_GeomFromText('POINT({$loc['lng']} {$loc['lat']})', 3857)) AS dist FROM locations_spatial INNER JOIN  `locations` ON locations.id = locations_spatial.locationid LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE MBRWithin(locations_spatial.geometry, ST_GeomFromText('$poly', 3857)) AND osm_place = $osmonly AND type != 'Postcode' AND ST_Dimension(locations_spatial.geometry) = 2 AND locations_excluded.locationid IS NULL HAVING id != $id AND GetMaxDimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) < " . Location::TOO_LARGE . " AND GetMaxDimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) > " . Location::TOO_SMALL . " ORDER BY within DESC, dist ASC LIMIT 1;";
+                        $sql = "SELECT locations.name, locations.geometry, locations.ourgeometry, locations.id,  ST_AsText(locations_spatial.geometry) AS geom, ST_Contains(locations_spatial.geometry, ST_GeomFromText('POINT({$loc['lng']} {$loc['lat']})', {$this->dbhr->SRID()})) AS within, ST_Distance(locations_spatial.geometry, ST_GeomFromText('POINT({$loc['lng']} {$loc['lat']})', {$this->dbhr->SRID()})) AS dist FROM locations_spatial INNER JOIN  `locations` ON locations.id = locations_spatial.locationid LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE MBRWithin(locations_spatial.geometry, ST_GeomFromText('$poly', {$this->dbhr->SRID()})) AND osm_place = $osmonly AND type != 'Postcode' AND ST_Dimension(locations_spatial.geometry) = 2 AND locations_excluded.locationid IS NULL HAVING id != $id AND GetMaxDimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) < " . Location::TOO_LARGE . " AND GetMaxDimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) > " . Location::TOO_SMALL . " ORDER BY within DESC, dist ASC LIMIT 1;";
                         $nearbyes = $this->dbhr->preQuery($sql);
 
                         #error_log($sql . " gives " . var_export($nearbyes));
@@ -450,9 +450,9 @@ class Location extends Entity
             $nelng = $lng + $scan;
 
             $poly = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
-            $sql = "SELECT id, name, areaid, lat, lng, ST_distance(locations_spatial.geometry, ST_GeomFromText('POINT($lng $lat)', 3857)) AS dist FROM locations_spatial 
+            $sql = "SELECT id, name, areaid, lat, lng, ST_distance(locations_spatial.geometry, ST_GeomFromText('POINT($lng $lat)', {$this->dbhr->SRID()})) AS dist FROM locations_spatial 
     INNER JOIN locations ON locations.id = locations_spatial.locationid 
-    WHERE MBRContains(ST_Envelope(ST_GeomFromText('$poly', 3857)), locations_spatial.geometry) AND type = 'Postcode' 
+    WHERE MBRContains(ST_Envelope(ST_GeomFromText('$poly', {$this->dbhr->SRID()})), locations_spatial.geometry) AND type = 'Postcode' 
     ORDER BY dist ASC, CASE WHEN ST_Dimension(locations_spatial.geometry) < 2 THEN 0 ELSE ST_AREA(locations_spatial.geometry) END ASC LIMIT 1;";
             $locs = $this->dbhr->preQuery($sql);
 
@@ -501,13 +501,13 @@ class Location extends Entity
             $ne = \GreatCircle::getPositionByDistance(sqrt($currradius*$currradius*2)*1609.34, 45, $this->loc['lat'], $this->loc['lng']);
             $sw = \GreatCircle::getPositionByDistance(sqrt($currradius*$currradius*2)*1609.34, 225, $this->loc['lat'], $this->loc['lng']);
 
-            $box = "ST_GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))', 3857)";
+            $box = "ST_GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))', {$this->dbhr->SRID()})";
 
             # We order by the distance to the group polygon (dist), rather than to the centre (hav), because that
             # reflects which group you are genuinely closest to.
             #
             # Favour groups hosted by us if there's a tie.
-            $sql = "SELECT id, nameshort, ST_distance(ST_GeomFromText('POINT({$this->loc['lng']} {$this->loc['lat']})', 3857), polyindex) * 111195 * 0.000621371 AS dist, haversine(lat, lng, {$this->loc['lat']}, {$this->loc['lng']}) AS hav, CASE WHEN altlat IS NOT NULL THEN haversine(altlat, altlng, {$this->loc['lat']}, {$this->loc['lng']}) ELSE NULL END AS hav2 FROM `groups` WHERE MBRIntersects(polyindex, $box) AND publish = 1 AND listable = 1 HAVING (hav IS NOT NULL AND hav < $currradius OR hav2 IS NOT NULL AND hav2 < $currradius) ORDER BY dist ASC, hav ASC, external ASC LIMIT $limit;";
+            $sql = "SELECT id, nameshort, ST_distance(ST_GeomFromText('POINT({$this->loc['lng']} {$this->loc['lat']})', {$this->dbhr->SRID()}), polyindex) * 111195 * 0.000621371 AS dist, haversine(lat, lng, {$this->loc['lat']}, {$this->loc['lng']}) AS hav, CASE WHEN altlat IS NOT NULL THEN haversine(altlat, altlng, {$this->loc['lat']}, {$this->loc['lng']}) ELSE NULL END AS hav2 FROM `groups` WHERE MBRIntersects(polyindex, $box) AND publish = 1 AND listable = 1 HAVING (hav IS NOT NULL AND hav < $currradius OR hav2 IS NOT NULL AND hav2 < $currradius) ORDER BY dist ASC, hav ASC, external ASC LIMIT $limit;";
             #error_log("Find near $sql");
             $groups = $this->dbhr->preQuery($sql);
 
@@ -613,20 +613,20 @@ class Location extends Entity
     public function setGeometry($val) {
         $rc = FALSE;
 
-        $valid = $this->dbhm->preQuery($this->dbhr->isV8() ? "SELECT ST_IsValid(ST_GeomFromText(?, 3857)) AS valid;" : "SELECT ST_IsValid(ST_GeomFromText(?)) AS valid;", [
+        $valid = $this->dbhm->preQuery($this->dbhr->isV8() ? "SELECT ST_IsValid(ST_GeomFromText(?, {$this->dbhr->SRID()})) AS valid;" : "SELECT ST_IsValid(ST_GeomFromText(?)) AS valid;", [
             $val
         ]);
 
         foreach ($valid as $v) {
             if ($v['valid']) {
                 $rc = $this->dbhm->preExec(
-                    "UPDATE locations SET `type` = 'Polygon', `ourgeometry` = ST_GeomFromText(?, 3857) WHERE id = {$this->id};",
+                    "UPDATE locations SET `type` = 'Polygon', `ourgeometry` = ST_GeomFromText(?, {$this->dbhr->SRID()}) WHERE id = {$this->id};",
                     [$val]
                 );
                 if ($rc) {
                     # Put in the index table.
                     $this->dbhm->preExec(
-                        "REPLACE INTO locations_spatial (locationid, geometry) VALUES (?, ST_GeomFromText(?, 3857));",
+                        "REPLACE INTO locations_spatial (locationid, geometry) VALUES (?, ST_GeomFromText(?, {$this->dbhr->SRID()}));",
                         [
                             $this->id,
                             $val
@@ -679,12 +679,12 @@ class Location extends Entity
             $thisone['polygon'] = $geom;
 
             # Save it for next time.
-            $this->dbhm->preExec("UPDATE locations SET ourgeometry = ST_GeomFromText(?, 3857) WHERE id = ?;", [
+            $this->dbhm->preExec("UPDATE locations SET ourgeometry = ST_GeomFromText(?, {$this->dbhr->SRID()}) WHERE id = ?;", [
                 $geom,
                 $areaid
             ]);
 
-            $this->dbhm->preExec("REPLACE INTO locations_spatial (locationid, geometry) VALUES (?, ST_GeomFromText(?, 3857));", [
+            $this->dbhm->preExec("REPLACE INTO locations_spatial (locationid, geometry) VALUES (?, ST_GeomFromText(?, {$this->dbhr->SRID()}));", [
                 $areaid,
                 $geom
             ]);

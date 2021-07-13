@@ -38,7 +38,14 @@ class LoggedPDO {
     }
 
     public function isV8() {
-        return strpos($this->version, '8') === 0;
+        return strpos($this->version, '8') == 0;
+    }
+
+    public function SRID() {
+        // MySQL 5.7 uses 0 as the default.  We need to stick with this otherwise we start constructing and comparing
+        // geometries of different SRIDs.
+        // Once we migrate to MySQL 8, we will be using {$this->dbhr->SRID()}.
+        return $this->isV8() ? '3857' : '0';
     }
 
     /**

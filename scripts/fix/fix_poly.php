@@ -13,7 +13,7 @@ foreach ($groups as $group) {
         $group['id']
     ]);
 
-    $dbhm->preExec("UPDATE `groups` SET polyindex = ST_GeomFromText(?, 3857) WHERE id = ?;", [
+    $dbhm->preExec("UPDATE `groups` SET polyindex = ST_GeomFromText(?, {$dbhr->SRID()}) WHERE id = ?;", [
         $g[0]['geomtext'],
         $group['id']
     ]);

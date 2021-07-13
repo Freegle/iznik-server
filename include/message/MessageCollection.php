@@ -496,7 +496,7 @@ UNION SELECT msgid AS id, timestamp, 'Reneged' AS `type` FROM messages_reneged W
         if ($groupid) {
             $sql = "SELECT ST_Y(point) AS lat, ST_X(point) AS lng, messages_spatial.msgid AS id, messages_spatial.successful, messages_spatial.groupid, messages_spatial.msgtype AS type, messages_spatial.arrival FROM messages_spatial WHERE messages_spatial.groupid = $groupid ORDER BY messages_spatial.arrival DESC, messages_spatial.msgid DESC;";
         } else {
-            $sql = "SELECT ST_Y(point) AS lat, ST_X(point) AS lng, messages_spatial.msgid AS id, messages_spatial.successful, messages_spatial.groupid, messages_spatial.msgtype AS type, messages_spatial.arrival FROM messages_spatial INNER JOIN messages_groups ON messages_groups.msgid = messages_spatial.msgid WHERE ST_Contains(ST_GeomFromText('POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))', 3857), point) ORDER BY messages_spatial.arrival DESC, messages_spatial.msgid DESC;";
+            $sql = "SELECT ST_Y(point) AS lat, ST_X(point) AS lng, messages_spatial.msgid AS id, messages_spatial.successful, messages_spatial.groupid, messages_spatial.msgtype AS type, messages_spatial.arrival FROM messages_spatial INNER JOIN messages_groups ON messages_groups.msgid = messages_spatial.msgid WHERE ST_Contains(ST_GeomFromText('POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))', {$this->dbhr->SRID()}), point) ORDER BY messages_spatial.arrival DESC, messages_spatial.msgid DESC;";
         }
 
         $msgs = $this->dbhr->preQuery($sql);

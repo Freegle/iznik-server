@@ -4811,7 +4811,7 @@ class User extends Entity
         # - have a Facebook login, as they are more likely to do publicity.
         $limit = intval($limit);
         $start = date('Y-m-d', strtotime("60 days ago"));
-        $sql = "SELECT users_kudos.* FROM users_kudos INNER JOIN users ON users.id = users_kudos.userid INNER JOIN memberships ON memberships.userid = users_kudos.userid AND memberships.groupid = ? INNER JOIN `groups` ON groups.id = memberships.groupid INNER JOIN locations_spatial ON users.lastlocation = locations_spatial.locationid WHERE memberships.role = ? AND users_kudos.platform = 1 AND users_kudos.facebook = 1 AND ST_Contains(ST_GeomFromText(groups.poly, 3857), locations_spatial.geometry) AND bouncing = 0 AND lastaccess >= '$start' ORDER BY kudos DESC LIMIT $limit;";
+        $sql = "SELECT users_kudos.* FROM users_kudos INNER JOIN users ON users.id = users_kudos.userid INNER JOIN memberships ON memberships.userid = users_kudos.userid AND memberships.groupid = ? INNER JOIN `groups` ON groups.id = memberships.groupid INNER JOIN locations_spatial ON users.lastlocation = locations_spatial.locationid WHERE memberships.role = ? AND users_kudos.platform = 1 AND users_kudos.facebook = 1 AND ST_Contains(ST_GeomFromText(groups.poly, {$this->dbhr->SRID()}), locations_spatial.geometry) AND bouncing = 0 AND lastaccess >= '$start' ORDER BY kudos DESC LIMIT $limit;";
         $kudos = $this->dbhr->preQuery($sql, [
             $gid,
             User::ROLE_MEMBER
@@ -5940,7 +5940,7 @@ class User extends Entity
         list ($lat, $lng, $loc) = $this->getLatLng();
 
         if ($lat || $lng) {
-            $sql = "SELECT id, name, ST_distance(position, ST_GeomFromText('POINT($lng $lat)', 3857)) AS dist FROM towns WHERE position IS NOT NULL ORDER BY dist ASC LIMIT 1;";
+            $sql = "SELECT id, name, ST_distance(position, ST_GeomFromText('POINT($lng $lat)', {$this->dbhr->SRID()})) AS dist FROM towns WHERE position IS NOT NULL ORDER BY dist ASC LIMIT 1;";
             #error_log("Get $sql, $lng, $lat");
             $towns = $this->dbhr->preQuery($sql);
 

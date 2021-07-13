@@ -415,7 +415,7 @@ foreach ($posts as $post) {
             error_log("...$subj");
 
             # Find the community we would have posted this on.
-            $groups = $dbhr->preQuery("SELECT id, nameshort FROM `groups` WHERE ST_Contains(polyindex, ST_GeomFromText('POINT({$post['ul_Longitude']} {$post['ul_Latitude']})', 3857));");
+            $groups = $dbhr->preQuery("SELECT id, nameshort FROM `groups` WHERE ST_Contains(polyindex, ST_GeomFromText('POINT({$post['ul_Longitude']} {$post['ul_Latitude']})', {$dbhr->SRID()}));");
             if (count($groups)) {
                 error_log("...on {$groups[0]['nameshort']}");
                 $gid = $groups[0]['id'];

@@ -29,7 +29,7 @@ $tngroups = json_decode($tngroups, TRUE);
 #
 # SELECT ST_AsText(ST_Simplify(St_Buffer(ST_GeomFromText('...'), 0.001), 0.001))
 #
-$groups = $dbhr->preQuery("SELECT id, nameshort FROM `groups` WHERE ST_IsValid(polyindex) = 0 OR ST_IsValid(ST_GeomFromText(poly, 3857)) = 0 OR ST_IsValid(ST_GeomFromText(polyofficial, 3857)) = 0 AND type = ?;", [
+$groups = $dbhr->preQuery("SELECT id, nameshort FROM `groups` WHERE ST_IsValid(polyindex) = 0 OR ST_IsValid(ST_GeomFromText(poly, {$dbhr->SRID()})) = 0 OR ST_IsValid(ST_GeomFromText(polyofficial, {$dbhr->SRID()})) = 0 AND type = ?;", [
     Group::GROUP_FREEGLE
 ]);
 

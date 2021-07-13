@@ -45,7 +45,7 @@ class Authority extends Entity
     public function create($name, $area_code, $polygon) {
         $id = NULL;
 
-        $rc = $this->dbhm->preExec("INSERT INTO authorities (name, area_code, polygon) VALUES (?,?,ST_GeomFromText(?, 3857)) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id), polygon = ST_GeomFromText(?, 3857);", [
+        $rc = $this->dbhm->preExec("INSERT INTO authorities (name, area_code, polygon) VALUES (?,?,ST_GeomFromText(?, {$this->dbhr->SRID()})) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id), polygon = ST_GeomFromText(?, {$this->dbhr->SRID()});", [
             $name,
             $area_code,
             $polygon,
@@ -60,7 +60,7 @@ class Authority extends Entity
                     # The simplify call may fail.  We've seen this where there is a multipolygon, and the simplify
                     # returns a polygon with only two vertices, which then fails to update because it's invalid as
                     # a polygon.  So we do it separately and catch the exception.
-                    $this->dbhm->preExec("UPDATE authorities SET simplified = ST_Simplify(ST_GeomFromText(polygon, 3857), 0.001) WHERE id = ?;", [
+                    $this->dbhm->preExec("UPDATE authorities SET simplified = ST_Simplify(ST_GeomFromText(polygon, {$this->dbhr->SRID()}), 0.001) WHERE id = ?;", [
                         $id
                     ]);
                 } catch (\Exception $e) {}
@@ -160,7 +160,7 @@ WHERE  type = ?
     }
 
     public function contains($lat, $lng) {
-        $auths = $this->dbhr->preQuery("SELECT id FROM authorities WHERE id = ? AND ST_Contains(polygon, ST_GeomFromText('POINT($lng $lat)', 3857));", [
+        $auths = $this->dbhr->preQuery("SELECT id FROM authorities WHERE id = ? AND ST_Contains(polygon, ST_GeomFromText('POINT($lng $lat)', {$this->dbhr->SRID()}));", [
             $this->id
         ]);
 
