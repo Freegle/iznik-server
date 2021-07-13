@@ -47,6 +47,9 @@ class LoggedPDO {
         //
         // Once we migrate to MySQL 8, we will be using 3857, which is lng/lat order and what is used by
         // OpenStreetMap.
+        //
+        // We only get the server version on connect, so if we haven't done that yet, we need to do it now.
+        $this->doConnect();
         return $this->isV8() ? '3857' : '0';
     }
 
