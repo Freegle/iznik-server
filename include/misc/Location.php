@@ -613,7 +613,7 @@ class Location extends Entity
     public function setGeometry($val) {
         $rc = FALSE;
 
-        $valid = $this->dbhm->preQuery("SELECT ST_IsValid(ST_GeomFromText(?, 3857)) AS valid;", [
+        $valid = $this->dbhm->preQuery($this->dbhr->isV8() ? "SELECT ST_IsValid(ST_GeomFromText(?, 3857)) AS valid;" : "SELECT ST_IsValid(ST_GeomFromText(?)) AS valid;", [
             $val
         ]);
 

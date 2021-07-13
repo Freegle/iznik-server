@@ -198,7 +198,7 @@ class Group extends Entity
             $ret = FALSE;
 
             try {
-                $valid = $this->dbhm->preQuery("SELECT ST_IsValid(ST_GeomFromText(?, 3857)) AS valid;", [
+                $valid = $this->dbhm->preQuery($this->dbhr->isV8() ? "SELECT ST_IsValid(ST_GeomFromText(?, 3857)) AS valid;" : "SELECT ST_IsValid(ST_GeomFromText(?)) AS valid;", [
                     $val
                 ]);
 
