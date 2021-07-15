@@ -191,42 +191,45 @@ function session() {
                     }
 
                     if (!$components || in_array('groups', $components) || in_array('work', $components)) {
-                        # Get groups including work when we're on ModTools; don't need that on the user site.
+                        # Get groups including work when we're on ModTools; don't need that on the user site.  We only
+                        # need the full info if we've been asked for the groups component.
                         $u = new User($dbhr, $dbhm);
-                        $ret['groups'] = $u->getMemberships(FALSE, NULL, $modtools, TRUE, $_SESSION['id']);
+                        $ret['groups'] = $u->getMemberships(FALSE, NULL, $modtools, TRUE, $_SESSION['id'], in_array('groups', $components));
 
-                        $gids = [];
-
-                        foreach ($ret['groups'] as &$group) {
-                            $gids[] = $group['id'];
-
-                            # Remove large attributes we don't need in session.
-                            unset($group['welcomemail']);
-                            unset($group['description']);
-                            unset($group['settings']['chaseups']['idle']);
-                            unset($group['settings']['branding']);
-                        }
-
-                        if (count($gids)) {
-                            $polys = $dbhr->preQuery("SELECT id,  ST_AsText(ST_Envelope(polyindex)) AS bbox,  ST_AsText(polyindex) AS poly FROM `groups` WHERE id IN (" . implode(',', $gids) . ")");
+                        if (!$components || in_array('groups', $components)) {
+                            $gids = [];
 
                             foreach ($ret['groups'] as &$group) {
-                                foreach ($polys as $poly) {
-                                    if ($poly['id'] == $group['id']) {
-                                        try {
-                                            $g = new \geoPHP();
-                                            $p = $g->load($poly['bbox']);
-                                            $bbox = $p->getBBox();
-                                            $group['bbox'] = [
-                                                'swlat' => $bbox['miny'],
-                                                'swlng' => $bbox['minx'],
-                                                'nelat' => $bbox['maxy'],
-                                                'nelng' => $bbox['maxx'],
-                                            ];
+                                $gids[] = $group['id'];
 
-                                            $group['polygon'] = $poly['poly'];
-                                        } catch (Exception $e) {
-                                            error_log("Bad polygon data for {$group['id']}");
+                                # Remove large attributes we don't need in session.
+                                unset($group['welcomemail']);
+                                unset($group['description']);
+                                unset($group['settings']['chaseups']['idle']);
+                                unset($group['settings']['branding']);
+                            }
+
+                            if (count($gids)) {
+                                $polys = $dbhr->preQuery("SELECT id,  ST_AsText(ST_Envelope(polyindex)) AS bbox,  ST_AsText(polyindex) AS poly FROM `groups` WHERE id IN (" . implode(',', $gids) . ")");
+
+                                foreach ($ret['groups'] as &$group) {
+                                    foreach ($polys as $poly) {
+                                        if ($poly['id'] == $group['id']) {
+                                            try {
+                                                $g = new \geoPHP();
+                                                $p = $g->load($poly['bbox']);
+                                                $bbox = $p->getBBox();
+                                                $group['bbox'] = [
+                                                    'swlat' => $bbox['miny'],
+                                                    'swlng' => $bbox['minx'],
+                                                    'nelat' => $bbox['maxy'],
+                                                    'nelng' => $bbox['maxx'],
+                                                ];
+
+                                                $group['polygon'] = $poly['poly'];
+                                            } catch (Exception $e) {
+                                                error_log("Bad polygon data for {$group['id']}");
+                                            }
                                         }
                                     }
                                 }
@@ -234,41 +237,43 @@ function session() {
                         }
 
                         if ($modtools) {
-                            # If we have many groups this can generate many DB calls, so quicker to prefetch for Twitter and
-                            # Facebook, even though that makes the code hackier.
-                            $facebooks = GroupFacebook::listForGroups($dbhr, $dbhm, $gids);
-                            $twitters = [];
+                            if (!$components || in_array('groups', $components)) {
+                                # If we have many groups this can generate many DB calls, so quicker to prefetch for Twitter and
+                                # Facebook, even though that makes the code hackier.
+                                $facebooks = GroupFacebook::listForGroups($dbhr, $dbhm, $gids);
+                                $twitters = [];
 
-                            if (count($gids) > 0) {
-                                # We don't want to show any ones which aren't properly linked (yet), i.e. name is null.
-                                $tws = $dbhr->preQuery("SELECT * FROM groups_twitter WHERE groupid IN (" . implode(',', $gids) . ") AND name IS NOT NULL;");
-                                foreach ($tws as $tw) {
-                                    $twitters[$tw['groupid']] = $tw;
-                                }
-                            }
-
-                            foreach ($ret['groups'] as &$group) {
-                                if ($group['role'] == User::ROLE_MODERATOR || $group['role'] == User::ROLE_OWNER) {
-                                    # Return info on Twitter status.  This isn't secret info - we don't put anything confidential
-                                    # in here - but it's of no interest to members so there's no point delaying them by
-                                    # fetching it.
-                                    #
-                                    # Similar code in group.php.
-                                    if (array_key_exists($group['id'], $twitters)) {
-                                        $t = new Twitter($dbhr, $dbhm, $group['id'], $twitters[$group['id']]);
-                                        $atts = $t->getPublic();
-                                        unset($atts['token']);
-                                        unset($atts['secret']);
-                                        $atts['authdate'] = Utils::ISODate($atts['authdate']);
-                                        $group['twitter'] = $atts;
+                                if (count($gids) > 0) {
+                                    # We don't want to show any ones which aren't properly linked (yet), i.e. name is null.
+                                    $tws = $dbhr->preQuery("SELECT * FROM groups_twitter WHERE groupid IN (" . implode(',', $gids) . ") AND name IS NOT NULL;");
+                                    foreach ($tws as $tw) {
+                                        $twitters[$tw['groupid']] = $tw;
                                     }
+                                }
 
-                                    # Ditto Facebook.
-                                    if (array_key_exists($group['id'], $facebooks)) {
-                                        $group['facebook'] = [];
+                                foreach ($ret['groups'] as &$group) {
+                                    if ($group['role'] == User::ROLE_MODERATOR || $group['role'] == User::ROLE_OWNER) {
+                                        # Return info on Twitter status.  This isn't secret info - we don't put anything confidential
+                                        # in here - but it's of no interest to members so there's no point delaying them by
+                                        # fetching it.
+                                        #
+                                        # Similar code in group.php.
+                                        if (array_key_exists($group['id'], $twitters)) {
+                                            $t = new Twitter($dbhr, $dbhm, $group['id'], $twitters[$group['id']]);
+                                            $atts = $t->getPublic();
+                                            unset($atts['token']);
+                                            unset($atts['secret']);
+                                            $atts['authdate'] = Utils::ISODate($atts['authdate']);
+                                            $group['twitter'] = $atts;
+                                        }
 
-                                        foreach ($facebooks[$group['id']] as $atts) {
-                                            $group['facebook'][] = $atts;
+                                        # Ditto Facebook.
+                                        if (array_key_exists($group['id'], $facebooks)) {
+                                            $group['facebook'] = [];
+
+                                            foreach ($facebooks[$group['id']] as $atts) {
+                                                $group['facebook'][] = $atts;
+                                            }
                                         }
                                     }
                                 }
@@ -360,6 +365,12 @@ function session() {
                                 # for rate-limiting.
                                 $ret['discourse'] = Utils::presdef('discourse', $_SESSION, NULL);
                             }
+                        }
+
+                        if ($components && !in_array('groups', $components)) {
+                            # Because of the spaghetti code we might end up with a partial copy of the groups object
+                            # which would confuse the client.
+                            unset($ret['groups']);
                         }
                     }
                 } else {
