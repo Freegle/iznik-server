@@ -6222,18 +6222,13 @@ memberships.groupid IN $groupq
         $f = new GroupFacebook($this->dbhr, $this->dbhm);
         $ret['socialactions'] = count($f->listSocialActions($ctx));
 
-        $s = new Story($this->dbhr, $this->dbhm);
-        $ret['stories'] = $s->getReviewCount(FALSE, $this);
-        $ret['newsletterstories'] = $this->hasPermission(User::PERM_NEWSLETTER) ? $s->getReviewCount(TRUE) : 0;
-
         if ($this->hasPermission(User::PERM_GIFTAID)) {
             $d = new Donations($this->dbhr, $this->dbhm);
             $ret['giftaid'] = $d->countGiftAidReview();
         }
 
         if (!$groups) {
-            # When the user posts, MODTOOLS will be FALSE but we need to notify mods.
-            $groups = $this->getMemberships(FALSE, NULL, TRUE, TRUE, $this->id);
+            $groups = $this->getMemberships(FALSE, NULL, TRUE, TRUE, $this->id, FALSE);
         }
 
         foreach ($groups as &$group) {
@@ -6247,6 +6242,10 @@ memberships.groupid IN $groupq
                 }
             }
         }
+
+        $s = new Story($this->dbhr, $this->dbhm);
+        $ret['stories'] = $s->getReviewCount(FALSE, $this, $groups);
+        $ret['newsletterstories'] = $this->hasPermission(User::PERM_NEWSLETTER) ? $s->getReviewCount(TRUE) : 0;
 
         // All the types of work which are worth nagging about.
         $worktypes = [
