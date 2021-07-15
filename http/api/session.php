@@ -194,7 +194,7 @@ function session() {
                         # Get groups including work when we're on ModTools; don't need that on the user site.  We only
                         # need the full info if we've been asked for the groups component.
                         $u = new User($dbhr, $dbhm);
-                        $ret['groups'] = $u->getMemberships(FALSE, NULL, $modtools, TRUE, $_SESSION['id'], !$components || in_array('groups', $components));
+                        $ret['groups'] = $u->getMemberships(FALSE, NULL, $modtools, TRUE, $_SESSION['id'], in_array('groups', $components));
 
                         if (!$components || in_array('groups', $components)) {
                             $gids = [];
