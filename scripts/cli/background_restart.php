@@ -13,6 +13,11 @@ use Pheanstalk\Pheanstalk;
 # For gracefully restarting the background processing; signal to it.
 $pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
 
-$id = $pheanstalk->put(json_encode(array(
-    'type' => 'exit'
-)));
+do {
+    $stats = $pheanstalk->stats();
+    $workers = $stats['current-workers'];
+    error_log("Workers $workers");
+    $id = $pheanstalk->put(json_encode(array(
+                                           'type' => 'exit'
+                                       )));
+} while ($workers);
