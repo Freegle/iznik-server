@@ -1075,14 +1075,10 @@ class User extends Entity
             $groupobjs = $gc->get();
         } else {
             # We don't need all the info.
-            $groupobjs = [];
+            $groupobjs = $this->dbhr->preQuery("SELECT id, settings FROM `groups` WHERE id IN (" . implode(',', $groupids) . ")");
 
-            if (count($groupids)) {
-                $this->dbhr->preQuery("SELECT id, settings FROM `groups` WHERE id IN (" . implode(',', $groupids) . ")");
-
-                foreach ($groupobjs as &$groupobj) {
-                    $groupobj['settings'] = $groupobj['settings'] ? json_decode($groupobj['settings'], TRUE) : NULL;
-                }
+            foreach ($groupobjs as &$groupobj) {
+                $groupobj['settings'] = $groupobj['settings'] ? json_decode($groupobj['settings'], TRUE) : NULL;
             }
         }
 
