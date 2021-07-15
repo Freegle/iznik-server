@@ -16,7 +16,7 @@ $pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
 do {
     $stats = $pheanstalk->stats();
     $workers = $stats['current-workers'];
-    error_log("Workers $workers");
+    #error_log("Workers $workers");
     $id = $pheanstalk->put(json_encode(array(
                                            'type' => 'exit'
                                        )));
