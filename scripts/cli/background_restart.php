@@ -20,4 +20,5 @@ do {
     $id = $pheanstalk->put(json_encode(array(
                                            'type' => 'exit'
                                        )));
+    sleep(30);
 } while ($workers);
