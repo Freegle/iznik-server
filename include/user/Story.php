@@ -175,16 +175,14 @@ class Story extends Entity
         return($ret);
     }
 
-    public function getReviewCount($newsletter, $me = NULL, $mygroups = NULL) {
+    public function getReviewCount($newsletter, $me = NULL) {
         $me = $me ? $me : Session::whoAmI($this->dbhr, $this->dbhm);
         $mysqltime = date("Y-m-d", strtotime("31 days ago"));
 
         if ($newsletter) {
             $sql = "SELECT COUNT(DISTINCT(users_stories.id)) AS count FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE reviewed = 1 AND public = 1 AND newsletterreviewed = 0 AND newsletter = 1 ORDER BY date DESC";
         } else {
-            if (!$mygroups) {
-                $mygroups = $me->getMemberships(TRUE, Group::GROUP_FREEGLE, FALSE, FALSE, NULL, FALSE);
-            }
+            $mygroups = $me->getMemberships(TRUE, Group::GROUP_FREEGLE);
 
             $groupids = [0];
             foreach ($mygroups as $mygroup) {

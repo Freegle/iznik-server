@@ -1053,7 +1053,7 @@ class User extends Entity
         return $groupids;
     }
 
-    public function getMemberships($modonly = FALSE, $grouptype = NULL, $getwork = FALSE, $pernickety = FALSE, $id = NULL, $fullgroupinfo = TRUE)
+    public function getMemberships($modonly = FALSE, $grouptype = NULL, $getwork = FALSE, $pernickety = FALSE, $id = NULL)
     {
         $id = $id ? $id : $this->id;
 
@@ -1069,39 +1069,22 @@ class User extends Entity
 
         # Get all the groups efficiently.
         $groupids = array_filter(array_column($groups, 'groupid'));
-
-        if ($fullgroupinfo) {
-            $gc = new GroupCollection($this->dbhr, $this->dbhm, $groupids);
-            $groupobjs = $gc->get();
-        } else {
-            # We don't need all the info.
-            $groupobjs = $this->dbhr->preQuery("SELECT id, settings FROM `groups` WHERE id IN (" . implode(',', $groupids) . ")");
-
-            foreach ($groupobjs as &$groupobj) {
-                $groupobj['settings'] = $groupobj['settings'] ? json_decode($groupobj['settings'], TRUE) : NULL;
-            }
-        }
-
+        $gc = new GroupCollection($this->dbhr, $this->dbhm, $groupids);
+        $groupobjs = $gc->get();
         $getworkids = [];
         $groupsettings = [];
 
         for ($i = 0; $i < count($groupids); $i++) {
             $group = $groups[$i];
             $g = $groupobjs[$i];
-
-            if ($fullgroupinfo) {
-                $one = $g->getPublic();
-
-                $one['collection'] = $group['collection'];
-                $one['configid'] = Utils::presdef('configid', $group, NULL);
-            } else {
-                $one = $g;
-            }
+            $one = $g->getPublic();
 
             $one['role'] = $group['role'];
+            $one['collection'] = $group['collection'];
             $amod = ($one['role'] == User::ROLE_MODERATOR || $one['role'] == User::ROLE_OWNER);
+            $one['configid'] = Utils::presdef('configid', $group, NULL);
 
-            if ($fullgroupinfo && $amod && !Utils::pres('configid', $one)) {
+            if ($amod && !Utils::pres('configid', $one)) {
                 # Get a config using defaults.
                 $one['configid'] = $c->getForGroup($id, $group['groupid']);
             }
@@ -6239,13 +6222,18 @@ memberships.groupid IN $groupq
         $f = new GroupFacebook($this->dbhr, $this->dbhm);
         $ret['socialactions'] = count($f->listSocialActions($ctx));
 
+        $s = new Story($this->dbhr, $this->dbhm);
+        $ret['stories'] = $s->getReviewCount(FALSE, $this);
+        $ret['newsletterstories'] = $this->hasPermission(User::PERM_NEWSLETTER) ? $s->getReviewCount(TRUE) : 0;
+
         if ($this->hasPermission(User::PERM_GIFTAID)) {
             $d = new Donations($this->dbhr, $this->dbhm);
             $ret['giftaid'] = $d->countGiftAidReview();
         }
 
         if (!$groups) {
-            $groups = $this->getMemberships(FALSE, NULL, TRUE, TRUE, $this->id, FALSE);
+            # When the user posts, MODTOOLS will be FALSE but we need to notify mods.
+            $groups = $this->getMemberships(FALSE, NULL, TRUE, TRUE, $this->id);
         }
 
         foreach ($groups as &$group) {
@@ -6259,10 +6247,6 @@ memberships.groupid IN $groupq
                 }
             }
         }
-
-        $s = new Story($this->dbhr, $this->dbhm);
-        $ret['stories'] = $s->getReviewCount(FALSE, $this, $groups);
-        $ret['newsletterstories'] = $this->hasPermission(User::PERM_NEWSLETTER) ? $s->getReviewCount(TRUE) : 0;
 
         // All the types of work which are worth nagging about.
         $worktypes = [
