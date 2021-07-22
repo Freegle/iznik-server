@@ -771,6 +771,7 @@ class MailRouter
                                     # wouldn't have generated a What's New mail to them.  So we want to set up a chat
                                     # between them and the sender of the message (who might or might not be on our
                                     # platform).
+                                    if ($log) { error_log("Create chat between " . $this->msg->getFromuser() . " (" . $this->msg->getFromaddr() . ") and $fromid for $msgid"); }
                                     $r = new ChatRoom($this->dbhr, $this->dbhm);
                                     list ($chatid, $blocked) = $r->createConversation($fromid, $m->getFromuser());
 

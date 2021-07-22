@@ -1102,6 +1102,7 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Chat messages " . var_export($msgs, TRUE));
         assertEquals(1, count($msgs));
         assertEquals($origid, $msgs[0]['refmsg']['id']);
+        assertEquals($uid2, $msgs[0]['userid']);
 
         # Check that the reply is flagged as having been seen by email, as it should be since the original has
         # been promised.
