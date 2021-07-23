@@ -4819,7 +4819,7 @@ $mq", [
         foreach ($intendeds as $intended) {
             $m = new Message($this->dbhr, $this->dbhm, $intended['msgid']);
 
-            if (!$m->hasOutcome()) {
+            if (!$m->hasOutcome() && !$m->promiseCount()) {
                 switch ($intended['outcome']) {
                     case 'Taken':
                         $m->mark(Message::OUTCOME_TAKEN, NULL, NULL, NULL);

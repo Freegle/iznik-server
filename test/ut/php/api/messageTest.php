@@ -2185,6 +2185,43 @@ class messageAPITest extends IznikAPITestCase
 
         }
 
+    public function testIntendedPromised()
+    {
+        $email = 'test-' . rand() . '@blackhole.io';
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail($email);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+        $u->addMembership($this->gid);
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
+        $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
+        $msg = $this->unique($origmsg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
+        $msg = str_replace('test@test.com', $email, $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'OutcomeIntended',
+            'outcome' => Message::OUTCOME_TAKEN
+        ]);
+
+        # Make it look older.
+        $this->dbhm->preExec("UPDATE messages_outcomes_intended SET timestamp = DATE_SUB(timestamp, INTERVAL 3 HOUR) WHERE msgid = ?;", [ $id ]);
+
+        # Promise it.
+        $m->promise($uid);
+        assertEquals(0, $m->processIntendedOutcomes($id));
+    }
+
     public function testIntendedReceived()
     {
         $email = 'test-' . rand() . '@blackhole.io';
