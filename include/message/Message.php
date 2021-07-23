@@ -4680,7 +4680,7 @@ WHERE messages_groups.arrival > ? AND messages.arrival >= '2021-03-29' AND messa
         return($count);
     }
 
-    public function notifyLanguishing($mid) {
+    public function notifyLanguishing($mid = NULL) {
         # Notify users about posts which seem to be stuck doing nothing.
         #
         # First find recent posts which are not promised, deleted, completed.
