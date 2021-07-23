@@ -1760,16 +1760,16 @@ class messageAPITest extends IznikAPITestCase
         ]);
 
         $this->log("Message #$id should not be pending " . var_export($ret, TRUE));
-        assertEquals(0, $ret['ret']);
-        assertEquals('Success', $ret['status']);
+        assertEquals(9, $ret['ret']);
+        assertEquals('Banned from this group', $ret['status']);
+        assertNull($u->isApprovedMember($this->gid));
 
         $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::PENDING);
         $ctx = NULL;
         list ($groups, $msgs) = $c->get($ctx, 10, [ $this->gid ]);
         $this->log("Got pending messages " . var_export($msgs, TRUE));
         assertEquals(0, count($msgs));
-
-        }
+    }
 
     public function testCrosspost() {
         # At the moment a crosspost results in two separate messages - see comment in Message::save().
@@ -3217,51 +3217,5 @@ class messageAPITest extends IznikAPITestCase
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertEquals(MessageCollection::PENDING, $m->getPublic()['groups'][0]['collection']);
         assertEquals(Spam::REASON_WORRY_WORD, $m->getPrivate('spamtype'));
-    }
-
-    public function testPostWhenBanned()
-    {
-        $l = new Location($this->dbhr, $this->dbhm);
-        $locid = $l->create(null, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)', 0);
-        $locid2 = $l->create(null, 'TV1 1AB', 'Postcode', 'POINT(179.3 8.6)', 0);
-
-        $u = User::get($this->dbhr, $this->dbhm);
-        $memberid = $u->create('Test', 'User', 'Test User');
-        $member = User::get($this->dbhr, $this->dbhm, $memberid);
-        assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, null, 'testpw'));
-        $member->addMembership($this->gid, User::ROLE_MEMBER);
-        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-        $member->addEmail($email);
-
-        // Ban them.
-        $u->removeMembership($this->gid, TRUE);
-
-        assertTrue($member->login('testpw'));
-
-        $ret = $this->call(
-            'message',
-            'PUT',
-            [
-                'collection' => 'Draft',
-                'locationid' => $locid,
-                'messagetype' => 'Offer',
-                'item' => 'a thing',
-                'groupid' => $this->gid,
-                'textbody' => 'Text body'
-            ]
-        );
-
-        assertEquals(0, $ret['ret']);
-
-        $mid = $ret['id'];
-
-        $ret = $this->call('message', 'POST', [
-            'id' => $mid,
-            'action' => 'JoinAndPost',
-            'ignoregroupoverride' => true,
-            'email' => $email
-        ]);
-
-        assertEquals(9, $ret['ret']);
     }
 }
