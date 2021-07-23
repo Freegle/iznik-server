@@ -528,7 +528,11 @@ function message() {
                                         # Assume this post is moderated unless we decide otherwise below.
                                         $me = Session::whoAmI($dbhr, $dbhm);
 
-                                        if (!$u->isApprovedMember($groupid)) {
+                                        if ($u->isBanned($groupid)) {
+                                            # We're not allowed to post.
+                                            $cont = FALSE;
+                                            $ret = ['ret' => 9, 'status' => 'Banned from this group'];
+                                        } else if (!$u->isApprovedMember($groupid)) {
                                             # We're not yet a member.  Join the group.
                                             $addworked = $u->addMembership($groupid);
 
