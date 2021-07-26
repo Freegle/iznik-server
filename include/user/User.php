@@ -640,10 +640,16 @@ class User extends Entity
 
         if (stripos($email, '-owner@yahoogroups.co') !== FALSE ||
             stripos($email, '-volunteers@' . GROUP_DOMAIN) !== FALSE ||
-            stripos($email, '-auto@' . GROUP_DOMAIN) !== FALSE) {
+            stripos($email, '-auto@' . GROUP_DOMAIN) !== FALSE)
+        {
             # We don't allow people to add Yahoo owner addresses as the address of an individual user, or
             # the volunteer addresses.
             $rc = NULL;
+        } else if (stripos($email, 'replyto-') !== FALSE || stripos($email, 'notify-') !== FALSE) {
+            # This is a bug we're trying to track down.
+            $rc = NULL;
+            $headers = 'From: geeks@ilovefreegle.org';
+            mail('geek-alerts@ilovefreegle.org', "Attempt to add bad email $email to user {$this->id}", "", $headers);
         } else {
             # If the email already exists in the table, then that's fine.  But we don't want to use INSERT IGNORE as
             # that scales badly for clusters.
