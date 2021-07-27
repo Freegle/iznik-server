@@ -57,13 +57,16 @@ function stories() {
 
                 if (!$groupid) {
                     # We want to see the ones on groups we mod.
-                    $mygroups = $me->getMemberships(TRUE);
+                    $mygroups = $me->getMemberships(TRUE, Group::GROUP_FREEGLE, FALSE, FALSE, NULL, FALSE);
                     $groupids = [];
                     foreach ($mygroups as $mygroup) {
                         # This group might have turned stories off.
                         $g = new Group($dbhr, $dbhm, $mygroup['id']);
-                        if ($g->getSetting('stories', 1)) {
-                            $groupids[] = $mygroup['id'];
+                        if ($me->activeModForGroup($mygroup['id'])) {
+                            if ($g->getSetting('stories', 1))
+                            {
+                                $groupids[] = $mygroup['id'];
+                            }
                         }
                     }
                 }

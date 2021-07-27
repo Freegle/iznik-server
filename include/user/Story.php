@@ -190,7 +190,7 @@ class Story extends Entity
             foreach ($mygroups as $mygroup) {
                 # This group might have turned stories off.  Bypass the Group object in the interest of performance
                 # for people on many groups.
-                if ($me->activeModForGroup($mygroup['id'])) {
+                if (($mygroup['role'] == User::ROLE_MODERATOR || $mygroup['role'] == User::ROLE_OWNER) && $me->activeModForGroup($mygroup['id'])) {
                     if (Utils::presdef('stories', $mygroup['settings'], 1)) {
                         $groupids[] = $mygroup['id'];
                     }
