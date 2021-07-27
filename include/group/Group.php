@@ -418,7 +418,7 @@ HAVING logincount > 0
             $mysqltime = date("Y-m-d", strtotime(MessageCollection::RECENTPOSTS));
             $sql = "SELECT  messages_groups.groupid, COUNT(DISTINCT messages_outcomes.id) AS count FROM messages_outcomes 
 INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid 
-WHERE reviewed = 1 AND timestamp > '$mysqltime' 
+WHERE reviewed = 0 AND timestamp > '$mysqltime' 
 AND arrival > '$mysqltime'
 AND groupid IN $groupq
 AND messages_outcomes.comments IS NOT NULL
@@ -460,7 +460,7 @@ AND messages_outcomes.comments IS NOT NULL
                     'happiness' => 0,
                     'relatedmembers' => 0,
                     'chatreview' => 0,
-                    'chatreviewother' => 0
+                    'chatreviewother' => 0,
                 ];
 
                 if ($active) {
