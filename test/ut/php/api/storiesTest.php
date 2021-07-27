@@ -36,7 +36,7 @@ class storiesAPITest extends IznikAPITestCase {
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         $g = Group::get($this->dbhr, $this->dbhm);
-        $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
+        $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
         $u->addMembership($this->groupid);
 
         # Create logged out - should fail
