@@ -20,7 +20,12 @@ class Jobs {
         # To make efficient use of the spatial index we construct a box around our lat/lng, and search for jobs
         # where the geometry overlaps it.  We keep expanding our box until we find enough.  We get more than
         # we need so that we can pick a random subset - that way the jobs people see vary a bit.
-        $ambit = 0.02;
+        #
+        # We used to double the ambit each time, but that led to long queries, probably because we would suddenly
+        # include a couple of cities or something.
+        $step = 0.02;
+        $ambit = $step;
+
         $ret = [];
         $got = [];
         $gotbody = [];
@@ -38,7 +43,7 @@ class Jobs {
             $categoryq = $category ? (" AND category = " . $this->dbhr->quote($category)) : '';
 
             # We use ST_Within because that takes advantage of the spatial index, whereas ST_Intersects does not.
-            $sql = "SELECT ST_Distance(geometry, ST_GeomFromText('POINT($lng $lat)', {$this->dbhr->SRID()})) AS dist, CASE WHEN ST_Dimension(geometry) < 2 THEN 0 ELSE ST_Area(geometry) END AS area, jobs.* FROM `jobs`
+            $sql = "SELECT $ambit AS ambit, ST_Distance(geometry, ST_GeomFromText('POINT($lng $lat)', {$this->dbhr->SRID()})) AS dist, CASE WHEN ST_Dimension(geometry) < 2 THEN 0 ELSE ST_Area(geometry) END AS area, jobs.* FROM `jobs`
 WHERE ST_Within(geometry, ST_GeomFromText('$poly', {$this->dbhr->SRID()})) 
     AND (ST_Dimension(geometry) < 2 OR ST_Area(geometry) / ST_Area(ST_GeomFromText('$poly', {$this->dbhr->SRID()})) < 2)
     AND cpc >= " . Jobs::MINIMUM_CPC . "
@@ -69,7 +74,7 @@ ORDER BY cpc DESC, dist ASC, posted_at DESC LIMIT $qlimit;";
                 }
             }
 
-            $ambit *= 2;
+            $ambit += $step;
         } while (count($ret) < $limit && $ambit < 1);
 
         usort($ret, function($a, $b) {
