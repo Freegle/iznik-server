@@ -85,7 +85,7 @@ jobs:
       - run: mysql --host="127.0.0.1" -u root iznik < install/schema.sql
       - run: mysql --host="127.0.0.1" -u root iznik < install/functions.sql
       - run: mysql --host="127.0.0.1" -u root iznik < install/damlevlim.sql
-      - run: mysql --host="127.0.0.1" -u root -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'"
+      - run: mysql --host="127.0.0.1" -u root -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'"
 
       # ...and change some config, otherwise some of the larger attachment inserts fail.
       - run: mysql --host="127.0.0.1" -u root -e "set global max_allowed_packet=33554432"
