@@ -52,8 +52,11 @@ class Preview extends Entity
                             $pic = $realurl . $pic;
                         }
 
-                        $rc = $this->dbhm->preExec("INSERT INTO link_previews(`url`, `title`, `description`, `image`) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);", [
+                        $rc = $this->dbhm->preExec("INSERT INTO link_previews(`url`, `title`, `description`, `image`) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id), title = ?, description = ?, image = ?, retrieved = NOW();", [
                             $url,
+                            $title ? $title : NULL,
+                            $desc ? $desc : NULL,
+                            $pic ? $pic : NULL,
                             $title ? $title : NULL,
                             $desc ? $desc : NULL,
                             $pic ? $pic : NULL
@@ -62,7 +65,7 @@ class Preview extends Entity
                     }
                 }
             } catch (\Exception $e) {
-                $rc = $this->dbhm->preExec("INSERT INTO link_previews(`url`, `invalid`) VALUES (?,1) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);", [
+                $rc = $this->dbhm->preExec("INSERT INTO link_previews(`url`, `invalid`) VALUES (?,1) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id), retrieved = NOW();", [
                     $url
                 ]);
             }
@@ -87,7 +90,7 @@ class Preview extends Entity
                 $quoted[$ix] = $this->dbhr->quote($url);
             }
 
-            $sql = "SELECT * FROM link_previews WHERE url IN (" . implode(',', $quoted) . ");";
+            $sql = "SELECT * FROM link_previews WHERE url IN (" . implode(',', $quoted) . ") AND DATEDIFF(NOW(), retrieved) < 7;";
             $links = $this->dbhr->preQuery($sql);
 
             $founds = array_map(function($l) {
