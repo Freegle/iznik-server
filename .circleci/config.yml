@@ -14,7 +14,6 @@ jobs:
           MYSQL_ROOT_PASSWORD: ''
           MYSQL_DATABASE: iznik
           MYSQL_ROOT_HOST: 127.0.0.1
-          MYSQL_USER: root
     steps:
       - checkout
       - run: sudo apt-get update
