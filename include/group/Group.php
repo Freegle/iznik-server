@@ -687,6 +687,8 @@ AND messages_outcomes.comments IS NOT NULL
               $uq
               $filterq";
 
+        $members = [];
+
         if ($search) {
             # We're searching.  It turns out to be more efficient to get the userids using the indexes, and then
             # get the rest of the stuff we need.
@@ -694,26 +696,32 @@ AND messages_outcomes.comments IS NOT NULL
             $bq = $this->dbhr->quote(strrev($search) . "%");
             $p = strpos($search, ' ');
             $namesearch = $p === FALSE ? '' : ("UNION (SELECT id FROM users WHERE firstname LIKE " . $this->dbhr->quote(substr($search, 0, $p) . '%') . " AND lastname LIKE " . $this->dbhr->quote(substr($search, $p + 1) . '%')) . ') ';
-            $sql = "$sqlpref 
-              INNER JOIN users ON users.id = memberships.userid 
-              LEFT JOIN users_emails ON memberships.userid = users_emails.userid 
-              WHERE users.id IN (
-                (SELECT userid FROM users_emails WHERE email LIKE $q) UNION
-                (SELECT userid FROM users_emails WHERE backwards LIKE $bq) UNION
+
+            $sql = "(SELECT userid AS id FROM users_emails WHERE email LIKE $q) UNION
+                (SELECT userid AS id FROM users_emails WHERE backwards LIKE $bq) UNION
                 (SELECT id FROM users WHERE id = " . $this->dbhr->quote($search) . ") UNION
                 (SELECT id FROM users WHERE fullname LIKE $q) UNION
                 (SELECT id FROM users WHERE yahooid LIKE $q)
-                $namesearch
-              ) AND 
-              $groupq $collectionq $addq $opsq";
+                $namesearch";
+            $userids = $this->dbhr->preQuery($sql);
+            $ids = array_column($userids, 'id');
+
+            if (count($ids)) {
+                $sql = "$sqlpref 
+                  INNER JOIN users ON users.id = memberships.userid 
+                  LEFT JOIN users_emails ON memberships.userid = users_emails.userid 
+                  WHERE users.id IN (" . implode(',', $ids) . ") AND 
+                  $groupq $collectionq $addq $opsq";
+
+                $sql .= " ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
+                $members = $this->dbhr->preQuery($sql);
+            }
         } else {
             $searchq = $searchid ? (" AND memberships.userid = " . $this->dbhr->quote($searchid) . " ") : '';
             $sql = "$sqlpref WHERE $groupq $collectionq $addq $searchq $opsq $modq $bounceq";
+            $sql .= " ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
+            $members = $this->dbhr->preQuery($sql);
         }
-
-        $sql .= " ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
-
-        $members = $this->dbhr->preQuery($sql);
 
         if ($collection == MembershipCollection::SPAM) {
             # Also check for known spammers on groups.  We do this in a separate query because otherwise the
