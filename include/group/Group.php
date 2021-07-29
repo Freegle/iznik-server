@@ -697,14 +697,14 @@ AND messages_outcomes.comments IS NOT NULL
             $sql = "$sqlpref 
               INNER JOIN users ON users.id = memberships.userid 
               LEFT JOIN users_emails ON memberships.userid = users_emails.userid 
-              WHERE users.id IN (SELECT * FROM (
+              WHERE users.id IN (
                 (SELECT userid FROM users_emails WHERE email LIKE $q) UNION
                 (SELECT userid FROM users_emails WHERE backwards LIKE $bq) UNION
                 (SELECT id FROM users WHERE id = " . $this->dbhr->quote($search) . ") UNION
                 (SELECT id FROM users WHERE fullname LIKE $q) UNION
                 (SELECT id FROM users WHERE yahooid LIKE $q)
                 $namesearch
-              ) t) AND 
+              ) AND 
               $groupq $collectionq $addq $opsq";
         } else {
             $searchq = $searchid ? (" AND memberships.userid = " . $this->dbhr->quote($searchid) . " ") : '';
