@@ -9,14 +9,19 @@ rm -r /archive/mysql
 mkdir /archive/mysql
 cd /archive/backups
 (ls -t|head -n 5;ls)|sort|uniq -u|xargs rm
-back=`ls -1tr *gz | tail -1`
+back=`ls -1tr *xbstream | tail -1`
 cd /archive/mysql
-nice tar -xvzf /archive/backups/$back
-nice innobackupex --apply-log /archive/mysql
+nice xbstream -x < /archive/backups/$back
+for bf in `find . -iname "*\.qp"`
+do
+ nice qpress -d $bf $(dirname $bf)
+ rm $bf
+done
+nice xtrabackup --prepare --apply-log-only --target-dir=/archive/mysql
 chown -R mysql:mysql /archive/mysql
 /etc/init.d/mysql start
 sleep 300
-maxdate=`mysql --execute="use iznik; SELECT MAX(arrival) FROM messages;" | grep -`
+maxdate=`mysql -A --execute="use iznik; SELECT MAX(arrival) FROM messages;" | grep -`
 if [ $? == 0 ]; then
     cat /tmp/restore.out | mail -s "RESTORE: DB restored on archive update $maxdate" $EMAIL
 else

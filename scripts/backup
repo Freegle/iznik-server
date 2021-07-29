@@ -1,11 +1,10 @@
 #!/bin/bash
 EMAIL=geek-alerts@ilovefreegle.org
 
-# path to innobackupex
-XTRABACKUP=/usr/bin/innobackupex
+XTRABACKUP=/usr/bin/xtrabackup
 
 # User and password are in [xtrabackup] in ~/.my.cnf
-OPTIONS="--stream=tar /backup"
+OPTIONS="--backup --stream=xbstream --target-dir=/backup --compress --compress-threads=4"
 BACKUP="$XTRABACKUP $OPTIONS $BACKUPDIR"
 
 timestamp=$(date +%Y-%m-%d-%H-%M)
@@ -13,7 +12,8 @@ timestamp=$(date +%Y-%m-%d-%H-%M)
 pgrep mysql
 if [ $? == 0 ]; then
     # ...to our archive server
-    $BACKUP | gzip - | ssh root@archive \ "cat - > /archive/backups/iznik-$timestamp.tar.gz"
+    echo "$BACKUP | ssh root@archive \ \"cat - > /archive/backups/iznik-$timestamp.xbstream\""
+    $BACKUP | ssh root@archive \ "cat - > /archive/backups/iznik-$timestamp.xbstream"
     rc=$?
     echo "Archive backup returned " $rc
 
@@ -27,7 +27,7 @@ if [ $? == 0 ]; then
     ssh root@archive "nohup /var/www/iznik/scripts/restore > /tmp/restore.out 2>&1 &"
 
     # ...to Google storage
-    $BACKUP | gzip - | /root/gsutil/gsutil cp - gs://freegle_backup_uk/iznik-$timestamp.tar.gz > /tmp/gsutil.out 2>&1
+    $BACKUP | /root/gsutil/gsutil cp - gs://freegle_backup_uk/iznik-$timestamp.xbstream > /tmp/gsutil.out 2>&1
 
     if [ $? == 0 ]; then
       grep "Operation completed" /tmp/gsutil.out
@@ -55,3 +55,4 @@ do
 done
 tar -cvf iznik-etc-$timestamp.tgz ./
 /root/gsutil/gsutil cp iznik-etc-$timestamp.tgz gs://freegle_backup_uk/ >> /tmp/gsutil.out 2>&1
+echo "Backup complete"
