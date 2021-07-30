@@ -204,7 +204,7 @@ error_log("Purge old jobs");
 $purged = 0;
 
 do {
-    $dbhm->preExec("DELETE FROM jobs WHERE seenat < '$oldest' LIMIT 100;");
+    $dbhm->preExec("DELETE FROM jobs WHERE seenat < '$oldest' LIMIT 1;");
     $thispurge = $dbhm->rowsAffected();
 
     $purged += $thispurge;
