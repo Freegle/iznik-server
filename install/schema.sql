@@ -1311,12 +1311,17 @@ CREATE TABLE `jobs` (
   `clickability` int NOT NULL DEFAULT '0',
   `bodyhash` varchar(32) DEFAULT NULL,
   `visible` tinyint(1) NOT NULL DEFAULT '0',
+  `geohash` varchar(100) GENERATED ALWAYS AS (st_geohash(st_y(st_centroid(`geometry`)),st_x(st_centroid(`geometry`)),3)) VIRTUAL,
+  `geohash2` varchar(100) GENERATED ALWAYS AS (st_geohash(st_y(st_centroid(`geometry`)),st_x(st_centroid(`geometry`)),4)) VIRTUAL,
+  `geohash5` varchar(100) GENERATED ALWAYS AS (st_geohash(st_y(st_centroid(`geometry`)),st_x(st_centroid(`geometry`)),5)) VIRTUAL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `job_reference` (`job_reference`),
   UNIQUE KEY `job_reference_2` (`job_reference`),
   UNIQUE KEY `location` (`location`,`title`),
   KEY `bodyhash` (`bodyhash`),
-  SPATIAL KEY `geometry` (`geometry`)
+  SPATIAL KEY `geometry` (`geometry`),
+  KEY `seenat` (`seenat`),
+  KEY `geohash5` (`geohash5`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1333,7 +1338,7 @@ CREATE TABLE `jobs_keywords` (
   `count` bigint unsigned NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `keyword` (`keyword`)
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1544,7 +1549,7 @@ CREATE TABLE `logs_api` (
   KEY `date` (`date`),
   KEY `userid` (`userid`),
   KEY `ip` (`ip`)
-) ENGINE=InnoDB AUTO_INCREMENT=111845792 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci KEY_BLOCK_SIZE=8 COMMENT='Log of all API requests and responses';
+) ENGINE=InnoDB AUTO_INCREMENT=111845795 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci KEY_BLOCK_SIZE=8 COMMENT='Log of all API requests and responses';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1642,7 +1647,7 @@ CREATE TABLE `logs_jobs` (
   KEY `timestamp` (`timestamp`),
   KEY `jobid` (`jobid`),
   CONSTRAINT `logs_jobs_ibfk_1` FOREIGN KEY (`jobid`) REFERENCES `jobs` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=224176 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=224179 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -5408,4 +5413,4 @@ CREATE TABLE `worrywords` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-07-29 12:24:31
+-- Dump completed on 2021-08-01 12:54:31
