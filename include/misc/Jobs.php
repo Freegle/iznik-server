@@ -18,8 +18,7 @@ class Jobs {
 
     public function query($lat, $lng, $limit = 50, $category = NULL) {
         # To make efficient use of the spatial index we construct a box around our lat/lng, and search for jobs
-        # where the geometry overlaps it.  We keep expanding our box until we find enough.  We get more than
-        # we need so that we can pick a random subset - that way the jobs people see vary a bit.
+        # where the geometry overlaps it.  We keep expanding our box until we find enough.
         #
         # We used to double the ambit each time, but that led to long queries, probably because we would suddenly
         # include a couple of cities or something.
@@ -30,7 +29,6 @@ class Jobs {
         $got = [];
         $gotbody = [];
         $gottitle = [];
-        $qlimit = min(50, $limit * 5);
         $passes = 0;
 
         do {
@@ -49,7 +47,7 @@ WHERE ST_Within(geometry, ST_GeomFromText('$poly', {$this->dbhr->SRID()}))
     AND cpc >= " . Jobs::MINIMUM_CPC . "
     AND visible = 1
     $categoryq
-ORDER BY cpc DESC, dist ASC, posted_at DESC LIMIT $qlimit;";
+ORDER BY cpc DESC, dist ASC, posted_at DESC LIMIT $limit;";
             $jobs = $this->dbhr->preQuery($sql);
             #error_log($sql . " found " . count($jobs));
             $passes++;
