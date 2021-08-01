@@ -2532,15 +2532,10 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
                 $time = (count($delays) > 0) ? Utils::calculate_median($delays) : NULL;
 
-                # We might have an invalid user id here which will case an error.
-                try {
-                    $this->dbhm->preExec("REPLACE INTO users_replytime (userid, replytime) VALUES (?, ?);", [
-                        $userid,
-                        $time
-                    ]);
-
-                    $this->dbhm->background("UPDATE users SET lastupdated = NOW() WHERE id = $userid;");
-                } catch (\Exception $e) {}
+                # Background these because we've seen occasions where we're in the context of a transaction
+                # and this causes a deadlock.
+                $this->dbhm->background("REPLACE INTO users_replytime (userid, replytime) VALUES ($userid, '$time');");
+                $this->dbhm->background("UPDATE users SET lastupdated = NOW() WHERE id = $userid;");
 
                 $ret[$userid] = $time;
             }
