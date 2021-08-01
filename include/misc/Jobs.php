@@ -16,7 +16,7 @@ class Jobs {
         $this->dbhm = $dbhm;
     }
 
-    public function query($lat, $lng, $limit = 50, $category = NULL) {
+    public function query($lat, $lng, $limit = 50, $summary, $category = NULL) {
         # To make efficient use of the spatial index we construct a box around our lat/lng, and search for jobs
         # where the geometry overlaps it.  We keep expanding our box until we find enough.
         #
@@ -41,13 +41,20 @@ class Jobs {
             $categoryq = $category ? (" AND category = " . $this->dbhr->quote($category)) : '';
 
             # We use ST_Within because that takes advantage of the spatial index, whereas ST_Intersects does not.
-            $sql = "SELECT $ambit AS ambit, ST_Distance(geometry, ST_GeomFromText('POINT($lng $lat)', {$this->dbhr->SRID()})) AS dist, CASE WHEN ST_Dimension(geometry) < 2 THEN 0 ELSE ST_Area(geometry) END AS area, jobs.* FROM `jobs`
-WHERE ST_Within(geometry, ST_GeomFromText('$poly', {$this->dbhr->SRID()})) 
-    AND (ST_Dimension(geometry) < 2 OR ST_Area(geometry) / ST_Area(ST_GeomFromText('$poly', {$this->dbhr->SRID()})) < 2)
-    AND cpc >= " . Jobs::MINIMUM_CPC . "
-    AND visible = 1
-    $categoryq
-ORDER BY cpc DESC, dist ASC, posted_at DESC LIMIT $limit;";
+            $alreadyq = count($got) ? (" AND jobs.id NOT IN (" . implode(',', $got) . ") ") : '';
+
+            $sql = "SELECT $ambit AS ambit, 
+       ST_Distance(geometry, ST_GeomFromText('POINT($lng $lat)', {$this->dbhr->SRID()})) AS dist,
+       CASE WHEN ST_Dimension(geometry) < 2 THEN 0 ELSE ST_Area(geometry) END AS area,
+       jobs.id, jobs.url, jobs.title, jobs.location, jobs.body, jobs.job_reference, jobs.cpc, jobs.clickability
+        FROM `jobs`
+        WHERE ST_Within(geometry, ST_GeomFromText('$poly', {$this->dbhr->SRID()})) 
+            AND (ST_Dimension(geometry) < 2 OR ST_Area(geometry) / ST_Area(ST_GeomFromText('$poly', {$this->dbhr->SRID()})) < 2)
+            AND cpc >= " . Jobs::MINIMUM_CPC . "
+            AND visible = 1
+            $alreadyq
+            $categoryq
+        ORDER BY cpc DESC, dist ASC, posted_at DESC LIMIT $limit;";
             $jobs = $this->dbhr->preQuery($sql);
             #error_log($sql . " found " . count($jobs));
             $passes++;
