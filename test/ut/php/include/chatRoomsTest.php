@@ -129,6 +129,7 @@ class chatRoomsTest extends IznikTestCase {
         assertEquals('Test User 1', $r->getPublic(NULL, NULL, TRUE)['name']);
         $_SESSION['id'] = NULL;
 
+        $this->waitBackground();
         assertNull($r->replyTime($u1));
         assertNull($r->replyTime($u2));
 
@@ -149,6 +150,7 @@ class chatRoomsTest extends IznikTestCase {
         list ($cm, $banned) = $m->create($id, $u1, "Testing", ChatMessage::TYPE_INTERESTED, $msgid, TRUE, NULL, NULL, NULL, $attid);
         $this->log("Created chat message $cm");
 
+        $this->waitBackground();
         assertNull($r->replyTime($u1));
         assertNull($r->replyTime($u2));
 
@@ -222,6 +224,7 @@ class chatRoomsTest extends IznikTestCase {
         assertEquals(3, count($u2emails));
         assertEquals('from2@test.com', $u2emails[1]['email']);
 
+        $this->waitBackground();
         assertNull($r->replyTime($u1));
         assertNotNull($r->replyTime($u2));
 
@@ -909,6 +912,7 @@ class chatRoomsTest extends IznikTestCase {
         $this->log("Chat room $id for $u1 <-> $u2");
         assertNotNull($id);
 
+        $this->waitBackground();
         assertNull($r->replyTime($u1));
         assertNull($r->replyTime($u2));
 
@@ -964,6 +968,7 @@ class chatRoomsTest extends IznikTestCase {
         $this->log("Chat room $id for $u1 <-> $u2");
         assertNotNull($id);
 
+        $this->waitBackground();
         assertNull($r->replyTime($u1));
         assertNull($r->replyTime($u2));
 
