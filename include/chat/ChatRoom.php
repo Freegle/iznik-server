@@ -2495,6 +2495,8 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
             }
         }
 
+        $left = array_unique($left);
+
         if (count($left)) {
             $mysqltime = date("Y-m-d", strtotime("90 days ago"));
             $msgs = $this->dbhr->preQuery("SELECT chat_messages.userid, chat_messages.id, chat_messages.chatid, chat_messages.date FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid WHERE chat_messages.userid IN (" . implode(',', $left) . ") AND chat_messages.date > ? AND chat_rooms.chattype = ? AND chat_messages.type IN (?, ?);", [
