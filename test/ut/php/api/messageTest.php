@@ -1491,6 +1491,69 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
     }
 
+    public function testEditGroupModerated() {
+        // Set group moderated.
+        $this->group->setSettings([ 'moderated' => TRUE ]);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)',0);
+
+        # Create member and mod.
+        $u = User::get($this->dbhr, $this->dbhm);
+
+        $memberid = $u->create('Test','User', 'Test User');
+        $member = User::get($this->dbhr, $this->dbhm, $memberid);
+        assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $member->addMembership($this->gid, User::ROLE_MEMBER);
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $member->addEmail($email);
+
+        $this->log("Created member $memberid");
+
+        # Submit a message from the member, who will be moderated as new members are.
+        assertTrue($member->login('testpw'));
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'groupid' => $this->gid,
+            'textbody' => 'Text body'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $mid = $ret['id'];
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'JoinAndPost',
+            'ignoregroupoverride' => true,
+            'email' => $email
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        # Approve the message.
+        $m = new Message($this->dbhr, $this->dbhm, $mid);
+        $m->approve($this->gid);
+
+        # Now log in as the member and edit the message.
+        assertTrue($member->login('testpw'));
+
+        $ret = $this->call('message', 'PATCH', [
+            'id' => $mid,
+            'groupid' => $this->gid,
+            'item' => 'Edited',
+            'textbody' => 'Another text body'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Message should still be in approved.
+        $m = new Message($this->dbhr, $this->dbhm, $mid);
+        assertTrue($m->isApproved($this->gid));
+    }
+
     public function testDraft()
     {
         # Can create drafts when not logged in.

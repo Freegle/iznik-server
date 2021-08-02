@@ -340,10 +340,6 @@ class Message
                     # have been approved.  So this edit also needs approval.  We can't move the message back to Pending
                     # because it might already be getting replies from people.
                     $reviewrequired = TRUE;
-
-                    # Notify the mods of the soon-to-exist pending work.
-                    $n = new PushNotifications($this->dbhr, $this->dbhm);
-                    $n->notifyGroupMods($group['groupid']);
                 }
             }
         }
@@ -399,6 +395,9 @@ class Message
                 $this->dbhm->preExec("INSERT INTO messages_edits (msgid, oldtext, newtext, oldsubject, newsubject, 
               oldtype, newtype, olditems, newitems, oldimages, newimages, oldlocation, newlocation, byuser, reviewrequired) 
               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", $data);
+
+                $n = new PushNotifications($this->dbhr, $this->dbhm);
+                $n->notifyGroupMods($group['groupid']);
             }
         }
 
