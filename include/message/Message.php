@@ -1023,8 +1023,11 @@ class Message
             $rets[$msg['id']]['showpc'] = TRUE;
 
             # We don't use foreach with & because that copies data by reference which causes bugs.
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
+            $mod = $me->isModerator();
+
             for ($groupind = 0; $groupind < count($rets[$msg['id']]['groups']); $groupind++ ) {
-                if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || $seeall) {
+                if ($mod || $seeall) {
                     if (Utils::pres('approvedby', $rets[$msg['id']]['groups'][$groupind])) {
                         if (!Utils::pres($rets[$msg['id']]['groups'][$groupind]['approvedby'], $approvedcache)) {
                             if ($rets[$msg['id']]['groups'][$groupind]['approvedby'] === $myid) {
