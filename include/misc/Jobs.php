@@ -16,7 +16,7 @@ class Jobs {
         $this->dbhm = $dbhm;
     }
 
-    public function query($lat, $lng, $limit = 50, $summary, $category = NULL) {
+    public function query($lat, $lng, $limit = 50, $category = NULL) {
         # To make efficient use of the spatial index we construct a box around our lat/lng, and search for jobs
         # where the geometry overlaps it.  We keep expanding our box until we find enough.
         #
