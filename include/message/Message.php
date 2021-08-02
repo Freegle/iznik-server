@@ -322,6 +322,7 @@ class Message
         }
 
         $reviewrequired = FALSE;
+        $notifygroups = [];
 
         if ($me && $me->getId() === $this->getFromuser() && $checkreview) {
             # Edited by the person who posted it.
@@ -340,6 +341,7 @@ class Message
                     # have been approved.  So this edit also needs approval.  We can't move the message back to Pending
                     # because it might already be getting replies from people.
                     $reviewrequired = TRUE;
+                    $notifygroups[] = $group['groupid'];
                 }
             }
         }
@@ -396,8 +398,10 @@ class Message
               oldtype, newtype, olditems, newitems, oldimages, newimages, oldlocation, newlocation, byuser, reviewrequired) 
               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", $data);
 
-                $n = new PushNotifications($this->dbhr, $this->dbhm);
-                $n->notifyGroupMods($group['groupid']);
+                foreach ($notifygroups as $groupid) {
+                    $n = new PushNotifications($this->dbhr, $this->dbhm);
+                    $n->notifyGroupMods($groupid);
+                }
             }
         }
 
