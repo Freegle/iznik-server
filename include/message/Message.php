@@ -1023,7 +1023,7 @@ class Message
 
             # We don't use foreach with & because that copies data by reference which causes bugs.
             $me = Session::whoAmI($this->dbhr, $this->dbhm);
-            $mod = $me->isModerator();
+            $mod = $me && $me->isModerator();
 
             for ($groupind = 0; $groupind < count($rets[$msg['id']]['groups']); $groupind++ ) {
                 if ($mod || $seeall) {
