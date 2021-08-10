@@ -1117,22 +1117,23 @@ WHERE chat_rooms.id IN $idlist;";
         #error_log("updateRoster: Add $userid into {$this->id}");
         $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
-        $this->dbhm->preExec("INSERT INTO chat_roster (chatid, userid, lastip) VALUES (?,?,?) ON DUPLICATE KEY UPDATE lastip = ?, status = ?;",
+        $this->dbhm->preExec("INSERT INTO chat_roster (chatid, userid, lastip) VALUES (?,?,?) ON DUPLICATE KEY UPDATE lastip = ?;",
             [
                 $this->id,
                 $userid,
                 $userid == $myid ? Utils::presdef('REMOTE_ADDR', $_SERVER, NULL) : NULL,
-                $userid == $myid ? Utils::presdef('REMOTE_ADDR', $_SERVER, NULL) : NULL,
-                $status
+                $userid == $myid ? Utils::presdef('REMOTE_ADDR', $_SERVER, NULL) : NULL
             ],
             FALSE);
 
         if ($status == ChatRoom::STATUS_CLOSED || $status == ChatRoom::STATUS_BLOCKED) {
-            # The Closed and Blocked statuses are special - they're per-room.  So we need to set it.
-            $this->dbhm->preExec("UPDATE chat_roster SET status = ? WHERE chatid = ? AND userid = ?;", [
+            # The Closed and Blocked statuses are special - they're per-room.  So we need to set it.  Take care
+            # not to overwrite Blocked with Closed.
+            $this->dbhm->preExec("UPDATE chat_roster SET status = ? WHERE chatid = ? AND userid = ? AND (status IS NULL OR status != ?);", [
                 $status,
                 $this->id,
-                $userid
+                $userid,
+                ChatRoom::STATUS_BLOCKED
             ], FALSE);
         }
 

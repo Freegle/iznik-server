@@ -929,6 +929,9 @@ class chatRoomsTest extends IznikTestCase {
         # Make the first user block the second.
         $r->updateRoster($u1, NULL, ChatRoom::STATUS_BLOCKED);
 
+        # Update again with Closed - shouldn't overwrite the block.
+        $r->updateRoster($u1, NULL, ChatRoom::STATUS_CLOSED);
+
         # Chat shouldn't show in the list for this user now.
         assertNull($r->listForUser(Session::modtools(), $u1, NULL, NULL));
         self::assertEquals(1, count($r->listForUser(Session::modtools(), $u2, NULL, NULL)));
