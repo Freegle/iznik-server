@@ -1616,7 +1616,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
             foreach ($users as $user) {
                 # What's the max message this user has either seen or been mailed?
-                #error_log("Last {$user['lastmsgemailed']}, last message $lastmessage");
+                #error_log("Last mailed to user #{$user['userid']} message {$user['lastmsgemailed']}, last message in chat $lastmessage");
                 $maxseen = $forceall ? 0 : Utils::presdef('lastmsgseen', $user, 0);
                 $maxmailed = $forceall ? 0 : Utils::presdef('lastmsgemailed', $user, 0);
                 $max = max($maxseen, $maxmailed);
