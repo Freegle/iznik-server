@@ -890,7 +890,17 @@ class chatRoomsTest extends IznikTestCase {
 
         }
 
-    public function testBlock() {
+    public function platformProvider() {
+        return [
+            [ TRUE ],
+            [ FALSE ]
+        ];
+    }
+
+    /**
+     * @dataProvider platformProvider
+     */
+    public function testBlock($platform) {
         $this->log(__METHOD__ );
 
         # Pretend to be FD.
@@ -925,7 +935,7 @@ class chatRoomsTest extends IznikTestCase {
 
         # Mow send a message from the second to the first.
         $m = new ChatMessage($this->dbhr, $this->dbhm);
-        list ($mid, $banned) = $m->create($id, $u2, "Test");
+        list ($mid, $banned) = $m->create($id, $u2, "Test", ChatMessage::TYPE_DEFAULT, NULL, $platform);
 
         # Check that this message doesn't get notified.
         $r = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
@@ -941,7 +951,6 @@ class chatRoomsTest extends IznikTestCase {
 
         # Notify - will email none
         $this->log("Will email none");
-        error_log("Email none");
         assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
 
         # Chat still shouldn't show in the list for this user.
