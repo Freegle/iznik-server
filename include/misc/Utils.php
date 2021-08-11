@@ -525,4 +525,8 @@ class Utils {
 
         return [ $lat, $lng ];
     }
+
+    public static function getBoxPoly($swlat, $swlng, $nelat, $nelng) {
+        return "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
+    }
 }

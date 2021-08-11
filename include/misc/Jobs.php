@@ -215,7 +215,7 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
                                 $swlat = floatval($feature['properties']['extent'][1]);
                                 $nelng = floatval($feature['properties']['extent'][2]);
                                 $nelat = floatval($feature['properties']['extent'][3]);
-                                $geom = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
+                                $geom = Utils::getBoxPoly($swlat, $swlng, $nelat, $nelng);
                                 #error_log("From extent $geom");
                             }
                             break;
@@ -230,7 +230,7 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
                             $swlat = $lat - 0.0005;
                             $nelat = $lat + 0.0005;
                             $nelng = $lng + 0.0005;
-                            $geom = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
+                            $geom = Utils::getBoxPoly($swlat, $swlng, $nelat, $nelng);
                             #error_log("From point $geom");
                             break;
                         }
