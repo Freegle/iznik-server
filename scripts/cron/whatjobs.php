@@ -31,6 +31,7 @@ $count = 0;
 $new = 0;
 $old = 0;
 $toolow = 0;
+$nogeocode = 0;
 
 $j = new Jobs($dbhr, $dbhm);
 $maxish = $j->getMaxish();
@@ -47,58 +48,73 @@ while ($node = $streamer->getNode()) {
     if ($age < 7) {
         if (!$job->job_reference) {
             error_log("No job reference for {$job->title}, {$job->location}");
-        } else if ($job->cpc < Jobs::MINIMUM_CPC) {
+        } else if (floatval($job->cpc) < Jobs::MINIMUM_CPC) {
             # Ignore this job - not worth us showing.
             $toolow++;
         } else {
-            # See if we already have the job. If so, ignore it.  If it changes, tough.
+            # See if we already have the job. If so, ignore it.  If it changes, tough - it would take too long to
+            # scan them all.
             $existings = $dbhr->preQuery("SELECT id, job_reference FROM jobs WHERE job_reference = ?", [
                 $job->job_reference
             ]);
 
             if (!count($existings)) {
-                # Try to geocode the address.
-                $addr = "{$job->city}, {$job->state}, {$job->country}";
-
                 # See if we already have the address geocoded - would save hitting the geocoder.
-                $geo = $dbhr->preQuery("SELECT  ST_AsText(geometry) AS geom FROM jobs WHERE city = ? AND state = ? AND country = ? LIMIT 1;", [
+                $geo = $dbhr->preQuery("SELECT ST_AsText(geometry) AS geom FROM jobs WHERE city = ? AND state = ? AND country = ? LIMIT 1;", [
                     $job->city,
                     $job->state,
                     $job->country
                 ]);
 
                 $geom = NULL;
+                error_log("Found " . count($geo) . " {$job->city}, {$job->state}, {$job->country}");
 
                 if (count($geo)) {
                     $geom = $geo[0]['geom'];
+                    error_log("Got existing location $geom");
                 } else {
-                    # We don't - so geocode it.
-                    $geocode = @file_get_contents("https://" . GEOCODER . "/api?q=" . urlencode($addr) . "&bbox=-7.57216793459%2C49.959999905%2C1.68153079591%2C58.6350001085");
+                    # Try to geocode the address.
+                    #
+                    # We have location, city, state, and country.  We can ignore the country.
+                    $badStates = [ 'not specified', 'united kingdom of great britain and northern ireland', 'united kingdom', 'uk', 'england', 'scotland', 'wales', 'home based' ];
+                    if ($job->state && strlen(trim($job->state)) && !in_array(strtolower(trim($job->state)), $badStates)) {
+                        # Sometimes the state is a region.  Sometimes it is a much more specific location. Sigh.
+                        #
+                        # So first, geocode the state; if we get a specific location we can use that.  If it's a larger
+                        # location then we can use it as a bounding box.
+                        list ($swlat, $swlng, $nelat, $nelng, $geom, $area) = Jobs::geocode($job->state, FALSE, TRUE);
 
-                    if ($geocode) {
-                        $results = json_decode($geocode, true);
+                        if ($area && $area < 0.05) {
+                            # We have a small 'state', which must be an actual location.  Stop.
+                            error_log("Got small area {$job->state}");
+                        } else if ($geom) {
+                            # We have a large state, which is a plausible region. Use it as a bounding box for the
+                            # city.
+                            error_log("Gecoded {$job->state} to $geom");
+                            list ($swlat, $swlng, $nelat, $nelng, $geom, $area) = Jobs::geocode($job->city, TRUE, FALSE, $swlat, $swlng, $nelat, $nelng);
 
-                        if (Utils::pres('features', $results) && count($results['features'])) {
-                            $loc = $results['features'][0];
-
-                            $geom = null;
-
-                            if (Utils::pres('properties', $loc) && Utils::pres('extent', $loc['properties'])) {
-                                $swlng = floatval($loc['properties']['extent'][0]);
-                                $swlat = floatval($loc['properties']['extent'][1]);
-                                $nelng = floatval($loc['properties']['extent'][2]);
-                                $nelat = floatval($loc['properties']['extent'][3]);
-                                $geom = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
-                            } else {
-                                if (Utils::pres('geometry', $loc) && Utils::pres('coordinates', $loc['geometry'])) {
-                                    $geom = "POINT({$loc['geometry']['coordinates'][0]} {$loc['geometry']['coordinates'][1]})";
-                                }
+                            if (!$geom) {
+                                error_log("Failed to geocode {$job->city} in {$job->state}");
                             }
                         }
                     }
                 }
 
+                $badCities = [ 'not specified', 'null', 'home based', 'united kingdom' ];
+                if (!$geom && $job->city && strlen(trim($job->city)) && !in_array(trim($job->city), $badCities)) {
+                    # We have not managed anything from the state.  Try just the city.  This will lead to some being
+                    # wrong, but that's life.
+                    error_log("State no use");
+                    list ($swlat, $swlng, $nelat, $nelng, $geom, $area) = Jobs::geocode($job->city, TRUE, FALSE);
+
+                    if ($area > 50) {
+                        error_log("{$job->city} => $geom is too large at $area");
+                        $geom = NULL;
+                    }
+                }
+
                 if ($geom) {
+                    error_log("Geocoded {$job->city}, {$job->state} => $geom");
                     try {
                         $clickability = 0;
                         $title = NULL;
@@ -110,7 +126,7 @@ while ($node = $streamer->getNode()) {
                         }
 
                         $batchcount++;
-                        $insertsql .= "INSERT INTO jobs (location, title, city, state, zip, country, job_type, posted_at, job_reference, company, mobile_friendly_apply, category, html_jobs, url, body, cpc, geometry, clickability, bodyhash, seenat) VALUES (" .
+                        $insertsql .= "REPLACE INTO jobs (location, title, city, state, zip, country, job_type, posted_at, job_reference, company, mobile_friendly_apply, category, html_jobs, url, body, cpc, geometry, clickability, bodyhash, seenat, visible) VALUES (" .
                             ($job->location ? $dbhm->quote(html_entity_decode($job->location)) : 'NULL') . ", " .
                             $dbhm->quote($title) . ", " .
                             ($job->city ? $dbhm->quote(html_entity_decode($job->city)) : 'NULL') . ", " .
@@ -130,7 +146,7 @@ while ($node = $streamer->getNode()) {
                             "ST_GeomFromText('$geom', {$dbhr->SRID()}), " .
                             $clickability . "," .
                             $dbhm->quote(md5(substr($job->body, 0, 256))) . ", " .
-                            "NOW());";
+                            "NOW(), 0);";
 
                         if ($batchcount > 100) {
                             $dbhm->preExec($insertsql);
@@ -141,6 +157,9 @@ while ($node = $streamer->getNode()) {
                     } catch (\Exception $e) {
                         error_log("Failed to add {$job->title} $geom " . $e->getMessage());
                     }
+                } else {
+                    error_log("Couldn't geocode {$job->city}, {$job->state}");
+                    $nogeocode++;
                 }
             } else {
                 # Leave clickability untouched for speed.  That means it'll be a bit wrong, but wrong values will
@@ -214,5 +233,5 @@ do {
     }
 } while ($thispurge);
 
-error_log("New jobs $new, too low $toolow, ignore $old, spammy $spamcount, purged $purged");
+error_log("New jobs $new, nogeocode $nogeocode, too low $toolow, ignore $old, spammy $spamcount, purged $purged");
 Utils::unlockScript($lockh);

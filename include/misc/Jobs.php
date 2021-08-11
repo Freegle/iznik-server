@@ -1,6 +1,8 @@
 <?php
 namespace Freegle\Iznik;
 
+require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
+
 class Jobs {
     /** @public  $dbhr LoggedPDO */
     public $dbhr;
@@ -191,5 +193,59 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
         }
 
         return $maxish;
+    }
+
+    public static function geocode($addr, $allowPoint, $exact, $bbswlat = 49.959999905, $bbswlng = -7.57216793459, $bbnelat = 58.6350001085, $bbnelng = 1.68153079591) {
+        $url = "https://" . GEOCODER . "/api?q=" . urlencode($addr) . "&bbox=$bbswlng%2C$bbswlat%2C$bbnelng%2C$bbnelat";
+        $geocode = @file_get_contents($url);
+        #error_log("Geocode $addr, allow point $allowPoint, exact $exact, $url");
+        $swlng = $swlat = $nelng = $nelat = $geom = $area = NULL;
+
+        if ($geocode) {
+            $results = json_decode($geocode, true);
+
+            if (Utils::pres('features', $results) && count($results['features'])) {
+                foreach ($results['features'] as $feature) {
+                    if (Utils::pres('properties', $feature)) {
+                        $nameMatches = Utils::pres('name', $feature['properties']) && strcmp(strtolower($feature['properties']['name']), strtolower($addr)) == 0;
+
+                        if (Utils::pres('extent', $feature['properties'])) {
+                            if (!$exact || !$nameMatches) {
+                                $swlng = floatval($feature['properties']['extent'][0]);
+                                $swlat = floatval($feature['properties']['extent'][1]);
+                                $nelng = floatval($feature['properties']['extent'][2]);
+                                $nelat = floatval($feature['properties']['extent'][3]);
+                                $geom = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
+                                #error_log("From extent $geom");
+                            }
+                            break;
+                        } else if ($allowPoint &&
+                            (!$exact || $nameMatches) &&
+                            Utils::pres('geometry', $feature) &&
+                            Utils::pres('coordinates', $feature['geometry'])) {
+                            # Invent a small polygon, just so all the geometries have the same dimension
+                            $lat = floatval($feature['geometry']['coordinates'][1]);
+                            $lng = floatval($feature['geometry']['coordinates'][0]);
+                            $swlng = $lng - 0.0005;
+                            $swlat = $lat - 0.0005;
+                            $nelat = $lat + 0.0005;
+                            $nelng = $lng + 0.0005;
+                            $geom = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
+                            #error_log("From point $geom");
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($geom) {
+            $g = new \geoPHP();
+            $poly = $g::load($geom, 'wkt');
+            $area = $poly->area();
+        }
+
+        error_log("Geocode $addr => $geom area $area");
+        return [ $swlat, $swlng, $nelat, $nelng, $geom, $area ];
     }
 }
