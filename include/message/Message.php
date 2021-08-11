@@ -96,9 +96,6 @@ class Message
         "Thank you for your enquiry",
         "Many thanks for your",
         "Automatic reply",
-        "Mail Receipt",
-        "Read receipt",
-        "Return Receipt",
         "Automated reply",
         "Auto-Reply",
         "Out of Office",
@@ -109,6 +106,13 @@ class Message
         "annual leave",
         "on holiday",
         "vacation reply"
+    ];
+
+    private $receipt_subjects = [
+        "Mail Receipt",
+        "Read receipt",
+        "Return Receipt",
+        "Checked"
     ];
 
     private $autoreply_bodies = [
@@ -4996,12 +5000,27 @@ $mq", [
 
         return ($bounce);
     }
-    
+
+    public function isReceipt()
+    {
+        $ret = false;
+
+        foreach ($this->receipt_subjects as $subj)
+        {
+            if (stripos($this->subject, $subj) !== false)
+            {
+                $ret = true;
+            }
+        }
+
+        return $ret;
+    }
+
     public function isAutoreply()
     {
         $autoreply = FALSE;
 
-        foreach ($this->autoreply_subjects as $subj) {
+        foreach (array_merge($this->autoreply_subjects, $this->receipt_subjects) as $subj) {
             if (stripos($this->subject, $subj) !== FALSE) {
                 $autoreply = TRUE;
             }

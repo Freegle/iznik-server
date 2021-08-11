@@ -830,8 +830,7 @@ class MailRouter
                         $latestmessage = $r->getPrivate('latestmessage');
                         $recentmessage = $latestmessage && (time() - strtotime($latestmessage) < 5 * 60 * 60);
 
-                        if (stripos($this->msg->getSubject(), 'Read report') === 0 ||
-                            stripos($this->msg->getSubject(), 'Checked') === 0) {
+                        if ($this->msg->isReceipt()) {
                             # This is a read receipt which has been sent to the wrong place by a silly email client.
                             # Just drop these.
                             if ($log) { error_log("Misdirected read receipt drop"); }
