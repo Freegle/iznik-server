@@ -12,6 +12,10 @@ use Prewk\XmlStringStreamer;
 use Prewk\XmlStringStreamer\Stream;
 use Prewk\XmlStringStreamer\Parser;
 
+# There are some cluster lockups which may be provoked by this script accessing two different servers for
+# read and write.
+$dbhr = $dbhm;
+
 $lockh = Utils::lockScript(basename(__FILE__));
 
 # Get the oldest date before we start because the script can run for ages.
@@ -115,6 +119,20 @@ while ($node = $streamer->getNode()) {
 
                 if ($geom) {
                     error_log("Geocoded {$job->city}, {$job->state} => $geom");
+
+                    # Jobs tend to cluster, e.g. in cities.  When we are searching we expand a box from our current
+                    # location until we overlap enough.  The clustering means we may suddenly match thousands of them,
+                    # which is slow.  So instead of using the job location box as is, randomise to be a small box
+                    # within the location box.  That way we will encounter some of the jobs sooner and hence have faster queries.
+                    $newlat = $swlat + (mt_rand() / mt_getrandmax()) * ($nelat - $swlat);
+                    $newlng = $swlng + (mt_rand() / mt_getrandmax()) * ($nelng - $swlng);
+                    $swlng = $newlng - 0.0005;
+                    $swlat = $newlat - 0.0005;
+                    $nelat = $newlat + 0.0005;
+                    $nelng = $newlng + 0.0005;
+                    $geom = Utils::getBoxPoly($swlat, $swlng, $nelat, $nelng);
+                    error_log("Modified loc to $geom");
+
                     try {
                         $clickability = 0;
                         $title = NULL;
