@@ -12,18 +12,30 @@ global $dbhr, $dbhm;
 $lockh = Utils::lockScript(basename(__FILE__));
 
 # Tidy up any expected replies from deleted users, which shouldn't count.
-$ids = $dbhr->preQuery("SELECT chat_messages.id FROM users INNER JOIN chat_messages ON chat_messages.userid = users.id WHERE chat_messages.date >= '2020-01-01' AND users.deleted IS NOT NULL AND chat_messages.replyexpected = 1 AND chat_messages.replyreceived = 0;");
+$tidy = 0;
+$mysqltime = date("Y-m-d", strtotime("24 hours ago"));
+$users = $dbhr->preQuery("SELECT id FROM users WHERE deleted IS NOT NULL AND deleted >= ?;", [
+    $mysqltime
+]);
 
-foreach ($ids as $id) {
-    $dbhm->preExec("UPDATE chat_messages SET replyexpected = 0 WHERE id = ?;", [
-        $id['id']
+foreach ($users as $user) {
+    $ids = $dbhr->preQuery("SELECT chat_messages.id FROM chat_messages WHERE userid = ? AND replyexpected = 1 AND replyreceived = 0;", [
+        $user['id']
     ]);
+
+    foreach ($ids as $id) {
+        $dbhm->preExec("UPDATE chat_messages SET replyexpected = 0 WHERE id = ?;", [
+            $id['id']
+        ]);
+        $tidy++;
+    }
 }
 
+error_log("Tidied deleted $tidy");
 $r = new ChatRoom($dbhr, $dbhm);
 $waiting = $r->updateExpected();
 
-error_log("Received $received waiting $waiting");
+error_log("waiting $waiting");
 error_log("\nWorst:\n");
 $expectees = $dbhr->preQuery("SELECT SUM(value) AS net, COUNT(*) AS count, expectee FROM `users_expected` GROUP BY expectee HAVING net < 0 ORDER BY net ASC LIMIT 10;");
 
