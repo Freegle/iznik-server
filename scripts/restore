@@ -5,18 +5,21 @@ EMAIL=log@ehibbert.org.uk
 /etc/init.d/mysql stop
 killall -9 mysqld
 sleep 10
-rm -r /archive/mysql
+rm -rf /archive/mysql
 mkdir /archive/mysql
 cd /archive/backups
 (ls -t|head -n 5;ls)|sort|uniq -u|xargs rm
 back=`ls -1tr *xbstream | tail -1`
 cd /archive/mysql
+echo xbstream
 nice xbstream -x < /archive/backups/$back
+echo qpress
 for bf in `find . -iname "*\.qp"`
 do
  nice qpress -d $bf $(dirname $bf)
  rm $bf
 done
+echo prepare
 nice xtrabackup --prepare --apply-log-only --target-dir=/archive/mysql
 chown -R mysql:mysql /archive/mysql
 /etc/init.d/mysql start
