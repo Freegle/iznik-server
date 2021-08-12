@@ -6473,8 +6473,10 @@ memberships.groupid IN $groupq
         # For very short emails, we just show the first character.
         if ($p <= 3) {
             $email = substr($email, 0, 1) . "***" . substr($email, $p);
-        } else {
+        } else if ($p < 10) {
             $email = substr($email, 0, 1) . "***" . substr($email, $p - 1);
+        } else {
+            $email = substr($email, 0, 3) . "***" . substr($email, $p - 3);
         }
 
         return $email;
