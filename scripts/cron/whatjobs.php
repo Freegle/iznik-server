@@ -8,13 +8,11 @@ require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
+require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
+
 use Prewk\XmlStringStreamer;
 use Prewk\XmlStringStreamer\Stream;
 use Prewk\XmlStringStreamer\Parser;
-
-# There are some cluster lockups which may be provoked by this script accessing two different servers for
-# read and write.
-$dbhr = $dbhm;
 
 $lockh = Utils::lockScript(basename(__FILE__));
 
@@ -64,7 +62,7 @@ while ($node = $streamer->getNode()) {
 
             if (!count($existings)) {
                 # See if we already have the address geocoded - would save hitting the geocoder.
-                $geo = $dbhr->preQuery("SELECT ST_AsText(geometry) AS geom FROM jobs WHERE city = ? AND state = ? AND country = ? LIMIT 1;", [
+                $geo = $dbhr->preQuery("SELECT ST_AsText(ST_Envelope(geometry)) AS geom FROM jobs WHERE city = ? AND state = ? AND country = ? LIMIT 1;", [
                     $job->city,
                     $job->state,
                     $job->country
@@ -75,7 +73,15 @@ while ($node = $streamer->getNode()) {
 
                 if (count($geo)) {
                     $geom = $geo[0]['geom'];
-                    error_log("Got existing location $geom");
+                    $g = new \geoPHP();
+                    $poly = $g::load($geom, 'wkt');
+                    $bbox = $poly->getBBox();
+                    $swlat = $bbox['miny'];
+                    $swlng = $bbox['minx'];
+                    $nelat = $bbox['maxy'];
+                    $nelng = $bbox['maxx'];
+
+                    error_log("Got existing location $geom = $swlat,$swlng to $nelat, $nelng");
                 } else {
                     # Try to geocode the address.
                     #

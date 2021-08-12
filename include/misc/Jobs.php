@@ -248,4 +248,10 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
         error_log("Geocode $addr => $geom area $area");
         return [ $swlat, $swlng, $nelat, $nelng, $geom, $area ];
     }
+
+    public static function randomLocation($geom) {
+        $g = new \geoPHP();
+        $poly = $g::load($geom, 'wkt');
+
+    }
 }
