@@ -1607,17 +1607,10 @@ ORDER BY lastdate DESC;";
         }
     }
 
-    public function getPublicPostingHistory(&$rets, $msgs, $me, $myid) {
-        $fetch = [];
-
-        foreach ($rets as $ret) {
-            if ($myid && Utils::pres('fromuser', $ret) && $ret['fromuser']['id'] == $myid) {
-                $fetch[] = $ret['id'];
-            }
-        }
+    public function getPublicPostingHistory(&$rets, $msgs) {
+        $fetch = array_filter(array_column($rets, 'id'));
 
         if (count($fetch)) {
-            # For our own messages, return the posting history.
             $posts = $this->dbhr->preQuery("SELECT * FROM messages_postings WHERE msgid IN (" . implode(',', $fetch) . ") ORDER BY date ASC;", NULL, FALSE, FALSE);
 
             foreach ($rets as &$ret) {

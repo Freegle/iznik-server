@@ -66,7 +66,7 @@
           <mj-raw>{% else %}</mj-raw>
           <mj-text color="#1D6607" font-weight="bold" padding-top="0" padding-bottom="2px"><a href="#msg-{{ message.id }}">
                 {{ message.subject }}
-              </a></mj-text>
+              </a>&nbsp;<span style="font-size:8pt; color:red">New!</span></mj-text>
           <mj-raw>{% endif %}</mj-raw>
           <mj-raw>{% endfor %}</mj-raw>
           <mj-text padding-bottom="0px">

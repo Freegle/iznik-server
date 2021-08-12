@@ -705,6 +705,15 @@ class MailRouter
                                                         $ret = MailRouter::APPROVED;
                                                     }
                                                 }
+
+                                                # Record the posting of this message.
+                                                $sql = "INSERT INTO messages_postings (msgid, groupid, repost, autorepost) VALUES(?,?,?,?);";
+                                                $this->dbhm->preExec($sql, [
+                                                    $this->msg->getId(),
+                                                    $g->getId(),
+                                                    0,
+                                                    0
+                                                ]);
                                             }
                                         } else {
                                             # Not a member.  Reply to let them know.  This is particularly useful to

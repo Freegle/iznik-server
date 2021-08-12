@@ -197,7 +197,7 @@ class Digest
 
                     $atts['firstposted'] = NULL;
 
-                    if ($message['arrival'] != $atts['date']) {
+                    if (count($atts['postings']) > 1) {
                         # This message has been reposted.
                         $datetime = new \DateTime('@' . strtotime($atts['date']), $tz1);
                         $datetime->setTimezone($tz2);
@@ -215,6 +215,18 @@ class Digest
                         }
                     }
                 }
+
+                # Sort the messages so that new ones appear at the top.  This helps people who don't want to
+                # scan through the old messages.
+                usort($available, function($a, $b) {
+                    if (Utils::pres('firstposted', $a) && !Utils::pres('firstposted', $b)) {
+                        return -1;
+                    } else if (!Utils::pres('firstposted', $a) && Utils::pres('firstposted', $b)) {
+                        return 1;
+                    } else {
+                        return 0;
+                    }
+                });
 
                 # Build the array of message(s) to send.  If we are sending immediately this may have multiple,
                 # otherwise it'll just be one.
