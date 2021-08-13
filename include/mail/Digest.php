@@ -220,9 +220,9 @@ class Digest
                 # scan through the old messages.
                 usort($available, function($a, $b) {
                     if (Utils::pres('firstposted', $a) && !Utils::pres('firstposted', $b)) {
-                        return -1;
-                    } else if (!Utils::pres('firstposted', $a) && Utils::pres('firstposted', $b)) {
                         return 1;
+                    } else if (!Utils::pres('firstposted', $a) && Utils::pres('firstposted', $b)) {
+                        return -1;
                     } else {
                         return 0;
                     }
@@ -306,17 +306,6 @@ class Digest
                     }
 
                     $textsumm .= "----------------\r\n\r\n";
-
-                    # We want the reposts to appear at the bottom.
-                    uasort($available, function($a, $b) {
-                        if ($a['autoreposts'] == $b['autoreposts']) {
-                            return(0);
-                        } else if (!$a['autoreposts'] && $b['autoreposts']) {
-                            return(-1);
-                        } else {
-                            return(1);
-                        }
-                    });
 
                     foreach ($available as $msg) {
                         $replyto = "replyto-{$msg['id']}-{{replyto}}@" . USER_DOMAIN;
