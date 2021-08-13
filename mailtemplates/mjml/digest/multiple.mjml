@@ -66,7 +66,7 @@
           <mj-raw>{% else %}</mj-raw>
           <mj-text color="#1D6607" font-weight="bold" padding-top="0" padding-bottom="2px"><a href="#msg-{{ message.id }}">
                 {{ message.subject }}
-              </a>&nbsp;<span style="font-size:8pt; color:red">New!</span></mj-text>
+              </a>&nbsp;<span style="font-size:8pt; color:red">New listing</span></mj-text>
           <mj-raw>{% endif %}</mj-raw>
           <mj-raw>{% endfor %}</mj-raw>
           <mj-text padding-bottom="0px">
@@ -81,7 +81,7 @@
           <mj-raw>{% if message.firstposted is defined and message.firstposted %}</mj-raw>
           <mj-text padding-top="0" padding-bottom="0px" color="#1D6607" font-size="18px" line-height="1.25">{{ message.subject }}&nbsp;<span style="font-size:10pt; color: grey">First posted&nbsp;{{ message.firstposted }}</span></mj-text>
           <mj-raw>{% else %}</mj-raw>
-          <mj-text padding-top="0" padding-bottom="0px" color="#1D6607" font-size="18px" line-height="1.25">{{ message.subject }}</mj-text>
+          <mj-text padding-top="0" padding-bottom="0px" color="#1D6607" font-size="18px" line-height="1.25">{{ message.subject }}&nbsp;<span style="font-size:8pt; color:red">New listing</span></mj-text>
           <mj-raw>{% endif %}</mj-raw>
         </mj-column>
       </mj-section>
