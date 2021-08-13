@@ -81,7 +81,7 @@
           <mj-raw>{% if message.firstposted is defined and message.firstposted %}</mj-raw>
           <mj-text padding-top="0" padding-bottom="0px" color="#1D6607" font-size="18px" line-height="1.25">{{ message.subject }}&nbsp;<span style="font-size:10pt; color: grey">First posted&nbsp;{{ message.firstposted }}</span></mj-text>
           <mj-raw>{% else %}</mj-raw>
-          <mj-text padding-top="0" padding-bottom="0px" color="#1D6607" font-size="18px" line-height="1.25">{{ message.subject }}&nbsp;<span style="font-size:8pt; color:red">New listing</span></mj-text>
+          <mj-text padding-top="0" padding-bottom="0px" color="#1D6607" font-size="18px" line-height="1.25">{{ message.subject }}&nbsp;<span style="font-size:10pt; color: red">New listing</span></mj-text>
           <mj-raw>{% endif %}</mj-raw>
         </mj-column>
       </mj-section>
