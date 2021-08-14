@@ -52,7 +52,21 @@
               	{{ message|raw }}
               {% endautoescape %}
             </mj-text>
-            <mj-button href="http://www.ilovefreegle.org" background-color="#61AE24" font-size="12pt">Freegle something!</mj-button>
+            <mj-raw>
+            {% if review %}
+            </mj-raw>
+            <mj-button href="https://modtools.org/modtools/settings" background-color="#61AE24" font-size="12pt">Edit message</mj-button>
+            <mj-text>
+            On your Settings page on Modtools please select "Community" at the top, and then your group from the drop down list. Click on
+            "How it looks" and edit the Welcome message before clicking the Save button.
+            </mj-text>
+            <mj-raw>
+            {% else %}
+            </mj-raw>
+            <mj-button href="https://www.ilovefreegle.org" background-color="#61AE24" font-size="12pt">Freegle something!</mj-button>
+            <mj-raw>
+            {% endif %}
+            </mj-raw>
           </mj-column>
         </mj-section>
         <mj-section background-color="#E0E0E0">
