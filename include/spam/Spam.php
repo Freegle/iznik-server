@@ -113,9 +113,6 @@ class Spam {
 
             # Now see if this IP has been used for too many different users.  That is likely to
             # be someone masquerading to fool people.
-            #
-            # Should check address, but we don't yet have the canonical address so will be fooled by FBUser
-            # TODO
             $sql = "SELECT fromname FROM messages_history WHERE fromip = ? GROUP BY fromname;";
             $users = $this->dbhr->preQuery($sql, [$ip]);
             $numusers = count($users);
@@ -180,6 +177,19 @@ class Spam {
         foreach ($counts as $count) {
             if ($count['count'] >= Spam::GROUP_THRESHOLD) {
                 return (array(true, Spam::REASON_BULK_VOLUNTEER_MAIL, "Warning - " . $msg->getEnvelopefrom() . " mailed {$count['count']} group volunteer addresses recently"));
+            }
+        }
+
+        # Now check if this subject line has been used in mails to lots of owners recently.
+        $sql = "SELECT COUNT(*) AS count FROM messages WHERE subject LIKE ? and envelopeto LIKE '%-volunteers@" . GROUP_DOMAIN . "' AND arrival >= '" . date("Y-m-d H:i:s", strtotime("24 hours ago")) . "'";
+        $counts = $this->dbhr->preQuery($sql, [
+            $msg->getSubject()
+        ]);
+
+        foreach ($counts as $count) {
+            if ($count['count'] >= Spam::GROUP_THRESHOLD) {
+                mail("log@ehibbert.org.uk", "Spam subject", "Warning - subject " . $msg->getSubject() . " mailed to {$count['count']} group volunteer addresses recently", [], '-fnoreply@modtools.org');
+                return (array(true, Spam::REASON_BULK_VOLUNTEER_MAIL, "Warning - subject " . $msg->getSubject() . " mailed to {$count['count']} group volunteer addresses recently"));
             }
         }
 
