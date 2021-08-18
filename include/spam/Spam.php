@@ -188,7 +188,7 @@ class Spam {
 
         foreach ($counts as $count) {
             if ($count['count'] >= Spam::GROUP_THRESHOLD) {
-                mail("log@ehibbert.org.uk", "Spam subject", "Warning - subject " . $msg->getSubject() . " mailed to {$count['count']} group volunteer addresses recently", [], '-fnoreply@modtools.org');
+                mail("log@ehibbert.org.uk", "Spam subject " . $msg->getSubject(), "Warning - subject " . $msg->getSubject() . " mailed to {$count['count']} group volunteer addresses recently", [], '-fnoreply@modtools.org');
                 return (array(true, Spam::REASON_BULK_VOLUNTEER_MAIL, "Warning - subject " . $msg->getSubject() . " mailed to {$count['count']} group volunteer addresses recently"));
             }
         }
