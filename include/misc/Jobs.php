@@ -43,7 +43,7 @@ class Jobs {
             $categoryq = $category ? (" AND category = " . $this->dbhr->quote($category)) : '';
 
             # We use ST_Within because that takes advantage of the spatial index, whereas ST_Intersects does not.
-            $alreadyq = count($got) ? (" AND jobs.id NOT IN (" . implode(',', $got) . ") ") : '';
+            $alreadyq = count($got) ? (" AND jobs.id NOT IN (" . implode(',', array_keys($got)) . ") ") : '';
 
             $sql = "SELECT $ambit AS ambit, 
        ST_Distance(geometry, ST_GeomFromText('POINT($lng $lat)', {$this->dbhr->SRID()})) AS dist,
