@@ -57,6 +57,7 @@ class changesAPITest extends IznikAPITestCase
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
+        # Post a messag to show up.
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'action' => 'Outcome',
@@ -66,9 +67,21 @@ class changesAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
 
+        # Rate someone to show up.
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+        $u->rate($uid, $uid2, User::RATING_UP);
+        $this->waitBackground();
+
+        # Fake the rating visible.
+        $this->dbhm->preExec("UPDATE ratings SET visible = 1 WHERE ratee = ?;", [
+            $uid2
+        ]);
+        # Fake a partner session to get the rating sreturned.
+        $_SESSION['partner'] = TRUE;
+
         $ret = $this->call('changes', 'GET', []);
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['changes']['messages'][0]['id']);
-
-        }
+        assertEquals(1, count($ret['changes']['ratings']));
+    }
 }

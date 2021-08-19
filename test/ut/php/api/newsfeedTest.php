@@ -34,6 +34,9 @@ class newsfeedAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
         $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'TV13%';");
 
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create("testgroup1", Group::GROUP_REUSE);
+
         $l = new Location($this->dbhr, $this->dbhm);
         $this->areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))', 0);
         $areaatts = $l->getPublic();
@@ -44,9 +47,11 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->user = User::get($this->dbhr, $this->dbhm);
         $this->uid = $this->user->create(NULL, NULL, 'Test User');
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->user->addMembership($gid);
+        assertEquals('testgroup1', $this->user->getPublicLocation()['display']);
         $this->user->setPrivate('lastlocation', $this->fullpcid);
         $this->user->setSetting('mylocation', $areaatts);
-        assertEquals('Tuvalu Central', $this->user->getPublicLocation()['display']);
+        assertEquals('Tuvalu Central, testgroup1', $this->user->getPublicLocation()['display']);
 
         $this->user2 = User::get($this->dbhr, $this->dbhm);
         $this->uid2 = $this->user2->create(NULL, NULL, 'Test User');

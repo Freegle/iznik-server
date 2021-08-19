@@ -5878,7 +5878,8 @@ class User extends Entity
     public function getAllRatings($since) {
         $mysqltime = date("Y-m-d H:i:s", strtotime($since));
 
-        $ratings = $this->dbhr->preQuery("SELECT * FROM ratings WHERE timestamp >= ? AND visible = 1;", [
+        $sql = "SELECT * FROM ratings WHERE timestamp >= ? AND visible = 1;";
+        $ratings = $this->dbhr->preQuery($sql, [
             $mysqltime
         ]);
 
