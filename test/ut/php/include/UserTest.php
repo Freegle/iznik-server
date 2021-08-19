@@ -255,6 +255,9 @@ class userTest extends IznikTestCase {
         assertEquals($u->getRoleForGroup($group1), User::ROLE_NONMEMBER);
         assertFalse($u->isModOrOwner($group1));
 
+        // Again for coverage.
+        assertFalse($u->isModOrOwner($group1));
+
         $u->addMembership($group1, User::ROLE_MEMBER, $eid);
         assertEquals($u->getRoleForGroup($group1), User::ROLE_MEMBER);
         assertFalse($u->isModOrOwner($group1));
@@ -1490,7 +1493,7 @@ class userTest extends IznikTestCase {
         assertEquals(1, count($atts['emailhistory']));
     }
 
-    public function testPurgedUserLogs() {
+    public function testDeletedUserLogs() {
         $u = User::get($this->dbhr, $this->dbhm);
         $id1 = $u->create('Test', 'User', NULL);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -1581,13 +1584,39 @@ class userTest extends IznikTestCase {
         $settings = [
             'mylocation' => [
                 'lat' => 8.51111,
-                'lng' => 179.11111
+                'lng' => 179.11111,
             ],
         ];
 
         $u->setPrivate('settings', json_encode($settings));
         $jobs = $u->getJobAds();
         assertGreaterThan(0, count($jobs));
+    }
+
+    public function testSetPostcode() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', 'Test User');
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
+
+        $settings = [
+            'mylocation' => [
+                'lat' => 8.51111,
+                'lng' => 179.11111,
+                'type' => 'Postcode',
+                'id' => $pcid,
+                'name' => 'TV1'
+            ],
+        ];
+
+        $u->setPrivate('settings', json_encode($settings));
+        $this->waitBackground();
+        $logs = [ $uid => [ 'id' => $uid ] ];
+        $u = new User($this->dbhr, $this->dbhm);
+        $u->getPublicLogs($u, $logs, FALSE, $ctx, FALSE, TRUE);
+        $log = $this->findLog(Log::TYPE_USER, Log::SUBTYPE_POSTCODECHANGE, $logs[$uid]['logs']);
+        assertNotNull($log);
     }
 
     public function testObfuscate() {

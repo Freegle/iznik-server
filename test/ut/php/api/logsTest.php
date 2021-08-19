@@ -134,5 +134,25 @@ class logsAPITest extends IznikAPITestCase
         assertEquals(Log::SUBTYPE_RECEIVED, $ret['logs'][0]['subtype']);
         assertEquals(Log::TYPE_GROUP, $ret['logs'][1]['type']);
         assertEquals(Log::SUBTYPE_JOINED, $ret['logs'][1]['subtype']);
+
+        # Edit the message to generate a lot.
+        $m = new Message($this->dbhr, $this->dbhm, $mid);
+        $m->edit(NULL, NULL, Message::TYPE_WANTED, 'test item2', 'TV13 1HH', [], TRUE, NULL);
+        $this->waitBackground();
+
+        # Purge the editor.
+        $u = User::get($this->dbhr, $this->dbhr, $uid1);
+        $u->delete();
+
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+        $u->setPrivate('systemrole', USer::SYSTEMROLE_ADMIN);
+        $_SESSION['id'] = $uid2;
+
+        $ret = $this->call('logs', 'GET', [
+            'logtype' => 'messages',
+            'userid' => $uid1
+        ]);
+
+        assertEquals('Purged user #' . $uid1, $ret['logs'][0]['user']['displayname']);
     }
 }

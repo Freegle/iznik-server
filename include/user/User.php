@@ -1213,7 +1213,10 @@ class User extends Entity
     public function isModOrOwner($groupid)
     {
         # Very frequently used.  Cache in session.
-        if (session_status() !== PHP_SESSION_NONE && array_key_exists('modorowner', $_SESSION) && array_key_exists($this->id, $_SESSION['modorowner']) && array_key_exists($groupid, $_SESSION['modorowner'][$this->id])) {
+        if (session_status() !== PHP_SESSION_NONE &&
+            array_key_exists('modorowner', $_SESSION) &&
+            array_key_exists($this->id, $_SESSION['modorowner']) &&
+            array_key_exists($groupid, $_SESSION['modorowner'][$this->id])) {
             #error_log("{$this->id} group $groupid cached");
             return ($_SESSION['modorowner'][$this->id][$groupid]);
         } else {

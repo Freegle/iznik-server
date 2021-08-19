@@ -409,7 +409,19 @@ class chatRoomsAPITest extends IznikAPITestCase
         list ($rid, $blocked) = $r->createConversation($uid1, $uid2);
         assertNull($rid);
         assertTrue($blocked);
+
+        # Ban should show in support tools.
+        $u1->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
+        assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u1->login('testpw'));
+        $ret = $this->call('user', 'GET', [
+            'search' => $u1->getId()
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['users'][0]['bans']));
+
     }
+
 //
 //    public function testEH() {
 //        $_SESSION['id'] = 35822275;
