@@ -80,7 +80,22 @@ class itemAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertEquals($id, $ret['item']['id']);
 
-        }
+        # Typeahead = won't find due to minpop.
+        $ret = $this->call('item', 'GET', [
+            'typeahead' => 'UTTest'
+        ]);
+        error_log(var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, count($ret['items']));
+
+        $ret = $this->call('item', 'GET', [
+            'typeahead' => 'UTTest',
+            'minpop' => 0
+        ]);
+        error_log(var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+        assertEquals($id, $ret['items'][0]['id']);
+    }
 
     public function testPatch() {
         assertTrue($this->user->login('testpw'));

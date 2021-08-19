@@ -60,11 +60,11 @@ class Item extends Entity
         }
     }
 
-    public function typeahead($query) {
+    public function typeahead($query, $minpop = 5) {
         $ctx = NULL;
 
         # Only look for exact words to make typeahead fast.
-        $results = $this->s->search($query, $ctx, 10, NULL, NULL, TRUE, 5);
+        $results = $this->s->search($query, $ctx, 10, NULL, NULL, TRUE, $minpop);
         foreach ($results as &$result) {
             $i = new Item($this->dbhr, $this->dbhm, $result['id']);
 
@@ -73,15 +73,6 @@ class Item extends Entity
             }
         }
         return($results);
-    }
-
-    public function getWeightless() {
-        $sql = "SELECT items.id FROM items WHERE items.weight IS NULL OR items.weight = 0 IS NULL ORDER BY popularity DESC LIMIT 1;";
-        $items = $this->dbhr->preQuery($sql);
-
-        $id = count($items) == 1 ? $items[0]['id'] : NULL;
-
-        return($id);
     }
 
     public function estimateWeight() {

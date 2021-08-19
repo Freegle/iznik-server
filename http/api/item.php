@@ -10,6 +10,7 @@ function item() {
 
     $id = (Utils::presint('id', $_REQUEST, NULL));
     $typeahead = Utils::presdef('typeahead', $_REQUEST, NULL);
+    $minpop = Utils::presint('minpop', $_REQUEST, 5);
     $i = new Item($dbhr, $dbhm, $id);
 
     if ($id && $i->getId() || $_REQUEST['type'] == 'POST' || $typeahead) {
@@ -20,7 +21,7 @@ function item() {
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success',
-                        'items' => $i->typeahead(trim($typeahead))
+                        'items' => $i->typeahead(trim($typeahead), $minpop)
                     ];
                 } else {
                     $ret = [
