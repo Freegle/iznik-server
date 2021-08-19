@@ -5207,6 +5207,8 @@ $mq", [
     }
 
     public function updateSpatialIndex() {
+        $count = 0;
+
         $mysqltime = date("Y-m-d", strtotime(MessageCollection::RECENTPOSTS));
 
         # Add/update messages which are recent or have changed location or group or been reposted.
@@ -5232,6 +5234,7 @@ $mq", [
                 $msg['msgtype'],
                 $msg['arrival']
             ]);
+            $count++;
         }
 
         # Update any message outcomes.
@@ -5246,18 +5249,21 @@ $mq", [
                 $this->dbhm->preExec("DELETE FROM messages_spatial WHERE id = ?;", [
                     $msg['id']
                 ]);
+                $count++;
             } else if ($msg['outcome'] == Message::OUTCOME_TAKEN || $msg['outcome'] == Message::OUTCOME_RECEIVED) {
                 if (!$msg['successful']) {
                     error_log("{$msg['msgid']} taken or received, update");
                     $this->dbhm->preExec("UPDATE messages_spatial SET successful = 1 WHERE id = ?;", [
                         $msg['id']
                     ]);
+                    $count++;
                 }
             } else if ($msg['successful']) {
                 error_log("{$msg['msgid']} no longer taken or received, update");
                 $this->dbhm->preExec("UPDATE messages_spatial SET successful = 0 WHERE id = ?;", [
                     $msg['id']
                 ]);
+                $count++;
             }
         }
 
@@ -5270,6 +5276,7 @@ $mq", [
             $this->dbhm->preExec("DELETE FROM messages_spatial WHERE id = ?;", [
                 $msg['id']
             ]);
+            $count++;
         }
 
         # Remove any messages which are now old.
@@ -5283,6 +5290,7 @@ $mq", [
             $this->dbhm->preExec("DELETE FROM messages_spatial WHERE id = ?;", [
                 $msg['id']
             ]);
+            $count++;
         }
 
         # Remove any messages which are no longer in Approved.  This can happen (e.g. for edits).
@@ -5297,7 +5305,10 @@ $mq", [
             $this->dbhm->preExec("DELETE FROM messages_spatial WHERE id = ?;", [
                 $msg['id']
             ]);
+            $count++;
         }
+
+        return $count;
     }
 
     public function addBy($userid, $count) {

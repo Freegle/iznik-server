@@ -83,7 +83,7 @@ define('WHATJOBS_DUMP', 'zzzz');
 define('BRITEVERIFY_PRIVATE_KEY', 'zzzz');
 
 define('SERVER_LIST', '');
-define('GEOCODER', 'zzzz');
+define('GEOCODER', 'geocode.ilovefreegle.org');
 
 # We use beanstalk for backgrounding.
 define('PHEANSTALK_SERVER', '127.0.0.1');

@@ -690,8 +690,7 @@ class messagesTest extends IznikAPITestCase {
         assertEquals(0, count($msgs));
 
         # Index
-        $m = new Message($this->dbhr, $this->dbhm);
-        $m->updateSpatialIndex();
+        assertEquals(1, $m->updateSpatialIndex());
 
         $ret = $this->call('messages', 'GET', [
             'subaction' => 'inbounds',
@@ -705,6 +704,43 @@ class messagesTest extends IznikAPITestCase {
         assertEquals(1, count($msgs));
         assertEquals($id, $msgs[0]['id']);
 
+        # Few more spatial indexing tests
+        $m->mark(Message::OUTCOME_TAKEN, "Thanks", User::HAPPY, NULL);
+        assertEquals(1, $m->updateSpatialIndex());
+        $this->dbhm->preExec("DELETE FROM messages_outcomes WHERE msgid = ?;", [
+            $id
+        ]);
+        assertEquals(1, $m->updateSpatialIndex());
+
+        $m->mark(Message::OUTCOME_WITHDRAWN, "Soz", User::HAPPY, NULL);
+        assertEquals(1, $m->updateSpatialIndex());
+        $this->dbhm->preExec("DELETE FROM messages_outcomes WHERE msgid = ?;", [
+            $id
+        ]);
+        assertEquals(1, $m->updateSpatialIndex());
+
+        $this->dbhm->preExec("UPDATE messages_groups SET arrival = '2001-01-01' WHERE msgid = ?", [
+            $id
+        ]);
+        assertEquals(1, $m->updateSpatialIndex());
+        $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW() WHERE msgid = ?", [
+            $id
+        ]);
+        assertEquals(1, $m->updateSpatialIndex());
+
+        $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ?", [
+            MessageCollection::PENDING,
+            $id
+        ]);
+        assertEquals(1, $m->updateSpatialIndex());
+        $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ?", [
+            MessageCollection::APPROVED,
+            $id
+        ]);
+        assertEquals(1, $m->updateSpatialIndex());
+
+        $m->delete();
+        assertEquals(1, $m->updateSpatialIndex());
     }
 
     public function testMyGroups() {

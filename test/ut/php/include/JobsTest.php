@@ -46,4 +46,17 @@ class jobsTest extends IznikTestCase
             assertGreaterThanOrEqual(0, $j->clickability($job['id']));
         }
     }
+
+    public function testGeoCode() {
+        list ($swlat, $swlng, $nelat, $nelng, $geom, $area) = Jobs::geocode('Dunsop Bridge', FALSE, TRUE);
+        assertEquals(53.9585066, $swlat);
+        assertEquals(-2.5658671, $swlng);
+        assertEquals(53.9567612, $nelat);
+        assertEquals(-2.5633336, $nelng);
+        list ($swlat, $swlng, $nelat, $nelng, $geom, $area) = Jobs::geocode('Dunsop Bridge', TRUE, TRUE);
+        assertEquals(53.9445729, $swlat);
+        assertEquals(-2.5185855, $swlng);
+        assertEquals(53.9455729, $nelat);
+        assertEquals(-2.5175855, $nelng);
+    }
 }
