@@ -860,7 +860,7 @@ class messageTest extends IznikTestCase {
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $m->save();
         $atts = $m->getAttachments();
-        assertEquals(1, count($atts));
+        assertEquals(2, count($atts));
         $m->delete();
 
         }
