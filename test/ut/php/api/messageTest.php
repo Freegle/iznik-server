@@ -681,6 +681,14 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
 
+        $this->waitBackground();
+        $ctx = NULL;
+        $logs = [ $senduser => [ 'id' => $senduser ] ];
+        $u = new User($this->dbhr, $this->dbhm);
+        $u->getPublicLogs($u, $logs, FALSE, $ctx, FALSE, TRUE);
+        $log = $this->findLog(Log::TYPE_MESSAGE, Log::SUBTYPE_REPOST, $logs[$uid]['logs']);
+        assertNotNull($log);
+
         # Check it's a draft.  Have to be logged in to see that.
         $this->log("Check draft");
         $ret = $this->call('messages', 'GET', [
@@ -2435,9 +2443,16 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(1, $this->dbhm->rowsAffected());
         assertEquals(0, $m->processIntendedOutcomes($id));
 
-        $m->delete("UT delete");
+        $this->waitBackground();
+        $ctx = NULL;
+        $logs = [ $uid => [ 'id' => $uid ] ];
+        $u = new User($this->dbhr, $this->dbhm);
+        $u->getPublicLogs($u, $logs, FALSE, $ctx, TRUE, TRUE);
+        $log = $this->findLog(Log::TYPE_MESSAGE, Log::SUBTYPE_REPOST, $logs[$uid]['logs']);
+        assertNotNull($log);
 
-        }
+        $m->delete("UT delete");
+    }
 
     public function testChatSource()
     {

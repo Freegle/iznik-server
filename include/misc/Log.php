@@ -59,6 +59,7 @@ class Log
     const SUBTYPE_UNBOUNCE = 'Unbounce';
     const SUBTYPE_WORRYWORDS = 'WorryWords';
     const SUBTYPE_POSTCODECHANGE = 'PostcodeChange';
+    const SUBTYPE_REPOST = 'Repost';
     
     const LOG_USER_CACHE_SIZE = 1000;
 

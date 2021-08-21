@@ -4327,6 +4327,14 @@ WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND message
 
                         if ($rc) {
                             $rollback = FALSE;
+
+                            # Repost started.
+                            $this->log->log([
+                                                'type' => Log::TYPE_MESSAGE,
+                                                'subtype' => Log::SUBTYPE_REPOST,
+                                                'msgid' => $this->id,
+                                                'user' => $this->getFromuser()
+                                            ]);
                         }
                     }
                 }
@@ -4922,6 +4930,15 @@ $mq", [
                 $this->s->bump($this->id, time());
                 $ret = MessageCollection::APPROVED;
             }
+
+            # Repost started (and finished, as it happens).
+            $this->log->log([
+                                'type' => Log::TYPE_MESSAGE,
+                                'subtype' => Log::SUBTYPE_REPOST,
+                                'msgid' => $this->id,
+                                'groupid' => $group['groupid'],
+                                'user' => $this->getFromuser()
+                            ]);
         }
 
         # Record that we've done this.
