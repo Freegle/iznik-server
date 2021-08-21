@@ -37,9 +37,6 @@ $nogeocode = 0;
 
 $j = new Jobs($dbhr, $dbhm);
 $maxish = $j->getMaxish();
-$seen = [];
-$insertsql = '';
-$batchcount = 100;
 
 while ($node = $streamer->getNode()) {
     $job = simplexml_load_string($node);
@@ -110,11 +107,11 @@ while ($node = $streamer->getNode()) {
                     }
                 }
 
-                $badCities = [ 'not specified', 'null', 'home based', 'united kingdom' ];
-                if (!$geom && $job->city && strlen(trim($job->city)) && !in_array(trim($job->city), $badCities)) {
+                $badCities = [ 'not specified', 'null', 'home based', 'united kingdom', ', , united kingdom' ];
+                if (!$geom && $job->city && strlen(trim($job->city)) && !in_array(strtolower(trim($job->city)), $badCities)) {
                     # We have not managed anything from the state.  Try just the city.  This will lead to some being
                     # wrong, but that's life.
-                    error_log("State no use");
+                    error_log("State no use, use city {$job->city}");
                     list ($swlat, $swlng, $nelat, $nelng, $geom, $area) = Jobs::geocode($job->city, TRUE, FALSE);
 
                     if ($area > 50) {
@@ -149,8 +146,10 @@ while ($node = $streamer->getNode()) {
                             $clickability = $j->clickability(NULL, html_entity_decode($title), $maxish);
                         }
 
-                        $batchcount++;
-                        $insertsql .= "REPLACE INTO jobs (location, title, city, state, zip, country, job_type, posted_at, job_reference, company, mobile_friendly_apply, category, html_jobs, url, body, cpc, geometry, clickability, bodyhash, seenat, visible) VALUES (" .
+                        # We do no batching, because we have seen issues with deadlocks and long semaphore waits.
+                        # Inserting each job individually is slower, but less likely to create deadlocks because
+                        # the implicit transaction only affects one row.
+                        $dbhm->preExec("REPLACE INTO jobs (location, title, city, state, zip, country, job_type, posted_at, job_reference, company, mobile_friendly_apply, category, html_jobs, url, body, cpc, geometry, clickability, bodyhash, seenat, visible) VALUES (" .
                             ($job->location ? $dbhm->quote(html_entity_decode($job->location)) : 'NULL') . ", " .
                             $dbhm->quote($title) . ", " .
                             ($job->city ? $dbhm->quote(html_entity_decode($job->city)) : 'NULL') . ", " .
@@ -170,12 +169,7 @@ while ($node = $streamer->getNode()) {
                             "ST_GeomFromText('$geom', {$dbhr->SRID()}), " .
                             $clickability . "," .
                             $dbhm->quote(md5(substr($job->body, 0, 256))) . ", " .
-                            "NOW(), 0);";
-
-                        if ($batchcount > 100) {
-                            $dbhm->preExec($insertsql);
-                            $insertsql = '';
-                        }
+                            "NOW(), 0);");
 
                         $new++;
                     } catch (\Exception $e) {
@@ -187,13 +181,11 @@ while ($node = $streamer->getNode()) {
                 }
             } else {
                 # Leave clickability untouched for speed.  That means it'll be a bit wrong, but wrong values will
-                # age out.
-                $seen[] = $existings[0]['id'];
-
-                if (count($seen) > 100) {
-                    $dbhm->background("UPDATE jobs SET seenat = NOW() WHERE id IN (" . implode(',', $seen) . ");");
-                    $seen = [];
-                }
+                # age out.  Don't background this so that we remain single-threaded on updates to the jobs table -
+                # see comment above about deadlocks.
+                $dbhm->preExec("UPDATE jobs SET seenat = NOW() WHERE id = ?;", [
+                    $existings[0]['id']
+                ]);
             }
         }
     } else {
@@ -205,14 +197,6 @@ while ($node = $streamer->getNode()) {
     if ($count % 1000 === 0) {
         error_log(date("Y-m-d H:i:s", time()) . "...processing $count");
     }
-}
-
-if ($insertsql) {
-    $dbhm->preExec($insertsql);
-}
-
-if (count($seen)) {
-    $dbhm->preExec("UPDATE jobs SET seenat = NOW() WHERE id IN (" . implode(',', $seen) . ");");
 }
 
 # There are some "spammy" jobs which are posted with identical descriptions across the UK.  They feel scuzzy, so
