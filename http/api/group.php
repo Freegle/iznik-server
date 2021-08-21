@@ -198,7 +198,7 @@ function group() {
                                 $g->setPrivate($att, json_encode($val));
                             }
                         }
-                        foreach (['tagline', 'namefull', 'welcomemail', 'description', 'region', 'affiliationconfirmed'] as $att) {
+                        foreach (['tagline', 'namefull', 'welcomemail', 'description', 'region', 'affiliationconfirmed', 'mentored'] as $att) {
                             $val = Utils::presdef($att, $_REQUEST, NULL);
                             if (array_key_exists($att, $_REQUEST) && $val != "1") {
                                 $g->setPrivate($att, $val);
@@ -211,7 +211,7 @@ function group() {
 
                         # Other support-settable attributes
                         if ($me->isAdminOrSupport()) {
-                            foreach (['publish', 'licenserequired', 'lat', 'lng', 'mentored'] as $att) {
+                            foreach (['publish', 'licenserequired', 'lat', 'lng'] as $att) {
                                 $val = Utils::presdef($att, $_REQUEST, NULL);
                                 if (array_key_exists($att, $_REQUEST)) {
                                     $g->setPrivate($att, $val);
