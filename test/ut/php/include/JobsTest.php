@@ -59,4 +59,27 @@ class jobsTest extends IznikTestCase
         assertEquals(53.9455729, $nelat);
         assertEquals(-2.5175855, $nelng);
     }
+
+    public function testScanTOCSV() {
+        $this->dbhm->preExec("DELETE FROM jobs WHERE job_reference = ?;", [
+            '12726_9694085'
+        ]);
+
+        $j = new Jobs($this->dbhr, $this->dbhm);
+        $csvFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'jobs.csv';
+        $j->scanToCSV(IZNIK_BASE . '/test/ut/php/misc/jobs.xml', $csvFile, PHP_INT_MAX, TRUE, 0);
+        $j->loadCSV($csvFile);
+        $found = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM jobs_new WHERE job_reference = ?;", [
+            '12726_9694085'
+        ]);
+        assertEquals(1, $found[0]['count']);
+
+        $j->deleteSpammyJobs();
+        $j->swapTables();
+
+        $found = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM jobs WHERE job_reference = ?;", [
+            '12726_9694085'
+        ]);
+        assertEquals(1, $found[0]['count']);
+    }
 }
