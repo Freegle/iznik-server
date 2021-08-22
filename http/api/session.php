@@ -190,6 +190,15 @@ function session() {
                         }
                     }
 
+                    if ($components && in_array('openposts', $components)) {
+                        $me = $me ? $me : Session::whoAmI($dbhm, $dbhm);
+
+                        if ($me) {
+                            $m = new MessageCollection($dbhr, $dbhm);
+                            $ret['me']['openposts'] = $m->countMyPostsOpen();
+                        }
+                    }
+
                     if (!$components || in_array('groups', $components) || in_array('work', $components)) {
                         # Get groups including work when we're on ModTools; don't need that on the user site.
                         $u = new User($dbhr, $dbhm);

@@ -71,6 +71,23 @@ class MessageCollection
         }
     }
 
+    function countMyPostsOpen() {
+        $ret = 0;
+
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
+
+        if ($me) {
+            // messages_spatial is fast and fairly up to date.
+            $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_spatial ON messages_spatial.msgid = messages.id WHERE fromuser = ?;", [
+                $me->getId()
+            ]);
+
+            $ret = $counts[0]['count'];
+        }
+
+        return $ret;
+    }
+
     function get(&$ctx, $limit, $groupids, $userids = NULL, $types = NULL, $age = NULL, $hasoutcome = NULL, $summary = FALSE)
     {
         $backstop = 1000;

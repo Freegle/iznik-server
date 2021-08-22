@@ -1253,8 +1253,17 @@ class messageAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
 
-        # Now log in as the member and edit the message.
+        # Now log in as the member.  Should show in our count.
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->updateSpatialIndex();
         assertTrue($member->login('testpw'));
+        $ret = $this->call('session', 'GET', [
+            'components' => [ 'openposts' ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, $ret['me']['openposts']);
+
+        # Edit the message.
 
         $ret = $this->call('message', 'PATCH', [
             'id' => $mid,
