@@ -466,6 +466,7 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
     public function loadCSV($csv) {
         $this->dbhm->preExec("DROP TABLE IF EXISTS jobs_new;");
         $this->dbhm->preExec("CREATE TABLE jobs_new LIKE jobs;");
+        $this->dbhm->preExec("SET GLOBAL local_infile=1;");
         $this->dbhm->preExec("LOAD DATA LOCAL INFILE '$csv' INTO TABLE jobs_new
             CHARACTER SET latin1
             FIELDS TERMINATED BY ',' 
@@ -497,7 +498,6 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
 
     public function swapTables() {
         # We want to swap the jobs_new table with the jobs table, atomically.
-        $this->dbhm->preExec("SET GLOBAL local_infile=1;");
         $this->dbhm->preExec("DROP TABLE IF EXISTS jobs_old;");
         $this->dbhm->preExec("RENAME TABLE jobs TO jobs_old, jobs_new TO jobs;");
         $this->dbhm->preExec("DROP TABLE IF EXISTS jobs_old;");
