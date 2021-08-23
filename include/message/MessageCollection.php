@@ -78,7 +78,7 @@ class MessageCollection
 
         if ($me) {
             // messages_spatial is fast and fairly up to date.
-            $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_spatial ON messages_spatial.msgid = messages.id WHERE fromuser = ?;", [
+            $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages INNER JOIN messages_spatial ON messages_spatial.msgid = messages.id WHERE fromuser = ? AND successful = 0;", [
                 $me->getId()
             ]);
 
