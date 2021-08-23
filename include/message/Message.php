@@ -1412,7 +1412,7 @@ ORDER BY lastdate DESC;";
 
             if (count($rets[$msg['id']]['outcomes']) === 0) {
                 # No outcomes - but has it expired?  Need to check the groups though - it might be reposted later, in
-                # which case the time on messages_groups is bumped whereas the message arrival time is the same..
+                # which case the time on messages_groups is bumped whereas the message arrival time is the same.
                 foreach ($rets[$msg['id']]['groups'] as $group) {
                     $grouparrival = strtotime($group['arrival']);
                     $grouparrivalago = floor((time() - $grouparrival) / 86400);
