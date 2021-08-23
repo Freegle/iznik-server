@@ -749,7 +749,10 @@ class Newsfeed extends Entity
             # We return most recent first.
             $first = $dist ? ("(MBRContains($box, position) OR `type` IN ('" . Newsfeed::TYPE_CENTRAL_PUBLICITY . "', '" . Newsfeed::TYPE_ALERT . "')) AND") : '';
 
-            $sql = "SELECT COUNT(DISTINCT(newsfeed.id)) AS count FROM newsfeed LEFT JOIN newsfeed_unfollow ON newsfeed.id = newsfeed_unfollow.newsfeedid AND newsfeed_unfollow.userid = $userid LEFT JOIN newsfeed_users ON newsfeed_users.newsfeedid = newsfeed.id AND newsfeed_users.userid = $userid WHERE newsfeed.id > $last AND $first replyto IS NULL AND newsfeed.userid != $userid AND hidden IS NULL AND deleted IS NULL;";
+            # Only recent.
+            $mysqltime = date ("Y-m-d", strtotime("Midnight 7 days ago"));
+
+            $sql = "SELECT COUNT(DISTINCT(newsfeed.id)) AS count FROM newsfeed LEFT JOIN newsfeed_unfollow ON newsfeed.id = newsfeed_unfollow.newsfeedid AND newsfeed_unfollow.userid = $userid LEFT JOIN newsfeed_users ON newsfeed_users.newsfeedid = newsfeed.id AND newsfeed_users.userid = $userid WHERE newsfeed.id > $last AND $first replyto IS NULL AND newsfeed.userid != $userid AND hidden IS NULL AND deleted IS NULL AND newsfeed.timestamp >= '$mysqltime';";
 
             # Don't return too many otherwise it's off-putting.
             $count = min(10, $this->dbhr->preQuery($sql)[0]['count']);
