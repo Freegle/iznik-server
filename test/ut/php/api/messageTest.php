@@ -3192,6 +3192,48 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(6, $ret['ret']);
     }
 
+    public function testJoinPostLoggedInNoEmail() {
+        $email1 = 'test-' . rand() . '@blackhole.io';
+
+        # Create a user with email1
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid1 = $u->create('Test', 'User', 'Test User');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+        $u->addEmail($email1);
+
+        $this->group->setPrivate('lat', 8.5);
+        $this->group->setPrivate('lng', 179.3);
+        $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
+        $this->group->setPrivate('publish', 1);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'groupid' => $this->gid,
+            'textbody' => 'Text body'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+        $this->log("Created draft $id");
+
+        # Submit the post.  Should work as we are logged in.
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'JoinAndPost',
+            'ignoregroupoverride' => true
+        ]);
+
+        $this->log("Message #$id should be pending " . var_export($ret, TRUE));
+        assertEquals(0, $ret['ret']);
+    }
+
     public function testRepost() {
         # Create a group with a message on it
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);

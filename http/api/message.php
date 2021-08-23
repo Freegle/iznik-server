@@ -457,8 +457,21 @@ function message() {
 
                                     # Now we know which group we'd like to post on.  Make sure we have a user set up.
                                     $email = Utils::presdef('email', $_REQUEST, NULL);
+
                                     $u = User::get($dbhr, $dbhm);
-                                    $uid = $u->findByEmail($email);
+
+                                    if (!$email) {
+                                        # The client ought to provide one.  But if they don't and we're logged in
+                                        # then we can use ours.
+                                        $me = Session::whoAmI($dbhr, $dbhm);
+
+                                        if ($me) {
+                                            $uid = $me->getId();
+                                            $email = $me->getEmailPreferred();
+                                        }
+                                    } else {
+                                        $uid = $u->findByEmail($email);
+                                    }
 
                                     $ret = ['ret' => 5, 'status' => 'Failed to create user or email'];
 
