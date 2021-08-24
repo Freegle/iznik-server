@@ -775,8 +775,6 @@ class sessionTest extends IznikAPITestCase
         assertGreaterThan(0, $u3->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u3->login('testpw'));
 
-        error_log("USers $id1, $id2 mod $id3");
-
         $ret = $this->call('session', 'GET', [
             'components' => [
                 'work'
