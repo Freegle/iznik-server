@@ -27,6 +27,10 @@ class sessionTest extends IznikAPITestCase
         $this->dbhm->preExec("DELETE FROM users_push_notifications WHERE `type` = 'Test';");
     }
 
+    public function tearDown()
+    {
+    }
+
     public function sendMock($mailer, $message)
     {
         $this->msgsSent[] = $message->toString();
@@ -739,6 +743,69 @@ class sessionTest extends IznikAPITestCase
         }
 
         assertTrue($found);
+    }
+
+    public function testRelatedWork() {
+        // Create two related members on a group.
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup1', Group::GROUP_REUSE);
+
+        $u1 = User::get($this->dbhm, $this->dbhm);
+        $id1 = $u1->create('Test', 'User', NULL);
+        $u1->addMembership($gid);
+        assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u1->login('testpw'));
+
+        $u2 = User::get($this->dbhm, $this->dbhm);
+        $id2 = $u1->create('Test', 'User', NULL);
+        $u1->addMembership($gid);
+        assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+
+        $ret = $this->call('session', 'POST', [
+            'action' => 'Related',
+            'userlist' => [ $id1, $id2 ]
+        ]);
+
+        $this->waitBackground();
+
+        // Create a mod.
+        $u3 = User::get($this->dbhm, $this->dbhm);
+        $id3 = $u3->create('Test', 'User', NULL);
+        $u3->addMembership($gid, User::ROLE_MODERATOR);
+        assertGreaterThan(0, $u3->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u3->login('testpw'));
+
+        error_log("USers $id1, $id2 mod $id3");
+
+        $ret = $this->call('session', 'GET', [
+            'components' => [
+                'work'
+            ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, $ret['work']['relatedmembers']);
+
+        // Mods shouldn't count.
+        $u1->setPrivate('systemrole', User::ROLE_MODERATOR);
+
+        $ret = $this->call('session', 'GET', [
+            'components' => [
+                'work'
+            ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, $ret['work']['relatedmembers']);
+
+        // Forget the user - shouldn't show in work.
+        $u1->forget('UT');
+
+        $ret = $this->call('session', 'GET', [
+            'components' => [
+                'work'
+            ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, $ret['work']['relatedmembers']);
     }
 
     public function testTwitter() {

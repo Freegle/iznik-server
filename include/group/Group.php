@@ -383,24 +383,22 @@ GROUP BY memberships.groupid, held;
             $relatedsql = "SELECT COUNT(*) AS count, groupid FROM (
 SELECT user1, memberships.groupid, (SELECT COUNT(*) FROM users_logins WHERE userid = memberships.userid) AS logincount FROM users_related
 INNER JOIN memberships ON users_related.user1 = memberships.userid
-INNER JOIN users u1 ON users_related.user1 = u1.id AND u1.deleted IS NULL AND u1.systemrole = 'User'
+INNER JOIN users u1 ON users_related.user1 = u1.id AND u1.deleted IS NULL AND u1.systemrole = 'User' AND u1.deleted IS NULL 
+INNER JOIN users u2 ON users_related.user2 = u2.id AND u2.deleted IS NULL AND u2.systemrole = 'User' AND u2.deleted IS NULL 
 WHERE
 user1 < user2 AND
 notified = 0 AND
-memberships.groupid IN $groupq AND
-u1.deleted IS NULL AND
-u1.systemrole = 'User'      
+memberships.groupid IN $groupq 
 HAVING logincount > 0
 UNION
 SELECT user1, memberships.groupid, (SELECT COUNT(*) FROM users_logins WHERE userid = memberships.userid) AS logincount FROM users_related
 INNER JOIN memberships ON users_related.user2 = memberships.userid
-INNER JOIN users u2 ON users_related.user2 = u2.id AND u2.deleted IS NULL AND u2.systemrole = 'User'
+INNER JOIN users u3 ON users_related.user2 = u3.id AND u3.deleted IS NULL AND u3.systemrole = 'User' AND u3.deleted IS NULL
+INNER JOIN users u4 ON users_related.user1 = u4.id AND u4.deleted IS NULL AND u4.systemrole = 'User' AND u4.deleted IS NULL
 WHERE
 user1 < user2 AND
 notified = 0 AND
-memberships.groupid IN $groupq AND
-u2.deleted IS NULL AND
-u2.systemrole = 'User'      
+memberships.groupid IN $groupq 
 HAVING logincount > 0 
 ) t GROUP BY groupid;";
             $relatedmembers = $this->dbhr->preQuery($relatedsql, NULL, FALSE, FALSE);
