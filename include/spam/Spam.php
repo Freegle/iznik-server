@@ -638,7 +638,6 @@ class Spam {
 
         foreach ($spammers as &$spammer) {
             $spammer['user'] = $users[$spammer['userid']];
-            $preferred = NULL;
 
             $es = Utils::presdef($spammer['userid'], $emails, []);
 
@@ -690,6 +689,27 @@ class Spam {
             }
 
             $spammer['added'] = Utils::ISODate($spammer['added']);
+
+            # Add in any other users who have recently used the same IP.
+            $spammer['sameip'] = [];
+
+            $ips = $this->dbhr->preQuery("SELECT DISTINCT(ip) FROM logs_api WHERE userid = ?;", [
+                $spammer['userid']
+            ]);
+
+            foreach ($ips as $ip) {
+                $otherusers = $this->dbhr->preQuery("SELECT DISTINCT userid FROM logs_api WHERE ip = ? AND userid != ?;", [
+                    $ip['ip'],
+                    $spammer['userid']
+                ]);
+
+                foreach ($otherusers as $otheruser) {
+                    $spammer['sameip'][] = $otheruser['userid'];
+                }
+            }
+
+            $spammer['sameip'] = array_unique($spammer['sameip']);
+
             $context['id'] = $spammer['id'];
         }
 
