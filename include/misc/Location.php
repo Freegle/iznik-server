@@ -289,7 +289,7 @@ class Location extends Entity
                 # by most popular.
                 if ($limit > 0) {
                     $reg = $this->dbhr->isV8() ? ("'\\\\b', " . $this->dbhr->quote($termt) . ", '\\\\b'"): ("'[[:<:]]', " . $this->dbhr->quote($termt) . ", '[[:>:]]'");
-                    $sql = "SELECT locations.* FROM locations FORCE INDEX (gridid) $exclgroup WHERE LENGTH(name) >= " . strlen($termt) . " AND name REGEXP CONCAT($reg) AND gridid IN (" . implode(',', $gridids) . ") $exclude ORDER BY ABS(LENGTH(name) - " . strlen($term) . ") ASC, popularity DESC LIMIT $limit;";
+                    $sql = "SELECT locations.* FROM locations FORCE INDEX (gridid) $exclgroup WHERE LENGTH(name) >= " . strlen($termt) . " AND name NOT LIKE '%(%' AND name NOT LIKE '%)%' AND name NOT LIKE '%?%' AND name REGEXP CONCAT($reg) AND gridid IN (" . implode(',', $gridids) . ") $exclude ORDER BY ABS(LENGTH(name) - " . strlen($term) . ") ASC, popularity DESC LIMIT $limit;";
                     $locs = $this->dbhr->preQuery($sql);
 
                     foreach ($locs as $loc) {
@@ -306,7 +306,7 @@ class Location extends Entity
                     #
                     # We also order to find the one most similar in length.
                     $reg = $this->dbhr->isV8() ? "'\\\\b', name, '\\\\b'": "'[[:<:]]', name, '[[:>:]]'";
-                    $sql = "SELECT locations.* FROM locations $exclgroup WHERE gridid IN (" . implode(',', $gridids) . ") AND LENGTH(canon) > 2 AND LENGTH(name) >= " . strlen($termt)/2 . " AND " . $this->dbhr->quote($termt) . " REGEXP CONCAT($reg) $exclude ORDER BY ABS(LENGTH(name) - " . strlen($term) . "), GetMaxDimension(locations.geometry) ASC, popularity DESC LIMIT $limit;";
+                    $sql = "SELECT locations.* FROM locations $exclgroup WHERE gridid IN (" . implode(',', $gridids) . ") AND LENGTH(canon) > 2 AND LENGTH(name) >= " . strlen($termt)/2 . " AND name NOT LIKE '%(%' AND name NOT LIKE '%)%' AND name NOT LIKE '%?%' AND " . $this->dbhr->quote($termt) . " REGEXP CONCAT($reg) $exclude ORDER BY ABS(LENGTH(name) - " . strlen($term) . "), GetMaxDimension(locations.geometry) ASC, popularity DESC LIMIT $limit;";
                     $locs = $this->dbhr->preQuery($sql);
 
                     foreach ($locs as $loc) {
