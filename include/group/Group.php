@@ -355,16 +355,16 @@ class Group extends Entity
                 MailRouter::TO_SYSTEM
             ]);
 
-            $spammembercounts = $this->dbhr->preQuery(
-                "SELECT memberships.groupid, COUNT(*) AS count, memberships.heldby IS NOT NULL AS held FROM memberships
-WHERE reviewrequestedat IS NOT NULL AND groupid IN $groupq
+            $sql = "SELECT memberships.groupid, COUNT(*) AS count, memberships.heldby IS NOT NULL AS held FROM memberships
+LEFT JOIN spam_users ON spam_users.userid = memberships.userid AND spam_users.collection = '" . Spam::TYPE_SPAMMER . "'
+WHERE (reviewrequestedat IS NOT NULL AND (reviewedat IS NULL OR DATE(reviewedat) < CURDATE())) AND groupid IN $groupq
 GROUP BY memberships.groupid, held
 UNION
 SELECT memberships.groupid, COUNT(*) AS count, memberships.heldby IS NOT NULL AS held FROM memberships
 INNER JOIN spam_users ON spam_users.userid = memberships.userid AND spam_users.collection = '" . Spam::TYPE_SPAMMER . "'
 WHERE groupid IN $groupq
-GROUP BY memberships.groupid, held;
-", []);
+GROUP BY memberships.groupid, held;";
+            $spammembercounts = $this->dbhr->preQuery($sql, []);
 
             $pendingeventcounts = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT communityevents.id) AS count FROM communityevents INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id INNER JOIN communityevents_groups ON communityevents.id = communityevents_groups.eventid WHERE communityevents_groups.groupid IN $groupq AND communityevents.pending = 1 AND communityevents.deleted = 0 AND end >= ? GROUP BY groupid;", [
                 $eventsqltime
@@ -668,7 +668,7 @@ AND messages_outcomes.comments IS NOT NULL
 
         if (!$searchid) {
             if ($collection == MembershipCollection::SPAM) {
-                # This collection is handled separately; we use the reviewrequestedat  field.
+                # This collection is handled separately; we use the reviewrequestedat field.
                 #
                 # This is to avoid moving members into a spam collection and then having to remember whether they
                 # came from Pending or Approved.
