@@ -74,6 +74,8 @@ class logsAPITest extends IznikAPITestCase
         $u->addMembership($gid, User::ROLE_MODERATOR, NULL, MembershipCollection::APPROVED);
         assertTrue($u->login('testpw'));
 
+        $this->waitBackground();
+
         $ret = $this->call('logs', 'GET', [
             'logtype' => 'memberships',
             'logsubtype'=> Log::SUBTYPE_JOINED,
@@ -90,7 +92,6 @@ class logsAPITest extends IznikAPITestCase
         ]);
 
         assertEquals(0, $ret['ret']);
-        error_log(var_export($ret, TRUE));
         assertEquals($mid, $ret['logs'][0]['message']['id']);
 
         $ret = $this->call('logs', 'GET', [
