@@ -633,7 +633,7 @@ AND messages_outcomes.comments IS NOT NULL
         $search = preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $search, $matches) ? $matches[2] : $search;
 
         $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", $ctx['Added']));
-        $addq = $ctx == NULL ? '' : (" AND (memberships.added < $date OR (memberships.added = $date AND memberships.userid < " . $this->dbhr->quote($ctx['userid']) . ")) ");
+        $addq = $ctx == NULL ? '' : (" AND (memberships.added < $date OR (memberships.added = $date AND memberships.id < " . $this->dbhr->quote($ctx['id']) . ")) ");
         $groupq = $groupids ? " memberships.groupid IN (" . implode(',', $groupids) . ") " : " 1=1 ";
         $opsq = $ops ? (" AND memberships.ourPostingStatus = " . $this->dbhr->quote($ydt)) : '';
         $modq = '';
@@ -724,7 +724,6 @@ AND messages_outcomes.comments IS NOT NULL
             }
         } else {
             $searchq = $searchid ? (" AND memberships.userid = " . $this->dbhr->quote($searchid) . " ") : '';
-            $addq = $ctx == NULL ? '' : (" AND memberships.userid < " . $this->dbhr->quote($ctx['userid']) . " ");
             $sql = "$sqlpref WHERE $groupq $collectionq $addq $searchq $opsq $modq $bounceq";
             $sql .= " ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
             $members = $this->dbhr->preQuery($sql);
