@@ -44,7 +44,7 @@ function comment() {
                     'comment' => $u->getComment($id)
                 ];
             } else {
-                $comments = $u->listComments($ctx);
+                $comments = $u->listComments($ctx, $groupid);
 
                 $ret = [
                     'ret' => 0,
