@@ -355,15 +355,11 @@ class Group extends Entity
                 MailRouter::TO_SYSTEM
             ]);
 
+            # No need to check spam_users as those will be auto-removed by the check_spammers job (in earlier times
+            # this wasn't the case for all groups).
             $sql = "SELECT memberships.groupid, COUNT(*) AS count, memberships.heldby IS NOT NULL AS held FROM memberships
-LEFT JOIN spam_users ON spam_users.userid = memberships.userid AND spam_users.collection = '" . Spam::TYPE_SPAMMER . "'
-WHERE (reviewrequestedat IS NOT NULL AND (reviewedat IS NULL OR DATE(reviewedat) < CURDATE())) AND groupid IN $groupq
-GROUP BY memberships.groupid, held
-UNION
-SELECT memberships.groupid, COUNT(*) AS count, memberships.heldby IS NOT NULL AS held FROM memberships
-INNER JOIN spam_users ON spam_users.userid = memberships.userid AND spam_users.collection = '" . Spam::TYPE_SPAMMER . "'
-WHERE groupid IN $groupq
-GROUP BY memberships.groupid, held;";
+                    WHERE (reviewrequestedat IS NOT NULL AND (reviewedat IS NULL OR DATE(reviewedat) < CURDATE())) AND groupid IN $groupq
+                    GROUP BY memberships.groupid, held;";
             $spammembercounts = $this->dbhr->preQuery($sql, []);
 
             $pendingeventcounts = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT communityevents.id) AS count FROM communityevents INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id INNER JOIN communityevents_groups ON communityevents.id = communityevents_groups.eventid WHERE communityevents_groups.groupid IN $groupq AND communityevents.pending = 1 AND communityevents.deleted = 0 AND end >= ? GROUP BY groupid;", [
@@ -637,7 +633,7 @@ AND messages_outcomes.comments IS NOT NULL
         $search = preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $search, $matches) ? $matches[2] : $search;
 
         $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", $ctx['Added']));
-        $addq = $ctx == NULL ? '' : (" AND (memberships.added < $date OR (memberships.added = $date AND memberships.id < " . $this->dbhr->quote($ctx['id']) . ")) ");
+        $addq = $ctx == NULL ? '' : (" AND (memberships.added < $date OR (memberships.added = $date AND memberships.userid < " . $this->dbhr->quote($ctx['userid']) . ")) ");
         $groupq = $groupids ? " memberships.groupid IN (" . implode(',', $groupids) . ") " : " 1=1 ";
         $opsq = $ops ? (" AND memberships.ourPostingStatus = " . $this->dbhr->quote($ydt)) : '';
         $modq = '';
@@ -687,13 +683,24 @@ AND messages_outcomes.comments IS NOT NULL
 
         $members = [];
 
-        if ($search) {
+        if ($collection == MembershipCollection::SPAM) {
+            # Order by userid as we might have the same member subject to review on multiple groups.
+            $searchq = $searchid ? (" AND memberships.userid = " . $this->dbhr->quote($searchid) . " ") : '';
+            $addq = $ctx == NULL ? '' : (" AND memberships.userid < " . $this->dbhr->quote($ctx['userid']) . " ");
+            $sql = "$sqlpref WHERE $groupq $collectionq $addq $searchq $opsq $modq $bounceq";
+            $sql .= " ORDER BY memberships.userid DESC LIMIT $limit;";
+            $members = $this->dbhr->preQuery($sql);
+
+            # No need to check for spam_users - they will get auto-removed by check_spammers.php.
+        } else if ($search) {
             # We're searching.  It turns out to be more efficient to get the userids using the indexes, and then
             # get the rest of the stuff we need.
             $q = $this->dbhr->quote("$search%");
             $bq = $this->dbhr->quote(strrev($search) . "%");
             $p = strpos($search, ' ');
-            $namesearch = $p === FALSE ? '' : ("UNION (SELECT id FROM users WHERE firstname LIKE " . $this->dbhr->quote(substr($search, 0, $p) . '%') . " AND lastname LIKE " . $this->dbhr->quote(substr($search, $p + 1) . '%')) . ') ';
+            $namesearch = $p === false ? '' : ("UNION (SELECT id FROM users WHERE firstname LIKE " . $this->dbhr->quote(
+                        substr($search, 0, $p) . '%'
+                    ) . " AND lastname LIKE " . $this->dbhr->quote(substr($search, $p + 1) . '%')) . ') ';
 
             $sql = "(SELECT userid AS id FROM users_emails WHERE email LIKE $q) UNION
                 (SELECT userid AS id FROM users_emails WHERE backwards LIKE $bq) UNION
@@ -704,7 +711,8 @@ AND messages_outcomes.comments IS NOT NULL
             $userids = $this->dbhr->preQuery($sql);
             $ids = array_column($userids, 'id');
 
-            if (count($ids)) {
+            if (count($ids))
+            {
                 $sql = "$sqlpref 
                   INNER JOIN users ON users.id = memberships.userid 
                   LEFT JOIN users_emails ON memberships.userid = users_emails.userid 
@@ -716,21 +724,10 @@ AND messages_outcomes.comments IS NOT NULL
             }
         } else {
             $searchq = $searchid ? (" AND memberships.userid = " . $this->dbhr->quote($searchid) . " ") : '';
+            $addq = $ctx == NULL ? '' : (" AND memberships.userid < " . $this->dbhr->quote($ctx['userid']) . " ");
             $sql = "$sqlpref WHERE $groupq $collectionq $addq $searchq $opsq $modq $bounceq";
             $sql .= " ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
             $members = $this->dbhr->preQuery($sql);
-        }
-
-        if ($collection == MembershipCollection::SPAM) {
-            # Also check for known spammers on groups.  We do this in a separate query because otherwise the
-            # indexing is poor.
-            $searchq = $searchid ? (" AND memberships.userid = " . $this->dbhr->quote($searchid) . " ") : '';
-            $sql = "$sqlpref WHERE $groupq AND memberships.userid IN (SELECT userid FROM spam_users WHERE spam_users.collection = '" . Spam::TYPE_SPAMMER . "') $addq $searchq $opsq $modq $bounceq";
-            $members2 = $this->dbhr->preQuery($sql);
-
-            if (count($members2)) {
-                $members = array_unique(array_merge($members, $members2));
-            }
         }
 
         # Get the infos in a single go.
@@ -769,7 +766,11 @@ AND messages_outcomes.comments IS NOT NULL
                 $ctx['Added'] = $thisepoch;
             }
 
-            $ctx['id'] = $member['id'];
+            if ($collection == MembershipCollection::SPAM) {
+                $ctx['userid'] = array_key_exists('userid', $ctx) ? min($member['userid'], $ctx['userid']) : $member['userid'];
+            } else {
+                $ctx['id'] = array_key_exists('id', $ctx) ? min($member['id'], $ctx['id']) : $member['id'];
+            }
 
             if (!Utils::pres($member['userid'], $uids)) {
                 $uids[$member['userid']] = TRUE;
