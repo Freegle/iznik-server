@@ -41,10 +41,6 @@ class messagesTest extends IznikAPITestCase {
         $this->user = $u;
     }
 
-    public function tearDown()
-    {
-    }
-
     public function testApproved() {
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
