@@ -49,10 +49,6 @@ class membershipsAPITest extends IznikAPITestCase {
         assertTrue($this->user->login('testpw'));
     }
 
-    public function tearDown()
-    {
-    }
-
     public function testAdd() {
         # Should be able to add (i.e. join) as a non-member or a member.
         $_SESSION['id'] = $this->uid2;
@@ -773,6 +769,35 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals($chatread ? 0 : 1, $cr->unseenCountForUser($othermoduid));
     }
 
+    public function testSearchBanned() {
+        assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
+        assertEquals(1, $this->user2->addMembership($this->groupid));
+        assertTrue($this->user->login('testpw'));
+
+        // Search for the member - should find.
+        $ret = $this->call('memberships', 'GET', [
+            'groupid' => $this->groupid,
+            'search' => 'tes2t@test.com'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['members']));
+        assertEquals($this->user2->getId(), $ret['members'][0]['userid']);
+        assertEquals(MembershipCollection::APPROVED, $ret['members'][0]['collection']);
+
+        // Ban them and search again - should still find.
+        $this->user2->removeMembership($this->groupid, TRUE);
+
+        $ret = $this->call('memberships', 'GET', [
+            'groupid' => $this->groupid,
+            'search' => 'tes2t@test.com'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['members']));
+        assertEquals($this->user2->getId(), $ret['members'][0]['userid']);
+        assertEquals(MembershipCollection::BANNED, $ret['members'][0]['collection']);
+    }
 //
 //    public function testEH() {
 //        $_SESSION['id'] = 420;

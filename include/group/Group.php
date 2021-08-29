@@ -721,6 +721,13 @@ AND messages_outcomes.comments IS NOT NULL
 
                 $sql .= " ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
                 $members = $this->dbhr->preQuery($sql);
+
+                # Also search in banned users.
+                if (count($groupids)) {
+                    $sql = "SELECT userid AS id, userid, groupid, 'Member' AS role, 'Banned' AS collection, NULL AS configid, date AS added, NULL AS settings, 0 AS syncdelete, NULL AS heldby, 0 AS emailfrequency, 0 AS eventsallowed, 0 AS volunteeringallowed, 'PROHIBITED' as ourPostingStatus, NULL as reviewrequestededat, NULL AS reviewreason, NULL AS timestamp FROM users_banned WHERE userid IN (" . implode(',', $ids) . ") AND groupid IN (" . implode(',', $groupids) . ");";
+                    $members2 = $this->dbhr->preQuery($sql);
+                    $members = array_unique(array_merge($members, $members2));
+                }
             }
         } else {
             $searchq = $searchid ? (" AND memberships.userid = " . $this->dbhr->quote($searchid) . " ") : '';
@@ -784,6 +791,7 @@ AND messages_outcomes.comments IS NOT NULL
                 $thisone['id'] = $member['id'];
                 $thisone['trustlevel'] = $u->getPrivate('trustlevel');
                 $thisone['engagement'] = $u->getPrivate('engagement');
+                $thisone['banned'] = $member['collection'];
 
                 # We want to return both the email used on this group and any others we have.
                 $emails = $u->getEmails();

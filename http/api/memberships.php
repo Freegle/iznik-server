@@ -26,8 +26,6 @@ function memberships() {
     $message = Utils::presdef('message', $_REQUEST, NULL);
 
     $ban = array_key_exists('ban', $_REQUEST) ? filter_var($_REQUEST['ban'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-    $modmailsonly = array_key_exists('modmailsonly', $_REQUEST) ? filter_var($_REQUEST['modmailsonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-    $logctx = Utils::presdef('logcontext', $_REQUEST, NULL);
     $collection = Utils::presdef('collection', $_REQUEST, MembershipCollection::APPROVED);
     $subject = Utils::presdef('subject', $_REQUEST, NULL);
     $body = Utils::presdef('body', $_REQUEST, NULL);
