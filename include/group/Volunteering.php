@@ -159,13 +159,6 @@ class Volunteering extends Entity
         $atts = parent::getPublic();
         $atts['groups'] = [];
 
-        $groups = $this->dbhr->preQuery("SELECT * FROM volunteering_groups WHERE volunteeringid = ?", [ $this->id ]);
-
-        foreach ($groups as $group) {
-            $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
-            $atts['groups'][] = $g->getPublic(TRUE);
-        }
-
         $atts['dates'] = $this->dbhr->preQuery("SELECT * FROM volunteering_dates WHERE volunteeringid = ? ORDER BY end ASC", [ $this->id ]);
 
         foreach ($atts['dates'] as &$date) {
@@ -176,6 +169,17 @@ class Volunteering extends Entity
         if ($atts['userid']) {
             $u = User::get($this->dbhr, $this->dbhm, $atts['userid']);
             $atts['user'] = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
+        }
+
+        $groups = $this->dbhr->preQuery("SELECT * FROM volunteering_groups WHERE volunteeringid = ?", [ $this->id ]);
+
+        foreach ($groups as $group) {
+            $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
+            $atts['groups'][] = $g->getPublic(TRUE);
+
+            if (Session::modtools() && $atts['userid']) {
+                $atts['groups'][count($atts['groups']) - 1]['ourPostingStatus'] = $u->getMembershipAtt($group['groupid'], 'ourPostingStatus');
+            }
         }
 
         unset($atts['userid']);
