@@ -1116,12 +1116,15 @@ class messageAPITest extends IznikAPITestCase
         assertTrue($m->isEdited());
 
         # Now edit a platform subject.
+        $l = new Location($this->dbhr, $this->dbhm);
+        $lid = $l->findByName('TV1 1AA');
+
         $ret = $this->call('message', 'PATCH', [
             'id' => $id,
             'groupid' => $this->gid,
             'msgtype' => 'Offer',
             'item' => 'Test item',
-            'location' => 'TV1 1AA'
+            'locationid' => $lid
         ]);
         assertEquals(0, $ret['ret']);
 
@@ -1136,7 +1139,7 @@ class messageAPITest extends IznikAPITestCase
             'groupid' => $this->gid,
             'msgtype' => 'Offer',
             'item' => 'Test item',
-            'location' => 'TV1 1BB'
+            'locationid' => -1
         ]);
         assertEquals(2, $ret['ret']);
 

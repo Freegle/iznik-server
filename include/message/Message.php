@@ -224,7 +224,7 @@ class Message
         $oldtext = $textbody ? trim($this->getPrivate('textbody')) : NULL;
         $oldsubject = ($type || $item || $locationid) ? $this->getPrivate('subject') : NULL;
         $oldtype = $type ? $this->getPrivate('type') : NULL;
-        $oldlocation = $location ? $this->getPrivate('locationid') : NULL;
+        $oldlocation = $locationid ? $this->getPrivate('locationid') : NULL;
         $olditems = NULL;
 
         if ($item) {
@@ -253,13 +253,6 @@ class Message
             $oldattachments = json_encode($oldattachments);
         }
 
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $text = ($subject ? "New subject $subject " : '');
-        $text .= ($type ? "New type $type " : '');
-        $text .= ($item ? "New item $item " : '');
-        $text .= ($location ? "New location $location" : '');
-        $text .= "Text body changed to len " . strlen($textbody);
-
         if ($type) {
             $this->setPrivate('type', $type);
             $this->dbhm->preExec("UPDATE messages_groups SET msgtype = ? WHERE msgid = ?;", [
@@ -285,6 +278,11 @@ class Message
         if ($locationid) {
             $ret = TRUE;
             $l = new Location($this->dbhr, $this->dbhm, $locationid);
+
+            if (!$l->getId() == $locationid) {
+                return FALSE;
+            }
+
             $this->setPrivate('locationid', $locationid);
             $this->setPrivate('lat', $l->getPrivate('lat'));
             $this->setPrivate('lng', $l->getPrivate('lng'));
@@ -295,7 +293,7 @@ class Message
             # come up with.  Don't allow stupidly short edits.
             $this->setPrivate('subject', $subject);
             $this->setPrivate('suggestedsubject', $subject);
-        } else if ($ret && ($type || $item || $location)) {
+        } else if ($ret && ($type || $item || $locationid)) {
             # Construct a new subject from the edited values.
             if (!$groupid) {
                 $groups = $this->getGroups(FALSE, TRUE);
@@ -314,6 +312,13 @@ class Message
         if ($textbody) {
             $this->setPrivate('textbody', $textbody);
         }
+
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
+        $text = ($subject ? "New subject $subject " : '');
+        $text .= ($type ? "New type $type " : '');
+        $text .= ($item ? "New item $item " : '');
+        $text .= ($locationid ? ("New location " . $l->getPrivate('name')) : '');
+        $text .= "Text body changed to len " . strlen($textbody);
 
         if ($attachments !== NULL) {
             $this->replaceAttachments($attachments);
@@ -361,7 +366,7 @@ class Message
 
             # Record the edit history.
             $newitems = $item ? json_encode([ intval($iid) ]) : NULL;
-            $newlocation = $location ? $this->getPrivate('locationid') : NULL;
+            $newlocation = $locationid ? $this->getPrivate('locationid') : NULL;
             $newsubject = $this->getPrivate('subject');
             $newattachments = $attachments && count($attachments) ? json_encode($attachments) : NULL;
 
