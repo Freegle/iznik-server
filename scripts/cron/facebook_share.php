@@ -19,8 +19,6 @@ error_log("Start at " . date("Y-m-d H:i:s"));
 $sharefroms = $dbhr->preQuery("SELECT DISTINCT sharefrom FROM groups_facebook;");
 
 foreach ($sharefroms as $sharefrom) {
-    # We can create the app access token from app_id|app_secret.
-#    $token = FBGRAFFITIAPP_ID . '|' . FBGRAFFITIAPP_SECRET;
     $f = new Facebook($dbhr, $dbhm);
     $fg = new GroupFacebook($dbhr, $dbhm);
     $fb = $fg->getFB(TRUE, FALSE);
