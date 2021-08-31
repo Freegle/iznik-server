@@ -1273,7 +1273,7 @@ class messageAPITest extends IznikAPITestCase
             'groupid' => $this->gid,
             'item' => 'Edited',
             'textbody' => 'Another text body',
-            'location' => 'TV1 1AB'
+            'locationid' => $locid2
         ]);
         assertEquals(0, $ret['ret']);
 
