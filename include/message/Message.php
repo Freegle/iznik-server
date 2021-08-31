@@ -216,13 +216,13 @@ class Message
         $this->dbhm->preExec("DELETE FROM messages_items WHERE msgid = ?;", [ $this->id ]);
     }
     
-    public function edit($subject, $textbody, $type, $item, $location, $attachments, $checkreview = TRUE, $groupid = NULL) {
+    public function edit($subject, $textbody, $type, $item, $locationid, $attachments, $checkreview = TRUE, $groupid = NULL) {
         $ret = TRUE;
         $textbody = trim($textbody);
 
         # Get old values for edit history.  We put NULL if there is no edit.
         $oldtext = $textbody ? trim($this->getPrivate('textbody')) : NULL;
-        $oldsubject = ($type || $item || $location) ? $this->getPrivate('subject') : NULL;
+        $oldsubject = ($type || $item || $locationid) ? $this->getPrivate('subject') : NULL;
         $oldtype = $type ? $this->getPrivate('type') : NULL;
         $oldlocation = $location ? $this->getPrivate('locationid') : NULL;
         $olditems = NULL;
@@ -282,18 +282,12 @@ class Message
             }
         }
 
-        if ($location) {
-            $l = new Location($this->dbhr, $this->dbhm);
-            $lid = $l->findByName($location);
-            $l = new Location($this->dbhr, $this->dbhm, $lid);
-
-            $ret = FALSE;
-            if ($lid) {
-                $ret = TRUE;
-                $this->setPrivate('locationid', $lid);
-                $this->setPrivate('lat', $l->getPrivate('lat'));
-                $this->setPrivate('lng', $l->getPrivate('lng'));
-            }
+        if ($locationid) {
+            $ret = TRUE;
+            $l = new Location($this->dbhr, $this->dbhm, $locationid);
+            $this->setPrivate('locationid', $locationid);
+            $this->setPrivate('lat', $l->getPrivate('lat'));
+            $this->setPrivate('lng', $l->getPrivate('lng'));
         }
 
         if ($subject && strlen($subject) > 10) {

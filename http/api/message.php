@@ -272,7 +272,7 @@ function message() {
                         $subject = Utils::presdef('subject', $_REQUEST, NULL);
                         $msgtype = Utils::presdef('msgtype', $_REQUEST, NULL);
                         $item = Utils::presdef('item', $_REQUEST, NULL);
-                        $location = Utils::presdef('location', $_REQUEST, NULL);
+                        $locationid = Utils::presdef('locationid', $_REQUEST, NULL);
                         $lat = Utils::presfloat('lat', $_REQUEST, NULL);
                         $lng = Utils::presfloat('lng', $_REQUEST, NULL);
                         $textbody = Utils::presdef('textbody', $_REQUEST, NULL);
@@ -294,7 +294,7 @@ function message() {
                             $m->setPrivate('availableinitially', $availableinitially);
                         }
 
-                        if ($subject || $textbody || $msgtype || $item || $location || $attachments !== NULL || $lat || $lng) {
+                        if ($subject || $textbody || $msgtype || $item || $locationid || $attachments !== NULL || $lat || $lng) {
                             $partner = Utils::pres('partner', $_SESSION);
 
                             if ($partner) {
@@ -316,7 +316,7 @@ function message() {
                                            $textbody,
                                            $msgtype,
                                            $item,
-                                           $location,
+                                           $locationid,
                                            $attachments,
                                            TRUE,
                                            ($partner || ($me && $me->isApprovedMember($groupid))) ? $groupid : NULL);

@@ -136,9 +136,11 @@ class logsAPITest extends IznikAPITestCase
         assertEquals(Log::TYPE_GROUP, $ret['logs'][1]['type']);
         assertEquals(Log::SUBTYPE_JOINED, $ret['logs'][1]['subtype']);
 
-        # Edit the message to generate a lot.
+        # Edit the message to generate a log.
         $m = new Message($this->dbhr, $this->dbhm, $mid);
-        $m->edit(NULL, NULL, Message::TYPE_WANTED, 'test item2', 'TV13 1HH', [], TRUE, NULL);
+        $l = new Location($this->dbhr, $this->dbhm);
+        $lid = $l->findByName('TV13 1HH');
+        $m->edit(NULL, NULL, Message::TYPE_WANTED, 'test item2', $lid, [], TRUE, NULL);
         $this->waitBackground();
 
         # Purge the editor.
