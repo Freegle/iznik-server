@@ -19,7 +19,7 @@ $n = new Newsletter($dbhr, $dbhm, $nid);
 
 if ($nid && $n->getId() == $nid) {
     error_log("Generated newsletter $nid");
-    $n->send(NULL, NULL);
+    $n->send(NULL, NULL, Group::GROUP_FREEGLE, $html);
 }
 
 

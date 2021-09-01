@@ -407,13 +407,15 @@ class Story extends Entity
         $html = NULL;
         $count = 0;
 
-        # Find the date of the last newsletter; we're only interested in stories since then.
+        # Find the date of the last story sent in a newsletter; we're only interested in stories since then.
         $last = $this->dbhr->preQuery("SELECT MAX(created) AS max FROM newsletters WHERE type = 'Stories';");
         $since = $last[0]['max'];
 
         # Get unsent stories.  Pick the ones we have voted for most often.
         $idq = $id ? " AND users_stories.id = $id " : "";
-        $stories = $this->dbhr->preQuery("SELECT users_stories.id, users_stories_images.id AS photoid, COUNT(*) AS count FROM users_stories LEFT JOIN users_stories_likes ON storyid = users_stories.id LEFT JOIN users_stories_images ON users_stories_images.storyid = users_stories.id WHERE newsletterreviewed = 1 AND newsletter = 1 AND mailedtomembers = 0 $idq AND (? IS NULL OR date > ?) GROUP BY id ORDER BY count DESC LIMIT $max;", [
+        $sql = "SELECT users_stories.id, users_stories_images.id AS photoid, COUNT(*) AS count FROM users_stories LEFT JOIN users_stories_likes ON storyid = users_stories.id LEFT JOIN users_stories_images ON users_stories_images.storyid = users_stories.id WHERE newsletterreviewed = 1 AND newsletter = 1 AND mailedtomembers = 0 $idq AND (? IS NULL OR date > ?) GROUP BY id ORDER BY count DESC LIMIT $max;";
+        #error_log("$sql $since");
+        $stories = $this->dbhr->preQuery($sql, [
             $since,
             $since
         ]);
@@ -444,6 +446,7 @@ class Story extends Entity
 
                 $count++;
 
+                error_log("Sending {$story['id']}");
                 $this->dbhm->preExec("UPDATE users_stories SET mailedtomembers = 1 WHERE id = ?;", [ $story['id'] ]);
             }
 
