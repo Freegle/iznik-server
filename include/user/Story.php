@@ -162,7 +162,7 @@ class Story extends Entity
 
     public function getForReview($groupids, $newsletter) {
         $mysqltime = date("Y-m-d", strtotime("31 days ago"));
-        $sql = $newsletter ? ("SELECT DISTINCT users_stories.id FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE reviewed = 1 AND public = 1 AND newsletterreviewed = 0 AND newsletter = 1 ORDER BY date DESC") :
+        $sql = $newsletter ? ("SELECT DISTINCT users_stories.id FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE reviewed = 1 AND public = 1 AND newsletterreviewed = 0 ORDER BY date DESC") :
             ("SELECT DISTINCT users_stories.id FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE memberships.groupid IN (" . implode(',', $groupids) . ") AND users_stories.date > '$mysqltime' AND reviewed = 0 ORDER BY date DESC");
         $ids = $this->dbhr->preQuery($sql);
         $ret = [];
@@ -180,7 +180,7 @@ class Story extends Entity
         $mysqltime = date("Y-m-d", strtotime("31 days ago"));
 
         if ($newsletter) {
-            $sql = "SELECT COUNT(DISTINCT(users_stories.id)) AS count FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE reviewed = 1 AND public = 1 AND newsletterreviewed = 0 AND newsletter = 1 ORDER BY date DESC";
+            $sql = "SELECT COUNT(DISTINCT(users_stories.id)) AS count FROM users_stories INNER JOIN memberships ON memberships.userid = users_stories.userid WHERE reviewed = 1 AND public = 1 AND newsletterreviewed = 0 ORDER BY date DESC";
         } else {
             if (!$mygroups) {
                 $mygroups = $me->getMemberships(TRUE, Group::GROUP_FREEGLE, FALSE, FALSE, NULL, FALSE);
