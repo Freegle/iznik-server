@@ -4006,6 +4006,9 @@ class User extends Entity
                 ];
             }
 
+            $d = new Donations($this->dbhr, $this->dbhm);
+            $thisone['giftaid'] = $d->getGiftAid($user['userid']);
+
             $ret[] = $thisone;
         }
 
