@@ -75,7 +75,7 @@ class Twitter {
                     $ret = $this->tw->upload('media/upload', array('media' => $fname));
                     $ret = json_decode(json_encode($ret), TRUE);
 
-                    if (!Utils::pres('errors', $ret)) {
+                    if (!Utils::pres('errors', $ret) && Utils::pres('media_id_string', $ret)) {
                         $ret = $this->tw->post('statuses/update', [
                             'status' => $status,
                             'media_ids' => implode(',', [$ret['media_id_string']])
