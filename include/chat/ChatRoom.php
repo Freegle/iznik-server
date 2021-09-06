@@ -1791,7 +1791,8 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
             case ChatMessage::TYPE_COMPLETED: {
                 # There's no text stored for this - we invent it on the client.  Do so here
                 # too.
-                $thisone = $unmailedmsg['msgtype'] == Message::TYPE_OFFER ? "Sorry, '{$unmailedmsg['subject']}' is no longer available." : "Thanks, '{$unmailedmsg['subject']}' is no longer needed.";
+                $thisone = ($unmailedmsg['msgtype'] == Message::TYPE_OFFER ? "Sorry, '{$unmailedmsg['subject']}' is no longer available." : "Thanks, '{$unmailedmsg['subject']}' is no longer needed.") .
+                    "\r\nThis is an automated message.";
                 break;
             }
 
