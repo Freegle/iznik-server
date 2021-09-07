@@ -11,7 +11,7 @@ function messages() {
     $collection = Utils::presdef('collection', $_REQUEST, MessageCollection::APPROVED);
     $ctx = Utils::presdef('context', $_REQUEST, NULL);
     $limit = (Utils::presint('limit', $_REQUEST, 5));
-    $fromuser = Utils::presdef('fromuser', $_REQUEST, NULL);
+    $fromuser = Utils::presint('fromuser', $_REQUEST, NULL);
     $hasoutcome = array_key_exists('hasoutcome', $_REQUEST) ? filter_var($_REQUEST['hasoutcome'], FILTER_VALIDATE_BOOLEAN) : NULL;
     $types = Utils::presdef('types', $_REQUEST, NULL);
     $subaction = Utils::presdef('subaction', $_REQUEST, NULL);
