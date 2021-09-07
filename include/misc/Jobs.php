@@ -413,6 +413,7 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
                                 $body = str_replace("\r", " ", $body);
                                 $body = str_replace("\n", " ", $body);
                                 $body = str_replace('–', '-', $body);
+                                $body = str_replace('Â', '-', $body);
                                 $body = substr($body, 0, 256);
                             }
 
