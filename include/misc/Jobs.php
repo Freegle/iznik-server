@@ -403,12 +403,16 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
                             $body = NULL;
 
                             if ($job->body) {
-                                # Truncate the body and fix up line endings which cause problems with fputcsv.  We
-                                # only display the body as a snippet to get people to click through.
+                                # Truncate the body - we only display the body as a snippet to get people to click
+                                # through.
+                                # Fix up line endings which cause problems with fputcsv, and other weirdo characters
+                                # that get mangled en route to us.  This isn't a simple UTF8 problem because the data
+                                # comes from all over the place and is a bit of a mess.
                                 $body = html_entity_decode($job->body);
                                 $body = str_replace("\r\n", " ", $body);
                                 $body = str_replace("\r", " ", $body);
                                 $body = str_replace("\n", " ", $body);
+                                $body = str_replace('–', '-', $body);
                                 $body = substr($body, 0, 256);
                             }
 
