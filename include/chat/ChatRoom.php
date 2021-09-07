@@ -27,12 +27,6 @@ class ChatRoom extends Entity
 
     const CACHED_LIST_SIZE = 20;
 
-    # States for syncing chats to Facebook.
-    const FACEBOOK_SYNC_DONT = 'Dont';                                      # Default - don't sync
-    const FACEBOOK_SYNC_REPLIED_ON_FACEBOOK = 'RepliedOnFacebook';          # We've had the initial reply from FB
-    const FACEBOOK_SYNC_REPLIED_ON_PLATFORM = 'RepliedOnPlatform';          # We've replied on our platform
-    const FACEBOOK_SYNC_POSTED_LINK = 'PostedLink';                         # We've posted a link to this chat on FB.
-
     /** @var  $log Log */
     private $log;
 

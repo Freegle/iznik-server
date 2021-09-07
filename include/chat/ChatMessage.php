@@ -335,14 +335,6 @@ class ChatMessage extends Entity
                 # Notify mods if we have flagged this for review and we've not been asked to suppress it.
                 $modstoo = $review && !$suppressmodnotif;
                 $r->notifyMembers($u->getName(), $message, $userid, $modstoo);
-
-                if ($r->getPrivate('synctofacebook') == ChatRoom::FACEBOOK_SYNC_REPLIED_ON_FACEBOOK) {
-                    # We have had a reply from Facebook, which caused us to flag this conversation.
-                    # This is now the first reply from the other user.  So we want to post a link on Facebook which
-                    # will allow the user on there to read the message we've just created.  Set the state to
-                    # make this happen in the background.
-                    $r->setPrivate('synctofacebook', ChatRoom::FACEBOOK_SYNC_REPLIED_ON_PLATFORM);
-                }
             }
         } catch (\Exception $e) {
             error_log("Failed to create chat " . $e->getMessage() . " at " . $e->getFile() . " line " . $e->getLine());
