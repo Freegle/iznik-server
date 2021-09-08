@@ -27,7 +27,7 @@ try {
     foreach ($admins as $admin) {
         error_log("...admin {$admin['id']}");
         do {
-            $any = $dbhr->query("SELECT COUNT(*) AS count FROM admins_users WHERE adminid = {$admin['id']};");
+            $any = $dbhr->preQuery("SELECT COUNT(*) AS count FROM admins_users WHERE adminid = {$admin['id']};");
             error_log("...left {$any[0]['count']}");
             $dbhm->preExec("DELETE FROM admins_users WHERE adminid = {$admin['id']} LIMIT 10000;");
         } while ($any[0]['count'] > 0);
