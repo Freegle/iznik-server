@@ -451,7 +451,7 @@ class Digest
                     }
 
                     if (count($replacements) > 0) {
-                        error_log("#$groupid {$gatts['nameshort']} " . count($tosend) . " messages max $maxmsg, $maxdate to " . count($replacements) . " users");
+                        error_log(date('Y-m-d H:i:s') . " #$groupid {$gatts['nameshort']} " . count($tosend) . " messages max $maxmsg, $maxdate to " . count($replacements) . " users");
 
                         # Now send.  We use a failover transport so that if we fail to send, we'll queue it for later
                         # rather than lose it.  We use multiple spoolers for throughput.
