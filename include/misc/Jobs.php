@@ -15,7 +15,7 @@ class Jobs {
 
     private $jobKeywords = NULL;
 
-    const MINIMUM_CPC = 0.09;
+    const MINIMUM_CPC = 0.10;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm) {
         $this->dbhr = $dbhr;
