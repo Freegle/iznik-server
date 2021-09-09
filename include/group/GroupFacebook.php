@@ -271,7 +271,7 @@ ORDER BY groups_facebook_toshare.id DESC;";
                         #error_log("Share via " . json_encode($params) . " returned " . var_export($result, TRUE));
                         $ret = TRUE;
                     } catch (\Exception $e) {
-                        error_log("Share failed with " . $e->getMessage());
+                        error_log("Share failed with " . $e->getMessage() . " params " . json_encode($params));
                         $msg = $e->getMessage();
 
                         if (strpos($msg, 'The url you supplied is invalid') === FALSE) {
