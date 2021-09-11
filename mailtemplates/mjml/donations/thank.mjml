@@ -40,7 +40,7 @@
               It's very kind of you to donate to us.  We realise that there are a lot of charities asking for your help.
             </mj-text>
             <mj-text>
-              Your donation will go even further if you complete a gift aid form (if you haven't already):
+              Your donation will go even further if you are able to complete a gift aid form (if you haven't already, and if you're eligible):
             </mj-text>
             <mj-button href="http://www.ilovefreegle.org/giftaid" background-color="#61AE24" font-size="12pt">Click to Complete a Gift Aid Form</mj-button>
             <mj-text>
