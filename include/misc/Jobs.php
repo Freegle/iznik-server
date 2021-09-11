@@ -255,7 +255,7 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
 
     public function scanToCSV($inputFile, $outputFile, $maxage = 7, $fakeTime = FALSE, $distribute = 0.0005) {
         $now = $fakeTime ? '2001-01-01 00:00:00' : date("Y-m-d H:i:s", time());
-        $out = fopen($outputFile, 'w');
+        $out = fopen("$outputFile.tmp", 'w');
 
         # This scans the XML job file provided by WhatJobs, filters out the ones we want, and writes to a
         # CSV file.
@@ -389,6 +389,22 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
                         $geom = $distribute ? Utils::getBoxPoly($swlat, $swlng, $nelat, $nelng) : $geom;
                         #error_log("Modified loc to $geom");
 
+                        # If the job already exists in the old table we want to preserve the id, because people
+                        # might click on an old id from email.  If we don't find it then we'll use NULL, which will
+                        # create a new auto-increment id.  We have to go to some effort to get the NULL in there -
+                        # we want \N, but unquoted, so we put \N and then strip the quotes later.
+                        #
+                        # We could speed this up by sending out the job_reference rather than the id.
+                        $id = "\N";
+
+                        $oldids = $this->dbhr->preQuery("SELECT id FROM jobs WHERE job_reference = ?;", [
+                            $job->job_reference
+                        ]);
+
+                        foreach ($oldids as $oldid) {
+                            $id = $oldid['id'];
+                        }
+
                         try {
                             $clickability = 0;
                             $title = NULL;
@@ -422,6 +438,7 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
                             # mobile_friendly_apply, category, html_jobs, url, body, cpc, geometry, clickability,
                             # bodyhash, seenat
                             fputcsv($out, [
+                               $id,
                                $job->location ? html_entity_decode($job->location) : NULL,
                                $title,
                                $job->city ? html_entity_decode($job->city) : NULL,
@@ -466,6 +483,11 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
         }
 
         fclose($out);
+
+        # Now unquote any "\N" into \N.
+        $data = file_get_contents("$outputFile.tmp");
+        $data = str_replace('"\N"', '\N', $data);
+        file_put_contents($outputFile, $data);
     }
 
     public function loadCSV($csv) {
@@ -477,7 +499,7 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
             FIELDS TERMINATED BY ',' 
             OPTIONALLY ENCLOSED BY '\"' 
             LINES TERMINATED BY '\n'
-            (location, title, city, state, zip, country, job_type, posted_at, job_reference, company,
+            (id, location, title, city, state, zip, country, job_type, posted_at, job_reference, company,
              mobile_friendly_apply, category, html_jobs, url, body, cpc, @GEOM, clickability,
              bodyhash, seenat, visible) SET geometry = ST_GeomFromText(@GEOM, " . $this->dbhm->SRID() . ");");
     }
