@@ -350,7 +350,8 @@ function message() {
 
             case 'POST': {
                 $m = new Message($dbhr, $dbhm, $id);
-                $ret = ['ret' => 2, 'status' => 'Permission denied 7 '];
+                $ret = $m && $id && $m->getId() == $id ? ['ret' => 2, 'status' => 'Permission denied 7 '] : ['ret' => 10, 'status' => 'Message does not exist'];
+
                 $role = $m && $id && $m->getId() == $id ? $m->getRoleForMessage()[0] : User::ROLE_NONMEMBER;
 
                 if ($id && $m->getID() == $id) {
