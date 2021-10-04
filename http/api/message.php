@@ -349,12 +349,13 @@ function message() {
                 break;
 
             case 'POST': {
+                $ret = ['ret' => 10, 'status' => 'Message does not exist'];
                 $m = new Message($dbhr, $dbhm, $id);
-                $ret = ['ret' => 2, 'status' => 'Permission denied 7 '];
                 $role = $m && $id && $m->getId() == $id ? $m->getRoleForMessage()[0] : User::ROLE_NONMEMBER;
 
                 if ($id && $m->getID() == $id) {
                     # These actions don't require permission, but they do need to be logged in as they record the userid.
+                    $ret = ['ret' => 2, 'status' => 'Permission denied 7 '];
                     if ($myid) {
                         if ($action =='Love') {
                             $m->like($myid, Message::LIKE_LOVE);
@@ -695,6 +696,7 @@ function message() {
 
                 if ($id && $id == $m->getId()) {
                     # Other actions which we can do on our own messages.
+                    $ret = ['ret' => 2, 'status' => 'Permission denied 8'];
                     $canmod = $myid == $m->getFromuser();
 
                     if (!$canmod) {
