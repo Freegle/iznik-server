@@ -590,7 +590,7 @@ function message() {
 
                                         if ($worry) {
                                             $m->setPrivate('spamtype', Spam::REASON_WORRY_WORD);
-                                            $m->setPrivate('spamreason','Referred to worry word ' . $worry[0]['word']);
+                                            $m->setPrivate('spamreason','Referred to worry word ' . $worry[0]['worryword']);
                                         }
 
                                         # We want the message to come from one of our emails rather than theirs, so
