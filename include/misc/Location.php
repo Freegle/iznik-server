@@ -126,6 +126,8 @@ class Location extends Entity
     }
 
     public function setParents($id, $osmonly = 1, $areaid = NULL) {
+        $changed = FALSE;
+
         # We use the write DB handle because we don't want to waste time querying or cluttering our cache with this
         # info, which is unlikely to be cached effectively.
         #
@@ -215,8 +217,11 @@ class Location extends Entity
                 #error_log("Set $id to have area $areaid");
                 $sql = "UPDATE locations SET areaid = $areaid WHERE id = $id;";
                 $this->dbhm->preExec($sql);
+                $changed = TRUE;
             }
         }
+
+        return $changed;
     }
 
     public function getGrid() {
