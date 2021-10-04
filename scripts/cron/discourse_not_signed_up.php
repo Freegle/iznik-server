@@ -25,6 +25,7 @@ echo "discourse_not_signed_up\r\n";
 // DISCOURSE_API
 $api_username = 'system';
 
+define('FROM_ADDR','geeks@ilovefreegle.org');
 define('GEEKSALERTS_ADDR','geek-alerts@ilovefreegle.org');
 
 //////////////////////////////////////////////////////////////////////////
@@ -278,17 +279,38 @@ try{
   }*/
 
   if( !$mailedcentralmods && (date('w')==6)){
-    $sent = mail(CENTRALMODS_ADDR, $subject, $report,$headers);
-    echo "Mail sent to centralmods: ".$sent."\r\n";
+    //$sent = mail(CENTRALMODS_ADDR, $subject, $report,$headers);
+    $message = \Swift_Message::newInstance()
+        ->setSubject($subject)
+        ->setFrom([FROM_ADDR => 'Geeks'])
+        ->setTo([CENTRALMODS_ADDR => 'Volunteer Support'])
+        ->setBody($report);
+    list ($transport, $mailer) = Mail::getMailer();
+    $numSent = $mailer->send($message);
+    echo "Mail sent to centralmods: ".$numSent."\r\n";
   }
   
   //$report = wordwrap($report, 70, "\r\n");
-  $sent = mail(GEEKSALERTS_ADDR, $subject, $report,$headers);
-  echo "Mail sent to geeks: ".$sent."\r\n";
+  //$sent = mail(GEEKSALERTS_ADDR, $subject, $report,$headers);
+  $message = \Swift_Message::newInstance()
+      ->setSubject($subject)
+      ->setFrom([FROM_ADDR => 'Geeks'])
+      ->setTo([GEEKSALERTS_ADDR => 'Geeks Alerts'])
+      ->setBody($report);
+  list ($transport, $mailer) = Mail::getMailer();
+  $numSent = $mailer->send($message);
+  echo "Mail sent to geeks: ".$numSent."\r\n";
 }
 catch (\Exception $e) {
   echo $e->getMessage();
   error_log("Failed with " . $e->getMessage());
-  $sent = mail(GEEKSALERTS_ADDR, "Discourse not_signed_up EXCEPTION", $e->getMessage(),$headers);
-  echo "Mail sent to geeks: ".$sent."\r\n";
+  //$sent = mail(GEEKSALERTS_ADDR, "Discourse not_signed_up EXCEPTION", $e->getMessage(),$headers);
+  $message = \Swift_Message::newInstance()
+      ->setSubject('Discourse not_signed_up EXCEPTION')
+      ->setFrom([FROM_ADDR => 'Geeks'])
+      ->setTo([GEEKSALERTS_ADDR => 'Geeks Alerts'])
+      ->setBody($e->getMessage());
+  list ($transport, $mailer) = Mail::getMailer();
+  $numSent = $mailer->send($message);
+  echo "Mail sent to geeks: ".$numSent."\r\n";
 }
