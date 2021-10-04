@@ -386,12 +386,14 @@ function message() {
                         case 'Delete':
                             # The delete call will handle any rejection on Yahoo if required.
                             $m->delete($reason, NULL, $subject, $body, $stdmsgid);
+                            $ret = [ 'ret' => 0, 'status' => 'Success' ];
                             break;
                         case 'Reject':
                             # Ignore requests for messages which aren't pending.  Legitimate timing window when there
                             # are multiple mods.
                             if ($m->isPending($groupid)) {
                                 $m->reject($groupid, $subject, $body, $stdmsgid);
+                                $ret = [ 'ret' => 0, 'status' => 'Success' ];
                             }
                             break;
                         case 'Approve':
@@ -399,23 +401,29 @@ function message() {
                             # are multiple mods.
                             if ($m->isPending($groupid)) {
                                 $m->approve($groupid, $subject, $body, $stdmsgid);
+                                $ret = [ 'ret' => 0, 'status' => 'Success' ];
                             }
                             break;
                         case 'Reply':
                             $m->reply($groupid, $subject, $body, $stdmsgid);
+                            $ret = [ 'ret' => 0, 'status' => 'Success' ];
                             break;
                         case 'Hold':
                             $m->hold();
+                            $ret = [ 'ret' => 0, 'status' => 'Success' ];
                             break;
                         case 'Release':
                             $m->release();
+                            $ret = [ 'ret' => 0, 'status' => 'Success' ];
                             break;
                         case 'Move':
                             $ret = $m->move($groupid);
+                            $ret = [ 'ret' => 0, 'status' => 'Success' ];
                             break;
                         case 'Spam':
                             # Record for training.
                             $m->spam();
+                            $ret = [ 'ret' => 0, 'status' => 'Success' ];
                             break;
                         case 'JoinAndPost':
                             # This is the mainline case for someone posting a message.  We find the nearest group, sign
@@ -692,9 +700,7 @@ function message() {
                             }
                             break;
                     }
-                }
-
-                if ($id && $id == $m->getId()) {
+                } else if ($id && $id == $m->getId()) {
                     # Other actions which we can do on our own messages.
                     $ret = ['ret' => 2, 'status' => 'Permission denied 8'];
                     $canmod = $myid == $m->getFromuser();
