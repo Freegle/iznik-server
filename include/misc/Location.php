@@ -49,12 +49,11 @@ class Location extends Entity
         return($str);
     }
 
-    public function create($osm_id, $name, $type, $geometry, $osmparentsonly = 1, $place = 0)
+    public function create($osm_id, $name, $type, $geometry)
     {
         try {
-            # TODO osm_place is really just place.
             $rc = $this->dbhm->preExec("INSERT INTO locations (osm_id, name, type, geometry, canon, osm_place, maxdimension) VALUES (?, ?, ?, ST_GeomFromText(?, {$this->dbhr->SRID()}), ?, ?, GetMaxDimension(ST_GeomFromText(?, {$this->dbhr->SRID()})))",
-                [$osm_id, $name, $type, $geometry, $this->canon($name), $place, $geometry]);
+                [$osm_id, $name, $type, $geometry, $this->canon($name), 0, $geometry]);
             $id = $this->dbhm->lastInsertId();
 
             $this->dbhm->preExec("INSERT INTO locations_spatial (locationid, geometry) VALUES (?, ST_GeomFromText(?, {$this->dbhr->SRID()}));", [
@@ -78,7 +77,7 @@ class Location extends Entity
             }
 
             # Set any area and postcode for this new location.
-            $this->setParents($id, $osmparentsonly);
+            $this->setParents($id);
 
             if ($type == 'Polygon') {
                 # We might have postcodes which should now map to this new area rather than wherever they mapped
@@ -100,7 +99,7 @@ class Location extends Entity
                 foreach ($locs as $loc) {
                     if ($loc['id'] != $id) {
                         #error_log("Re-evaluate {$loc['id']} {$loc['name']}");
-                        $this->setParents($loc['id'], 1, $id);
+                        $this->setParents($loc['id'], $id);
                     }
                 }
             }
@@ -125,7 +124,9 @@ class Location extends Entity
         }
     }
 
-    public function setParents($id, $osmonly = 1, $areaid = NULL) {
+    public function setParents($id, $areaid = NULL) {
+        $changed = FALSE;
+
         # We use the write DB handle because we don't want to waste time querying or cluttering our cache with this
         # info, which is unlikely to be cached effectively.
         #
@@ -190,10 +191,8 @@ class Location extends Entity
 
                         # Exclude locations which are very large, e.g. Greater London or too small (probably just a
                         # single building.
-                        $sql = "SELECT locations.name, locations.geometry, locations.ourgeometry, locations.id,  ST_AsText(locations_spatial.geometry) AS geom, ST_Contains(locations_spatial.geometry, ST_GeomFromText('POINT({$loc['lng']} {$loc['lat']})', {$this->dbhr->SRID()})) AS within, ST_Distance(locations_spatial.geometry, ST_GeomFromText('POINT({$loc['lng']} {$loc['lat']})', {$this->dbhr->SRID()})) AS dist FROM locations_spatial INNER JOIN  `locations` ON locations.id = locations_spatial.locationid LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE MBRWithin(locations_spatial.geometry, ST_GeomFromText('$poly', {$this->dbhr->SRID()})) AND osm_place = $osmonly AND type != 'Postcode' AND ST_Dimension(locations_spatial.geometry) = 2 AND locations_excluded.locationid IS NULL HAVING id != $id AND GetMaxDimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) < " . Location::TOO_LARGE . " AND GetMaxDimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) > " . Location::TOO_SMALL . " ORDER BY within DESC, dist ASC LIMIT 1;";
+                        $sql = "SELECT locations.name, locations.geometry, locations.ourgeometry, locations.id,  ST_AsText(locations_spatial.geometry) AS geom, ST_Contains(locations_spatial.geometry, ST_GeomFromText('POINT({$loc['lng']} {$loc['lat']})', {$this->dbhr->SRID()})) AS within, ST_Distance(locations_spatial.geometry, ST_GeomFromText('POINT({$loc['lng']} {$loc['lat']})', {$this->dbhr->SRID()})) AS dist FROM locations_spatial INNER JOIN  `locations` ON locations.id = locations_spatial.locationid LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE MBRWithin(locations_spatial.geometry, ST_GeomFromText('$poly', {$this->dbhr->SRID()})) AND type != 'Postcode' AND ST_Dimension(locations_spatial.geometry) = 2 AND locations_excluded.locationid IS NULL HAVING id != $id AND GetMaxDimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) < " . Location::TOO_LARGE . " AND GetMaxDimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) > " . Location::TOO_SMALL . " ORDER BY within DESC, dist ASC LIMIT 1;";
                         $nearbyes = $this->dbhr->preQuery($sql);
-
-                        #error_log($sql . " gives " . var_export($nearbyes));
 
                         if (count($nearbyes) === 0) {
                             $swlat -= 0.1;
@@ -215,8 +214,11 @@ class Location extends Entity
                 #error_log("Set $id to have area $areaid");
                 $sql = "UPDATE locations SET areaid = $areaid WHERE id = $id;";
                 $this->dbhm->preExec($sql);
+                $changed = TRUE;
             }
         }
+
+        return $changed;
     }
 
     public function getGrid() {
@@ -585,7 +587,7 @@ class Location extends Entity
         return($ret);
     }
 
-    public function remapPostcodes($val, $gridid) {
+    public function remapPostcodes($val) {
         # We might have postcodes which should now map to this new area rather than wherever they mapped
         # previously.
         $g = new \geoPHP();
@@ -605,7 +607,7 @@ class Location extends Entity
         foreach ($locs as $loc) {
             if ($loc['id'] != $this->id) {
                 #error_log("Re-evaluate {$loc['id']} {$loc['name']}");
-                $this->setParents($loc['id'], 1, $this->id);
+                $this->setParents($loc['id'], $this->id);
             }
         }
     }
@@ -619,10 +621,15 @@ class Location extends Entity
 
         foreach ($valid as $v) {
             if ($v['valid']) {
+                $oldval = $this->dbhr->preQuery("SELECT ST_AsText(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) AS geometry FROM locations WHERE id = ?;", [
+                    $this->id
+                ])[0]['geometry'];
+
                 $rc = $this->dbhm->preExec(
                     "UPDATE locations SET `type` = 'Polygon', `ourgeometry` = ST_GeomFromText(?, {$this->dbhr->SRID()}) WHERE id = {$this->id};",
                     [$val]
                 );
+
                 if ($rc) {
                     # Put in the index table.
                     $this->dbhm->preExec(
@@ -640,7 +647,13 @@ class Location extends Entity
                     );
 
                     if ($rc) {
-                        $this->remapPostcodes($val, $this->loc['gridid']);
+                        $l = new Location($this->dbhr, $this->dbhm);
+
+                        # Remap any postcodes in the old area.
+                        $l->remapPostcodes($oldval);
+
+                        # Remap any postcodes in the new area.
+                        $l->remapPostcodes($val);
 
                         $this->fetch($this->dbhm, $this->dbhm, $this->id, 'locations', 'loc', $this->publicatts);
                     }

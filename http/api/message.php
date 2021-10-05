@@ -350,7 +350,8 @@ function message() {
 
             case 'POST': {
                 $m = new Message($dbhr, $dbhm, $id);
-                $ret = ['ret' => 2, 'status' => 'Permission denied 7 '];
+                $ret = $m && $id && $m->getId() == $id ? ['ret' => 2, 'status' => 'Permission denied 7 '] : ['ret' => 10, 'status' => 'Message does not exist'];
+
                 $role = $m && $id && $m->getId() == $id ? $m->getRoleForMessage()[0] : User::ROLE_NONMEMBER;
 
                 if ($id && $m->getID() == $id) {
@@ -590,7 +591,7 @@ function message() {
 
                                         if ($worry) {
                                             $m->setPrivate('spamtype', Spam::REASON_WORRY_WORD);
-                                            $m->setPrivate('spamreason','Referred to worry word ' . $worry[0]['word']);
+                                            $m->setPrivate('spamreason','Referred to worry word ' . $worry[0]['worryword']['keyword']);
                                         }
 
                                         # We want the message to come from one of our emails rather than theirs, so

@@ -35,10 +35,10 @@ class chatRoomsTest extends IznikTestCase {
 
         $r->setAttributes(['name' => 'test']);
         assertEquals('testgroup Mods', $r->getPublic()['name']);
+        assertEquals('testgroup Mods', $r->getName($id, NULL));
         
         assertEquals(1, $r->delete());
-
-        }
+    }
 
     public function testConversation() {
         $u = User::get($this->dbhr, $this->dbhm);
@@ -122,11 +122,14 @@ class chatRoomsTest extends IznikTestCase {
         assertNotNull($id);
         $this->log("Chat room $id for $u1 <-> $u2");
         assertEquals('Test User 1', $r->getPublic()['name']);
+        assertEquals('Test User 1', $r->getName($id, NULL));
         assertEquals('Test User 1', $r->getPublic(NULL, NULL, TRUE)['name']);
         $_SESSION['id'] = $u1;
         assertEquals('Test User 2', $r->getPublic(NULL, NULL, TRUE)['name']);
+        assertEquals('Test User 2', $r->getName($id, $u1));
         $_SESSION['id'] = $u2;
         assertEquals('Test User 1', $r->getPublic(NULL, NULL, TRUE)['name']);
+        assertEquals('Test User 1', $r->getName($id, $u2));
         $_SESSION['id'] = NULL;
 
         $this->waitBackground();

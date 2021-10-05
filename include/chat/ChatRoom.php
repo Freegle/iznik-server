@@ -656,7 +656,7 @@ WHERE chat_rooms.id IN $idlist;";
 
         $ret['unseen'] = $this->chatroom['unseen'];
 
-        # The name we return is not the one we created it with, which is internal.  
+        # The name we return is not the one we created it with, which is internal.  Similar code in getName().
         switch ($this->chatroom['chattype']) {
             case ChatRoom::TYPE_USER2USER:
                 if ($summary) {
@@ -959,15 +959,14 @@ WHERE chat_rooms.id IN $idlist;";
             if (count($rooms) > 0) {
                 # We might have quite a lot of chats - speed up by reducing user fetches.
                 $me = Session::whoAmI($this->dbhr, $this->dbhm);
-                $mepub = $me ? $me->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE) : NULL;
 
                 foreach ($rooms as $room) {
                     $show = TRUE;
 
                     if ($search) {
-                        # We want to apply a search filter.
-                        $r = new ChatRoom($this->dbhr, $this->dbhm, $room['id']);
-                        $name = $r->getPublic($me, $mepub, TRUE)['name'];
+                        # We want to apply a search filter on the name.  We do a special query to get the name, because
+                        # calling getPublic is expensive.
+                        $name = $this->getName($room['id'], $me ? $me->getId() : NULL);
 
                         if (stripos($name, $search) === FALSE) {
                             # We didn't get a match easily.  Now we have to search in the messages.
@@ -993,6 +992,44 @@ WHERE chat_rooms.id IN $idlist;";
         }
 
         return (count($ret) == 0 ? NULL : $ret);
+    }
+
+    public function getName($chatid, $myid) {
+        # Similar code in getPublic.
+        $ret = NULL;
+
+        $rooms = $this->dbhr->preQuery("SELECT * FROM chat_rooms WHERE id = ?;", [
+            $chatid
+        ]);
+
+        foreach ($rooms as $room) {
+            switch ($room['chattype']) {
+                case ChatRoom::TYPE_USER2USER:
+                    $uid = $room['user1'] != $myid ? $room['user1'] : $room['user2'];
+                    $u = User::get($this->dbhr, $this->dbhm, $uid);
+                    $ret = $u->getName();
+                    break;
+                case ChatRoom::TYPE_USER2MOD:
+                    # If we started it, we're chatting to the group volunteers; otherwise to the user.
+                    $u = new User($this->dbhr, $this->dbhm, $room['user1']);
+                    $username = $u->getName();
+                    $username = strlen(trim($username)) > 0 ? $username : 'A freegler';
+                    $ret = $room['user1'] == $myid ? "{$ret['group']['namedisplay']} Volunteers" : "$username on {$ret['group']['nameshort']}";
+                    break;
+                case ChatRoom::TYPE_MOD2MOD:
+                    # Mods chatting to each other.
+                    $g = Group::get($this->dbhr, $this->dbhm, $room['groupid']);
+                    $ret = $g->getName() . " Mods";
+                    break;
+                case ChatRoom::TYPE_GROUP:
+                    # Members chatting to each other
+                    $g = Group::get($this->dbhr, $this->dbhm, $room['groupid']);
+                    $ret = $g->getName() . " Discussion";
+                    break;
+            }
+        }
+
+        return $ret;
     }
 
     public function canSee($userid, $checkmod = TRUE)

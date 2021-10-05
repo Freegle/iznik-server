@@ -38,11 +38,11 @@ class newsfeedAPITest extends IznikAPITestCase {
         $gid = $g->create("testgroup1", Group::GROUP_REUSE);
 
         $l = new Location($this->dbhr, $this->dbhm);
-        $this->areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))', 0);
+        $this->areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))');
         $areaatts = $l->getPublic();
         assertNotNull($this->areaid);
         $this->pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
-        $this->fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)', 0);
+        $this->fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)');
 
         $this->user = User::get($this->dbhr, $this->dbhm);
         $this->uid = $this->user->create(NULL, NULL, 'Test User');

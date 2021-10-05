@@ -31,7 +31,7 @@ if (count($opts) != 3) {
     if ($name && $lat && $lng) {
         $l = new Location($dbhr, $dbhm);
 
-        $lid = $l->create(NULL, $name, 'Point', "POINT($lng $lat)", 0);
+        $lid = $l->create(NULL, $name, 'Point', "POINT($lng $lat)");
 
         error_log("Created $lid");
     } else {
