@@ -60,7 +60,7 @@ if (count($opts) != 1) {
                         $lid = $l->findByName($pc);
 
                         if (!$lid) {
-                            $lid = $l->create(NULL, $pc, 'Postcode', "POINT({$latlng->lng} $latlng->lat)", 0);
+                            $lid = $l->create(NULL, $pc, 'Postcode', "POINT({$latlng->lng} $latlng->lat)");
 
                             if ($lid) {
                                 error_log("...added $pc {$latlng->lat}, {$latlng->lng}");

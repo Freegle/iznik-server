@@ -108,13 +108,10 @@ function locations() {
                 $polygon = Utils::presdef('polygon', $_REQUEST, NULL);
                 $name = Utils::presdef('name', $_REQUEST, NULL);
 
-                # This parameter is used in UT.
-                $osmparentsonly = array_key_exists('osmparentsonly', $_REQUEST) ? $_REQUEST['osmparentsonly'] : 1;
-
                 if ($polygon && $name) {
                     # We create this as a place, which can be used as an area - the client wouldn't have created it
                     # if they didn't want that.
-                    $id = $l->create(NULL, $name, 'Polygon', $polygon, $osmparentsonly, TRUE);
+                    $id = $l->create(NULL, $name, 'Polygon', $polygon);
                     $ret = [ 'ret' => 0, 'status' => 'Success', 'id' => $id ];
                 }
             }

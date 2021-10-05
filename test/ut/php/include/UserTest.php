@@ -1269,12 +1269,12 @@ class userTest extends IznikTestCase {
         $g->setPrivate('poly', 'POLYGON((179.1 8.3, 179.3 8.3, 179.3 8.6, 179.1 8.6, 179.1 8.3))');
 
         $l = new Location($this->dbhr, $this->dbhm);
-        $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))', 0);
+        $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))');
         $areaatts = $l->getPublic();
         assertNotNull($areaid);
         $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
-        $fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)', 0);
-        $locid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)', 0);
+        $fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)');
+        $locid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
 
         $u = User::get($this->dbhm, $this->dbhm);
         $uid = $u->create('Test', 'User', 'Test User');

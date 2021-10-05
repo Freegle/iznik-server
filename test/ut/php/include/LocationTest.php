@@ -82,22 +82,72 @@ class locationTest extends IznikTestCase {
         $this->log("Postcode id $pcid");
         assertNotNull($pcid);
 
-        $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))', 0);
+        $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))');
         $this->log("Area id $areaid");
         assertNotNull($areaid);
 
-        $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)', 0);
+        $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
         $this->log("Loc id $id");
         $l = new Location($this->dbhr, $this->dbhm, $id);
         $atts = $l->getPublic();
         assertEquals($areaid, $atts['areaid']);
 
-        $id2 = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)', 0);
+        $id2 = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)');
         $this->log("Full postcode id $id");
         $l = new Location($this->dbhr, $this->dbhm, $id2);
         $atts = $l->getPublic();
         assertEquals($areaid, $atts['areaid']);
         assertEquals($pcid, $atts['postcodeid']);
+    }
+
+    public function testParentsOverlap() {
+        $clat = 179.25;
+        $clng = 8.53;
+
+        $sw['lat'] = $clat - 0.1;
+        $sw['lng'] = $clng - 0.1;
+        $ne['lat'] = $clat + 0.05;
+        $ne['lng'] = $clng + 0.05;
+
+        $box1 = "POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))";
+
+        $sw['lat'] = $clat - 0.05;
+        $sw['lng'] = $clng - 0.05;
+        $ne['lat'] = $clat + 0.1;
+        $ne['lng'] = $clng + 0.1;
+
+        $box2 = "POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))";
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $pcid = $l->create(NULL, 'TV13 1AA', 'Postcode', "POINT($clng $clat)");
+        $this->log("Postcode id $pcid");
+        assertNotNull($pcid);
+
+        $areaid1 = $l->create(NULL, 'Tuvalu Central1', 'Polygon', $box1);
+        $this->log("Area id $areaid1");
+        assertNotNull($areaid1);
+
+        $areaid2 = $l->create(NULL, 'Tuvalu Central2', 'Polygon', $box2);
+        $this->log("Area id $areaid2");
+        assertNotNull($areaid2);
+
+        # Postcode should be in area 2.
+        $l = new Location($this->dbhr, $this->dbhm, $pcid);
+        assertEquals($areaid2, $l->getPrivate('areaid'));
+
+        # Edit area2 so that it no longer includes the postcode.
+        $sw['lat'] = $clat + 0.01;
+        $sw['lng'] = $clng + 0.01;
+        $ne['lat'] = $clat + 0.1;
+        $ne['lng'] = $clng + 0.1;
+
+        $box3 = "POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))";
+
+        $l = new Location($this->dbhr, $this->dbhm, $areaid2);
+        $l->setGeometry($box3);
+
+        $l = new Location($this->dbhr, $this->dbhm, $pcid);
+        assertEquals($areaid1, $l->getPrivate('areaid'));
     }
 
     public function testInvent() {
@@ -107,16 +157,16 @@ class locationTest extends IznikTestCase {
         $this->log("Postcode id $pcid");
         assertNotNull($pcid);
 
-        $id1 = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2162 8.53283)', 0);
+        $id1 = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2162 8.53283)');
         $l->setPrivate('areaid', $pcid);
         assertNotNull($id1);
-        $id2 = $l->create(NULL, 'TV13 2HH', 'Postcode', 'POINT(179.2162 8.53383)', 0);
+        $id2 = $l->create(NULL, 'TV13 2HH', 'Postcode', 'POINT(179.2162 8.53383)');
         $l->setPrivate('areaid', $pcid);
         assertNotNull($id2);
-        $id3 = $l->create(NULL, 'TV13 3HH', 'Postcode', 'POINT(179.2172 8.53383)', 0);
+        $id3 = $l->create(NULL, 'TV13 3HH', 'Postcode', 'POINT(179.2172 8.53383)');
         $l->setPrivate('areaid', $pcid);
         assertNotNull($id3);
-        $id4 = $l->create(NULL, 'TV13 4HH', 'Postcode', 'POINT(179.2162 8.53283)', 0);
+        $id4 = $l->create(NULL, 'TV13 4HH', 'Postcode', 'POINT(179.2162 8.53283)');
         $l->setPrivate('areaid', $pcid);
         assertNotNull($id4);
 

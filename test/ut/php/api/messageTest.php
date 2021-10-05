@@ -1058,7 +1058,7 @@ class messageAPITest extends IznikAPITestCase
         $this->group->setPrivate('publish', 1);
 
         $l = new Location($this->dbhr, $this->dbhm);
-        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)',0);
+        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)');
 
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
@@ -1172,8 +1172,8 @@ class messageAPITest extends IznikAPITestCase
     public function testEditAsMember()
     {
         $l = new Location($this->dbhr, $this->dbhm);
-        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)',0);
-        $locid2 = $l->create(NULL, 'TV1 1AB', 'Postcode', 'POINT(179.3 8.6)',0);
+        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)');
+        $locid2 = $l->create(NULL, 'TV1 1AB', 'Postcode', 'POINT(179.3 8.6)');
 
         # Create member and mod.
         $u = User::get($this->dbhr, $this->dbhm);
@@ -1461,7 +1461,7 @@ class messageAPITest extends IznikAPITestCase
     public function testEditAsMemberPending()
     {
         $l = new Location($this->dbhr, $this->dbhm);
-        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)',0);
+        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)');
 
         # Create member and mod.
         $u = User::get($this->dbhr, $this->dbhm);
@@ -1516,7 +1516,7 @@ class messageAPITest extends IznikAPITestCase
         $this->group->setSettings([ 'moderated' => TRUE ]);
 
         $l = new Location($this->dbhr, $this->dbhm);
-        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)',0);
+        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)');
 
         # Create member and mod.
         $u = User::get($this->dbhr, $this->dbhm);
@@ -1736,7 +1736,7 @@ class messageAPITest extends IznikAPITestCase
         $this->group->setPrivate('publish', 1);
 
         $l = new Location($this->dbhr, $this->dbhm);
-        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
+        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)');
 
         # Find a location
         $ret = $this->call('message', 'PUT', [
@@ -1804,7 +1804,7 @@ class messageAPITest extends IznikAPITestCase
         $this->group->setPrivate('publish', 1);
 
         $l = new Location($this->dbhr, $this->dbhm);
-        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
+        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)');
 
         # Find a location
         # ...but ban them first.
@@ -2533,7 +2533,7 @@ class messageAPITest extends IznikAPITestCase
         $this->group->setPrivate('publish', 1);
 
         $l = new Location($this->dbhr, $this->dbhm);
-        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
+        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)');
 
         # Find a location
         $ret = $this->call('message', 'PUT', [
@@ -2588,7 +2588,7 @@ class messageAPITest extends IznikAPITestCase
         $this->group->setPrivate('publish', 1);
 
         $l = new Location($this->dbhr, $this->dbhm);
-        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
+        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)');
 
         # Find a location
         $ret = $this->call('message', 'PUT', [
@@ -2767,7 +2767,7 @@ class messageAPITest extends IznikAPITestCase
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $l = new Location($this->dbhr, $this->dbhm);
-        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
+        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)');
 
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
@@ -2801,7 +2801,7 @@ class messageAPITest extends IznikAPITestCase
     public function testCantPost()
     {
         $l = new Location($this->dbhr, $this->dbhm);
-        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)',0);
+        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)');
 
         # Create member and mod.
         $u = User::get($this->dbhr, $this->dbhm);
@@ -2851,7 +2851,7 @@ class messageAPITest extends IznikAPITestCase
         assertGreaterThan(0, $u1->addEmail('test1@test.com'));
 
         $l = new Location($this->dbhm, $this->dbhm);
-        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)',0);
+        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)');
 
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
@@ -2934,7 +2934,7 @@ class messageAPITest extends IznikAPITestCase
         assertNotNull($partnerid);
 
         $l = new Location($this->dbhr, $this->dbhm);
-        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)',0);
+        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)');
 
         # Create member and mod.
         $u = User::get($this->dbhr, $this->dbhm);
@@ -3168,7 +3168,7 @@ class messageAPITest extends IznikAPITestCase
         $this->group->setPrivate('publish', 1);
 
         $l = new Location($this->dbhr, $this->dbhm);
-        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
+        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)');
 
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
@@ -3211,7 +3211,7 @@ class messageAPITest extends IznikAPITestCase
         $this->group->setPrivate('publish', 1);
 
         $l = new Location($this->dbhr, $this->dbhm);
-        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
+        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)');
 
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
@@ -3296,7 +3296,7 @@ class messageAPITest extends IznikAPITestCase
         $this->group->setSettings($settings);
 
         $l = new Location($this->dbhr, $this->dbhm);
-        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)',0);
+        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)');
 
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
