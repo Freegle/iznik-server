@@ -359,9 +359,16 @@ try{
   $subject = 'Discourse checkuser OK';
   if( $notmod || $notuser){
     $subject = 'Discourse checkuser USERS TO CHECK';
-    $sent = mail(CENTRALMODS_ADDR, $subject, $report,$headers);
-    echo "Mail sent to centralmods: ".$sent."\r\n";
-    $report = "Mail sent to centralmods: ".$sent."\r\n".$report;
+    $message = \Swift_Message::newInstance()
+        ->setSubject($subject)
+        ->setFrom([FROM_ADDR => 'Geeks'])
+        ->setTo([CENTRALMODS_ADDR => 'Volunteer Support'])
+        ->setBody($report);
+    list ($transport, $mailer) = Mail::getMailer();
+    $numSent = $mailer->send($message);
+    //$sent = mail(CENTRALMODS_ADDR, $subject, $report,$headers);
+    echo "Mail sent to centralmods: ".$numSent."\r\n";
+    $report = "Mail sent to centralmods: ".$numSent."\r\n".$report;
     $mailedcentralmods = true;
   }
 
