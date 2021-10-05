@@ -3143,7 +3143,7 @@ class messageAPITest extends IznikAPITestCase
             'userid' => $this->uid,
             'action' => 'Promise'
         ]);
-        assertEquals(2, $ret['ret']);
+        assertEquals(10, $ret['ret']);
     }
 
     public function testJoinPostTwoEmails() {
