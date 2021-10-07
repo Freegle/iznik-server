@@ -126,8 +126,9 @@ class MicroVolunteering
         $today = date('Y-m-d');
 
         $u = User::get($this->dbhr, $this->dbhm, $userid);
+        $trustlevel = $u->getPrivate('trustlevel');
 
-        if ($u->getPrivate('trustlevel') != User::TRUST_DECLINED) {
+        if ($trustlevel != User::TRUST_DECLINED && $trustlevel !== User::TRUST_EXCLUDED) {
             $groupids = [$groupid];
 
             if (!$groupid) {
