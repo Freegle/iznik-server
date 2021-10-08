@@ -5529,6 +5529,12 @@ class User extends Entity
             $this->dbhm->preExec("UPDATE messages_outcomes SET comments = NULL WHERE msgid = ?;", [
                 $msg['id']
             ]);
+
+            $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
+
+            if (!$m->hasOutcome()) {
+                $m->withdraw('Withdrawn on user unsubscribe', User::FINE);
+            }
         }
 
         # Remove all the content of all chat messages which they have sent (but not received).
