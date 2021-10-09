@@ -9,9 +9,10 @@ global $dbhr, $dbhm;
 $l = new Location($dbhm, $dbhm);
 
 error_log("Search");
-$locs = $dbhm->query("SELECT id FROM locations WHERE type = 'Postcode' AND LOCATE(' ', name) > 0 ORDER BY name ASC;");
+$locs = $dbhm->preQuery("SELECT id FROM locations WHERE type = 'Postcode' AND LOCATE(' ', name) > 0 and name >= 'RM14 3EJ' ORDER BY name ASC ;");
 error_log("Searched " . count($locs));
 $total = count($locs);
+$changed = 0;
 
 $count = 0;
 
@@ -22,6 +23,8 @@ foreach ($locs as $loc) {
 //        ]);
 
         if ($l->setParents($loc['id'])) {
+            error_log("Changed location {$loc['id']}");
+            $changed++;
             $msgs = $dbhr->preQuery("SELECT messages.id, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE locationid = ?;", [
                 $loc['id']
             ]);
@@ -41,7 +44,10 @@ foreach ($locs as $loc) {
         $count++;
 
         if ($count % 1000 == 0) {
-            error_log("$count / $total...");
+            error_log("$count / $total...changed $changed");
+
+            # Prod garbage collection, as we've seen high memory usage by this.
+            gc_collect_cycles();
         }
     } catch (\Exception $e) {}
 }

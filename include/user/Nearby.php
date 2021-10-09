@@ -88,8 +88,7 @@ class Nearby
                                     ]
                                 );
 
-                                $subj = "Could you help " . $mu->getName(
-                                    ) . " ($miles mile" . ($miles != 1 ? 's' : '') . " away)?";
+                                $subj = "Could you help $mname ($miles mile" . ($miles != 1 ? 's' : '') . " away)?";
                                 $noemail = 'relevantoff-' . $user['id'] . "@" . USER_DOMAIN;
                                 $textbody = "$mname, who's about $miles mile" . ($miles != 1 ? 's' : '') . " miles from you, has posted " . $msg['subject'] . ".  Do you know anyone who can help?  The post is here: https://" . USER_SITE . "/message/{$msg['id']}?src=nearby\r\nIf you don't want to get these suggestions, mail $noemail.";
 
