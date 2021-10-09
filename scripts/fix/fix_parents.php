@@ -9,7 +9,7 @@ global $dbhr, $dbhm;
 $l = new Location($dbhm, $dbhm);
 
 error_log("Search");
-$locs = $dbhm->preQuery("SELECT id FROM locations WHERE type = 'Postcode' AND LOCATE(' ', name) > 0 and name >= 'RM14 3EJ' ORDER BY name ASC ;");
+$locs = $dbhm->preQuery("SELECT id FROM locations WHERE type = 'Postcode' AND LOCATE(' ', name) > 0 ORDER BY name ASC ;");
 error_log("Searched " . count($locs));
 $total = count($locs);
 $changed = 0;
