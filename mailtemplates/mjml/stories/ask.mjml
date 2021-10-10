@@ -36,7 +36,7 @@
         <mj-section background-color="#F7F6EC">
           <mj-column>
             <mj-text>Dear&nbsp;{{ name }}</mj-text>
-            <mj-text>We love to hear why people freegle.  It keeps our volunteers volunteering, and it helps show new freeglers what it's all about.</mj-text>
+            <mj-text>We love to hear why you freegle and what your experiences have been - and it helps show new freeglers what it's all about.</mj-text>
             <mj-text>
               Could you take a few minutes to tell us your story?  If you want to attach a photo, that's
               good too, but you don't have to.
