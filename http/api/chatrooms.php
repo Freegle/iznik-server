@@ -16,7 +16,7 @@ function chatrooms() {
     $search = Utils::presdef('search', $_REQUEST, NULL);
     $summary = array_key_exists('summary', $_REQUEST) ? filter_var($_REQUEST['summary'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $count = array_key_exists('count', $_REQUEST) ? filter_var($_REQUEST['count'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-    $age = Utils::presint('age', $_REQUEST, ChatRoom::ACTIVELIM);
+    $age = Utils::presint('age', $_REQUEST, NULL);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
