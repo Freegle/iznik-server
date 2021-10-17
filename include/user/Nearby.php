@@ -59,7 +59,8 @@ class Nearby
 
                     $u = User::get($this->dbhr, $this->dbhm, $user['id']);
 
-                    if ($u->getPrivate('relevantallowed') && $u->sendOurMails()) {
+                    # Only send these to people who are still on a group.
+                    if ($u->getPrivate('relevantallowed') && $u->sendOurMails() && count($u->getMemberships())) {
                         $miles = $u->getDistance($msg['lat'], $msg['lng']);
                         $miles = round($miles);
 
