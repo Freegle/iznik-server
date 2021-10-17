@@ -4175,8 +4175,8 @@ class User extends Entity
                 'pendingadmins' => [ 'admin', 'admins', '/modtools/admins' ],
                 'spammembers' => [ 'member to review', 'members to review', '/modtools/members/review' ],
                 'relatedmembers' => [ 'related member to review', 'related members to review', '/modtools/members/related' ],
-                'editreview' => [ 'edit', 'edits', '/modtools/messages/review' ],
-                'spam' => [ 'message to review', 'messages to review', '/modtools/messages/review' ],
+                'editreview' => [ 'edit', 'edits', '/modtools/messages/edits' ],
+                'spam' => [ 'message to review', 'messages to review', '/modtools/messages/pending' ],
                 'pending' => [ 'pending message', 'pending messages', '/modtools/messages/pending' ]
             ];
 
