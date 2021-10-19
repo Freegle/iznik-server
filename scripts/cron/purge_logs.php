@@ -13,6 +13,24 @@ global $dbhr, $dbhm, $dbconfig;
 
 $lockh = Utils::lockScript(basename(__FILE__));
 
+# Delete login/logout logs older than a year.
+error_log("Purge old login/logout");
+
+try {
+    $start = date('Y-m-d', strtotime("midnight 365 days ago"));
+    $total = 0;
+    do {
+        $sql = "DELETE FROM logs WHERE `type` = '" . Log::TYPE_USER . "' AND (`subtype` = '" . Log::SUBTYPE_LOGIN . "' OR `subtype` = '" . Log::SUBTYPE_LOGOUT . "') AND `timestamp` < '$start' LIMIT 1000;";
+        $count = $dbhm->exec($sql);
+        $total += $count;
+        error_log("...$total");
+        set_time_limit(600);
+        sleep(1);
+    } while ($count > 0);
+} catch (\Exception $e) {
+    error_log("Failed to delete login/logout logs " . $e->getMessage());
+}
+
 # Don't keep user deletion logs indefinitely - this may be useful for a while for diagnosis, but not long term.
 error_log("Purge user deletion logs");
 
@@ -85,7 +103,6 @@ try {
     $start = date('Y-m-d', strtotime("midnight 30 days ago"));
     $end = date('Y-m-d', strtotime("midnight 60 days ago"));
     $logs = $dbhm->query("SELECT logs.id FROM logs LEFT JOIN messages ON messages.id = logs.msgid WHERE logs.type = 'Message' AND logs.msgid IS NOT NULL AND messages.id IS NULL AND logs.timestamp >= '$end' AND logs.timestamp < '$start';");
-    error_log("Found " . count($logs));
 
     foreach ($logs as $log) {
         $sql = "DELETE FROM logs WHERE id = {$log['id']};";
