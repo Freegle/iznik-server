@@ -794,6 +794,15 @@ class Spam {
             $this->dbhm->preExec($sql, [ $notif['id'] ]);
         }
 
+        # Remove any cases where the spammer has said they're waiting for a reply, which makes the spammee look
+        # bad.
+        $expecteds = $this->dbhr->preQuery("SELECT users_expected.id FROM `users_expected` INNER JOIN spam_users ON expecter = spam_users.userid AND collection = 'Spammer';");
+        foreach ($expecteds as $expected) {
+            $this->dbhm->preExec("DELETE FROM users_expected WHERE id = ?;", [
+                $expected['id']
+            ]);
+        }
+
         return($count);
     }
 
