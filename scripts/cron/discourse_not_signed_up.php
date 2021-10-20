@@ -146,6 +146,7 @@ function GetUserEmail($username){
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
+
 $headers = 'From: geeks@ilovefreegle.org';
 try{
 
@@ -167,7 +168,7 @@ try{
     $groups[$group['id']] = false;
   }
 
-  $sql = "SELECT DISTINCT users.*,groups.id as groupid FROM users INNER JOIN memberships ON users.id = memberships.userid ".
+  $sql = "SELECT DISTINCT users.*,groups.id as groupid,memberships.settings as settings FROM users INNER JOIN memberships ON users.id = memberships.userid ".
   "INNER JOIN `groups` ON groups.id = memberships.groupid ".
   "WHERE memberships.role IN ('Owner', 'Moderator') AND groups.type = 'Freegle' AND `lastaccess` > DATE_SUB(now(), INTERVAL 6 MONTH) ".
   "ORDER BY users.id";
@@ -231,10 +232,16 @@ try{
     }
     if( $found) {
       $groupid = $activemod['groupid'];
+      // {"showmessages":1,"showmembers":1,"pushnotify":1,"active":1,"showchat":1,"eventsallowed":1,"volunteeringallowed":1,"emailfrequency":24}
+      if( isset($activemod['settings'])){
+        if( strpos($activemod['settings'],'"active":0')!==false){
+          $found = false;
+        }
+      }
       //echo "ON DISCOURSE $groupid\r\n";
-      $found = false;
-
-      $groups[$groupid] = true;
+      if( $found){
+        $groups[$groupid] = true;
+      }
     }
     //if( $count>10) break;
   }
