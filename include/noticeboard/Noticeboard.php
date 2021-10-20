@@ -253,7 +253,7 @@ class Noticeboard extends Entity
                                 ->setFrom([NOREPLY_ADDR => 'Freegle'])
                                 ->setReturnPath($u->getBounce())
                                 ->setTo([ $u->getEmailPreferred() => $u->getName() ])
-                                ->setBody("A while ago you put up a poster for Freegle.  Could you put another one up in the same please?  Click https://www.ilovefreegle.org/noticeboards/{$noticeboard['id']} to let us know...");
+                                ->setBody("A while ago you put up a poster for Freegle.  Could you put another one up in the same place please?  Click https://www.ilovefreegle.org/noticeboards/{$noticeboard['id']} to let us know...");
 
                             $htmlPart = \Swift_MimePart::newInstance();
                             $htmlPart->setCharset('utf-8');
