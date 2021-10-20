@@ -59,7 +59,8 @@ class Nearby
 
                     $u = User::get($this->dbhr, $this->dbhm, $user['id']);
 
-                    if ($u->getPrivate('relevantallowed') && $u->sendOurMails()) {
+                    # Only send these to people who are still on a group.
+                    if ($u->getPrivate('relevantallowed') && $u->sendOurMails() && count($u->getMemberships())) {
                         $miles = $u->getDistance($msg['lat'], $msg['lng']);
                         $miles = round($miles);
 
@@ -88,8 +89,7 @@ class Nearby
                                     ]
                                 );
 
-                                $subj = "Could you help " . $u->getName(
-                                    ) . " ($miles mile" . ($miles != 1 ? 's' : '') . " away)?";
+                                $subj = "Could you help $mname ($miles mile" . ($miles != 1 ? 's' : '') . " away)?";
                                 $noemail = 'relevantoff-' . $user['id'] . "@" . USER_DOMAIN;
                                 $textbody = "$mname, who's about $miles mile" . ($miles != 1 ? 's' : '') . " miles from you, has posted " . $msg['subject'] . ".  Do you know anyone who can help?  The post is here: https://" . USER_SITE . "/message/{$msg['id']}?src=nearby\r\nIf you don't want to get these suggestions, mail $noemail.";
 

@@ -38,8 +38,8 @@ class searchTest extends IznikTestCase
 
     protected function tearDown()
     {
-        parent::tearDown();
-        $this->dbhm->preExec("DROP TABLE IF EXISTS test_index");
+//        parent::tearDown();
+//        $this->dbhm->preExec("DROP TABLE IF EXISTS test_index");
     }
 
     public function testBasic()
@@ -143,6 +143,22 @@ class searchTest extends IznikTestCase
         })));
 
         # Context no longer used so will return again.
+        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+            return $a['id'] == $id1;
+        })));
+
+        # Edit subject.
+        $rc = $m->edit('OFFER: Test ppputppp (location)',
+                       NULL,
+                       NULL,
+                       NULL,
+                       NULL,
+                       NULL,
+                       FALSE,
+                       NULL);
+
+        $ctx = NULL;
+        $ret = $m->search("ppputppp", $ctx);
         assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
             return $a['id'] == $id1;
         })));

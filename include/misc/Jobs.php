@@ -47,7 +47,23 @@ class Jobs {
             $categoryq = $category ? (" AND category = " . $this->dbhr->quote($category)) : '';
 
             # We use ST_Within because that takes advantage of the spatial index, whereas ST_Intersects does not.
-            $alreadyq = count($got) ? (" AND jobs.id NOT IN (" . implode(',', array_keys($got)) . ") ") : '';
+            $alreadyq = '';
+
+            if (count($got)) {
+                $alreadyq = " AND jobs.id NOT IN (" . implode(',', array_keys($got)) . ") AND jobs.title NOT IN (";
+
+                $first = TRUE;
+                foreach ($gottitle as $title) {
+                    if (!$first) {
+                        $alreadyq .= ", ";
+                    }
+
+                    $alreadyq .= $this->dbhr->quote($title);
+                    $first = FALSE;
+                }
+
+                $alreadyq .= ") ";
+            }
 
             $sql = "SELECT $ambit AS ambit, 
        ST_Distance(geometry, ST_GeomFromText('POINT($lng $lat)', {$this->dbhr->SRID()})) AS dist,
@@ -66,23 +82,18 @@ class Jobs {
             $passes++;
 
             foreach ($jobs as $job) {
-                if (!array_key_exists($job['id'], $got) &&
-                    !array_key_exists($job['body'], $gotbody) &&
-                    !array_key_exists($job['title'], $gottitle)
-                ) {
-                    $got[$job['id']] = TRUE;
-                    $gotbody[$job['body']] = $job['body'];
-                    $gottitle[$job['title']] = $job['title'];
-                    $job['passes'] = $passes;
+                $got[$job['id']] = TRUE;
+                $gotbody[$job['body']] = $job['body'];
+                $gottitle[$job['title']] = $job['title'];
+                $job['passes'] = $passes;
 
-                    # We have clickability, which is our estimate of how likely people are to click on a job based on
-                    # past clicks.  We also have the CPC, which is how much we expect to earn from a click.
-                    # Use these to order the jobs by our expected income.
-                    $cpc = max($job['cpc'], 0.0001);
-                    $job['expectation'] = $cpc * $job['clickability'];
+                # We have clickability, which is our estimate of how likely people are to click on a job based on
+                # past clicks.  We also have the CPC, which is how much we expect to earn from a click.
+                # Use these to order the jobs by our expected income.
+                $cpc = max($job['cpc'], 0.0001);
+                $job['expectation'] = $cpc * $job['clickability'];
 
-                    $ret[] = $job;
-                }
+                $ret[] = $job;
             }
 
             $ambit += $step;

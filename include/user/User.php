@@ -2059,7 +2059,7 @@ class User extends Entity
         }
     }
 
-    public function getPublicHistory($me, &$rets, $users, $groupids, $historyfull, $systemrole, $msgcoll = [ MessageCollection::APPROVED ]) {
+    public function getPublicHistory($me, &$rets, $users, $historyfull, $systemrole, $msgcoll = [ MessageCollection::APPROVED ]) {
         $idsleft = [];
 
         foreach ($rets as $userid => $ret) {
@@ -2090,23 +2090,10 @@ class User extends Entity
                 $earliest = $historyfull ? '1970-01-01' : date('Y-m-d', strtotime("midnight 30 days ago"));
                 $delq = $historyfull ? '' : ' AND messages_groups.deleted = 0';
 
-                if ($groupids && count($groupids) > 0) {
-                    # On these groups.  Have to be a bit careful about getting the posting date as GREATEST can return NULL
-                    # if one of the arguments is NULL.
-                    $groupq = implode(',', $groupids);
-                    $sql = "SELECT GREATEST(COALESCE(messages_postings.date, messages.arrival), COALESCE(messages_postings.date, messages.arrival)) AS postdate, (SELECT outcome FROM messages_outcomes WHERE messages_outcomes.msgid = messages.id ORDER BY timestamp DESC LIMIT 1) AS outcome, messages.fromuser, messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_groups.deleted, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND groupid IN ($groupq) $collq AND fromuser IN (" . implode(
-                            ',',
-                            $idsleft
-                        ) . ") $delq LEFT JOIN messages_postings ON messages.id = messages_postings.msgid HAVING postdate > ? ORDER BY postdate DESC;";
-                } else {
-                    if ($systemrole == User::SYSTEMROLE_SUPPORT || $systemrole == User::SYSTEMROLE_ADMIN) {
-                        # We can see all groups.
-                        $sql = "SELECT GREATEST(COALESCE(messages_postings.date, messages.arrival), COALESCE(messages_postings.date, messages.arrival)) AS postdate, (SELECT outcome FROM messages_outcomes WHERE messages_outcomes.msgid = messages.id ORDER BY timestamp DESC LIMIT 1) AS outcome, messages.fromuser, messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_groups.deleted, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid $collq AND fromuser IN (" . implode(
-                                ',',
-                                $idsleft
-                            ) . ") $delq LEFT JOIN messages_postings ON messages.id = messages_postings.msgid HAVING postdate > ? ORDER BY postdate DESC;";
-                    }
-                }
+                $sql = "SELECT GREATEST(COALESCE(messages_postings.date, messages.arrival), COALESCE(messages_postings.date, messages.arrival)) AS postdate, (SELECT outcome FROM messages_outcomes WHERE messages_outcomes.msgid = messages.id ORDER BY timestamp DESC LIMIT 1) AS outcome, messages.fromuser, messages.id, messages.fromaddr, messages.arrival, messages.date, messages_groups.collection, messages_groups.deleted, messages_postings.date AS repostdate, messages_postings.repost, messages_postings.autorepost, messages.subject, messages.type, DATEDIFF(NOW(), messages.date) AS daysago, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid $collq AND fromuser IN (" . implode(
+                        ',',
+                        $idsleft
+                    ) . ") $delq LEFT JOIN messages_postings ON messages.id = messages_postings.msgid HAVING postdate > ? ORDER BY postdate DESC;";
             }
 
             if ($sql) {
@@ -2618,7 +2605,7 @@ class User extends Entity
         }
 
         if ($history) {
-            $this->getPublicHistory($me, $rets, $users, $groupids, $historyfull, $systemrole, $msgcoll);
+            $this->getPublicHistory($me, $rets, $users, $historyfull, $systemrole, $msgcoll);
         }
 
         if (Session::modtools()) {
@@ -4188,8 +4175,8 @@ class User extends Entity
                 'pendingadmins' => [ 'admin', 'admins', '/modtools/admins' ],
                 'spammembers' => [ 'member to review', 'members to review', '/modtools/members/review' ],
                 'relatedmembers' => [ 'related member to review', 'related members to review', '/modtools/members/related' ],
-                'editreview' => [ 'edit', 'edits', '/modtools/messages/review' ],
-                'spam' => [ 'message to review', 'messages to review', '/modtools/messages/review' ],
+                'editreview' => [ 'edit', 'edits', '/modtools/messages/edits' ],
+                'spam' => [ 'message to review', 'messages to review', '/modtools/messages/pending' ],
                 'pending' => [ 'pending message', 'pending messages', '/modtools/messages/pending' ]
             ];
 
@@ -5529,6 +5516,12 @@ class User extends Entity
             $this->dbhm->preExec("UPDATE messages_outcomes SET comments = NULL WHERE msgid = ?;", [
                 $msg['id']
             ]);
+
+            $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
+
+            if (!$m->hasOutcome()) {
+                $m->withdraw('Withdrawn on user unsubscribe', User::FINE);
+            }
         }
 
         # Remove all the content of all chat messages which they have sent (but not received).

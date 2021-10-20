@@ -24,15 +24,22 @@ do {
     foreach ($ratings as $rating) {
         if ($rating['ratee_fd_user_id']) {
             try {
-                $dbhm->preExec("INSERT INTO ratings (ratee, rating, timestamp, visible, tn_rating_id) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE rating = ?, timestamp = ?;", [
-                    $rating['ratee_fd_user_id'],
-                    $rating['rating'],
-                    $rating['date'],
-                    1,
-                    $rating['rating_id'],
-                    $rating['rating'],
-                    $rating['date']
-                ]);
+                if ($rating['rating']) {
+                    $dbhm->preExec("INSERT INTO ratings (ratee, rating, timestamp, visible, tn_rating_id) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE rating = ?, timestamp = ?;", [
+                        $rating['ratee_fd_user_id'],
+                        $rating['rating'],
+                        $rating['date'],
+                        1,
+                        $rating['rating_id'],
+                        $rating['rating'],
+                        $rating['date']
+                    ]);
+                } else {
+                    $dbhm->preExec("DELETE FROM ratings WHERE ratee = ? AND tn_rating_id = ?;", [
+                        $rating['ratee_fd_user_id'],
+                        $rating['rating_id']
+                    ]);
+                }
             } catch (\Exception $e) {
                 error_log("Ratings sync failed " . $e->getMessage() . " " . var_export($rating, TRUE));
             }

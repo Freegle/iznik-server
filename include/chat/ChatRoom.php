@@ -14,6 +14,7 @@ class ChatRoom extends Entity
     var $settableatts = array('name', 'description');
 
     const ACTIVELIM = "31 days ago";
+    const ACTIVELIM_MT = "365 days ago";
     const TYPE_MOD2MOD = 'Mod2Mod';
     const TYPE_USER2MOD = 'User2Mod';
     const TYPE_USER2USER = 'User2User';
@@ -882,8 +883,12 @@ WHERE chat_rooms.id IN $idlist;";
         }
     }
 
-    public function listForUser($modtools, $userid, $chattypes = NULL, $search = NULL, $chatid = NULL, $activelim = ChatRoom::ACTIVELIM)
+    public function listForUser($modtools, $userid, $chattypes = NULL, $search = NULL, $chatid = NULL, $activelim = NULL)
     {
+        if ($activelim === NULL) {
+            $activelim = $modtools ? ChatRoom::ACTIVELIM_MT : ChatRoom::ACTIVELIM;
+        }
+
         $ret = [];
         $chatq = $chatid ? "chat_rooms.id = $chatid AND " : '';
 

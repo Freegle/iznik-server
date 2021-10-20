@@ -288,11 +288,16 @@ class Message
             $this->setPrivate('lng', $l->getPrivate('lng'));
         }
 
+        $this->deindex();
+
+        $subjectChanged = FALSE;
+
         if ($subject && strlen($subject) > 10) {
             # If the subject has been edited, then that edit is more important than any suggestion we might have
             # come up with.  Don't allow stupidly short edits.
             $this->setPrivate('subject', $subject);
             $this->setPrivate('suggestedsubject', $subject);
+            $subjectChanged = TRUE;
         } else if ($ret && ($type || $item || $locationid)) {
             # Construct a new subject from the edited values.
             if (!$groupid) {
@@ -307,11 +312,26 @@ class Message
             $this->constructSubject($groupid);
             $this->setPrivate('subject', $this->subject);
             $this->setPrivate('suggestedsubject', $this->subject);
+            $subjectChanged = TRUE;
         }
 
         if ($textbody) {
             $this->setPrivate('textbody', $textbody);
         }
+
+        if ($subjectChanged) {
+            # If this is a well-formed subject, make sure that we have an item for it, because that is what the
+            # search code uses.
+            if (preg_match('/.*?\:(.*)\(.*\)/', $this->getPrivate('subject'), $matches)) {
+                $item = trim($matches[1]);
+                $i = new Item($this->dbhm, $this->dbhm);
+                $iid = $i->create($item);
+                $this->deleteItems();
+                $this->addItem($iid);
+            }
+        }
+
+        $this->index();
 
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $text = ($subject ? "New subject $subject " : '');

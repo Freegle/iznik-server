@@ -1226,6 +1226,7 @@ class userTest extends IznikTestCase {
         self::assertEquals(NULL, $u->getPrivate('yahooid'));
         self::assertEquals(0, count($u->getLogins()));
         self::assertEquals(0, count($u->getMemberships()));
+        assertNotNull($m->hasOutcome());
     }
 
     public function testRetention() {
