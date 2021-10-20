@@ -47,7 +47,9 @@ class Nearby
                 $sw = \GreatCircle::getPositionByDistance($dist, 225, $mlat, $mlng);
                 $box = "ST_GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))', {$this->dbhr->SRID()})";
 
-                $users = $this->dbhr->preQuery("SELECT userid AS id FROM users_approxlocs WHERE ST_Contains($box, position);");
+                $users = $this->dbhr->preQuery("SELECT userid AS id FROM users_approxlocs WHERE ST_Contains($box, position) AND userid != ?;", [
+                    $msg['fromuser']
+                ]);
                 #error_log("Look for users near $mlat, $mlng with $box found " . count($users));
                 $mu = NULL;
 
