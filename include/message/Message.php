@@ -4302,6 +4302,9 @@ WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND message
             $r = new ChatRoom($this->dbhr, $this->dbhm, $reply['chatid']);
             $r->upToDate($this->getFromuser());
         }
+
+        # Update in spatial index so that the count of our posts changes.
+        $this->markSuccessfulInSpatial($this->id);
     }
 
     public function withdraw($comment, $happiness) {
@@ -5242,6 +5245,12 @@ $mq", [
         return $ret;
     }
 
+    public function markSuccessfulInSpatial($msgid) {
+        $this->dbhm->preExec("UPDATE messages_spatial SET successful = 1 WHERE msgid = ?;", [
+            $msgid
+        ]);
+    }
+
     public function updateSpatialIndex() {
         $count = 0;
 
@@ -5289,9 +5298,7 @@ $mq", [
             } else if ($msg['outcome'] == Message::OUTCOME_TAKEN || $msg['outcome'] == Message::OUTCOME_RECEIVED) {
                 if (!$msg['successful']) {
                     error_log("{$msg['msgid']} taken or received, update");
-                    $this->dbhm->preExec("UPDATE messages_spatial SET successful = 1 WHERE id = ?;", [
-                        $msg['id']
-                    ]);
+                    $this->markSuccessfulInSpatial($msg['id']);
                     $count++;
                 }
             } else if ($msg['successful']) {

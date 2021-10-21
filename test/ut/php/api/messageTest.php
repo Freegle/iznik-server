@@ -1267,7 +1267,6 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(1, $ret['me']['openposts']);
 
         # Edit the message.
-
         $ret = $this->call('message', 'PATCH', [
             'id' => $mid,
             'groupid' => $this->gid,
@@ -2064,6 +2063,19 @@ class messageAPITest extends IznikAPITestCase
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertEquals(Message::TYPE_OFFER, $m->getType());
 
+        # Get it into the spatial index.
+        $m->setPrivate('lat', 50.0657);
+        $m->setPrivate('lng', -5.7132);
+        $m->addToSpatialIndex();
+
+        # Should show in our open post count.
+        assertTrue($u->login('testpw'));
+        $ret = $this->call('session', 'GET', [
+            'components' => [ 'openposts' ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, $ret['me']['openposts']);
+
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'action' => 'OutcomeIntended',
@@ -2079,6 +2091,13 @@ class messageAPITest extends IznikAPITestCase
             'userid' => $uid
         ]);
         assertEquals(0, $ret['ret']);
+
+        # Should no longer show in our open post count.
+        $ret = $this->call('session', 'GET', [
+            'components' => [ 'openposts' ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, $ret['me']['openposts']);
 
         $msg = $this->unique($origmsg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
