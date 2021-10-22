@@ -120,7 +120,7 @@ class Preview extends Entity
     }
 
     public function get($url) {
-        $this->link = array_values($this->gets([ $url ]))[0];
+        $this->link = array_values($this->gets([ $url ], TRUE))[0];
         $this->id = $this->link['id'];
         return $this->id;
     }
