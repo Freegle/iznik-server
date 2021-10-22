@@ -1,72 +1,61 @@
 <mjml>
   <mj-head>
     <mj-preview></mj-preview>
-      <mj-style>
-        a {
-          color: #288c0a;
-          text-decoration: none;
-          font-weight: bold
-        }
-        ol {
-          margin-top: 0; margin-bottom: 0;
-          /* margin-left: 2.2em; For Outlook */
-          padding-left: 2.4em; /* For the rest */
-        }
-        li {
-          margin: 0.5em 0;
-        }
-      </mj-style>
-      <mj-attributes>
-        <mj-all font-family="Trebuchet MS, Helvetica, Arial" />
-      </mj-attributes>
-    </mj-head>
+    <mj-style>a {
+      color: #288c0a;
+      text-decoration: none;
+      font-weight: bold
+      }
+      ol {
+      margin-top: 0; margin-bottom: 0;
+      /* margin-left: 2.2em; For Outlook */
+      padding-left: 2.4em; /* For the rest */
+      }
+      li {
+      margin: 0.5em 0;
+      }</mj-style>
+    <mj-attributes>
+      <mj-all font-family="Trebuchet MS, Helvetica, Arial"></mj-all>
+    </mj-attributes>
+  </mj-head>
   <mj-body>
-    <mj-container>
-      <mj-wrapper padding="0"  full-width="full-width">
+    <mj-wrapper padding="0px" full-width="full-width">
+      <mj-raw>
         <!-- header section -->
-        <mj-section background-url="https://www.ilovefreegle.org/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0">
-          <mj-group>
+      </mj-raw>
+      <mj-section background-url="https://www.ilovefreegle.org/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0px">
+        <mj-group>
           <mj-column vertical-align="middle" width="65%">
-            <mj-text color="#61AE24" font-size="18pt" line-height="1.25em">Thank you for supporting Freegle!</mj-text>
+            <mj-text color="#61AE24" font-size="22px" line-height="1.25">Thank you for supporting Freegle!</mj-text>
           </mj-column>
           <mj-column vertical-align="middle" width="35%">
-            <mj-image css-class="logo" src="https://www.ilovefreegle.org/icon.png" alt="Logo" width="80px" align="right" border-radius="5px" padding="20px"/>
+            <mj-image css-class="logo" src="https://www.ilovefreegle.org/icon.png" alt="Logo" width="80px" align="right" border-radius="5px" padding="20px"></mj-image>
           </mj-column>
-          </mj-group>
-        </mj-section>
-        <mj-section background-color="#F7F6EC">
-          <mj-column>
-						<mj-text>
-              It's very kind of you to donate to us.  We realise that there are a lot of charities asking for your help.
-            </mj-text>
-            <mj-text>
-              Your donation will go even further if you are able to complete a gift aid form (if you haven't already, and if you're eligible):
-            </mj-text>
-            <mj-button href="http://www.ilovefreegle.org/giftaid" background-color="#61AE24" font-size="12pt">Click to Complete a Gift Aid Form</mj-button>
-            <mj-text>
-              If you'd like to support us more without it costing you a penny, you can use <b>Give As You Live</b> - when you shop online, they donate.  Click <a href="https://www.giveasyoulive.com/join/freegle">here</a> to learn more.
-            </mj-text>
-            <mj-text>
-              And if you ever want to set up a regular donation of &pound;1 each month, you can do so from PayPal <a href="https://freegle.in/paypal1510">here</a>.
-            </mj-text>
-            <mj-text>
-              Freegle is run by volunteers - if you'd like to volunteer with us then drop us a line at <a href="mailto:volunteers@ilovefreegle.org">volunteers@ilovefreegle.org</a> with a bit about yourself.
-            </mj-text>
-            <mj-text>
-              But most importantly, keep freegling!  The planet and your neighbours will be grateful.
-            </mj-text>
-            <mj-text color="#61AE24" font-size="14pt">Happy freegling!</mj-text>
-          </mj-column>
-        </mj-section>
-        <mj-section background-color="#E0E0E0">
-          <mj-column>
-            <mj-text font-size="9pt" color="#707070">This mail was sent to&nbsp;{{ email }}.  You can unsubscribe by clicking <a href="https://www.ilovefreegle.org/unsubscribe">here</a>.
-              <hr style="border: 0; border-top: 1px solid #AAA; "/>
-              Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.
-            </mj-text>
-            </mj-column>
-        </mj-section>
-      </mj-wrapper>
-    </mj-container>
+        </mj-group>
+      </mj-section>
+      <mj-section background-color="#F7F6EC">
+        <mj-column>
+          <mj-text>It's very kind of you to donate to us. We realise that there are a lot of charities asking for your help.</mj-text>
+          <mj-text>Your donation will go even further if you are able to complete a gift aid form (if you haven't already, and if you're eligible):</mj-text>
+          <mj-button href="http://www.ilovefreegle.org/giftaid" background-color="#61AE24" font-size="18px">Click to Complete a Gift Aid Form</mj-button>
+          <mj-text>
+            If you don't want or can't do Gift Aid, you can record that there too.
+          </mj-text>
+          <mj-text>If you'd like to support us more without it costing you a penny, you can use <b>Give As You Live</b> - when you shop online, they donate. Click <a href="https://www.giveasyoulive.com/join/freegle">here</a> to learn more.</mj-text>
+          <mj-text>And if you ever want to set up a regular donation of &pound;1 each month, you can do so from PayPal <a href="https://freegle.in/paypal1510">here</a>.</mj-text>
+          <mj-text>Freegle is run by volunteers - if you'd like to volunteer with us then drop us a line at <a href="mailto:volunteers@ilovefreegle.org">volunteers@ilovefreegle.org</a> with a bit about yourself.</mj-text>
+          <mj-text>But most importantly, keep freegling! The planet and your neighbours will be grateful.</mj-text>
+          <mj-text color="#61AE24" font-size="14px">Happy freegling!</mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-section background-color="#E0E0E0">
+        <mj-column>
+          <mj-text font-size="9px" color="#707070">This mail was sent to&nbsp;{{ email }}. You can unsubscribe by clicking <a href="https://www.ilovefreegle.org/unsubscribe">here</a>.
+            <hr style="border: 0; border-top: 1px solid #AAA; " />
+            Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.
+          </mj-text>
+        </mj-column>
+      </mj-section>
+    </mj-wrapper>
   </mj-body>
 </mjml>
