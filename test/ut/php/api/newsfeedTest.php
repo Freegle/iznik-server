@@ -136,6 +136,8 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
 
         # Get this individual one
+        $n->updatePreviews();
+
         $ret = $this->call('newsfeed', 'GET', [
             'id' => $nid
         ]);

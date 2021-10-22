@@ -1,8 +1,6 @@
 <?php
 namespace Freegle\Iznik;
 
-
-
 use LinkPreview\LinkPreview;
 
 class Preview extends Entity
@@ -79,8 +77,7 @@ class Preview extends Entity
         return($id);
     }
     
-    public function gets($urls) {
-        # Doing a select first allows caching and previews DB locks.
+    public function gets($urls, $createMissing) {
         $ret = [];
         
         if (count($urls)) {
@@ -96,12 +93,14 @@ class Preview extends Entity
             $founds = array_map(function($l) {
                 return $l['url'];
             }, $links);
-            
-            $missings = array_diff($urls, $founds);
 
-            foreach ($missings as $missing) {
-                $this->create($missing);
-                $links[] = $this->getPublic();
+            if ($createMissing) {
+                $missings = array_diff($urls, $founds);
+
+                foreach ($missings as $missing) {
+                    $this->create($missing);
+                    $links[] = $this->getPublic();
+                }
             }
 
             foreach ($links as $ix => $link) {

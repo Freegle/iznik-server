@@ -202,7 +202,7 @@ class Newsfeed extends Entity
         $atts['threadhead'] = $threadhead;
         $entries = [ $atts ];
 
-        $this->fillIn($entries, $users, TRUE, $allreplies);
+        $this->fillIn($entries, $users, TRUE, $allreplies, FALSE);
 
         $atts = $entries[0];
 
@@ -266,10 +266,13 @@ class Newsfeed extends Entity
         }
     }
 
-    private function fillIn(&$entries, &$users, $checkreplies = TRUE, $allreplies = FALSE) {
+    private function fillIn(&$entries, &$users, $checkreplies = TRUE, $allreplies = FALSE, $getPreviews) {
         $myid = Session::whoAmId($this->dbhr, $this->dbhm);
         $ids = array_filter(array_column($entries, 'id'));
 
+        # We always don't want to create missing links, because that involves fetches to third party sites which may hit
+        # our performance and (in one case we've seen) fail to return.  We expect that the cron previews job will
+        # have ensured that they are present.
         # Get all the url previews efficiently.
         $p = new Preview($this->dbhr, $this->dbhm);
 
@@ -286,7 +289,7 @@ class Newsfeed extends Entity
             }
         }
 
-        $previews = $p->gets($urls);
+        $previews = $p->gets($urls, $getPreviews);
 
         if ($ids && count($ids)) {
             $likes = $this->dbhr->preQuery("SELECT newsfeedid, COUNT(*) AS count FROM newsfeed_likes WHERE newsfeedid IN (" . implode(',', $ids) . ") GROUP BY newsfeedid;", NULL, FALSE, FALSE);
@@ -304,7 +307,7 @@ class Newsfeed extends Entity
             if ($checkreplies) {
                 $replies = $this->dbhr->preQuery($allreplies ? "SELECT * FROM newsfeed WHERE replyto IN (" . implode(',', $ids) . ") AND deleted IS NULL ORDER BY id DESC;" : "SELECT * FROM newsfeed WHERE replyto IN (" . implode(',', $ids) . ") AND deleted IS NULL ORDER BY id DESC;", NULL, FALSE);
                 $replies = array_reverse($replies);
-                $this->fillIn($replies, $users, TRUE, FALSE);
+                $this->fillIn($replies, $users, TRUE, FALSE, $getPreviews);
             }
 
             for ($entindex = 0; $entindex < count($entries); $entindex++) {
@@ -582,7 +585,7 @@ class Newsfeed extends Entity
                 # Don't use hidden entries unless they are ours.  This means that to a spammer or suppressed user
                 # it looks like their posts are there but nobody else sees them.
                 if (!$hidden || $myid == $entry['userid'] || $me->isModerator()) {
-                    if (!$me->isModerator()) {
+                    if (!$me || !$me->isModerator()) {
                         unset($entry['hidden']);
                     }
 
@@ -591,7 +594,7 @@ class Newsfeed extends Entity
             }
             
             if ($fillin) {
-                $this->fillIn($filtered, $users, TRUE, FALSE);
+                $this->fillIn($filtered, $users, TRUE, FALSE, FALSE);
             }
             
             foreach ($filtered as &$entry) {
@@ -1168,5 +1171,17 @@ class Newsfeed extends Entity
         ]);
 
         return(count($ns) > 0 ? $ns[0]['id'] : NULL);
+    }
+
+    public function updatePreviews() {
+        # We want to get (or potentially update) any link previews for recent newsfeed items.
+        #
+        $mysqltime = date("Y-m-d H:i:s", strtotime("24 hours ago"));
+        $entries = $this->dbhr->preQuery("SELECT * FROM newsfeed WHERE timestamp >= ?;", [
+            $mysqltime
+        ]);
+
+        $users = [];
+        $this->fillIn($entries, $users, TRUE, TRUE, TRUE);
     }
 }
