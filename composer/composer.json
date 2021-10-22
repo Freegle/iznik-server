@@ -48,6 +48,10 @@
     {
       "url": "https://github.com/Yanlong-LI/php-apple-signin.git",
       "type": "git"
+    },
+    {
+      "url": "https://github.com/Freegle/link-preview.git",
+      "type": "vcs"
     }
   ],
   "require-dev": {

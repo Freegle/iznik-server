@@ -321,7 +321,7 @@ class Newsfeed extends Entity
                 $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
                 $use = !Utils::presdef('reviewrequired', $entries[$entindex], FALSE) &&
-                    (!Utils::presdef('deleted', $entries[$entindex], FALSE) || $me->isModerator());
+                    (!Utils::presdef('deleted', $entries[$entindex], FALSE) || ($me && $me->isModerator()));
 
                 #error_log("Use $use for type {$entries[$entindex]['type']} from " . Utils::presdef('reviewrequired', $entries[$entindex], FALSE) . "," . Utils::presdef('deleted', $entries[$entindex], FALSE));
 
