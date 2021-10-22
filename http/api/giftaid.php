@@ -45,7 +45,7 @@ function giftaid() {
 
                 $ret = ['ret' => 2, 'status' => 'Bad parameters'];
 
-                if ($period && $fullname && $homeaddress) {
+                if ($period && ($period == Donations::PERIOD_DECLINED || $fullname && $homeaddress)) {
                     $id = $d->setGiftAid($me->getId(), $period, $fullname, $homeaddress);
 
                     $ret = [

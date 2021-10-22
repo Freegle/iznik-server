@@ -8,6 +8,7 @@ class Donations
     const PERIOD_THIS = 'This';
     const PERIOD_SINCE = 'Since';
     const PERIOD_FUTURE = 'Future';
+    const PERIOD_DECLINED = 'Declined';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid = NULL)
     {
@@ -85,7 +86,9 @@ class Donations
     }
 
     public function listGiftAidReview() {
-        $giftaids = $this->dbhr->preQuery("SELECT * FROM giftaid WHERE reviewed IS NULL AND deleted IS NULL ORDER BY timestamp ASC;", NULL, FALSE, FALSE);
+        $giftaids = $this->dbhr->preQuery("SELECT * FROM giftaid WHERE reviewed IS NULL AND deleted IS NULL AND period != ? ORDER BY timestamp ASC;", [
+            Donations::PERIOD_DECLINED
+        ], FALSE, FALSE);
 
         $uids = array_column($giftaids, 'userid');
         $u = new User($this->dbhr, $this->dbhm);
@@ -100,7 +103,9 @@ class Donations
 
     }
     public function countGiftAidReview() {
-        $giftaids = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM giftaid WHERE reviewed IS NULL AND deleted IS NULL ORDER BY timestamp ASC;", NULL, FALSE, FALSE);
+        $giftaids = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM giftaid WHERE reviewed IS NULL AND deleted IS NULL AND period != ? ORDER BY timestamp ASC;", [
+            Donations::PERIOD_DECLINED
+        ], FALSE, FALSE);
         return $giftaids[0]['count'];
     }
 
@@ -212,6 +217,11 @@ class Donations
                     ]);
 
                     $found += $this->dbhm->rowsAffected();
+                    break;
+                }
+
+                case Donations::PERIOD_DECLINED: {
+                    # Declined to give gift aid - nothing to do.
                     break;
                 }
             }
