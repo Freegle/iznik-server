@@ -67,8 +67,6 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
     protected function setUp() {
         parent::setUp ();
 
-        # We need some output to make sure CircleCI doesn't time us out.
-        error_log(__METHOD__);
         $this->log(__METHOD__);
 
         putenv('UT=1');
