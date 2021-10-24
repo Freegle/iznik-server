@@ -349,7 +349,11 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
                             #
                             # So first, geocode the state; if we get a specific location we can use that.  If it's a larger
                             # location then we can use it as a bounding box.
-                            list ($swlat, $swlng, $nelat, $nelng, $geom, $area) = Jobs::geocode($job->state, FALSE, TRUE);
+                            #
+                            # Geocoding gets confused by "Borough of", e.g. "Borough of Swindon".
+                            $state = str_ireplace($job->state, 'Borough of ', '');
+
+                            list ($swlat, $swlng, $nelat, $nelng, $geom, $area) = Jobs::geocode($job, FALSE, TRUE);
 
                             if ($area && $area < 0.05) {
                                 # We have a small 'state', which must be an actual location.  Stop.
