@@ -1010,8 +1010,12 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
         return(true);
     }
 
-    public function getSetting($key, $def) {
-        $settings = $this->id ? json_decode($this->group['settings'], true) : NULL;
+    public function getSetting($key, $def, $settings = NULL) {
+        if ($settings === NULL) {
+            $settings = $this->group['settings'];
+        }
+
+        $settings = $this->id ? json_decode($settings, true) : NULL;
         return($settings && array_key_exists($key, $settings) ? $settings[$key] : $def);
     }
 
@@ -1052,9 +1056,11 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
         $suppfields = $support ? ", founded, lastmoderated, lastmodactive, lastautoapprove, activemodcount, backupmodsactive, backupownersactive, onmap, affiliationconfirmed, affiliationconfirmedby": '';
         $polyfields = $polys ? ", CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial" : '';
 
-        $sql = "SELECT groups.id, groups_images.id AS attid, nameshort, region, namefull, lat, lng, altlat, altlng, publish $suppfields $polyfields, mentored, onhere, ontn, onmap, external, profile, tagline, contactmail FROM `groups` LEFT JOIN groups_images ON groups_images.groupid = groups.id WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END, groups_images.id DESC;";
+        $sql = "SELECT groups.id, groups.settings, groups_images.id AS attid, nameshort, region, namefull, lat, lng, altlat, altlng, publish $suppfields $polyfields, mentored, onhere, ontn, onmap, external, profile, tagline, contactmail FROM `groups` LEFT JOIN groups_images ON groups_images.groupid = groups.id WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END, groups_images.id DESC;";
         $groups = $this->dbhr->preQuery($sql, [ $type ]);
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
+
+        $g = new Group($this->dbhr, $this->dbhm);
 
         if ($support) {
             $start = date('Y-m-d', strtotime(MessageCollection::RECENTPOSTS));
@@ -1074,7 +1080,7 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
         $lastname = NULL;
         $ret = [];
 
-        foreach ($groups as $group) {
+        foreach ($groups as &$group) {
             if (!$lastname || $lastname != $group['nameshort']) {
                 $group['namedisplay'] = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
                 $group['profile'] = $group['profile'] ? $a->getPath(FALSE, $group['attid']) : NULL;
@@ -1106,6 +1112,9 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
                         $group['recentautoapprovespercent'] = 0;
                     }
                 }
+
+                $group['nearbygroups'] = $g->getSetting('nearbygroups', $g->defaultSettings['nearbygroups'], $group['settings']);
+                unset($group['settings']);
 
                 $ret[] = $group;
             }
