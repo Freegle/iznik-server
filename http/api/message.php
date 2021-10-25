@@ -272,7 +272,8 @@ function message() {
                         $subject = Utils::presdef('subject', $_REQUEST, NULL);
                         $msgtype = Utils::presdef('msgtype', $_REQUEST, NULL);
                         $item = Utils::presdef('item', $_REQUEST, NULL);
-                        $locationid = Utils::presdef('locationid', $_REQUEST, NULL);
+                        $locationid = Utils::presint('locationid', $_REQUEST, NULL);
+                        $location = Utils::presdef('location', $_REQUEST, NULL);
                         $lat = Utils::presfloat('lat', $_REQUEST, NULL);
                         $lng = Utils::presfloat('lng', $_REQUEST, NULL);
                         $textbody = Utils::presdef('textbody', $_REQUEST, NULL);
@@ -292,6 +293,11 @@ function message() {
 
                         if ($availableinitially !== NULL) {
                             $m->setPrivate('availableinitially', $availableinitially);
+                        }
+
+                        if ($location && !$locationid) {
+                            $l = new Location($dbhr, $dbhm);
+                            $locationid = $l->findByName($location);
                         }
 
                         if ($subject || $textbody || $msgtype || $item || $locationid || $attachments !== NULL || $lat || $lng) {
