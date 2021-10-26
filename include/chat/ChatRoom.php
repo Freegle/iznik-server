@@ -1145,7 +1145,7 @@ WHERE chat_rooms.id IN $idlist;";
         return $found;
     }
 
-    public function updateRoster($userid, $lastmsgseen, $status = ChatRoom::STATUS_ONLINE)
+    public function updateRoster($userid, $lastmsgseen, $status = ChatRoom::STATUS_ONLINE, $allowBackwards = FALSE)
     {
         # We have a unique key, and an update on current timestamp.
         #
@@ -1176,7 +1176,8 @@ WHERE chat_rooms.id IN $idlist;";
         if ($lastmsgseen && !is_nan($lastmsgseen)) {
             # Update the last message seen - taking care not to go backwards, which can happen if we have multiple
             # windows open.
-            $rc = $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ? WHERE chatid = ? AND userid = ? AND (lastmsgseen IS NULL OR lastmsgseen < ?);", [
+            $backq = $allowBackwards ? " AND ? " : " AND (lastmsgseen IS NULL OR lastmsgseen < ?)";
+            $rc = $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ? WHERE chatid = ? AND userid = ? $backq;", [
                 $lastmsgseen,
                 $this->id,
                 $userid,

@@ -17,6 +17,7 @@ function chatrooms() {
     $summary = array_key_exists('summary', $_REQUEST) ? filter_var($_REQUEST['summary'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $count = array_key_exists('count', $_REQUEST) ? filter_var($_REQUEST['count'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $age = Utils::presint('age', $_REQUEST, NULL);
+    $allowback = Utils::presbool('allowback', $_REQUEST, FALSE);
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
@@ -139,7 +140,7 @@ function chatrooms() {
                         $ret = ['ret' => 0, 'status' => 'Success'];
                         $lastmsgseen = Utils::presint('lastmsgseen', $_REQUEST, NULL);
                         $status = Utils::presdef('status', $_REQUEST, ChatRoom::STATUS_ONLINE);
-                        $r->updateRoster($myid, $lastmsgseen, $status);
+                        $r->updateRoster($myid, $lastmsgseen, $status, $allowback);
 
                         $ret['roster'] = $r->getRoster();
                         $ret['unseen'] = $r->unseenCountForUser($myid);
