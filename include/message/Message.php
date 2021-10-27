@@ -5298,7 +5298,7 @@ $mq", [
             } else if ($msg['outcome'] == Message::OUTCOME_TAKEN || $msg['outcome'] == Message::OUTCOME_RECEIVED) {
                 if (!$msg['successful']) {
                     error_log("{$msg['msgid']} taken or received, update");
-                    $this->markSuccessfulInSpatial($msg['id']);
+                    $this->markSuccessfulInSpatial($msg['msgid']);
                     $count++;
                 }
             } else if ($msg['successful']) {
