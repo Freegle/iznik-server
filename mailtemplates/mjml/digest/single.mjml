@@ -70,7 +70,7 @@
       <mj-section background-color="#F7F6EC" padding="0px">
         <mj-column>
           <mj-text background-color="#FFF8DC" color="#61AE24" font-size="20px" line-height="1.25" padding-bottom="0px">Jobs near you<br /></mj-text>
-          <mj-text background-color="#FFF8DC">If you click through to view these then it will raise a little to help keep Freegle running and free to use.<br /></mj-text>
+          <mj-text background-color="#FFF8DC">If you are interested and click then it will raise a little to help keep Freegle running and free to use.<br /></mj-text>
         </mj-column>
         <mj-column>
           <mj-button align="right" href="https://www.ilovefreegle.org/jobs/{{ joblocation }}" font-family="Helvetica" background-color="darkblue" color="white">View more jobs</mj-button>
