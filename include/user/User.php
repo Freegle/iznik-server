@@ -5499,8 +5499,10 @@ class User extends Entity
 
         # Delete the content (but not subject) of any messages, and any email header information such as their
         # name and email address.
-        $msgs = $this->dbhm->preQuery("SELECT id FROM messages WHERE fromuser = ?;", [
-            $this->id
+        $msgs = $this->dbhm->preQuery("SELECT id FROM messages WHERE fromuser = ? AND messages.type IN (?, ?);", [
+            $this->id,
+            Message::TYPE_OFFER,
+            Message::TYPE_WANTED
         ]);
 
         foreach ($msgs as $msg) {
