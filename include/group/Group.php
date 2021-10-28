@@ -109,6 +109,7 @@ class Group extends Entity
             'autoadmins' => 1,
             'mentored' => 0,
             'nearbygroups' => 5,
+            'showjoin' => 0,
             'engagement' => 1
         ];
 
@@ -1114,6 +1115,7 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
                 }
 
                 $group['nearbygroups'] = $g->getSetting('nearbygroups', $g->defaultSettings['nearbygroups'], $group['settings']);
+                $group['showjoin'] = $g->getSetting('showjoin', $g->defaultSettings['showjoin'], $group['settings']);
                 unset($group['settings']);
 
                 $ret[] = $group;
