@@ -1185,6 +1185,7 @@ class userTest extends IznikTestCase {
         $u->addMembership($group1);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Subject: Basic test', 'Subject: OFFER: thing (place)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'test@test.com', 'testgroup1@yahoogroups.com', $msg);
