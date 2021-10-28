@@ -2340,6 +2340,13 @@ ORDER BY lastdate DESC;";
             }
 
             $this->fromuser = $userid;
+
+            $tnid = $this->getHeader('x-trash-nothing-user-id');
+
+            if ($tnid) {
+                $u = User::get($this->dbhr, $this->dbhm, $userid);
+                // TODO Need schema change to be able to add this to the user.
+            }
         }
 
         return(TRUE);
