@@ -2625,7 +2625,7 @@ ORDER BY lastdate DESC;";
         $this->id = NULL;
 
         # Trigger mapping and get subject suggestion.
-        $this->suggestedsubject = $this->suggestSubject($this->groupid, $this->subject);
+        $this->suggestedsubject = $this->groupid ? $this->suggestSubject($this->groupid, $this->subject) : $this->subject;
 
         # Save into the messages table.
         try {

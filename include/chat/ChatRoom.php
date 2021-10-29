@@ -2113,7 +2113,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                         if (count($twigmessages)) {
                             # As a subject, we should use the last "interested in" message in this chat - this is the
                             # most likely thing they are talking about.
-                            $sql = "SELECT subject FROM messages INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND chat_messages.type = ? ORDER BY chat_messages.id DESC LIMIT 1;";
+                            $sql = "SELECT subject, nameshort, namefull FROM messages INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id INNER JOIN `groups` ON groups.id = messages_groups.groupid WHERE chatid = ? AND chat_messages.type = ? ORDER BY chat_messages.id DESC LIMIT 1;";
                             #error_log($sql . $chat['chatid']);
                             $subjs = $this->dbhr->preQuery($sql, [
                                 $chat['chatid'],
@@ -2125,7 +2125,12 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
                             switch ($chattype) {
                                 case ChatRoom::TYPE_USER2USER:
-                                    $subject = '[Freegle] ' . (count($subjs) == 0 ? "You have a new message" : ("Re: " . str_replace('Re: ', '', $subjs[0]['subject'])));
+                                    if (count($subjs)) {
+                                        $groupname = Utils::presdef('namefull', $subjs[0], $subjs[0]['nameshort']);
+                                        $subject = count($subjs) == 0 ?  : ("Re: [$groupname] " . str_replace('Re: ', '', $subjs[0]['subject']));
+                                    } else {
+                                        $subject = "[Freegle] You have a new message";
+                                    }
                                     $site = USER_SITE;
                                     break;
                                 case ChatRoom::TYPE_USER2MOD:
