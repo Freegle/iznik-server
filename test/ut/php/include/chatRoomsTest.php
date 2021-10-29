@@ -1191,7 +1191,7 @@ class chatRoomsTest extends IznikTestCase {
         $m->setPrivate('reviewrejected', 0);
 
         assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
-        assertEquals('You have a new message', $this->msgsSent[0]['subject']);
+        assertEquals('[Freegle] You have a new message', $this->msgsSent[0]['subject']);
     }
 }
 

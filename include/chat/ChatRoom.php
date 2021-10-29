@@ -2125,7 +2125,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
                             switch ($chattype) {
                                 case ChatRoom::TYPE_USER2USER:
-                                    $subject = count($subjs) == 0 ? "You have a new message" : ("Re: " . str_replace('Re: ', '', $subjs[0]['subject']));
+                                    $subject = '[Freegle] ' . (count($subjs) == 0 ? "You have a new message" : ("Re: " . str_replace('Re: ', '', $subjs[0]['subject'])));
                                     $site = USER_SITE;
                                     break;
                                 case ChatRoom::TYPE_USER2MOD:
