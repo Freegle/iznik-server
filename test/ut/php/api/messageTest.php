@@ -2939,8 +2939,8 @@ class messageAPITest extends IznikAPITestCase
 
         assertEquals(0, $ret['ret']);
         assertEquals('Test edit', $ret['message']['textbody']);
-        assertEquals(56.09999983172034, $ret['message']['lat']);
-        assertEquals(1.2364540449459, $ret['message']['lng']);
+        assertEquals(56.1, $ret['message']['lat']);
+        assertEquals(1.2365, $ret['message']['lng']);
     }
 
     public function testPartnerConsent() {
@@ -3017,8 +3017,8 @@ class messageAPITest extends IznikAPITestCase
         ]);
 
         # Lat/lng  blurred.
-        assertEquals(8.529784975202238, $ret['message']['lat']);
-        assertEquals(179.2160679249, $ret['message']['lng']);
+        assertEquals(8.5298, $ret['message']['lat']);
+        assertEquals(179.2161, $ret['message']['lng']);
         assertFalse(array_key_exists('location', $ret['message']));
         assertEquals(1, count($ret['message']['fromuser']['emails']));
         assertEquals($email, $ret['message']['fromuser']['emails'][0]['email']);
