@@ -523,6 +523,11 @@ class Utils {
             $lng = $pos['lng'];
         }
 
+        // Rounding prevents us using up bandwidth with spurious precision lat/lngs.  Helpful when returning
+        // thousands of posts.
+        $lat = round($lat, 4);
+        $lng = round($lng, 4);
+
         return [ $lat, $lng ];
     }
 
