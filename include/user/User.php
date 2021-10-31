@@ -5522,7 +5522,7 @@ class User extends Entity
             $m = new Message($this->dbhr, $this->dbhm, $msg['id']);
 
             if (!$m->hasOutcome()) {
-                $m->withdraw('Withdrawn on user unsubscribe', User::FINE);
+                $m->withdraw('Withdrawn on user unsubscribe', NULL);
             }
         }
 
