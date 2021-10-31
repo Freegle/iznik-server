@@ -8,7 +8,7 @@ function logo() {
 
     switch ($_REQUEST['type']) {
         case 'GET': {
-            $ret = [ 'ret' => 0, 'status' => 'Success'];
+            $ret = [ 'ret' => 0, 'status' => 'Success', 'date' => date("m-d")];
 
             $logos = $dbhr->preQuery("SELECT * FROM logos WHERE `date` LIKE ? AND active = 1 ORDER BY RAND();", [
                 date("m-d")
