@@ -348,6 +348,30 @@ class chatMessagesTest extends IznikTestCase {
         }
     }
 
+    public function testSpamReply7() {
+        # Put a valid message on a group.
+        $this->log("Put valid message on");
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $refmsgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Now reply to it with spam spoof.
+        $m = new Message($this->dbhr, $this->dbhm, $refmsgid);
+        $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
+        $email = $u->inventEmail();
+        $u->addEmail($email, FALSE, FALSE);
+
+        error_log("Spam reply.");
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply7'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $refmsgid = $r->received(Message::EMAIL, 'spammer@test.com', 'test@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+    }
+
     public function testReplyJobSpam() {
         # Put a valid message on a group.
         $this->log("Put valid message on");

@@ -67,6 +67,11 @@ class Spam {
         $ip = $msg->getFromIP();
         $host = NULL;
 
+        if (stripos($msg->getFromname(), GROUP_DOMAIN) !== FALSE || stripos($msg->getFromname(), USER_DOMAIN) !== FALSE) {
+            # A domain which embeds one of ours in an attempt to fool us into thinking it is legit.
+            return [ TRUE, Spam::REASON_USED_OUR_DOMAIN, "Used our domain inside from name " . $msg->getFromname() ] ;
+        }
+
         if ($ip) {
             if (strpos($ip, "10.") === 0) {
                 # We've picked up an internal IP, ignore it.
