@@ -112,7 +112,8 @@ class Message
         "Mail Receipt",
         "Read receipt",
         "Return Receipt",
-        "Checked"
+        "Checked",
+        "Read report"
     ];
 
     private $autoreply_bodies = [
