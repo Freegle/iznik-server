@@ -761,7 +761,7 @@ AND messages_outcomes.comments IS NOT NULL
             }
         }
 
-        if (count($groupids) == 1) {
+        if ($groupids && count($groupids) == 1) {
             # Get the bans.
             $banusers = [];
 
