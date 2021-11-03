@@ -761,6 +761,26 @@ AND messages_outcomes.comments IS NOT NULL
             }
         }
 
+        if (count($groupids) == 1) {
+            # Get the bans.
+            $banusers = [];
+
+            if (count($uids)) {
+                $bans = $this->dbhr->preQuery("SELECT * FROM users_banned WHERE userid IN (" . implode(',', $uids) . ') AND groupid = ?;', [
+                    $groupids[0]
+                ]);
+
+                foreach ($bans as $ban) {
+                    $g = Group::get($this->dbhr, $this->dbhm, $ban['groupid']);
+                    $banner = User::get($this->dbhr, $this->dbhm, $ban['byuser']);
+                    $banusers[$ban['userid']] = [
+                        'bandate' => Utils::ISODate($ban['date']),
+                        'bannedby' => $ban['byuser']
+                    ];
+                }
+            }
+        }
+
         # Suspect members might be on multiple groups, so make sure we only return one.
         $uids = [];
 
@@ -851,6 +871,11 @@ AND messages_outcomes.comments IS NOT NULL
 
                 # Pick up the info we fetched above.
                 $thisone['info'] = $infousers[$thisone['userid']]['info'];
+
+                if (Utils::pres($thisone['userid'], $banusers)) {
+                    $thisone['bandate'] = $banusers[$thisone['userid']]['bandate'];
+                    $thisone['bannedby'] = $banusers[$thisone['userid']]['bannedby'];
+                }
 
                 $ret[] = $thisone;
             }
