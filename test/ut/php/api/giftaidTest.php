@@ -125,6 +125,14 @@ class giftaidAPITest extends IznikAPITestCase
         assertEquals('Real Name', $ret['giftaid']['fullname']);
         assertNotNull(Utils::presdef('reviewed', $ret['giftaid'], NULL));
 
+        # Search for it.
+        $ret = $this->call('giftaid', 'GET', [
+            'search' => 'Real Name'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['results']));
+        assertEquals($u->getId(), $ret['results'][0]['userid']);
+
         # Delete it
         $ret = $this->call('giftaid', 'DELETE', []);
         assertEquals(0, $ret['ret']);

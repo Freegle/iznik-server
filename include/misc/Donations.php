@@ -85,6 +85,17 @@ class Donations
         return count($giftaids) ? $giftaids[0] : NULL;
     }
 
+    public function searchGiftAid($search) {
+        $q = $this->dbhr->quote("%$search%");
+        $giftaids = $this->dbhr->preQuery("SELECT * FROM giftaid WHERE fullname LIKE $q OR homeaddress LIKE $q;");
+
+        foreach ($giftaids as &$giftaid) {
+            $giftaid['timestamp'] = Utils::ISODate($giftaid['timestamp']);
+        }
+
+        return $giftaids;
+    }
+
     public function listGiftAidReview() {
         $giftaids = $this->dbhr->preQuery("SELECT * FROM giftaid WHERE reviewed IS NULL AND deleted IS NULL AND period != ? ORDER BY timestamp ASC;", [
             Donations::PERIOD_DECLINED

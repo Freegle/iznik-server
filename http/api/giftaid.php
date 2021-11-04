@@ -11,16 +11,28 @@ function giftaid() {
         case 'GET': {
             $ret = ['ret' => 1, 'status' => 'Not logged in'];
             $all = array_key_exists('all', $_REQUEST) ? filter_var($_REQUEST['all'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+            $search = Utils::presdef('search', $_REQUEST, NULL);
 
             if ($me) {
                 $d = new Donations($dbhr, $dbhm);
 
-                if ($all && ($me->isAdmin() || $me->hasPermission(User::PERM_GIFTAID))) {
+                if ($all && ($me->isAdmin() || $me->hasPermission(User::PERM_GIFTAID)))
+                {
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success',
                         'giftaids' => $d->listGiftAidReview($me->getId())
                     ];
+                } else if ($search) {
+                    $ret = ['ret' => 2, 'status' => 'Permissions error'];
+
+                    if ($me->hasPermission(User::PERM_GIFTAID)) {
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success',
+                            'results' => $d->searchGiftAid($search)
+                        ];
+                    }
                 } else {
                     # Just get ours
                     $ret = [
