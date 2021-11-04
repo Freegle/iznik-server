@@ -413,10 +413,9 @@ class Story extends Entity
 
         # Get unsent stories.  Pick the ones we have voted for most often.
         $idq = $id ? " AND users_stories.id = $id " : "";
-        $sql = "SELECT users_stories.id, users_stories_images.id AS photoid, COUNT(*) AS count FROM users_stories LEFT JOIN users_stories_likes ON storyid = users_stories.id LEFT JOIN users_stories_images ON users_stories_images.storyid = users_stories.id WHERE newsletterreviewed = 1 AND newsletter = 1 AND mailedtomembers = 0 $idq AND (? IS NULL OR date > ?) GROUP BY id ORDER BY count DESC LIMIT $max;";
+        $sql = "SELECT users_stories.id, users_stories_images.id AS photoid, COUNT(*) AS count FROM users_stories LEFT JOIN users_stories_likes ON storyid = users_stories.id LEFT JOIN users_stories_images ON users_stories_images.storyid = users_stories.id WHERE newsletterreviewed = 1 AND newsletter = 1 AND mailedtomembers = 0 $idq AND updated ? GROUP BY id ORDER BY count DESC LIMIT $max;";
         #error_log("$sql $since");
         $stories = $this->dbhr->preQuery($sql, [
-            $since,
             $since
         ]);
 
