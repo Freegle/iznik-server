@@ -130,8 +130,8 @@ class giftaidAPITest extends IznikAPITestCase
             'search' => 'Real Name'
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['results']));
-        assertEquals($u->getId(), $ret['results'][0]['userid']);
+        assertEquals(1, count($ret['giftaids']));
+        assertEquals($u->getId(), $ret['giftaids'][0]['userid']);
 
         # Delete it
         $ret = $this->call('giftaid', 'DELETE', []);

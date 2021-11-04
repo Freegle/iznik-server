@@ -30,7 +30,7 @@ function giftaid() {
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',
-                            'results' => $d->searchGiftAid($search)
+                            'giftaids' => $d->searchGiftAid($search)
                         ];
                     }
                 } else {
