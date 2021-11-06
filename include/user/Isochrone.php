@@ -1,6 +1,8 @@
 <?php
 namespace Freegle\Iznik;
 
+require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
+
 class Isochrone extends Entity
 {
     /** @var  $dbhm LoggedPDO */
