@@ -109,11 +109,28 @@ class Isochrone extends Entity
         $ret = parent::getPublic();
         $ret['timestamp'] = Utils::ISODate($ret['timestamp']);
 
+        if (Utils::pres('polygon', $ret)) {
+            $g = new \geoPHP();
+            $p = $g->load($ret['polygon']);
+            $bbox = $p->getBBox();
+            $ret['bbox'] = [
+                'swlat' => $bbox['miny'],
+                'swlng' => $bbox['minx'],
+                'nelat' => $bbox['maxy'],
+                'nelng' => $bbox['maxx'],
+            ];
+        }
+
         return($ret);
     }
 
     public function delete() {
         $rc = $this->dbhm->preExec("DELETE FROM isochrones WHERE id = ?;", [ $this->id ]);
+        return($rc);
+    }
+
+    public function deleteForUser($userid) {
+        $rc = $this->dbhm->preExec("DELETE FROM isochrones WHERE userid = ?;", [ $userid]);
         return($rc);
     }
 }

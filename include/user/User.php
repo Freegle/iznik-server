@@ -4041,6 +4041,8 @@ class User extends Entity
             if ($oldloc !== $newloc) {
                 # We have changed our location.
                 parent::setPrivate('lastlocation', $newid);
+                $i = new Isochrone($this->dbhr, $this->dbhm);
+                $i->deleteForUser($this->id);
 
                 $this->log->log([
                             'type' => Log::TYPE_USER,

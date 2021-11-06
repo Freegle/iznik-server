@@ -20,7 +20,7 @@ function isochrone() {
 
                 if (!$id) {
                     # No existing one - create it.
-                    $i->create($myid, $transport, $minutes);
+                    $id = $i->create($myid, $transport, $minutes);
                 }
 
                 $i = new Isochrone($dbhr, $dbhm, $id);

@@ -49,7 +49,6 @@ class isochroneAPITest extends IznikAPITestCase
             'transport' => Isochrone::CYCLE
         ]);
 
-        error_log("Returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['isochrone']['polygon']);
     }
