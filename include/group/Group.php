@@ -1037,8 +1037,10 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
     }
 
     public function getSetting($key, $def, $settings = NULL) {
-        if ($settings === NULL) {
+        if ($settings === NULL && Utils::pres('settings', $this->group)) {
             $settings = $this->group['settings'];
+        } else {
+            $settings = $this->defaultSettings;
         }
 
         $settings = $this->id ? json_decode($settings, true) : NULL;
