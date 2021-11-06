@@ -279,6 +279,9 @@ class API
                         case 'image':
                             $ret = image();
                             break;
+                        case 'isochrone':
+                            $ret = isochrone();
+                            break;
                         // @codeCoverageIgnoreStart
                         case 'catalogue':
                             $ret = catalogue();

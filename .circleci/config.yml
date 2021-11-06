@@ -70,6 +70,7 @@ jobs:
       - run: sudo sed -ie "s/'FBGRAFFITIAPP_ID', 'zzz'/'FBGRAFFITIAPP_ID', '$FBGRAFFITIAPP_ID'/g" /etc/iznik.conf
       - run: sudo sed -ie "s/'FBGRAFFITIAPP_SECRET', 'zzz'/'FBGRAFFITIAPP_SECRET', '$FBGRAFFITIAPP_SECRET'/g" /etc/iznik.conf
       - run: sudo sed -ie "s/'CHAT_HOST', 'users.ilovefreegle.org'/'CHAT_HOST', NULL/g" /etc/iznik.conf
+      - run: sudo sed -ie "s/'MAPBOX_TOKEN', 'zzzz'/'MAPBOX_TOKEN', '$MAPBOX_TOKEN'/g" /etc/iznik.conf
       - run: echo "define('SQLLOG', TRUE);" >> /etc/iznik.conf
 
       # phpunit.xml is set up for running tests on our debug server.

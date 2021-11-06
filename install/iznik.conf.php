@@ -66,6 +66,9 @@ define('PAYPAL_PASSWORD', 'zzzz');
 define('PAYPAL_SIGNATURE', 'zzzz');
 define('PAYPAL_THANKS_FROM', 'treasurer@ilovefreegle.org');
 
+# We use Mapbox to get isochrones for users.
+define('MAPBOX_TOKEN', 'zzzz');
+
 # Discourse SSO
 define('DISCOURSE_SECRET', 'zzz');
 define('DISCOURSE_APIKEY', 'zzz');
@@ -169,3 +172,4 @@ define('USER_TEST_SITE', 'https://iznik.ilovefreegle.org');
 define('MOD_TEST_SITE', 'https://iznik.modtools.org');
 define('PLAYGROUND_TOKEN', 'zzzz');
 define('PLAYGROUND_SECRET', 'zzzz');
+
