@@ -63,6 +63,7 @@ class isochroneAPITest extends IznikAPITestCase
             'minutes' => 20,
             'transport' => Isochrone::WALK
         ]);
+        assertEquals(0, $ret['ret']);
 
         $ret = $this->call('isochrone', 'GET', []);
 
@@ -70,5 +71,24 @@ class isochroneAPITest extends IznikAPITestCase
         assertEquals(1, count($ret['isochrones']));
         assertEquals(Isochrone::WALK, $ret['isochrones'][0]['transport']);
         assertEquals(20, $ret['isochrones'][0]['minutes']);
+
+        $ret = $this->call('isochrone', 'DELETE', [
+            'id' => $id
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $lid = $l->findByName('EH3 6SS');
+        assertNotNull($lid);
+
+        $ret = $this->call('isochrone', 'PUT', [
+            'minutes' => 20,
+            'transport' => Isochrone::WALK,
+            'nickname' => 'UT',
+            'locationid' => $lid
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
     }
 }

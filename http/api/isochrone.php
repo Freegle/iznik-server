@@ -35,8 +35,6 @@ function isochrone() {
 
             case 'PATCH': {
                 $id = (Utils::presint('id', $_REQUEST, NULL));
-                $transport = (Utils::presdef('transport', $_REQUEST, Isochrone::DRIVE));
-                $minutes = (Utils::presint('minutes', $_REQUEST, 30));
 
                 $i = new Isochrone($dbhr, $dbhm);
                 $isochrones = $i->list($myid);
@@ -56,6 +54,67 @@ function isochrone() {
                     'ret' => 0,
                     'status' => 'Success'
                 ];
+                break;
+            }
+
+            case 'PUT': {
+                $minutes = Utils::presint('minutes', $_REQUEST, NULL);
+                $transport = Utils::presdef('transport', $_REQUEST, NULL);
+                $locationid = Utils::presint('locationid', $_REQUEST, NULL);
+                $nickname = Utils::presdef('nickname', $_REQUEST, NULL);
+
+                $ret = [
+                    'ret' => 3,
+                    'status' => 'Invalid parameters'
+                ];
+
+                if ($minutes && $transport && $nickname) {
+                    $l = new Location($dbhr, $dbhm, $locationid);
+
+                    if ($l->getId() == $locationid) {
+                        $ret = [
+                            'ret' => 4,
+                            'status' => 'Create failed'
+                        ];
+
+                        $i = new Isochrone($dbhr, $dbhm);
+                        $id = $i->create($myid, $transport, $minutes, $nickname, $locationid);
+
+                        if ($id) {
+                            $ret = [
+                                'ret' => 0,
+                                'status' => 'Success',
+                                'id' => $id
+                            ];
+                        }
+                    }
+                }
+                break;
+            }
+
+            case 'DELETE': {
+                $id = (Utils::presint('id', $_REQUEST, NULL));
+
+                $i = new Isochrone($dbhr, $dbhm);
+                $isochrones = $i->list($myid);
+
+                $ret = [
+                    'ret' => 2,
+                    'status' => 'Access denied'
+                ];
+
+                foreach ($isochrones as $isochrone)
+                {
+                    if ($isochrone['id'] == $id) {
+                        $i = new Isochrone($dbhr, $dbhm, $id);
+                        $i->delete();
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success'
+                        ];
+                    }
+                }
+                break;
             }
         }
     }
