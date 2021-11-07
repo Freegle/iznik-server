@@ -1,6 +1,8 @@
 <?php
 namespace Freegle\Iznik;
 
+use JsonSchema\Exception\InvalidSourceUriException;
+
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
 }
@@ -44,12 +46,27 @@ class isochroneAPITest extends IznikAPITestCase
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
 
-        $ret = $this->call('isochrone', 'GET', [
-            'minutes' => 10,
-            'transport' => Isochrone::CYCLE
-        ]);
+        $ret = $this->call('isochrone', 'GET', []);
 
         assertEquals(0, $ret['ret']);
-        assertNotNull($ret['isochrone']['polygon']);
+        assertEquals(1, count($ret['isochrones']));
+        assertNotNull($ret['isochrones'][0]['polygon']);
+        assertEquals(Isochrone::DRIVE, $ret['isochrones'][0]['transport']);
+        assertEquals(Isochrone::DEFAULT_TIME, $ret['isochrones'][0]['minutes']);
+        $id = $ret['isochrones'][0]['id'];
+
+        // Edit it - should update the same one rather than create a new one.
+        $ret = $this->call('isochrone', 'PATCH', [
+            'id' => $id,
+            'minutes' => 20,
+            'transport' => Isochrone::WALK
+        ]);
+
+        $ret = $this->call('isochrone', 'GET', []);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['isochrones']));
+        assertEquals(Isochrone::WALK, $ret['isochrones'][0]['transport']);
+        assertEquals(20, $ret['isochrones'][0]['minutes']);
     }
 }

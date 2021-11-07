@@ -9,28 +9,53 @@ function isochrone() {
     $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 
     if ($myid) {
-        $transport = (Utils::presdef('transport', $_REQUEST, Isochrone::DRIVE));
-        $minutes = (Utils::presint('minutes', $_REQUEST, 30));
         $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
 
         switch ($_REQUEST['type']) {
             case 'GET': {
                 $i = new Isochrone($dbhr, $dbhm);
-                $id = $i->find($myid, $transport, $minutes);
+                $isochrones = $i->list($myid);
 
-                if (!$id) {
-                    # No existing one - create it.
-                    $id = $i->create($myid, $transport, $minutes);
+                if (!count($isochrones)) {
+                    # No existing one - create a default one.
+                    $id = $i->create($myid, NULL, Isochrone::DEFAULT_TIME);
+                    $i = new Isochrone($dbhr, $dbhm, $id);
+                    $isochrones = [
+                        $i->getPublic()
+                    ];
                 }
-
-                $i = new Isochrone($dbhr, $dbhm, $id);
 
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
-                    'isochrone' => $i->getPublic()
+                    'isochrones' => $isochrones
                 ];
                 break;
+            }
+
+            case 'PATCH': {
+                $id = (Utils::presint('id', $_REQUEST, NULL));
+                $transport = (Utils::presdef('transport', $_REQUEST, Isochrone::DRIVE));
+                $minutes = (Utils::presint('minutes', $_REQUEST, 30));
+
+                $i = new Isochrone($dbhr, $dbhm);
+                $isochrones = $i->list($myid);
+
+                foreach ($isochrones as $isochrone) {
+                    if ($isochrone['id'] == $id) {
+                        // If we change the transport/distance then we update the existing isochrone rather than
+                        // generate a new one.  Otherwise we will get a clutter of them around a location as
+                        // people experiment, and that will looks silly in the UI.
+                        $i = new Isochrone($dbhr, $dbhm, $id);
+                        $i->setAttributes($_REQUEST);
+                        $i->refetch();
+                    }
+                }
+
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success'
+                ];
             }
         }
     }

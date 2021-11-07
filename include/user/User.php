@@ -4389,7 +4389,6 @@ class User extends Entity
         }
         
         $areas = NULL;
-        $groups = NULL;
         $membs = NULL;
 
         if ($idsleft && count($idsleft)) {

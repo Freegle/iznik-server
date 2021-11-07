@@ -6,16 +6,20 @@ require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 class Isochrone extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    public $publicatts = [ 'id', 'userid', 'timestamp', 'polygon' ];
+    public $publicatts = [ 'id', 'userid', 'timestamp', 'polygon', 'nickname', 'locationid', 'transport', 'minutes' ];
+    public $settableatts = ['transport', 'minutes'];
     public $isochrone = NULL;
 
     const WALK = 'Walk';
     const CYCLE = 'Cycle';
     const DRIVE = 'Drive';
 
+    const DEFAULT_TIME = 25;
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         $this->name = 'isochrone';
+        $this->table = 'isochrones';
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
         $this->id = $id;
@@ -26,7 +30,7 @@ class Isochrone extends Entity
     }
 
     function fetch(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $table, $name, $publicatts, $fetched = NULL, $allowcache = TRUE) {
-        $isochrones = $this->dbhr->preQuery("SELECT id, userid, timestamp, ST_AsText(polygon) AS polygon FROM isochrones WHERE id = ?", [
+        $isochrones = $this->dbhr->preQuery("SELECT id, userid, timestamp, nickname, locationid, transport, minutes, ST_AsText(polygon) AS polygon FROM isochrones WHERE id = ?", [
             $this->id
         ]);
 
@@ -35,92 +39,87 @@ class Isochrone extends Entity
         }
     }
 
-    public function create($userid, $transport, $minutes = 30) {
-        $id = NULL;
-
+    private function findLocation($userid, $locationid) {
         $u = new User($this->dbhr, $this->dbhm, $userid);
-        list ($lat, $lng, $loc) = $u->getLatLng();
 
-        $mapTrans = NULL;
-        switch ($transport) {
-            case self::WALK: $mapTrans = 'walking'; break;
-            case self::CYCLE: $mapTrans = 'cycling'; break;
-            case self::DRIVE: $mapTrans = 'driving'; break;
+        if (!$locationid) {
+            # Use the user's own location.
+            list ($lat, $lng, $loc) = $u->getLatLng();
+            $l = new Location($this->dbhr, $this->dbhm);
+            $pc = $l->closestPostcode($lat, $lng);
+
+            $locationid = NULL;
+
+            if ($pc) {
+                $locationid = $pc['id'];
+            }
+        } else {
+            # Use specified location.
+            $l = new Location($this->dbhr, $this->dbhm, $locationid);
+            $lat = $l->getPrivate('lat');
+            $lng = $l->getPrivate('lng');
         }
 
-        if ($mapTrans) {
-            $url = "https://api.mapbox.com/isochrone/v1/mapbox/$mapTrans/$lng,$lat.json?contours_minutes=$minutes&access_token=" . MAPBOX_TOKEN;
-            $curl = curl_init();
-            curl_setopt($curl, CURLOPT_URL, $url);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 60);
-            $json_response = curl_exec($curl);
+        return [ $lat, $lng, $locationid ];
+    }
 
-            if ($json_response) {
-                # This returns GeoJSON - we need to convert to WKT.
-                $resp = json_decode($json_response, TRUE);
+    public function create($userid, $transport, $minutes, $nickname = NULL, $locationid = NULL) {
+        $id = NULL;
 
-                if (Utils::pres('features', $resp) && count($resp['features']) == 1) {
-                    $geom = $resp['features'][0];
+        list ($lat, $lng, $locationid) = $this->findLocation($userid, $locationid);
+        $wkt = $this->fetchFromMapbox($transport, $lng, $lat, $minutes);
 
-                    if ($geom) {
-                        $g = new \geoPHP();
-                        $p = $g->load(json_encode($geom));
-                        $wkt = $p->out('wkt');
+        if ($wkt) {
+            $rc = $this->dbhm->preExec("INSERT INTO isochrones (userid, locationid, nickname, transport, minutes, polygon) VALUES (?, ?, ?, ?, ?, ST_GeomFromText(?, {$this->dbhr->SRID()}))", [
+                $userid,
+                $locationid,
+                $nickname,
+                $transport,
+                $minutes,
+                $wkt
+            ]);
 
-                        $rc = $this->dbhm->preExec("INSERT INTO isochrones (userid, transport, minutes, polygon) VALUES (?, ?, ?, ST_GeomFromText(?, {$this->dbhr->SRID()}))", [
-                            $userid,
-                            $transport,
-                            $minutes,
-                            $wkt
-                        ]);
-
-                        if ($rc) {
-                            $id = $this->dbhm->lastInsertId();
-                            $this->id = $id;
-                            $this->fetch($this->dbhr, $this->dbhm, $id, 'isochrones', 'isochrone', NULL);
-                        }
-                    }
-                }
+            if ($rc) {
+                $id = $this->dbhm->lastInsertId();
+                $this->id = $id;
+                $this->fetch($this->dbhr, $this->dbhm, $id, 'isochrones', 'isochrone', NULL);
             }
         }
 
         return($id);
     }
 
-    public function find($userid, $transport, $minutes = 30) {
-        $ret = NULL;
-
-        $isochrones = $this->dbhr->preQuery("SELECT id FROM isochrones WHERE userid = ? AND transport = ? AND minutes = ?;", [
+    public function list($userid) {
+        $isochrones = $this->dbhr->preQuery("SELECT id, userid, timestamp, nickname, locationid, transport, minutes, ST_AsText(polygon) AS polygon FROM isochrones WHERE userid = ?;", [
             $userid,
-            $transport,
-            $minutes
         ]);
 
-        foreach ($isochrones as $isochrone) {
-            $ret = $isochrone['id'];
+        foreach ($isochrones as &$isochrone) {
+            $isochrone['timestamp'] = Utils::ISODate($isochrone['timestamp']);
+            $l = new Location($this->dbhr, $this->dbhm, $isochrone['locationid']);
+            $isochrone['location'] = $l->getPublic();
+            unset($isochrone['locationid']);
         }
 
-        return $ret;
+        return $isochrones;
+    }
+
+    public function refetch() {
+        $l = new Location($this->dbhr, $this->dbhm, $this->isochrone['locationid']);
+        $wkt = $this->fetchFromMapbox($this->isochrone['transport'], $l->getPrivate('lng'), $l->getPrivate('lat'), $this->isochrone['minutes']);
+
+        if ($wkt) {
+            $this->dbhm->preExec("UPDATE isochrones SET polygon = ST_GeomFromText(?, {$this->dbhr->SRID()}) WHERE id = ?;", [
+                $wkt,
+                $this->id
+            ]);
+        }
     }
 
     public function getPublic()
     {
         $ret = parent::getPublic();
         $ret['timestamp'] = Utils::ISODate($ret['timestamp']);
-
-        if (Utils::pres('polygon', $ret)) {
-            $g = new \geoPHP();
-            $p = $g->load($ret['polygon']);
-            $bbox = $p->getBBox();
-            $ret['bbox'] = [
-                'swlat' => $bbox['miny'],
-                'swlng' => $bbox['minx'],
-                'nelat' => $bbox['maxy'],
-                'nelng' => $bbox['maxx'],
-            ];
-        }
-
         return($ret);
     }
 
@@ -132,5 +131,43 @@ class Isochrone extends Entity
     public function deleteForUser($userid) {
         $rc = $this->dbhm->preExec("DELETE FROM isochrones WHERE userid = ?;", [ $userid]);
         return($rc);
+    }
+
+    public function fetchFromMapbox($transport, $lng, $lat, $minutes) {
+        $wkt = NULL;
+
+        switch ($transport) {
+            case self::WALK: $mapTrans = 'walking'; break;
+            case self::CYCLE: $mapTrans = 'cycling'; break;
+            case self::DRIVE: $mapTrans = 'driving'; break;
+            default:
+                // We assume driving if they've not specified a preference.  This means that any preference they
+                // have specified is explicit.
+                $mapTrans = 'driving';
+                break;
+        }
+
+        $url = "https://api.mapbox.com/isochrone/v1/mapbox/$mapTrans/$lng,$lat.json?contours_minutes=$minutes&access_token=" . MAPBOX_TOKEN;
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+        $json_response = curl_exec($curl);
+
+        # This returns GeoJSON - we need to convert to WKT.
+        $resp = json_decode($json_response, true);
+
+        if (Utils::pres('features', $resp) && count($resp['features']) == 1) {
+            $geom = $resp['features'][0];
+
+            if ($geom)
+            {
+                $g = new \geoPHP();
+                $p = $g->load(json_encode($geom));
+                $wkt = $p->out('wkt');
+            }
+        }
+
+        return $wkt;
     }
 }
