@@ -51,7 +51,9 @@ class isochroneAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['isochrones']));
         assertNotNull($ret['isochrones'][0]['polygon']);
-        assertEquals(Isochrone::DRIVE, $ret['isochrones'][0]['transport']);
+
+        // No transport returned by default.
+        assertFalse(array_key_exists('transport', $ret['isochrones'][0]));
         assertEquals(Isochrone::DEFAULT_TIME, $ret['isochrones'][0]['minutes']);
         $id = $ret['isochrones'][0]['id'];
 
