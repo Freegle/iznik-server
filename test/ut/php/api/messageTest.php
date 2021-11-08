@@ -1510,6 +1510,90 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
     }
 
+    public function testEditAsMemberDeleted()
+    {
+        // This can happen with TrashNothing, when a post is rejected and then edited by the member.
+        $l = new Location($this->dbhr, $this->dbhm);
+        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)');
+
+        # Create member and mod.
+        $u = User::get($this->dbhr, $this->dbhm);
+
+        $memberid = $u->create('Test','User', 'Test User');
+        $member = User::get($this->dbhr, $this->dbhm, $memberid);
+        assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $member->addMembership($this->gid, User::ROLE_MEMBER);
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $member->addEmail($email);
+
+        $this->log("Created member $memberid");
+
+        # Submit a message from the member, who will be moderated as new members are.
+        assertTrue($member->login('testpw'));
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'groupid' => $this->gid,
+            'textbody' => 'Text body'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $mid = $ret['id'];
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'JoinAndPost',
+            'ignoregroupoverride' => true,
+            'email' => $email
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        # Reject as mod.
+        $othermod = User::get($this->dbhr, $this->dbhm);
+        $othermoduid = $othermod->create(NULL, NULL, 'Test User');
+        $othermod->addMembership($this->gid, User::ROLE_MODERATOR);
+
+        $c = new ModConfig($this->dbhr, $this->dbhm);
+        $cid = $c->create('Test');
+        $c->setPrivate('ccrejectto', 'Me');
+        $c->setPrivate('fromname', 'Groupname Moderator');
+        $c->setPrivate('chatread', 1);
+
+        $s = new StdMessage($this->dbhr, $this->dbhm);
+        $sid = $s->create('Test', $cid);
+        $s = new StdMessage($this->dbhr, $this->dbhm, $sid);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'groupid' => $this->gid,
+            'stdmsgid' => $sid,
+            'action' => 'Reject',
+            'subject' => 'Test reject',
+            'body' => 'Test body',
+            'duplicate' => 1
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $m = new Message($this->dbhr, $this->dbhm, $mid);
+        assertEquals(MessageCollection::REJECTED, $m->getGroups(FALSE, FALSE)[0]['collection']);
+
+        # Now log in as the member and edit the message.
+        assertTrue($member->login('testpw'));
+
+        $ret = $this->call('message', 'PATCH', [
+            'id' => $mid,
+            'groupid' => $this->gid,
+            'item' => 'Edited',
+            'textbody' => 'Another text body'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(MessageCollection::PENDING, $m->getGroups(FALSE, FALSE)[0]['collection']);
+    }
+
     public function testEditGroupModerated() {
         // Set group moderated.
         $this->group->setSettings([ 'moderated' => TRUE ]);

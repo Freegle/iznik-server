@@ -332,6 +332,20 @@ class Message
             }
         }
 
+        # It's possible (for TN) that we are editing a message that has been rejected.  This is how
+        # rejected messages are resubmitted.  Move it back to Pending.
+        $groups = $this->getGroups(FALSE, FALSE);
+
+        foreach ($groups as $group) {
+            if ($group['collection'] == MessageCollection::REJECTED) {
+                $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ? AND groupid = ?", [
+                    MessageCollection::PENDING,
+                    $this->id,
+                    $group['groupid']
+                ]);
+            }
+        }
+
         $this->index();
 
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
