@@ -408,7 +408,7 @@ WHERE chat_rooms.id IN $idlist;";
             $user2ids = array_column($user2groups, 'groupid');
             $inter = array_intersect($user1ids, $user2ids);
 
-            if (count($inter) == count(array_intersect($inter, $bannedon))) {
+            if (count($inter) && count($inter) == count(array_intersect($inter, $bannedon))) {
                 $bannedonall = TRUE;
             }
         }
