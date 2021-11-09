@@ -128,7 +128,7 @@ function messages() {
                             $msgs = [];
 
                             if ($me) {
-                                $msgs = $c->getByIsochrones($me->getId(), $ctx, $ctx ? $limit : NULL);
+                                $msgs = $c->getByIsochrones($me->getId(), $groupid, $ctx, $ctx ? $limit : NULL);
                             }
                             break;
                         }

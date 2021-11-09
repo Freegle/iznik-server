@@ -534,7 +534,6 @@ UNION SELECT msgid AS id, timestamp, 'Reneged' AS `type` FROM messages_reneged W
         $limitq = $limit ? (" LIMIT " . intval($limit)) : "";
         $ctx = $ctx ? $ctx : [];
 
-        error_log("by groups" . var_export($groupids, tRUE));
         if (count($groupids)) {
             $sql = "SELECT ST_Y(point) AS lat, ST_X(point) AS lng, messages_spatial.msgid AS id, messages_spatial.successful, messages_spatial.groupid, messages_spatial.msgtype AS type, messages_spatial.arrival FROM messages_spatial WHERE messages_spatial.groupid IN (" . implode(
                     ',',
@@ -555,7 +554,7 @@ UNION SELECT msgid AS id, timestamp, 'Reneged' AS `type` FROM messages_reneged W
         return $msgs;
     }
 
-    function getByIsochrones($userid, &$ctx, $limit) {
+    function getByIsochrones($userid, $groupid, &$ctx, $limit) {
         $i = new Isochrone($this->dbhr, $this->dbhm);
 
         # Ensure we have an isochrone to search with.
@@ -563,9 +562,10 @@ UNION SELECT msgid AS id, timestamp, 'Reneged' AS `type` FROM messages_reneged W
 
         if (!count($isochrones)) {
             # No existing one - create a default one.
-            $id = $i->create($userid, NULL, Isochrone::DEFAULT_TIME);
+            $i->create($userid, NULL, Isochrone::DEFAULT_TIME);
         }
 
+        $groupq = $groupid ? " AND messages_spatial.groupid = $groupid" : '';
         $ctxq = Utils::presdef('arrival', $ctx, NULL) ? (" AND (messages_spatial.arrival < " . $this->dbhr->quote($ctx['arrival']) . " OR messages_spatial.msgid < " . intval($ctx['msgid']) . ")") : '';
         $limitq = $limit ? (" LIMIT " . intval($limit)) : "";
         $ctx = $ctx ? $ctx : [];
@@ -573,7 +573,7 @@ UNION SELECT msgid AS id, timestamp, 'Reneged' AS `type` FROM messages_reneged W
         # Find any messages within any of the user's isochrones.
         $sql = "SELECT ST_Y(point) AS lat, ST_X(point) AS lng, messages_spatial.msgid AS id, messages_spatial.successful, messages_spatial.groupid, messages_spatial.msgtype AS type, messages_spatial.arrival
         FROM messages_spatial INNER JOIN isochrones ON ST_Contains(isochrones.polygon, point) 
-        WHERE isochrones.userid = ? $ctxq ORDER BY messages_spatial.arrival DESC, messages_spatial.msgid DESC $limitq;";
+        WHERE isochrones.userid = ? $ctxq $groupq ORDER BY messages_spatial.arrival DESC, messages_spatial.msgid DESC $limitq;";
 
         $msgs = $this->dbhr->preQuery($sql, [
             $userid

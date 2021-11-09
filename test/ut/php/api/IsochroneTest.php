@@ -139,5 +139,26 @@ class isochroneAPITest extends IznikAPITestCase
         $msgs = $ret['messages'];
         assertEquals(1, count($msgs));
         assertEquals($id, $msgs[0]['id']);
+
+        # Should now appear if we search by isochrone and groupid
+        $ret = $this->call('messages', 'GET', [
+            'subaction' => 'isochrones',
+            'groupid' => $group1
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(1, count($msgs));
+        assertEquals($id, $msgs[0]['id']);
+
+        # ...but not if the wrong group.
+        $ret = $this->call('messages', 'GET', [
+            'subaction' => 'isochrones',
+            'groupid' => $group1 + 1
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $msgs = $ret['messages'];
+        assertEquals(0, count($msgs));
     }
 }
