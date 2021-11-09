@@ -147,7 +147,7 @@ class Isochrone extends Entity
                 break;
         }
 
-        $url = "https://api.mapbox.com/isochrone/v1/mapbox/$mapTrans/$lng,$lat.json?contours_minutes=$minutes&access_token=" . MAPBOX_TOKEN;
+        $url = "https://api.mapbox.com/isochrone/v1/mapbox/$mapTrans/$lng,$lat.json?polygons=true&contours_minutes=$minutes&access_token=" . MAPBOX_TOKEN;
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
