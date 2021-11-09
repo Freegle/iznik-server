@@ -574,6 +574,7 @@ UNION SELECT msgid AS id, timestamp, 'Reneged' AS `type` FROM messages_reneged W
         $sql = "SELECT ST_Y(point) AS lat, ST_X(point) AS lng, messages_spatial.msgid AS id, messages_spatial.successful, messages_spatial.groupid, messages_spatial.msgtype AS type, messages_spatial.arrival
         FROM messages_spatial INNER JOIN isochrones ON ST_Contains(isochrones.polygon, point) 
         WHERE isochrones.userid = ? $ctxq $groupq ORDER BY messages_spatial.arrival DESC, messages_spatial.msgid DESC $limitq;";
+        error_log($sql . " $userid");
 
         $msgs = $this->dbhr->preQuery($sql, [
             $userid

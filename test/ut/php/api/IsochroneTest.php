@@ -126,11 +126,8 @@ class isochroneAPITest extends IznikAPITestCase
         assertEquals(Message::TYPE_OFFER, $m->getType());
 
         # Get it into the spatial index.
-        $m->setPrivate('lat', 52.6);
-        $m->setPrivate('lng', -2.1);
-        error_log("ISOCHRONE DEBUGGING");
-        $this->dbhr->errorLog = true;
-        $this->dbhm->errorLog = true;
+        $m->setPrivate('lat', 55.957572);
+        $m->setPrivate('lng', -3.205334);
         $m->addToSpatialIndex();
 
         # Should now appear if we search by isochrone.
