@@ -128,6 +128,7 @@ class isochroneAPITest extends IznikAPITestCase
         # Get it into the spatial index.
         $m->setPrivate('lat', 52.6);
         $m->setPrivate('lng', -2.1);
+        error_log("ISOCHRONE DEBUGGING");
         $this->dbhr->errorLog = true;
         $this->dbhm->errorLog = true;
         $m->addToSpatialIndex();
