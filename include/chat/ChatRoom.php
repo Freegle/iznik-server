@@ -396,19 +396,14 @@ WHERE chat_rooms.id IN $idlist;";
         if (count($banned)) {
             $bannedon = array_column($banned, 'groupid');
 
-            $user1groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ?;", [
-                $user1
-            ]);
-
             $user2groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ?;", [
                 $user2
             ]);
 
-            $user1ids = array_column($user1groups, 'groupid');
             $user2ids = array_column($user2groups, 'groupid');
-            $inter = array_intersect($user1ids, $user2ids);
+            $inter = array_intersect($bannedon, $user2ids);
 
-            if (count($inter) && count($inter) == count(array_intersect($inter, $bannedon))) {
+            if (count($inter) == count($bannedon)) {
                 $bannedonall = TRUE;
             }
         }
