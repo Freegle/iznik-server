@@ -124,6 +124,14 @@ function messages() {
                             }
                             break;
                         }
+                        case 'isochrones': {
+                            $msgs = [];
+
+                            if ($me) {
+                                $msgs = $c->getByIsochrones($me->getId(), $ctx, $ctx ? $limit : NULL);
+                            }
+                            break;
+                        }
                         case 'inbounds': {
                             $groups = [];
                             $msgs = $c->getInBounds($swlat, $swlng, $nelat, $nelng, $groupid);
