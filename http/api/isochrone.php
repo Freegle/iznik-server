@@ -18,7 +18,7 @@ function isochrone() {
 
                 if (!count($isochrones)) {
                     # No existing one - create a default one.
-                    $id = $i->create($myid, NULL, Isochrone::DEFAULT_TIME);
+                    $id = $i->create($myid, NULL, Isochrone::DEFAULT_TIME, NULL, NULL);
                     $i = new Isochrone($dbhr, $dbhm, $id);
                     $isochrones = [
                         $i->getPublic()
@@ -35,20 +35,11 @@ function isochrone() {
 
             case 'PATCH': {
                 $id = (Utils::presint('id', $_REQUEST, NULL));
+                $minutes = Utils::presint('minutes', $_REQUEST, NULL);
+                $transport = Utils::presdef('transport', $_REQUEST, NULL);
 
-                $i = new Isochrone($dbhr, $dbhm);
-                $isochrones = $i->list($myid);
-
-                foreach ($isochrones as $isochrone) {
-                    if ($isochrone['id'] == $id) {
-                        // If we change the transport/distance then we update the existing isochrone rather than
-                        // generate a new one.  Otherwise we will get a clutter of them around a location as
-                        // people experiment, and that will looks silly in the UI.
-                        $i = new Isochrone($dbhr, $dbhm, $id);
-                        $i->setAttributes($_REQUEST);
-                        $i->refetch();
-                    }
-                }
+                $i = new Isochrone($dbhr, $dbhm, $id);
+                $i->edit($minutes, $transport);
 
                 $ret = [
                     'ret' => 0,
@@ -68,7 +59,7 @@ function isochrone() {
                     'status' => 'Invalid parameters'
                 ];
 
-                if ($minutes && $transport && $nickname) {
+                if ($locationid && $minutes) {
                     $l = new Location($dbhr, $dbhm, $locationid);
 
                     if ($l->getId() == $locationid) {
@@ -107,7 +98,8 @@ function isochrone() {
                 {
                     if ($isochrone['id'] == $id) {
                         $i = new Isochrone($dbhr, $dbhm, $id);
-                        $i->delete();
+                        $i->decoupleFromUser();
+
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success'

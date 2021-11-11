@@ -25,16 +25,23 @@ class IsochroneTest extends IznikTestCase {
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+        $this->dbhm->preExec("DELETE FROM isochrones;");
     }
 
     public function testBasic() {
         $i = new Isochrone($this->dbhr, $this->dbhm);
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $id = $i->create($uid, Isochrone::WALK, Isochrone::DEFAULT_TIME);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $lid = $l->findByName('EH3 6SS');
+        assertNotNull($lid);
+
+        $id = $i->create($uid, Isochrone::WALK, Isochrone::DEFAULT_TIME, NULL, $lid);
         assertEquals($id, $i->getPublic()['id']);
         $i = new Isochrone($this->dbhr, $this->dbhm, $id);
         assertEquals($id, $i->getPublic()['id']);
+        error_log("Public " . var_export($i->getPublic(), TRUE));
         assertNotNull($i->getPublic()['polygon']);
 
         $isochrones = $i->list($uid);
