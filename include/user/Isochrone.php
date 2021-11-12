@@ -6,7 +6,6 @@ require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 class Isochrone extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    public $publicatts = [ 'id', 'userid', 'timestamp', 'polygon', 'nickname', 'locationid', 'transport', 'minutes' ];
     public $settableatts = ['transport', 'minutes'];
     public $isochrone = NULL;
 
@@ -25,18 +24,23 @@ class Isochrone extends Entity
         $this->id = $id;
 
         if ($id) {
-            $this->fetch($this->dbhr, $this->dbhm, $id, 'isochrones', 'isochrone', NULL);
+            $this->fetchIt($id);
         }
     }
 
-    function fetch(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $table, $name, $publicatts, $fetched = NULL, $allowcache = TRUE) {
-        $isochrones = $this->dbhr->preQuery("SELECT id, userid, timestamp, nickname, locationid, transport, minutes, ST_AsText(polygon) AS polygon FROM isochrones WHERE id = ?", [
-            $this->id
+    private function fetchIt($id) {
+        $isochrones = $this->dbhr->preQuery("SELECT isochrones_users.id, isochroneid, userid, timestamp, nickname, locationid, transport, minutes, ST_AsText(polygon) AS polygon FROM isochrones_users INNER JOIN isochrones ON isochrones_users.isochroneid = isochrones.id WHERE isochrones_users.id = ?", [
+            $id,
         ]);
 
         foreach ($isochrones as $isochrone) {
+            $isochrone['timestamp'] = Utils::ISODate($isochrone['timestamp']);
             $this->isochrone = $isochrone;
         }
+    }
+
+    public function getPublic() {
+        return $this->isochrone;
     }
 
     private function findLocation($userid, $locationid) {
@@ -63,26 +67,61 @@ class Isochrone extends Entity
         return [ $lat, $lng, $locationid ];
     }
 
-    public function create($userid, $transport, $minutes, $nickname = NULL, $locationid = NULL) {
+    private function ensureIsochroneExists($locationid, $minutes, $transport) {
+        # See if we already have one.
+        $transq = $transport ? (" AND transport = " . $this->dbhr->quote($transport)) : " AND transport IS NULL";
+        $existings = $this->dbhr->preQuery("SELECT id FROM isochrones WHERE locationid = ? $transq AND minutes = ? ORDER BY timestamp DESC LIMIT 1;", [
+            $locationid,
+            $minutes
+        ]);
+
+        $rc = FALSE;
+        $isochroneid = NULL;
+
+        if (count($existings)) {
+            # We have an existing one for these parameters.  Copy it for this user.
+            $isochroneid = $existings[0]['id'];
+        } else {
+            # Need to create one.
+            $l = new Location($this->dbhr, $this->dbhm, $locationid);
+            $lat = $l->getPrivate('lat');
+            $lng = $l->getPrivate('lng');
+
+            $wkt = $this->fetchFromMapbox($transport, $lng, $lat, $minutes);
+
+            if ($wkt) {
+                $rc = $this->dbhm->preExec("INSERT INTO isochrones (locationid, transport, minutes, polygon) VALUES (?, ?, ?, ST_GeomFromText(?, {$this->dbhr->SRID()}))", [
+                    $locationid,
+                    $transport,
+                    $minutes,
+                    $wkt
+                ]);
+            }
+
+            if ($rc) {
+                $isochroneid = $this->dbhm->lastInsertId();
+            }
+        }
+
+        return $isochroneid;
+    }
+
+    public function create($userid, $transport, $minutes, $nickname, $locationid) {
         $id = NULL;
 
         list ($lat, $lng, $locationid) = $this->findLocation($userid, $locationid);
-        $wkt = $this->fetchFromMapbox($transport, $lng, $lat, $minutes);
+        $isochroneid = $this->ensureIsochroneExists($locationid, $minutes, $transport);
 
-        if ($wkt) {
-            $rc = $this->dbhm->preExec("INSERT INTO isochrones (userid, locationid, nickname, transport, minutes, polygon) VALUES (?, ?, ?, ?, ?, ST_GeomFromText(?, {$this->dbhr->SRID()}))", [
+        if ($isochroneid) {
+            $rc = $this->dbhm->preExec("INSERT INTO isochrones_users (userid, isochroneid, nickname) VALUES (?, ?, ?)", [
                 $userid,
-                $locationid,
+                $isochroneid,
                 $nickname,
-                $transport,
-                $minutes,
-                $wkt
             ]);
 
             if ($rc) {
                 $id = $this->dbhm->lastInsertId();
-                $this->id = $id;
-                $this->fetch($this->dbhr, $this->dbhm, $id, 'isochrones', 'isochrone', NULL);
+                $this->fetchIt($id);
             }
         }
 
@@ -90,7 +129,7 @@ class Isochrone extends Entity
     }
 
     public function list($userid) {
-        $isochrones = $this->dbhr->preQuery("SELECT id, userid, timestamp, nickname, locationid, transport, minutes, ST_AsText(polygon) AS polygon FROM isochrones WHERE userid = ?;", [
+        $isochrones = $this->dbhr->preQuery("SELECT isochrones_users.id, isochroneid, userid, timestamp, nickname, locationid, transport, minutes, ST_AsText(polygon) AS polygon FROM isochrones_users INNER JOIN isochrones ON isochrones_users.isochroneid = isochrones.id WHERE userid = ? ORDER BY isochrones_users.id ASC;", [
             $userid,
         ]);
 
@@ -104,23 +143,10 @@ class Isochrone extends Entity
         return $isochrones;
     }
 
-    public function refetch() {
-        $l = new Location($this->dbhr, $this->dbhm, $this->isochrone['locationid']);
-        $wkt = $this->fetchFromMapbox($this->isochrone['transport'], $l->getPrivate('lng'), $l->getPrivate('lat'), $this->isochrone['minutes']);
-
-        if ($wkt) {
-            $this->dbhm->preExec("UPDATE isochrones SET polygon = ST_GeomFromText(?, {$this->dbhr->SRID()}) WHERE id = ?;", [
-                $wkt,
-                $this->id
-            ]);
-        }
-    }
-
-    public function getPublic()
-    {
-        $ret = parent::getPublic();
-        $ret['timestamp'] = Utils::ISODate($ret['timestamp']);
-        return($ret);
+    public function decoupleFromUser() {
+        $this->dbhm->preQuery("DELETE FROM isochrones_users WHERE id = ?", [
+            $this->id
+        ]);
     }
 
     public function delete() {
@@ -129,7 +155,7 @@ class Isochrone extends Entity
     }
 
     public function deleteForUser($userid) {
-        $rc = $this->dbhm->preExec("DELETE FROM isochrones WHERE userid = ?;", [ $userid]);
+        $rc = $this->dbhm->preExec("DELETE FROM isochrones_users WHERE userid = ?;", [ $userid]);
         return($rc);
     }
 
@@ -169,5 +195,19 @@ class Isochrone extends Entity
         }
 
         return $wkt;
+    }
+
+    public function edit($minutes, $transport) {
+        # We have been passed new minutes and transport values. We want to preserve the id in the isochrones_users
+        # table, but point it at a new isochrone with those values in the isochrones table.
+        #
+        # So first make sure there is one.
+        $isochroneid = $this->ensureIsochroneExists($this->isochrone['locationid'], $minutes, $transport);
+
+        # And update this entry.
+        $this->dbhm->preExec("UPDATE isochrones_users SET isochroneid = ? WHERE id = ?;", [
+            $isochroneid,
+            $this->id
+        ]);
     }
 }

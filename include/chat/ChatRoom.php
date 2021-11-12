@@ -395,15 +395,33 @@ WHERE chat_rooms.id IN $idlist;";
 
         if (count($banned)) {
             $bannedon = array_column($banned, 'groupid');
+            #error_log("Banned on " . json_encode($bannedon));
+
+            $user1groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ?;", [
+                $user1
+            ]);
+
+            $user1ids = array_column($user1groups, 'groupid');
+
+            #error_log("User1ids " . json_encode($user1ids));
 
             $user2groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ?;", [
                 $user2
             ]);
 
             $user2ids = array_column($user2groups, 'groupid');
-            $inter = array_intersect($bannedon, $user2ids);
+            #error_log("User2ids " . json_encode($user2ids));
+            $inter = array_intersect($user1ids, $user2ids);
+            #error_log("Inter " . json_encode($inter));
 
-            if (count($inter) == count($bannedon)) {
+            $bannedIntersect = array_intersect($inter, $bannedon);
+
+            # I
+            if (count($inter) && count($bannedIntersect) == count($inter)) {
+                # They have groups in common and user1 is banned on all of them.  Block.
+                $bannedonall = TRUE;
+            } else if (!count($user1ids) && count($bannedon)) {
+                # User1 isn't even a member of any groups at the moment, but is banned on some.  Block.
                 $bannedonall = TRUE;
             }
         }
