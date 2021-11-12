@@ -1,6 +1,6 @@
 <?php
 //const MODTOOLS = TRUE;  // MT
-const MODTOOLS = FALSE;   // FD
+//const MODTOOLS = FALSE;   // FD
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
@@ -16,6 +16,7 @@ $l = new PushNotifications($dbhr, $dbhm);
 #$gid = $g->findByShortName('FreeglePlayground');
 #$l->notifyGroupMods($gid);
 #$l->notify(35909200, TRUE);
-#$l->notify(13437455, TRUE);
+$l->notify(13437455, TRUE); // MT chris_cant2
+#$l->notify(34496458, TRUE); // MT ruth
 #$l->notify(32496365, TRUE); // MT chriscant
-$l->notify(32496365, FALSE); // FD
+#$l->notify(32496365, FALSE); // FD
