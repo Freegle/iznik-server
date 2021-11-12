@@ -403,7 +403,7 @@ WHERE chat_rooms.id IN $idlist;";
 
             $user1ids = array_column($user1groups, 'groupid');
 
-            #error_log("User2ids " . json_encode($user1ids));
+            #error_log("User1ids " . json_encode($user1ids));
 
             $user2groups = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ?;", [
                 $user2
@@ -416,7 +416,12 @@ WHERE chat_rooms.id IN $idlist;";
 
             $bannedIntersect = array_intersect($inter, $bannedon);
 
+            # I
             if (count($inter) && count($bannedIntersect) == count($inter)) {
+                # They have groups in common and user1 is banned on all of them.  Block.
+                $bannedonall = TRUE;
+            } else if (!count($user1ids) && count($bannedon)) {
+                # User1 isn't even a member of any groups at the moment, but is banned on some.  Block.
                 $bannedonall = TRUE;
             }
         }
