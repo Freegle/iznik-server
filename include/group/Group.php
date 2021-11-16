@@ -191,10 +191,7 @@ class Group extends Entity
     public function setPrivate($att, $val) {
         $ret = TRUE;
 
-        # We override this in order to clear our cache, which would otherwise be out of date.
-        parent::setPrivate($att, $val);
-
-        if ($att == 'poly' || $att == 'polyofficial') {
+        if ($att == 'postvisibility') {
             # Check validity of spatial data
             $ret = FALSE;
 
@@ -205,7 +202,8 @@ class Group extends Entity
 
                 foreach ($valid as $v) {
                     if ($v['valid']) {
-                        $this->dbhm->preExec("UPDATE `groups` SET polyindex = ST_GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)'), {$this->dbhr->SRID()}) WHERE id = ?;", [
+                        $this->dbhm->preExec("UPDATE `groups` SET postvisibility = ST_GeomFromText(?, {$this->dbhr->SRID()}) WHERE id = ?;", [
+                            $val,
                             $this->id
                         ]);
 
@@ -214,6 +212,32 @@ class Group extends Entity
                 }
             } catch(\Exception $e) {
                 # Drop through with ret false.
+            }
+        } else {
+            # We override this in order to clear our cache, which would otherwise be out of date.
+            parent::setPrivate($att, $val);
+
+            if ($att == 'poly' || $att == 'polyofficial') {
+                # Check validity of spatial data
+                $ret = FALSE;
+
+                try {
+                    $valid = $this->dbhm->preQuery($this->dbhr->isV8() ? "SELECT ST_IsValid(ST_GeomFromText(?, {$this->dbhr->SRID()})) AS valid;" : "SELECT ST_IsValid(ST_GeomFromText(?)) AS valid;", [
+                        $val
+                    ]);
+
+                    foreach ($valid as $v) {
+                        if ($v['valid']) {
+                            $this->dbhm->preExec("UPDATE `groups` SET polyindex = ST_GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)'), {$this->dbhr->SRID()}) WHERE id = ?;", [
+                                $this->id
+                            ]);
+
+                            $ret = TRUE;
+                        }
+                    }
+                } catch(\Exception $e) {
+                    # Drop through with ret false.
+                }
             }
         }
 
