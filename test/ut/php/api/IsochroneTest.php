@@ -278,14 +278,22 @@ class isochroneAPITest extends IznikAPITestCase
         $u->addEmail($email);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));
-//        'lat' => 55.957571,
-//                'lng' => -3.205333
+
+        $poly = 'POLYGON((-3.18 55.99,-3.1 55.99,-3.1 56.1,-3.18 56.1,-3.18 55.99))';
 
         $ret = $this->call('group', 'PATCH', [
             'id' => $group1,
-            'postvisibility' => 'POLYGON((-3.18 55.99, -3.1 55.99, -3.1 56.1, -3.18 56.1, -3.18 55.99))'
+            'postvisibility' => $poly
         ]);
         assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('group', 'GET', [
+            'id' => $group1,
+            'polygon' => TRUE
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals($poly, $ret['group']['postvisibility']);
 
         # Log back in as the user - shouldn't be visible.
         $u = new User($this->dbhr, $this->dbhm, $uid);

@@ -43,11 +43,14 @@ class Group extends Entity
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $atts = NULL)
     {
+        # We need special SQL to pick up postvisibility in text.
+        $sql = "SELECT `groups`.*, ST_AsText(postvisibility) AS postvisibility FROM `groups` WHERE id = ?";
+
         if ($atts) {
             # We've been passed all the atts we need to construct the group
-            $this->fetch($dbhr, $dbhm, $id, 'groups', 'group', $this->publicatts, $atts, FALSE);
+            $this->fetch($dbhr, $dbhm, $id, 'groups', 'group', $this->publicatts, $atts, FALSE, $sql);
         } else {
-            $this->fetch($dbhr, $dbhm, $id, 'groups', 'group', $this->publicatts, NULL, FALSE);
+            $this->fetch($dbhr, $dbhm, $id, 'groups', 'group', $this->publicatts, NULL, FALSE, $sql);
 
             if ($id && !$this->id) {
                 # We were passed an id, but didn't find the group.  See if the id is a legacyid.
@@ -55,7 +58,7 @@ class Group extends Entity
                 # This assumes that the legacy and current ids don't clash.  Which they don't.  So that's a good assumption.
                 $groups = $this->dbhr->preQuery("SELECT id FROM `groups` WHERE legacyid = ?;", [ $id ]);
                 foreach ($groups as $group) {
-                    $this->fetch($dbhr, $dbhm, $group['id'], 'groups', 'group', $this->publicatts, NULL, FALSE);
+                    $this->fetch($dbhr, $dbhm, $group['id'], 'groups', 'group', $this->publicatts, NULL, FALSE, $sql);
                 }
             }
         }
