@@ -31,12 +31,19 @@ foreach ($msgs as $msg) {
             if (strpos(strtolower($item), strtolower($p['name'])) !== false)
             {
                 #error_log("{$item} matches {$p['name']}");
-                fputcsv($f, [
-                    $msg['id'],
-                    $msg['subject'],
-                    $p['name'],
-                    'https://www.ilovefreegle.org/img_' . $msg['attid'] . '.jpg'
-                ]);
+                $data = file_get_contents('https://www.ilovefreegle.org/img_' . $msg['attid'] . '.jpg');
+
+                if ($data)
+                {
+                    file_put_contents('/tmp/ml/img_' . $msg['attid'] . '.jpg', $data);
+
+                    fputcsv($f, [
+                        $msg['id'],
+                        $msg['subject'],
+                        $p['name'],
+                        'img_' . $msg['attid'] . '.jpg'
+                    ]);
+                }
 
                 break;
             }
