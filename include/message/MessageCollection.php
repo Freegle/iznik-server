@@ -581,6 +581,25 @@ UNION SELECT msgid AS id, timestamp, 'Reneged' AS `type` FROM messages_reneged W
             $userid
         ]);
 
+        # Some groups may have postvisibility set, which should restrict whether or not the messages should be visible.
+        $groupids = array_filter(array_unique(array_column($msgs, 'groupid')));
+
+        if (count($groupids)) {
+            # Find groups we're allowed to show.
+            $u = User::get($this->dbhr, $this->dbhm, $userid);
+            list ($lat, $lng, $loc) = $u->getLatLng($userid);
+            error_log("User at $lat, $lng");
+            $visibles = $this->dbhr->preQuery("SELECT id FROM `groups` WHERE id IN (" . implode(',', $groupids) . ") AND (postvisibility IS NULL OR ST_Contains(postvisibility, ST_GeomFromText('POINT($lng $lat)', {$this->dbhr->SRID()})));");
+            $visibleids = array_column($visibles, 'id');
+            error_log("Visible groups " . json_encode($visibleids));
+            error_log("Initial messsages " . count($msgs));
+            $msgs = array_filter($msgs, function ($msg) use ($visibleids) {
+                error_log("Check {$msg['groupid']} in " . json_encode($visibleids));
+                return in_array($msg['groupid'], $visibleids);
+            });
+            error_log("Filtered messsages " . count($msgs));
+        }
+
         # Blur them.
         foreach ($msgs as &$msg) {
             list ($msg['lat'], $msg['lng']) = Utils::blur($msg['lat'], $msg['lng'], Utils::BLUR_USER);

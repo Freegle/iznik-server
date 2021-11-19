@@ -88,6 +88,7 @@ function group() {
                         $ret['group']['cga'] = $g->getPrivate('polyofficial');
                         $ret['group']['dpa'] = $g->getPrivate('poly');
                         $ret['group']['polygon'] = $ret['group']['dpa'] ? $ret['group']['dpa'] : $ret['group']['cga'];
+                        $ret['group']['postvisibility'] = $g->getPrivate('postvisibility');
                     }
 
                     if (Utils::presdef('tnkey', $_REQUEST, FALSE) && $me && $me->isModerator()) {
@@ -192,12 +193,14 @@ function group() {
                                 }
                             }
                         }
+
                         foreach (['microvolunteeringoptions'] as $att) {
                             $val = Utils::presdef($att, $_REQUEST, NULL);
                             if (array_key_exists($att, $_REQUEST)) {
                                 $g->setPrivate($att, json_encode($val));
                             }
                         }
+
                         foreach (['tagline', 'namefull', 'welcomemail', 'description', 'region', 'affiliationconfirmed', 'mentored'] as $att) {
                             $val = Utils::presdef($att, $_REQUEST, NULL);
                             if (array_key_exists($att, $_REQUEST) && $val != "1") {
@@ -218,8 +221,6 @@ function group() {
                                 }
                             }
 
-                            # For polygon attributes, check that they are valid before putting them into the DB.
-                            # Otherwise, we can break the whole site.
                             foreach (['poly', 'polyofficial'] as $att) {
                                 $val = Utils::presdef($att, $_REQUEST, NULL);
                                 if (array_key_exists($att, $_REQUEST)) {
@@ -231,7 +232,12 @@ function group() {
                                     }
                                 }
                             }
+                        }
 
+                        $postvisibility = Utils::presdef('postvisibility', $_REQUEST, NULL);
+
+                        if ($postvisibility) {
+                            $g->setPrivate('postvisibility', $postvisibility);
                         }
                     }
                 }

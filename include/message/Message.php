@@ -127,8 +127,6 @@ class Message
         "out of the office",
         "on annual leave",
         "Thank you so much for your email enquiry",
-        "I am away",
-        "I am currently away",
         "Thanks for your email enquiry",
         "don't check this very often",
         "below to complete the verification process",

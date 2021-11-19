@@ -1523,10 +1523,11 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
         $emailq1 = Session::modtools() ? ",chat_messages_byemail.msgid AS bymailid" : '';
         $emailq2 = Session::modtools() ? "LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messages.id" : '';
 
-        $sql = "SELECT chat_messages.*, 
+        $sql = "SELECT chat_messages.*,
+                users.settings,
                 users_images.id AS userimageid, users_images.url AS userimageurl, users.systemrole, CASE WHEN users.fullname IS NOT NULL THEN users.fullname ELSE CONCAT(users.firstname, ' ', users.lastname) END AS userdisplayname
                 $emailq1
-                FROM chat_messages INNER JOIN users ON users.id = chat_messages.userid 
+                FROM chat_messages INNER JOIN users ON users.id = chat_messages.userid
                 LEFT JOIN users_images ON users_images.userid = users.id 
                 $emailq2
                 WHERE chatid = ? $seenfilt $ctxq ORDER BY chat_messages.id DESC LIMIT $limit;";
@@ -1537,7 +1538,6 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
         $ret = [];
         $lastuser = NULL;
         $lastdate = NULL;
-        $lastmsg = NULL;
 
         $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
@@ -1600,14 +1600,26 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                     }
 
                     if (!array_key_exists($msg['userid'], $users)) {
+                        $usettings = Utils::pres('settings', $msg) ? json_decode($msg['settings'], TRUE) : NULL;
+                        $profileurl = $msg['userimageurl'] ? $msg['userimageurl'] : ('https://' . IMAGE_DOMAIN . "/uimg_{$msg['userimageid']}.jpg");
+                        $profileturl = $msg['userimageurl'] ? $msg['userimageurl'] : ('https://' . IMAGE_DOMAIN . "/tuimg_{$msg['userimageid']}.jpg");
+                        $default = FALSE;
+
+                        if ($usettings !== NULL && !Utils::pres('useprofile', $usettings)) {
+                            // Should hide image.
+                            $profileurl = 'https://' . IMAGE_DOMAIN . '/defaultprofile.png';
+                            $profileturl = 'https://' . IMAGE_DOMAIN . '/defaultprofile.png';
+                            $default = TRUE;
+                        }
+
                         $users[$msg['userid']] = [
                             'id' => $msg['userid'],
                             'displayname' => $msg['userdisplayname'],
                             'systemrole' => $msg['systemrole'],
                             'profile' => [
-                                'url' => $msg['userimageurl'] ? $msg['userimageurl'] : ('https://' . IMAGE_DOMAIN . "/uimg_{$msg['userimageid']}.jpg"),
-                                'turl' => $msg['userimageurl'] ? $msg['userimageurl'] : ('https://' . IMAGE_DOMAIN . "/tuimg_{$msg['userimageid']}.jpg"),
-                                'default' => FALSE
+                                'url' => $profileurl,
+                                'turl' => $profileturl,
+                                'default' => $default
                             ]
                         ];
                     }

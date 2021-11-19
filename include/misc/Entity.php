@@ -25,7 +25,7 @@ class Entity
         return $this->id;
     }
 
-    function fetch(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $table, $name, $publicatts, $fetched = NULL, $allowcache = TRUE)
+    function fetch(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $table, $name, $publicatts, $fetched = NULL, $allowcache = TRUE, $sql = NULL)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
@@ -36,7 +36,8 @@ class Entity
         $this->table = $table;
 
         if ($id) {
-            $entities = $fetched ? [ $fetched ] : $dbhr->preQuery("SELECT * FROM `$table` WHERE id = ?;",
+            $sql = $sql ? $sql : "SELECT * FROM `$table` WHERE id = ?;";
+            $entities = $fetched ? [ $fetched ] : $dbhr->preQuery($sql,
                 [
                     $id
                 ],

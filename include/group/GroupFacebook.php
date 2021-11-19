@@ -153,7 +153,6 @@ class GroupFacebook {
         $ret = [];
         $dateq = $mindate ? " groups_facebook_toshare.date >= '$mindate' AND " : '';
 
-
         if ($me) {
             $minid = $ctx ? intval($ctx['id']) : 0;
 
