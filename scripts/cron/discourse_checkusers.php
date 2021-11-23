@@ -26,6 +26,8 @@ $api_username = 'system';
 define('FROM_ADDR','geeks@ilovefreegle.org');
 define('GEEKSALERTS_ADDR','geek-alerts@ilovefreegle.org');
 
+define('ANNOUNCEMENTS_ID',7);
+
 //////////////////////////////////////////////////////////////////////////
 // GET ALL USERS
 //  https://meta.discourse.org/t/how-do-i-get-a-list-of-all-users-from-the-api/24261/11
@@ -176,6 +178,48 @@ function GetUserEmail($username){
   return $useremails->email;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// SET USER PROFILE FIELDS
+// https://discourse.ilovefreegle.org/u/chris_cant.json
+//  PUT
+//  Form: watched_category_ids[]=7 &repeated
+
+function SetWatchCategory($username,$alreadywatching,$catid){
+  global $api_username;
+  $url = 'https://discourse.ilovefreegle.org/users/'.$username.'.json';
+  //echo "url: $url\r\n";
+
+  $ch = curl_init();
+  curl_setopt( $ch, CURLOPT_URL, $url );
+  curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+  curl_setopt( $ch, CURLOPT_USERAGENT, 'Freegle' );
+  curl_setopt( $ch, CURLOPT_HTTPHEADER, array(
+    'Api-Key: '.DISCOURSE_APIKEY,
+    'Api-Username: '.$api_username
+    //'accept: application/json',
+    //'content-type: application/json'
+  ));
+  $data = '';
+  foreach( $alreadywatching as $watchid){
+    $data .= 'watched_category_ids[]='.$watchid.'&';
+  }
+  $data .= 'watched_category_ids[]='.$catid;
+  //echo "data: $data\r\n";
+  curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT'); 
+  curl_setopt($ch, CURLOPT_POSTFIELDS,$data);
+
+  $result = curl_exec( $ch );
+  //echo "result: ".print_r($result)."\r\n";
+  //echo htmlspecialchars($result);
+
+  if ( curl_errno( $ch ) !== 0 ) {
+    curl_close($ch);
+    throw new \Exception('curl_errno: SetWatchCategory'.$username);
+  }
+  curl_close( $ch );
+}
+
+
 //  https://discourse.ilovefreegle.org/admin/users/list/active.json
 //  "last_emailed_at":"2019-10-26T07:14:45.040Z"
 //  "last_emailed_age":19775.883742965,
@@ -211,15 +255,21 @@ try{
   $watchingcount = 0;
   $email_digests = 0;
   $notreceivingmail = 0;
+  $notonannoucements = 0;
   foreach ($allusers as $user) {
-    usleep(250000);
-    $count++;
     //echo "user: ".print_r($user)."\r\n";
 
     if( $user->username=='freeglegeeks') {
       $system++;
       continue;  // Ignore system user
     }
+
+    //if( $user->username!=='Chris_Cant') {
+    //  continue;  // Test only with Chris
+    //}
+
+    usleep(250000);
+    $count++;
 
     // Check for activity
     //echo $count." last_posted_at: ".$user->last_posted_at.". last_seen_at:".$user->last_seen_at."\r\n";
@@ -292,6 +342,7 @@ try{
       $user2 = GetUser2($user->id,$user->username);
 
       $gettingAnyMails = false;
+      //echo print_r($user2->watched_category_ids,true)."\r\n";
       //echo "watched_category_ids: ".count($user2->watched_category_ids)."\r\n";
       //echo "watched_first_post_category_ids: ".count($user2->watched_first_post_category_ids)."\r\n";
       //echo "tracked_category_ids: ".count($user2->tracked_category_ids)."\r\n";
@@ -303,9 +354,11 @@ try{
         $gettingAnyMails = true;
       }
 
+      $mlm = false;
       if (property_exists($user2, 'user_option')){
-        $mlm = $user2->user_option->mailing_list_mode;
-        if( is_bool($mlm) && $mlm) {
+        $mlm2 = $user2->user_option->mailing_list_mode;
+        if( is_bool($mlm2) && $mlm2) {
+          $mlm = true;
           $mailinglistmode++;
           $gettingAnyMails = true;
         }
@@ -317,13 +370,24 @@ try{
       
       } else echo "NO USER OPTIONS\r\n";
 
+
       if( !$gettingAnyMails){
         $useremail = GetUserEmail($user->username);
         $report .= 'Not getting any mails: Discourse username: '.$user->username.', email: '.$useremail."\r\n";
         $notreceivingmail++;
+      } else if( !$mlm) {
+
+        if( !in_array(ANNOUNCEMENTS_ID,$user2->watched_category_ids) &&
+            !in_array(ANNOUNCEMENTS_ID,$user2->watched_first_post_category_ids) &&
+            !in_array(ANNOUNCEMENTS_ID,$user2->tracked_category_ids)){
+          $notonannoucements++;
+          SetWatchCategory($user->username,$user2->watched_category_ids,ANNOUNCEMENTS_ID);
+          echo 'Was not on Announcements: Discourse username: '.$user->username."\r\n";
+          $report .= 'Was not on Announcements: Discourse username: '.$user->username."\r\n";
+        }
       }
     }
-    //if( $count>50) break;
+    //if( $count>5) break;
   }
 
   $report .= "\r\n";
@@ -350,6 +414,9 @@ try{
   $report .= "mailinglistmode: ($mailinglistmode)\r\n";
   $report .= "watchingcount: ($watchingcount)\r\n";
   $report .= "email_digests: ($email_digests)\r\n";
+  $report .= "notonannoucements: ($notonannoucements)";
+  if( $notonannoucements>0) $report .= " but hopefully now are";
+  $report .= "\r\n";
   $report .= "notreceivingmail: ($notreceivingmail)\r\n";
 
   echo $report;
@@ -357,6 +424,7 @@ try{
 
   $mailedcentralmods = false;
   $subject = 'Discourse checkuser OK';
+
   if( $notmod || $notuser){
     $subject = 'Discourse checkuser USERS TO CHECK';
     $message = \Swift_Message::newInstance()
@@ -382,7 +450,7 @@ try{
     $numSent = $mailer->send($message);
     echo "Mail sent to centralmods: ".$numSent."\r\n";
   }
-  
+
   //$report = wordwrap($report, 70, "\r\n");
   $message = \Swift_Message::newInstance()
       ->setSubject($subject)
