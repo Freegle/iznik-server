@@ -417,24 +417,29 @@ class ChatMessage extends Entity
         $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         # We can only approve if we can see this message for review.
-        $sql = "SELECT DISTINCT chat_messages.* FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator')) AND chat_messages.id = ?;";
+        $sql = "SELECT DISTINCT chat_messages.*, chat_messages_held.userid AS heldbyuser FROM chat_messages LEFT JOIN chat_messages_held ON chat_messages_held.msgid = chat_messages.id INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator')) AND chat_messages.id = ?;";
         $msgs = $this->dbhr->preQuery($sql, [ $myid, $id ]);
 
         foreach ($msgs as $msg) {
-            $this->dbhm->preExec("UPDATE chat_messages SET reviewrequired = 0, reviewedby = ? WHERE id = ?;", [
-                $myid,
-                $id
-            ]);
+            $heldby = Utils::presdef('heldbuser', $msg, NULL);
 
-            # Whitelist any URLs - they can't be indicative of spam.
-            $this->whitelistURLs($msg['message']);
+            # Can't act on messages which are held by someone else.
+            if (!$heldby || $heldby == $myid) {
+                $this->dbhm->preExec("UPDATE chat_messages SET reviewrequired = 0, reviewedby = ? WHERE id = ?;", [
+                    $myid,
+                    $id
+                ]);
 
-            # This is like a new message now, so alert them.
-            $r = new ChatRoom($this->dbhr, $this->dbhm, $msg['chatid']);
-            $r->updateMessageCounts();
-            $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
-            $r->pokeMembers();
-            $r->notifyMembers($u->getName(), $msg['message'], $msg['userid'], TRUE);
+                # Whitelist any URLs - they can't be indicative of spam.
+                $this->whitelistURLs($msg['message']);
+
+                # This is like a new message now, so alert them.
+                $r = new ChatRoom($this->dbhr, $this->dbhm, $msg['chatid']);
+                $r->updateMessageCounts();
+                $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
+                $r->pokeMembers();
+                $r->notifyMembers($u->getName(), $msg['message'], $msg['userid'], TRUE);
+            }
         }
     }
 
