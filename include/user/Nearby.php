@@ -31,7 +31,7 @@ class Nearby
 
         if ($g->getSetting('relevant', 1)) {
             # Find the recent extant messages
-            $sql = "SELECT DISTINCT messages_spatial.msgid AS id, messages_spatial.msgtype AS type, ST_Y(messages_spatial.point) AS lat, ST_X(messages_spatial.point) AS lng, messages.fromuser, messages.subject FROM messages_spatial INNER JOIN messages ON messages_spatial.msgid = messages.id WHERE groupid = ? AND messages.fromuser IS NOT NULL;";
+            $sql = "SELECT DISTINCT messages_spatial.msgid AS id, messages_spatial.msgtype AS type, ST_Y(messages_spatial.point) AS lat, ST_X(messages_spatial.point) AS lng, messages.fromuser, messages.subject FROM messages_spatial INNER JOIN messages ON messages_spatial.msgid = messages.id WHERE groupid = ? AND messages.fromuser IS NOT NULL AND messages_spatial.successful = 0;";
             $msgs = $this->dbhr->preQuery($sql, [ $groupid ] );
             #error_log("Look for extant messages for $groupid found " . count($msgs));
 
