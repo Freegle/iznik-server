@@ -27,7 +27,7 @@ function doSQL($sql) {
     } catch (\Exception $e) {
         $msg = $e->getMessage();
 
-        if (strpos($e, 'gone away')) {
+        if (strpos($e, 'gone away') || strpos($e, 'Lock wait timeout exceeded')) {
             # SQL server has gone away.  Exit - cron will restart and we'll get new handles.
             error_log("SQL gone away - exit");
             exit(1);
