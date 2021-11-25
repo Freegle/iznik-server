@@ -177,12 +177,12 @@ class Location extends Entity
                     # Now that we're on 5.7 we have spatial indexing, which makes this a lot easier.  We create a
                     # small polygon round the location we're interested in, and then step it outwards until we
                     # overlap a location.
-                    #
+                    $step = 0.005;
                     # TODO possibly we can completely remove grid stuff now.
-                    $swlat = round($loc['lat'], 2) - 0.1;
-                    $swlng = round($loc['lng'], 2) - 0.1;
-                    $nelat = round($loc['lat'], 2) + 0.1;
-                    $nelng = round($loc['lng'], 2) + 0.1;
+                    $swlat = round($loc['lat'], 2) - $step;
+                    $swlng = round($loc['lng'], 2) - $step;
+                    $nelat = round($loc['lat'], 2) + $step;
+                    $nelng = round($loc['lng'], 2) + $step;
 
                     $count = 0;
 
@@ -195,12 +195,13 @@ class Location extends Entity
                         $nearbyes = $this->dbhr->preQuery($sql);
 
                         if (count($nearbyes) === 0) {
-                            $swlat -= 0.1;
-                            $swlng -= 0.1;
-                            $nelat += 0.1;
-                            $nelng += 0.1;
+                            $swlat -= $step;
+                            $swlng -= $step;
+                            $nelat += $step;
+                            $nelng += $step;
                             $count++;
                         }
+
                     } while (count($nearbyes) == 0 && $count < 100);
 
                     if (count($nearbyes) > 0) {
