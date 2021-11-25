@@ -5962,7 +5962,7 @@ class User extends Entity
         $city = NULL;
 
         # Find the closest town
-        list ($lat, $lng, $loc) = $this->getLatLng();
+        list ($lat, $lng, $loc) = $this->getLatLng(FALSE, TRUE);
 
         if ($lat || $lng) {
             $sql = "SELECT id, name, ST_distance(position, ST_GeomFromText('POINT($lng $lat)', {$this->dbhr->SRID()})) AS dist FROM towns WHERE position IS NOT NULL ORDER BY dist ASC LIMIT 1;";

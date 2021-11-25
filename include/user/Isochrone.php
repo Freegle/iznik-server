@@ -47,15 +47,18 @@ class Isochrone extends Entity
         $u = new User($this->dbhr, $this->dbhm, $userid);
 
         if (!$locationid) {
-            # Use the user's own location.
-            list ($lat, $lng, $loc) = $u->getLatLng();
-            $l = new Location($this->dbhr, $this->dbhm);
-            $pc = $l->closestPostcode($lat, $lng);
-
+            # Use the user's own location.  Don't want to use the global defaults otherwise everyone will have a
+            # location near Dunsop Bridge.
+            list ($lat, $lng, $loc) = $u->getLatLng(FALSE, TRUE);
             $locationid = NULL;
 
-            if ($pc) {
-                $locationid = $pc['id'];
+            if ($loc) {
+                $l = new Location($this->dbhr, $this->dbhm);
+                $pc = $l->closestPostcode($lat, $lng);
+
+                if ($pc) {
+                    $locationid = $pc['id'];
+                }
             }
         } else {
             # Use specified location.
@@ -110,18 +113,21 @@ class Isochrone extends Entity
         $id = NULL;
 
         list ($lat, $lng, $locationid) = $this->findLocation($userid, $locationid);
-        $isochroneid = $this->ensureIsochroneExists($locationid, $minutes, $transport);
 
-        if ($isochroneid) {
-            $rc = $this->dbhm->preExec("INSERT INTO isochrones_users (userid, isochroneid, nickname) VALUES (?, ?, ?)", [
-                $userid,
-                $isochroneid,
-                $nickname,
-            ]);
+        if ($locationid) {
+            $isochroneid = $this->ensureIsochroneExists($locationid, $minutes, $transport);
 
-            if ($rc) {
-                $id = $this->dbhm->lastInsertId();
-                $this->fetchIt($id);
+            if ($isochroneid) {
+                $rc = $this->dbhm->preExec("INSERT INTO isochrones_users (userid, isochroneid, nickname) VALUES (?, ?, ?)", [
+                    $userid,
+                    $isochroneid,
+                    $nickname,
+                ]);
+
+                if ($rc) {
+                    $id = $this->dbhm->lastInsertId();
+                    $this->fetchIt($id);
+                }
             }
         }
 

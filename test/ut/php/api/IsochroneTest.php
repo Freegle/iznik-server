@@ -38,7 +38,8 @@ class isochroneAPITest extends IznikAPITestCase
         $settings = [
             'mylocation' => [
                 'lat' => 55.957571,
-                'lng' => -3.205333
+                'lng' => -3.205333,
+                'name' => 'EH3 6SS'
             ],
         ];
 
@@ -169,7 +170,8 @@ class isochroneAPITest extends IznikAPITestCase
         $settings = [
             'mylocation' => [
                 'lat' => 55.957571,
-                'lng' => -3.205333
+                'lng' => -3.205333,
+                'name' => 'EH3 6SS'
             ],
         ];
 
