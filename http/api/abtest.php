@@ -44,11 +44,13 @@ function abtest() {
             $shown = array_key_exists('shown', $_REQUEST) ? filter_var($_REQUEST['shown'], FILTER_VALIDATE_BOOLEAN) : NULL;
             $action = array_key_exists('action', $_REQUEST) ? filter_var($_REQUEST['action'], FILTER_VALIDATE_BOOLEAN) : NULL;
 
-            // The client can decide that an action is more valuable.  In this case we weight it, which will result in
-            // it getting a higher rate, and therefore being chosen more often.
+            # The client can decide that an action is more valuable.  In this case we weight it, which will result in
+            # it getting a higher rate, and therefore being chosen more often.
             $score = (Utils::presint('score', $_REQUEST, 1));
 
-            if ($uid && $variant) {
+            # Ignore the app.  This is because we can be tweaking experiments and have results which are contaminated
+            # by old code on the app which hasn't updated.
+            if (!Utils::pres('app', $_REQUEST) && $uid && $variant) {
                 if ($shown !== NULL) {
                     $sql = "INSERT INTO abtest (uid, variant, shown) VALUES (" . $dbhm->quote($uid) . ", " . $dbhm->quote($variant) . ", 1) ON DUPLICATE KEY UPDATE shown = shown + 1, rate = COALESCE(100 * action / shown, 0);";
                     $dbhm->background($sql);
