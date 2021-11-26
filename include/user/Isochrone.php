@@ -118,10 +118,11 @@ class Isochrone extends Entity
             $isochroneid = $this->ensureIsochroneExists($locationid, $minutes, $transport);
 
             if ($isochroneid) {
-                $rc = $this->dbhm->preExec("INSERT INTO isochrones_users (userid, isochroneid, nickname) VALUES (?, ?, ?)", [
+                $rc = $this->dbhm->preExec("INSERT INTO isochrones_users (userid, isochroneid, nickname) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE nickname = ?;", [
                     $userid,
                     $isochroneid,
                     $nickname,
+                    $nickname
                 ]);
 
                 if ($rc) {
