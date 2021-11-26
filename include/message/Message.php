@@ -3616,7 +3616,7 @@ ORDER BY lastdate DESC;";
             #error_log("Match $match message " . var_export($matchmsg, TRUE));
 
             if ($match && $matchmsg['id']) {
-                # We seem to get a NULL returned in circumstances I don't quite understand but but which relate to
+                # We seem to get a NULL returned in circumstances I don't quite understand but which relate to
                 # the use of DAMLEVLIM.
                 #error_log("Best match {$matchmsg['subject']}");
                 $sql = "INSERT IGNORE INTO messages_related (id1, id2) VALUES (?,?);";
