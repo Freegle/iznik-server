@@ -4,7 +4,8 @@ namespace Freegle\Iznik;
 function isochrone() {
     global $dbhr, $dbhm;
 
-    $myid = Session::whoAmId($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
+    $myid = $me ? $me->getId() : NULL;
 
     $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 
@@ -14,7 +15,8 @@ function isochrone() {
         switch ($_REQUEST['type']) {
             case 'GET': {
                 $i = new Isochrone($dbhr, $dbhm);
-                $isochrones = $i->list($myid);
+                $all = Utils::presbool('all', $_REQUEST, FALSE);
+                $isochrones = $i->list($myid, $all && $myid && $me->isAdminOrSupport() ? TRUE : FALSE);
 
                 if (!count($isochrones)) {
                     # No existing one - create a default one.

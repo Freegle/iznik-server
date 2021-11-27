@@ -41,7 +41,6 @@ class IsochroneTest extends IznikTestCase {
         assertEquals($id, $i->getPublic()['id']);
         $i = new Isochrone($this->dbhr, $this->dbhm, $id);
         assertEquals($id, $i->getPublic()['id']);
-        error_log("Public " . var_export($i->getPublic(), TRUE));
         assertNotNull($i->getPublic()['polygon']);
 
         $isochrones = $i->list($uid);

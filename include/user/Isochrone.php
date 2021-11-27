@@ -13,7 +13,7 @@ class Isochrone extends Entity
     const CYCLE = 'Cycle';
     const DRIVE = 'Drive';
 
-    const DEFAULT_TIME = 25;
+    const DEFAULT_TIME = 15;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
@@ -135,10 +135,12 @@ class Isochrone extends Entity
         return($id);
     }
 
-    public function list($userid) {
-        $isochrones = $this->dbhr->preQuery("SELECT isochrones_users.id, isochroneid, userid, timestamp, nickname, locationid, transport, minutes, ST_AsText(polygon) AS polygon FROM isochrones_users INNER JOIN isochrones ON isochrones_users.isochroneid = isochrones.id WHERE userid = ? ORDER BY isochrones_users.id ASC;", [
-            $userid,
-        ]);
+    public function list($userid, $all = FALSE) {
+        $sql = $all ?
+            "SELECT isochrones.id, locationid, isochrones.timestamp, transport, minutes, ST_AsText(polygon) AS polygon, lat, lng FROM isochrones_users INNER JOIN isochrones ON isochrones_users.isochroneid = isochrones.id INNER JOIN locations ON locations.id = isochrones.locationid ORDER BY isochrones_users.id DESC LIMIT 100;" :
+            "SELECT isochrones_users.id, isochroneid, userid, timestamp, nickname, locationid, transport, minutes, ST_AsText(polygon) AS polygon FROM isochrones_users INNER JOIN isochrones ON isochrones_users.isochroneid = isochrones.id WHERE userid = " . intval($userid) . " ORDER BY isochrones_users.id ASC;";
+
+        $isochrones = $this->dbhr->preQuery($sql, []);
 
         foreach ($isochrones as &$isochrone) {
             $isochrone['timestamp'] = Utils::ISODate($isochrone['timestamp']);
