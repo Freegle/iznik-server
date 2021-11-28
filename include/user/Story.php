@@ -191,7 +191,7 @@ class Story extends Entity
                 # This group might have turned stories off.  Bypass the Group object in the interest of performance
                 # for people on many groups.
                 if (($mygroup['role'] == User::ROLE_MODERATOR || $mygroup['role'] == User::ROLE_OWNER) && $me->activeModForGroup($mygroup['id'])) {
-                    if (Utils::presdef('stories', $mygroup['settings'], 1)) {
+                    if (!array_key_exists('stories', $mygroup['settings']) || $mygroup['settings']['stories']) {
                         $groupids[] = $mygroup['id'];
                     }
                 }
