@@ -13,7 +13,7 @@ class Isochrone extends Entity
     const CYCLE = 'Cycle';
     const DRIVE = 'Drive';
 
-    const DEFAULT_TIME = 15;
+    const DEFAULT_TIME = 20;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
