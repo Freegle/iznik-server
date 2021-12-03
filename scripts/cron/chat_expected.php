@@ -32,6 +32,21 @@ foreach ($users as $user) {
 }
 
 error_log("Tidied deleted $tidy");
+
+# Tidy up any expected replies from spammer, which shouldn't count.
+$tidy = 0;
+$ids = $dbhr->preQuery("SELECT chat_messages.id FROM chat_messages INNER JOIN spam_users ON chat_messages.userid = spam_users.userid WHERE replyexpected = 1 AND replyreceived = 0;");
+
+foreach ($ids as $id) {
+    $dbhm->preExec("UPDATE chat_messages SET replyexpected = 0 WHERE id = ?;", [
+        $id['id']
+    ]);
+    $tidy++;
+}
+
+error_log("Tidied spam $tidy");
+
+
 $r = new ChatRoom($dbhr, $dbhm);
 $waiting = $r->updateExpected();
 
