@@ -48,14 +48,17 @@ if (count($opts) != 1) {
                     if (!$lid) {
                         $lat = $fields[2];
                         $lng = $fields[3];
-                        $lid = $l->create(NULL, $pc, 'Postcode', "POINT($lng $lat)");
 
-                        if ($lid) {
-                            error_log("...added $pc $lat, $lng");
-                            $added++;
-                        } else {
-                            error_log("...failed to add $pc $lat, $lng");
-                            $failed++;
+                        if ($lat || $lng) {
+                            $lid = $l->create(NULL, $pc, 'Postcode', "POINT($lng $lat)");
+
+                            if ($lid) {
+                                error_log("...added $pc $lat, $lng");
+                                $added++;
+                            } else {
+                                error_log("...failed to add $pc $lat, $lng");
+                                $failed++;
+                            }
                         }
                     }
                 }
