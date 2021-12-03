@@ -43,11 +43,11 @@ if (count($opts) != 1) {
                 $fields = fgetcsv($fh);
                 if ($fields[1] == 'Yes') {
                     $pc = $fields[0];
+                    $lat = $fields[2];
+                    $lng = $fields[3];
                     $lid = $l->findByName($pc);
 
                     if (!$lid) {
-                        $lat = $fields[2];
-                        $lng = $fields[3];
 
                         if ($lat || $lng) {
                             $lid = $l->create(NULL, $pc, 'Postcode', "POINT($lng $lat)");
@@ -59,6 +59,15 @@ if (count($opts) != 1) {
                                 error_log("...failed to add $pc $lat, $lng");
                                 $failed++;
                             }
+                        }
+                    } else {
+                        $l = new Location($dbhr, $dbhm, $lid);
+
+                        if ($lat != $l->getPrivate('lat') || $lng != $l->getPrivate('lng')) {
+                            error_log("...changed $pc " . $l->getPrivate('lat') . " => $lat , " . $l->getPrivate('lng') . " => $lng");
+                            $l->setPrivate('lat', $lat);
+                            $l->setPrivate('lng', $lng);
+                            $l->setGeometry("POINT($lng $lat)");
                         }
                     }
                 }
