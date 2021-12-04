@@ -20,6 +20,8 @@ global $dbhr, $dbhm;
 
 require_once(IZNIK_BASE . '/lib/phpcoord.php');
 
+$lockh = Utils::lockScript(basename(__FILE__));
+
 $opts = getopt('f:');
 
 if (count($opts) != 1) {
@@ -63,7 +65,14 @@ if (count($opts) != 1) {
                     } else {
                         $l = new Location($dbhr, $dbhm, $lid);
 
-                        if ($lat != $l->getPrivate('lat') || $lng != $l->getPrivate('lng')) {
+                        # Ignore any differences in more than 3 decimal places, as this happens a lot and is a very
+                        # small actual difference.
+                        $newlat = round($lat, 3);
+                        $newlng = round($lng, 3);
+                        $oldlat = round($l->getPrivate('lat'), 3);
+                        $oldlng = round($l->getPrivate('lng'), 3);
+
+                        if ($newlat != $oldlat || $newlng != $oldlng) {
                             error_log("...changed $pc " . $l->getPrivate('lat') . " => $lat , " . $l->getPrivate('lng') . " => $lng");
                             $l->setPrivate('lat', $lat);
                             $l->setPrivate('lng', $lng);
@@ -79,3 +88,5 @@ if (count($opts) != 1) {
         }
     }
 }
+
+Utils::unlockScript($lockh);
