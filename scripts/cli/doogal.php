@@ -50,7 +50,6 @@ if (count($opts) != 1) {
                     $lid = $l->findByName($pc);
 
                     if (!$lid) {
-
                         if ($lat || $lng) {
                             $lid = $l->create(NULL, $pc, 'Postcode', "POINT($lng $lat)");
 
