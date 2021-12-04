@@ -438,7 +438,7 @@ HAVING logincount > 0
             #
             # This code matches the feedback code on the client.
             $mysqltime = date("Y-m-d", strtotime(MessageCollection::RECENTPOSTS));
-            $sql = "SELECT  messages_groups.groupid, COUNT(DISTINCT messages_outcomes.id) AS count FROM messages_outcomes 
+            $happsql = "SELECT messages_groups.groupid, COUNT(DISTINCT messages_outcomes.id) AS count FROM messages_outcomes 
 INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid 
 WHERE reviewed = 0 AND timestamp > '$mysqltime' 
 AND arrival > '$mysqltime'
@@ -452,7 +452,8 @@ AND messages_outcomes.comments IS NOT NULL
               AND messages_outcomes.comments != 'Thanks, these have now been taken.'
               AND messages_outcomes.comments != 'Thanks, this has now been received.'
               GROUP BY groupid";
-            $happinesscounts = $this->dbhr->preQuery($sql);
+            $happinesscounts = $this->dbhr->preQuery($happsql);
+            #error_log($happsql);
 
             $c = new ChatMessage($this->dbhr, $this->dbhm);
             $reviewcounts = $c->getReviewCountByGroup($me, NULL, FALSE);
@@ -961,9 +962,11 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
         $u->getPublicEmails($users);
 
         foreach ($users as $userid => $user) {
-            foreach ($user['emails'] as $email) {
-                if ($email['preferred'] || (!Mail::ourDomain($email['email']) && !Utils::pres('email', $users[$userid]))) {
-                    $users[$userid]['email'] = $email['email'];
+            if (Utils::pres('emails', $user)) {
+                foreach ($user['emails'] as $email) {
+                    if ($email['preferred'] || (!Mail::ourDomain($email['email']) && !Utils::pres('email', $users[$userid]))) {
+                        $users[$userid]['email'] = $email['email'];
+                    }
                 }
             }
         }
