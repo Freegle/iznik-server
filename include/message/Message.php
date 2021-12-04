@@ -1398,6 +1398,12 @@ ORDER BY lastdate DESC;";
                         }
                     }
 
+                    foreach ($promises as $promise) {
+                        if ($promise['userid'] == $myid) {
+                            $rets[$msg['id']]['promisedtome'] = TRUE;
+                        }
+                    }
+
                     $rets[$msg['id']]['promisecount'] = count($promises);
                     $rets[$msg['id']]['promised'] = count($promises) > 0;
                 }

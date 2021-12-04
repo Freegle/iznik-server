@@ -1970,7 +1970,9 @@ class messageAPITest extends IznikAPITestCase
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $uid2 = $u->create(NULL, NULL, 'Test User');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $uid3 = $u->create(NULL, NULL, 'Test User');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
@@ -2007,6 +2009,21 @@ class messageAPITest extends IznikAPITestCase
         $this->log("Got message " . var_export($ret, TRUE));
         assertEquals(1, count($ret['message']['promises']));
         assertEquals($uid2, $ret['message']['promises'][0]['userid']);
+
+        # Promised to me flag shouldn't show, because it isn't.
+        assertFalse(array_key_exists('promisedtome', $ret['message']));
+
+        # But should to that user.
+        $u2 = User::get($this->dbhr, $this->dbhm, $uid2);
+        assertTrue($u2->login('testpw'));
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertTrue($ret['message']['promisedtome']);
+
+        assertTrue($u->login('testpw'));
 
         # Can promise to multiple users
         $ret = $this->call('message', 'POST', [
