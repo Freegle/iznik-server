@@ -14,6 +14,8 @@ class Isochrone extends Entity
     const DRIVE = 'Drive';
 
     const DEFAULT_TIME = 15;
+    const MIN_TIME = 5;
+    const MAX_TIME = 45;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
@@ -115,6 +117,9 @@ class Isochrone extends Entity
         list ($lat, $lng, $locationid) = $this->findLocation($userid, $locationid);
 
         if ($locationid) {
+            $minutes = min(self::MAX_TIME, $minutes);
+            $minutes = max(self::MIN_TIME, $minutes);
+
             $isochroneid = $this->ensureIsochroneExists($locationid, $minutes, $transport);
 
             if ($isochroneid) {
@@ -214,9 +219,11 @@ class Isochrone extends Entity
         $isochroneid = $this->ensureIsochroneExists($this->isochrone['locationid'], $minutes, $transport);
 
         # And update this entry.
-        $this->dbhm->preExec("UPDATE isochrones_users SET isochroneid = ? WHERE id = ?;", [
-            $isochroneid,
-            $this->id
-        ]);
+        if ($isochroneid) {
+            $this->dbhm->preExec("UPDATE isochrones_users SET isochroneid = ? WHERE id = ?;", [
+                $isochroneid,
+                $this->id
+            ]);
+        }
     }
 }
