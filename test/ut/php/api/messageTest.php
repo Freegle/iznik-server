@@ -331,7 +331,6 @@ class messageAPITest extends IznikAPITestCase
         assertEquals($id, $ret['message']['id']);
 
         # Approve the message.
-        error_log("Now approve");
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'groupid' => $this->gid,
@@ -528,7 +527,6 @@ class messageAPITest extends IznikAPITestCase
 
         assertEquals(Message::TYPE_OFFER, $m->getType());
         $senduser = $m->getFromUser();
-        error_log("Send user $senduser");
 
         # Set to platform for testing message visibility.
         $m->setPrivate('sourceheader', Message::PLATFORM);
@@ -851,7 +849,6 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
 
         # Route and delete approved.
-        error_log("Set def");
         $this->log("Route and delete approved");
         $msg = $this->unique($msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -2103,7 +2100,6 @@ class messageAPITest extends IznikAPITestCase
         # Promise it to the other user.
         global $sessionPrepared;
         $sessionPrepared = FALSE;
-        error_log("Promise");
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'userid' => $uid2,
@@ -2124,7 +2120,6 @@ class messageAPITest extends IznikAPITestCase
         # Promise it without a user id.
         global $sessionPrepared;
         $sessionPrepared = FALSE;
-        error_log("Promise");
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'action' => 'Promise',
@@ -3469,5 +3464,69 @@ class messageAPITest extends IznikAPITestCase
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertEquals(MessageCollection::PENDING, $m->getPublic()['groups'][0]['collection']);
         assertEquals(Spam::REASON_WORRY_WORD, $m->getPrivate('spamtype'));
+    }
+
+    /**
+     * @dataProvider markProvider
+     */
+    public function testMarkPartner($type, $outcome)
+    {
+        $key = Utils::randstr(64);
+        $id = $this->dbhm->preExec("INSERT INTO partners_keys (`partner`, `key`, `domain`) VALUES ('UT', ?, ?);", [$key, 'blackhole.io']);
+        assertNotNull($id);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+        $u->addMembership($this->gid);
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        $email = 'test-' . rand() . '@blackhole.io';
+        $u->addEmail($email);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_ireplace('Basic test', "$type: A thing (A place)", $msg);
+        $msg = str_ireplace('test@test.com', $email, $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Mark as taken.
+        global $sessionPrepared;
+        $sessionPrepared = FALSE;
+        $this->dbhm->errorLog = TRUE;
+        $this->dbhr->errorLog = TRUE;
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'Outcome',
+            'outcome' => $outcome,
+            'partner' => $key
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['message']['outcomes']));
+        assertEquals($outcome, $ret['message']['outcomes'][0]['outcome']);
+    }
+
+    public function markProvider() {
+        return [
+            [
+                Message::TYPE_OFFER, Message::OUTCOME_TAKEN
+            ],
+            [
+                Message::TYPE_OFFER, Message::OUTCOME_WITHDRAWN
+            ],
+            [
+                Message::TYPE_WANTED, Message::OUTCOME_RECEIVED
+            ],
+            [
+                Message::TYPE_WANTED, Message::OUTCOME_WITHDRAWN
+            ],
+        ];
     }
 }
