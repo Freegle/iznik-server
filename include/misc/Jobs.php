@@ -211,6 +211,11 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
     }
 
     public static function geocode($addr, $allowPoint, $exact, $bbswlat = 49.959999905, $bbswlng = -7.57216793459, $bbnelat = 58.6350001085, $bbnelng = 1.68153079591) {
+        // Special cases
+        if ($addr == 'West Marsh') {
+            $addr = 'Grimsby';
+        }
+
         $url = "https://" . GEOCODER . "/api?q=" . urlencode($addr) . "&bbox=$bbswlng%2C$bbswlat%2C$bbnelng%2C$bbnelat";
         $geocode = @file_get_contents($url);
         #error_log("Geocode $addr, allow point $allowPoint, exact $exact, $url");
