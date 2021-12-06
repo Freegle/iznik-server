@@ -771,9 +771,10 @@ class Newsfeed extends Entity
                 $this->id
             ]);
 
-            $this->dbhm->preExec("INSERT INTO newsfeed_reports (userid, newsfeedid, reason) VALUES (?, ?, ?);", [
+            $this->dbhm->preExec("INSERT INTO newsfeed_reports (userid, newsfeedid, reason) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE reason = ?;", [
                 $me->getId(),
                 $this->id,
+                $reason,
                 $reason
             ]);
 
