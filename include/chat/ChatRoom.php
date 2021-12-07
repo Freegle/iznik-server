@@ -1115,46 +1115,47 @@ WHERE chat_rooms.id IN $idlist;";
 
     public function upToDateAll($myid, $chattypes = NULL) {
         $chatids = $this->listForUser(Session::modtools(), $myid, $chattypes);
+        $found = FALSE;
 
-        # Find current values.  This allows us to filter out many updates.
-        $currents = count($chatids) ? $this->dbhr->preQuery("SELECT chatid, lastmsgseen, (SELECT MAX(id) AS max FROM chat_messages WHERE chatid = chat_roster.chatid) AS maxmsg FROM chat_roster WHERE userid = ? AND chatid IN (" . implode(',', $chatids) . ");", [
-            $myid
-        ]) : [];
+        if ($chatids) {
+            # Find current values.  This allows us to filter out many updates.
+            $currents = count($chatids) ? $this->dbhr->preQuery("SELECT chatid, lastmsgseen, (SELECT MAX(id) AS max FROM chat_messages WHERE chatid = chat_roster.chatid) AS maxmsg FROM chat_roster WHERE userid = ? AND chatid IN (" . implode(',', $chatids) . ");", [
+                $myid
+            ]) : [];
 
-        foreach ($chatids as $chatid) {
-            $found = FALSE;
+            foreach ($chatids as $chatid) {
+                foreach ($currents as $current) {
+                    if ($current['chatid'] == $chatid) {
+                        # We already have a roster entry.
+                        $found = TRUE;
 
-            foreach ($currents as $current) {
-                if ($current['chatid'] == $chatid) {
-                    # We already have a roster entry.
-                    $found = TRUE;
-
-                    if ($current['maxmsg'] > $current['lastmsgseen']) {
-                        $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ?, lastemailed = NOW() WHERE chatid = ? AND userid = ?;", [
-                            $current['maxmsg'],
-                            $current['maxmsg'],
-                            $chatid,
-                            $myid
-                        ]);
+                        if ($current['maxmsg'] > $current['lastmsgseen']) {
+                            $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ?, lastemailed = NOW() WHERE chatid = ? AND userid = ?;", [
+                                $current['maxmsg'],
+                                $current['maxmsg'],
+                                $chatid,
+                                $myid
+                            ]);
+                        }
                     }
                 }
-            }
 
-            if (!$found) {
-                # We don't currently have one.  Add it; include duplicate processing for timing window.
-                $max = $this->dbhr->preQuery("SELECT MAX(id) AS max FROM chat_messages WHERE chatid = ?;", [
-                    $chatid
-                ]);
-
-                $this->dbhm->preExec("INSERT INTO chat_roster (chatid, userid, lastmsgseen, lastmsgemailed, lastemailed) VALUES (?, ?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE lastmsgseen = ?, lastmsgemailed = ?, lastemailed = NOW();",
-                    [
-                        $chatid,
-                        $myid,
-                        $max[0]['max'],
-                        $max[0]['max'],
-                        $max[0]['max'],
-                        $max[0]['max'],
+                if (!$found) {
+                    # We don't currently have one.  Add it; include duplicate processing for timing window.
+                    $max = $this->dbhr->preQuery("SELECT MAX(id) AS max FROM chat_messages WHERE chatid = ?;", [
+                        $chatid
                     ]);
+
+                    $this->dbhm->preExec("INSERT INTO chat_roster (chatid, userid, lastmsgseen, lastmsgemailed, lastemailed) VALUES (?, ?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE lastmsgseen = ?, lastmsgemailed = ?, lastemailed = NOW();",
+                                         [
+                                             $chatid,
+                                             $myid,
+                                             $max[0]['max'],
+                                             $max[0]['max'],
+                                             $max[0]['max'],
+                                             $max[0]['max'],
+                                         ]);
+                }
             }
         }
 
