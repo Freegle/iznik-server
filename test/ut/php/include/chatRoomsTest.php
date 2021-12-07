@@ -1193,6 +1193,37 @@ class chatRoomsTest extends IznikTestCase {
         assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
         assertEquals('[Freegle] You have a new message', $this->msgsSent[0]['subject']);
     }
+
+    public function testPromoteRead() {
+        # Create an unread chat message between a user and a mod on a group.
+        $u = new User($this->dbhr, $this->dbhm);
+        $mod = $u->create(NULL, NULL, "Test User 1");
+        $u->addMembership($this->groupid, User::ROLE_MODERATOR);
+
+        $member = $u->create(NULL, NULL, "Test User 2");
+        $u->addMembership($this->groupid, User::ROLE_MEMBER);
+
+        $r = new ChatRoom($this->dbhm, $this->dbhm);
+        $id = $r->createUser2Mod($member, $this->groupid);
+
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cm, $banned) = $m->create($id, $member, "Testing", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
+
+        assertEquals(1, $r->countAllUnseenForUser($mod, [
+            ChatRoom::TYPE_USER2MOD
+        ]));
+
+        # Create a new user and promote to mod.
+        $newmod = $u->create(NULL, NULL, "Test User 1");
+        $u->addMembership($this->groupid, User::ROLE_MEMBER);
+        $u->setRole(User::ROLE_MODERATOR, $this->groupid);
+
+        # The chat message should have been marked as read for this user to avoid flooding them with unread old chat
+        # messages.
+        assertEquals(0, $r->countAllUnseenForUser($newmod, [
+            ChatRoom::TYPE_USER2MOD
+        ]));
+    }
 }
 
 

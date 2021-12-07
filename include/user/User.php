@@ -1477,28 +1477,40 @@ class User extends Entity
 
         Session::clearSessionCache();
 
-        $l = new Log($this->dbhr, $this->dbhm);
-        $l->log([
-            'type' => Log::TYPE_USER,
-            'byuser' => $me ? $me->getId() : NULL,
-            'subtype' => Log::SUBTYPE_ROLE_CHANGE,
-            'groupid' => $groupid,
-            'user' => $this->id,
-            'text' => $role
-        ]);
+        $currentRole = $this->getRoleForGroup($groupid);
 
-        $this->clearMembershipCache();
-        $sql = "UPDATE memberships SET role = ? WHERE userid = ? AND groupid = ?;";
-        $rc = $this->dbhm->preExec($sql, [
-            $role,
-            $this->id,
-            $groupid
-        ]);
+        if ($currentRole != $role) {
+            $l = new Log($this->dbhr, $this->dbhm);
+            $l->log([
+                        'type' => Log::TYPE_USER,
+                        'byuser' => $me ? $me->getId() : NULL,
+                        'subtype' => Log::SUBTYPE_ROLE_CHANGE,
+                        'groupid' => $groupid,
+                        'user' => $this->id,
+                        'text' => $role
+                    ]);
 
-        # We might need to update the systemrole.
-        #
-        # Not the end of the world if this fails.
-        $this->updateSystemRole($role);
+            $this->clearMembershipCache();
+            $sql = "UPDATE memberships SET role = ? WHERE userid = ? AND groupid = ?;";
+            $rc = $this->dbhm->preExec($sql, [
+                $role,
+                $this->id,
+                $groupid
+            ]);
+
+            # We might need to update the systemrole.
+            #
+            # Not the end of the world if this fails.
+            $this->updateSystemRole($role);
+
+            if ($currentRole == User::ROLE_MEMBER) {
+                # We have promoted this member.  We want to ensure that they have no unread old chats.
+                $r = new ChatRoom($this->dbhr, $this->dbhm);
+                $r->upToDateAll($this->getId(),[
+                    ChatRoom::TYPE_USER2MOD
+                ]);
+            }
+        }
 
         return ($rc);
     }

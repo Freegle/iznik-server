@@ -1113,8 +1113,8 @@ WHERE chat_rooms.id IN $idlist;";
         }
     }
 
-    public function upToDateAll($myid) {
-        $chatids = $this->listForUser(Session::modtools(), $myid);
+    public function upToDateAll($myid, $chattypes = NULL) {
+        $chatids = $this->listForUser(Session::modtools(), $myid, $chattypes);
 
         # Find current values.  This allows us to filter out many updates.
         $currents = count($chatids) ? $this->dbhr->preQuery("SELECT chatid, lastmsgseen, (SELECT MAX(id) AS max FROM chat_messages WHERE chatid = chat_roster.chatid) AS maxmsg FROM chat_roster WHERE userid = ? AND chatid IN (" . implode(',', $chatids) . ");", [
@@ -1142,15 +1142,18 @@ WHERE chat_rooms.id IN $idlist;";
 
             if (!$found) {
                 # We don't currently have one.  Add it; include duplicate processing for timing window.
-                error_log("upToDateAll: Add $myid into $chatid");
+                $max = $this->dbhr->preQuery("SELECT MAX(id) AS max FROM chat_messages WHERE chatid = ?;", [
+                    $chatid
+                ]);
+
                 $this->dbhm->preExec("INSERT INTO chat_roster (chatid, userid, lastmsgseen, lastmsgemailed, lastemailed) VALUES (?, ?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE lastmsgseen = ?, lastmsgemailed = ?, lastemailed = NOW();",
                     [
                         $chatid,
                         $myid,
-                        0,
-                        0,
-                        0,
-                        0
+                        $max[0]['max'],
+                        $max[0]['max'],
+                        $max[0]['max'],
+                        $max[0]['max'],
                     ]);
             }
         }
