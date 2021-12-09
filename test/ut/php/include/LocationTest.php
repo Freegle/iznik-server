@@ -101,8 +101,8 @@ class locationTest extends IznikTestCase {
     }
 
     public function testParentsOverlap() {
-        $clat = 179.25;
-        $clng = 8.53;
+        $clat = 8.53;
+        $clng = 179.25;
 
         $sw['lat'] = $clat - 0.1;
         $sw['lng'] = $clng - 0.1;
@@ -113,8 +113,8 @@ class locationTest extends IznikTestCase {
 
         $sw['lat'] = $clat - 0.05;
         $sw['lng'] = $clng - 0.05;
-        $ne['lat'] = $clat + 0.1;
-        $ne['lng'] = $clng + 0.1;
+        $ne['lat'] = $clat + 0.05;
+        $ne['lng'] = $clng + 0.05;
 
         $box2 = "POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))";
 
@@ -131,7 +131,7 @@ class locationTest extends IznikTestCase {
         $this->log("Area id $areaid2");
         assertNotNull($areaid2);
 
-        # Postcode should be in area 2.
+        # Postcode should be in area 2, because it contains the postcode and is smaller than area 1.
         $l = new Location($this->dbhr, $this->dbhm, $pcid);
         assertEquals($areaid2, $l->getPrivate('areaid'));
 

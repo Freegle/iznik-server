@@ -22,7 +22,9 @@ foreach ($locs as $loc) {
 //            $loc['id']
 //        ]);
 
-        if ($l->setParents($loc['id'])) {
+        list ($changed, $areaid) = $l->setParents($loc['id']);
+
+        if ($changed) {
             error_log("Changed location {$loc['id']}");
             $changed++;
             $msgs = $dbhr->preQuery("SELECT messages.id, messages_groups.groupid FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id WHERE locationid = ?;", [

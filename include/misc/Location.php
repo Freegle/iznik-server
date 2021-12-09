@@ -82,26 +82,7 @@ class Location extends Entity
             if ($type == 'Polygon') {
                 # We might have postcodes which should now map to this new area rather than wherever they mapped
                 # previously.
-                $g = new \geoPHP();
-                $p = $g->load($geometry);
-                $bbox = $p->getBBox();
-                #error_log("Bounding box " . var_export($bbox, TRUE));
-
-                # We need to decide which postcodes to scan.  Choose a slightly arbitrary larger box.
-                $swlat = $bbox['miny'] - 0.01;
-                $nelat = $bbox['maxy'] + 0.01;
-                $swlng = $bbox['minx'] - 0.01;
-                $nelng = $bbox['maxx'] + 0.01;
-
-                $sql = "SELECT * FROM locations WHERE $swlat <= lat AND lat <= $nelat AND $swlng <= lng AND lng <= $nelng AND type = 'Postcode' AND LOCATE(' ', name) > 0;";
-                #error_log("Find postcodes for new location $sql");
-                $locs = $this->dbhr->preQuery($sql);
-                foreach ($locs as $loc) {
-                    if ($loc['id'] != $id) {
-                        #error_log("Re-evaluate {$loc['id']} {$loc['name']}");
-                        $this->setParents($loc['id'], $id);
-                    }
-                }
+                $this->remapPostcodes($geometry);
             }
         } catch (\Exception $e) {
             error_log("Location create exception " . $e->getMessage() . " " . $e->getTraceAsString());
@@ -124,12 +105,10 @@ class Location extends Entity
         }
     }
 
-    public function setParents($id, $areaid = NULL) {
+    public function setParents($id) {
         $changed = FALSE;
+        $areaid = NULL;
 
-        # We use the write DB handle because we don't want to waste time querying or cluttering our cache with this
-        # info, which is unlikely to be cached effectively.
-        #
         # For each location, we also want to store the area and first-part-postcode which this location is within.
         #
         # This allows us to standardise subjects on groups.
@@ -157,69 +136,68 @@ class Location extends Entity
                 }
             }
 
-            if (!$areaid) {
-                if ($loc['areaid']) {
-                    # See if the existing area is correct.
-                    $sql = "SELECT GetMaxDimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) AS max, ST_Contains(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, ?) AS within FROM locations LEFT OUTER JOIN locations_excluded ON locations.id = locations_excluded.locationid WHERE locations.id = ? AND locations_excluded.locationid IS NULL;";
-                    $withins = $this->dbhr->preQuery($sql, [
-                        $loc['geometry'],
-                        $loc['areaid']
-                    ]);
+            # Now that we're on 5.7 we have spatial indexing, which makes this a lot easier.  We create a
+            # small polygon round the location we're interested in, and then step it outwards until we
+            # overlap a location.
+            #
+            # We have to do it this way because spatial indexing doesn't allow us to efficiently find the closest
+            # non-containing area.
+            $step = 0.005;
+            $swlat = round($loc['lat'], 2) - $step;
+            $swlng = round($loc['lng'], 2) - $step;
+            $nelat = round($loc['lat'], 2) + $step;
+            $nelng = round($loc['lng'], 2) + $step;
 
-                    foreach ($withins as $within) {
-                        if ($within['within'] && $within['max'] < Location::TOO_LARGE) {
-                            $areaid = $loc['areaid'];
-                        }
-                    }
+            $count = 0;
+
+            do {
+                $poly = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
+
+                # We want to find the smallest nearby or containing area.
+                #
+                # Exclude locations which are very large, e.g. Greater London or too small (probably just a
+                # single building.
+                $sql = "SELECT locations.id, locations.name,  
+        GetMaxDimension(locations_spatial.geometry) AS maxdim,
+        ST_Contains(locations_spatial.geometry, ST_GeomFromText('POINT({$loc['lng']} {$loc['lat']})', {$this->dbhr->SRID()})) AS within,
+        ST_Distance(locations_spatial.geometry, ST_GeomFromText('POINT({$loc['lng']} {$loc['lat']})', {$this->dbhr->SRID()})) AS dist 
+        FROM locations_spatial INNER JOIN `locations` ON locations.id = locations_spatial.locationid 
+        LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id 
+        WHERE ST_Intersects(locations_spatial.geometry, ST_GeomFromText('$poly', {$this->dbhr->SRID()})) AND type != 'Postcode' 
+          AND ST_Dimension(locations_spatial.geometry) = 2 AND locations_excluded.locationid IS NULL 
+        HAVING id != $id AND maxdim < ? AND maxdim > ? 
+        ORDER BY within DESC, dist ASC, maxdim ASC LIMIT 1;";
+                $nearbyes = $this->dbhr->preQuery($sql, [
+                    Location::TOO_LARGE,
+                    Location::TOO_SMALL
+                ]);
+
+                #error_log("Nearbyes found " . count($nearbyes) . " from $poly");
+
+                if (count($nearbyes) === 0) {
+                    $swlat -= $step;
+                    $swlng -= $step;
+                    $nelat += $step;
+                    $nelng += $step;
+                    $count++;
                 }
 
-                if (!$areaid) {
-                    # Now that we're on 5.7 we have spatial indexing, which makes this a lot easier.  We create a
-                    # small polygon round the location we're interested in, and then step it outwards until we
-                    # overlap a location.
-                    $step = 0.005;
-                    # TODO possibly we can completely remove grid stuff now.
-                    $swlat = round($loc['lat'], 2) - $step;
-                    $swlng = round($loc['lng'], 2) - $step;
-                    $nelat = round($loc['lat'], 2) + $step;
-                    $nelng = round($loc['lng'], 2) + $step;
+            } while (count($nearbyes) == 0 && $count < 100);
 
-                    $count = 0;
+            if (count($nearbyes) > 0) {
+                $areaid = $nearbyes[0]['id'];
+                #error_log("{$loc['name']} choose areaid #$areaid {$nearbyes[0]['name']}");
 
-                    do {
-                        $poly = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
-
-                        # Exclude locations which are very large, e.g. Greater London or too small (probably just a
-                        # single building.
-                        $sql = "SELECT locations.name, locations.geometry, locations.ourgeometry, locations.id,  ST_AsText(locations_spatial.geometry) AS geom, ST_Contains(locations_spatial.geometry, ST_GeomFromText('POINT({$loc['lng']} {$loc['lat']})', {$this->dbhr->SRID()})) AS within, ST_Distance(locations_spatial.geometry, ST_GeomFromText('POINT({$loc['lng']} {$loc['lat']})', {$this->dbhr->SRID()})) AS dist FROM locations_spatial INNER JOIN  `locations` ON locations.id = locations_spatial.locationid LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE MBRWithin(locations_spatial.geometry, ST_GeomFromText('$poly', {$this->dbhr->SRID()})) AND type != 'Postcode' AND ST_Dimension(locations_spatial.geometry) = 2 AND locations_excluded.locationid IS NULL HAVING id != $id AND GetMaxDimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) < " . Location::TOO_LARGE . " AND GetMaxDimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) > " . Location::TOO_SMALL . " ORDER BY within DESC, dist ASC LIMIT 1;";
-                        $nearbyes = $this->dbhr->preQuery($sql);
-
-                        if (count($nearbyes) === 0) {
-                            $swlat -= $step;
-                            $swlng -= $step;
-                            $nelat += $step;
-                            $nelng += $step;
-                            $count++;
-                        }
-
-                    } while (count($nearbyes) == 0 && $count < 100);
-
-                    if (count($nearbyes) > 0) {
-                        $areaid = $nearbyes[0]['id'];
-                        #error_log("{$loc['name']} choose areaid #$areaid {$nearbyes[0]['name']}");
-                    }
+                if ($loc['areaid'] != $areaid) {
+                    #error_log("Set $id to have area $areaid");
+                    $sql = "UPDATE locations SET areaid = $areaid WHERE id = $id;";
+                    $this->dbhm->preExec($sql);
+                    $changed = TRUE;
                 }
-            }
-
-            if ($areaid && $loc['areaid'] != $areaid) {
-                #error_log("Set $id to have area $areaid");
-                $sql = "UPDATE locations SET areaid = $areaid WHERE id = $id;";
-                $this->dbhm->preExec($sql);
-                $changed = TRUE;
             }
         }
 
-        return $changed;
+        return [ $changed, $areaid ];
     }
 
     public function getGrid() {
@@ -583,33 +561,72 @@ class Location extends Entity
     }
 
     public function geomAsText() {
-        $locs = $this->dbhr->preQuery("SELECT CASE WHEN ourgeometry IS NOT NULL THEN  ST_AsText(ourgeometry) ELSE  ST_AsText(geometry) END AS geomtext FROM locations WHERE id = ?;", [ $this->id ]);
+        $locs = $this->dbhr->preQuery("SELECT CASE WHEN ourgeometry IS NOT NULL THEN ST_AsText(ourgeometry) ELSE  ST_AsText(geometry) END AS geomtext FROM locations WHERE id = ?;", [ $this->id ]);
         $ret = count($locs) == 1 ? $locs[0]['geomtext'] : NULL;
         return($ret);
     }
 
-    public function remapPostcodes($val) {
-        # We might have postcodes which should now map to this new area rather than wherever they mapped
-        # previously.
-        $g = new \geoPHP();
-        $p = $g->load($val);
-        $bbox = $p->getBBox();
-        #error_log("Bounding box " . var_export($bbox, TRUE));
+    public function remapPostcodes($polygon) {
+        # Get full postcodes in this polygon.
+        $pcs = $this->dbhr->preQuery("SELECT locationid, locations.name FROM locations_spatial 
+    INNER JOIN locations ON locations_spatial.locationid = locations.id
+    WHERE ST_Contains(ST_GeomFromText(?, {$this->dbhr->SRID()}), locations_spatial.geometry)
+    AND locations.type = 'Postcode'  
+    AND locate(' ', locations.name) > 0", [
+            $polygon
+        ]);
 
-        # We need to decide which postcodes to scan.  Choose a slightly arbitrary larger box.
-        $swlat = $bbox['miny'] - 0.01;
-        $nelat = $bbox['maxy'] + 0.01;
-        $swlng = $bbox['minx'] - 0.01;
-        $nelng = $bbox['maxx'] + 0.01;
+        # Now we want to scan each of these postcodes mapping to the correct area.  We can optimise this - if one
+        # postcode maps to an area, then that area will almost always contain other postcodes which would also
+        # map to it.  So once we've mapped one postcode, we can find those others more quickly.  We repeat this
+        # until we have no more left.
+        if (count($pcs)) {
+            do {
+                #error_log("Postcodes at start of loop " . count($pcs));
+                $pc = array_pop($pcs);
+                list ($changed, $areaid) = $this->setParents($pc['locationid']);
+                #error_log("Mapped {$pc['name']} to $areaid");
 
-        $sql = "SELECT * FROM locations WHERE $swlat <= lat AND lat <= $nelat AND $swlng <= lng AND lng <= $nelng AND type = 'Postcode' AND LOCATE(' ', name) > 0;";
-        #error_log("Find postcodes for new location $sql");
-        $locs = $this->dbhr->preQuery($sql);
-        foreach ($locs as $loc) {
-            if ($loc['id'] != $this->id) {
-                #error_log("Re-evaluate {$loc['id']} {$loc['name']}");
-                $this->setParents($loc['id'], $this->id);
-            }
+                if ($areaid) {
+                    $areas = $this->dbhr->preQuery("SELECT ST_AsText(geometry) AS geom FROM locations_spatial WHERE locationid = ?", [
+                        $areaid
+                    ]);
+
+                    foreach ($areas as $area) {
+                        $otherpcs = $this->dbhr->preQuery("SELECT DISTINCT locationid, locations.name, locations.areaid FROM locations_spatial 
+    INNER JOIN locations ON locations_spatial.locationid = locations.id
+    WHERE ST_Contains(ST_GeomFromText(?, {$this->dbhr->SRID()}), locations_spatial.geometry)
+    AND locations.type = 'Postcode'  
+    AND locate(' ', locations.name) > 0
+    AND locationid != ?", [
+                            $area['geom'],
+                            $pc['locationid'],
+                        ]);
+
+                        if (count($otherpcs)) {
+                            foreach ($otherpcs as $otherpc) {
+                                if ($otherpc['areaid'] != $areaid) {
+                                    #error_log("...update {$otherpc['locationid']} {$otherpc['name']}");
+                                    $this->dbhm->preExec("UPDATE locations SET areaid = ? WHERE id = ?;", [
+                                        $areaid,
+                                        $otherpc['locationid']
+                                    ]);
+                                }
+                            }
+
+                            # Remove these from the list of postcodes we need to do a full check on.
+                            $otherpcids = array_column($otherpcs, 'locationid');
+                            #error_log("Remove " . count($otherpcids));
+                            $pcs = array_filter($pcs, function($a) use ($otherpcids) {
+                                return array_search($a['locationid'], $otherpcids) === FALSE;
+                            });
+                        }
+                    }
+
+                }
+
+                error_log("Postcodes at end  of loop " . count($pcs));
+            } while (count($pcs));
         }
     }
 

@@ -362,8 +362,8 @@ class locationsAPITest extends IznikAPITestCase
         }
 
 //    public function testEH() {
-////        $this->dbhr->errorLog = true;
-////        $this->dbhm->errorLog = true;
+//        $this->dbhr->errorLog = true;
+//        $this->dbhm->errorLog = true;
 //        $_SESSION['id'] = 35909200;
 //        $ret = $this->call('locations', 'PATCH', [
 //            'id' => 1859090,

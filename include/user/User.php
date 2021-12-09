@@ -1473,6 +1473,7 @@ class User extends Entity
 
     public function setRole($role, $groupid)
     {
+        $rc = TRUE;
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         Session::clearSessionCache();
