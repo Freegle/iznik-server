@@ -852,9 +852,6 @@ class messageTest extends IznikTestCase {
         assertEquals(2, count($notifs));
         assertEquals(Notifications::TYPE_ABOUT_ME, $notifs[1]['type']);
         assertEquals(Notifications::TYPE_OPEN_POSTS, $notifs[0]['type']);
-
-        # Shouldn't do it again - too recent.
-        assertEquals(0, $m->notifyLanguishing($mid));
     }
 
     public function testTN() {

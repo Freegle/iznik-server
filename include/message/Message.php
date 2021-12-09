@@ -4804,7 +4804,7 @@ $mq", [
         foreach ($languishing as $user => $count) {
             # Only want one outstanding notification of this type.
             $n = new Notifications($this->dbhr, $this->dbhm);
-            if ($n->deleteOldUserType($user, Notifications::TYPE_OPEN_POSTS)) {
+            if (!$n->deleteOldUserType($user, Notifications::TYPE_OPEN_POSTS)) {
                 $n->add(NULL, $user, Notifications::TYPE_OPEN_POSTS, NULL, NULL, NULL, NULL, $count);
             }
         }
