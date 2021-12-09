@@ -625,7 +625,7 @@ class Location extends Entity
 
                 }
 
-                error_log("Postcodes at end  of loop " . count($pcs));
+                #error_log("Postcodes at end  of loop " . count($pcs));
             } while (count($pcs));
         }
     }
