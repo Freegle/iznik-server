@@ -120,6 +120,9 @@ class notificationsTest extends IznikTestCase {
 
         sleep(1);
         self::assertEquals(3, $n->sendEmails($uid2, '0 seconds ago', '7 days ago'));
+
+        assertEquals(1, $n->deleteOldUserType($uid2, Notifications::TYPE_LOVED_COMMENT, "2038-01-01"));
+        assertEquals(0, $n->deleteOldUserType($uid2, Notifications::TYPE_LOVED_COMMENT, "2038-01-01"));
     }
 
     public function testDeleted1() {
