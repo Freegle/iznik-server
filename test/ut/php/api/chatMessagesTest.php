@@ -491,7 +491,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertEquals(3, count($ret['chatmessages']));
         assertEquals($mid1, $ret['chatmessages'][0]['id']);
         assertEquals(ChatMessage::TYPE_REPORTEDUSER, $ret['chatmessages'][0]['type']);
-        assertEquals(ChatMessage::REVIEW_SPAM, $ret['chatmessages'][0]['reviewreason']);
+        assertEquals(Spam::REASON_LINK, $ret['chatmessages'][0]['reviewreason']);
         assertEquals($mid2, $ret['chatmessages'][1]['id']);
         assertEquals(ChatMessage::REVIEW_LAST, $ret['chatmessages'][1]['reviewreason']);
         assertEquals($mid3, $ret['chatmessages'][2]['id']);
