@@ -369,7 +369,7 @@ class chatMessagesAPITest extends IznikAPITestCase
     public function testLink() {
         $m = new ChatMessage($this->dbhr, $this->dbhm);;
 
-        assertTrue($m->checkReview("Hi ↵↵repetitionbowie.com/sportscapping.php?meant=mus2x216xkrn0mpb↵↵↵↵↵Thank you!", FALSE, NULL));
+        assertEquals(ChatMessage::REVIEW_SPAM, $m->checkReview("Hi ↵↵repetitionbowie.com/sportscapping.php?meant=mus2x216xkrn0mpb↵↵↵↵↵Thank you!", FALSE, NULL));
     }
 
     public function testReview() {

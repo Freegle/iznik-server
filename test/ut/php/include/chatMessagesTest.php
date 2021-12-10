@@ -458,50 +458,49 @@ class chatMessagesTest extends IznikTestCase {
     public function testCheckReview() {
         $m = new ChatMessage($this->dbhr, $this->dbhm);
 
-        assertTrue($m->checkReview(''));
+        assertEquals(ChatMessage::REVIEW_SPAM, $m->checkReview(''));
 
         # Fine
-        assertFalse($m->checkReview('Nothing to see here'));
+        assertNull($m->checkReview('Nothing to see here'));
 
         # Spam
-        assertTrue($m->checkReview('https://spam'));
-        assertTrue($m->checkReview('http://spam'));
+        assertEquals(ChatMessage::REVIEW_SPAM, $m->checkReview('https://spam'));
+        assertEquals(ChatMessage::REVIEW_SPAM, $m->checkReview('http://spam'));
 
         # Valid
-        assertFalse($m->checkReview('http://' . USER_DOMAIN));
-        assertFalse($m->checkReview('http://freegle.in'));
+        assertNull($m->checkReview('http://' . USER_DOMAIN));
+        assertNull($m->checkReview('http://freegle.in'));
 
         # Mixed urls, one valid one not.
-        assertTrue($m->checkReview("http://" . USER_DOMAIN . "\r\nhttps://spam.com"));
+        assertEquals(ChatMessage::REVIEW_SPAM, $m->checkReview("http://" . USER_DOMAIN . "\r\nhttps://spam.com"));
 
         # Others.
-        assertTrue($m->checkReview('<script'));
+        assertEquals(ChatMessage::REVIEW_SPAM, $m->checkReview('<script'));
 
         # Keywords
-        assertTrue($m->checkReview('spamspamspam'));
+        assertEquals(ChatMessage::REVIEW_SPAM, $m->checkReview('spamspamspam'));
 
         # Money
-        assertTrue($m->checkReview("£100"));
+        assertEquals(ChatMessage::REVIEW_SPAM, $m->checkReview("£100"));
 
-        assertTrue($m->checkReview('No word boundary:http://spam'));
+        assertEquals(ChatMessage::REVIEW_SPAM, $m->checkReview('No word boundary:http://spam'));
 
         # Porn
-        assertTrue($m->checkReview('http://spam&#12290;ru'));
+        assertEquals(ChatMessage::REVIEW_SPAM, $m->checkReview('http://spam&#12290;ru'));
 
         # Email
-        assertTrue($m->checkReview("Test\r\nTest email@domain.com\r\n"));
-        assertFalse($m->checkReview("Test\r\nTest email@" . USER_DOMAIN . " email\r\n"));
+        assertEquals(ChatMessage::REVIEW_SPAM, $m->checkReview("Test\r\nTest email@domain.com\r\n"));
+        assertNull($m->checkReview("Test\r\nTest email@" . USER_DOMAIN . " email\r\n"));
 
         # French
-        assertFalse($m->checkReview("Suzanne et Joseph étaient nés dans les deux premières années de leur arrivée à la colonie. Après la naissance de Suzanne, la mère abandonna l’enseignement d’état. Elle ne donna plus que des leçons particulières de français. Son mari avait été nommé directeur d’une école indigène et, disaient-elle, ils avaient vécu très largement malgré la charge de leurs enfants. Ces années-là furent sans conteste les meilleures de sa vie, des années de bonheur. Du moins c’étaient ce qu’elle disait. Elle s’en souvenait comme d’une terre lointaine et rêvée, d’une île. Elle en parlait de moins en moins à mesure qu’elle vieillissait, mais quand elle en parlait c’était toujours avec le même acharnement. Alors, à chaque fois, elle découvrait pour eux de nouvelles perfections à cette perfection, une nouvelle qualité à son mari, un nouvel aspect de l’aisance qu’ils connaissaient alors, et qui tendaient à devenir une opulence dont Joseph et Suzanne doutaient un peu."));
-        assertTrue($m->checkReview("Suzanne et Joseph étaient nés dans les deux premières années de leur arrivée à la colonie. Après la naissance de Suzanne, la mère abandonna l’enseignement d’état. Elle ne donna plus que des leçons particulières de français. Son mari avait été nommé directeur d’une école indigène et, disaient-elle, ils avaient vécu très largement malgré la charge de leurs enfants. Ces années-là furent sans conteste les meilleures de sa vie, des années de bonheur. Du moins c’étaient ce qu’elle disait. Elle s’en souvenait comme d’une terre lointaine et rêvée, d’une île. Elle en parlait de moins en moins à mesure qu’elle vieillissait, mais quand elle en parlait c’était toujours avec le même acharnement. Alors, à chaque fois, elle découvrait pour eux de nouvelles perfections à cette perfection, une nouvelle qualité à son mari, un nouvel aspect de l’aisance qu’ils connaissaient alors, et qui tendaient à devenir une opulence dont Joseph et Suzanne doutaient un peu.", TRUE));
+        assertNull($m->checkReview("Suzanne et Joseph étaient nés dans les deux premières années de leur arrivée à la colonie. Après la naissance de Suzanne, la mère abandonna l’enseignement d’état. Elle ne donna plus que des leçons particulières de français. Son mari avait été nommé directeur d’une école indigène et, disaient-elle, ils avaient vécu très largement malgré la charge de leurs enfants. Ces années-là furent sans conteste les meilleures de sa vie, des années de bonheur. Du moins c’étaient ce qu’elle disait. Elle s’en souvenait comme d’une terre lointaine et rêvée, d’une île. Elle en parlait de moins en moins à mesure qu’elle vieillissait, mais quand elle en parlait c’était toujours avec le même acharnement. Alors, à chaque fois, elle découvrait pour eux de nouvelles perfections à cette perfection, une nouvelle qualité à son mari, un nouvel aspect de l’aisance qu’ils connaissaient alors, et qui tendaient à devenir une opulence dont Joseph et Suzanne doutaient un peu."));
+        assertEquals(ChatMessage::REVIEW_SPAM, $m->checkReview("Suzanne et Joseph étaient nés dans les deux premières années de leur arrivée à la colonie. Après la naissance de Suzanne, la mère abandonna l’enseignement d’état. Elle ne donna plus que des leçons particulières de français. Son mari avait été nommé directeur d’une école indigène et, disaient-elle, ils avaient vécu très largement malgré la charge de leurs enfants. Ces années-là furent sans conteste les meilleures de sa vie, des années de bonheur. Du moins c’étaient ce qu’elle disait. Elle s’en souvenait comme d’une terre lointaine et rêvée, d’une île. Elle en parlait de moins en moins à mesure qu’elle vieillissait, mais quand elle en parlait c’était toujours avec le même acharnement. Alors, à chaque fois, elle découvrait pour eux de nouvelles perfections à cette perfection, une nouvelle qualité à son mari, un nouvel aspect de l’aisance qu’ils connaissaient alors, et qui tendaient à devenir une opulence dont Joseph et Suzanne doutaient un peu.", TRUE));
 
         # Butt (spam) and Water butt (not spam)
-        assertTrue($m->checkReview("Something butt-related"));
-        assertFalse($m->checkReview("Innocent water butt"));
-        assertFalse($m->checkReview("something in butt rd"));
-
-        }
+        assertEquals(ChatMessage::REVIEW_SPAM, $m->checkReview("Something butt-related"));
+        assertNull($m->checkReview("Innocent water butt"));
+        assertNull($m->checkReview("something in butt rd"));
+    }
 
     public function testCheckSpam() {
         $m = new ChatMessage($this->dbhr, $this->dbhm);
@@ -534,9 +533,8 @@ class chatMessagesTest extends IznikTestCase {
         $m = new ChatMessage($this->dbhr, $this->dbhm);
 
         # Keywords
-        assertTrue($m->checkReview("Please reply to $email"));
-
-        }
+        assertEquals(ChatMessage::REVIEW_SPAM, $m->checkReview("Please reply to $email"));
+    }
 
     public function testReplyWithAttachment() {
         # Put a valid message on a group.
