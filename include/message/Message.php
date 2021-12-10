@@ -2908,9 +2908,6 @@ ORDER BY lastdate DESC;";
             }
 
             if ($m) {
-                # Allow mailing to happen.
-                $m->setPrivate('reviewrequired', 0);
-
                 # We, as a mod, have seen this message - update the roster to show that.  This avoids this message
                 # appearing as unread to us.
                 $r->updateRoster($myid, $mid);
@@ -2934,6 +2931,9 @@ ORDER BY lastdate DESC;";
                     $m->setPrivate('mailedtoall', 1);
                     $m->setPrivate('seenbyall', 1);
                 }
+
+                # Allow mailing to happen.
+                $m->setPrivate('reviewrequired', 0);
             }
         }
     }
