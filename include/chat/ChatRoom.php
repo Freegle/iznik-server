@@ -1427,7 +1427,7 @@ WHERE chat_rooms.id IN $idlist;";
         }
         $groupq = implode(',', $groupids);
 
-        $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages_byemail.msgid, m1.settings AS m1settings, m1.groupid, m2.groupid AS groupidfrom, chat_messages_held.userid AS heldby, chat_messages_held.timestamp, chat_rooms.user1, chat_rooms.user2
+        $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages.reportreason, chat_messages_byemail.msgid, m1.settings AS m1settings, m1.groupid, m2.groupid AS groupidfrom, chat_messages_held.userid AS heldby, chat_messages_held.timestamp, chat_rooms.user1, chat_rooms.user2
 FROM chat_messages
 LEFT JOIN chat_messages_held ON chat_messages.id = chat_messages_held.msgid
 LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messages.id
@@ -1467,6 +1467,8 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
                 $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
                 $thisone = $m->getPublic(TRUE, $userlist);
+
+                $thisone['reportreason'] = $msg['reportreason'];
 
                 if (Utils::pres('heldby', $msg)) {
                     $u = User::get($this->dbhr, $this->dbhm, $msg['heldby']);
