@@ -1515,22 +1515,22 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                 if ($thisone['reviewreason'] == ChatMessage::REVIEW_SPAM) {
                     # Pass this through the spam checks again to see if we can get a more detailed reason.
                     $s = new Spam($this->dbhr, $this->dbhm);
-                    list ($spam, $reason, $text) = $s->checkSpam($thisone['message'], [ Spam::ACTION_SPAM ]);
+                    list ($spam, $reason, $text) = $s->checkSpam($thisone['message'], [ Spam::ACTION_SPAM, Spam::ACTION_REVIEW ]);
 
                     if ($spam) {
-                        $thisone['reviewreason'] == $reason;
+                        $thisone['reviewreason'] = "$reason $text";
                     } else {
                         list ($spam, $reason, $text) = $s->checkSpam($thisone['fromuser']['displayname'], [ Spam::ACTION_SPAM ]);
 
                         if ($spam) {
-                            $thisone['reviewreason'] == $reason;
+                            $thisone['reviewreason'] = "$reason $text";
                         } else
                         {
                             $reason = $s->checkReview($thisone['message'], true);
 
                             if ($reason)
                             {
-                                $thisone['reviewreason'] == $reason;
+                                $thisone['reviewreason'] = $reason;
                             }
                         }
                     }
