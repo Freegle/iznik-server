@@ -105,7 +105,7 @@ class ChatMessage extends Entity
             }
         }
 
-        return($ret ? TRUE : FALSE);
+        return($ret);
     }
 
     public function checkSpam($message) {
@@ -216,8 +216,10 @@ class ChatMessage extends Entity
                             $spam = $this->checkSpam($message) || $this->checkSpam($u->getName());
 
                             # If we decided it was spam then it doesn't need reviewing.
-                            $review = $spam ? 0 : $review;
-                            $reviewreason = $spam ? $spam : NULL;
+                            if ($spam) {
+                                $review = 0;
+                                $reviewreason = NULL;
+                            }
                         }
 
                         if (!$review && $type === ChatMessage::TYPE_INTERESTED && $refmsgid) {

@@ -422,11 +422,17 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertNotNull($ret['id']);
         $mid3 = $ret['id'];
 
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid1);
+        self::assertEquals(1, $cm->getPrivate('reviewrequired'));
+        self::assertEquals(ChatMessage::REVIEW_SPAM, $cm->getPrivate('reportreason'));
+
         $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid2);
         self::assertEquals(1, $cm->getPrivate('reviewrequired'));
+        self::assertEquals(ChatMessage::REVIEW_LAST, $cm->getPrivate('reportreason'));
 
         $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid3);
         self::assertEquals(1, $cm->getPrivate('reviewrequired'));
+        self::assertEquals(ChatMessage::REVIEW_LAST, $cm->getPrivate('reportreason'));
 
         # Now log in as the other user.
         assertTrue($this->user2->login('testpw'));
@@ -485,8 +491,11 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertEquals(3, count($ret['chatmessages']));
         assertEquals($mid1, $ret['chatmessages'][0]['id']);
         assertEquals(ChatMessage::TYPE_REPORTEDUSER, $ret['chatmessages'][0]['type']);
+        assertEquals(ChatMessage::REVIEW_SPAM, $ret['chatmessages'][0]['reviewreason']);
         assertEquals($mid2, $ret['chatmessages'][1]['id']);
+        assertEquals(ChatMessage::REVIEW_LAST, $ret['chatmessages'][1]['reviewreason']);
         assertEquals($mid3, $ret['chatmessages'][2]['id']);
+        assertEquals(ChatMessage::REVIEW_LAST, $ret['chatmessages'][2]['reviewreason']);
         assertEquals($this->groupid, $ret['chatmessages'][0]['group']['id']);
         assertEquals($this->groupid, $ret['chatmessages'][0]['groupfrom']['id']);
 

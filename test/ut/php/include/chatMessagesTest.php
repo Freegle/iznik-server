@@ -507,15 +507,15 @@ class chatMessagesTest extends IznikTestCase {
         $m = new ChatMessage($this->dbhr, $this->dbhm);
 
         # Keywords
-        assertTrue($m->checkSpam('viagra'));
-        assertTrue($m->checkSpam('weight loss'));
+        assertEquals(Spam::REASON_KNOWN_KEYWORD, $m->checkSpam('viagra'));
+        assertEquals(Spam::REASON_KNOWN_KEYWORD, $m->checkSpam('weight loss'));
 
         # Domain
         if (!getenv('STANDALONE')) {
             # TODO This doesn't work on Travis because Spamhaus doesn't let you test when you're using a
             # general public DNS server.
-            assertTrue($m->checkSpam("TEst message which includes http://evil.fakery." . GROUP_DOMAIN));
-            assertTrue($m->checkSpam("TEst message which includes http://dbltest.com which is blocked."));
+            assertEquals(Spam::REASON_DBL, $m->checkSpam("TEst message which includes http://evil.fakery." . GROUP_DOMAIN));
+            assertEquals(Spam::REASON_DBL, $m->checkSpam("TEst message which includes http://dbltest.com which is blocked."));
         }
     }
 
