@@ -1468,8 +1468,6 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                 $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
                 $thisone = $m->getPublic(TRUE, $userlist);
 
-                $thisone['reportreason'] = $msg['reportreason'];
-
                 if (Utils::pres('heldby', $msg)) {
                     $u = User::get($this->dbhr, $this->dbhm, $msg['heldby']);
                     $thisone['held'] = [
@@ -1505,6 +1503,25 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
                 $thisone['date'] = Utils::ISODate($thisone['date']);
                 $thisone['msgid'] = $msg['msgid'];
+
+                $thisone['reviewreason'] = $msg['reportreason'];
+
+                if ($thisone['reviewreason'] == ChatMessage::REVIEW_SPAM) {
+                    # Pass this through the spam checks again to see if we can get a more detailed reason.
+                    $s = new Spam($this->dbhr, $this->dbhm);
+                    list ($spam, $reason, $text) = $s->checkSpam($thisone['message']) || $this->checkSpam($thisone['fromuser']['displayname']);
+
+                    if ($spam) {
+                        $thisone['reviewreason'] == $reason;
+                    } else {
+                        $reason = $s->checkReview($thisone['message'], TRUE);
+
+                        if ($reason) {
+                            $thisone['reviewreason'] == $reason;
+                        }
+                    }
+                }
+
 
                 $ctx['msgid'] = $msg['id'];
 
