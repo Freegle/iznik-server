@@ -566,14 +566,17 @@ class Location extends Entity
         return($ret);
     }
 
-    public function remapPostcodes($polygon) {
+    public function remapPostcodes($polygon, $mod = 1, $val = 0) {
         # Get full postcodes in this polygon.
         $pcs = $this->dbhr->preQuery("SELECT locationid, locations.name FROM locations_spatial 
     INNER JOIN locations ON locations_spatial.locationid = locations.id
     WHERE ST_Contains(ST_GeomFromText(?, {$this->dbhr->SRID()}), locations_spatial.geometry)
     AND locations.type = 'Postcode'  
-    AND locate(' ', locations.name) > 0", [
-            $polygon
+    AND locate(' ', locations.name) > 0
+    AND MOD(locationid, ?) = ?", [
+            $polygon,
+            $mod,
+            $val
         ]);
 
         # Now we want to scan each of these postcodes mapping to the correct area.  We can optimise this - if one
@@ -588,44 +591,52 @@ class Location extends Entity
                 #error_log("Mapped {$pc['name']} to $areaid");
 
                 if ($areaid) {
-                    $areas = $this->dbhr->preQuery("SELECT ST_AsText(geometry) AS geom FROM locations_spatial WHERE locationid = ?", [
+                    $areas = $this->dbhr->preQuery("SELECT ST_AsText(geometry) AS geom, GetMaxDimension(geometry) AS maxdimension FROM locations_spatial WHERE locationid = ?", [
                         $areaid
                     ]);
 
                     foreach ($areas as $area) {
-                        $otherpcs = $this->dbhr->preQuery("SELECT DISTINCT locationid, locations.name, locations.areaid FROM locations_spatial 
-    INNER JOIN locations ON locations_spatial.locationid = locations.id
+                        $otherpcs = $this->dbhr->preQuery("SELECT DISTINCT locationid, l1.name, l1.areaid, l2.maxdimension FROM locations_spatial 
+    INNER JOIN locations l1 ON locations_spatial.locationid = l1.id
+    INNER JOIN locations l2 ON l2.id = l1.areaid
     WHERE ST_Contains(ST_GeomFromText(?, {$this->dbhr->SRID()}), locations_spatial.geometry)
-    AND locations.type = 'Postcode'  
-    AND locate(' ', locations.name) > 0
+    AND l1.type = 'Postcode'  
+    AND locate(' ', l1.name) > 0
     AND locationid != ?", [
                             $area['geom'],
                             $pc['locationid'],
                         ]);
 
                         if (count($otherpcs)) {
+                            $toremove = [];
+
                             foreach ($otherpcs as $otherpc) {
-                                if ($otherpc['areaid'] != $areaid) {
+                                # We only want to do this if the size of the area is no bigger than the existing one.
+                                # This is to avoid situations where we map a postcode to a small area, and then another
+                                # to a larger area, and then blat over the small area with the larger one.
+                                #error_log("Compare {$area['maxdimension']} <= {$otherpc['maxdimension']}");
+                                if ($otherpc['areaid'] != $areaid && $area['maxdimension'] <= $otherpc['maxdimension']) {
                                     #error_log("...update {$otherpc['locationid']} {$otherpc['name']}");
                                     $this->dbhm->preExec("UPDATE locations SET areaid = ? WHERE id = ?;", [
                                         $areaid,
                                         $otherpc['locationid']
                                     ]);
+
+                                    $toremove[] = $otherpc['locationid'];
                                 }
                             }
 
                             # Remove these from the list of postcodes we need to do a full check on.
-                            $otherpcids = array_column($otherpcs, 'locationid');
                             #error_log("Remove " . count($otherpcids));
-                            $pcs = array_filter($pcs, function($a) use ($otherpcids) {
-                                return array_search($a['locationid'], $otherpcids) === FALSE;
+                            $pcs = array_filter($pcs, function($a) use ($toremove) {
+                                return array_search($a['locationid'], $toremove) === FALSE;
                             });
                         }
                     }
 
                 }
 
-                #error_log("Postcodes at end  of loop " . count($pcs));
+                error_log("Postcodes at end  of loop " . count($pcs));
             } while (count($pcs));
         }
     }
