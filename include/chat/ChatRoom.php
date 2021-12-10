@@ -1190,7 +1190,13 @@ WHERE chat_rooms.id IN $idlist;";
             ], FALSE);
         }
 
-        if ($lastmsgseen && !is_nan($lastmsgseen)) {
+        if ($lastmsgseen === 0) {
+            # This can happen if we are marking the only message in a chat as unread.
+            $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = NULL WHERE chatid = ? AND userid = ?;", [
+                $this->id,
+                $userid,
+            ], FALSE);
+        } else if ($lastmsgseen && !is_nan($lastmsgseen)) {
             # Update the last message seen - taking care not to go backwards, which can happen if we have multiple
             # windows open.
             $backq = $allowBackwards ? " AND ? " : " AND (lastmsgseen IS NULL OR lastmsgseen < ?)";

@@ -305,6 +305,20 @@ class chatRoomsAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(0, $ret['count']);
+
+        # Mark as unseen.
+        $ret = $this->call('chatrooms', 'POST', [
+            'id' => $rid,
+            'lastmsgseen' => null
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('chatrooms', 'GET', [
+            'chattypes' => [ ChatRoom::TYPE_USER2USER ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals($rid, $ret['chatrooms'][0]['id']);
+        assertEquals(1, $ret['chatrooms'][0]['unseen']);
     }
 
     public function testNudge() {
