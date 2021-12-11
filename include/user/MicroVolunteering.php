@@ -38,18 +38,18 @@ class MicroVolunteering
         $this->dbhm = $dbhm;
     }
 
-    public function list(&$ctx, $groupids, $limit = 10, $since = '1970-01-01')
+    public function list(&$ctx, $groupids, $limit = 10, $start = '1970-01-01')
     {
         $groupq = implode(',', $groupids);
         $ctxq = $ctx ? (" AND microactions.id < " . intval($ctx['id'])) : '';
         $ctx = $ctx ? $ctx : [];
 
         $items = $this->dbhr->preQuery(
-            "SELECT microactions.* FROM microactions INNER JOIN memberships ON memberships.userid = microactions.userid WHERE memberships.groupid IN ($groupq) AND timestamp >= ? $ctxq ORDER BY id DESC LIMIT " . intval(
+            "SELECT DISTINCT microactions.* FROM microactions INNER JOIN memberships ON memberships.userid = microactions.userid WHERE memberships.groupid IN ($groupq) AND timestamp >= ? $ctxq ORDER BY id DESC LIMIT " . intval(
                 $limit
             ),
             [
-                $since
+                $start
             ]
         );
 
@@ -57,17 +57,17 @@ class MicroVolunteering
             $u = new User($this->dbhr, $this->dbhm);
             $a = new Attachment($this->dbhr, $this->dbhm);
 
-            $users = $u->getPublicsById(array_filter(array_column($items, 'userid')), null, false, false, false, false);
-            $msgids = array_filter(array_column($items, 'msgid'));
+            $users = $u->getPublicsById(array_unique(array_filter(array_column($items, 'userid'))), null, false, false, false, false);
+            $msgids = array_unique(array_filter(array_column($items, 'msgid')));
             $msgs = count($msgids) ? $this->dbhr->preQuery(
                 "SELECT id, subject FROM messages WHERE id IN (" . implode(',', $msgids) . ")"
             ) : [];
-            $imageids = array_filter(array_column($items, 'rotatedimage'));
+            $imageids = array_unique(array_filter(array_column($items, 'rotatedimage')));
             $imagemsgs = count($imageids) ? $this->dbhr->preQuery(
                 "SELECT msgid, id FROM messages_attachments WHERE id IN (" . implode(',', $imageids) . ")"
             ) : [];
 
-            $itemids = array_filter(array_merge(array_column($items, 'item1'), array_column($items, 'item2')));
+            $itemids = array_unique(array_filter(array_merge(array_column($items, 'item1'), array_column($items, 'item2'))));
             $is = count($itemids) ? $this->dbhr->preQuery(
                 "SELECT id, name FROM items WHERE id IN (" . implode(',', $itemids) . ")"
             ) : [];
@@ -78,9 +78,11 @@ class MicroVolunteering
                 $items[$itemind]['user'] = $users[$items[$itemind]['userid']];
                 unset($items[$itemind]['userid']);
 
-                if (Utils::pres('msgid', $items[$itemind])) {
+                $msgid = Utils::presdef('msgid', $items[$itemind], NULL);
+
+                if ($msgid) {
                     foreach ($msgs as $msg) {
-                        if ($msg['id'] = $items[$itemind]['msgid']) {
+                        if ($msg['id'] == $msgid) {
                             $items[$itemind]['message'] = $msg;
                             unset($items[$itemind]['msgid']);
                         }

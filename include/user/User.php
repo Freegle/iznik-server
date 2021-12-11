@@ -1953,6 +1953,7 @@ class User extends Entity
                 # We have some extra attributes.
                 $atts[] = 'deleted';
                 $atts[] = 'lastaccess';
+                $atts[] = 'trustlevel';
             }
 
             foreach ($atts as $att) {

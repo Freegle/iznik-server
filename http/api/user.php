@@ -71,10 +71,6 @@ function user() {
                         $s = new Spam($dbhr, $dbhm);
                         $ret['user']['spammer'] = ($s->getSpammerByUserid($id) !== NULL);
                     }
-
-                    if ($me && $me->isModerator()) {
-                        $ret['user']['trustlevel'] = $u->getPrivate('trustlevel');
-                    }
                 }
             }
 
