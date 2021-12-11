@@ -561,7 +561,17 @@ class Location extends Entity
     }
 
     public function geomAsText() {
-        $locs = $this->dbhr->preQuery("SELECT ST_Simplify(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, 0.0001) AS geomtext FROM locations WHERE id = ?;", [ $this->id ]);
+        # ST_Simplify returns NULL for some small geometries, it seems.
+        $sql = "SELECT ST_AsText( 
+        CASE WHEN
+           ST_Simplify(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, 0.001) IS NULL
+        THEN 
+           CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END
+        ELSE   
+            ST_Simplify(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, 0.001)
+        END
+        )AS geomtext FROM locations WHERE id = ?;";
+        $locs = $this->dbhr->preQuery($sql, [ $this->id ]);
         $ret = count($locs) == 1 ? $locs[0]['geomtext'] : NULL;
         return($ret);
     }
