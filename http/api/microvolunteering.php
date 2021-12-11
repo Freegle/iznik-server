@@ -17,7 +17,7 @@ function microvolunteering() {
                 $groupid = (Utils::presint('groupid', $_REQUEST, 0));
                 $list = Utils::presbool('list', $_REQUEST, FALSE);
                 $since = Utils::presdef('since', $_REQUEST, '1970-01-01');
-                $limit = Utils::presint('limit', $_REQUEST, FALSE);
+                $limit = Utils::presint('limit', $_REQUEST, 10);
                 $ctx = Utils::presdef('context', $_REQUEST, NULL);
 
                 $v = new MicroVolunteering($dbhr, $dbhm);
