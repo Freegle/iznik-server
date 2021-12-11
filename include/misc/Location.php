@@ -561,7 +561,7 @@ class Location extends Entity
     }
 
     public function geomAsText() {
-        $locs = $this->dbhr->preQuery("SELECT CASE WHEN ourgeometry IS NOT NULL THEN ST_AsText(ourgeometry) ELSE  ST_AsText(geometry) END AS geomtext FROM locations WHERE id = ?;", [ $this->id ]);
+        $locs = $this->dbhr->preQuery("SELECT ST_Simplify(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, 0.001) AS geomtext FROM locations WHERE id = ?;", [ $this->id ]);
         $ret = count($locs) == 1 ? $locs[0]['geomtext'] : NULL;
         return($ret);
     }
