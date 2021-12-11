@@ -441,7 +441,7 @@ HAVING logincount > 0
             $happsql = "SELECT messages_groups.groupid, COUNT(DISTINCT messages_groups.msgid) AS count FROM messages_outcomes 
               INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid 
               INNER JOIN messages ON messages.id = messages_outcomes.msgid
-              WHERE messages_timestamp > '$mysqltime' 
+              WHERE messages_outcomes.timestamp > '$mysqltime' 
               AND messages_groups.arrival > '$mysqltime'
               AND groupid IN $groupq
                 " . $this->getHappinessFilter() . "
