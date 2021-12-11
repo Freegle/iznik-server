@@ -16,12 +16,15 @@ function microvolunteering() {
             case 'GET': {
                 $groupid = (Utils::presint('groupid', $_REQUEST, 0));
                 $list = Utils::presbool('list', $_REQUEST, FALSE);
+                $since = Utils::presdef('since', $_REQUEST, '1970-01-01');
+                $limit = Utils::presint('limit', $_REQUEST, FALSE);
                 $ctx = Utils::presdef('context', $_REQUEST, NULL);
 
                 $v = new MicroVolunteering($dbhr, $dbhm);
 
                 if ($me && $me->isModerator() && $list) {
-                    $items = $v->list($ctx, $groupid ? [ $groupid ] : $me->getModeratorships());
+                    $items = $v->list($ctx, $groupid ? [$groupid] : $me->getModeratorships(), $limit, $since);
+
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success',

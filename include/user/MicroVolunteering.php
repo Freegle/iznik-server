@@ -38,16 +38,19 @@ class MicroVolunteering
         $this->dbhm = $dbhm;
     }
 
-    public function list(&$ctx, $groupids, $limit = 10)
+    public function list(&$ctx, $groupids, $limit = 10, $since = '1970-01-01')
     {
         $groupq = implode(',', $groupids);
         $ctxq = $ctx ? (" AND microactions.id < " . intval($ctx['id'])) : '';
         $ctx = $ctx ? $ctx : [];
 
         $items = $this->dbhr->preQuery(
-            "SELECT microactions.* FROM microactions INNER JOIN memberships ON memberships.userid = microactions.userid WHERE memberships.groupid IN ($groupq) $ctxq ORDER BY id DESC LIMIT " . intval(
+            "SELECT microactions.* FROM microactions INNER JOIN memberships ON memberships.userid = microactions.userid WHERE memberships.groupid IN ($groupq) AND timestamp >= ? $ctxq ORDER BY id DESC LIMIT " . intval(
                 $limit
-            )
+            ),
+            [
+                $since
+            ]
         );
 
         if (count($items)) {
