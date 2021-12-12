@@ -1478,7 +1478,7 @@ class User extends Entity
 
         Session::clearSessionCache();
 
-        $currentRole = $this->getRoleForGroup($groupid);
+        $currentRole = $this->getRoleForGroup($groupid, FALSE);
 
         if ($currentRole != $role) {
             $l = new Log($this->dbhr, $this->dbhm);
