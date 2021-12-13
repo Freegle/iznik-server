@@ -84,7 +84,7 @@ class Location extends Entity
             if ($type == 'Polygon') {
                 # We might have postcodes which should now map to this new area rather than wherever they mapped
                 # previously.
-                $this->remapPostcodes($geometry, TRUE, FALSE);
+                $this->remapPostcodes($geometry, TRUE);
             }
         } catch (\Exception $e) {
             error_log("Location create exception " . $e->getMessage() . " " . $e->getTraceAsString());
@@ -114,7 +114,7 @@ class Location extends Entity
         # For each location, we also want to store the area and first-part-postcode which this location is within.
         #
         # This allows us to standardise subjects on groups.
-        $sql = "SELECT name, postcodeid, areaid, lat, lng, type, CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END AS geometry FROM locations WHERE id = ?;";
+        $sql = "SELECT name, postcodeid, areaid, lat, lng, type FROM locations WHERE id = ?;";
         $locs = $this->dbhm->preQuery($sql, [ $id ]);
         #$this->dbhm->setErrorLog(TRUE);
 
@@ -578,36 +578,56 @@ class Location extends Entity
     }
 
     public function remapPostcodes($polygon, $setChildren, $mod = 1, $val = 0) {
-        # Get full postcodes in this polygon.
-        $pcs = $this->dbhr->preQuery("SELECT locationid, locations.name FROM locations_spatial 
+        for ($loop = 0; $loop < 2; $loop++) {
+            if ($loop == 0) {
+                # Get full postcodes in this polygon which match a message.  Doing these first helps if we're
+                # doing a bulk update because the bulk update takes a long time, and this gets the most important
+                # locations remapped rapidly.
+                $pcs = $this->dbhr->preQuery("SELECT locations_spatial.locationid, locations.name FROM locations_spatial 
     INNER JOIN locations ON locations_spatial.locationid = locations.id
+    INNER JOIN messages ON messages.locationid = locations_spatial.locationid
     WHERE ST_Contains(ST_GeomFromText(?, {$this->dbhr->SRID()}), locations_spatial.geometry)
     AND locations.type = 'Postcode'  
     AND locate(' ', locations.name) > 0
-    AND MOD(locationid, ?) = ?", [
-            $polygon,
-            $mod,
-            $val
-        ]);
+    AND MOD(locations_spatial.locationid, ?) = ?", [
+                    $polygon,
+                    $mod,
+                    $val
+                ]);
+                error_log(count($pcs) . " postcodes with messages");
+            } else {
+                # Get full postcodes in this polygon which do not match a message.  The rest.
+                $pcs = $this->dbhr->preQuery("SELECT locations_spatial.locationid, locations.name FROM locations_spatial 
+    INNER JOIN locations ON locations_spatial.locationid = locations.id
+    LEFT JOIN messages ON messages.locationid = locations_spatial.locationid
+    WHERE ST_Contains(ST_GeomFromText(?, {$this->dbhr->SRID()}), locations_spatial.geometry)
+    AND locations.type = 'Postcode'  
+    AND locate(' ', locations.name) > 0
+    AND MOD(locations_spatial.locationid, ?) = ?
+    AND messages.id IS NULL", [
+                    $polygon,
+                    $mod,
+                    $val
+                ]);
+                error_log(count($pcs) . " postcodes without messages");
+            }
 
-        error_log(count($pcs) . " to remap");
+            # Now we want to scan each of these postcodes mapping to the correct area.  We can optimise this - if one
+            # postcode maps to an area, then that area will almost always contain other postcodes which would also
+            # map to it.  So once we've mapped one postcode, we can find those others more quickly.  We repeat this
+            # until we have no more left.
+            if (count($pcs)) {
+                do {
+                    #error_log("Postcodes at start of loop " . count($pcs));
+                    $pc = array_pop($pcs);
 
-        # Now we want to scan each of these postcodes mapping to the correct area.  We can optimise this - if one
-        # postcode maps to an area, then that area will almost always contain other postcodes which would also
-        # map to it.  So once we've mapped one postcode, we can find those others more quickly.  We repeat this
-        # until we have no more left.
-        if (count($pcs)) {
-            do {
-                #error_log("Postcodes at start of loop " . count($pcs));
-                $pc = array_pop($pcs);
+                    list ($changed, $areaid) = $this->setParents($pc['locationid']);
 
-                list ($changed, $areaid) = $this->setParents($pc['locationid']);
-
-                if ($areaid && $setChildren) {
-                    # We only want to do this if the size of the area is no bigger than the existing one.
-                    # This is to avoid situations where we map a postcode to a small area, and then another
-                    # to a larger area, and then blat over the small area with the larger one.
-                    $sql = "SELECT DISTINCT locationid, l1.name, l1.areaid, l2.maxdimension FROM locations_spatial
+                    if ($areaid && $setChildren) {
+                        # We only want to do this if the size of the area is no bigger than the existing one.
+                        # This is to avoid situations where we map a postcode to a small area, and then another
+                        # to a larger area, and then blat over the small area with the larger one.
+                        $sql = "SELECT DISTINCT locationid, l1.name, l1.areaid, l2.maxdimension FROM locations_spatial
 INNER JOIN locations l1 ON locations_spatial.locationid = l1.id
 INNER JOIN locations l2 ON l2.id = l1.areaid
 INNER JOIN locations area ON area.id = $areaid    
@@ -616,32 +636,33 @@ AND l1.type = 'Postcode'
 AND locate(' ', l1.name) > 0
 AND locationid != {$pc['locationid']}
 AND area.maxdimension <= l2.maxdimension";
-                    #error_log($sql);
-                    $otherpcs = $this->dbhr->preQuery($sql);
+                        #error_log($sql);
+                        $otherpcs = $this->dbhr->preQuery($sql);
 
-                    if (count($otherpcs)) {
-                        $toremove = [];
+                        if (count($otherpcs)) {
+                            $toremove = [];
 
-                        foreach ($otherpcs as $otherpc) {
-                            #error_log("...update {$otherpc['locationid']} {$otherpc['name']}");
-                            $this->dbhm->preExec("UPDATE locations SET areaid = ? WHERE id = ?;", [
-                                $areaid,
-                                $otherpc['locationid']
-                            ]);
+                            foreach ($otherpcs as $otherpc) {
+                                #error_log("...update {$otherpc['locationid']} {$otherpc['name']}");
+                                $this->dbhm->preExec("UPDATE locations SET areaid = ? WHERE id = ?;", [
+                                    $areaid,
+                                    $otherpc['locationid']
+                                ]);
 
-                            $toremove[] = $otherpc['locationid'];
+                                $toremove[] = $otherpc['locationid'];
+                            }
+
+                            # Remove these from the list of postcodes we need to do a full check on.
+                            #error_log("Remove " . count($otherpcids));
+                            $pcs = array_filter($pcs, function($a) use ($toremove) {
+                                return array_search($a['locationid'], $toremove) === FALSE;
+                            });
                         }
-
-                        # Remove these from the list of postcodes we need to do a full check on.
-                        #error_log("Remove " . count($otherpcids));
-                        $pcs = array_filter($pcs, function($a) use ($toremove) {
-                            return array_search($a['locationid'], $toremove) === FALSE;
-                        });
                     }
-                }
 
-                error_log("Postcodes at end  of loop " . count($pcs));
-            } while (count($pcs));
+                    error_log("Postcodes at end  of loop " . count($pcs) . ($loop ? ' not matching message' : ' matching message'));
+                } while (count($pcs));
+            }
         }
     }
 
@@ -683,10 +704,10 @@ AND area.maxdimension <= l2.maxdimension";
                         $l = new Location($this->dbhr, $this->dbhm);
 
                         # Remap any postcodes in the old area.
-                        $l->remapPostcodes($oldval, TRUE, FALSE);
+                        $l->remapPostcodes($oldval, TRUE);
 
                         # Remap any postcodes in the new area.
-                        $l->remapPostcodes($val, TRUE, FALSE);
+                        $l->remapPostcodes($val, TRUE);
 
                         $this->fetch($this->dbhm, $this->dbhm, $this->id, 'locations', 'loc', $this->publicatts);
                     }
