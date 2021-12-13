@@ -84,7 +84,7 @@ class Location extends Entity
             if ($type == 'Polygon') {
                 # We might have postcodes which should now map to this new area rather than wherever they mapped
                 # previously.
-                $this->remapPostcodes($geometry, 1, 0, TRUE);
+                $this->remapPostcodes($geometry, TRUE, FALSE);
             }
         } catch (\Exception $e) {
             error_log("Location create exception " . $e->getMessage() . " " . $e->getTraceAsString());
@@ -169,6 +169,7 @@ class Location extends Entity
           AND ST_Dimension(locations_spatial.geometry) = 2 AND locations_excluded.locationid IS NULL 
         HAVING id != $id AND maxdim < " . self::TOO_LARGE . " AND maxdim > " . self::TOO_SMALL . " 
         ORDER BY maxdim ASC, dist ASC LIMIT 1;";
+                error_log($sql);
                 $nearbyes = $this->dbhr->preQuery($sql);
 
                 #error_log("Nearbyes found " . count($nearbyes) . " from $poly");
@@ -184,13 +185,14 @@ class Location extends Entity
             } while (count($nearbyes) == 0 && $count < self::LOCATION_MAX);
 
             if (count($nearbyes) > 0) {
-                $areaid = $nearbyes[0]['id'];
                 #error_log("{$loc['name']} choose areaid #$areaid {$nearbyes[0]['name']}");
 
-                if ($loc['areaid'] != $areaid) {
+                if ($loc['areaid'] != $nearbyes[0]['id']) {
                     #error_log("Set $id to have area $areaid");
+                    $areaid = $nearbyes[0]['id'];
                     $sql = "UPDATE locations SET areaid = $areaid WHERE id = $id;";
                     $this->dbhm->preExec($sql);
+
                     $changed = TRUE;
                 }
             }
@@ -575,7 +577,7 @@ class Location extends Entity
         return($ret);
     }
 
-    public function remapPostcodes($polygon, $mod = 1, $val = 0, $setChildren, $offset = NULL) {
+    public function remapPostcodes($polygon, $setChildren, $queue, $mod = 1, $val = 0) {
         # Get full postcodes in this polygon.
         $pcs = $this->dbhr->preQuery("SELECT locationid, locations.name FROM locations_spatial 
     INNER JOIN locations ON locations_spatial.locationid = locations.id
@@ -597,15 +599,20 @@ class Location extends Entity
                 #error_log("Postcodes at start of loop " . count($pcs));
                 $pc = array_pop($pcs);
 
-                if (!$offset || count($pcs) < $offset) {
-                    list ($changed, $areaid) = $this->setParents($pc['locationid']);
-                    error_log("Mapped {$pc['name']} to $areaid");
+                list ($changed, $areaid) = $this->setParents($pc['locationid']);
 
-                    if ($areaid && $setChildren) {
-                        # We only want to do this if the size of the area is no bigger than the existing one.
-                        # This is to avoid situations where we map a postcode to a small area, and then another
-                        # to a larger area, and then blat over the small area with the larger one.
-                        $sql = "SELECT DISTINCT locationid, l1.name, l1.areaid, l2.maxdimension FROM locations_spatial
+                if ($queue && $areaid) {
+                    # We're not making the changes.  This is used when doing a bulk update and allows us to do
+                    # multiple queries in parallel which would otherwise get blocked behind the UPDATE.
+                    $this->dbhm->preExec("INSERT INTO locations_newareas (locationid, areaid) VALUES (?, ?);", [
+                        $pc['locationid'],
+                        $areaid
+                    ]);
+                } else if ($areaid && $setChildren) {
+                    # We only want to do this if the size of the area is no bigger than the existing one.
+                    # This is to avoid situations where we map a postcode to a small area, and then another
+                    # to a larger area, and then blat over the small area with the larger one.
+                    $sql = "SELECT DISTINCT locationid, l1.name, l1.areaid, l2.maxdimension FROM locations_spatial
 INNER JOIN locations l1 ON locations_spatial.locationid = l1.id
 INNER JOIN locations l2 ON l2.id = l1.areaid
 INNER JOIN locations area ON area.id = $areaid    
@@ -614,32 +621,31 @@ AND l1.type = 'Postcode'
 AND locate(' ', l1.name) > 0
 AND locationid != {$pc['locationid']}
 AND area.maxdimension <= l2.maxdimension";
-                        #error_log($sql);
-                        $otherpcs = $this->dbhr->preQuery($sql);
+                    #error_log($sql);
+                    $otherpcs = $this->dbhr->preQuery($sql);
 
-                        if (count($otherpcs)) {
-                            $toremove = [];
+                    if (count($otherpcs)) {
+                        $toremove = [];
 
-                            foreach ($otherpcs as $otherpc) {
-                                #error_log("...update {$otherpc['locationid']} {$otherpc['name']}");
-                                $this->dbhm->preExec("UPDATE locations SET areaid = ? WHERE id = ?;", [
-                                    $areaid,
-                                    $otherpc['locationid']
-                                ]);
+                        foreach ($otherpcs as $otherpc) {
+                            #error_log("...update {$otherpc['locationid']} {$otherpc['name']}");
+                            $this->dbhm->preExec("UPDATE locations SET areaid = ? WHERE id = ?;", [
+                                $areaid,
+                                $otherpc['locationid']
+                            ]);
 
-                                $toremove[] = $otherpc['locationid'];
-                            }
-
-                            # Remove these from the list of postcodes we need to do a full check on.
-                            #error_log("Remove " . count($otherpcids));
-                            $pcs = array_filter($pcs, function($a) use ($toremove) {
-                                return array_search($a['locationid'], $toremove) === FALSE;
-                            });
+                            $toremove[] = $otherpc['locationid'];
                         }
+
+                        # Remove these from the list of postcodes we need to do a full check on.
+                        #error_log("Remove " . count($otherpcids));
+                        $pcs = array_filter($pcs, function($a) use ($toremove) {
+                            return array_search($a['locationid'], $toremove) === FALSE;
+                        });
                     }
                 }
 
-                error_log("Postcodes at end  of loop " . count($pcs) . " vs $offset");
+                error_log("Postcodes at end  of loop " . count($pcs));
             } while (count($pcs));
         }
     }
@@ -682,10 +688,10 @@ AND area.maxdimension <= l2.maxdimension";
                         $l = new Location($this->dbhr, $this->dbhm);
 
                         # Remap any postcodes in the old area.
-                        $l->remapPostcodes($oldval, 1, 0, TRUE);
+                        $l->remapPostcodes($oldval, TRUE, FALSE);
 
                         # Remap any postcodes in the new area.
-                        $l->remapPostcodes($val, 1, 0, TRUE);
+                        $l->remapPostcodes($val, TRUE, FALSE);
 
                         $this->fetch($this->dbhm, $this->dbhm, $this->id, 'locations', 'loc', $this->publicatts);
                     }
