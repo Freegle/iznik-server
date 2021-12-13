@@ -114,7 +114,7 @@ class Location extends Entity
         # For each location, we also want to store the area and first-part-postcode which this location is within.
         #
         # This allows us to standardise subjects on groups.
-        $sql = "SELECT name, postcodeid, areaid, lat, lng, type, gridid, CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END AS geometry FROM locations WHERE id = ?;";
+        $sql = "SELECT name, postcodeid, areaid, lat, lng, type, CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END AS geometry FROM locations WHERE id = ?;";
         $locs = $this->dbhm->preQuery($sql, [ $id ]);
         #$this->dbhm->setErrorLog(TRUE);
 
@@ -599,7 +599,7 @@ class Location extends Entity
 
                 if (!$offset || count($pcs) < $offset) {
                     list ($changed, $areaid) = $this->setParents($pc['locationid']);
-                    #error_log("Mapped {$pc['name']} to $areaid");
+                    error_log("Mapped {$pc['name']} to $areaid");
 
                     if ($areaid && $setChildren) {
                         # We only want to do this if the size of the area is no bigger than the existing one.
