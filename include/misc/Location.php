@@ -583,7 +583,7 @@ class Location extends Entity
                 # Get full postcodes in this polygon which match a message.  Doing these first helps if we're
                 # doing a bulk update because the bulk update takes a long time, and this gets the most important
                 # locations remapped rapidly.
-                $pcs = $this->dbhr->preQuery("SELECT locations_spatial.locationid, locations.name FROM locations_spatial 
+                $pcs = $this->dbhr->preQuery("SELECT DISTINCT locations_spatial.locationid, locations.name FROM locations_spatial 
     INNER JOIN locations ON locations_spatial.locationid = locations.id
     INNER JOIN messages ON messages.locationid = locations_spatial.locationid
     WHERE ST_Contains(ST_GeomFromText(?, {$this->dbhr->SRID()}), locations_spatial.geometry)
@@ -597,7 +597,7 @@ class Location extends Entity
                 error_log(count($pcs) . " postcodes with messages");
             } else {
                 # Get full postcodes in this polygon which do not match a message.  The rest.
-                $pcs = $this->dbhr->preQuery("SELECT locations_spatial.locationid, locations.name FROM locations_spatial 
+                $pcs = $this->dbhr->preQuery("SELECT DISTINCT locations_spatial.locationid, locations.name FROM locations_spatial 
     INNER JOIN locations ON locations_spatial.locationid = locations.id
     LEFT JOIN messages ON messages.locationid = locations_spatial.locationid
     WHERE ST_Contains(ST_GeomFromText(?, {$this->dbhr->SRID()}), locations_spatial.geometry)
