@@ -169,7 +169,7 @@ class Location extends Entity
           AND ST_Dimension(locations_spatial.geometry) = 2 AND locations_excluded.locationid IS NULL 
         HAVING id != $id AND maxdim < " . self::TOO_LARGE . " AND maxdim > " . self::TOO_SMALL . " 
         ORDER BY maxdim ASC, dist ASC LIMIT 1;";
-                error_log($sql);
+                #error_log($sql);
                 $nearbyes = $this->dbhr->preQuery($sql);
 
                 #error_log("Nearbyes found " . count($nearbyes) . " from $poly");
@@ -577,7 +577,7 @@ class Location extends Entity
         return($ret);
     }
 
-    public function remapPostcodes($polygon, $setChildren, $queue, $mod = 1, $val = 0) {
+    public function remapPostcodes($polygon, $setChildren, $mod = 1, $val = 0) {
         # Get full postcodes in this polygon.
         $pcs = $this->dbhr->preQuery("SELECT locationid, locations.name FROM locations_spatial 
     INNER JOIN locations ON locations_spatial.locationid = locations.id
@@ -590,6 +590,8 @@ class Location extends Entity
             $val
         ]);
 
+        error_log(count($pcs) . " to remap");
+
         # Now we want to scan each of these postcodes mapping to the correct area.  We can optimise this - if one
         # postcode maps to an area, then that area will almost always contain other postcodes which would also
         # map to it.  So once we've mapped one postcode, we can find those others more quickly.  We repeat this
@@ -601,14 +603,7 @@ class Location extends Entity
 
                 list ($changed, $areaid) = $this->setParents($pc['locationid']);
 
-                if ($queue && $areaid) {
-                    # We're not making the changes.  This is used when doing a bulk update and allows us to do
-                    # multiple queries in parallel which would otherwise get blocked behind the UPDATE.
-                    $this->dbhm->preExec("INSERT INTO locations_newareas (locationid, areaid) VALUES (?, ?);", [
-                        $pc['locationid'],
-                        $areaid
-                    ]);
-                } else if ($areaid && $setChildren) {
+                if ($areaid && $setChildren) {
                     # We only want to do this if the size of the area is no bigger than the existing one.
                     # This is to avoid situations where we map a postcode to a small area, and then another
                     # to a larger area, and then blat over the small area with the larger one.
