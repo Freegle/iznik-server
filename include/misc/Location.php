@@ -11,6 +11,8 @@ class Location extends Entity
     const QUITENEARBY = 15; // In miles.
     const TOO_LARGE = 0.3;
     const TOO_SMALL = 0.001;
+    const LOCATION_STEP = 0.005;
+    const LOCATION_MAX = 100;
 
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'osm_id', 'name', 'type', 'popularity', 'gridid', 'postcodeid', 'areaid', 'lat', 'lng', 'maxdimension');
@@ -82,7 +84,7 @@ class Location extends Entity
             if ($type == 'Polygon') {
                 # We might have postcodes which should now map to this new area rather than wherever they mapped
                 # previously.
-                $this->remapPostcodes($geometry);
+                $this->remapPostcodes($geometry, 1, 0, TRUE);
             }
         } catch (\Exception $e) {
             error_log("Location create exception " . $e->getMessage() . " " . $e->getTraceAsString());
@@ -142,11 +144,10 @@ class Location extends Entity
             #
             # We have to do it this way because spatial indexing doesn't allow us to efficiently find the closest
             # non-containing area.
-            $step = 0.005;
-            $swlat = round($loc['lat'], 2) - $step;
-            $swlng = round($loc['lng'], 2) - $step;
-            $nelat = round($loc['lat'], 2) + $step;
-            $nelng = round($loc['lng'], 2) + $step;
+            $swlat = round($loc['lat'], 2) - self::LOCATION_STEP;
+            $swlng = round($loc['lng'], 2) - self::LOCATION_STEP;
+            $nelat = round($loc['lat'], 2) + self::LOCATION_STEP;
+            $nelng = round($loc['lng'], 2) + self::LOCATION_STEP;
 
             $count = 0;
 
@@ -159,30 +160,28 @@ class Location extends Entity
                 # single building.
                 $sql = "SELECT locations.id, locations.name,  
         GetMaxDimension(locations_spatial.geometry) AS maxdim,
-        ST_Contains(locations_spatial.geometry, ST_GeomFromText('POINT({$loc['lng']} {$loc['lat']})', {$this->dbhr->SRID()})) AS within,
-        ST_Distance(locations_spatial.geometry, ST_GeomFromText('POINT({$loc['lng']} {$loc['lat']})', {$this->dbhr->SRID()})) AS dist 
+        CASE WHEN ST_Intersects(locations_spatial.geometry, ST_GeomFromText('POINT({$loc['lng']} {$loc['lat']})', {$this->dbhr->SRID()})) THEN 0
+        ELSE ST_Distance(locations_spatial.geometry, ST_GeomFromText('POINT({$loc['lng']} {$loc['lat']})', {$this->dbhr->SRID()})) END AS dist
         FROM locations_spatial INNER JOIN `locations` ON locations.id = locations_spatial.locationid 
         LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id 
-        WHERE ST_Intersects(locations_spatial.geometry, ST_GeomFromText('$poly', {$this->dbhr->SRID()})) AND type != 'Postcode' 
+        WHERE 
+          ST_Intersects(locations_spatial.geometry, ST_GeomFromText('$poly', {$this->dbhr->SRID()})) AND type != 'Postcode' 
           AND ST_Dimension(locations_spatial.geometry) = 2 AND locations_excluded.locationid IS NULL 
-        HAVING id != $id AND maxdim < ? AND maxdim > ? 
-        ORDER BY within DESC, dist ASC, maxdim ASC LIMIT 1;";
-                $nearbyes = $this->dbhr->preQuery($sql, [
-                    Location::TOO_LARGE,
-                    Location::TOO_SMALL
-                ]);
+        HAVING id != $id AND maxdim < " . self::TOO_LARGE . " AND maxdim > " . self::TOO_SMALL . " 
+        ORDER BY maxdim ASC, dist ASC LIMIT 1;";
+                $nearbyes = $this->dbhr->preQuery($sql);
 
                 #error_log("Nearbyes found " . count($nearbyes) . " from $poly");
 
                 if (count($nearbyes) === 0) {
-                    $swlat -= $step;
-                    $swlng -= $step;
-                    $nelat += $step;
-                    $nelng += $step;
+                    $swlat -= self::LOCATION_STEP;
+                    $swlng -= self::LOCATION_STEP;
+                    $nelat += self::LOCATION_STEP;
+                    $nelng += self::LOCATION_STEP;
                     $count++;
                 }
 
-            } while (count($nearbyes) == 0 && $count < 100);
+            } while (count($nearbyes) == 0 && $count < self::LOCATION_MAX);
 
             if (count($nearbyes) > 0) {
                 $areaid = $nearbyes[0]['id'];
@@ -576,7 +575,7 @@ class Location extends Entity
         return($ret);
     }
 
-    public function remapPostcodes($polygon, $mod = 1, $val = 0, $offset = NULL) {
+    public function remapPostcodes($polygon, $mod = 1, $val = 0, $setChildren, $offset = NULL) {
         # Get full postcodes in this polygon.
         $pcs = $this->dbhr->preQuery("SELECT locationid, locations.name FROM locations_spatial 
     INNER JOIN locations ON locations_spatial.locationid = locations.id
@@ -598,52 +597,44 @@ class Location extends Entity
                 #error_log("Postcodes at start of loop " . count($pcs));
                 $pc = array_pop($pcs);
 
-                if ($offset === NULL || count($pcs) < $offset) {
+                if (!$offset || count($pcs) < $offset) {
                     list ($changed, $areaid) = $this->setParents($pc['locationid']);
                     #error_log("Mapped {$pc['name']} to $areaid");
 
-                    if ($areaid) {
-                        $areas = $this->dbhr->preQuery("SELECT ST_AsText(geometry) AS geom, GetMaxDimension(geometry) AS maxdimension FROM locations_spatial WHERE locationid = ?", [
-                            $areaid
-                        ]);
+                    if ($areaid && $setChildren) {
+                        # We only want to do this if the size of the area is no bigger than the existing one.
+                        # This is to avoid situations where we map a postcode to a small area, and then another
+                        # to a larger area, and then blat over the small area with the larger one.
+                        $sql = "SELECT DISTINCT locationid, l1.name, l1.areaid, l2.maxdimension FROM locations_spatial
+INNER JOIN locations l1 ON locations_spatial.locationid = l1.id
+INNER JOIN locations l2 ON l2.id = l1.areaid
+INNER JOIN locations area ON area.id = $areaid    
+WHERE ST_Contains(area.geometry, locations_spatial.geometry)
+AND l1.type = 'Postcode'  
+AND locate(' ', l1.name) > 0
+AND locationid != {$pc['locationid']}
+AND area.maxdimension <= l2.maxdimension";
+                        #error_log($sql);
+                        $otherpcs = $this->dbhr->preQuery($sql);
 
-                        foreach ($areas as $area) {
-                            $otherpcs = $this->dbhr->preQuery("SELECT DISTINCT locationid, l1.name, l1.areaid, l2.maxdimension FROM locations_spatial 
-    INNER JOIN locations l1 ON locations_spatial.locationid = l1.id
-    INNER JOIN locations l2 ON l2.id = l1.areaid
-    WHERE ST_Contains(ST_GeomFromText(?, {$this->dbhr->SRID()}), locations_spatial.geometry)
-    AND l1.type = 'Postcode'  
-    AND locate(' ', l1.name) > 0
-    AND locationid != ?", [
-                                $area['geom'],
-                                $pc['locationid'],
-                            ]);
+                        if (count($otherpcs)) {
+                            $toremove = [];
 
-                            if (count($otherpcs)) {
-                                $toremove = [];
+                            foreach ($otherpcs as $otherpc) {
+                                #error_log("...update {$otherpc['locationid']} {$otherpc['name']}");
+                                $this->dbhm->preExec("UPDATE locations SET areaid = ? WHERE id = ?;", [
+                                    $areaid,
+                                    $otherpc['locationid']
+                                ]);
 
-                                foreach ($otherpcs as $otherpc) {
-                                    # We only want to do this if the size of the area is no bigger than the existing one.
-                                    # This is to avoid situations where we map a postcode to a small area, and then another
-                                    # to a larger area, and then blat over the small area with the larger one.
-                                    #error_log("Compare {$area['maxdimension']} <= {$otherpc['maxdimension']}");
-                                    if ($otherpc['areaid'] != $areaid && $area['maxdimension'] <= $otherpc['maxdimension']) {
-                                        #error_log("...update {$otherpc['locationid']} {$otherpc['name']}");
-                                        $this->dbhm->preExec("UPDATE locations SET areaid = ? WHERE id = ?;", [
-                                            $areaid,
-                                            $otherpc['locationid']
-                                        ]);
-
-                                        $toremove[] = $otherpc['locationid'];
-                                    }
-                                }
-
-                                # Remove these from the list of postcodes we need to do a full check on.
-                                #error_log("Remove " . count($otherpcids));
-                                $pcs = array_filter($pcs, function($a) use ($toremove) {
-                                    return array_search($a['locationid'], $toremove) === FALSE;
-                                });
+                                $toremove[] = $otherpc['locationid'];
                             }
+
+                            # Remove these from the list of postcodes we need to do a full check on.
+                            #error_log("Remove " . count($otherpcids));
+                            $pcs = array_filter($pcs, function($a) use ($toremove) {
+                                return array_search($a['locationid'], $toremove) === FALSE;
+                            });
                         }
                     }
                 }
@@ -691,10 +682,10 @@ class Location extends Entity
                         $l = new Location($this->dbhr, $this->dbhm);
 
                         # Remap any postcodes in the old area.
-                        $l->remapPostcodes($oldval);
+                        $l->remapPostcodes($oldval, 1, 0, TRUE);
 
                         # Remap any postcodes in the new area.
-                        $l->remapPostcodes($val);
+                        $l->remapPostcodes($val, 1, 0, TRUE);
 
                         $this->fetch($this->dbhm, $this->dbhm, $this->id, 'locations', 'loc', $this->publicatts);
                     }
