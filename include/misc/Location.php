@@ -594,7 +594,6 @@ class Location extends Entity
                     $mod,
                     $val
                 ]);
-                error_log(count($pcs) . " postcodes with messages");
             } else {
                 # Get full postcodes in this polygon which do not match a message.  The rest.
                 $pcs = $this->dbhr->preQuery("SELECT DISTINCT locations_spatial.locationid, locations.name FROM locations_spatial 
@@ -609,13 +608,16 @@ class Location extends Entity
                     $mod,
                     $val
                 ]);
-                error_log(count($pcs) . " postcodes without messages");
             }
 
-            # Now we want to scan each of these postcodes mapping to the correct area.  We can optimise this - if one
-            # postcode maps to an area, then that area will almost always contain other postcodes which would also
-            # map to it.  So once we've mapped one postcode, we can find those others more quickly.  We repeat this
-            # until we have no more left.
+            # Now we want to scan each of these postcodes mapping to the correct area.  If we know that the user has
+            # seen the new area on screen ($setChildren), then we can optimise this - if one postcode maps to an area,
+            # then other postcodes within that area should also map to it.  So once we've mapped one postcode,
+            # we can find those others more quickly.  We repeat this until we have no more left.
+            #
+            # We don't always want to do this.  If we were doing a bulk remap, then we might have a large location
+            # which is used by default for some postcodes, and we wouldn't want to overwrite all the smaller locations
+            # within it.
             if (count($pcs)) {
                 do {
                     #error_log("Postcodes at start of loop " . count($pcs));
@@ -631,7 +633,7 @@ class Location extends Entity
 INNER JOIN locations l1 ON locations_spatial.locationid = l1.id
 INNER JOIN locations l2 ON l2.id = l1.areaid
 INNER JOIN locations area ON area.id = $areaid    
-WHERE ST_Contains(area.geometry, locations_spatial.geometry)
+WHERE ST_Contains(CASE WHEN area.ourgeometry IS NOT NULL THEN area.ourgeometry ELSE area.geometry END, locations_spatial.geometry)
 AND l1.type = 'Postcode'  
 AND locate(' ', l1.name) > 0
 AND locationid != {$pc['locationid']}
@@ -643,7 +645,7 @@ AND area.maxdimension <= l2.maxdimension";
                             $toremove = [];
 
                             foreach ($otherpcs as $otherpc) {
-                                #error_log("...update {$otherpc['locationid']} {$otherpc['name']}");
+                                #error_log("...update {$otherpc['locationid']} {$otherpc['name']} to $areaid");
                                 $this->dbhm->preExec("UPDATE locations SET areaid = ? WHERE id = ?;", [
                                     $areaid,
                                     $otherpc['locationid']

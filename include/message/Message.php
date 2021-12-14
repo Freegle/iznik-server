@@ -2767,7 +2767,7 @@ ORDER BY lastdate DESC;";
     }
 
     public function getHeader($hdr) {
-        return($this->parser->getHeader($hdr));
+        return($this->parser ? $this->parser->getHeader($hdr) : NULL);
     }
 
     public function getTo() {

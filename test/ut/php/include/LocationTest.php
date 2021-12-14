@@ -179,7 +179,6 @@ class locationTest extends IznikTestCase {
 
         # Change the geometry to something which isn't a point or a polygon.  We'll invent a polygon.  We need to
         # mock this as the convex hull function relies on a PHP extension which is a faff to install.
-        error_log("Force invent");
         $mock = $this->getMockBuilder('Freegle\Iznik\Location')
             ->setConstructorArgs([$this->dbhr, $this->dbhm, FALSE])
             ->setMethods(array('convexHull'))
