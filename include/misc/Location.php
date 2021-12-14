@@ -669,7 +669,8 @@ AND area.maxdimension <= l2.maxdimension";
     public function setGeometry($val) {
         $rc = FALSE;
 
-        $valid = $this->dbhm->preQuery($this->dbhr->isV8() ? "SELECT ST_IsValid(ST_GeomFromText(?, {$this->dbhr->SRID()})) AS valid;" : "SELECT ST_IsValid(ST_GeomFromText(?)) AS valid;", [
+        $valid = $this->dbhm->preQuery("SELECT ST_IsValid(ST_GeomFromText(?, {$this->dbhr->SRID()})) AS valid, ST_AsText(ST_Simplify(ST_GeomFromText(?, {$this->dbhr->SRID()}), 0.001)) AS simp;", [
+            $val,
             $val
         ]);
 
@@ -678,6 +679,9 @@ AND area.maxdimension <= l2.maxdimension";
                 $oldval = $this->dbhr->preQuery("SELECT ST_AsText(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) AS geometry FROM locations WHERE id = ?;", [
                     $this->id
                 ])[0]['geometry'];
+
+                # Use simplified value.
+                $val = $v['simp'];
 
                 $rc = $this->dbhm->preExec(
                     "UPDATE locations SET `type` = 'Polygon', `ourgeometry` = ST_GeomFromText(?, {$this->dbhr->SRID()}) WHERE id = {$this->id};",
