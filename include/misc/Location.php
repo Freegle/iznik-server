@@ -170,7 +170,7 @@ class Location extends Entity
           AND ST_Dimension(locations_spatial.geometry) = 2 AND locations_excluded.locationid IS NULL 
           AND locations_spatial.locationid != $id AND maxdimension < " . self::TOO_LARGE . " AND maxdimension > " . self::TOO_SMALL . " 
         ORDER BY maxdimension ASC, dist ASC LIMIT 1;";
-                error_log($sql);
+                #error_log($sql);
                 $nearbyes = $this->dbhr->preQuery($sql);
 
                 #error_log("Nearbyes found " . count($nearbyes) . " from $poly");
