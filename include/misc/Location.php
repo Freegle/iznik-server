@@ -110,6 +110,8 @@ class Location extends Entity
     public function setParents($id) {
         $changed = FALSE;
         $areaid = NULL;
+        $geom = NULL;
+        $maxdim = 0;
 
         # For each location, we also want to store the area and first-part-postcode which this location is within.
         #
@@ -158,8 +160,7 @@ class Location extends Entity
                 #
                 # Exclude locations which are very large, e.g. Greater London or too small (probably just a
                 # single building.
-                $sql = "SELECT locations.id, locations.name,  
-        GetMaxDimension(locations_spatial.geometry) AS maxdim,
+                $sql = "SELECT locations.id, locations.name, locations.maxdimension, ST_AsText(locations_spatial.geometry) AS geom,
         CASE WHEN ST_Intersects(locations_spatial.geometry, ST_GeomFromText('POINT({$loc['lng']} {$loc['lat']})', {$this->dbhr->SRID()})) THEN 0
         ELSE ST_Distance(locations_spatial.geometry, ST_GeomFromText('POINT({$loc['lng']} {$loc['lat']})', {$this->dbhr->SRID()})) END AS dist
         FROM locations_spatial INNER JOIN `locations` ON locations.id = locations_spatial.locationid 
@@ -167,9 +168,9 @@ class Location extends Entity
         WHERE 
           ST_Intersects(locations_spatial.geometry, ST_GeomFromText('$poly', {$this->dbhr->SRID()})) AND type != 'Postcode' 
           AND ST_Dimension(locations_spatial.geometry) = 2 AND locations_excluded.locationid IS NULL 
-        HAVING id != $id AND maxdim < " . self::TOO_LARGE . " AND maxdim > " . self::TOO_SMALL . " 
-        ORDER BY maxdim ASC, dist ASC LIMIT 1;";
-                #error_log($sql);
+          AND locations_spatial.locationid != $id AND maxdimension < " . self::TOO_LARGE . " AND maxdimension > " . self::TOO_SMALL . " 
+        ORDER BY maxdimension ASC, dist ASC LIMIT 1;";
+                error_log($sql);
                 $nearbyes = $this->dbhr->preQuery($sql);
 
                 #error_log("Nearbyes found " . count($nearbyes) . " from $poly");
@@ -190,6 +191,8 @@ class Location extends Entity
                 if ($loc['areaid'] != $nearbyes[0]['id']) {
                     #error_log("Set $id to have area $areaid");
                     $areaid = $nearbyes[0]['id'];
+                    $geom = $nearbyes[0]['geom'];
+                    $maxdim = $nearbyes[0]['maxdimension'];
                     $sql = "UPDATE locations SET areaid = $areaid WHERE id = $id;";
                     $this->dbhm->preExec($sql);
 
@@ -198,7 +201,7 @@ class Location extends Entity
             }
         }
 
-        return [ $changed, $areaid ];
+        return [ $changed, $areaid, $geom, $maxdim ];
     }
 
     public function getGrid() {
@@ -623,21 +626,20 @@ class Location extends Entity
                     #error_log("Postcodes at start of loop " . count($pcs));
                     $pc = array_pop($pcs);
 
-                    list ($changed, $areaid) = $this->setParents($pc['locationid']);
+                    list ($changed, $areaid, $geom, $areadim) = $this->setParents($pc['locationid']);
 
                     if ($areaid && $setChildren) {
                         # We only want to do this if the size of the area is no bigger than the existing one.
                         # This is to avoid situations where we map a postcode to a small area, and then another
                         # to a larger area, and then blat over the small area with the larger one.
                         $sql = "SELECT DISTINCT locationid, l1.name, l1.areaid, l2.maxdimension FROM locations_spatial
-INNER JOIN locations l1 ON locations_spatial.locationid = l1.id
-INNER JOIN locations l2 ON l2.id = l1.areaid
-INNER JOIN locations area ON area.id = $areaid    
-WHERE ST_Contains(CASE WHEN area.ourgeometry IS NOT NULL THEN area.ourgeometry ELSE area.geometry END, locations_spatial.geometry)
-AND l1.type = 'Postcode'  
-AND locate(' ', l1.name) > 0
-AND locationid != {$pc['locationid']}
-AND area.maxdimension <= l2.maxdimension";
+                            INNER JOIN locations l1 ON locations_spatial.locationid = l1.id
+                            INNER JOIN locations l2 ON l2.id = l1.areaid
+                            WHERE ST_Contains(ST_GeomFromText('$geom', {$this->dbhr->SRID()}), locations_spatial.geometry)
+                            AND l1.type = 'Postcode'  
+                            AND locate(' ', l1.name) > 0
+                            AND locationid != {$pc['locationid']}
+                            AND l2.maxdimension > $areadim;";
                         #error_log($sql);
                         $otherpcs = $this->dbhr->preQuery($sql);
 
@@ -662,7 +664,7 @@ AND area.maxdimension <= l2.maxdimension";
                         }
                     }
 
-                    error_log("Postcodes at end  of loop " . count($pcs) . ($loop ? ' not matching message' : ' matching message'));
+                    #error_log("Postcodes at end  of loop " . count($pcs) . ($loop ? ' not matching message' : ' matching message'));
                 } while (count($pcs));
             }
         }
