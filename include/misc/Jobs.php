@@ -214,6 +214,10 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
         // Special cases
         if ($addr == 'West Marsh') {
             $addr = 'Grimsby';
+        } else if ($addr == 'Stoney Middleton') {
+            $addr .= ', Derbyshire';
+        } else if ($addr == 'Middleton Stoney') {
+            $addr .= ', Oxfordshire';
         }
 
         $url = "https://" . GEOCODER . "/api?q=" . urlencode($addr) . "&bbox=$bbswlng%2C$bbswlat%2C$bbnelng%2C$bbnelat";
