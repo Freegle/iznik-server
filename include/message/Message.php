@@ -4041,13 +4041,14 @@ ORDER BY lastdate DESC;";
         return($ret);
     }
 
-    public function constructSubject($groupid) {
+    public function constructSubject($groupid, $set = TRUE) {
         # Construct the subject - do this now as it may get displayed to the user before we get the membership.
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
 
         $locationid = $this->getPrivate('locationid');
         $items = $this->getItems();
+        $subject = NULL;
 
         if ($locationid && count($items) > 0) {
             $l = new Location($this->dbhr, $this->dbhm, $locationid);
@@ -4077,8 +4078,13 @@ ORDER BY lastdate DESC;";
             }
 
             $subject = Utils::presdef(strtolower($this->type), $keywords, strtoupper($this->type)) . ': ' . $items[0]['name'] . " ($loc)";
-            $this->setPrivate('subject', $subject);
+
+            if ($set) {
+                $this->setPrivate('subject', $subject);
+            }
         }
+
+        return $subject;
     }
 
     public function addItem($itemid) {
