@@ -235,8 +235,9 @@ class Dashboard {
             }
 
             if (in_array(Dashboard::COMPONENT_POPULAR_POSTS, $components)) {
-                $populars = $this->dbhr->preQuery("SELECT COUNT(*) AS views, messages.id, messages.subject FROM messages INNER JOIN messages_likes ON messages_likes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND messages_groups.collection = ? WHERE messages_groups.arrival >= '$startq' AND messages_groups.arrival <= '$endq' AND $groupq AND messages_likes.type = 'View' GROUP BY messages.id HAVING views > 0 ORDER BY views DESC LIMIT 5", [
-                        MessageCollection::APPROVED
+                $populars = $this->dbhr->preQuery("SELECT COUNT(*) AS views, messages.id, messages.subject FROM messages INNER JOIN messages_likes ON messages_likes.msgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND messages_groups.collection = ? WHERE messages_groups.arrival >= '$startq' AND messages_groups.arrival <= '$endq' AND $groupq AND messages_likes.type = ? GROUP BY messages.id HAVING views > 0 ORDER BY views DESC LIMIT 5", [
+                    MessageCollection::APPROVED,
+                    Message::LIKE_VIEW
                 ]);
 
                 if (count($populars)) {
