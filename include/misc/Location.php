@@ -757,10 +757,11 @@ class Location extends Entity
     public function withinBox($swlat, $swlng, $nelat, $nelng) {
         # Return the areas within the box, along with a polygon which shows their shape.  This allows us to
         # display our areas on a map.  Put a limit on this so that the API can't kill us.
+        #
+        # Simplify it - taking care as ST_Simplify can fail.
         $sql = "SELECT DISTINCT l.*,
                 ST_AsText( 
-                    CASE WHEN
-                       ST_Simplify(CASE WHEN l.ourgeometry IS NOT NULL THEN l.ourgeometry ELSE l.geometry END, 0.001) IS NULL
+                    CASE WHEN ST_Simplify(CASE WHEN l.ourgeometry IS NOT NULL THEN l.ourgeometry ELSE l.geometry END, 0.001) IS NULL
                     THEN 
                        CASE WHEN l.ourgeometry IS NOT NULL THEN l.ourgeometry ELSE l.geometry END
                     ELSE   
@@ -772,13 +773,12 @@ class Location extends Entity
                          WHERE ST_Intersects(locations_spatial.geometry,
                         ST_GeomFromText('POLYGON(($swlng $swlat, $nelng $swlat, $nelng $nelat, $swlng $nelat, $swlng $swlat))', {$this->dbhr->SRID()}))
                      ) ls
-                INNER JOIN locations l ON l.id = ls.locationid AND l.type != 'Postcode'
+                INNER JOIN locations l ON l.id = ls.locationid 
                 INNER JOIN locations l2 on l2.areaid = ls.locationid         
                 LEFT JOIN locations_excluded ON ls.locationid = locations_excluded.locationid
                 WHERE locations_excluded.locationid IS NULL 
                 LIMIT 500;";
         $areas = $this->dbhr->preQuery($sql, [ $swlat, $swlng, $nelat, $nelng ]);
-        #error_log("SELECT DISTINCT areaid FROM locations LEFT JOIN locations_excluded ON locations.areaid = locations_excluded.locationid WHERE lat >= $swlat AND lng >= $swlng AND lat <= $nelat AND lng <= $nelng AND locations_excluded.locationid IS NULL LIMIT 500;");
         $ret = [];
 
         foreach ($areas as $area) {
@@ -789,7 +789,7 @@ class Location extends Entity
 
             $geom = $area['geom'];
 
-            if (substr($geom, 0, 7) == 'POINT(') {
+            if (substr($geom, 0, 6) == 'POINT(') {
                 # Point location.  Return a basic polygon to make it visible and editable.
                 $swlat = $thisone['lat'] - 0.0005;
                 $swlng = $thisone['lng'] - 0.0005;
@@ -803,10 +803,11 @@ class Location extends Entity
             if (substr($geom, 0, 7) != 'POLYGON') {
                 # We don't have a polygon for this area.  This is common for OSM data, where many towns etc are just
                 # recorded as points.
-                $geom = $this->inventArea($area['areaid']);
+                $geom = $this->inventArea($area['id']);
             }
 
             $thisone['polygon'] = $geom;
+            $thisone['geom'] = NULL;
 
             # Get the top-level postcode.
             $tpcid = $area['postcodeid'];
