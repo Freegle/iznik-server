@@ -564,22 +564,6 @@ class Location extends Entity
         return (count($locs) == 1 ? $locs[0]['id'] : NULL);
     }
 
-    public function geomAsText() {
-        # ST_Simplify returns NULL for some small geometries, it seems.
-        $sql = "SELECT ST_AsText( 
-        CASE WHEN
-           ST_Simplify(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, 0.001) IS NULL
-        THEN 
-           CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END
-        ELSE   
-            ST_Simplify(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, 0.001)
-        END
-        )AS geomtext FROM locations WHERE id = ?;";
-        $locs = $this->dbhr->preQuery($sql, [ $this->id ]);
-        $ret = count($locs) == 1 ? $locs[0]['geomtext'] : NULL;
-        return($ret);
-    }
-
     public function remapPostcodes($polygon, $setChildren, $mod = 1, $val = 0) {
         for ($loop = 0; $loop < 2; $loop++) {
             if ($loop == 0) {
@@ -773,49 +757,67 @@ class Location extends Entity
     public function withinBox($swlat, $swlng, $nelat, $nelng) {
         # Return the areas within the box, along with a polygon which shows their shape.  This allows us to
         # display our areas on a map.  Put a limit on this so that the API can't kill us.
-        $sql = "SELECT DISTINCT areaid FROM locations LEFT JOIN locations_excluded ON locations.areaid = locations_excluded.locationid WHERE lat >= ? AND lng >= ? AND lat <= ? AND lng <= ? AND locations_excluded.locationid IS NULL LIMIT 500;";
+        $sql = "SELECT DISTINCT l.*,
+                ST_AsText( 
+                    CASE WHEN
+                       ST_Simplify(CASE WHEN l.ourgeometry IS NOT NULL THEN l.ourgeometry ELSE l.geometry END, 0.001) IS NULL
+                    THEN 
+                       CASE WHEN l.ourgeometry IS NOT NULL THEN l.ourgeometry ELSE l.geometry END
+                    ELSE   
+                        ST_Simplify(CASE WHEN l.ourgeometry IS NOT NULL THEN l.ourgeometry ELSE l.geometry END, 0.001)
+                    END
+                ) AS geom
+                FROM
+                     (SELECT locationid FROM locations_spatial
+                         WHERE ST_Intersects(locations_spatial.geometry,
+                        ST_GeomFromText('POLYGON(($swlng $swlat, $nelng $swlat, $nelng $nelat, $swlng $nelat, $swlng $swlat))', {$this->dbhr->SRID()}))
+                     ) ls
+                INNER JOIN locations l ON l.id = ls.locationid AND l.type != 'Postcode'
+                INNER JOIN locations l2 on l2.areaid = ls.locationid         
+                LEFT JOIN locations_excluded ON ls.locationid = locations_excluded.locationid
+                WHERE locations_excluded.locationid IS NULL 
+                LIMIT 500;";
         $areas = $this->dbhr->preQuery($sql, [ $swlat, $swlng, $nelat, $nelng ]);
         #error_log("SELECT DISTINCT areaid FROM locations LEFT JOIN locations_excluded ON locations.areaid = locations_excluded.locationid WHERE lat >= $swlat AND lng >= $swlng AND lat <= $nelat AND lng <= $nelng AND locations_excluded.locationid IS NULL LIMIT 500;");
         $ret = [];
 
         foreach ($areas as $area) {
-            $a = new Location($this->dbhr, $this->dbhm, $area['areaid']);
-            if ($a->getId()) {
-                $thisone = $a->getPublic();
-                $thisone['polygon'] = NULL;
+            $thisone = $area;
+            $thisone['polygon'] = NULL;
+            $thisone['geometry'] = NULL;
+            $thisone['ourgeometry'] = NULL;
 
-                $geom = $a->geomAsText();
+            $geom = $area['geom'];
 
-                if (strpos($geom, 'POINT(') !== FALSE) {
-                    # Point location.  Return a basic polygon to make it visible and editable.
-                    $swlat = $thisone['lat'] - 0.0005;
-                    $swlng = $thisone['lng'] - 0.0005;
-                    $nelat = $thisone['lat'] + 0.0005;
-                    $nelng = $thisone['lng'] + 0.0005;
-                    $geom = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
-                }
-
-                #error_log("For {$area['areaid']} {$thisone['name']} geom $geom");
-
-                if (strpos($geom, 'POLYGON') === FALSE) {
-                    # We don't have a polygon for this area.  This is common for OSM data, where many towns etc are just
-                    # recorded as points.
-                    $geom = $this->inventArea($area['areaid']);
-                }
-
-                $thisone['polygon'] = $geom;
-
-                # Get the top-level postcode.
-                $tpcid = $a->getPrivate('postcodeid');
-                #error_log("Postcode $tpcid for " . $a->getPrivate('name'));
-
-                if ($tpcid) {
-                    $tpc = new Location($this->dbhr, $this->dbhm, $tpcid);
-                    $thisone['postcode'] = $tpc->getPublic();
-                }
-
-                $ret[] = $thisone;
+            if (substr($geom, 0, 7) == 'POINT(') {
+                # Point location.  Return a basic polygon to make it visible and editable.
+                $swlat = $thisone['lat'] - 0.0005;
+                $swlng = $thisone['lng'] - 0.0005;
+                $nelat = $thisone['lat'] + 0.0005;
+                $nelng = $thisone['lng'] + 0.0005;
+                $geom = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
             }
+
+            #error_log("For {$area['areaid']} {$thisone['name']} geom $geom");
+
+            if (substr($geom, 0, 7) != 'POLYGON') {
+                # We don't have a polygon for this area.  This is common for OSM data, where many towns etc are just
+                # recorded as points.
+                $geom = $this->inventArea($area['areaid']);
+            }
+
+            $thisone['polygon'] = $geom;
+
+            # Get the top-level postcode.
+            $tpcid = $area['postcodeid'];
+            #error_log("Postcode $tpcid for " . $a->getPrivate('name'));
+
+            if ($tpcid) {
+                $tpc = new Location($this->dbhr, $this->dbhm, $tpcid);
+                $thisone['postcode'] = $tpc->getPublic();
+            }
+
+            $ret[] = $thisone;
         }
 
         return($ret);

@@ -32,7 +32,7 @@ $l = new Location($dbhr, $dbhm);
 
 foreach ($pcs as $pc => $area) {
     $points = [];
-    $locs = $dbhr->preQuery("SELECT ASTEXT(geometry) AS geom, lat, lng FROM locations WHERE name LIKE '$pc %' AND type = 'Postcode';");
+    $locs = $dbhr->preQuery("SELECT ST_ASTEXT(geometry) AS geom, lat, lng FROM locations WHERE name LIKE '$pc %' AND type = 'Postcode';");
     foreach ($locs as $loc) {
         $pstr = "POINT({$loc['lng']} {$loc['lat']})";
         $points[] = $g::load($pstr);

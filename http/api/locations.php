@@ -28,6 +28,7 @@ function locations() {
             $nelat = Utils::presfloat('nelat', $_REQUEST, NULL);
             $nelng = Utils::presfloat('nelng', $_REQUEST, NULL);
             $typeahead = Utils::presdef('typeahead', $_REQUEST, NULL);
+            $dodgy = Utils::presbool('dodgy', $_REQUEST, FALSE);
             $limit = (Utils::presint('limit', $_REQUEST, 10));
 
             if ($lat && $lng) {
@@ -42,6 +43,10 @@ function locations() {
                 }
             } else if ($swlat || $swlng || $nelat || $nelng) {
                 $ret = [ 'ret' => 0, 'status' => 'Success', 'locations' => $l->withinBox($swlat, $swlng, $nelat, $nelng) ];
+
+                if ($dodgy) {
+                    $ret['dodgy'] = $dbhr->preQuery("SELECT * FROM locations_dodgy;");
+                }
             }
             break;
         }
@@ -82,7 +87,7 @@ function locations() {
                     $worked = FALSE;
                     $ret = ['ret' => 3, 'status' => 'Set failed - invalid geometry?'];
 
-                    if ($l->setGeometry($polygon, FALSE)) {
+                    if ($l->setGeometry($polygon, TRUE)) {
                         $worked = TRUE;
                     }
                 }
