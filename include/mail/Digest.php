@@ -557,10 +557,12 @@ class Digest
                 $sql = "SELECT ST_Y(point) AS lat, ST_X(point) AS lng, messages_spatial.msgid, messages_spatial.groupid, messages.subject FROM messages_spatial 
     INNER JOIN messages ON messages_spatial.msgid = messages.id
     LEFT JOIN memberships ON memberships.userid = ? AND memberships.groupid = messages_spatial.groupid
+    LEFT JOIN messages_outcomes ON messages_spatial.msgid = messages_outcomes.msgid
     WHERE ST_Contains($box, point)
       AND messages_spatial.groupid != ? 
       AND fromuser != ?
       AND memberships.id IS NULL  
+      AND messages_outcomes.id IS NULL
     ORDER BY messages_spatial.arrival ASC;";
                 $posts = $this->dbhr->preQuery($sql, [
                     $u->getId(),

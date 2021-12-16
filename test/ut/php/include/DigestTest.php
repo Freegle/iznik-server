@@ -280,7 +280,11 @@ class digestTest extends IznikTestCase {
         assertEquals(0, $mock->send($this->gid, Digest::HOUR1));
     }
 
-    public function testNearby() {
+    /**
+     * @param $withdraw
+     * @dataProvider nearbyProvider
+     */
+    public function testNearby($withdraw) {
         # Two groups.
         $g = new Group($this->dbhr, $this->dbhm);
         $gid1 = $g->create('testgroup1', Group::GROUP_FREEGLE);
@@ -354,11 +358,28 @@ class digestTest extends IznikTestCase {
             'lat' => 8.51
         ]);
 
-        # Send digest.  Should contain the nearby message.
+        if ($withdraw) {
+            $m2->withdraw(NULL, User::FINE);
+        }
+
+        # Send digest.
         assertEquals(1, $mock->send($gid1, Digest::HOUR1, 'localhost', NULL, TRUE, TRUE));
         assertEquals(1, count($this->msgsSent));
-        error_log("Sent " . $this->msgsSent[0]);
-        assertNotFalse(strpos($this->msgsSent[0], 'Test item 2'));
+
+        if ($withdraw) {
+            // Completed messages shouldn't appear.
+            assertFalse(strpos($this->msgsSent[0], 'Test item 2'));
+        } else {
+            // Nearby message should appear.
+            assertNotFalse(strpos($this->msgsSent[0], 'Test item 2'));
+        }
+    }
+
+    function nearbyProvider() {
+        return [
+            [ FALSE ],
+            [ TRUE]
+        ];
     }
 }
 
