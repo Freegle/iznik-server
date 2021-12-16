@@ -82,7 +82,7 @@ function locations() {
                     $worked = FALSE;
                     $ret = ['ret' => 3, 'status' => 'Set failed - invalid geometry?'];
 
-                    if ($l->setGeometry($polygon)) {
+                    if ($l->setGeometry($polygon, FALSE)) {
                         $worked = TRUE;
                     }
                 }

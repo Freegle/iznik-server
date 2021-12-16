@@ -670,7 +670,7 @@ class Location extends Entity
         }
     }
 
-    public function setGeometry($val) {
+    public function setGeometry($val, $remap) {
         $rc = FALSE;
 
         $valid = $this->dbhm->preQuery("SELECT ST_IsValid(ST_GeomFromText(?, {$this->dbhr->SRID()})) AS valid, ST_AsText(ST_Simplify(ST_GeomFromText(?, {$this->dbhr->SRID()}), 0.001)) AS simp;", [
@@ -711,11 +711,13 @@ class Location extends Entity
                     if ($rc) {
                         $l = new Location($this->dbhr, $this->dbhm);
 
-                        # Remap any postcodes in the old area.
-                        $l->remapPostcodes($oldval, TRUE);
+                        if ($remap) {
+                            # Remap any postcodes in the old area.
+                            $l->remapPostcodes($oldval, TRUE);
 
-                        # Remap any postcodes in the new area.
-                        $l->remapPostcodes($val, TRUE);
+                            # Remap any postcodes in the new area.
+                            $l->remapPostcodes($val, TRUE);
+                        }
 
                         $this->fetch($this->dbhm, $this->dbhm, $this->id, 'locations', 'loc', $this->publicatts);
                     }
