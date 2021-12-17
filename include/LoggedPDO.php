@@ -100,7 +100,7 @@ class LoggedPDO {
         $this->preparedStatements = [];
     }
 
-    private function doConnect() {
+    public function doConnect() {
         if (!$this->connected) {
             # We haven't connected yet.  Do so now.  We defer the connect because all API calls have both a read
             # and a write connection, and many won't use the write one, so it's a waste of time opening it until we

@@ -604,7 +604,7 @@ class messageTest extends IznikTestCase {
         $this->user->addEmail($email);
         $id1 = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $m = new Message($this->dbhr, $this->dbhm, $id1);
-        $m->setPrivate('sourceheader', 'Platform');
+        $m->setPrivate('source', Message::PLATFORM);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -617,7 +617,7 @@ class messageTest extends IznikTestCase {
         $id2 = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $this->log("Due message $id2");
         $m = new Message($this->dbhr, $this->dbhm, $id2);
-        $m->setPrivate('sourceheader', 'Platform');
+        $m->setPrivate('source', Message::PLATFORM);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -709,7 +709,7 @@ class messageTest extends IznikTestCase {
         $id2 = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $this->log("Due message $id2");
         $m = new Message($this->dbhr, $this->dbhm, $id2);
-        $m->setPrivate('sourceheader', 'Platform');
+        $m->setPrivate('source', Message::PLATFORM);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -759,6 +759,7 @@ class messageTest extends IznikTestCase {
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $mid);
+        $m->setPrivate('source', Message::PLATFORM);
 
         # Create a reply
         $u = User::get($this->dbhr, $this->dbhm);
