@@ -51,7 +51,7 @@ class Location extends Entity
         return($str);
     }
 
-    public function create($osm_id, $name, $type, $geometry, $remap = FALSE)
+    public function create($osm_id, $name, $type, $geometry, $remap = TRUE)
     {
         try {
             $rc = $this->dbhm->preExec("INSERT INTO locations (osm_id, name, type, geometry, canon, osm_place, maxdimension) VALUES (?, ?, ?, ST_GeomFromText(?, {$this->dbhr->SRID()}), ?, ?, GetMaxDimension(ST_GeomFromText(?, {$this->dbhr->SRID()})))",
@@ -761,29 +761,28 @@ class Location extends Entity
         # display our areas on a map.  Put a limit on this so that the API can't kill us.
         #
         # Simplify it - taking care as ST_Simplify can fail.
-        $dodgeq = $dodgy ? "UNION SELECT newlocationid AS locationid FROM locations_dodgy WHERE lat BETWEEN $swlat AND $nelat AND lng BETWEEN $swlng AND $nelng
-        UNION SELECT oldlocationid AS locationid FROM locations_dodgy WHERE lat BETWEEN $swlat AND $nelat AND lng BETWEEN $swlng AND $nelng 
-        " : "";
+        $joinatt = $dodgy ? 'newareaid' : 'areaid';
+
         $sql = "SELECT DISTINCT l.*,
-                ST_AsText( 
-                    CASE WHEN ST_Simplify(CASE WHEN l.ourgeometry IS NOT NULL THEN l.ourgeometry ELSE l.geometry END, 0.001) IS NULL
-                    THEN 
-                       CASE WHEN l.ourgeometry IS NOT NULL THEN l.ourgeometry ELSE l.geometry END
-                    ELSE   
-                        ST_Simplify(CASE WHEN l.ourgeometry IS NOT NULL THEN l.ourgeometry ELSE l.geometry END, 0.001)
-                    END
-                ) AS geom
-                FROM
-                     (SELECT locationid FROM locations_spatial
-                         INNER JOIN locations l2 on l2.areaid = locations_spatial.locationid         
-                         WHERE ST_Intersects(locations_spatial.geometry,
-                        ST_GeomFromText('POLYGON(($swlng $swlat, $nelng $swlat, $nelng $nelat, $swlng $nelat, $swlng $swlat))', {$this->dbhr->SRID()}))
-                      $dodgeq   
-                     ) ls
-                INNER JOIN locations l ON l.id = ls.locationid 
-                LEFT JOIN locations_excluded ON ls.locationid = locations_excluded.locationid
-                WHERE locations_excluded.locationid IS NULL 
-                LIMIT 500;";
+            ST_AsText( 
+                CASE WHEN ST_Simplify(CASE WHEN l.ourgeometry IS NOT NULL THEN l.ourgeometry ELSE l.geometry END, 0.001) IS NULL
+                THEN 
+                   CASE WHEN l.ourgeometry IS NOT NULL THEN l.ourgeometry ELSE l.geometry END
+                ELSE   
+                    ST_Simplify(CASE WHEN l.ourgeometry IS NOT NULL THEN l.ourgeometry ELSE l.geometry END, 0.001)
+                END
+            ) AS geom
+            FROM
+                 (SELECT locationid FROM locations_spatial
+                     INNER JOIN locations l2 on l2.$joinatt = locations_spatial.locationid         
+                     WHERE ST_Intersects(locations_spatial.geometry,
+                    ST_GeomFromText('POLYGON(($swlng $swlat, $nelng $swlat, $nelng $nelat, $swlng $nelat, $swlng $swlat))', {$this->dbhr->SRID()}))
+                 ) ls
+            INNER JOIN locations l ON l.id = ls.locationid 
+            LEFT JOIN locations_excluded ON ls.locationid = locations_excluded.locationid
+            WHERE locations_excluded.locationid IS NULL 
+            LIMIT 500;";
+
         #file_put_contents('/tmp/sql', $sql);
         $areas = $this->dbhr->preQuery($sql, [ $swlat, $swlng, $nelat, $nelng ]);
         $ret = [];
