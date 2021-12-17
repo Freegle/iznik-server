@@ -11,28 +11,7 @@ global $dbhr, $dbhm;
 
 $pgsql = new \PDO("pgsql:host=localhost;dbname=postgres", "iznik", "iznik");
 
-$fh = fopen('/tmp/checkmap.csv', 'w');
-
-# Make sure we have no excluded locations.
-//error_log("Delete excluded");
-//$excludeds = $dbhr->preQuery("SELECT DISTINCT locationid FROM locations_excluded");
-//$count = 0;
-//$batch = [];
-//
-//foreach ($excludeds as $excluded) {
-//    if (count($batch) >= 1000) {
-//        $pgsql->query("DELETE FROM locations_tmp WHERE locationid IN (" . implode(',', $batch) . ");");
-//        $batch = [];
-//        error_log($count);
-//    }
-//
-//    $batch[] = $excluded['locationid'];
-//    $count++;
-//}
-//
-//if (count($batch) >= 0) {
-//    $pgsql->query("DELETE FROM locations_tmp WHERE locationid IN (" . implode(',', $batch) . ");");
-//}
+$dbhm->preExec("DELETE FROM locations_dodgy WHERE 1;");
 
 error_log("Get test set");
 $pcs = $dbhr->preQuery("SELECT DISTINCT locations_spatial.locationid, locations.name, locations.lat, locations.lng, l1.name AS areaname, l1.id AS areaid FROM locations_spatial 
@@ -40,27 +19,38 @@ $pcs = $dbhr->preQuery("SELECT DISTINCT locations_spatial.locationid, locations.
     INNER JOIN messages ON messages.locationid = locations_spatial.locationid
     INNER JOIN locations l1 ON locations.areaid = l1.id
     WHERE locations.type = 'Postcode'  
-    AND locate(' ', locations.name) > 0
+    AND locate(' ', locations.name) > 0 
+    LIMIT 10000
     ;");
 
 $total = count($pcs);
 
-$sth = $pgsql->prepare("SELECT locationid, name
-    FROM (
-        SELECT locationid,
-            name,
-            location,
-            RANK() OVER(ORDER BY location <-> ST_SetSRID(ST_MakePoint(?, ?), 3857)) AS _rnk
-        FROM  locations_tmp
-        WHERE ST_Area(location) BETWEEN 0.00005 AND 0.15
-        AND LOWER(name) != LOWER(?)
-        LIMIT 200
-    ) q
-    WHERE  _rnk = 1
-    ORDER BY
-    ST_Area(location)
-    LIMIT  1
-;");
+$sth = $pgsql->prepare("
+SELECT   *
+FROM     (
+                  SELECT   
+                           locationid,
+                           name,
+                           area,
+                           dist,
+                           cdist,
+                           _drnk,
+                           st_contains(location, ST_SetSRID(ST_MakePoint(?,?), 3857)) AS inside
+                  FROM     (
+                                    SELECT   locationid,
+                                             name,
+                                             location,
+                                             area,
+                                             location <-> ST_SetSRID(ST_MakePoint(?,?), 3857)                       AS dist,
+                                             ST_Centroid(location) <-> ST_SetSRID(ST_MakePoint(?,?), 3857)          AS cdist,
+                                             RANK() OVER(ORDER BY location <-> ST_SetSRID(ST_MakePoint(?,?), 3857)) AS _drnk
+                                    FROM     locations_tmp
+                                    WHERE    area BETWEEN 0.00003 AND 0.15 limit 200 ) q
+                  ORDER BY _drnk limit 10 ) r
+ORDER BY _drnk, SQRT(area) LIMIT 10;
+");
+
+// ORDER BY cdist * _drnk LIMIT 10; best
 
 $same = 0;
 $different = 0;
@@ -70,18 +60,34 @@ foreach ($pcs as $pc) {
     $sth->execute([
         $pc['lng'],
         $pc['lat'],
-        $pc['name']
+        $pc['lng'],
+        $pc['lat'],
+        $pc['lng'],
+        $pc['lat'],
+        $pc['lng'],
+        $pc['lat']
     ]);
 
-    while ($pgarea = $sth->fetch()) {
+    $pgareas = $sth->fetchAll();
 
+    if (count($pgareas)) {
+        $pgarea = $pgareas[0];
         if ($pc['areaname'] == $pgarea['name']) {
             $same++;
         } else {
             echo("#{$pc['locationid']} {$pc['name']} {$pc['lat']}, {$pc['lng']} = {$pc['areaid']} {$pc['areaname']} => {$pgarea['locationid']} {$pgarea['name']}\n");
-            fwrite($fh, "{$pc['lat']}, {$pc['lng']}\n");
+            foreach ($pgareas as $pgarea) {
+                echo("...{$pgarea['name']} area {$pgarea['area']} dist {$pgarea['dist']} cdist {$pgarea['cdist']} drnk {$pgarea['_drnk']}\n");
+            }
+            $dbhm->preExec("INSERT INTO locations_dodgy (lat, lng) VALUES (?, ?)", [
+                $pc['lat'],
+                $pc['lng']
+            ]);
             $different++;
         }
+    } else {
+        echo("#{$pc['locationid']} {$pc['name']} {$pc['lat']}, {$pc['lng']} = {$pc['areaid']} {$pc['areaname']} => not mapped\n");
+        $different++;
     }
 
     $count++;
@@ -91,4 +97,4 @@ foreach ($pcs as $pc) {
     }
 }
 
-error_log("$same same, $different different = " . round(100 * $same / ($same + $different)));
+error_log("$same same, $different different = " . round(100 * $same / ($same + $different)) . "%");

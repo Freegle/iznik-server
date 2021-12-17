@@ -12,15 +12,19 @@ global $dbhr, $dbhm;
 $pgsql = new \PDO("pgsql:host=localhost;dbname=postgres", "iznik", "iznik");
 $pgsql->exec("DROP TABLE IF EXISTS locations_tmp;");
 $pgsql->exec("DROP INDEX IF EXISTS idx_location;");
-$pgsql->exec("CREATE TABLE locations_tmp (id serial, locationid bigint, name text, location postgis.geometry);");
-$pgsql->exec("CREATE INDEX idx_location ON locations_tmp USING gist(location, postgis.ST_Area(location));");
+$pgsql->exec("CREATE TYPE location_type AS ENUM('Road','Polygon','Line','Point','Postcode');");
+$pgsql->exec("CREATE TABLE locations_tmp (id serial, locationid bigint, name text, type location_type, area numeric, location postgis.geometry);");
+$pgsql->exec("ALTER TABLE locations_tmp SET UNLOGGED");
 
-$locations = $dbhr->preQuery("SELECT id, name, ST_AsText(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) AS geom FROM locations;");
-$std = $pgsql->prepare("INSERT INTO locations_tmp (locationid, name, location) VALUES (?, ?, postgis.ST_GeomFromText(?, {$dbhr->SRID()}));");
+error_log("Get locations");
+$dbhr->doConnect();
+$locations = $dbhr->_db->query("SELECT locations.id, name, type, ST_AsText(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) AS geom FROM locations LEFT JOIN locations_excluded le on locations.id = le.locationid WHERE le.locationid IS NULL;");
+error_log("Got first chunk");
+$std = $pgsql->prepare("INSERT INTO locations_tmp (locationid, name, type, location) VALUES (?, ?, ?, ST_Area(postgis.ST_GeomFromText(?, {$dbhr->SRID()})), postgis.ST_GeomFromText(?, {$dbhr->SRID()}));");
 
 $count = 0;
 foreach ($locations as $location) {
-    $std->execute([ $location['id'], $location['name'], $location['geom']]);
+    $std->execute([ $location['id'], $location['name'], $location['type'], $location['geom'], $location['geom']]);
 
     $id = $pgsql->lastInsertId();
 
@@ -31,5 +35,5 @@ foreach ($locations as $location) {
     }
 }
 
-
-
+$pgsql->exec("CREATE INDEX idx_location ON locations_tmp USING gist(location, area);");
+$pgsql->exec("ALTER TABLE locations_tmp SET LOGGED");
