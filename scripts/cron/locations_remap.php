@@ -26,4 +26,15 @@ foreach ($locs as $loc) {
     $l->remapPostcodes($loc['geom'], FALSE);
 }
 
+$sql = "SELECT locations.id, locations.name, ST_ASText(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) AS geom FROM  `locations` INNER JOIN locations_excluded ON locations_excluded.locationid = locations.id WHERE  `type` =  'Polygon' AND  `date` >= ? ORDER BY name ASC;";
+$locs = $dbhr->preQuery($sql, [ $mysqltime ]);
+
+$count = 0;
+
+foreach ($locs as $loc) {
+    $count++;
+    error_log("#{$loc['id']} {$loc['name']} ($count / " . count($locs) . ")");
+    $l->remapPostcodes($loc['geom'], FALSE);
+}
+
 Utils::unlockScript($lockh);

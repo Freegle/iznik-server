@@ -51,7 +51,7 @@ class Location extends Entity
         return($str);
     }
 
-    public function create($osm_id, $name, $type, $geometry)
+    public function create($osm_id, $name, $type, $geometry, $remap = FALSE)
     {
         try {
             $rc = $this->dbhm->preExec("INSERT INTO locations (osm_id, name, type, geometry, canon, osm_place, maxdimension) VALUES (?, ?, ?, ST_GeomFromText(?, {$this->dbhr->SRID()}), ?, ?, GetMaxDimension(ST_GeomFromText(?, {$this->dbhr->SRID()})))",
@@ -81,7 +81,7 @@ class Location extends Entity
             # Set any area and postcode for this new location.
             $this->setParents($id);
 
-            if ($type == 'Polygon') {
+            if ($type == 'Polygon' && $remap) {
                 # We might have postcodes which should now map to this new area rather than wherever they mapped
                 # previously.
                 $this->remapPostcodes($geometry, TRUE);
@@ -360,7 +360,7 @@ class Location extends Entity
         return($ret);
     }
 
-    public function exclude($groupid, $userid, $byname = FALSE) {
+    public function exclude($groupid, $userid, $byname, $remap) {
         # We want to exclude a specific location.  Potentially exclude all locations with the same name as this one; our DB has
         # duplicate names.
         $sql = $byname ? "SELECT id FROM locations WHERE name = (SELECT name FROM locations WHERE id = ?);" : "SELECT id FROM locations WHERE id = ?;";
@@ -376,11 +376,13 @@ class Location extends Entity
             ]);
         }
 
-        # We might have some postcodes which are mapped to this area.  Remap them.
-        $sql = "SELECT id FROM locations WHERE areaid = ?;";
-        $locs = $this->dbhr->preQuery($sql, [ $this->id ]);
-        foreach ($locs as $loc) {
-            $this->setParents($loc['id']);
+        if ($remap) {
+            # We might have some postcodes which are mapped to this area.  Remap them.
+            $sql = "SELECT id FROM locations WHERE areaid = ?;";
+            $locs = $this->dbhr->preQuery($sql, [ $this->id ]);
+            foreach ($locs as $loc) {
+                $this->setParents($loc['id']);
+            }
         }
 
         # Not the end of the world if this doesn't work.
@@ -754,11 +756,14 @@ class Location extends Entity
         return($geom);
     }
 
-    public function withinBox($swlat, $swlng, $nelat, $nelng) {
+    public function withinBox($swlat, $swlng, $nelat, $nelng, $dodgy = FALSE) {
         # Return the areas within the box, along with a polygon which shows their shape.  This allows us to
         # display our areas on a map.  Put a limit on this so that the API can't kill us.
         #
         # Simplify it - taking care as ST_Simplify can fail.
+        $dodgeq = $dodgy ? "UNION SELECT newlocationid AS locationid FROM locations_dodgy WHERE lat BETWEEN $swlat AND $nelat AND lng BETWEEN $swlng AND $nelng
+        UNION SELECT oldlocationid AS locationid FROM locations_dodgy WHERE lat BETWEEN $swlat AND $nelat AND lng BETWEEN $swlng AND $nelng 
+        " : "";
         $sql = "SELECT DISTINCT l.*,
                 ST_AsText( 
                     CASE WHEN ST_Simplify(CASE WHEN l.ourgeometry IS NOT NULL THEN l.ourgeometry ELSE l.geometry END, 0.001) IS NULL
@@ -770,14 +775,16 @@ class Location extends Entity
                 ) AS geom
                 FROM
                      (SELECT locationid FROM locations_spatial
+                         INNER JOIN locations l2 on l2.areaid = locations_spatial.locationid         
                          WHERE ST_Intersects(locations_spatial.geometry,
                         ST_GeomFromText('POLYGON(($swlng $swlat, $nelng $swlat, $nelng $nelat, $swlng $nelat, $swlng $swlat))', {$this->dbhr->SRID()}))
+                      $dodgeq   
                      ) ls
                 INNER JOIN locations l ON l.id = ls.locationid 
-                INNER JOIN locations l2 on l2.areaid = ls.locationid         
                 LEFT JOIN locations_excluded ON ls.locationid = locations_excluded.locationid
                 WHERE locations_excluded.locationid IS NULL 
                 LIMIT 500;";
+        #file_put_contents('/tmp/sql', $sql);
         $areas = $this->dbhr->preQuery($sql, [ $swlat, $swlng, $nelat, $nelng ]);
         $ret = [];
 

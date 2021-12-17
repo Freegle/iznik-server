@@ -42,10 +42,14 @@ function locations() {
                     }
                 }
             } else if ($swlat || $swlng || $nelat || $nelng) {
-                $ret = [ 'ret' => 0, 'status' => 'Success', 'locations' => $l->withinBox($swlat, $swlng, $nelat, $nelng) ];
+                $ret = [ 'ret' => 0, 'status' => 'Success', 'locations' => $l->withinBox($swlat, $swlng, $nelat, $nelng, $dodgy) ];
 
                 if ($dodgy) {
-                    $ret['dodgy'] = $dbhr->preQuery("SELECT * FROM locations_dodgy;");
+                    $sql = "SELECT ld.*, l0.name AS name, l1.name AS oldname, l2.name AS newname FROM locations_dodgy ld
+INNER JOIN locations l0 ON l0.id = ld.locationid    
+INNER JOIN locations l1 ON l1.id = ld.oldlocationid
+INNER JOIN locations l2 ON l2.id = ld.newlocationid;";
+                    $ret['dodgy'] = $dbhr->preQuery($sql);
                 }
             }
             break;
@@ -54,13 +58,14 @@ function locations() {
         case 'POST': {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
             $role = $me ? $me->getRoleForGroup($groupid) : User::ROLE_NONMEMBER;
+            $remap = Utils::presbool('remap', $_REQUEST, FALSE);
 
             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
                 switch ($action) {
                     case 'Exclude':
-                        $l->exclude($groupid, $me->getId(), $byname);
+                        $l->exclude($groupid, $me->getId(), $byname, $remap);
 
                         if ($messageid) {
                             # Suggest a new subject for this message.
@@ -83,11 +88,13 @@ function locations() {
 
             if ($role == User::SYSTEMROLE_MODERATOR || $role == User::SYSTEMROLE_SUPPORT || $role == User::SYSTEMROLE_ADMIN) {
                 $polygon = Utils::presdef('polygon', $_REQUEST, NULL);
+                $remap = Utils::presbool('remap', $_REQUEST, FALSE);
+
                 if ($polygon) {
                     $worked = FALSE;
                     $ret = ['ret' => 3, 'status' => 'Set failed - invalid geometry?'];
 
-                    if ($l->setGeometry($polygon, TRUE)) {
+                    if ($l->setGeometry($polygon, $remap)) {
                         $worked = TRUE;
                     }
                 }
@@ -112,11 +119,12 @@ function locations() {
             if ($role == User::SYSTEMROLE_MODERATOR || $role == User::SYSTEMROLE_SUPPORT || $role == User::SYSTEMROLE_ADMIN) {
                 $polygon = Utils::presdef('polygon', $_REQUEST, NULL);
                 $name = Utils::presdef('name', $_REQUEST, NULL);
+                $remap = Utils::presbool('remap', $_REQUEST, FALSE);
 
                 if ($polygon && $name) {
                     # We create this as a place, which can be used as an area - the client wouldn't have created it
                     # if they didn't want that.
-                    $id = $l->create(NULL, $name, 'Polygon', $polygon);
+                    $id = $l->create(NULL, $name, 'Polygon', $polygon, $remap);
                     $ret = [ 'ret' => 0, 'status' => 'Success', 'id' => $id ];
                 }
             }

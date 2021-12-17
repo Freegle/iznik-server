@@ -20,7 +20,6 @@ $pcs = $dbhr->preQuery("SELECT DISTINCT locations_spatial.locationid, locations.
     INNER JOIN locations l1 ON locations.areaid = l1.id
     WHERE locations.type = 'Postcode'  
     AND locate(' ', locations.name) > 0 
-    LIMIT 10000
     ;");
 
 $total = count($pcs);
@@ -45,9 +44,9 @@ FROM     (
                                              ST_Centroid(location) <-> ST_SetSRID(ST_MakePoint(?,?), 3857)          AS cdist,
                                              RANK() OVER(ORDER BY location <-> ST_SetSRID(ST_MakePoint(?,?), 3857)) AS _drnk
                                     FROM     locations_tmp
-                                    WHERE    area BETWEEN 0.00003 AND 0.15 limit 200 ) q
-                  ORDER BY _drnk limit 10 ) r
-ORDER BY _drnk, SQRT(area) LIMIT 10;
+                                    WHERE    area BETWEEN 0.00001 AND 0.15 limit 200 ) q
+                  ORDER BY _drnk limit 20 ) r
+ORDER BY dist LIMIT 20;
 ");
 
 // ORDER BY cdist * _drnk LIMIT 10; best
@@ -71,17 +70,71 @@ foreach ($pcs as $pc) {
     $pgareas = $sth->fetchAll();
 
     if (count($pgareas)) {
-        $pgarea = $pgareas[0];
+        # Exclude any areas which are significantly larger than most of the ones we found.  This is to handle
+        # cases where there might be large areas on the map which cover a whole bunch of smaller areas.  In that
+        # case we want to ignore the larger area, and map to one of the smaller ones.
+        #
+        # Also exclude ones which are significantly smaller.  These are likely to be things like schools rather
+        # than areas.
+        $medianArea = Utils::calculate_median(array_column($pgareas, 'area'));
+        $found = count($pgareas);
+        $originals = $pgareas;
+
+        if ($medianArea) {
+            $pgareas = array_filter($pgareas, function($a) use ($medianArea) {
+                if ($a['area'] < $medianArea * 10 && $a['area'] > $medianArea / 10) {
+//                    error_log("Keep {$a['name']} of size {$a['area']} vs $medianArea");
+                    return TRUE;
+                } else {
+                    error_log("Remove {$a['name']} of size {$a['area']} vs $medianArea");
+                    return FALSE;
+                }
+            });
+        }
+
+        if (count($pgareas) < $found) {
+            error_log("Removed large areas, now have " . count($pgareas));
+        }
+
+        $inside = [];
+
+        foreach ($pgareas as $pgarea) {
+            if ($pgarea['inside']) {
+                $inside[] = $pgarea;
+            }
+        }
+
+        $pgarea = NULL;
+
+        if (!count($inside)) {
+            # If the postcode is not inside any areas, then we want the closest.
+            error_log("Inside no areas - choose closest");
+            $pgarea = array_shift($pgareas);
+        } else if (count($inside) == 1) {
+            # It's inside precisely one area, of a reasonable size.  That's the one we want.
+            error_log("Inside just 1 - choose that");
+            $pgarea = $inside[0];
+        } else {
+            # It's inside multiple areas, all of a reasonable size.  We want the smallest.
+            error_log("Inside multiple - choose smallest.");
+            array_multisort(array_column($inside, 'area'), SORT_ASC, $inside);
+            $pgarea = array_shift($inside);
+        }
+
         if ($pc['areaname'] == $pgarea['name']) {
             $same++;
         } else {
-            echo("#{$pc['locationid']} {$pc['name']} {$pc['lat']}, {$pc['lng']} = {$pc['areaid']} {$pc['areaname']} => {$pgarea['locationid']} {$pgarea['name']}\n");
-            foreach ($pgareas as $pgarea) {
-                echo("...{$pgarea['name']} area {$pgarea['area']} dist {$pgarea['dist']} cdist {$pgarea['cdist']} drnk {$pgarea['_drnk']}\n");
+            echo("#{$pc['locationid']} {$pc['name']} {$pc['lat']}, {$pc['lng']} = {$pc['areaid']} {$pc['areaname']} => {$pgarea['locationid']} {$pgarea['name']}, median area $medianArea\n");
+            foreach ($originals as $o) {
+                echo("...{$o['name']} area {$o['area']} dist {$o['dist']} cdist {$o['cdist']} drnk {$o['_drnk']} inside {$o['inside']}\n");
             }
-            $dbhm->preExec("INSERT INTO locations_dodgy (lat, lng) VALUES (?, ?)", [
+
+            $dbhm->preExec("INSERT INTO locations_dodgy (lat, lng, locationid, oldlocationid, newlocationid) VALUES (?, ?, ?, ?, ?)", [
                 $pc['lat'],
-                $pc['lng']
+                $pc['lng'],
+                $pc['locationid'],
+                $pc['areaid'],
+                $pgarea['locationid']
             ]);
             $different++;
         }
