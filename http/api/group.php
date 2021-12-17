@@ -35,7 +35,7 @@ function group() {
                     'status' => 'Invalid group id'
                 ];
 
-                if ($id) {
+                if ($id && $g->getId() == $id) {
                     $members = array_key_exists('members', $_REQUEST) ? filter_var($_REQUEST['members'], FILTER_VALIDATE_BOOLEAN) : FALSE;
                     $showmods = array_key_exists('showmods', $_REQUEST) ? filter_var($_REQUEST['showmods'], FILTER_VALIDATE_BOOLEAN) : FALSE;
 
