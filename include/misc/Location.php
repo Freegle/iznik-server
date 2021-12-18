@@ -1,7 +1,6 @@
 <?php
 namespace Freegle\Iznik;
 
-
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 require_once(IZNIK_BASE . '/lib/GreatCircle.php');
 

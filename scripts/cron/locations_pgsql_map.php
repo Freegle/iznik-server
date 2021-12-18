@@ -17,10 +17,10 @@ error_log("Get test set");
 $pcs = $dbhr->preQuery("SELECT DISTINCT locations_spatial.locationid, locations.newareaid, locations.name, locations.lat, locations.lng, l1.name AS areaname, l1.id AS areaid FROM locations_spatial 
     INNER JOIN locations ON locations_spatial.locationid = locations.id
     INNER JOIN locations l1 ON locations.areaid = l1.id
+    INNER JOIN messages ON messages.locationid = locations_spatial.locationid
     WHERE locations.type = 'Postcode'  
-    AND locate(' ', locations.name) > 0 
+    AND locate(' ', locations.name) > 0
     ;");
-//INNER JOIN messages ON messages.locationid = locations_spatial.locationid
 
 //INNER JOIN `groups` ON ST_Contains(ST_GeomFromText(COALESCE(poly, polyofficial), 3857), locations_spatial.geometry) AND groups.id = 21589
 
@@ -36,29 +36,68 @@ FROM     (
                            dist,
                            cdist,
                            _drnk,
-                           st_contains(location, ST_SetSRID(ST_MakePoint(?,?), 3857)) AS inside
+                           ST_Contains(location, ST_SetSRID(ST_MakePoint(?, ?), 3857)) AS inside,
+                           CASE
+                               WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer(ST_MakePoint(?, ?),0.00015625), 3857)) THEN 1
+                               WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer(ST_MakePoint(?, ?),0.0003125), 3857)) THEN 2
+                               WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer(ST_MakePoint(?, ?),0.000625), 3857)) THEN 3
+                               WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer(ST_MakePoint(?, ?),0.00125), 3857)) THEN 4
+                               WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer(ST_MakePoint(?, ?),0.0025), 3857)) THEN 5
+                               WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer(ST_MakePoint(?, ?),0.005), 3857)) THEN 6
+                               WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer(ST_MakePoint(?, ?),0.01), 3857)) THEN 7
+                               WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer(ST_MakePoint(?, ?),0.02), 3857)) THEN 8
+                               WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer(ST_MakePoint(?, ?),0.04), 3857)) THEN 9
+                               WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer(ST_MakePoint(?, ?),0.08), 3857)) THEN 10
+                               WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer(ST_MakePoint(?, ?),0.16), 3857)) THEN 11
+                               WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer(ST_MakePoint(?, ?),0.32), 3857)) THEN 12
+                           END AS intersects                         
                   FROM     (
                                     SELECT   locationid,
                                              name,
                                              location,
                                              ST_Area(location) AS area,
-                                             location <-> ST_SetSRID(ST_MakePoint(?,?), 3857)                       AS dist,
-                                             ST_Centroid(location) <-> ST_SetSRID(ST_MakePoint(?,?), 3857)          AS cdist,
-                                             RANK() OVER(ORDER BY location <-> ST_SetSRID(ST_MakePoint(?,?), 3857)) AS _drnk
+                                             location <-> ST_SetSRID(ST_MakePoint(?, ?), 3857)                       AS dist,
+                                             ST_Centroid(location) <-> ST_SetSRID(ST_MakePoint(?, ?), 3857)          AS cdist,
+                                             RANK() OVER(ORDER BY location <-> ST_SetSRID(ST_MakePoint(?, ?), 3857)) AS _drnk
                                     FROM     locations_tmp
-                                    WHERE    ST_Area(location) BETWEEN 0.00001 AND 0.15 limit 200 ) q
-                  ORDER BY _drnk limit 20 ) r
-ORDER BY dist LIMIT 20;
+                                    WHERE    ST_Area(location) BETWEEN 0.00001 AND 0.15
+                                    LIMIT 200                                           
+                      ) q
+                  WHERE ST_Dimension(location) = 2
+                  ORDER BY _drnk limit 10 ) r
+ORDER BY intersects ASC, area ASC;
 ");
-
-// ORDER BY cdist * _drnk LIMIT 10; best
 
 $same = 0;
 $different = 0;
 $count = 0;
 
 foreach ($pcs as $pc) {
-    $sth->execute([
+    if (!$sth->execute([
+        $pc['lng'],
+        $pc['lat'],
+        $pc['lng'],
+        $pc['lat'],
+        $pc['lng'],
+        $pc['lat'],
+        $pc['lng'],
+        $pc['lat'],
+        $pc['lng'],
+        $pc['lat'],
+        $pc['lng'],
+        $pc['lat'],
+        $pc['lng'],
+        $pc['lat'],
+        $pc['lng'],
+        $pc['lat'],
+        $pc['lng'],
+        $pc['lat'],
+        $pc['lng'],
+        $pc['lat'],
+        $pc['lng'],
+        $pc['lat'],
+        $pc['lng'],
+        $pc['lat'],
         $pc['lng'],
         $pc['lat'],
         $pc['lng'],
@@ -67,75 +106,14 @@ foreach ($pcs as $pc) {
         $pc['lat'],
         $pc['lng'],
         $pc['lat']
-    ]);
+    ])) {
+        var_dump($pgsql->errorInfo());
+    }
 
     $pgareas = $sth->fetchAll();
 
     if (count($pgareas)) {
-        # Exclude any areas which are significantly larger than most of the ones we found.  This is to handle
-        # cases where there might be large areas on the map which cover a whole bunch of smaller areas.  In that
-        # case we want to ignore the larger area, and map to one of the smaller ones.
-        #
-        # Also exclude ones which are significantly smaller.  These are likely to be things like schools rather
-        # than areas.
-        $medianArea = Utils::calculate_median(array_column($pgareas, 'area'));
-        $found = count($pgareas);
-        $originals = $pgareas;
-
-        $inside = [];
-
-        foreach ($pgareas as $pgarea) {
-            if ($pgarea['inside']) {
-                $inside[] = $pgarea;
-            }
-        }
-
-        if (count($inside) == 1) {
-            # Inside precisely one area.  Doesn't really matter how big it is.
-            error_log("Inside just 1 of any size - choose that");
-            $pgarea = $inside[0];
-        } else {
-            if ($medianArea) {
-                $pgareas = array_filter($pgareas, function($a) use ($medianArea) {
-                    if ($a['area'] < $medianArea * 10 && $a['area'] > $medianArea / 10) {
-//                    error_log("Keep {$a['name']} of size {$a['area']} vs $medianArea");
-                        return TRUE;
-                    } else {
-                        error_log("Remove {$a['name']} of size {$a['area']} vs $medianArea");
-                        return FALSE;
-                    }
-                });
-            }
-
-            if (count($pgareas) < $found) {
-                error_log("Removed large areas, now have " . count($pgareas));
-            }
-
-            $inside = [];
-
-            foreach ($pgareas as $pgarea) {
-                if ($pgarea['inside']) {
-                    $inside[] = $pgarea;
-                }
-            }
-
-            $pgarea = NULL;
-
-            if (!count($inside)) {
-                # If the postcode is not inside any areas, then we want the closest.
-                error_log("Inside no areas - choose closest");
-                $pgarea = array_shift($pgareas);
-            } else if (count($inside) == 1) {
-                # It's inside precisely one area, of a reasonable size.  That's the one we want.
-                error_log("Inside just 1 of reasonable size - choose that");
-                $pgarea = $inside[0];
-            } else {
-                # It's inside multiple areas, all of a reasonable size.  We want the smallest.
-                error_log("Inside multiple - choose smallest.");
-                array_multisort(array_column($inside, 'area'), SORT_ASC, $inside);
-                $pgarea = array_shift($inside);
-            }
-        }
+        $pgarea = $pgareas[0];
 
         if ($pc['areaname'] == $pgarea['name']) {
             $same++;
@@ -146,9 +124,9 @@ foreach ($pcs as $pc) {
                 ]);
             }
         } else {
-            echo("#{$pc['locationid']} {$pc['name']} {$pc['lat']}, {$pc['lng']} = {$pc['areaid']} {$pc['areaname']} => {$pgarea['locationid']} {$pgarea['name']}, median area $medianArea\n");
-            foreach ($originals as $o) {
-                echo("...{$o['name']} area {$o['area']} dist {$o['dist']} cdist {$o['cdist']} drnk {$o['_drnk']} inside {$o['inside']}\n");
+            echo("#{$pc['locationid']} {$pc['name']} {$pc['lat']}, {$pc['lng']} = {$pc['areaid']} {$pc['areaname']} => {$pgarea['locationid']} {$pgarea['name']}\n");
+            foreach ($pgareas as $o) {
+                echo("...{$o['name']} area {$o['area']} dist {$o['dist']} cdist {$o['cdist']} drnk {$o['_drnk']} inside {$o['inside']}, intersects: {$o['intersects']}\n");
             }
 
             $dbhm->preExec("UPDATE locations SET newareaid = ? WHERE id = ?", [

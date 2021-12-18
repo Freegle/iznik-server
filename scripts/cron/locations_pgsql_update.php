@@ -9,6 +9,7 @@ require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
+# grant all privileges on locations_tmp to iznik;
 $pgsql = new \PDO("pgsql:host=localhost;dbname=postgres", "iznik", "iznik");
 $pgsql->exec("DROP TABLE IF EXISTS locations_tmp;");
 $pgsql->exec("DROP INDEX IF EXISTS idx_location;");
@@ -18,7 +19,12 @@ $pgsql->exec("ALTER TABLE locations_tmp SET UNLOGGED");
 
 error_log("Get locations");
 $dbhr->doConnect();
-$locations = $dbhr->_db->query("SELECT locations.id, name, type, ST_AsText(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) AS geom FROM locations LEFT JOIN locations_excluded le on locations.id = le.locationid WHERE le.locationid IS NULL;");
+
+# Get non-excluded polygons.
+$locations = $dbhr->_db->query("SELECT locations.id, name, type, 
+       ST_AsText(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) AS geom
+FROM locations LEFT JOIN locations_excluded le on locations.id = le.locationid 
+WHERE le.locationid IS NULL HAVING ST_Dimension(geom) = 2;");
 error_log("Got first chunk");
 $std = $pgsql->prepare("INSERT INTO locations_tmp (locationid, name, type, location) VALUES (?, ?, ?, ST_Area(postgis.ST_GeomFromText(?, {$dbhr->SRID()})), postgis.ST_GeomFromText(?, {$dbhr->SRID()}));");
 
@@ -35,5 +41,5 @@ foreach ($locations as $location) {
     }
 }
 
-$pgsql->exec("CREATE INDEX idx_location ON locations_tmp USING gist(location, area);");
+$pgsql->exec("CREATE INDEX idx_location ON locations_tmp USING gist(location);");
 $pgsql->exec("ALTER TABLE locations_tmp SET LOGGED");
