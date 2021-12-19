@@ -15,9 +15,11 @@ jobs:
           MYSQL_DATABASE: iznik
           MYSQL_ROOT_HOST: 127.0.0.1
       - image: circleci/postgres:11-postgis-ram
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD
         environment:
-          POSTGRES_USER: iznik
-          POSTGRES_PASSWORD: iznik
+          POSTGRES_USER: postgres
     steps:
       - checkout
       - run: sudo apt-get update
@@ -33,6 +35,8 @@ jobs:
       - run: sudo -E docker-php-ext-enable mailparse
       - run: sudo docker-php-ext-install pdo_mysql
       - run: sudo -E docker-php-ext-enable pdo_mysql
+      - run: sudo docker-php-ext-install pdo_pgsql
+      - run: sudo -E docker-php-ext-enable pdo_pgsql
       - run: sudo -E pecl install redis
       - run: sudo -E docker-php-ext-enable redis
 
@@ -45,7 +49,8 @@ jobs:
       - run: sudo sed -i 's/home-dir/home-dir -4/g' /etc/default/spamassassin
       - run: sudo service spamassassin start
 
-#      - run: sudo apt-get install php-ssh2
+      # Postgresql
+      - run: sudo apt-get install -y postgresql-client-common postgresql-client
 
       # GeoIP
       - run: sudo apt-get install -y automake autoconf libtool build-essential libcurl4-openssl-dev zlib1g-dev
