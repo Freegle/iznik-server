@@ -9,6 +9,11 @@ define('SQLPASSWORD', '');
 define('PASSWORD_SALT', 'zzzz');
 define('MODERATOR_EMAIL', 'modtools@modtools.org');
 
+# We use Postgresql for limited purposes.
+define('PGSQLHOST', 'zzzz');
+define('PGSQLUSER', 'zzzz');
+define('PGSQLPASSWORD', 'zzzz');
+
 # Logos
 define('USERLOGO', 'https://www.ilovefreegle.org/icon.png');
 define('MODLOGO', 'https://modtools.org/images/modlogo-large.jpg');

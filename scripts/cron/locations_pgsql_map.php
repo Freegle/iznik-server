@@ -27,45 +27,41 @@ $pcs = $dbhr->preQuery("SELECT DISTINCT locations_spatial.locationid, locations.
 $total = count($pcs);
 
 $sth = $pgsql->prepare("
-SELECT   *
-FROM     (
-                  SELECT   
-                           locationid,
-                           name,
-                           area,
-                           dist,
-                           cdist,
-                           _drnk,
-                           ST_Contains(location, ST_SetSRID(ST_MakePoint(?, ?), 3857)) AS inside,
-                           CASE
-                               WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer(ST_MakePoint(?, ?),0.00015625), 3857)) THEN 1
-                               WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer(ST_MakePoint(?, ?),0.0003125), 3857)) THEN 2
-                               WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer(ST_MakePoint(?, ?),0.000625), 3857)) THEN 3
-                               WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer(ST_MakePoint(?, ?),0.00125), 3857)) THEN 4
-                               WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer(ST_MakePoint(?, ?),0.0025), 3857)) THEN 5
-                               WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer(ST_MakePoint(?, ?),0.005), 3857)) THEN 6
-                               WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer(ST_MakePoint(?, ?),0.01), 3857)) THEN 7
-                               WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer(ST_MakePoint(?, ?),0.02), 3857)) THEN 8
-                               WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer(ST_MakePoint(?, ?),0.04), 3857)) THEN 9
-                               WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer(ST_MakePoint(?, ?),0.08), 3857)) THEN 10
-                               WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer(ST_MakePoint(?, ?),0.16), 3857)) THEN 11
-                               WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer(ST_MakePoint(?, ?),0.32), 3857)) THEN 12
-                           END AS intersects                         
-                  FROM     (
-                                    SELECT   locationid,
-                                             name,
-                                             location,
-                                             ST_Area(location) AS area,
-                                             location <-> ST_SetSRID(ST_MakePoint(?, ?), 3857)                       AS dist,
-                                             ST_Centroid(location) <-> ST_SetSRID(ST_MakePoint(?, ?), 3857)          AS cdist,
-                                             RANK() OVER(ORDER BY location <-> ST_SetSRID(ST_MakePoint(?, ?), 3857)) AS _drnk
-                                    FROM     locations_tmp
-                                    WHERE    ST_Area(location) BETWEEN 0.00001 AND 0.15
-                                    LIMIT 200                                           
-                      ) q
-                  WHERE ST_Dimension(location) = 2
-                  ORDER BY _drnk limit 10 ) r
-ORDER BY intersects ASC, area ASC;
+WITH ourpoint AS
+(
+ SELECT ST_MakePoint(?, ?) as p
+)
+SELECT
+   locationid,
+   name,
+   ST_Area(location) AS area,
+   dist,
+   CASE
+       WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer((SELECT p FROM ourpoint),0.00015625), 3857)) THEN 1
+       WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer((SELECT p FROM ourpoint),0.0003125), 3857)) THEN 2
+       WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer((SELECT p FROM ourpoint),0.000625), 3857)) THEN 3
+       WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer((SELECT p FROM ourpoint),0.00125), 3857)) THEN 4
+       WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer((SELECT p FROM ourpoint),0.0025), 3857)) THEN 5
+       WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer((SELECT p FROM ourpoint),0.005), 3857)) THEN 6
+       WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer((SELECT p FROM ourpoint),0.01), 3857)) THEN 7
+       WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer((SELECT p FROM ourpoint),0.02), 3857)) THEN 8
+       WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer((SELECT p FROM ourpoint),0.04), 3857)) THEN 9
+       WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer((SELECT p FROM ourpoint),0.08), 3857)) THEN 10
+       WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer((SELECT p FROM ourpoint),0.16), 3857)) THEN 11
+       WHEN ST_Intersects(location, ST_SetSRID(ST_Buffer((SELECT p FROM ourpoint),0.32), 3857)) THEN 12
+   END AS intersects
+  FROM (
+    SELECT   locationid,
+             name,
+             location,
+             location <-> ST_SetSRID((SELECT p FROM ourpoint), 3857) AS dist
+    FROM     locations_tmp 
+    WHERE    ST_Area(location) BETWEEN 0.00001 AND 0.15
+    ORDER BY location <-> ST_SetSRID((SELECT p FROM ourpoint), 3857)
+    LIMIT 10
+) q
+WHERE ST_Dimension(location) = 2
+ORDER BY intersects ASC, area ASC LIMIT 1;
 ");
 
 $same = 0;
@@ -76,36 +72,6 @@ foreach ($pcs as $pc) {
     if (!$sth->execute([
         $pc['lng'],
         $pc['lat'],
-        $pc['lng'],
-        $pc['lat'],
-        $pc['lng'],
-        $pc['lat'],
-        $pc['lng'],
-        $pc['lat'],
-        $pc['lng'],
-        $pc['lat'],
-        $pc['lng'],
-        $pc['lat'],
-        $pc['lng'],
-        $pc['lat'],
-        $pc['lng'],
-        $pc['lat'],
-        $pc['lng'],
-        $pc['lat'],
-        $pc['lng'],
-        $pc['lat'],
-        $pc['lng'],
-        $pc['lat'],
-        $pc['lng'],
-        $pc['lat'],
-        $pc['lng'],
-        $pc['lat'],
-        $pc['lng'],
-        $pc['lat'],
-        $pc['lng'],
-        $pc['lat'],
-        $pc['lng'],
-        $pc['lat']
     ])) {
         var_dump($pgsql->errorInfo());
     }
@@ -126,7 +92,7 @@ foreach ($pcs as $pc) {
         } else {
             echo("#{$pc['locationid']} {$pc['name']} {$pc['lat']}, {$pc['lng']} = {$pc['areaid']} {$pc['areaname']} => {$pgarea['locationid']} {$pgarea['name']}\n");
             foreach ($pgareas as $o) {
-                echo("...{$o['name']} area {$o['area']} dist {$o['dist']} cdist {$o['cdist']} drnk {$o['_drnk']} inside {$o['inside']}, intersects: {$o['intersects']}\n");
+                echo("...{$o['name']} area {$o['area']} dist {$o['dist']}, intersects: {$o['intersects']}\n");
             }
 
             $dbhm->preExec("UPDATE locations SET newareaid = ? WHERE id = ?", [

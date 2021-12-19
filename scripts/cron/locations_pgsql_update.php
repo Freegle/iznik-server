@@ -9,7 +9,11 @@ require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
-# grant all privileges on locations_tmp to iznik;
+# Assumes some Postgres setup.
+# - user iznik
+# - grant all privileges on locations_tmp to iznik;
+# - installed btree_gist and postgis extensions
+
 $pgsql = new \PDO("pgsql:host=localhost;dbname=postgres", "iznik", "iznik");
 $pgsql->exec("DROP TABLE IF EXISTS locations_tmp;");
 $pgsql->exec("DROP INDEX IF EXISTS idx_location;");
