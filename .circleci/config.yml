@@ -14,6 +14,10 @@ jobs:
           MYSQL_ROOT_PASSWORD: ''
           MYSQL_DATABASE: iznik
           MYSQL_ROOT_HOST: 127.0.0.1
+      - image: circleci/postgres:11-postgis-ram
+        environment:
+          POSTGRES_USER: iznik
+          POSTGRES_PASSWORD: iznik
     steps:
       - checkout
       - run: sudo apt-get update

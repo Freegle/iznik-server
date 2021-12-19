@@ -31,7 +31,7 @@ $dbhr->doConnect();
 $locations = $dbhr->_db->query("SELECT locations.id, name, type, 
        ST_AsText(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) AS geom
 FROM locations LEFT JOIN locations_excluded le on locations.id = le.locationid 
-WHERE le.locationid IS NULL;");
+WHERE le.locationid IS NULL AND ST_Dimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) = 2;");
 error_log("Got first chunk " . var_export($dbhr->errorInfo(), TRUE));
 
 $count = 0;

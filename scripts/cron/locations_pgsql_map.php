@@ -9,8 +9,7 @@ require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
-$pgsql = new \PDO("pgsql:host=localhost;dbname=postgres", "iznik", "iznik");
-
+$pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
 $dbhm->preExec("DELETE FROM locations_dodgy WHERE 1;");
 
 error_log("Get test set");
@@ -25,8 +24,12 @@ $pcs = $dbhr->preQuery("SELECT DISTINCT locations_spatial.locationid, locations.
 //INNER JOIN `groups` ON ST_Contains(ST_GeomFromText(COALESCE(poly, polyofficial), 3857), locations_spatial.geometry) AND groups.id = 21589
 
 $total = count($pcs);
+$same = 0;
+$different = 0;
+$count = 0;
 
-$sth = $pgsql->prepare("
+foreach ($pcs as $pc) {
+    $pgareas = $pgsql->preQuery("
 WITH ourpoint AS
 (
  SELECT ST_MakePoint(?, ?) as p
@@ -60,23 +63,11 @@ SELECT
     ORDER BY location <-> ST_SetSRID((SELECT p FROM ourpoint), 3857)
     LIMIT 10
 ) q
-WHERE ST_Dimension(location) = 2
 ORDER BY intersects ASC, area ASC LIMIT 1;
-");
-
-$same = 0;
-$different = 0;
-$count = 0;
-
-foreach ($pcs as $pc) {
-    if (!$sth->execute([
+", [
         $pc['lng'],
         $pc['lat'],
-    ])) {
-        var_dump($pgsql->errorInfo());
-    }
-
-    $pgareas = $sth->fetchAll();
+    ]);
 
     if (count($pgareas)) {
         $pgarea = $pgareas[0];
