@@ -12,6 +12,7 @@ define('MODERATOR_EMAIL', 'modtools@modtools.org');
 # We use Postgresql for limited purposes.
 define('PGSQLHOST', 'zzzz');
 define('PGSQLUSER', 'zzzz');
+define('PGSQLDB', 'zzzz');
 define('PGSQLPASSWORD', 'zzzz');
 
 # Logos

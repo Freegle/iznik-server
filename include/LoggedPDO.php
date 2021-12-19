@@ -26,6 +26,7 @@ class LoggedPDO {
     private $readconn;
     private $username = NULL;
     private $password = NULL;
+    private $variant = NULL;
     private $sqllog = SQLLOG;
     private $preparedStatements = [];
     private $version;
@@ -82,9 +83,10 @@ class LoggedPDO {
         $this->pheanstalk = $pheanstalk;
     }
 
-    public function __construct($hosts, $database, $username, $password, $readonly = FALSE, \Freegle\Iznik\LoggedPDO $readconn = NULL)
+    public function __construct($hosts, $database, $username, $password, $readonly = FALSE, \Freegle\Iznik\LoggedPDO $readconn = NULL, $variant = 'mysql')
     {
         $this->hosts = explode(',', $hosts);
+        $this->variant = $variant;
         $this->database = $database;
         $this->username = $username;
         $this->password = $password;
@@ -118,7 +120,11 @@ class LoggedPDO {
                     $host = $this->hosts[$hostindex];
                     $hostname = substr($host, 0, strpos($host, ':'));
                     $port = substr($host, strpos($host, ':') + 1);
-                    $dsn = "mysql:host=$hostname;port=$port;dbname={$this->database};charset=utf8";
+                    $dsn = "{$this->variant}:host=$hostname;port=$port;dbname={$this->database}";
+
+                    if ($this->variant == 'mysql') {
+                        $dsn .= ";charset=utf8";
+                    }
 
                     # Check if we know that the server is down.  This avoids problems where the server is not
                     # responding to network connections, which would otherwise cause our connect attempt to hang
@@ -251,9 +257,15 @@ class LoggedPDO {
                 $sth = $this->preparedStatements[$sql];
                 $rc = $this->executeStatement($sth, $params);
 
-                if (!$select) {
-                    $this->lastInsert = $this->_db->lastInsertId();
-                    $this->rowsAffected = $sth->rowCount();
+                if ($rc && !$select) {
+                    $this->lastInsert = 0;
+                    $this->rowsAffected = 0;
+
+                    # lastInsertId might fail on Postgresql, eg for CREATE TABLE.
+                    try {
+                        $this->lastInsert = $this->_db->lastInsertId();
+                        $this->rowsAffected = $sth->rowCount();
+                    } catch (\Exception $e) {}
                 }
 
                 if ($rc) {
