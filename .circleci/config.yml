@@ -19,7 +19,8 @@ jobs:
           username: mydockerhub-user
           password: $DOCKERHUB_PASSWORD
         environment:
-          POSTGRES_USER: postgres
+          POSTGRES_USER: iznik
+          POSTGRES_PASSWORD: iznik
     steps:
       - checkout
       - run: sudo apt-get update
