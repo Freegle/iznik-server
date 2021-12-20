@@ -10,4 +10,5 @@ require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
 $l = new Location($dbhr, $dbhm);
-$l->copyLocationsToPostgresql();
+$count = $l->copyLocationsToPostgresql();
+mail("log@ehibbert.org.uk", "$count locations copied to Postgresql", "", [], '-f' . NOREPLY_ADDR);

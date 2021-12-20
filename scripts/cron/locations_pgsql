@@ -1,0 +1,3 @@
+#!/bin/bash
+php locations_pgsql_update.php
+php locations_pgsql_map.php
