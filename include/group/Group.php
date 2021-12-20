@@ -795,18 +795,16 @@ HAVING logincount > 0
             }
         }
 
+        $banusers = [];
+
         if ($groupids && count($groupids) == 1) {
             # Get the bans.
-            $banusers = [];
-
             if (count($uids)) {
                 $bans = $this->dbhr->preQuery("SELECT * FROM users_banned WHERE userid IN (" . implode(',', $uids) . ') AND groupid = ?;', [
                     $groupids[0]
                 ]);
 
                 foreach ($bans as $ban) {
-                    $g = Group::get($this->dbhr, $this->dbhm, $ban['groupid']);
-                    $banner = User::get($this->dbhr, $this->dbhm, $ban['byuser']);
                     $banusers[$ban['userid']] = [
                         'bandate' => Utils::ISODate($ban['date']),
                         'bannedby' => $ban['byuser']

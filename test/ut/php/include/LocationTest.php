@@ -132,6 +132,9 @@ class locationTest extends IznikTestCase {
         assertNotNull($areaid2);
 
         # Postcode should be in area 2, because it contains the postcode and is smaller than area 1.
+        $l->copyLocationsToPostgresql();
+        $l->remapPostcodes();
+
         $l = new Location($this->dbhr, $this->dbhm, $pcid);
         assertEquals($areaid2, $l->getPrivate('areaid'));
 
@@ -145,6 +148,9 @@ class locationTest extends IznikTestCase {
 
         $l = new Location($this->dbhr, $this->dbhm, $areaid2);
         $l->setGeometry($box3, TRUE);
+
+        $l->copyLocationsToPostgresql();
+        $l->remapPostcodes();
 
         $l = new Location($this->dbhr, $this->dbhm, $pcid);
         assertEquals($areaid1, $l->getPrivate('areaid'));

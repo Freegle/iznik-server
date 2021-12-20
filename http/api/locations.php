@@ -64,14 +64,13 @@ WHERE ld.lat BETWEEN $swlat AND $nelat AND ld.lng BETWEEN $swlng AND $nelng;";
         case 'POST': {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
             $role = $me ? $me->getRoleForGroup($groupid) : User::ROLE_NONMEMBER;
-            $remap = Utils::presbool('remap', $_REQUEST, FALSE);
 
             if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                 $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
                 switch ($action) {
                     case 'Exclude':
-                        $l->exclude($groupid, $me->getId(), $byname, $remap);
+                        $l->exclude($groupid, $me->getId(), $byname);
 
                         if ($messageid) {
                             # Suggest a new subject for this message.
@@ -94,13 +93,12 @@ WHERE ld.lat BETWEEN $swlat AND $nelat AND ld.lng BETWEEN $swlng AND $nelng;";
 
             if ($role == User::SYSTEMROLE_MODERATOR || $role == User::SYSTEMROLE_SUPPORT || $role == User::SYSTEMROLE_ADMIN) {
                 $polygon = Utils::presdef('polygon', $_REQUEST, NULL);
-                $remap = Utils::presbool('remap', $_REQUEST, FALSE);
 
                 if ($polygon) {
                     $worked = FALSE;
                     $ret = ['ret' => 3, 'status' => 'Set failed - invalid geometry?'];
 
-                    if ($l->setGeometry($polygon, $remap)) {
+                    if ($l->setGeometry($polygon)) {
                         $worked = TRUE;
                     }
                 }
@@ -125,12 +123,11 @@ WHERE ld.lat BETWEEN $swlat AND $nelat AND ld.lng BETWEEN $swlng AND $nelng;";
             if ($role == User::SYSTEMROLE_MODERATOR || $role == User::SYSTEMROLE_SUPPORT || $role == User::SYSTEMROLE_ADMIN) {
                 $polygon = Utils::presdef('polygon', $_REQUEST, NULL);
                 $name = Utils::presdef('name', $_REQUEST, NULL);
-                $remap = Utils::presbool('remap', $_REQUEST, FALSE);
 
                 if ($polygon && $name) {
                     # We create this as a place, which can be used as an area - the client wouldn't have created it
                     # if they didn't want that.
-                    $id = $l->create(NULL, $name, 'Polygon', $polygon, $remap);
+                    $id = $l->create(NULL, $name, 'Polygon', $polygon);
                     $ret = [ 'ret' => 0, 'status' => 'Success', 'id' => $id ];
                 }
             }

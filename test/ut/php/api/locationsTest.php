@@ -268,8 +268,7 @@ class locationsAPITest extends IznikAPITestCase
         # Not logged in
         $ret = $this->call('locations', 'PATCH', [
             'id' => $lid2,
-            'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))',
-            'remap' => TRUE
+            'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))'
         ]);
         assertEquals(2, $ret['ret']);
 
@@ -279,8 +278,7 @@ class locationsAPITest extends IznikAPITestCase
         # Member only
         $ret = $this->call('locations', 'PATCH', [
             'id' => $lid2,
-            'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))',
-            'remap' => TRUE
+            'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))'
         ]);
         assertEquals(2, $ret['ret']);
 
@@ -289,8 +287,7 @@ class locationsAPITest extends IznikAPITestCase
         $ret = $this->call('locations', 'PATCH', [
             'id' => $lid2,
             'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))',
-            'name' => 'Tuvalu Central2',
-            'remap' => TRUE
+            'name' => 'Tuvalu Central2'
         ]);
         assertEquals(0, $ret['ret']);
 
@@ -319,8 +316,7 @@ class locationsAPITest extends IznikAPITestCase
         # Not logged in
         $ret = $this->call('locations', 'PUT', [
             'name' => 'Tuvalu Central',
-            'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))',
-            'remap' => TRUE
+            'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))'
         ]);
         assertEquals(2, $ret['ret']);
 
@@ -331,8 +327,7 @@ class locationsAPITest extends IznikAPITestCase
         $ret = $this->call('locations', 'PUT', [
             'name' => 'Tuvalu Central',
             'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))',
-            'dup' => 1,
-            'remap' => TRUE
+            'dup' => 1
         ]);
         assertEquals(2, $ret['ret']);
 
@@ -341,17 +336,18 @@ class locationsAPITest extends IznikAPITestCase
         $ret = $this->call('locations', 'PUT', [
             'name' => 'Tuvalu Central',
             'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))',
-            'dup' => 2,
-            'remap' => TRUE
+            'dup' => 2
         ]);
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
         $areaid = $ret['id'];
 
+        $l->copyLocationsToPostgresql();
+        $l->remapPostcodes();
+
         $l = new Location($this->dbhr, $this->dbhm, $lid1);
         assertEquals($areaid, $l->getPrivate('areaid'));
-
-        }
+    }
 
     public function findMyStreet()
     {
@@ -376,7 +372,7 @@ class locationsAPITest extends IznikAPITestCase
         $locid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
 
         assertGreaterThan(0, $l->copyLocationsToPostgresql());
-        assertGreaterThan(0, $l->mapLocationsInPostgresql());
+        assertGreaterThan(0, $l->remapPostcodes());
     }
 
 //    public function testEH() {

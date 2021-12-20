@@ -10,6 +10,6 @@ require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
 $l = new Location($dbhr, $dbhm);
-$count = $l->mapLocationsInPostgresql();
+$count = $l->remapPostcodes();
 mail("log@ehibbert.org.uk", "$count locations in Postgresql mapped", "", [], '-f' . NOREPLY_ADDR);
 

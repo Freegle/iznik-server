@@ -50,7 +50,7 @@ class Location extends Entity
         return($str);
     }
 
-    public function create($osm_id, $name, $type, $geometry, $remap = TRUE)
+    public function create($osm_id, $name, $type, $geometry)
     {
         try {
             $rc = $this->dbhm->preExec("INSERT INTO locations (osm_id, name, type, geometry, canon, osm_place, maxdimension) VALUES (?, ?, ?, ST_GeomFromText(?, {$this->dbhr->SRID()}), ?, ?, GetMaxDimension(ST_GeomFromText(?, {$this->dbhr->SRID()})))",
@@ -80,10 +80,18 @@ class Location extends Entity
             # Set any area and postcode for this new location.
             $this->setParents($id);
 
-            if ($type == 'Polygon' && $remap) {
-                # We might have postcodes which should now map to this new area rather than wherever they mapped
-                # previously.
-                $this->remapPostcodes($geometry, TRUE);
+            $p = strpos($name, ' ');
+
+            if ($type = 'Postcocde' && $p !== FALSE) {
+                # This is a full postcode - find the parent postcode.
+                $sql = "SELECT id FROM locations WHERE name LIKE ? AND type = 'Postcode';";
+                $pcs = $this->dbhm->preQuery($sql, [ substr($name, 0, $p) ]);
+                foreach ($pcs as $pc) {
+                    $this->dbhm->preExec("UPDATE locations SET postcodeid = ? WHERE id = ?;", [
+                       $pc['id'],
+                       $id
+                    ]);
+                }
             }
         } catch (\Exception $e) {
             error_log("Location create exception " . $e->getMessage() . " " . $e->getTraceAsString());
@@ -359,7 +367,7 @@ class Location extends Entity
         return($ret);
     }
 
-    public function exclude($groupid, $userid, $byname, $remap) {
+    public function exclude($groupid, $userid, $byname) {
         # We want to exclude a specific location.  Potentially exclude all locations with the same name as this one; our DB has
         # duplicate names.
         $sql = $byname ? "SELECT id FROM locations WHERE name = (SELECT name FROM locations WHERE id = ?);" : "SELECT id FROM locations WHERE id = ?;";
@@ -373,15 +381,6 @@ class Location extends Entity
                 $groupid,
                 $userid
             ]);
-        }
-
-        if ($remap) {
-            # We might have some postcodes which are mapped to this area.  Remap them.
-            $sql = "SELECT id FROM locations WHERE areaid = ?;";
-            $locs = $this->dbhr->preQuery($sql, [ $this->id ]);
-            foreach ($locs as $loc) {
-                $this->setParents($loc['id']);
-            }
         }
 
         # Not the end of the world if this doesn't work.
@@ -565,97 +564,7 @@ class Location extends Entity
         return (count($locs) == 1 ? $locs[0]['id'] : NULL);
     }
 
-    public function remapPostcodes($polygon, $setChildren, $mod = 1, $val = 0) {
-        for ($loop = 0; $loop < 2; $loop++) {
-            if ($loop == 0) {
-                # Get full postcodes in this polygon which match a message.  Doing these first helps if we're
-                # doing a bulk update because the bulk update takes a long time, and this gets the most important
-                # locations remapped rapidly.
-                $pcs = $this->dbhr->preQuery("SELECT DISTINCT locations_spatial.locationid, locations.name FROM locations_spatial 
-    INNER JOIN locations ON locations_spatial.locationid = locations.id
-    INNER JOIN messages ON messages.locationid = locations_spatial.locationid
-    WHERE ST_Contains(ST_GeomFromText(?, {$this->dbhr->SRID()}), locations_spatial.geometry)
-    AND locations.type = 'Postcode'  
-    AND locate(' ', locations.name) > 0
-    AND MOD(locations_spatial.locationid, ?) = ?", [
-                    $polygon,
-                    $mod,
-                    $val
-                ]);
-            } else {
-                # Get full postcodes in this polygon which do not match a message.  The rest.
-                $pcs = $this->dbhr->preQuery("SELECT DISTINCT locations_spatial.locationid, locations.name FROM locations_spatial 
-    INNER JOIN locations ON locations_spatial.locationid = locations.id
-    LEFT JOIN messages ON messages.locationid = locations_spatial.locationid
-    WHERE ST_Contains(ST_GeomFromText(?, {$this->dbhr->SRID()}), locations_spatial.geometry)
-    AND locations.type = 'Postcode'  
-    AND locate(' ', locations.name) > 0
-    AND MOD(locations_spatial.locationid, ?) = ?
-    AND messages.id IS NULL", [
-                    $polygon,
-                    $mod,
-                    $val
-                ]);
-            }
-
-            # Now we want to scan each of these postcodes mapping to the correct area.  If we know that the user has
-            # seen the new area on screen ($setChildren), then we can optimise this - if one postcode maps to an area,
-            # then other postcodes within that area should also map to it.  So once we've mapped one postcode,
-            # we can find those others more quickly.  We repeat this until we have no more left.
-            #
-            # We don't always want to do this.  If we were doing a bulk remap, then we might have a large location
-            # which is used by default for some postcodes, and we wouldn't want to overwrite all the smaller locations
-            # within it.
-            if (count($pcs)) {
-                do {
-                    #error_log("Postcodes at start of loop " . count($pcs));
-                    $pc = array_pop($pcs);
-
-                    list ($changed, $areaid, $geom, $areadim) = $this->setParents($pc['locationid']);
-
-                    if ($areaid && $setChildren) {
-                        # We only want to do this if the size of the area is no bigger than the existing one.
-                        # This is to avoid situations where we map a postcode to a small area, and then another
-                        # to a larger area, and then blat over the small area with the larger one.
-                        $sql = "SELECT DISTINCT locationid, l1.name, l1.areaid, l2.maxdimension FROM locations_spatial
-                            INNER JOIN locations l1 ON locations_spatial.locationid = l1.id
-                            INNER JOIN locations l2 ON l2.id = l1.areaid
-                            WHERE ST_Contains(ST_GeomFromText('$geom', {$this->dbhr->SRID()}), locations_spatial.geometry)
-                            AND l1.type = 'Postcode'  
-                            AND locate(' ', l1.name) > 0
-                            AND locationid != {$pc['locationid']}
-                            AND l2.maxdimension > $areadim;";
-                        #error_log($sql);
-                        $otherpcs = $this->dbhr->preQuery($sql);
-
-                        if (count($otherpcs)) {
-                            $toremove = [];
-
-                            foreach ($otherpcs as $otherpc) {
-                                #error_log("...update {$otherpc['locationid']} {$otherpc['name']} to $areaid");
-                                $this->dbhm->preExec("UPDATE locations SET areaid = ? WHERE id = ?;", [
-                                    $areaid,
-                                    $otherpc['locationid']
-                                ]);
-
-                                $toremove[] = $otherpc['locationid'];
-                            }
-
-                            # Remove these from the list of postcodes we need to do a full check on.
-                            #error_log("Remove " . count($otherpcids));
-                            $pcs = array_filter($pcs, function($a) use ($toremove) {
-                                return array_search($a['locationid'], $toremove) === FALSE;
-                            });
-                        }
-                    }
-
-                    #error_log("Postcodes at end  of loop " . count($pcs) . ($loop ? ' not matching message' : ' matching message'));
-                } while (count($pcs));
-            }
-        }
-    }
-
-    public function setGeometry($val, $remap) {
+    public function setGeometry($val) {
         $rc = FALSE;
 
         $valid = $this->dbhm->preQuery("SELECT ST_IsValid(ST_GeomFromText(?, {$this->dbhr->SRID()})) AS valid, ST_AsText(ST_Simplify(ST_GeomFromText(?, {$this->dbhr->SRID()}), 0.001)) AS simp;", [
@@ -692,20 +601,6 @@ class Location extends Entity
                         "UPDATE locations SET maxdimension = GetMaxDimension(ourgeometry), lat = ST_Y(ST_Centroid(ourgeometry)), lng = ST_X(ST_Centroid(ourgeometry)) WHERE id = {$this->id};",
                         [$val]
                     );
-
-                    if ($rc) {
-                        $l = new Location($this->dbhr, $this->dbhm);
-
-                        if ($remap) {
-                            # Remap any postcodes in the old area.
-                            $l->remapPostcodes($oldval, TRUE);
-
-                            # Remap any postcodes in the new area.
-                            $l->remapPostcodes($val, TRUE);
-                        }
-
-                        $this->fetch($this->dbhm, $this->dbhm, $this->id, 'locations', 'loc', $this->publicatts);
-                    }
                 }
             }
         }
@@ -885,8 +780,6 @@ class Location extends Entity
         $pgsql->preExec("CREATE TABLE locations_tmp (id serial, locationid bigint, name text, type location_type, area numeric, location geometry);");
         $pgsql->preExec("ALTER TABLE locations_tmp SET UNLOGGED");
 
-        error_log("Get locations");
-
         # Get the locations.  Go direct to PDO as we want an unbuffered query to reduce memory usage.
         $this->dbhr->doConnect();
 
@@ -894,9 +787,7 @@ class Location extends Entity
         $locations = $this->dbhr->_db->query("SELECT locations.id, name, type, 
                ST_AsText(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) AS geom
                FROM locations LEFT JOIN locations_excluded le on locations.id = le.locationid 
-               WHERE le.locationid IS NULL AND ST_Dimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) = 2;");
-
-        error_log("Got first chunk");
+               WHERE le.locationid IS NULL AND ST_Dimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) = 2 AND type != 'Postcode';");
 
         $count = 0;
         foreach ($locations as $location) {
@@ -917,24 +808,22 @@ class Location extends Entity
         return $count;
     }
     
-    public function mapLocationsInPostgresql() {
-        # We make limited use of Postgresql, because Postgis is fab. This method maps all the postcodes to
+    public function remapPostcodes($geom = NULL) {
+        # We make use of Postgresql for this, because Postgis is fab. This method maps all the postcodes to
         # locations using the data in Postgresql.
+        #
+        # This method assumes that copyLocationsToPostgresql has been called.
         $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
-        $this->dbhm->preExec("DELETE FROM locations_dodgy WHERE 1;");
+        $geomq = $geom ? " ST_Contains(ST_GeomFromText('$geom', {$this->dbhr->SRID()}), locations_spatial.geometry) AND " : '';
 
-        error_log("Get locations");
-        $pcs = $this->dbhr->preQuery("SELECT DISTINCT locations_spatial.locationid, locations.newareaid, locations.name, locations.lat, locations.lng, l1.name AS areaname, l1.id AS areaid FROM locations_spatial 
+        $pcs = $this->dbhr->preQuery("SELECT DISTINCT locations_spatial.locationid, locations.name, locations.lat, locations.lng, locations.name AS areaname, locations.id AS areaid FROM locations_spatial 
     INNER JOIN locations ON locations_spatial.locationid = locations.id
-    INNER JOIN locations l1 ON locations.areaid = l1.id
-    WHERE locations.type = 'Postcode'  
+    WHERE $geomq locations.type = 'Postcode'  
     AND locate(' ', locations.name) > 0
     ;");
 
-        $total = count($pcs);
-        $same = 0;
-        $different = 0;
         $count = 0;
+        $total = count($pcs);
 
         foreach ($pcs as $pc) {
             // This query is the heart of things.  Postgis allows us to find KNN efficiently.  We use that to
@@ -984,38 +873,17 @@ ORDER BY intersects ASC, area ASC LIMIT 1;
 
             if (count($pgareas)) {
                 $pgarea = $pgareas[0];
+                #error_log("Mapped to {$pgarea['name']}, {$pgarea['locationid']} vs {$pc['areaid']}");
 
-                if ($pc['areaname'] == $pgarea['name']) {
-                    $same++;
-                    if ($pc['newareaid'] !== $pc['areaid']) {
-                        $this->dbhm->preExec("UPDATE locations SET newareaid = ? WHERE id = ?", [
-                            $pc['areaid'],
-                            $pc['locationid']
-                        ]);
-                    }
-                } else {
-                    echo("#{$pc['locationid']} {$pc['name']} {$pc['lat']}, {$pc['lng']} = {$pc['areaid']} {$pc['areaname']} => {$pgarea['locationid']} {$pgarea['name']}\n");
-                    foreach ($pgareas as $o) {
-                        echo("...{$o['name']} area {$o['area']} dist {$o['dist']}, intersects: {$o['intersects']}\n");
-                    }
-
-                    $this->dbhm->preExec("UPDATE locations SET newareaid = ? WHERE id = ?", [
+                if ($pgarea['locationid'] != $pc['areaid']) {
+                    #error_log("Set area {$pgarea['locationid']} in {$pc['locationid']}");
+                    $this->dbhm->preExec("UPDATE locations SET areaid = ? WHERE id = ?", [
                         $pgarea['locationid'],
                         $pc['locationid']
                     ]);
-
-                    $this->dbhm->preExec("INSERT INTO locations_dodgy (lat, lng, locationid, oldlocationid, newlocationid) VALUES (?, ?, ?, ?, ?)", [
-                        $pc['lat'],
-                        $pc['lng'],
-                        $pc['locationid'],
-                        $pc['areaid'],
-                        $pgarea['locationid']
-                    ]);
-                    $different++;
                 }
             } else {
                 echo("#{$pc['locationid']} {$pc['name']} {$pc['lat']}, {$pc['lng']} = {$pc['areaid']} {$pc['areaname']} => not mapped\n");
-                $different++;
             }
 
             $count++;
@@ -1024,9 +892,6 @@ ORDER BY intersects ASC, area ASC LIMIT 1;
                 error_log("...$count / $total");
             }
         }
-
-        $diffpc = ($same + $different) ? round(100 * $same / ($same + $different)) : 100;
-        error_log("$same same, $different different = " . $diffpc . "%");
 
         return $count;
     }
