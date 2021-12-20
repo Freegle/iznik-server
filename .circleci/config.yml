@@ -14,7 +14,6 @@ jobs:
           MYSQL_ROOT_PASSWORD: ''
           MYSQL_DATABASE: iznik
           MYSQL_ROOT_HOST: 127.0.0.1
-          PGSQL_DATABASE_URL: postgresql://root@localhost/circle_test
       - image: circleci/postgres:11-postgis-ram
         auth:
           username: mydockerhub-user
@@ -57,15 +56,7 @@ jobs:
       - run: sudo apt-get install -y postgresql-client-common postgresql-client
       - run: |
           psql \
-          -d $TEST_DATABASE_URL \
-          -c "CREATE USER iznik WITH PASSWORD 'iznik';"
-      - run: |
-          psql \
-          -d $TEST_DATABASE_URL \
-          -c "ALTER ROLE iznik superuser;"
-      - run: |
-          psql \
-          -d $TEST_DATABASE_URL \
+          -h 127.0.0.1 -U iznik -d circle_test \
           -c "CREATE DATABASE iznik;"
 
       # GeoIP
