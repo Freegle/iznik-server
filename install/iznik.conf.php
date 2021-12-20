@@ -10,7 +10,7 @@ define('PASSWORD_SALT', 'zzzz');
 define('MODERATOR_EMAIL', 'modtools@modtools.org');
 
 # We use Postgresql for limited purposes.
-define('PGSQLHOST', '127.0.0.1');
+define('PGSQLHOST', '127.0.0.1:5432');
 define('PGSQLUSER', 'iznik');
 define('PGSQLDB', 'iznik');
 define('PGSQLPASSWORD', 'iznik');

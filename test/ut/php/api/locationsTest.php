@@ -364,8 +364,12 @@ class locationsAPITest extends IznikAPITestCase
 
         assertEquals(0, $ret['ret']);
         assertGreaterThan(0, count($ret['streets']));
+    }
 
-        }
+    public function testCopyLocationsToPostgresql() {
+        $l = new Location($this->dbhr, $this->dbhm);
+        assertGreaterThan(0, $l->copyLocationsToPostgresql());
+    }
 
 //    public function testEH() {
 //        $this->dbhr->errorLog = true;

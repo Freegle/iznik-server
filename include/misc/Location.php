@@ -869,4 +869,51 @@ class Location extends Entity
             }
         }
     }
+
+    public function copyLocationsToPostgresql() {
+        # We make limited use of Postgresql, because Postgis is fab. This method copies all relevant locations from
+        # the locations table into Postgresql.
+        $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
+
+        # When running on Docker/CircleCI, the database is not set up fully.
+        $pgsql->preExec("CREATE EXTENSION IF NOT EXISTS postgis;");
+        $pgsql->preExec("CREATE EXTENSION IF NOT EXISTS btree_gist;");
+        $pgsql->preExec("DROP TABLE IF EXISTS locations_tmp;");
+        $pgsql->preExec("DROP INDEX IF EXISTS idx_location;");
+        $pgsql->preExec("DROP TYPE IF EXISTS location_type;");
+        $pgsql->preExec("CREATE TYPE location_type AS ENUM('Road','Polygon','Line','Point','Postcode');");
+        $pgsql->preExec("CREATE TABLE locations_tmp (id serial, locationid bigint, name text, type location_type, area numeric, location geometry);");
+        $pgsql->preExec("ALTER TABLE locations_tmp SET UNLOGGED");
+
+        error_log("Get locations");
+
+        # Get the locations.  Go direct to PDO as we want an unbuffered query to reduce memory usage.
+        $this->dbhr->doConnect();
+
+        # Get non-excluded polygons.
+        $locations = $this->dbhr->_db->query("SELECT locations.id, name, type, 
+               ST_AsText(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) AS geom
+               FROM locations LEFT JOIN locations_excluded le on locations.id = le.locationid 
+               WHERE le.locationid IS NULL AND ST_Dimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) = 2;");
+
+        error_log("Got first chunk");
+
+        $count = 0;
+        foreach ($locations as $location) {
+            $pgsql->preExec("INSERT INTO locations_tmp (locationid, name, type, area, location) VALUES (?, ?, ?, ST_Area(ST_GeomFromText(?, {$this->dbhr->SRID()})), ST_GeomFromText(?, {$this->dbhr->SRID()}));", [
+                $location['id'], $location['name'], $location['type'], $location['geom'], $location['geom']
+            ]);
+
+            $count++;
+
+            if ($count % 1000 == 0) {
+                error_log("...added $count");
+            }
+        }
+
+        $pgsql->preExec("CREATE INDEX idx_location ON locations_tmp USING gist(location);");
+        $pgsql->preExec("ALTER TABLE locations_tmp SET LOGGED");
+
+        return $count;
+    }
 }
