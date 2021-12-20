@@ -574,9 +574,15 @@ class Location extends Entity
 
         foreach ($valid as $v) {
             if ($v['valid']) {
-                $oldval = $this->dbhr->preQuery("SELECT ST_AsText(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) AS geometry FROM locations WHERE id = ?;", [
+                $oldval = $this->dbhr->preQuery("SELECT ST_AsText(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) AS geometry, 
+            CASE WHEN ST_Intersects(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, ST_GeomFromText(?, {$this->dbhr->SRID()}))
+            THEN ST_AsText(ST_UNION(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END, ST_GeomFromText(?, {$this->dbhr->SRID()})))
+            ELSE NULL    
+            END AS unioned FROM locations WHERE id = ?;", [
+                    $val,
+                    $val,
                     $this->id
-                ])[0]['geometry'];
+                ]);
 
                 # Use simplified value.
                 $val = $v['simp'];
@@ -601,6 +607,28 @@ class Location extends Entity
                         "UPDATE locations SET maxdimension = GetMaxDimension(ourgeometry), lat = ST_Y(ST_Centroid(ourgeometry)), lng = ST_X(ST_Centroid(ourgeometry)) WHERE id = {$this->id};",
                         [$val]
                     );
+
+                    # Copy into Postgres.
+                    $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
+                    $pgsql->preExec("INSERT INTO locations_tmp (locationid, name, type, area, location)
+                        VALUES (?, ?, ?, ST_Area(ST_GeomFromText(?, {$this->dbhr->SRID()})), ST_GeomFromText(?, {$this->dbhr->SRID()}))
+                        ON CONFLICT(locationid) DO UPDATE SET location = ST_GeomFromText(?, {$this->dbhr->SRID()});", [
+                        $this->id, $this->loc['name'], $this->loc['type'], $val, $val, $val
+                    ]);
+
+                    if ($oldval[0]['unioned']) {
+                        # We want to remap the areas.  A common case is when we are tweaking areas, and therefore the
+                        # old and new value will overlap.  We can save time by only mapping the union.
+                        $this->remapPostcodes($oldval[0]['unioned']);
+                    } else {
+                        # They are completely separate.  Remap both.
+                        $this->remapPostcodes($oldval[0]['geometry']);
+                        $this->remapPostcodes($val);
+                    }
+
+                    # This will not be a complete remapping.  We might have postcodes which are near the old value but
+                    # not inside, and those should be remapped.  This is a less important case to do in real time and
+                    # is handled by a cron job.
                 }
             }
         }
@@ -650,13 +678,11 @@ class Location extends Entity
         return($geom);
     }
 
-    public function withinBox($swlat, $swlng, $nelat, $nelng, $dodgy = FALSE) {
+    public function withinBox($swlat, $swlng, $nelat, $nelng) {
         # Return the areas within the box, along with a polygon which shows their shape.  This allows us to
         # display our areas on a map.  Put a limit on this so that the API can't kill us.
         #
         # Simplify it - taking care as ST_Simplify can fail.
-        $joinatt = $dodgy ? 'newareaid' : 'areaid';
-
         $sql = "SELECT DISTINCT l.*,
             ST_AsText( 
                 CASE WHEN ST_Simplify(CASE WHEN l.ourgeometry IS NOT NULL THEN l.ourgeometry ELSE l.geometry END, 0.001) IS NULL
@@ -668,7 +694,7 @@ class Location extends Entity
             ) AS geom
             FROM
                  (SELECT locationid FROM locations_spatial
-                     INNER JOIN locations l2 on l2.$joinatt = locations_spatial.locationid         
+                     INNER JOIN locations l2 on l2.areaid = locations_spatial.locationid         
                      WHERE ST_Intersects(locations_spatial.geometry,
                     ST_GeomFromText('POLYGON(($swlng $swlat, $nelng $swlat, $nelng $nelat, $swlng $nelat, $swlng $swlat))', {$this->dbhr->SRID()}))
                  ) ls
@@ -803,6 +829,7 @@ class Location extends Entity
         }
 
         $pgsql->preExec("CREATE INDEX idx_location ON locations_tmp USING gist(location);");
+        $pgsql->preExec("CREATE UNIQUE INDEX idx_locationid ON locations_tmp USING BTREE(locationid);");
         $pgsql->preExec("ALTER TABLE locations_tmp SET LOGGED");
 
         return $count;
@@ -873,7 +900,7 @@ ORDER BY intersects ASC, area ASC LIMIT 1;
 
             if (count($pgareas)) {
                 $pgarea = $pgareas[0];
-                #error_log("Mapped to {$pgarea['name']}, {$pgarea['locationid']} vs {$pc['areaid']}");
+                #error_log("Mapped {$pc['name']} to {$pgarea['name']}, {$pgarea['locationid']} vs {$pc['areaid']}");
 
                 if ($pgarea['locationid'] != $pc['areaid']) {
                     #error_log("Set area {$pgarea['locationid']} in {$pc['locationid']}");
@@ -883,7 +910,7 @@ ORDER BY intersects ASC, area ASC LIMIT 1;
                     ]);
                 }
             } else {
-                echo("#{$pc['locationid']} {$pc['name']} {$pc['lat']}, {$pc['lng']} = {$pc['areaid']} {$pc['areaname']} => not mapped\n");
+                error_log("#{$pc['locationid']} {$pc['name']} {$pc['lat']}, {$pc['lng']} = {$pc['areaid']} {$pc['areaname']} => not mapped");
             }
 
             $count++;

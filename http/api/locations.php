@@ -46,7 +46,7 @@ function locations() {
                 $ret = [ 'ret' => 0, 'status' => 'Success'];
 
                 if ($areas) {
-                    $ret['locations'] = $l->withinBox($swlat, $swlng, $nelat, $nelng, $dodgy);
+                    $ret['locations'] = $l->withinBox($swlat, $swlng, $nelat, $nelng);
                 }
 
                 if ($dodgy) {

@@ -147,13 +147,21 @@ class locationTest extends IznikTestCase {
         $box3 = "POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))";
 
         $l = new Location($this->dbhr, $this->dbhm, $areaid2);
-        $l->setGeometry($box3, TRUE);
+        $l->setGeometry($box3);
 
         $l->copyLocationsToPostgresql();
         $l->remapPostcodes();
 
-        $l = new Location($this->dbhr, $this->dbhm, $pcid);
-        assertEquals($areaid1, $l->getPrivate('areaid'));
+        # Change to a non-overlapping area for coverage.
+        $sw['lat'] = $clat + 0.5;
+        $sw['lng'] = $clng + 0.5;
+        $ne['lat'] = $clat + 0.6;
+        $ne['lng'] = $clng + 0.6;
+
+        $box3 = "POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))";
+
+        $l = new Location($this->dbhr, $this->dbhm, $areaid2);
+        $l->setGeometry($box3);
     }
 
     public function testInvent() {
@@ -192,7 +200,7 @@ class locationTest extends IznikTestCase {
         $mock->method('convexHull')->willReturn(\geoPHP::load($poly));
 
         $l = new Location($this->dbhr, $this->dbhm, $pcid);
-        $l->setGeometry('LINESTRING(179.2162 8.53283, 179.2162 8.53383)', TRUE);
+        $l->setGeometry('LINESTRING(179.2162 8.53283, 179.2162 8.53383)');
         $locs = $mock->withinBox(8.4, 179.1, 8.7, 179.4);
         $this->log(var_export($locs, TRUE));
         assertEquals('POLYGON ((179.2162 8.53283, 179.2162 8.53383, 179.2172 8.53383, 179.2172 8.53283, 179.2162 8.53283))', $locs[0]['polygon']);
