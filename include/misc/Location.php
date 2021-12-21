@@ -796,7 +796,8 @@ class Location extends Entity
 
     public function copyLocationsToPostgresql() {
         # We make limited use of Postgresql, because Postgis is fab. This method copies all relevant locations from
-        # the locations table into Postgresql.
+        # the locations table into Postgresql.  We try to keep the Postgresql table in sync in setGeometry, but
+        # doing this full copy regularly is a safety net.
         $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
 
         # When running on Docker/CircleCI, the database is not set up fully.
