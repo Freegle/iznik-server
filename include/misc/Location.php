@@ -608,22 +608,25 @@ class Location extends Entity
                         [$val]
                     );
 
-                    # Copy into Postgres.
+                    # Copy into Postgres.  Continue if we don't manage to connect - background cron will save us.
                     $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
-                    $pgsql->preExec("INSERT INTO locations_tmp (locationid, name, type, area, location)
+
+                    if ($pgsql) {
+                        $pgsql->preExec("INSERT INTO locations (locationid, name, type, area, location)
                         VALUES (?, ?, ?, ST_Area(ST_GeomFromText(?, {$this->dbhr->SRID()})), ST_GeomFromText(?, {$this->dbhr->SRID()}))
                         ON CONFLICT(locationid) DO UPDATE SET location = ST_GeomFromText(?, {$this->dbhr->SRID()});", [
-                        $this->id, $this->loc['name'], $this->loc['type'], $val, $val, $val
-                    ]);
+                            $this->id, $this->loc['name'], $this->loc['type'], $val, $val, $val
+                        ]);
 
-                    if ($oldval[0]['unioned']) {
-                        # We want to remap the areas.  A common case is when we are tweaking areas, and therefore the
-                        # old and new value will overlap.  We can save time by only mapping the union.
-                        $this->remapPostcodes($oldval[0]['unioned']);
-                    } else {
-                        # They are completely separate.  Remap both.
-                        $this->remapPostcodes($oldval[0]['geometry']);
-                        $this->remapPostcodes($val);
+                        if ($oldval[0]['unioned']) {
+                            # We want to remap the areas.  A common case is when we are tweaking areas, and therefore the
+                            # old and new value will overlap.  We can save time by only mapping the union.
+                            $this->remapPostcodes($oldval[0]['unioned']);
+                        } else {
+                            # They are completely separate.  Remap both.
+                            $this->remapPostcodes($oldval[0]['geometry']);
+                            $this->remapPostcodes($val);
+                        }
                     }
 
                     # This will not be a complete remapping.  We might have postcodes which are near the old value but
@@ -797,14 +800,20 @@ class Location extends Entity
         $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
 
         # When running on Docker/CircleCI, the database is not set up fully.
+        $uniq = uniqid('_');
         $pgsql->preExec("CREATE EXTENSION IF NOT EXISTS postgis;");
         $pgsql->preExec("CREATE EXTENSION IF NOT EXISTS btree_gist;");
-        $pgsql->preExec("DROP TABLE IF EXISTS locations_tmp;");
-        $pgsql->preExec("DROP INDEX IF EXISTS idx_location;");
-        $pgsql->preExec("DROP TYPE IF EXISTS location_type;");
-        $pgsql->preExec("CREATE TYPE location_type AS ENUM('Road','Polygon','Line','Point','Postcode');");
-        $pgsql->preExec("CREATE TABLE locations_tmp (id serial, locationid bigint, name text, type location_type, area numeric, location geometry);");
-        $pgsql->preExec("ALTER TABLE locations_tmp SET UNLOGGED");
+
+        # We use a tmp table.  This can mean that any location changes which happen during this process will not
+        # get picked up until the next time we do this processing.
+        $pgsql->preExec("DROP TABLE IF EXISTS locations_tmp$uniq;");
+        $pgsql->preExec("DROP INDEX IF EXISTS idx_location$uniq;");
+        $pgsql->preExec("DROP INDEX IF EXISTS idx_location_id$uniq;");
+        try {
+            $pgsql->preExec("CREATE TYPE location_type AS ENUM('Road','Polygon','Line','Point','Postcode');");
+        } catch (\Exception $e) {}
+        $pgsql->preExec("CREATE TABLE locations_tmp$uniq (id serial, locationid bigint, name text, type location_type, area numeric, location geometry);");
+        $pgsql->preExec("ALTER TABLE locations_tmp$uniq SET UNLOGGED");
 
         # Get the locations.  Go direct to PDO as we want an unbuffered query to reduce memory usage.
         $this->dbhr->doConnect();
@@ -817,7 +826,7 @@ class Location extends Entity
 
         $count = 0;
         foreach ($locations as $location) {
-            $pgsql->preExec("INSERT INTO locations_tmp (locationid, name, type, area, location) VALUES (?, ?, ?, ST_Area(ST_GeomFromText(?, {$this->dbhr->SRID()})), ST_GeomFromText(?, {$this->dbhr->SRID()}));", [
+            $pgsql->preExec("INSERT INTO locations_tmp$uniq (locationid, name, type, area, location) VALUES (?, ?, ?, ST_Area(ST_GeomFromText(?, {$this->dbhr->SRID()})), ST_GeomFromText(?, {$this->dbhr->SRID()}));", [
                 $location['id'], $location['name'], $location['type'], $location['geom'], $location['geom']
             ]);
 
@@ -828,9 +837,17 @@ class Location extends Entity
             }
         }
 
-        $pgsql->preExec("CREATE INDEX idx_location ON locations_tmp USING gist(location);");
-        $pgsql->preExec("CREATE UNIQUE INDEX idx_locationid ON locations_tmp USING BTREE(locationid);");
-        $pgsql->preExec("ALTER TABLE locations_tmp SET LOGGED");
+        $pgsql->preExec("CREATE INDEX idx_location$uniq ON locations_tmp$uniq USING gist(location);");
+        $pgsql->preExec("CREATE UNIQUE INDEX idx_locationid$uniq ON locations_tmp$uniq USING BTREE(locationid);");
+        $pgsql->preExec("ALTER TABLE locations_tmp$uniq SET LOGGED");
+
+        # Atomic swap of tables.
+        $pgsql->preExec("CREATE TABLE IF NOT EXISTS locations (LIKE locations_tmp$uniq);");
+        $pgsql->preExec("BEGIN;");
+        $pgsql->preExec("ALTER TABLE locations RENAME TO locations_old$uniq;");
+        $pgsql->preExec("ALTER TABLE locations_tmp$uniq RENAME TO locations;");
+        $pgsql->preExec("DROP TABLE locations_old$uniq;");
+        $pgsql->preExec("COMMIT;");
 
         return $count;
     }
@@ -887,7 +904,7 @@ SELECT
              name,
              location,
              location <-> ST_SetSRID((SELECT p FROM ourpoint), 3857) AS dist
-    FROM     locations_tmp 
+    FROM     locations 
     WHERE    ST_Area(location) BETWEEN 0.00001 AND 0.15
     ORDER BY location <-> ST_SetSRID((SELECT p FROM ourpoint), 3857)
     LIMIT 10
