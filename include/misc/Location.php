@@ -800,12 +800,12 @@ class Location extends Entity
         $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
 
         # When running on Docker/CircleCI, the database is not set up fully.
-        $uniq = uniqid('_');
         $pgsql->preExec("CREATE EXTENSION IF NOT EXISTS postgis;");
         $pgsql->preExec("CREATE EXTENSION IF NOT EXISTS btree_gist;");
 
         # We use a tmp table.  This can mean that any location changes which happen during this process will not
         # get picked up until the next time we do this processing.
+        $uniq = uniqid('_');
         $pgsql->preExec("DROP TABLE IF EXISTS locations_tmp$uniq;");
         $pgsql->preExec("DROP INDEX IF EXISTS idx_location$uniq;");
         $pgsql->preExec("DROP INDEX IF EXISTS idx_location_id$uniq;");
