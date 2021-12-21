@@ -255,7 +255,7 @@ class locationsAPITest extends IznikAPITestCase
         $l->copyLocationsToPostgresql();
 
         $lid2 = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.22 8.53, 179.22 8.54, 179.21 8.54, 179.21 8.53))');
-        $lid1 = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
+        $lid1 = $l->create(NULL, 'TV13 1AA', 'Postcode', 'POINT(179.2167 8.53333)');
         $this->log("Created location $lid1");
 
         $ret = $this->call('locations', 'GET', [
