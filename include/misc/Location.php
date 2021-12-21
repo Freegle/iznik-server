@@ -810,6 +810,7 @@ class Location extends Entity
         $pgsql->preExec("DROP INDEX IF EXISTS idx_location$uniq;");
         $pgsql->preExec("DROP INDEX IF EXISTS idx_location_id$uniq;");
         try {
+            # No easy way to CREATE TYPE IF NOT EXISTS.
             $pgsql->preExec("CREATE TYPE location_type AS ENUM('Road','Polygon','Line','Point','Postcode');");
         } catch (\Exception $e) {}
         $pgsql->preExec("CREATE TABLE locations_tmp$uniq (id serial, locationid bigint, name text, type location_type, area numeric, location geometry);");
