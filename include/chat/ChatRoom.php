@@ -1200,7 +1200,8 @@ WHERE chat_rooms.id IN $idlist;";
             # Update the last message seen - taking care not to go backwards, which can happen if we have multiple
             # windows open.
             $backq = $allowBackwards ? " AND ? " : " AND (lastmsgseen IS NULL OR lastmsgseen < ?)";
-            $rc = $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ? WHERE chatid = ? AND userid = ? $backq;", [
+            $rc = $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ? WHERE chatid = ? AND userid = ? $backq;", [
+                $lastmsgseen,
                 $lastmsgseen,
                 $this->id,
                 $userid,
