@@ -1052,7 +1052,7 @@ class User extends Entity
         $modq = $modonly ? " AND role IN ('Owner', 'Moderator') " : "";
         $typeq = $grouptype ? (" AND `type` = " . $this->dbhr->quote($grouptype)) : '';
         $publishq = Session::modtools() ? "" : "AND groups.publish = 1";
-        $sql = "SELECT groupid FROM memberships INNER JOIN `groups` ON groups.id = memberships.groupid $publishq WHERE userid = ? $modq $typeq;";
+        $sql = "SELECT groupid FROM memberships INNER JOIN `groups` ON groups.id = memberships.groupid $publishq WHERE userid = ? $modq $typeq ORDER BY memberships.added DESC;";
         $groups = $this->dbhr->preQuery($sql, [$id]);
         #error_log("getMemberships $sql {$id} " . var_export($groups, TRUE));
         $groupids = array_filter(array_column($groups, 'groupid'));
