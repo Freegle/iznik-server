@@ -5296,7 +5296,6 @@ $mq", [
         $mysqltime = date("Y-m-d", strtotime(MessageCollection::RECENTPOSTS));
 
         # Add/update messages which are recent or have changed location or group or been reposted.
-        error_log("Add recent");
         $sql = "SELECT DISTINCT messages.id, messages.lat, messages.lng, messages_groups.groupid, messages_groups.arrival, messages_groups.msgtype FROM messages 
     INNER JOIN messages_groups ON messages_groups.msgid = messages.id
     LEFT JOIN messages_spatial ON messages_spatial.msgid = messages_groups.msgid
@@ -5322,7 +5321,6 @@ $mq", [
         }
 
         # Update any message outcomes.
-        error_log("Update outcomes");
         $sql = "SELECT messages_spatial.id, messages_spatial.msgid, messages_spatial.successful, messages_outcomes.outcome FROM messages_spatial LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages_spatial.msgid ORDER BY messages_outcomes.timestamp DESC;";
         $msgs = $this->dbhr->preQuery($sql);
 
@@ -5350,7 +5348,6 @@ $mq", [
         }
 
         # Remove any messages which are deleted.
-        error_log("Remove deleted");
         $sql = "SELECT DISTINCT messages_spatial.id FROM messages_spatial INNER JOIN messages ON messages_spatial.msgid = messages.id AND messages.deleted IS NOT NULL";
         $msgs = $this->dbhr->preQuery($sql);
 
@@ -5362,7 +5359,6 @@ $mq", [
         }
 
         # Remove any messages which are now old.
-        error_log("Remove old");
         $sql = "SELECT DISTINCT messages_spatial.id FROM messages_spatial INNER JOIN messages_groups ON messages_groups.msgid = messages_spatial.msgid WHERE messages_groups.arrival < ?;";
         $msgs = $this->dbhr->preQuery($sql, [
             $mysqltime
@@ -5376,7 +5372,6 @@ $mq", [
         }
 
         # Remove any messages which are no longer in Approved.  This can happen (e.g. for edits).
-        error_log("Remove no longer approved");
         $sql = "SELECT DISTINCT messages_spatial.id, messages_spatial.msgid FROM messages_spatial INNER JOIN messages_groups ON messages_groups.msgid = messages_spatial.msgid WHERE collection != ?;";
         $msgs = $this->dbhr->preQuery($sql, [
             MessageCollection::APPROVED
@@ -5450,7 +5445,6 @@ $mq", [
 
     public function removeBy($userid) {
         $this->dbhm->beginTransaction();
-        error_log("Remove $userid");
 
         # We might be replacing an old value, in which case we should restore the number available to the message.
         if ($userid) {

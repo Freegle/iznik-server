@@ -1098,7 +1098,8 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'PATCH', [
             'id' => $id,
             'groupid' => $this->gid,
-            'subject' => 'Test edit long'
+            'subject' => 'Test edit long',
+            'FOP' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
 
@@ -1166,7 +1167,10 @@ class messageAPITest extends IznikAPITestCase
         assertEquals('Test edit', $ret['message']['edits'][0]['newtext']);
     }
 
-    public function testEditAsMember()
+    /**
+     * @dataProvider editProvider
+     */
+    public function testEditAsMember($anonymous)
     {
         $l = new Location($this->dbhr, $this->dbhm);
         $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)');
@@ -1313,7 +1317,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'AddBy',
-            'userid' => $u1id,
+            'userid' => $anonymous ? NULL : $u1id,
             'count' => 4,
         ]);
         assertEquals(0, $ret['ret']);
@@ -1328,7 +1332,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'AddBy',
-            'userid' => $u2id,
+            'userid' => $anonymous ? NULL : $u2id,
             'count' => 7,
         ]);
         assertEquals(0, $ret['ret']);
@@ -1338,7 +1342,7 @@ class messageAPITest extends IznikAPITestCase
         ]);
 
         assertEquals(10, $ret['message']['availableinitially']);
-        assertEquals(0, Utils::presdef('availablenow', $ret['message'], 0));
+        assertEquals($anonymous ? 3 : 0, Utils::presdef('availablenow', $ret['message'], 0));
 
         # Now back as the mod and check the edit history.
         assertTrue($mod->login('testpw'));
@@ -1349,7 +1353,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'RemoveBy',
-            'userid' => $u2id
+            'userid' => $anonymous ? NULL : $u2id
         ]);
         assertEquals(0, $ret['ret']);
 
@@ -1358,12 +1362,12 @@ class messageAPITest extends IznikAPITestCase
         ]);
 
         assertEquals(10, $ret['message']['availableinitially']);
-        assertEquals(6, $ret['message']['availablenow']);
+        assertEquals($anonymous ? 10 : 6, $ret['message']['availablenow']);
 
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'AddBy',
-            'userid' => $u1id,
+            'userid' => $anonymous ? NULL : $u1id,
             'count' => 7,
         ]);
         assertEquals(0, $ret['ret']);
@@ -1378,7 +1382,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'RemoveBy',
-            'userid' => $u1id
+            'userid' => $anonymous ? NULL : $u1id
         ]);
         assertEquals(0, $ret['ret']);
 
@@ -1452,6 +1456,13 @@ class messageAPITest extends IznikAPITestCase
 
         assertEquals('OFFER: a thing (TV1)', $ret['message']['subject']);
         assertEquals('Text body', $ret['message']['textbody']);
+    }
+
+    public function editProvider() {
+        return [
+            [ TRUE ],
+            [ FALSE ]
+        ];
     }
 
     public function testEditAsMemberPending()
@@ -1727,6 +1738,12 @@ class messageAPITest extends IznikAPITestCase
         assertEquals('a thing', $msg['subject']);
         assertEquals('Text body', $msg['textbody']);
         assertEquals($attid, $msg['attachments'][0]['id']);
+
+        # Tick off a coverage case.
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $userlist = [];
+        $locationlist = [];
+        assertEquals($attid, $m->getPublic(TRUE, TRUE, FALSE, $userlist, $locationlist, TRUE)['attachments'][0]['id']);
 
         # Now create a new attachment and update the draft.
         $ret = $this->call('image', 'POST', [
@@ -2163,6 +2180,8 @@ class messageAPITest extends IznikAPITestCase
         $m->setPrivate('lat', 50.0657);
         $m->setPrivate('lng', -5.7132);
         $m->addToSpatialIndex();
+        $m->deleteFromSpatialIndex();
+        $m->addToSpatialIndex();
 
         # Should show in our open post count.
         assertTrue($u->login('testpw'));
@@ -2187,6 +2206,9 @@ class messageAPITest extends IznikAPITestCase
             'userid' => $uid
         ]);
         assertEquals(0, $ret['ret']);
+
+        # For coverage.
+        $m->addToSpatialIndex();
 
         # Should no longer show in our open post count.
         $ret = $this->call('session', 'GET', [
