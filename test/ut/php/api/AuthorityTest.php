@@ -32,6 +32,10 @@ class authorityAPITest extends IznikAPITestCase
         $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
         $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'TV13%';");
         $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'TV1 %';");
+
+        # This is a bit of a hack to make sure that the Postgis extension etc are set up.
+        $l = new Location($this->dbhr, $this->dbhm);
+        $l->copyLocationsToPostgresql();
     }
 
     protected function tearDown()
