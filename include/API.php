@@ -368,9 +368,6 @@ class API
                         case 'request':
                             $ret = request();
                             break;
-                        case 'schedule':
-                            $ret = schedule();
-                            break;
                         case 'shortlink':
                             $ret = shortlink();
                             break;

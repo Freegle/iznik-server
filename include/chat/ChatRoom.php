@@ -738,8 +738,6 @@ WHERE chat_rooms.id IN $idlist;";
         switch ($msgtype) {
             case ChatMessage::TYPE_ADDRESS: $ret = 'Address sent...'; break;
             case ChatMessage::TYPE_NUDGE: $ret = 'Nudged'; break;
-            case ChatMessage::TYPE_SCHEDULE: $ret = 'Availability updated...'; break;
-            case ChatMessage::TYPE_SCHEDULE_UPDATED: $ret = 'Availability updated...'; break;
             case ChatMessage::TYPE_COMPLETED: $ret = 'Item completed...'; break;
             case ChatMessage::TYPE_PROMISED: $ret = 'Item promised...'; break;
             case ChatMessage::TYPE_RENEGED: $ret = 'Promise cancelled...'; break;
@@ -1602,17 +1600,6 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
             $refmsgid = $m->getPrivate('refmsgid');
 
-            if ($lastm &&
-                ($lastm->getPrivate('type') == ChatMessage::TYPE_SCHEDULE_UPDATED ||
-                    $lastm->getPrivate('type') == ChatMessage::TYPE_SCHEDULE) &&
-                ($m->getPrivate('type') == ChatMessage::TYPE_SCHEDULE_UPDATED ||
-                    $m->getPrivate('type') == ChatMessage::TYPE_SCHEDULE)) {
-                # Duplicate schedule updates are common as people tweak them; remove the previous one, so that
-                # we retain the latest dated one.  The contents will be the same as it will point to the same
-                # schedule, but we want the date.
-                array_pop($ret);
-            }
-
             if (!$lastmsg || $atts['message'] != $lastmsg || $lastref != $refmsgid) {
                 # We can get duplicate messages for a variety of reasons; suppress.
                 $lastmsg = $atts['message'];
@@ -1884,7 +1871,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
         return $thistwig;
     }
 
-    private function getTextSummary($unmailedmsg, $thisu, $otheru, $allowpastschedules, $multiple, &$intsubj) {
+    private function getTextSummary($unmailedmsg, $thisu, $otheru, $multiple, &$intsubj) {
         $thisone = NULL;
 
         switch ($unmailedmsg['type']) {
@@ -1957,17 +1944,6 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                 break;
             }
 
-            case ChatMessage::TYPE_SCHEDULE:
-            case ChatMessage::TYPE_SCHEDULE_UPDATED: {
-                $s = new Schedule($this->dbhr, $this->dbhm, $unmailedmsg['userid'], $allowpastschedules);
-                $summ = $s->getSummary();
-
-                if (strlen($summ)) {
-                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You updated your availability: $summ") : ($otheru->getName() . " has updated when they may be available: $summ");
-                }
-                break;
-            }
-
             default: {
                 # Use the text in the message.
                 $thisone = $unmailedmsg['message'];
@@ -1978,7 +1954,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
         return $thisone;
     }
 
-    public function notifyByEmail($chatid = NULL, $chattype, $emailoverride = NULL, $delay = 600, $allowpastschedules = FALSE, $since = "4 hours ago", $forceall = FALSE)
+    public function notifyByEmail($chatid = NULL, $chattype, $emailoverride = NULL, $delay = 600, $since = "4 hours ago", $forceall = FALSE)
     {
         # We want to find chatrooms with messages which haven't been mailed to people.  We always email messages,
         # even if they are seen online.
@@ -2085,7 +2061,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                 $firstid = $unmailedmsg['id'];
                             }
 
-                            $thisone = $this->getTextSummary($unmailedmsg, $sendingto, $sendingfrom, $allowpastschedules, count($unmailedmsgs) > 1, $intsubj);
+                            $thisone = $this->getTextSummary($unmailedmsg, $sendingto, $sendingfrom, count($unmailedmsgs) > 1, $intsubj);
 
                             switch ($unmailedmsg['type']) {
                                 case ChatMessage::TYPE_INTERESTED:
@@ -2106,15 +2082,6 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                         );
                                     }
                                     break;
-                                }
-
-                                case ChatMessage::TYPE_SCHEDULE:
-                                case ChatMessage::TYPE_SCHEDULE_UPDATED:
-                                {
-                                    if (!$thisone) {
-                                        # No point sending this if there's no availability.
-                                        continue 2;
-                                    }
                                 }
                             }
 
@@ -2248,7 +2215,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                                                        $sendingto,
                                                                        $sendingfrom,
                                                                        $bin,
-                                                                       $this->getTextSummary($p, $sendingto, $sendingfrom, $allowpastschedules, count($prevmsgs) > 1, $intsubj),
+                                                                       $this->getTextSummary($p, $sendingto, $sendingfrom, count($prevmsgs) > 1, $intsubj),
                                                                     $userlist);
                                 }
                             }

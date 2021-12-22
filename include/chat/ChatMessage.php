@@ -20,8 +20,6 @@ class ChatMessage extends Entity
     const TYPE_IMAGE = 'Image';
     const TYPE_ADDRESS = 'Address';
     const TYPE_NUDGE = 'Nudge';
-    const TYPE_SCHEDULE = 'Schedule';
-    const TYPE_SCHEDULE_UPDATED = 'ScheduleUpdated';
 
     const ACTION_APPROVE = 'Approve';
     const ACTION_APPROVE_ALL_FUTURE = 'ApproveAllFuture';
@@ -417,20 +415,6 @@ class ChatMessage extends Entity
             $ret['message'] = NULL;
             $a = new Address($this->dbhr, $this->dbhm, $id);
             $ret['address'] = $a->getPublic();
-        }
-
-        if ($ret['type'] == ChatMessage::TYPE_SCHEDULE || $ret['type'] == ChatMessage::TYPE_SCHEDULE_UPDATED) {
-            # We want to return the currently matching dates.
-            $s = new Schedule($this->dbhr, $this->dbhm);
-            $r = new ChatRoom($this->dbhr, $this->dbhm, $this->chatmessage['chatid']);
-            $myid = Session::whoAmId($this->dbhr, $this->dbhm);
-
-            if ($myid) {
-                $user1 = $r->getPrivate('user1');
-                $user2 = $r->getPrivate('user2');
-                $other = $myid == $user1 ? $user2 : $user1;
-                $ret['matches'] = $s->match($myid, $other);
-            }
         }
 
         # Strip any remaining quoted text in replies.

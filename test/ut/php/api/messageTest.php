@@ -3495,8 +3495,6 @@ class messageAPITest extends IznikAPITestCase
         # Mark as taken.
         global $sessionPrepared;
         $sessionPrepared = FALSE;
-        $this->dbhm->errorLog = TRUE;
-        $this->dbhr->errorLog = TRUE;
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'action' => 'Outcome',

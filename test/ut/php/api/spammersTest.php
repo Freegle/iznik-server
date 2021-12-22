@@ -482,7 +482,6 @@ class spammersAPITest extends IznikAPITestCase {
     }
 
     public function testPerf() {
-        $this->dbhr->errorLog = TRUE;
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($this->user->login('testpw'));
