@@ -29,9 +29,9 @@ class authorityAPITest extends IznikAPITestCase
         $this->dbhm = $dbhm;
 
         $dbhm->preExec("DELETE FROM authorities WHERE name LIKE 'UTAuth%';");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'TV13%';");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'TV1 %';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'TV13%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'TV1 %';");
     }
 
     protected function tearDown()

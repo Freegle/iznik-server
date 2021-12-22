@@ -77,12 +77,19 @@ class Location extends Entity
                 $this->dbhm->preExec($sql, [ $grid['gridid'], $id ]);
             }
 
-            # Set any area and postcode for this new location.
-            $this->setParents($id);
-
             $p = strpos($name, ' ');
 
-            if ($type = 'Postcocde' && $p !== FALSE) {
+            if ($type == 'Polygon') {
+                # This is an area.  Copy into Postgres for future mapping.
+                $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
+
+                $pgsql->preExec("INSERT INTO locations (locationid, name, type, area, location)
+                    VALUES (?, ?, ?, ST_Area(ST_GeomFromText(?, {$this->dbhr->SRID()})), ST_GeomFromText(?, {$this->dbhr->SRID()}));", [
+                    $id, $name, $type, $geometry, $geometry
+                ]);
+            }
+
+            if ($type == 'Postcode' && $p !== FALSE) {
                 # This is a full postcode - find the parent postcode.
                 $sql = "SELECT id FROM locations WHERE name LIKE ? AND type = 'Postcode';";
                 $pcs = $this->dbhm->preQuery($sql, [ substr($name, 0, $p) ]);
@@ -92,7 +99,11 @@ class Location extends Entity
                        $id
                     ]);
                 }
+
+                # Map this new postcode to an area.
+                $this->remapPostcodes($geometry);
             }
+
         } catch (\Exception $e) {
             error_log("Location create exception " . $e->getMessage() . " " . $e->getTraceAsString());
             $id = NULL;
@@ -112,103 +123,6 @@ class Location extends Entity
         } else {
             return (NULL);
         }
-    }
-
-    public function setParents($id) {
-        $changed = FALSE;
-        $areaid = NULL;
-        $geom = NULL;
-        $maxdim = 0;
-
-        # For each location, we also want to store the area and first-part-postcode which this location is within.
-        #
-        # This allows us to standardise subjects on groups.
-        $sql = "SELECT name, postcodeid, areaid, lat, lng, type FROM locations WHERE id = ?;";
-        $locs = $this->dbhm->preQuery($sql, [ $id ]);
-        #$this->dbhm->setErrorLog(TRUE);
-
-        if (count($locs) > 0) {
-            $loc = $locs[0];
-
-            $p = strpos($loc['name'], ' ');
-
-            if ($loc['type'] == 'Postcode' && $p !== FALSE) {
-                # This is a full postcode - find the parent postcode.
-                $sql = "SELECT id FROM locations WHERE name LIKE ? AND type = 'Postcode';";
-                $pcs = $this->dbhm->preQuery($sql, [ substr($loc['name'], 0, $p) ]);
-                foreach ($pcs as $pc) {
-                    if ($loc['postcodeid'] != $pc['id']) {
-                        $this->dbhm->preExec("UPDATE locations SET postcodeid = ? WHERE id = ?;",
-                            [
-                                $pc['id'],
-                                $id
-                            ]);
-                    }
-                }
-            }
-
-            # Now that we're on 5.7 we have spatial indexing, which makes this a lot easier.  We create a
-            # small polygon round the location we're interested in, and then step it outwards until we
-            # overlap a location.
-            #
-            # We have to do it this way because spatial indexing doesn't allow us to efficiently find the closest
-            # non-containing area.
-            $swlat = round($loc['lat'], 2) - self::LOCATION_STEP;
-            $swlng = round($loc['lng'], 2) - self::LOCATION_STEP;
-            $nelat = round($loc['lat'], 2) + self::LOCATION_STEP;
-            $nelng = round($loc['lng'], 2) + self::LOCATION_STEP;
-
-            $count = 0;
-
-            do {
-                $poly = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
-
-                # We want to find the smallest nearby or containing area.
-                #
-                # Exclude locations which are very large, e.g. Greater London or too small (probably just a
-                # single building.
-                $sql = "SELECT locations.id, locations.name, locations.maxdimension, ST_AsText(locations_spatial.geometry) AS geom,
-        CASE WHEN ST_Intersects(locations_spatial.geometry, ST_GeomFromText('POINT({$loc['lng']} {$loc['lat']})', {$this->dbhr->SRID()})) THEN 0
-        ELSE ST_Distance(locations_spatial.geometry, ST_GeomFromText('POINT({$loc['lng']} {$loc['lat']})', {$this->dbhr->SRID()})) END AS dist
-        FROM locations_spatial INNER JOIN `locations` ON locations.id = locations_spatial.locationid 
-        LEFT OUTER JOIN locations_excluded ON locations_excluded.locationid = locations.id 
-        WHERE 
-          ST_Intersects(locations_spatial.geometry, ST_GeomFromText('$poly', {$this->dbhr->SRID()})) AND type != 'Postcode' 
-          AND ST_Dimension(locations_spatial.geometry) = 2 AND locations_excluded.locationid IS NULL 
-          AND locations_spatial.locationid != $id AND maxdimension < " . self::TOO_LARGE . " AND maxdimension > " . self::TOO_SMALL . " 
-        ORDER BY maxdimension ASC, dist ASC LIMIT 1;";
-                #error_log($sql);
-                $nearbyes = $this->dbhr->preQuery($sql);
-
-                #error_log("Nearbyes found " . count($nearbyes) . " from $poly");
-
-                if (count($nearbyes) === 0) {
-                    $swlat -= self::LOCATION_STEP;
-                    $swlng -= self::LOCATION_STEP;
-                    $nelat += self::LOCATION_STEP;
-                    $nelng += self::LOCATION_STEP;
-                    $count++;
-                }
-
-            } while (count($nearbyes) == 0 && $count < self::LOCATION_MAX);
-
-            if (count($nearbyes) > 0) {
-                #error_log("{$loc['name']} choose areaid #$areaid {$nearbyes[0]['name']}");
-
-                if ($loc['areaid'] != $nearbyes[0]['id']) {
-                    #error_log("Set $id to have area $areaid");
-                    $areaid = $nearbyes[0]['id'];
-                    $geom = $nearbyes[0]['geom'];
-                    $maxdim = $nearbyes[0]['maxdimension'];
-                    $sql = "UPDATE locations SET areaid = $areaid WHERE id = $id;";
-                    $this->dbhm->preExec($sql);
-
-                    $changed = TRUE;
-                }
-            }
-        }
-
-        return [ $changed, $areaid, $geom, $maxdim ];
     }
 
     public function getGrid() {
@@ -392,6 +306,15 @@ class Location extends Entity
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         $rc = $this->dbhm->preExec("DELETE FROM locations WHERE id = ?;", [$this->id]);
+
+        $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
+
+        if ($pgsql) {
+            $pgsql->preExec("DELETE FROM locations WHERE locationid = ?;", [
+                $this->id
+            ]);
+        }
+
         if ($rc) {
             $this->log->log([
                 'type' => Log::TYPE_LOCATION,

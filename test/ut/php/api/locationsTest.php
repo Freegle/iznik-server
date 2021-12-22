@@ -34,9 +34,9 @@ class locationsAPITest extends IznikAPITestCase
         # We test around Tuvalu.  If you're setting up Tuvalu Freegle you may need to change that.
         $dbhm->preExec("DELETE FROM locations_grids WHERE swlat >= 8.3 AND swlat <= 8.7;");
         $dbhm->preExec("DELETE FROM locations_grids WHERE swlat >= 179.1 AND swlat <= 179.3;");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE '??%';");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'TV1%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE '??%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'TV1%';");
         for ($swlat = 8.3; $swlat <= 8.6; $swlat += 0.1) {
             for ($swlng = 179.1; $swlng <= 179.3; $swlng += 0.1) {
                 $nelat = $swlat + 0.1;

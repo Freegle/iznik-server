@@ -27,9 +27,9 @@ class locationTest extends IznikTestCase {
         # We test around Tuvalu.  If you're setting up Tuvalu Freegle you may need to change that.
         $dbhm->preExec("DELETE FROM locations_grids WHERE swlat >= 8.3 AND swlat <= 8.7;");
         $dbhm->preExec("DELETE FROM locations_grids WHERE swlat >= 179.1 AND swlat <= 179.3;");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'TV13%';");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE '??%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'TV13%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE '??%';");
         for ($swlat = 8.3; $swlat <= 8.6; $swlat += 0.1) {
             for ($swlng = 179.1; $swlng <= 179.3; $swlng += 0.1) {
                 $nelat = $swlat + 0.1;
@@ -90,7 +90,9 @@ class locationTest extends IznikTestCase {
         $this->log("Loc id $id");
         $l = new Location($this->dbhr, $this->dbhm, $id);
         $atts = $l->getPublic();
-        assertEquals($areaid, $atts['areaid']);
+
+        # No area as not a postcode.
+        assertNull($atts['areaid']);
 
         $id2 = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)');
         $this->log("Full postcode id $id");

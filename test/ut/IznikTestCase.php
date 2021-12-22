@@ -190,5 +190,17 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         $this->log("Failed to find log $type $subtype in " . var_export($logs, TRUE));
         return(NULL);
     }
+
+    public function deleteLocations($query) {
+        # Now that we have Postgresql, we need to delete from there too.  So rather than doing a raw SQL delete,
+        # find the locations and delete them propertly.
+        $query = str_ireplace('DELETE FROM', 'SELECT id FROM', $query);
+        $locations = $this->dbhr->preQuery($query);
+
+        foreach ($locations as $location) {
+            $l = new Location($this->dbhr, $this->dbhm, $location['id']);
+            $l->delete();
+        }
+    }
 }
 
