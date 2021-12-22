@@ -82,6 +82,7 @@ class Location extends Entity
             if ($type == 'Polygon') {
                 # This is an area.  Copy into Postgres for future mapping. If we fail, carry on.  There is a
                 # background cron job to save us.
+                error_log("Copy $name into postgresql");
                 try {
                     $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
 
@@ -90,6 +91,9 @@ class Location extends Entity
                         $id, $name, $type, $geometry, $geometry
                     ]);
                 } catch (\Exception $e) {}
+
+                # Map this new postcode to an area.
+                $this->remapPostcodes($geometry);
             }
 
             if ($type == 'Postcode' && $p !== FALSE) {
