@@ -758,9 +758,9 @@ class chatRoomsTest extends IznikTestCase {
             return($this->mailer($message));
         }));
 
-        # Notify mods; we don't notify user of our own by default, but we do mail the mod who has already seen it.
+        # Notify mods; we don't notify our own messages by default. Nor do we mail the mod who has already seen it.
         $this->msgsSent = [];
-        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, NULL, 0));
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, NULL, 0));
         assertEquals("Member conversation on testgroup with Test User 1 (test1@test.com)", $this->msgsSent[0]['subject']);
         assertNull($this->msgsSent[0]['groupid']);
 
