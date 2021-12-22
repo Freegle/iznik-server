@@ -194,7 +194,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
     public function deleteLocations($query) {
         # Now that we have Postgresql, we need to delete from there too.  So rather than doing a raw SQL delete,
         # find the locations and delete them propertly.
-        $query = str_ireplace('DELETE FROM', 'SELECT id FROM', $query);
+        $query = str_ireplace('DELETE FROM', 'SELECT id, name FROM', $query);
         $locations = $this->dbhr->preQuery($query);
 
         foreach ($locations as $location) {

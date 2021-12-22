@@ -22,9 +22,9 @@ class PAFTest extends IznikTestCase {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
-        $this->dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
-        $this->dbhm->preExec("DELETE FROM locations WHERE name LIKE 'TV1%';");
-        $this->dbhm->preExec("DELETE FROM locations WHERE name LIKE 'ZZZZ ZZZ';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'TV1%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'ZZZZ ZZZ';");
     }
 
     public function testLoad() {
