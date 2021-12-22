@@ -50,6 +50,21 @@ class exportAPITest extends IznikAPITestCase {
 
         $this->user->addMembership($this->groupid, User::ROLE_MODERATOR);
 
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid1 = $g->create('testgroup1', Group::GROUP_FREEGLE);
+        $this->user->addMembership($gid1, User::ROLE_MODERATOR);
+
+        # Add a comment.
+        assertTrue($this->user->login('testpw'));
+        $this->user->addComment($gid1, 'Banned');
+
+        # Add a ban by us.
+        $this->user->removeMembership($gid1, TRUE);
+
+        # Add to spammer list.
+        $s = new Spam($this->dbhr, $this->dbhm);
+        $s->addSpammer($this->user->getId(), Spam::TYPE_SPAMMER, 'UT');
+
         # Try logged out - should fail
         $_SESSION['id'] = NULL;
 
@@ -98,8 +113,10 @@ class exportAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
         assertNotNull($ret['tag']);
+        assertEquals(1, count($ret['export']['data']['bans']));
+        assertEquals(1, count($ret['export']['data']['spammers']));
+        assertEquals(1, count($ret['export']['data']['comments']));
         assertEquals($this->user->getId(), $ret['export']['data']['Our_internal_ID_for_you']);
-
-        }
+    }
 }
 

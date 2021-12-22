@@ -1596,14 +1596,14 @@ class userTest extends IznikTestCase {
 
         $settings = [
             'mylocation' => [
-                'lat' => 8.51111,
-                'lng' => 179.11111,
+                'lat' => 52.57,
+                'lng' => -2.03,
             ],
         ];
 
         $u->setPrivate('settings', json_encode($settings));
         $jobs = $u->getJobAds();
-        assertGreaterThan(0, count($jobs));
+        assertGreaterThan(0, strlen($jobs['jobs']));
     }
 
     public function testSetPostcode() {
@@ -1641,6 +1641,28 @@ class userTest extends IznikTestCase {
         assertEquals('t***1@test.com', $u->obfuscateEmail('test1@test.com'));
         assertEquals('t***2@test.com', $u->obfuscateEmail('test12@test.com'));
         assertEquals('tes***890@test.com', $u->obfuscateEmail('test1234567890@test.com'));
+    }
+
+    public function testGetCity() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+
+        $settings = [
+            'mylocation' => [
+                'id' => 1,
+                'lat' => 55.9,
+                'lng' => -3.15,
+                'area' => [
+                    'name' => 'Somewhere'
+                ]
+            ]
+        ];
+
+        $u->setPrivate('settings', json_encode($settings));
+        list ($city, $lat, $lng) = $u->getCity();
+        assertEquals(55.9, $lat);
+        assertEquals(-3.15, $lng);
+        assertEquals('Edinburgh', $city);
     }
 }
 
