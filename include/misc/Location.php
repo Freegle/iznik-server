@@ -80,13 +80,16 @@ class Location extends Entity
             $p = strpos($name, ' ');
 
             if ($type == 'Polygon') {
-                # This is an area.  Copy into Postgres for future mapping.
-                $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
+                # This is an area.  Copy into Postgres for future mapping. If we fail, carry on.  There is a
+                # background cron job to save us.
+                try {
+                    $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
 
-                $pgsql->preExec("INSERT INTO locations (locationid, name, type, area, location)
-                    VALUES (?, ?, ?, ST_Area(ST_GeomFromText(?, {$this->dbhr->SRID()})), ST_GeomFromText(?, {$this->dbhr->SRID()}));", [
-                    $id, $name, $type, $geometry, $geometry
-                ]);
+                    $pgsql->preExec("INSERT INTO locations (locationid, name, type, area, location)
+                        VALUES (?, ?, ?, ST_Area(ST_GeomFromText(?, {$this->dbhr->SRID()})), ST_GeomFromText(?, {$this->dbhr->SRID()}));", [
+                        $id, $name, $type, $geometry, $geometry
+                    ]);
+                } catch (\Exception $e) {}
             }
 
             if ($type == 'Postcode' && $p !== FALSE) {
@@ -307,13 +310,17 @@ class Location extends Entity
 
         $rc = $this->dbhm->preExec("DELETE FROM locations WHERE id = ?;", [$this->id]);
 
-        $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
+        # Delete from Postgresql too.  If we fail, carry on.  There is a background cron job to save us.
+        try {
+            $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
 
-        if ($pgsql) {
-            $pgsql->preExec("DELETE FROM locations WHERE locationid = ?;", [
-                $this->id
-            ]);
-        }
+            if ($pgsql)
+            {
+                $pgsql->preExec("DELETE FROM locations WHERE locationid = ?;", [
+                    $this->id
+                ]);
+            }
+        } catch (\Exception $e) {}
 
         if ($rc) {
             $this->log->log([

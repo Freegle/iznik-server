@@ -1272,8 +1272,9 @@ class userTest extends IznikTestCase {
 
         $l = new Location($this->dbhr, $this->dbhm);
         $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))');
-        $areaatts = $l->getPublic();
         assertNotNull($areaid);
+        $areaatts = $l->getPublic();
+        assertNull($areaatts['areaid']);
         $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
         $fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)');
         $locid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
