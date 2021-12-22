@@ -1213,11 +1213,11 @@ class User extends Entity
     public function isModOrOwner($groupid)
     {
         # Very frequently used.  Cache in session.
-        if (session_status() !== PHP_SESSION_NONE &&
+        #error_log("modOrOwner " . var_export($_SESSION['modorowner'], TRUE));
+        if ((session_status() !== PHP_SESSION_NONE || getenv('UT')) &&
             array_key_exists('modorowner', $_SESSION) &&
             array_key_exists($this->id, $_SESSION['modorowner']) &&
             array_key_exists($groupid, $_SESSION['modorowner'][$this->id])) {
-            #error_log("{$this->id} group $groupid cached");
             return ($_SESSION['modorowner'][$this->id][$groupid]);
         } else {
             $sql = "SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner') AND groupid = ?;";
@@ -4673,9 +4673,7 @@ class User extends Entity
             # Get a group name.
             $membs = $this->dbhr->preQuery("SELECT userid, nameshort, namefull FROM `groups` INNER JOIN memberships ON memberships.groupid = groups.id WHERE userid IN (" . implode(',', array_filter(array_column($users, 'id'))) . ") ORDER BY added ASC;", NULL, FALSE, FALSE);
             foreach ($membs as $memb) {
-                $ret[$memb['userid']] = [
-                    'group' => Utils::presdef('namefull', $memb, $memb['nameshort'])
-                ];
+                $ret[$memb['userid']]['group'] = Utils::presdef('namefull', $memb, $memb['nameshort']);
             }
         }
 

@@ -272,6 +272,7 @@ class userTest extends IznikTestCase {
         $u->setRole(User::ROLE_OWNER, $group1);
         assertEquals($u->getRoleForGroup($group1), User::ROLE_OWNER);
         assertTrue($u->isModOrOwner($group1));
+        assertTrue($u->isModOrOwner($group1));
         assertTrue(array_key_exists('work', $u->getMemberships(FALSE, NULL, TRUE)[0]));
         $settings = $u->getGroupSettings($group1);
         $this->log("Settings " . var_export($settings, TRUE));
@@ -1113,8 +1114,12 @@ class userTest extends IznikTestCase {
 
         $settings = [
             'mylocation' => [
+                'id' => 1,
                 'lat' => 8.51111,
-                'lng' => 179.11111
+                'lng' => 179.11111,
+                'area' => [
+                    'name' => 'Somewhere'
+                ]
             ],
             'modnotifs' => $modnotifs,
             'backupmodnotifs' => $backupmodnotifs
@@ -1126,12 +1131,17 @@ class userTest extends IznikTestCase {
         $u->setPrivate('settings', json_encode($settings));
         assertEquals(8.51111, $u->getPublic()['settings']['mylocation']['lat']);
         assertEquals(179.11111, $u->getPublic()['settings']['mylocation']['lng']);
+        assertEquals('Somewhere', $u->getPublic()['settings']['mylocation']['area']['name']);
 
         # Get blurred location.
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_UT);
+        $u->addMembership($gid);
         $atts = $u->getPublic();
         $latlngs = $u->getLatLngs([ $atts ], TRUE, TRUE, TRUE, NULL, Utils::BLUR_1K);
         assertEquals(8.5153, $latlngs[$u->getId()]['lat']);
         assertEquals(179.1191, $latlngs[$u->getId()]['lng']);
+        assertEquals('testgroup', $latlngs[$u->getId()]['group']);
 
         $nid = $n->create(Newsfeed::TYPE_MESSAGE, $uid, 'Test');
 
