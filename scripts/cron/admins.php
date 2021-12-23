@@ -12,7 +12,7 @@ $lockh = Utils::lockScript(basename(__FILE__));
 try {
     $a = new Admin($dbhr, $dbhm);
 
-# Generate copies of suggested ADMINs.
+    # Generate copies of suggested ADMINs.
     $suggesteds = $dbhr->preQuery("SELECT * FROM admins WHERE groupid IS NULL AND complete IS NULL");
 
     foreach ($suggesteds as $suggested) {

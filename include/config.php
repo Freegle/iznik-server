@@ -1,10 +1,5 @@
 <?php
 
-if(defined('SENTRY_DSN') && !defined('SENTRY_INITIALISED')) {
-    define('SENTRY_INITIALISED', TRUE);
-    \Sentry\init(['dsn' => SENTRY_DSN]);
-}
-
 if (!defined('REDIS_CONNECT')) {
     if (file_exists('/var/run/redis/redis.sock')) {
         define('REDIS_CONNECT', '/var/run/redis/redis.sock');
@@ -73,6 +68,11 @@ if (!defined('IZNIK_BASE')) {
 
     # There are some historical domains.
     define('OURDOMAINS', USER_DOMAIN . ",direct.ilovefreegle.org,republisher.freegle.in");
+
+    if(defined('SENTRY_DSN') && !defined('SENTRY_INITIALISED')) {
+        define('SENTRY_INITIALISED', TRUE);
+        \Sentry\init(['dsn' => SENTRY_DSN]);
+    }
 }
 
 if (!defined('RETURN_PATH')) {
