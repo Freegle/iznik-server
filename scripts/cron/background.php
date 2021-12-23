@@ -44,7 +44,7 @@ try {
     while (!$exit) {
         try {
             $job = NULL;
-            $job = $pheanstalk->reserve();
+            $job = @$pheanstalk->reserve();
         } catch (\Exception $e) {
             error_log("Failed to reserve, sleeping");
             sleep(1);

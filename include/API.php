@@ -512,7 +512,7 @@ class API
                         }
                     } else {
                         # Something else.
-                        if ($call != 'exception' && $call != 'DBExceptionFail') {
+                        if ($call != 'exception' && $call != 'DBexceptionFail') {
                             # Don't log deliberate exceptions in UT.
                             \Sentry\captureException($e);
                         }

@@ -77,7 +77,7 @@ if (!defined('IZNIK_BASE')) {
 
             // Some packages we use generate warnings, so we need to suppress reporting of these otherwise we
             // get loads.
-            'error_types' => E_ALL & ~E_WARNING
+            'error_types' => E_ALL & ~E_WARNING & ~E_DEPRECATED
         ]);
     }
 }
