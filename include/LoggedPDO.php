@@ -30,6 +30,7 @@ class LoggedPDO {
     private $sqllog = SQLLOG;
     private $preparedStatements = [];
     private $version;
+    public $suppressSentry = FALSE;
 
     const MAX_LOG_SIZE = 100000;
     const MAX_BACKGROUND_SIZE = 100000;  # Max size of sql that we can pass to beanstalk directly; larger goes in file
@@ -333,7 +334,10 @@ class LoggedPDO {
                 } else {
                     $msg = "Non-deadlock DB Exception " . $e->getMessage() . " $sql";
                     error_log($msg);
-                    \Sentry\captureMessage($msg);
+                    if (!$this->suppressSentry) {
+                        \Sentry\captureMessage($msg);
+                    }
+
                     $try = $this->tries;
                 }
             }

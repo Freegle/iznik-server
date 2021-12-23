@@ -26,6 +26,9 @@ class dbTest extends IznikTestCase {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
+        $this->dbhr->suppressSentry = TRUE;
+        $this->dbhm->suppressSentry = TRUE;
+
         assertNotNull($this->dbhr);
         assertNotNull($this->dbhm);
 
