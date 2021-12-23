@@ -31,12 +31,21 @@ if (count($opts) < 1) {
     $groups = $dbhr->preQuery($sql, [$mod, $val]);
 
     foreach ($groups as $group) {
-        error_log($group['nameshort']);
-        $g = Group::get($dbhr, $dbhm, $group['id']);
+        try {
+            error_log($group['nameshort']);
+            $g = Group::get($dbhr, $dbhm, $group['id']);
 
-        # Don't send to closed groups.
-        if (!$g->getSetting('closed', FALSE) && $g->getSetting('communityevents', 1)) {
-            $total += $e->send($group['id']);
+            # Don't send to closed groups.
+            if (!$g->getSetting('closed', FALSE) && $g->getSetting('communityevents', 1)) {
+                $total += $e->send($group['id']);
+            }
+
+            if (file_exists('/tmp/iznik.mail.abort')) {
+                exit(0);
+            }
+        } catch (\Exception $e) {
+            \Sentry\captureException($e);
+            error_log("Exception " . $e->getMessage() . " on " . $group['nameshort']);
         }
     }
 
