@@ -75,7 +75,15 @@ if (!defined('IZNIK_BASE')) {
         define('SENTRY_INITIALISED', TRUE);
         \Sentry\init([
             'dsn' => SENTRY_DSN,
-            'attach_stacktrace' => TRUE
+            'attach_stacktrace' => TRUE,
+            'before_send' => function (\Sentry\Event $event): ?\Sentry\Event {
+                if ($event && $event->getMessage() && strpos($event->getMessage(), 'Warning: fwrite(): supplied resource is not a valid stream resource') !== FALSE) {
+                    // This happens within Pheanstalk, and I can't find another way to kill it.
+                    return NULL;
+                }
+
+                return $event;
+            },
         ]);
     }
 }
