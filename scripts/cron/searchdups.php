@@ -10,7 +10,7 @@ require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
 $mysqltime = date("Y-m-d", strtotime("Midnight 2 days ago"));
-$searches = $dbhr->preQuery("SELECT * FROM search_history WHERE date > ? ORDER BY groups, id ASC;", [ $mysqltime ]);
+$searches = $dbhr->preQuery("SELECT * FROM search_history WHERE date > ? ORDER BY `groups`, id ASC;", [ $mysqltime ]);
 $last = NULL;
 $deleted = 0;
 

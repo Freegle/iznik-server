@@ -23,7 +23,7 @@ foreach ($chats as $chat) {
 
     foreach ($chatmsgs as $msg) {
         if ($lastmsg && $lastmsg == $msg['message'] && $lastref == $msg['refmsgid']) {
-            error_log("{$chat['id']} $lastid and {$msg['id']}");
+            error_log("{$chat['chatid']} $lastid and {$msg['id']}");
             $dbhm->preExec("DELETE FROM chat_messages WHERE id = ?;", [ $msg['id'] ]);
         } else {
             $lastmsg = $msg['message'];
