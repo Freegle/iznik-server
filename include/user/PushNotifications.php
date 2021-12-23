@@ -199,7 +199,7 @@ class PushNotifications
                         }
 
                         try {
-                            if ($this->messaging) {
+                            if (property_exists('messaging', $this) && $this->messaging) {
                                 $this->messaging->validate($message);
                             }
                         } catch (InvalidMessage $e) {

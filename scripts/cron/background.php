@@ -37,9 +37,6 @@ function doSQL($sql) {
     }
 }
 
-// Suppressing a warning Pheanstalk sometimes generates.
-error_reporting(E_ALL & ~E_WARNING);
-
 try {
     $exit = FALSE;
 

@@ -422,6 +422,8 @@ class dbTest extends IznikTestCase {
 
         $worked = false;
 
+        $mock->suppressSentry = TRUE;
+
         try {
             $mock->preQuery('SHOW COLUMNS FROM test;');
         } catch (DBException $e) {
