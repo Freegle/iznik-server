@@ -584,7 +584,7 @@ class Newsfeed extends Entity
 
                 # Don't use hidden entries unless they are ours.  This means that to a spammer or suppressed user
                 # it looks like their posts are there but nobody else sees them.
-                if (!$hidden || $myid == $entry['userid'] || $me->isModerator()) {
+                if (!$hidden || $myid == $entry['userid'] || ($me && $me->isModerator())) {
                     if (!$me || !$me->isModerator()) {
                         unset($entry['hidden']);
                     }
