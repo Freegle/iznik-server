@@ -1,4 +1,6 @@
 <?php
+// Some packages we use generate warning/deprecated messages which we want to suppress, especially for Sentry.
+error_reporting(E_ALL & ~E_WARNING & ~E_DEPRECATED);
 
 if (!defined('REDIS_CONNECT')) {
     if (file_exists('/var/run/redis/redis.sock')) {
@@ -73,11 +75,7 @@ if (!defined('IZNIK_BASE')) {
         define('SENTRY_INITIALISED', TRUE);
         \Sentry\init([
             'dsn' => SENTRY_DSN,
-            'attach_stacktrace' => TRUE,
-
-            // Some packages we use generate warnings, so we need to suppress reporting of these otherwise we
-            // get loads.
-            'error_types' => E_ALL & ~E_WARNING & ~E_DEPRECATED
+            'attach_stacktrace' => TRUE
         ]);
     }
 }
