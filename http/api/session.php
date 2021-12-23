@@ -234,7 +234,7 @@ function session() {
                                             ];
 
                                             $group['polygon'] = $poly['poly'];
-                                        } catch (Exception $e) {
+                                        } catch (\Exception $e) {
                                             error_log("Bad polygon data for {$group['id']}");
                                         }
                                     }

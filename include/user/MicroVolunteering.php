@@ -362,7 +362,7 @@ class MicroVolunteering
                     self::VERSION
                 ]
             );
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
         }
     }
 
@@ -379,7 +379,7 @@ class MicroVolunteering
                     self::VERSION
                 ]
             );
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
         }
     }
 
@@ -398,7 +398,7 @@ class MicroVolunteering
                     self::VERSION
                 ]
             );
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
         }
 
         # Check whether we have enough votes to rotate this photo.

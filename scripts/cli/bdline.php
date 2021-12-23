@@ -78,6 +78,7 @@ if ($fn) {
             file_put_contents('/tmp/a', $new);
             file_put_contents('/tmp/b', $wkt);
             error_log("...failed");
+            \Sentry\captureException($e);
         }
     }
 }

@@ -65,6 +65,7 @@ if (($sso->validatePayload($payload,$signature))) {
             }
         } catch (\Exception $e) {
             error_log("forum_sso - DB failed with " . $e->getMessage());
+            \Sentry\captureException($e);
         }
 
         foreach ($sessions as $session) {

@@ -49,6 +49,7 @@ if (count($opts) < 1) {
                 $ulive->setPrivate($att, $val);
             } catch (\Exception $e) {
                 error_log($e->getMessage());
+                \Sentry\captureException($e);
             }
         }
 
@@ -159,6 +160,7 @@ if (count($opts) < 1) {
                         error_log("Inserted " . $dbhm->lastInsertId());
                     } catch (\Exception $e) {
                         error_log($e->getMessage());
+                        \Sentry\captureException($e);
                     }
                     #error_log("Returned $rc");
                     #exit(0);

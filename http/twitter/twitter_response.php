@@ -29,6 +29,7 @@ try {
     echo "Thanks - you can close this tab now.";
 } catch (\Exception $e) {
     echo "This didn't work - " . $e->getMessage();
+    \Sentry\captureException($e);
     var_dump($_REQUEST);
 }
 

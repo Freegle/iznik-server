@@ -29,6 +29,7 @@ try {
     } while ($count > 0);
 } catch (\Exception $e) {
     error_log("Failed to delete login/logout logs " . $e->getMessage());
+    \Sentry\captureException($e);
 }
 
 # Don't keep user deletion logs indefinitely - this may be useful for a while for diagnosis, but not long term.
@@ -47,6 +48,7 @@ try {
     } while ($count > 0);
 } catch (\Exception $e) {
     error_log("Failed to delete user-deletion logs " . $e->getMessage());
+    \Sentry\captureException($e);
 }
 
 # Delete invalid logs with no subtype.
@@ -64,6 +66,7 @@ try {
     } while ($count > 0);
 } catch (\Exception $e) {
     error_log("Failed to delete blank logs " . $e->getMessage());
+    \Sentry\captureException($e);
 }
 
 # Delete logs for old bounces.  We get a huge number of logs over time.  This doesn't affect bounce processing
@@ -93,6 +96,7 @@ try {
     } while ($count > 0);
 } catch (\Exception $e) {
     error_log("Failed to delete non-Freegle logs " . $e->getMessage());
+    \Sentry\captureException($e);
 }
 
 # Delete logs for messages which no longer exist.  Typically spam, but we need to keep the logs for 30 days
@@ -115,6 +119,7 @@ try {
     }
 } catch (\Exception $e) {
     error_log("Failed to delete bounce emails" . $e->getMessage());
+    \Sentry\captureException($e);
 }
 
 # Delete old email bounces.  Any genuinely bouncing emails will result in the user being set as bouncing = 1 fairly
@@ -131,6 +136,7 @@ try {
     } while ($count > 0);
 } catch (\Exception $e) {
     error_log("Failed to delete bounce emails" . $e->getMessage());
+    \Sentry\captureException($e);
 }
 
 # Don't keep user creation logs indefinitely - the reason we created a user is only really relevant for diagnosis,
@@ -148,6 +154,7 @@ try {
     } while ($count > 0);
 } catch (\Exception $e) {
     error_log("Failed to delete user creation logs " . $e->getMessage());
+    \Sentry\captureException($e);
 }
 
 error_log("Purge email logs");
@@ -164,6 +171,7 @@ try {
     } while ($count > 0);
 } catch (\Exception $e) {
     error_log("Failed to delete email logs logs " . $e->getMessage());
+    \Sentry\captureException($e);
 }
 
 error_log("Purge main logs");
@@ -184,6 +192,7 @@ try {
     }
 } catch (\Exception $e) {
     error_log("Failed to delete non-Freegle logs " . $e->getMessage());
+    \Sentry\captureException($e);
 }
 
 # In the main logs table we might have logs that can be removed once enough time has elapsed for us using them for PD.
@@ -223,6 +232,7 @@ try {
     } while ($count > 0);
 } catch (\Exception $e) {
     error_log("Failed to delete src logs " . $e->getMessage());
+    \Sentry\captureException($e);
 }
 
 # JS error logs.
@@ -239,6 +249,7 @@ try {
     } while ($count > 0);
 } catch (\Exception $e) {
     error_log("Failed to delete src logs " . $e->getMessage());
+    \Sentry\captureException($e);
 }
 
 $start = date('Y-m-d', strtotime("midnight 1 day ago"));
@@ -255,6 +266,7 @@ try {
     } while ($count > 0);
 } catch (\Exception $e) {
     error_log("Failed to delete Plugin logs " . $e->getMessage());
+    \Sentry\captureException($e);
 }
 
 # Logs for users who no longer exist.
@@ -278,6 +290,7 @@ try {
     } while (count($logs) > 0);
 } catch (\Exception $e) {
     error_log("Failed to delete Plugin logs " . $e->getMessage());
+    \Sentry\captureException($e);
 }
 
 $start = date('Y-m-d', strtotime("48 hours ago"));
@@ -293,6 +306,7 @@ try {
     } while ($count > 0);
 } catch (\Exception $e) {
     error_log("Failed to delete API logs " . $e->getMessage());
+    \Sentry\captureException($e);
 }
 
 $start = date('Y-m-d', strtotime("4 hours ago"));
@@ -308,6 +322,7 @@ try {
     } while ($count > 0);
 } catch (\Exception $e) {
     error_log("Failed to delete SQL logs " . $e->getMessage());
+    \Sentry\captureException($e);
 }
 
 # No value to this data beyond a certain point, so make sure it doesn't grow forever.
@@ -324,6 +339,7 @@ try {
     } while ($count > 0);
 } catch (\Exception $e) {
     error_log("Failed to delete Plugin logs " . $e->getMessage());
+    \Sentry\captureException($e);
 }
 
 error_log("Completed");

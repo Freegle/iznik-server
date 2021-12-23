@@ -135,6 +135,7 @@ try {
     }
 } catch (\Exception $e) {
     error_log("Top-level exception " . $e->getMessage() . "\n");
+    \Sentry\captureException($e);
 }
 
 Utils::unlockScript($lockh);

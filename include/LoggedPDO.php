@@ -333,6 +333,7 @@ class LoggedPDO {
                 } else {
                     $msg = "Non-deadlock DB Exception " . $e->getMessage() . " $sql";
                     error_log($msg);
+                    \Sentry\captureMessage($msg);
                     $try = $this->tries;
                 }
             }

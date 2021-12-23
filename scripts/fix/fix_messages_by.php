@@ -18,7 +18,7 @@ foreach ($outcomes as $outcome) {
             $outcome['userid'],
             $outcome['timestamp'],
         ]);
-    } catch (Exception $e) {}
+    } catch (\Exception $e) {}
 
     $count++;
 

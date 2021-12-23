@@ -139,6 +139,8 @@ try{
   echo "Mail sent to geeks: ".$sent."\r\n";
 
 } catch (\Exception $e) {
+  \Sentry\captureException($e);
+
   echo $e->getMessage();
   error_log("Failed with " . $e->getMessage());
   $sent = mail(GEEKSALERTS_ADDR, "get_app_release_versions EXCEPTION", $e->getMessage(),$headers);

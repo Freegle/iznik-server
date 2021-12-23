@@ -35,12 +35,14 @@ do {
                 }
             } catch (\Throwable $ex) {
                 error_log("Flush error " . $ex->getMessage());
+                \Sentry\captureException($e);
             }
         } else {
             error_log("Couldn't get spool, sleep and retry");
         }
     } catch (\Exception $e) {
         error_log("Exception; sleep and retry " . $e->getMessage());
+        \Sentry\captureException($e);
     }
 
     if (file_exists('/tmp/iznik.mail.abort')) {

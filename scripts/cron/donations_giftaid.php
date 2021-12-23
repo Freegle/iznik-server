@@ -91,7 +91,10 @@ foreach ($donations as $donation) {
                 $dbhm->preExec("UPDATE users_donations SET giftaidchaseup = NOW() WHERE userid = ?;", [
                     $donation['userid']
                 ]);
-            } catch (\Exception $e) { error_log("Failed " . $e->getMessage()); };
+            } catch (\Exception $e) {
+                \Sentry\captureException($e);
+                error_log("Failed " . $e->getMessage());
+            };
         }
     }
 }

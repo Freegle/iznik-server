@@ -82,7 +82,10 @@ foreach ($users as $user) {
                 $m->attach($htmlPart);
 
                 $mailer->send($m);
-            } catch (\Exception $e) { error_log("Failed " . $e->getMessage()); };
+            } catch (\Exception $e) {
+                \Sentry\captureException($e);
+                error_log("Failed " . $e->getMessage());
+            };
         }
 
         $d->recordAsk($user['userid']);

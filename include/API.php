@@ -157,6 +157,7 @@ class API
                             }
                         }
                     } catch (\Exception $e) {
+                        \Sentry\captureException($e);
                     }
                 }
 
@@ -499,6 +500,7 @@ class API
                                 error_log("Sleep for WSREP");
                                 sleep(1);
                             } else {
+                                \Sentry\captureException($e);
                                 $ret = [
                                     'ret' => 997,
                                     'status' => 'DB operation failed after retry',
@@ -510,6 +512,7 @@ class API
                         }
                     } else {
                         # Something else.
+                        \Sentry\captureException($e);
                         error_log(
                             "Uncaught exception at " . $e->getFile() . " line " . $e->getLine() . " " . $e->getMessage()
                         );

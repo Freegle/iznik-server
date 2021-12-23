@@ -74,6 +74,7 @@ try {
     }
 } catch (\Exception $e) {
     error_log("Get sessions failed with " . $e->getMessage());
+    \Sentry\captureException($e);
 }
 
 Utils::unlockScript($lockh);

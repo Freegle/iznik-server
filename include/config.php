@@ -1,5 +1,10 @@
 <?php
 
+if(defined('SENTRY_DSN') && !defined('SENTRY_INITIALISED')) {
+    define('SENTRY_INITIALISED', TRUE);
+    \Sentry\init(['dsn' => SENTRY_DSN]);
+}
+
 if (!defined('REDIS_CONNECT')) {
     if (file_exists('/var/run/redis/redis.sock')) {
         define('REDIS_CONNECT', '/var/run/redis/redis.sock');

@@ -18,5 +18,6 @@ foreach ($groups as $group) {
         }
     } catch (\Throwable $e) {
         mail(GEEKS_ADDR, "Invalid CGA/DPA for {$group['id']} {$group['nameshort']}", $e->getMessage());
+        \Sentry\captureException($e);
     }
 }
