@@ -42,13 +42,10 @@ try {
     $exit = FALSE;
 
     while (!$exit) {
-        $job = $pheanstalk->reserve();
-
-         $count = 0;
-         $chatlistsqueued = 0;
+        $job = NULL;
 
         try {
-            $count++;
+            $job = $pheanstalk->reserve();
             $data = json_decode($job->getData(), true);
 
             if ($data) {
@@ -128,10 +125,17 @@ try {
                     }
                 }
             }
-        } catch (\Exception $e) { error_log("Exception " . $e->getMessage()); }
+        } catch (\Exception $e) {
+            error_log("Exception " . $e->getMessage());
+            if ($job) {
+                \Sentry\captureException($e);
+            }
+        }
 
-        # Whatever it is, we need to delete the job to avoid getting stuck.
-        $rc = $pheanstalk->delete($job);
+        if ($job) {
+            # Whatever it is, we need to delete the job to avoid getting stuck.
+            $pheanstalk->delete($job);
+        }
     }
 } catch (\Exception $e) {
     error_log("Top-level exception " . $e->getMessage() . "\n");

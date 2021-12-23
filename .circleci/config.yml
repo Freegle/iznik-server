@@ -26,7 +26,7 @@ jobs:
       - run: sudo apt-get update
 
       # PHP extensions
-      - run: sudo apt install -y libgmp-dev libxml2-dev libgd-dev libpng-dev libjpeg62-turbo-dev
+      - run: sudo apt install -y libgmp-dev libxml2-dev libgd-dev libpng-dev libjpeg62-turbo-dev imagemagick-common
       - run: sudo -E docker-php-ext-install exif
       - run: sudo -E docker-php-ext-install gmp
       - run: sudo -E docker-php-ext-install soap

@@ -157,7 +157,7 @@ class API
                             }
                         }
                     } catch (\Exception $e) {
-                        \Sentry\captureException($e);
+                        // Don't log to Sentry - this can happen validly for some IPs (e.g. on CircleCI).
                     }
                 }
 

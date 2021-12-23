@@ -178,15 +178,18 @@ function image() {
                             # client, but you never know.
                             $data = $a->getData();
                             $i = new Image($data);
-                            $h = $i->height();
-                            $w = $i->width();
 
-                            if ($w > $sizelimit) {
-                                $h = $h * $sizelimit / $w;
-                                $w = $sizelimit;
-                                $i->scale($w, $h);
-                                $data = $i->getData(100);
-                                $a->setPrivate('data', $data);
+                            if ($i) {
+                                $h = $i->height();
+                                $w = $i->width();
+
+                                if ($w > $sizelimit) {
+                                    $h = $h * $sizelimit / $w;
+                                    $w = $sizelimit;
+                                    $i->scale($w, $h);
+                                    $data = $i->getData(100);
+                                    $a->setPrivate('data', $data);
+                                }
                             }
 
                             $ret = [
