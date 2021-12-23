@@ -33,9 +33,9 @@ do {
                 if ($sent) {
                     echo "Sent $sent emails\n";
                 }
-            } catch (\Throwable $ex) {
-                error_log("Flush error " . $ex->getMessage());
-                \Sentry\captureException($e);
+            } catch (\Throwable $e) {
+                // Don't log to Sentry - this can happen.
+                error_log("Flush error " . $e->getMessage());
             }
         } else {
             error_log("Couldn't get spool, sleep and retry");
