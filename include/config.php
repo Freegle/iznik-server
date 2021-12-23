@@ -71,7 +71,14 @@ if (!defined('IZNIK_BASE')) {
 
     if(defined('SENTRY_DSN') && !defined('SENTRY_INITIALISED')) {
         define('SENTRY_INITIALISED', TRUE);
-        \Sentry\init(['dsn' => SENTRY_DSN]);
+        \Sentry\init([
+            'dsn' => SENTRY_DSN,
+            'attach_stacktrace' => TRUE,
+
+            // Some packages we use generate warnings, so we need to suppress reporting of these otherwise we
+            // get loads.
+            'error_types' => E_ALL & ~E_WARNING
+        ]);
     }
 }
 
