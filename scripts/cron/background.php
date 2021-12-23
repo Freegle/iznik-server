@@ -44,13 +44,14 @@ try {
         $job = NULL;
 
         try {
-            // Pheanstalk doesn't recovery well after an error, so recreate each time.  Try hard to suppress
-            // errors for Sentry.
-            $orig = error_reporting();
-            error_reporting(0);
-            $pheanstalk = new Pheanstalk('127.0.0.1');
-            $job = @$pheanstalk->reserve();
-            error_reporting($orig);
+            // Pheanstalk doesn't recovery well after an error, so recreate each time.  Also generates a warning
+            // which we struggle to suppress, so check the port is open.
+            $connection = @fsockopen('127.0.0.1', 11300);
+
+            if (is_resource($connection)) {
+                $pheanstalk = new Pheanstalk('127.0.0.1');
+                $job = @$pheanstalk->reserve();
+            }
         } catch (\Exception $e) {
             error_log("Failed to reserve, sleeping");
             sleep(1);
