@@ -500,7 +500,11 @@ class API
                                 error_log("Sleep for WSREP");
                                 sleep(1);
                             } else {
-                                \Sentry\captureException($e);
+                                if ($call != 'DBexceptionFail') {
+                                    # Don't log deliberate exceptions in UT.
+                                    \Sentry\captureException($e);
+                                }
+
                                 $ret = [
                                     'ret' => 997,
                                     'status' => 'DB operation failed after retry',
@@ -512,7 +516,7 @@ class API
                         }
                     } else {
                         # Something else.
-                        if ($call != 'exception' && $call != 'DBexceptionFail') {
+                        if ($call != 'exception') {
                             # Don't log deliberate exceptions in UT.
                             \Sentry\captureException($e);
                         }
