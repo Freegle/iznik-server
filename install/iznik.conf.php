@@ -101,7 +101,7 @@ define('PHEANSTALK_SERVER', '127.0.0.1');
 define('MONIT_HOST', 'zzz');
 
 # We use Sentry to capture exceptions.
-define('SENTRY_DSN',  'zzzz');
+define('SENTRY_DSN', 'zzzz');
 
 # You can force all user activity onto a test group
 define('USER_GROUP_OVERRIDE', 'FreeglePlayground');

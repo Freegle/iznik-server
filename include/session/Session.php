@@ -146,6 +146,13 @@ class Session {
         Session::prepareSession($dbhr, $dbhm);
 
         $id = Utils::presdef('id', $_SESSION, NULL);
+
+        if ($id) {
+            # Add context for Sentry exceptions.
+            \Sentry\configureScope(function (\Sentry\State\Scope $scope) use ($id): void {
+                $scope->setUser(['id' => $id]);
+            });
+        }
         return $id;
     }
 
