@@ -37,12 +37,16 @@ function doSQL($sql) {
     }
 }
 
+// Suppressing a warning Pheanstalk sometimes generates.
+error_reporting(E_ALL & ~E_WARNING);
+
 try {
-    $pheanstalk = new Pheanstalk('127.0.0.1');
     $exit = FALSE;
 
     while (!$exit) {
         try {
+            // Pheanstalk doesn't recovery well after an error, so recreate each time.
+            $pheanstalk = new Pheanstalk('127.0.0.1');
             $job = NULL;
             $job = @$pheanstalk->reserve();
         } catch (\Exception $e) {
