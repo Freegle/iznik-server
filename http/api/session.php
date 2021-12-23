@@ -26,7 +26,7 @@ function session() {
             @session_destroy();
             @session_unset();
             @session_start();
-            session_regenerate_id(true);
+            @session_regenerate_id(true);
         } catch (\Exception $e) {
         }
 

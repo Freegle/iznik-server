@@ -225,7 +225,7 @@ class imageAPITest extends IznikAPITestCase
             'identify' => TRUE
         ]);
 
-        assertEquals(5, $ret['ret']);
+        assertEquals(2, $ret['ret']);
     }
 
     /**

@@ -512,7 +512,11 @@ class API
                         }
                     } else {
                         # Something else.
-                        \Sentry\captureException($e);
+                        if ($call != 'exception' && $call != 'DBExceptionFail') {
+                            # Don't log deliberate exceptions in UT.
+                            \Sentry\captureException($e);
+                        }
+
                         error_log(
                             "Uncaught exception at " . $e->getFile() . " line " . $e->getLine() . " " . $e->getMessage()
                         );
