@@ -109,8 +109,6 @@ class PAF
 
             if ($count % 1000 === 0) { error_log("...$count"); }
         }
-
-        error_log("Unknown " . var_export($unknowns, TRUE));
     }
 
     public function update($fn) {
