@@ -1,6 +1,6 @@
 <?php
 // Some packages we use generate warning/deprecated messages which we want to suppress, especially for Sentry.
-error_reporting(E_ALL & ~E_WARNING & ~E_DEPRECATED);
+error_reporting(E_ALL & ~E_WARNING & ~E_DEPRECATED & ~E_NOTICE);
 
 if (!defined('REDIS_CONNECT')) {
     if (file_exists('/var/run/redis/redis.sock')) {
@@ -77,9 +77,19 @@ if (!defined('IZNIK_BASE')) {
             'dsn' => SENTRY_DSN,
             'attach_stacktrace' => TRUE,
             'before_send' => function (\Sentry\Event $event): ?\Sentry\Event {
-                if ($event && $event->getMessage() && strpos($event->getMessage(), 'Warning: fwrite(): supplied resource is not a valid stream resource') !== FALSE) {
-                    // This happens within Pheanstalk, and I can't find another way to kill it.
-                    return NULL;
+                if ($event) {
+                    $msg = $event->getMessage();
+
+                    if ($msg) {
+                        if (strpos($msg, 'Warning: fwrite(): supplied resource is not a valid stream resource') !== FALSE) {
+                            // This happens within Pheanstalk.  It's a benign reconnection case.
+                            return FALSE;
+                        } else if (strpos($msg, 'Notice: unserialize(): Error at offset') !== FALSE) {
+                            // This happens in SwiftMailer, when spooling.  It's an issue, but there is no way of
+                            // recovering from it.
+                            return FALSE;
+                        }
+                    }
                 }
 
                 return $event;
