@@ -1030,7 +1030,8 @@ WHERE chat_rooms.id IN $idlist;";
                     $u = new User($this->dbhr, $this->dbhm, $room['user1']);
                     $username = $u->getName();
                     $username = strlen(trim($username)) > 0 ? $username : 'A freegler';
-                    $ret = $room['user1'] == $myid ? "{$ret['group']['namedisplay']} Volunteers" : "$username on {$ret['group']['nameshort']}";
+                    $g = Group::get($this->dbhr, $this->dbhm, $room['groupid']);
+                    $ret = $room['user1'] == $myid ? "{$g->getName()} Volunteers" : "$username on {$g->getName()}";
                     break;
                 case ChatRoom::TYPE_MOD2MOD:
                     # Mods chatting to each other.

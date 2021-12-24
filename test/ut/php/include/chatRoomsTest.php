@@ -40,6 +40,9 @@ class chatRoomsTest extends IznikTestCase {
         $r = new ChatRoom($this->dbhm, $this->dbhm);
         $id = $r->createUser2Mod($member, $this->groupid);
 
+        assertEquals('testgroup Volunteers', $r->getName($id, $member));
+        assertEquals('Test User 2 on testgroup', $r->getName($id, $member + 1));
+
         $m = new ChatMessage($this->dbhr, $this->dbhm);
         list ($cm, $banned) = $m->create($id, $member, "Testing", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
         assertNotNull($cm);
