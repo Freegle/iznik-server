@@ -1769,17 +1769,11 @@ class User extends Entity
         return ($miles);
     }
 
-    public function gravatar($email, $s = 80, $d = 'mm', $r = 'g', $img = false, $atts = array())
+    public function gravatar($email, $s = 80, $d = 'mm', $r = 'g')
     {
         $url = 'https://www.gravatar.com/avatar/';
         $url .= md5(strtolower(trim($email)));
         $url .= "?s=$s&d=$d&r=$r";
-        if ($img) {
-            $url = '<img src="' . $url . '"';
-            foreach ($atts as $key => $val)
-                $url .= ' ' . $key . '="' . $val . '"';
-            $url .= ' />';
-        }
         return $url;
     }
 
@@ -2007,7 +2001,7 @@ class User extends Entity
                     $rets[$user['id']]['systemrole'] == User::SYSTEMROLE_SUPPORT ||
                     $rets[$user['id']]['systemrole'] == User::SYSTEMROLE_MODERATOR;
                 $showmod = $ismod && Utils::presdef('showmod', $rets[$user['id']]['settings'], FALSE);
-                $rets[$user['id']]['settings'] = ['showmod' => $showmod];
+                $rets[$user['id']]['settings']['showmod'] = $showmod;
                 $rets[$user['id']]['yahooid'] = NULL;
             }
 

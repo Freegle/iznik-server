@@ -988,6 +988,18 @@ class userTest extends IznikTestCase {
         $atts = $u->getPublic();
         $u->ensureAvatar($atts);
         assertTrue($atts['profile']['gravatar']);
+
+        $uid = $u->create("Test", "User", "Test User");
+        $this->log("Created user $uid");
+        $eid = $u->addEmail('test@gmail.com');
+        $this->dbhr->errorLog = true;
+        $this->dbhm->errorLog = true;
+        $u->setSetting('useprofile', FALSE);
+        User::clearCache();
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $atts = $u->getPublic();
+        $u->ensureAvatar($atts);
+        assertTrue($atts['profile']['default']);
     }
 
     public function testBadYahooId() {
