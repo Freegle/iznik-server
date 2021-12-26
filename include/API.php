@@ -230,7 +230,7 @@ class API
                 try {
                     # Each call is inside a file with a suitable name.
                     #
-                    # call_user_func doesn't scale well on multicores with HHVM, so we need can't figure out the function from
+                    # call_user_func doesn't scale well on multicores with some versions of PHP, so we need can't figure out the function from
                     # the call name - use a switch instead.
                     switch ($call) {
                         case 'abtest':
