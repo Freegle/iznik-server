@@ -88,9 +88,6 @@ define('FORUM_API', 'zzz');
 # We fetch jobs to display.
 define('WHATJOBS_DUMP', 'zzzz');
 
-# We verify email addresses.
-define('BRITEVERIFY_PRIVATE_KEY', 'zzzz');
-
 define('SERVER_LIST', '');
 define('GEOCODER', 'geocode.ilovefreegle.org');
 
