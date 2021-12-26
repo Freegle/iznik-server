@@ -260,8 +260,7 @@ class imageAPITest extends IznikAPITestCase
             ['user'],
             ['newsfeed'],
             ['volunteering'],
-            ['story'],
-            ['booktastic']
+            ['story']
         ];
     }
 

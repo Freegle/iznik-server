@@ -283,11 +283,6 @@ class API
                         case 'isochrone':
                             $ret = isochrone();
                             break;
-                        // @codeCoverageIgnoreStart
-                        case 'catalogue':
-                            $ret = catalogue();
-                            break;
-                        // @codeCoverageIgnoreEnd
                         case 'jobs':
                             $ret = jobs();
                             break;

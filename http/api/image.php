@@ -19,7 +19,6 @@ function image() {
     $newsfeed = Utils::presdef('newsfeed', $_REQUEST, NULL);
     $story = Utils::presdef('story', $_REQUEST, NULL);
     $circle = Utils::presdef('circle', $_REQUEST, NULL);
-    $booktastic = Utils::presdef('booktastic', $_REQUEST, NULL);
 
     $sizelimit = 800;
     
@@ -39,8 +38,6 @@ function image() {
         $type = Attachment::TYPE_NEWSFEED;
     } else if ($story) {
         $type = Attachment::TYPE_STORY;
-    } else if ($booktastic) {
-        $type = Attachment::TYPE_BOOKTASTIC;
     } else {
         $type = Attachment::TYPE_MESSAGE;
     }
