@@ -444,7 +444,7 @@ class Newsfeed extends Entity
                                 # disruptive member it looks like their posts are there but no other user can see them.
                                 $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
-                                if (!$hidden || $myid == $reply['userid'] || $me->isModerator()) {
+                                if (!$hidden || $myid == $reply['userid'] || ($me && $me->isModerator())) {
                                     if ($reply['visible'] &&
                                         $last &&
                                         $last['userid'] == $reply['userid'] &&
