@@ -815,7 +815,7 @@ class Newsfeed extends Entity
 
         $latlng = $u->getLatLng(FALSE);
 
-        if ($u->sendOurMails() && ($latlng[0] || $latlng[1]) && $u->getSetting('notificationmails', TRUE)) {
+        if ($u->sendOurMails() && $u->getEmailPreferred() && ($latlng[0] || $latlng[1]) && $u->getSetting('notificationmails', TRUE)) {
             # We have a location for them.
             # Find the last one we saw.  Use master as we might have updated this for a previous group.
             $seens = $this->dbhm->preQuery("SELECT * FROM newsfeed_users WHERE userid = ?;", [
