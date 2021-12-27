@@ -1,8 +1,6 @@
 <?php
 namespace Freegle\Iznik;
 
-
-
 use Minishlink\WebPush\WebPush;
 use Pheanstalk\Pheanstalk;
 use Kreait\Firebase\Factory;

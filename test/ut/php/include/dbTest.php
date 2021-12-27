@@ -2,6 +2,7 @@
 namespace Freegle\Iznik;
 
 use PhpMimeMailParser\Exception;
+use Pheanstalk\Pheanstalk;
 
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
