@@ -729,7 +729,10 @@ class userTest extends IznikTestCase {
 
         }
 
-    public function testCheck(){
+    /**
+     * @dataProvider checkProvider
+     */
+    public function testCheck($mod) {
         $u1 = User::get($this->dbhr, $this->dbhm);
         $id1 = $u1->create('Test', 'User', NULL);
         assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -746,7 +749,7 @@ class userTest extends IznikTestCase {
             $groupids[] = $gid;
 
             $u1->addMembership($gid, User::ROLE_MODERATOR);
-            $u2->addMembership($gid);
+            $u2->addMembership($gid, $mod ? User::ROLE_MODERATOR : User::ROLE_MEMBER);
 
             $u2 = User::get($this->dbhr, $this->dbhm, $id2, FALSE);
             $this->waitBackground();
@@ -755,7 +758,7 @@ class userTest extends IznikTestCase {
             $this->log("$i");
 
             # Should not show for review until we exceed the threshold.
-            if ($i < Spam::SEEN_THRESHOLD) {
+            if ($i < Spam::SEEN_THRESHOLD || $mod) {
                 assertNull($u2->getMembershipAtt($gid, 'reviewrequestedat'), "Shouldn't be flagged as not exceeded threshold");
             } else {
                 # Should now show for review on this group,
@@ -779,6 +782,13 @@ class userTest extends IznikTestCase {
             $u1->memberReview($gid, FALSE, 'UT');
             $u2->memberReview($gid, FALSE, 'UT');
         }
+    }
+
+    public function checkProvider() {
+        return [
+            [ FALSE ],
+            [ TRUE ]
+        ];
     }
 
     public function testVerifyMail() {

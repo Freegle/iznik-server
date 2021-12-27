@@ -482,6 +482,13 @@ class Spam {
         # needs rechecking.
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
+        $u = User::get($this->dbhr, $this->dbhm, $userid);
+
+        if ($u->getId() == $userid && $u->isModerator()) {
+            # We whitelist all mods.
+            return FALSE;
+        }
+
         $suspect = FALSE;
         $reason = NULL;
         $suspectgroups = [];
@@ -578,7 +585,6 @@ class Spam {
                 'text' => $reason
             ]);
 
-            $u = User::get($this->dbhr, $this->dbhm, $userid);
             $memberships = $u->getMemberships();
 
             foreach ($memberships as $membership) {
