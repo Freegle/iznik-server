@@ -149,12 +149,15 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
 
             try {
                 $job = $pheanstalk->peekReady();
-                $data = json_decode($job->getData(), true);
 
-                if ($data['queued'] > $start) {
-                    $this->log("Queue now newer than when we started");
-                    sleep(2);
-                    break;
+                if ($job) {
+                    $data = json_decode($job->getData(), true);
+
+                    if ($data['queued'] > $start) {
+                        $this->log("Queue now newer than when we started");
+                        sleep(2);
+                        break;
+                    }
                 }
             } catch (\Exception $e) {
                 if (strpos($e->getMessage(), "NOT_FOUND: There are no jobs in the 'ready' status") !== FALSE) {
