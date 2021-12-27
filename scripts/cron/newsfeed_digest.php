@@ -33,6 +33,7 @@ try {
                 try {
                     $count += $n->digest($memb['userid']);
                 } catch (\Exception $e) {
+                    error_log("Error on {$memb['userid']} - " . $e->getMessage());
                     \Sentry\captureException($e);
                 }
             }
