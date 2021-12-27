@@ -133,7 +133,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         # waiting (and therefore anything we put on has been handled).
         $start = microtime(TRUE);
 
-        $pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
+        $pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
         $count = 0;
         do {
             $stats = $pheanstalk->stats();

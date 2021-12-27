@@ -144,164 +144,25 @@ class MicroVolunteering
             if (count($groupids)) {
                 if ($u->getPrivate('trustlevel') == User::TRUST_MODERATE) {
                     # Users with this trust level can review pending messages.
-                    $msgs = $this->dbhr->preQuery(
-                        "SELECT messages_groups.msgid
-    FROM messages_groups
-    INNER JOIN messages ON messages.id = messages_groups.msgid
-    INNER JOIN `groups` ON groups.id = messages_groups.groupid
-    LEFT JOIN microactions ON microactions.msgid = messages_groups.msgid AND microactions.userid = ?    
-    WHERE messages_groups.groupid IN (" . implode(',', $groupids) . " ) 
-        AND fromuser != ?
-        AND microvolunteering = 1
-        AND messages.deleted IS NULL
-        AND microactions.id IS NULL
-        AND (microvolunteeringoptions IS NULL OR JSON_EXTRACT(microvolunteeringoptions, '$.approvedmessages') = 1)
-    ORDER BY messages_groups.arrival ASC LIMIT 1",
-                        [
-                            $userid,
-                            $userid
-                        ]
-                    );
-
-                    foreach ($msgs as $msg) {
-                        $ret = [
-                            'type' => self::CHALLENGE_CHECK_MESSAGE,
-                            'msgid' => $msg['msgid']
-                        ];
-                    }
+                    $ret = $this->reviewPendingMessages($groupids, $userid);
                 }
             }
 
             if (!$ret) {
-                # Find the earliest message:
-                # - on approved (in the spatial index)
-                # - from the current day (use messages because we're interested in the first post).
-                # - on one of these groups
-                # - micro-volunteering is enabled on the group
-                # - not from us
-                # - not had a quorum of opinions
-                # - not one we've seen
-                # - still open
-                # - on a group with this kind of microvolunteering enabled.
-                #
-                # We include explicitly moderated ones because this gives us data on how well they do.
-                if (in_array(self::CHALLENGE_CHECK_MESSAGE, $types) &&
-                    count($groupids)) {
-                    $msgs = $this->dbhr->preQuery(
-                        "SELECT messages_spatial.msgid,
-       (SELECT COUNT(*) AS count FROM microactions WHERE msgid = messages_spatial.msgid) AS reviewcount,
-       (SELECT COUNT(*) AS count FROM microactions WHERE msgid = messages_spatial.msgid AND result = ?) AS approvalcount
-    FROM messages_spatial 
-    INNER JOIN messages_groups ON messages_spatial.msgid = messages_groups.msgid
-    INNER JOIN messages ON messages.id = messages_spatial.msgid
-    INNER JOIN `groups` ON groups.id = messages_groups.groupid
-    LEFT JOIN microactions ON microactions.msgid = messages_spatial.msgid AND microactions.userid = ?    
-    LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages_spatial.msgid
-    WHERE messages_groups.groupid IN (" . implode(',', $groupids) . " ) 
-        AND DATE(messages.arrival) = CURDATE()
-        AND fromuser != ?
-        AND microvolunteering = 1
-        AND messages_outcomes.id IS NULL
-        AND messages.deleted IS NULL
-        AND microactions.id IS NULL
-        AND (microvolunteeringoptions IS NULL OR JSON_EXTRACT(microvolunteeringoptions, '$.approvedmessages') = 1)
-    HAVING approvalcount < ? AND reviewcount < ?
-    ORDER BY messages_groups.arrival ASC LIMIT 1",
-                        [
-                            self::RESULT_APPROVE,
-                            $userid,
-                            $userid,
-                            self::APPROVAL_QUORUM,
-                            self::DISSENTING_QUORUM
-                        ]
-                    );
-
-                    foreach ($msgs as $msg) {
-                        $ret = [
-                            'type' => self::CHALLENGE_CHECK_MESSAGE,
-                            'msgid' => $msg['msgid']
-                        ];
-                    }
-                }
+                # Anyone can review an approved message.
+                $ret = $this->reviewApprovedMessage($types, $groupids, $userid);
             }
 
             if (!$ret && $u->hasFacebookLogin() && in_array(self::CHALLENGE_FACEBOOK_SHARE, $types)) {
-                # Try sharing of Facebook post.
-                $posts = $this->dbhr->preQuery(
-                    "SELECT groups_facebook_toshare.* FROM groups_facebook_toshare 
-    LEFT JOIN microactions ON microactions.facebook_post = groups_facebook_toshare.id AND microactions.userid = ? 
-    WHERE DATE(groups_facebook_toshare.date) = CURDATE() AND microactions.id IS NULL ORDER BY date DESC LIMIT 1;",
-                    [
-                        $userid
-                    ]
-                );
-
-                foreach ($posts as $post) {
-                    $ret = [
-                        'type' => self::CHALLENGE_FACEBOOK_SHARE,
-                        'facebook' => $post
-                    ];
-                }
+                $ret = $this->shareFacebook($userid);
             }
 
             if (!$ret && in_array(self::CHALLENGE_PHOTO_ROTATE, $types) && count($groupids)) {
-                # Select 9 distinct random recent photos that we've not reviewed.
-
-                $atts = $this->dbhr->preQuery(
-                    "SELECT messages_attachments.id, 
-       (SELECT COUNT(*) AS count FROM microactions WHERE rotatedimage = messages_attachments.id) AS reviewcount
-    FROM messages_groups 
-    INNER JOIN messages_attachments ON messages_attachments.msgid = messages_groups.msgid
-    LEFT JOIN microactions ON microactions.rotatedimage = messages_attachments.id AND userid = ?
-    INNER JOIN `groups` ON groups.id = messages_groups.groupid AND microvolunteering = 1 AND (microvolunteeringoptions IS NULL OR JSON_EXTRACT(microvolunteeringoptions, '$.photorotate') = 1)
-    WHERE arrival >= ? AND groupid IN (" . implode(',', $groupids) . ") AND microactions.id IS NULL
-    HAVING reviewcount < ?
-    ORDER BY RAND() LIMIT 9;",
-                    [
-                        $userid,
-                        $today,
-                        self::DISSENTING_QUORUM
-                    ]
-                );
-
-                if (count($atts)) {
-                    $photos = [];
-                    $a = new Attachment($this->dbhr, $this->dbhm);
-
-                    foreach ($atts as $att) {
-                        $photos[] = [
-                            'id' => $att['id'],
-                            'path' => $a->getPath(true, $att['id'])
-                        ];
-                    }
-
-                    $ret = [
-                        'type' => self::CHALLENGE_PHOTO_ROTATE,
-                        'photos' => $photos
-                    ];
-                }
+                $ret = $this->photoRotate($groupids, $userid, $today);
             }
 
             if (!$ret && in_array(self::CHALLENGE_SEARCH_TERM, $types)) {
-                # Try pairing of popular item names.
-                #
-                # We choose 10 random distinct popular items, and ask which are related.
-                $enabled = $this->dbhr->preQuery(
-                    "SELECT memberships.id FROM memberships INNER JOIN `groups` ON memberships.groupid = groups.id WHERE memberships.userid = ? AND (microvolunteeringoptions IS NULL OR JSON_EXTRACT(microvolunteeringoptions, '$.wordmatch') = 1);",
-                    [
-                        $userid
-                    ]
-                );
-
-                if (count($enabled)) {
-                    $items = $this->dbhr->preQuery(
-                        "SELECT DISTINCT id, term FROM (SELECT id, name AS term FROM items WHERE LENGTH(name) > 2 ORDER BY popularity DESC LIMIT 300) t ORDER BY RAND() LIMIT 10;"
-                    );
-                    $ret = [
-                        'type' => self::CHALLENGE_SEARCH_TERM,
-                        'terms' => $items
-                    ];
-                }
+                $ret = $this->searchTerms($userid);
             }
         }
 
@@ -553,5 +414,206 @@ class MicroVolunteering
         }
 
         return $count;
+    }
+
+    /**
+     * @param array $groupids
+     * @param $userid
+     */
+    private function reviewPendingMessages(array $groupids, $userid)
+    {
+        $msgs = $this->dbhr->preQuery(
+            "SELECT messages_groups.msgid
+    FROM messages_groups
+    INNER JOIN messages ON messages.id = messages_groups.msgid
+    INNER JOIN `groups` ON groups.id = messages_groups.groupid
+    LEFT JOIN microactions ON microactions.msgid = messages_groups.msgid AND microactions.userid = ?    
+    WHERE messages_groups.groupid IN (" . implode(',', $groupids) . " ) 
+        AND fromuser != ?
+        AND microvolunteering = 1
+        AND messages.deleted IS NULL
+        AND microactions.id IS NULL
+        AND (microvolunteeringoptions IS NULL OR JSON_EXTRACT(microvolunteeringoptions, '$.approvedmessages') = 1)
+    ORDER BY messages_groups.arrival ASC LIMIT 1",
+            [
+                $userid,
+                $userid
+            ]
+        );
+
+        foreach ($msgs as $msg)
+        {
+            $ret = [
+                'type' => self::CHALLENGE_CHECK_MESSAGE,
+                'msgid' => $msg['msgid']
+            ];
+        }
+
+        return $ret;
+    }
+
+    /**
+     * @param $types
+     * @param array $groupids
+     * @param $userid
+     * @return array
+     */
+    private function reviewApprovedMessage($types, array $groupids, $userid, array $ret): array
+    {
+        # Find the earliest message:
+        # - on approved (in the spatial index)
+        # - from the current day (use messages because we're interested in the first post).
+        # - on one of these groups
+        # - micro-volunteering is enabled on the group
+        # - not from us
+        # - not had a quorum of opinions
+        # - not one we've seen
+        # - still open
+        # - on a group with this kind of microvolunteering enabled.
+        #
+        # We include explicitly moderated ones because this gives us data on how well they do.
+        if (in_array(self::CHALLENGE_CHECK_MESSAGE, $types) &&
+            count($groupids))
+        {
+            $msgs = $this->dbhr->preQuery(
+                "SELECT messages_spatial.msgid,
+       (SELECT COUNT(*) AS count FROM microactions WHERE msgid = messages_spatial.msgid) AS reviewcount,
+       (SELECT COUNT(*) AS count FROM microactions WHERE msgid = messages_spatial.msgid AND result = ?) AS approvalcount
+    FROM messages_spatial 
+    INNER JOIN messages_groups ON messages_spatial.msgid = messages_groups.msgid
+    INNER JOIN messages ON messages.id = messages_spatial.msgid
+    INNER JOIN `groups` ON groups.id = messages_groups.groupid
+    LEFT JOIN microactions ON microactions.msgid = messages_spatial.msgid AND microactions.userid = ?    
+    LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages_spatial.msgid
+    WHERE messages_groups.groupid IN (" . implode(',', $groupids) . " ) 
+        AND DATE(messages.arrival) = CURDATE()
+        AND fromuser != ?
+        AND microvolunteering = 1
+        AND messages_outcomes.id IS NULL
+        AND messages.deleted IS NULL
+        AND microactions.id IS NULL
+        AND (microvolunteeringoptions IS NULL OR JSON_EXTRACT(microvolunteeringoptions, '$.approvedmessages') = 1)
+    HAVING approvalcount < ? AND reviewcount < ?
+    ORDER BY messages_groups.arrival ASC LIMIT 1",
+                [
+                    self::RESULT_APPROVE,
+                    $userid,
+                    $userid,
+                    self::APPROVAL_QUORUM,
+                    self::DISSENTING_QUORUM
+                ]
+            );
+
+            foreach ($msgs as $msg)
+            {
+                $ret = [
+                    'type' => self::CHALLENGE_CHECK_MESSAGE,
+                    'msgid' => $msg['msgid']
+                ];
+            }
+        }
+        return $ret;
+    }
+
+    /**
+     * @param $userid
+     * @return array
+     */
+    private function shareFacebook($userid, array $ret): array
+    {
+        # Try sharing of Facebook post.
+        $posts = $this->dbhr->preQuery(
+            "SELECT groups_facebook_toshare.* FROM groups_facebook_toshare 
+    LEFT JOIN microactions ON microactions.facebook_post = groups_facebook_toshare.id AND microactions.userid = ? 
+    WHERE DATE(groups_facebook_toshare.date) = CURDATE() AND microactions.id IS NULL ORDER BY date DESC LIMIT 1;",
+            [
+                $userid
+            ]
+        );
+
+        foreach ($posts as $post)
+        {
+            $ret = [
+                'type' => self::CHALLENGE_FACEBOOK_SHARE,
+                'facebook' => $post
+            ];
+        }
+        return $ret;
+    }
+
+    /**
+     * @param array $groupids
+     * @param $userid
+     * @param $today
+     * @return array
+     */
+    private function photoRotate(array $groupids, $userid, $today): array
+    {
+        # Select 9 distinct random recent photos that we've not reviewed.
+        $atts = $this->dbhr->preQuery(
+            "SELECT messages_attachments.id, 
+       (SELECT COUNT(*) AS count FROM microactions WHERE rotatedimage = messages_attachments.id) AS reviewcount
+    FROM messages_groups 
+    INNER JOIN messages_attachments ON messages_attachments.msgid = messages_groups.msgid
+    LEFT JOIN microactions ON microactions.rotatedimage = messages_attachments.id AND userid = ?
+    INNER JOIN `groups` ON groups.id = messages_groups.groupid AND microvolunteering = 1 AND (microvolunteeringoptions IS NULL OR JSON_EXTRACT(microvolunteeringoptions, '$.photorotate') = 1)
+    WHERE arrival >= ? AND groupid IN (" . implode(',', $groupids) . ") AND microactions.id IS NULL
+    HAVING reviewcount < ?
+    ORDER BY RAND() LIMIT 9;",
+            [
+                $userid,
+                $today,
+                self::DISSENTING_QUORUM
+            ]
+        );
+
+        if (count($atts))
+        {
+            $photos = [];
+            $a = new Attachment($this->dbhr, $this->dbhm);
+
+            foreach ($atts as $att)
+            {
+                $photos[] = [
+                    'id' => $att['id'],
+                    'path' => $a->getPath(true, $att['id'])
+                ];
+            }
+
+            $ret = [
+                'type' => self::CHALLENGE_PHOTO_ROTATE,
+                'photos' => $photos
+            ];
+        }
+        return $ret;
+    }
+
+    /**
+     * @param $userid
+     * @return array
+     */
+    private function searchTerms($userid): array
+    {
+        # Try pairing of popular item names.
+        #
+        # We choose 10 random distinct popular items, and ask which are related.
+        $enabled = $this->dbhr->preQuery(
+            "SELECT memberships.id FROM memberships INNER JOIN `groups` ON memberships.groupid = groups.id WHERE memberships.userid = ? AND (microvolunteeringoptions IS NULL OR JSON_EXTRACT(microvolunteeringoptions, '$.wordmatch') = 1);",
+            [
+                $userid
+            ]
+        );
+
+        if (count($enabled))
+        {
+            $items = $this->dbhr->preQuery(
+                "SELECT DISTINCT id, term FROM (SELECT id, name AS term FROM items WHERE LENGTH(name) > 2 ORDER BY popularity DESC LIMIT 300) t ORDER BY RAND() LIMIT 10;"
+            );
+            $ret = [
+                'type' => self::CHALLENGE_SEARCH_TERM,
+                'terms' => $items
+            ];
+        }
+        return $ret;
     }
 }

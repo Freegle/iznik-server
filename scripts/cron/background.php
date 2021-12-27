@@ -46,7 +46,7 @@ try {
         try {
             // Pheanstalk doesn't recovery well after an error, so recreate each time.
             error_reporting(0);
-            $pheanstalk = new Pheanstalk('127.0.0.1');
+            $pheanstalk = Pheanstalk::create('127.0.0.1');
             $job = $pheanstalk->reserve();
             error_reporting(E_ALL & ~E_WARNING & ~E_DEPRECATED & ~E_NOTICE);
         } catch (\Exception $e) {

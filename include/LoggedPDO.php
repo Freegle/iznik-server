@@ -641,7 +641,7 @@ class LoggedPDO {
                 # This SQL needs executing, but not in the foreground, and it's not the end of the
                 # world if we drop it, or duplicate it.
                 if (!$this->pheanstalk) {
-                    $this->pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
+                    $this->pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
                 }
 
                 if (strlen($sql) > LoggedPDO::MAX_BACKGROUND_SIZE) {

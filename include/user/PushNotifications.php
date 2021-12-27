@@ -92,7 +92,7 @@ class PushNotifications
             $this->uthook();
 
             if (!$this->pheanstalk) {
-                $this->pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
+                $this->pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
             }
 
             $str = json_encode(array(
@@ -390,7 +390,7 @@ class PushNotifications
             $this->uthook();
 
             if (!$this->pheanstalk) {
-                $this->pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
+                $this->pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
             }
 
             $str = json_encode(array(
