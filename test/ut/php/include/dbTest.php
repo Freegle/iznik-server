@@ -122,7 +122,7 @@ class dbTest extends IznikTestCase {
             ->disableOriginalConstructor()
             ->setMethods(array('put'))
             ->getMock();
-        $mock->method('put')->willReturn(true);
+        $mock->method('put')->willReturn(new Pheanstalk\Job(1, 'ok'));
         $this->dbhm->setPheanstalk($mock);
         $this->dbhm->background('INSERT INTO test VALUES ();');
 
