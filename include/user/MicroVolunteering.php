@@ -456,9 +456,8 @@ class MicroVolunteering
      * @param $types
      * @param array $groupids
      * @param $userid
-     * @return array
      */
-    private function reviewApprovedMessage($types, array $groupids, $userid, array $ret): array
+    private function reviewApprovedMessage($types, array $groupids, $userid)
     {
         # Find the earliest message:
         # - on approved (in the spatial index)
@@ -515,11 +514,7 @@ class MicroVolunteering
         return $ret;
     }
 
-    /**
-     * @param $userid
-     * @return array
-     */
-    private function shareFacebook($userid, array $ret): array
+    private function shareFacebook($userid)
     {
         # Try sharing of Facebook post.
         $posts = $this->dbhr->preQuery(
@@ -545,9 +540,8 @@ class MicroVolunteering
      * @param array $groupids
      * @param $userid
      * @param $today
-     * @return array
      */
-    private function photoRotate(array $groupids, $userid, $today): array
+    private function photoRotate(array $groupids, $userid, $today)
     {
         # Select 9 distinct random recent photos that we've not reviewed.
         $atts = $this->dbhr->preQuery(
@@ -590,9 +584,8 @@ class MicroVolunteering
 
     /**
      * @param $userid
-     * @return array
      */
-    private function searchTerms($userid): array
+    private function searchTerms($userid)
     {
         # Try pairing of popular item names.
         #
