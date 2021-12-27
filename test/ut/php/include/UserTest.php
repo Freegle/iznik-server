@@ -761,11 +761,11 @@ class userTest extends IznikTestCase {
             if ($i < Spam::SEEN_THRESHOLD || $mod) {
                 assertNull($u2->getMembershipAtt($gid, 'reviewrequestedat'), "Shouldn't be flagged as not exceeded threshold");
             } else {
-                # Should now show for review on this group,
+                # Should now show for review on this group, but only the member, not the mod.
                 assertNotNull($u2->getMembershipAtt($gid, 'reviewrequestedat'));
                 $ctx = NULL;
                 $membs = $g->getMembers(10, NULL, $ctx, NULL, MembershipCollection::SPAM, [ $gid ]);
-                assertEquals(2, count($membs), "Should be flagged on $gid");
+                assertEquals(1, count($membs), "Should be flagged on $gid");
 
                 # ...but not any previous groups because we flagged as reviewed on those.
                 foreach ($groupids as $checkgid) {
