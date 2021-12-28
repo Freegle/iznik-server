@@ -110,7 +110,7 @@
       <mj-section background-color="#FFF8DC" padding="0px">
         <mj-group>
           <mj-column>
-            <mj-text align="center"><a font-weight="bold" href="{{ message.replyweb }}">Reply on Web</a></mj-text>
+            <mj-button align="center" href="{{ message.replyweb }}" background-color="darkgreen">Reply</mj-button>
           </mj-column>
           <mj-column>
             <mj-text align="center"><a font-weight="bold" href="{{ message.replyemail }}">Reply via Email</a></mj-text>
