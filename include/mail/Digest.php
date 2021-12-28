@@ -256,7 +256,7 @@ class Digest
                                 'fromname' => $msg['fromname'],
                                 'subject' => $msg['subject'],
                                 'textbody' => $msg['textbody'],
-                                'image' => count($msg['attachments']) > 0 ? $msg['attachments'][0]['paththumb'] : NULL,
+                                'image' => count($msg['attachments']) > 0 ? $msg['attachments'][0]['path'] : NULL,
                                 'groupname' => $gatts['namedisplay'],
                                 'replyweb' => "https://" . USER_SITE . "/message/{$msg['id']}",
                                 'replyemail' => "mailto:$replyto?subject=" . rawurlencode("Re: " . $msg['subject']),
