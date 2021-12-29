@@ -220,10 +220,20 @@ class Isochrone extends Entity
 
         # And update this entry.
         if ($isochroneid) {
-            $this->dbhm->preExec("UPDATE isochrones_users SET isochroneid = ? WHERE id = ? ON DUPLICATE KEY UPDATE id = id;", [
-                $isochroneid,
-                $this->id
-            ]);
+            try {
+                $this->dbhm->preExec("UPDATE isochrones_users SET isochroneid = ? WHERE id = ?;", [
+                    $isochroneid,
+                    $this->id
+                ]);
+            } catch (DBException $e) {
+                if (strpos($e->getMessage(), 'Duplicate entry') !== FALSE) {
+                    # This can happen due to a timing window.  We already have an entry for this user/isochrone, so
+                    # we no longer need this one.
+                    $this->dbhm->preExec("DELETE FROM isochrones_users WHERE id = ?;", [
+                        $this->id
+                    ]);
+                }
+            }
         }
     }
 }
