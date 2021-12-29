@@ -3275,6 +3275,7 @@ class User extends Entity
     }
 
     public function listComments(&$ctx, $groupid = NULL) {
+        $comments = [];
         $ctxq = '';
 
         if ($ctx) {
@@ -3286,28 +3287,30 @@ class User extends Entity
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $groupids = $me->getModeratorships();
 
-        $sql = "SELECT * FROM users_comments WHERE $groupq $ctxq groupid IN (" . implode(',', $groupids) . ") ORDER BY reviewed ASC LIMIT 10;";
-        $comments = $this->dbhr->preQuery($sql);
+        if (count($groupids)) {
+            $sql = "SELECT * FROM users_comments WHERE $groupq $ctxq groupid IN (" . implode(',', $groupids) . ") ORDER BY reviewed ASC LIMIT 10;";
+            $comments = $this->dbhr->preQuery($sql);
 
-        $uids = array_unique(array_merge(array_column($comments, 'byuserid'), array_column($comments, 'userid')));
-        $u = new User($this->dbhr, $this->dbhm);
-        $users = $u->getPublicsById($uids, NULL, FALSE, FALSE, FALSE, FALSE);
+            $uids = array_unique(array_merge(array_column($comments, 'byuserid'), array_column($comments, 'userid')));
+            $u = new User($this->dbhr, $this->dbhm);
+            $users = $u->getPublicsById($uids, NULL, FALSE, FALSE, FALSE, FALSE);
 
-        foreach ($comments as &$comment) {
-            $comment['date'] = Utils::ISODate($comment['date']);
-            $comment['reviewed'] = Utils::ISODate($comment['reviewed']);
+            foreach ($comments as &$comment) {
+                $comment['date'] = Utils::ISODate($comment['date']);
+                $comment['reviewed'] = Utils::ISODate($comment['reviewed']);
 
-            if (Utils::pres('userid', $comment)) {
-                $comment['user'] = $users[$comment['userid']];
-                unset($comment['userid']);
+                if (Utils::pres('userid', $comment)) {
+                    $comment['user'] = $users[$comment['userid']];
+                    unset($comment['userid']);
+                }
+
+                if (Utils::pres('byuserid', $comment)) {
+                    $comment['byuser'] = $users[$comment['byuserid']];
+                    unset($comment['byuserid']);
+                }
+
+                $ctx['id'] = $comment['id'];
             }
-
-            if (Utils::pres('byuserid', $comment)) {
-                $comment['byuser'] = $users[$comment['byuserid']];
-                unset($comment['byuserid']);
-            }
-
-            $ctx['id'] = $comment['id'];
         }
 
         return $comments;
