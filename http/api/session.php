@@ -47,7 +47,7 @@ function session() {
             if ($appversion == '2') {
                 $ret = array('ret' => 123, 'status' => 'App is out of date');
             } else {
-                if (Utils::pres('id', $_SESSION)) {
+                if (Utils::pres('id', $_SESSION) && $me) {
                     # We're logged in.
                     if (!$modtools) {
                         # ...but we are running an old version of the code, probably the app, because we have
