@@ -889,9 +889,10 @@ class Message
         return($promises[0]['count']);
     }
 
-    private function getPublicAtts($me, $myid, $msgs, $roles, $seeall, $summary) {
+    private function getPublicAtts($me, $msgs, $roles, $seeall, $summary) {
         # Get the attributes which are visible based on our role.
         $rets = [];
+        $myid = $me ? $me->getId() : NULL;
 
         foreach ($msgs as $msg) {
             $role = $roles[$msg['id']][0];
@@ -1773,7 +1774,7 @@ ORDER BY lastdate DESC;";
         # We call the methods that handle an array of messages, which are shared with MessageCollection.  Each of
         # these return their info in an array indexed by message id.
         $roles = $this->getRolesForMessages($me, $msgs);
-        $rets = $this->getPublicAtts($me, $myid, $msgs, $roles, $seeall, $summary);
+        $rets = $this->getPublicAtts($me, $msgs, $roles, $seeall, $summary);
         $this->getPublicReplies($me, $myid, $rets, $msgs, $summary, $roles, $seeall, FALSE);
         $this->getPublicGroups($me, $myid, $userlist, $rets, $msgs, $roles, $summary, $seeall);
         $this->getPublicOutcomes($me, $myid, $rets, $msgs, $summary, $roles, $seeall);
