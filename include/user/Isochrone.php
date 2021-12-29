@@ -220,7 +220,7 @@ class Isochrone extends Entity
 
         # And update this entry.
         if ($isochroneid) {
-            $this->dbhm->preExec("UPDATE isochrones_users SET isochroneid = ? WHERE id = ?;", [
+            $this->dbhm->preExec("UPDATE isochrones_users SET isochroneid = ? WHERE id = ? ON DUPLICATE KEY UPDATE id = id;", [
                 $isochroneid,
                 $this->id
             ]);
