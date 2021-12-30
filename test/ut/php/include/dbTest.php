@@ -472,5 +472,16 @@ class dbTest extends IznikTestCase {
             assertFalse(FALSE);
         }
     }
+
+    public function testFailConnect() {
+        global $dbconfig;
+        $d = new LoggedPDO('127.0.0.2:1234', $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE);
+        try {
+            $d->doConnect();
+            assertFalse(TRUE);
+        } catch (DBException $e) {
+            assertFalse($d->isConnected());
+        }
+    }
 }
 

@@ -195,7 +195,11 @@ class LoggedPDO {
 
             $this->dbwaittime += microtime(true) - $start;
 
-            $this->connected = TRUE;
+            if ($gotit) {
+                $this->connected = TRUE;
+            } else {
+                throw new DBException("Failed to connect to DB after $count retried");
+            }
         }
     }
 
@@ -684,5 +688,9 @@ class LoggedPDO {
 
     private function giveUp($msg) {
         throw new DBException("Unexpected database error $msg", 999);
+    }
+
+    public function isConnected() {
+        return $this->connected;
     }
 }
