@@ -20,7 +20,7 @@ class PushNotifications
     const APPTYPE_MODTOOLS = 'ModTools';
     const APPTYPE_USER = 'User';
 
-    private $dbhr, $dbhm, $log, $pheanstalk = NULL, $firebase = NULL;
+    private $dbhr, $dbhm, $log, $pheanstalk = NULL, $firebase = NULL, $messaging = NULL;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
@@ -197,7 +197,7 @@ class PushNotifications
                         }
 
                         try {
-                            if (property_exists('messaging', $this) && $this->messaging) {
+                            if ($this->messaging) {
                                 $this->messaging->validate($message);
                             }
                         } catch (InvalidMessage $e) {
@@ -234,7 +234,7 @@ class PushNotifications
                             break;
                         }
 
-                        if (property_exists('messaging', $this) && $this->messaging) {
+                        if ($this->messaging) {
                             $ret = $this->messaging->send($message);
                             error_log("FCM send " . var_export($ret, TRUE));
                         }
