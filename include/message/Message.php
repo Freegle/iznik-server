@@ -5121,11 +5121,6 @@ $mq", [
             }
         }
 
-        if (!$autoreply && stripos($this->getFromaddr(), 'notify@yahoogroups.com') !== FALSE) {
-            # Some Yahoo system message we don't want to see.
-            $autoreply = TRUE;
-        }
-
         return ($autoreply);
     }
 

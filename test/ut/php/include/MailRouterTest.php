@@ -235,17 +235,17 @@ class MailRouterTest extends IznikTestCase {
         $r->method('mail')->willReturn(false);
 
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/greetingsspam');
-        $id = $r->received(Message::EMAIL, 'notify@yahoogroups.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/greetingsspam2');
-        $id = $r->received(Message::EMAIL, 'notify@yahoogroups.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/greetingsspam3');
-        $id = $r->received(Message::EMAIL, 'notify@yahoogroups.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
@@ -314,6 +314,7 @@ class MailRouterTest extends IznikTestCase {
 
     public function testGroupsSpam() {
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamgroups');
+        $msg = str_replace('chippenham-freegle', 'testgroup', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
         $id = $m->save();
@@ -795,7 +796,7 @@ class MailRouterTest extends IznikTestCase {
 
         # A request to confirm an application
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext');
-        $id = $r->received(Message::EMAIL, 'notify@yahoogroups.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::DROPPED, $rc);
 
@@ -1564,7 +1565,7 @@ class MailRouterTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
 
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/worry');
-        $id = $r->received(Message::EMAIL, 'notify@yahoogroups.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);

@@ -32,8 +32,6 @@ error_log("\n----------------------\n$envfrom => $envto");
 
 $rc = MailRouter::DROPPED;
 
-$groupname = NULL;
-
 # Chat reply or email submission.  We don't want to log chat replies - there are a lot and they clutter up
 # the logs.
 $chat = preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $envto);
@@ -47,5 +45,5 @@ if ($id) {
     $rc = $r->route();
 }
 
-fwrite($logh, "Route returned $rc\n");
+fwrite($logh, "Route of $envfrom => $envto returned $rc\n");
 exit(0);

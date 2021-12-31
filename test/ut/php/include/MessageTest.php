@@ -556,16 +556,7 @@ class messageTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertTrue($m->isAutoreply());
-
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
-        $m = new Message($this->dbhr, $this->dbhm, $id);
-        $m->setPrivate('fromaddr', 'notify@yahoogroups.com');
-        assertTrue($m->isAutoreply());
-
-        }
+    }
 
     public function testBounce() {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
