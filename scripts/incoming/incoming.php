@@ -36,14 +36,14 @@ $rc = MailRouter::DROPPED;
 # the logs.
 $chat = preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $envto);
 
-# We don't want to prune mails to mods, because we will relay on the full message.
-$tomods = preg_match('/' . GROUP_DOMAIN. '/', $envto);
-
 $id = $r->received(Message::EMAIL, $envfrom, $envto, $msg, NULL, !$chat);
 
 if ($id) {
     $rc = $r->route();
+    fwrite($logh, "Route of $envfrom => $envto returned $rc\n");
+    exit(0);
+} else {
+    fwrite($logh, "Failed to parse message for $envfrom => $envto\n");
+    exit(1);
 }
 
-fwrite($logh, "Route of $envfrom => $envto returned $rc\n");
-exit(0);
