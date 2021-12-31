@@ -95,7 +95,8 @@ chat_messages.id AS lastmsg, chat_messages.message AS chatmsg, chat_messages.dat
   (SELECT MAX(chat_roster.lastmsgseen) AS lastmsgseen FROM chat_roster WHERE chatid = chat_rooms.id AND userid = $myid)
 ELSE
   (SELECT chat_roster.lastmsgseen FROM chat_roster WHERE chatid = chat_rooms.id AND userid = $myid)
-END AS lastmsgseen" : '') . "     
+END AS lastmsgseen" : '') . ",     
+messages.type AS refmsgtype
 FROM chat_rooms LEFT JOIN `groups` ON groups.id = chat_rooms.groupid 
 LEFT JOIN users u1 ON chat_rooms.user1 = u1.id
 LEFT JOIN users u2 ON chat_rooms.user2 = u2.id 
@@ -103,6 +104,7 @@ LEFT JOIN users_images i1 ON i1.userid = u1.id
 LEFT JOIN users_images i2 ON i2.userid = u2.id
 LEFT JOIN groups_images i3 ON i3.groupid = chat_rooms.groupid 
 LEFT JOIN chat_messages ON chat_messages.id = (SELECT id FROM chat_messages WHERE chat_messages.chatid = chat_rooms.id AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY chat_messages.id DESC LIMIT 1)
+LEFT JOIN messages ON messages.id = chat_messages.refmsgid
 WHERE chat_rooms.id IN $idlist;";
 
         $rooms = $this->dbhm->preQuery($sql, [
@@ -187,7 +189,7 @@ WHERE chat_rooms.id IN $idlist;";
                     'user2id' => $room['user2']
                 ];
                 
-                $thisone['snippet'] = $this->getSnippet($room['chatmsgtype'], $room['chatmsg']);
+                $thisone['snippet'] = $this->getSnippet($room['chatmsgtype'], $room['chatmsg'], $room['refmsgtype']);
 
                 switch ($room['chattype']) {
                     case ChatRoom::TYPE_USER2USER:
@@ -734,11 +736,11 @@ WHERE chat_rooms.id IN $idlist;";
         return ($ret);
     }
 
-    public function getSnippet($msgtype, $chatmsg) {
+    public function getSnippet($msgtype, $chatmsg, $refmsgtype) {
         switch ($msgtype) {
             case ChatMessage::TYPE_ADDRESS: $ret = 'Address sent...'; break;
             case ChatMessage::TYPE_NUDGE: $ret = 'Nudged'; break;
-            case ChatMessage::TYPE_COMPLETED: $ret = 'Item completed...'; break;
+            case ChatMessage::TYPE_COMPLETED: $ret = $refmsgtype == Message::TYPE_OFFER ? 'Item marked as TAKEN' : 'Item marked as RECEIVED...'; break;
             case ChatMessage::TYPE_PROMISED: $ret = 'Item promised...'; break;
             case ChatMessage::TYPE_RENEGED: $ret = 'Promise cancelled...'; break;
             case ChatMessage::TYPE_IMAGE: $ret = 'Image...'; break;
