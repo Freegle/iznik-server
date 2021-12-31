@@ -215,6 +215,7 @@ class MailRouter
             $ret = $this->unsubscribe($matches[1]);
         } else {
             list($spamscore, $spamfound, $groups, $notspam, $ret) = $this->checkSpam(
+                $log,
                 $notspam,
                 $ret
             );
@@ -560,8 +561,6 @@ class MailRouter
 
                 if (!$rc)
                 {
-                    $ret = MailRouter::DROPPED;
-
                     # Don't pass on automated mails from ADMINs - there might be loads.
                     if (preg_match('/(.*)-volunteers@' . GROUP_DOMAIN . '/', $to) ||
                         !$this->msg->isBounce() && !$this->msg->isAutoreply())
@@ -650,6 +649,11 @@ class MailRouter
                                 }
                             }
                         }
+                    } else {
+                        if ($this->log) {
+                            error_log("Automated reply from ADMIN - drop");
+                        }
+                        $ret = MailRouter::DROPPED;
                     }
                 }
             }
@@ -738,7 +742,7 @@ class MailRouter
         return $ret;
     }
 
-    private function checkSpam(bool $notspam, $ret): array
+    private function checkSpam($log, bool $notspam, $ret): array
     {
         # We use SpamAssassin to weed out obvious spam.  We only do a content check if the message subject line is
         # not in the standard format.  Most generic spam isn't in that format, and some of our messages
@@ -792,7 +796,7 @@ class MailRouter
                                     ]);
                 }
 
-                error_log("Classified as spam {$rc[2]}");
+                if ($log) { error_log("Classified as spam {$rc[2]}"); }
                 $ret = MailRouter::FAILURE;
 
                 if ($this->markAsSpam($rc[1], $rc[2]))
@@ -809,7 +813,7 @@ class MailRouter
                             if ($u->isBanned($group['groupid']))
                             {
                                 // If they are banned we just want to drop it.
-                                error_log("Banned - drop");
+                                if ($log) { error_log("Banned - drop"); }
                                 $ret = MailRouter::DROPPED;
                             }
                         }
@@ -836,9 +840,7 @@ class MailRouter
                     {
                         $spamret = $this->spamc->filter($this->msg->getMessage());
                         $spamscore = $this->spamc->result['SCORE'];
-                    } catch (\Exception $e)
-                    {
-                    }
+                    } catch (\Exception $e) {}
 
                     if ($spamret)
                     {
@@ -902,20 +904,14 @@ class MailRouter
     {
         # We're expecting to do something with this.
         $envto = $this->msg->getEnvelopeto();
-        if ($log)
-        {
-            error_log("To a group; to user $envto source " . $this->msg->getSource());
-        }
+        if ($log) { error_log("To a group; to user $envto source " . $this->msg->getSource()); }
         $ret = MailRouter::FAILURE;
         $source = $this->msg->getSource();
 
         if ($notspam && $source == Message::PLATFORM)
         {
             # It should go into pending on here.
-            if ($log)
-            {
-                error_log("Mark as pending");
-            }
+            if ($log) { error_log("Mark as pending"); }
 
             if ($this->markPending($notspam))
             {
@@ -951,10 +947,7 @@ class MailRouter
                     {
                         # This is a TAKEN/RECEIVED which has been paired to an original message.  No point
                         # showing it to the mods, as all they should do is approve it.
-                        if ($log)
-                        {
-                            error_log("TAKEN/RECEIVED paired, no need to show");
-                        }
+                        if ($log) { error_log("TAKEN/RECEIVED paired, no need to show"); }
                         $ret = MailRouter::TO_SYSTEM;
                     } else
                     {
@@ -962,8 +955,7 @@ class MailRouter
                         $ret = MailRouter::DROPPED;
 
                         # Check the message for worry words.
-                        foreach ($groups as $group)
-                        {
+                        foreach ($groups as $group) {
                             $w = new WorryWords($this->dbhr, $this->dbhm, $group['groupid']);
                             $worry = $w->checkMessage(
                                 $this->msg->getID(),
@@ -973,16 +965,10 @@ class MailRouter
                             );
 
                             $appmemb = $u->isApprovedMember($group['groupid']);
-                            error_log(
-                                "Worry on {$group['groupid']} for {$this->msg->getTextBody()}" . json_encode($worry)
-                            );
 
                             if (!$notspam && $appmemb && $worry)
                             {
-                                if ($log)
-                                {
-                                    error_log("Worrying => spam");
-                                }
+                                if ($log) { error_log("Worrying => spam"); }
                                 if ($this->markPending($notspam))
                                 {
                                     $ret = MailRouter::PENDING;
@@ -990,13 +976,8 @@ class MailRouter
                                 }
                             } else
                             {
-                                if ($log)
-                                {
-                                    error_log(
-                                        "Approved member " . $u->getEmailPreferred(
-                                        ) . " on {$group['groupid']}? $appmemb"
-                                    );
-                                }
+                                if ($log) { error_log("Approved member " . $u->getEmailPreferred() . " on {$group['groupid']}? $appmemb"); }
+
                                 if ($appmemb)
                                 {
                                     # Otherwise whether we post to pending or approved depends on the group setting,
@@ -1011,16 +992,11 @@ class MailRouter
 
                                     if ($ourPS == Group::POSTING_PROHIBITED)
                                     {
-                                        if ($log)
-                                        {
-                                            error_log("Prohibited, drop");
-                                        }
+                                        if ($log) { error_log("Prohibited, drop"); }
                                         $ret = MailRouter::DROPPED;
                                     } else
                                     {
-                                        if ($log)
-                                        {
-                                            error_log("Check big switch " . $g->getPrivate('overridemoderation'));
+                                        if ($log) { error_log("Check big switch " . $g->getPrivate('overridemoderation'));
                                         }
                                         if ($g->getPrivate('overridemoderation') == Group::OVERRIDE_MODERATION_ALL)
                                         {
@@ -1041,20 +1017,15 @@ class MailRouter
 
                                         if ($ps == Group::POSTING_MODERATED)
                                         {
-                                            if ($log)
-                                            {
-                                                error_log("Mark as pending");
-                                            }
+                                            if ($log) { error_log("Mark as pending"); }
+
                                             if ($this->markPending($notspam))
                                             {
                                                 $ret = MailRouter::PENDING;
                                             }
                                         } else
                                         {
-                                            if ($log)
-                                            {
-                                                error_log("Mark as approved");
-                                            }
+                                            if ($log) { error_log("Mark as approved"); }
                                             $ret = MailRouter::FAILURE;
 
                                             if ($this->markApproved())
@@ -1072,16 +1043,11 @@ class MailRouter
                                             0
                                         ]);
                                     }
-                                } else
-                                {
+                                } else {
                                     # Not a member.  Reply to let them know.  This is particularly useful to
                                     # Trash Nothing.
                                     #
                                     # This isn't a pretty mail, but it's not a very common case at all.
-                                    if ($log)
-                                    {
-                                        error_log("Not a member - drop it");
-                                    }
                                     $this->mail(
                                         $address,
                                         $to,
@@ -1091,6 +1057,10 @@ class MailRouter
                                     $ret = MailRouter::DROPPED;
                                 }
                             }
+                        }
+
+                        if ($ret == MailRouter::DROPPED) {
+                            if ($log) { error_log("Not a member - drop it"); }
                         }
                     }
                 }
@@ -1230,10 +1200,7 @@ class MailRouter
         {
             # This is a read receipt which has been sent to the wrong place by a silly email client.
             # Just drop these.
-            if ($log)
-            {
-                error_log("Misdirected read receipt drop");
-            }
+            if ($log) { error_log("Misdirected read receipt drop"); }
             $ret = MailRouter::DROPPED;
         } else
         {
