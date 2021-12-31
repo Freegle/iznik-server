@@ -1358,7 +1358,20 @@ ORDER BY lastdate DESC;";
                                     $thisone['lastuserid'] = $lastreply['userid'];
 
                                     $r = new ChatRoom($this->dbhr, $this->dbhm);
-                                    $thisone['snippet'] = $r->getSnippet($lastreply['type'], $lastreply['message']);
+                                    $refmsgtype = NULL;
+
+                                    if ($lastreply['type'] == ChatMessage::TYPE_COMPLETED) {
+                                        # Find the type of the message that has completed.
+                                        $types = $this->dbhr->preQuery("SELECT type FROM messages WHERE id = ?;", [
+                                            $lastreply['refmsgid']
+                                        ]);
+
+                                        foreach ($types as $type) {
+                                            $refmsgtype = $type['type'];
+                                        }
+                                    }
+
+                                    $thisone['snippet'] = $r->getSnippet($lastreply['type'], $lastreply['message'], $refmsgtype);
                                 }
                             }
 

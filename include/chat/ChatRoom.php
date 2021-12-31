@@ -719,8 +719,20 @@ WHERE chat_rooms.id IN $idlist;";
         if (Utils::pres('lastmsg', $this->chatroom)) {
             $ret['lastmsg'] = $this->chatroom['lastmsg'];
             $ret['lastdate'] = $this->chatroom['lastdate'];
+            $refmsgtype = NULL;
 
-            $ret['snippet'] = $this->getSnippet($this->chatroom['chatmsgtype'], $this->chatroom['chatmsg']);
+            if ($this->chatroom['chatmsgtype'] == ChatMessage::TYPE_COMPLETED) {
+                # Find the type of the message that has completed.
+                $types = $this->dbhr->preQuery("SELECT type FROM messages INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id WHERE chat_messages.id = ?;", [
+                    $this->chatroom['lastmsg']
+                ]);
+
+                foreach ($types as $type) {
+                    $refmsgtype = $type['type'];
+                }
+            }
+
+            $ret['snippet'] = $this->getSnippet($this->chatroom['chatmsgtype'], $this->chatroom['chatmsg'], $refmsgtype);
         }
 
         if (!$summary) {
