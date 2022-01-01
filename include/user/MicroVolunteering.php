@@ -425,19 +425,22 @@ class MicroVolunteering
         $msgs = $this->dbhr->preQuery(
             "SELECT messages_groups.msgid
     FROM messages_groups
-    INNER JOIN messages ON messages.id = messages_groups.msgid
+    INNER JOIN messages ON messages.id = messages_groups.msgid        
     INNER JOIN `groups` ON groups.id = messages_groups.groupid
     LEFT JOIN microactions ON microactions.msgid = messages_groups.msgid AND microactions.userid = ?    
     WHERE messages_groups.groupid IN (" . implode(',', $groupids) . " ) 
+        AND DATE(messages.arrival) = CURDATE()
         AND fromuser != ?
         AND microvolunteering = 1
         AND messages.deleted IS NULL
         AND microactions.id IS NULL
         AND (microvolunteeringoptions IS NULL OR JSON_EXTRACT(microvolunteeringoptions, '$.approvedmessages') = 1)
+        AND collection = ?
     ORDER BY messages_groups.arrival ASC LIMIT 1",
             [
                 $userid,
-                $userid
+                $userid,
+                MessageCollection::PENDING
             ]
         );
 
@@ -492,12 +495,14 @@ class MicroVolunteering
         AND messages.deleted IS NULL
         AND microactions.id IS NULL
         AND (microvolunteeringoptions IS NULL OR JSON_EXTRACT(microvolunteeringoptions, '$.approvedmessages') = 1)
+        AND collection = ?
     HAVING approvalcount < ? AND reviewcount < ?
     ORDER BY messages_groups.arrival ASC LIMIT 1",
                 [
                     self::RESULT_APPROVE,
                     $userid,
                     $userid,
+                    MessageCollection::APPROVED,
                     self::APPROVAL_QUORUM,
                     self::DISSENTING_QUORUM
                 ]
