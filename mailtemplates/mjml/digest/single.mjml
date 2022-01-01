@@ -32,15 +32,13 @@
         </mj-column>
       </mj-section>
 
-      <mj-raw>{% if image is defined and image is not null %}<a href="{{ replyweb }}"></mj-raw>
-    		<mj-section padding="0px" background-url="{{ image }}"
-              background-size="cover"
-              background-repeat="no-repeat">
+      <mj-raw>{% if image is defined and image is not null %}</mj-raw>
+    		<mj-section padding="0px">
           <mj-column padding="0px">
-          	<mj-button background-color="transparent" height="400px" padding="0px" href="{{ replyweb }}"></mj-button>
+            <mj-image padding="0px" href="{{ replyweb }}" src="{{ image }}"></mj-image>
           </mj-column>
     		</mj-section>
-      <mj-raw></a>{% endif %}</mj-raw>
+      <mj-raw>{% endif %}</mj-raw>
 
       <mj-section padding="0px" background-color="#F5F5F5">
         <mj-column padding="0px">
