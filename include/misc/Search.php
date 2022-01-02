@@ -33,8 +33,8 @@ class Search
         'freegle', 'freecycle', 'for', 'large', 'small', 'are', 'but', 'not', 'you', 'all', 'any', 'can', 'her', 'was', 'one', 'our',
         'out', 'day', 'get', 'has', 'him', 'how', 'now', 'see', 'two', 'who', 'did', 'its', 'let', 'she', 'too', 'use', 'plz',
         'of', 'to', 'in', 'it', 'is', 'be', 'as', 'at', 'so', 'we', 'he', 'by', 'or', 'on', 'do', 'if', 'me', 'my', 'up', 'an', 'go', 'no', 'us', 'am',
-        'working', 'broken', 'black', 'white', 'grey', 'blue', 'green', 'red', 'yellow', 'brown', 'orange', 'machine', 'size', 'set',
-        'various', 'assorted', 'different', 'bits', 'ladies', 'gents', 'kids'
+        'working', 'broken', 'black', 'white', 'grey', 'blue', 'green', 'red', 'yellow', 'brown', 'orange', 'pink', 'machine', 'size', 'set',
+        'various', 'assorted', 'different', 'bits', 'ladies', 'gents', 'kids', 'nice', 'brand', 'pack', 'soft'
     );
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $table, $idatt, $sortatt, $wordtab, $filtatt, $sortlim = NULL, $cachetab = NULL)
