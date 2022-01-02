@@ -333,7 +333,7 @@ class Message
 
         foreach ($groups as $group) {
             if ($group['collection'] == MessageCollection::REJECTED) {
-                $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ? AND groupid = ?", [
+                $this->dbhm->preExec("UPDATE messages_groups SET collection = ?, arrival = NOW() WHERE msgid = ? AND groupid = ?", [
                     MessageCollection::PENDING,
                     $this->id,
                     $group['groupid']
