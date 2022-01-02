@@ -328,7 +328,7 @@ class Message
         }
 
         # It's possible (for TN) that we are editing a message that has been rejected.  This is how
-        # rejected messages are resubmitted.  Move it back to Pending.
+        # rejected messages are resubmitted.  Move it back to Pending.  Bump the arrival time to avoid auto-approval.
         $groups = $this->getGroups(FALSE, FALSE);
 
         foreach ($groups as $group) {
