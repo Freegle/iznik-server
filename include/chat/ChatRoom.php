@@ -723,7 +723,7 @@ WHERE chat_rooms.id IN $idlist;";
 
             if ($this->chatroom['chatmsgtype'] == ChatMessage::TYPE_COMPLETED) {
                 # Find the type of the message that has completed.
-                $types = $this->dbhr->preQuery("SELECT type FROM messages INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id WHERE chat_messages.id = ?;", [
+                $types = $this->dbhr->preQuery("SELECT messages.type FROM messages INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id WHERE chat_messages.id = ?;", [
                     $this->chatroom['lastmsg']
                 ]);
 
