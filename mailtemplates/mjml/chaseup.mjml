@@ -58,33 +58,6 @@
           <mj-text>This helps us decide whether to keep showing it, and to measure how much freegling happens so that we can persuade councils to support Freegle more.  If it's an OFFER which hasn't been collected yet, please use the <em>Promise</em> button in <a href="https://www.ilovefreegle.org/chats">Chats</a> or <a href="https://www.ilovefreegle.org/myposts">My Posts</a>.</mj-text>
         </mj-column>
       </mj-section>
-      <mj-raw>
-        {% if lovejunk %}
-      </mj-raw>
-      <mj-section padding="0px">
-        <mj-column>
-          <mj-text>
-            <h1>Need it gone?</h1>
-						<p>Freegling is best.  But if you need it gone, then our friends at LoveJunk
-            can arrange a paid pickup.</p>
-          </mj-text>
-        </mj-column>
-      </mj-section>
-      <mj-section padding="0px">
-        <mj-column>
-          <mj-image href="{{ lovejunk }}" src="https://www.ilovefreegle.org/lovejunk.png" />
-        </mj-column>
-      </mj-section>
-      <mj-section padding="10px">
-        <mj-column>
-          <mj-button align="center" href="{{ lovejunk }}" mj-class="primary">Find out more</mj-button>
-          <mj-text>
-          This will pass the details of your item and your postcode, but no other personal data, to LoveJunk.						</mj-text>
-        </mj-column>
-      </mj-section>
-      <mj-raw>
-        {% endif %}
-      </mj-raw>
       <mj-section background-color="#E0E0E0" padding="10px">
         <mj-column>
           <mj-text font-size="9px" color="#707070">This mail was sent to&nbsp;{{ email }}. You can unsubscribe by clicking <a href="{{ unsubscribe }}">here</a>.
