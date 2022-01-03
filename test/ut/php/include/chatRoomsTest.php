@@ -398,7 +398,7 @@ class chatRoomsTest extends IznikTestCase {
         $this->msgsSent = [];
 
         # Notify - will email just one as we don't notify our own by default.
-        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
 
         $text = $this->msgsSent[0]['body'];
         assertTrue(strpos($text, 'Test u1 -> u2 1') !== FALSE);
@@ -437,54 +437,31 @@ class chatRoomsTest extends IznikTestCase {
         $this->log("Chat room $id for $u1 <-> $u2");
         assertNotNull($id);
 
-
         # Send a message from 1 -> 2
         # Notify - should be 1 (notification to u2, no copy required)
         $m1 = new ChatMessage($this->dbhr, $this->dbhm);
         list ($cm, $banned) = $m1->create($id, $u1, "Testing", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->log("$cm: Will email just $u2");
-        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
 
         # Reply from 2 -> 1
-        # Notify - should be 1 (copy to u2 too soon, notification to u1 OK)
+        # Notify - should be 2 (copy to u2, notification to u1)
         $m2 = new ChatMessage($this->dbhr, $this->dbhm);
         list ($cm, $banned) = $m2->create($id, $u2, "Testing 1", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->log("$cm: Will email just $u1");
-        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
-
-        $m1->setPrivate('reviewrequired', 1);
-        $m2->setPrivate('reviewrequired', 1);
-        sleep(31); // Set review to reduce chance of background script kicking in on live system
-        $m1->setPrivate('reviewrequired', 0);
-        $m2->setPrivate('reviewrequired', 0);
-
-        # Notify again - will send copy to u2.  There was a bug here where the previous notify was marking all as
-        # sent and therefore this didn't happen.
-        $this->log("$cm: Will email just $u2");
-        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
+        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
 
         # Reply back from 1 -> 2
         # Notify - none (too soon)
         list ($cm, $banned) = $m1->create($id, $u1, "Testing 2", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->log("$cm: Will email none");
-        assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
+        assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 30));
 
         # Reply back from 2 -> 1
-        # Notify - just 1 (notification to u1 OK, too soon for copy to u2)
+        # Notify - 2 (notification to u1, copy to u2)
         list ($cm, $banned) = $m2->create($id, $u2, "Testing 2", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->log("$cm: Will email just $u1");
-        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
-
-        # Wait
-        $m1->setPrivate('reviewrequired', 1);
-        $m2->setPrivate('reviewrequired', 1);
-        sleep(31); // Set review to reduce chance of background script kicking in on live system
-        $m1->setPrivate('reviewrequired', 0);
-        $m2->setPrivate('reviewrequired', 0);
-
-        # Notify - should be 1 (delayed copy)
-        $this->log("$cm: Will email just $u2");
-        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
+        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
     }
 
     public function testNotifyUser2UserOwn2() {
@@ -520,13 +497,12 @@ class chatRoomsTest extends IznikTestCase {
         $this->log("Chat room $id for $u1 <-> $u2");
         assertNotNull($id);
 
-
         # Send a message from 2 -> 1
         # Notify - should be 2 (notification to u1, copy required)
         $m1 = new ChatMessage($this->dbhr, $this->dbhm);
         list ($cm, $banned) = $m1->create($id, $u2, "Testing", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->log("$cm: Will email both $u1 and $u2");
-        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
+        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 0));
 
         # Reply from 1 -> 2
         # Notify - should be 0 (copy to u2 too soon, notification to u1 too soon)
@@ -542,17 +518,9 @@ class chatRoomsTest extends IznikTestCase {
         $this->log("$cm: Will email none");
         assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
 
-        $m1->setPrivate('reviewrequired', 1);
-        $m2->setPrivate('reviewrequired', 1);
-        $m3->setPrivate('reviewrequired', 1);
-        sleep(31); // Set review to reduce chance of background script kicking in on live system
-        $m1->setPrivate('reviewrequired', 0);
-        $m2->setPrivate('reviewrequired', 0);
-        $m3->setPrivate('reviewrequired', 0);
-
         # Notify again - should be the delayed 2 now.
         $this->log("$cm: Will email both $u1 and $u2");
-        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
+        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 0));
     }
 
     public function testNotifyAddress() {
@@ -599,7 +567,7 @@ class chatRoomsTest extends IznikTestCase {
 
         # Notify - will email just one.
         $this->log("Will email justone");
-        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
         assertContains('Test desc', $this->msgsSent[0]['body']);
         assertContains('sent you an address', $this->msgsSent[0]['body']);
 

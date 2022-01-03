@@ -1699,23 +1699,18 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
         return ($ret);
     }
 
-    public function getMembersStatus($lastmessage, $delay = 600, $forceall = FALSE)
+    public function getMembersStatus($lastmessage, $forceall = FALSE)
     {
-        # There are some general restrictions on when we email:
-        # - When we have a new message since our last email, we don't email more often than every 10 minutes, so that if
-        #   someone keeps hammering away in chat we don't flood the recipient with emails.
         $ret = [];
         #error_log("Get not seen {$this->chatroom['chattype']}");
 
         if ($this->chatroom['chattype'] == ChatRoom::TYPE_USER2USER) {
             # This is a conversation between two users.  They're both in the roster so we can see what their last
             # seen message was and decide who to chase.  If they've blocked this chat we don't want to see it.
-            #
-            # Used to use lastmsgseen rather than lastmsgemailed - but that never stops if they don't visit the site.
-            $readyq = $forceall ? '' : "HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(SECOND, lastemailed, NOW()) >= $delay)";
-            $sql = "SELECT chat_roster.* FROM chat_roster WHERE chatid = ? AND (status IS NULL OR status != 'Blocked') $readyq;";
+            $readyq = $forceall ? '' : "HAVING lastemailed IS NULL OR lastmsgemailed < ? ";
+            $sql = "SELECT chat_roster.* FROM chat_roster WHERE chatid = ? AND (status IS NULL OR status != ?) $readyq;";
             #error_log("$sql {$this->id}, $lastmessage");
-            $users = $this->dbhr->preQuery($sql, $forceall ? [$this->id] : [$this->id, $lastmessage]);
+            $users = $this->dbhr->preQuery($sql, $forceall ? [$this->id, ChatRoom::STATUS_BLOCKED] : [$this->id, ChatRoom::STATUS_BLOCKED, $lastmessage]);
 
             foreach ($users as $user) {
                 # What's the max message this user has either seen or been mailed?
@@ -1742,7 +1737,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
             # seen/been chased, and all the mods if none of them have seen/been chased.
             #
             # First the user.
-            $readyq = $forceall ? '' : "HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(SECOND, lastemailed, NOW()) > $delay)";
+            $readyq = $forceall ? '' : "HAVING lastemailed IS NULL OR lastmsgemailed < ? ";
             $sql = "SELECT chat_roster.* FROM chat_roster INNER JOIN chat_rooms ON chat_rooms.id = chat_roster.chatid WHERE chatid = ? AND chat_roster.userid = chat_rooms.user1 $readyq;";
             #error_log("Check User2Mod $sql, {$this->id}, $lastmessage");
             $users = $this->dbhr->preQuery($sql, $forceall ? [$this->id] : [$this->id, $lastmessage]);
@@ -1969,10 +1964,13 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
         return $thisone;
     }
 
-    public function notifyByEmail($chatid = NULL, $chattype, $emailoverride = NULL, $delay = 600, $since = "4 hours ago", $forceall = FALSE)
+    public function notifyByEmail($chatid = NULL, $chattype, $emailoverride = NULL, $delay = 30, $since = "4 hours ago", $forceall = FALSE)
     {
         # We want to find chatrooms with messages which haven't been mailed to people.  We always email messages,
         # even if they are seen online.
+        #
+        # We don't email until a message is older than $delay.  This allows the client to keep messages from
+        # being mailed if the user is still typing the next one, so that we will then combine them.
         #
         # These could either be a group chatroom, or a conversation.  There aren't too many of the former, but there
         # could be a large number of the latter.  However we don't want to keep nagging people forever - so we are
@@ -1984,11 +1982,14 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
         # We run this every minute, so we don't need to check too far back.  This keeps it quick.
         $reviewq = $chattype === ChatRoom::TYPE_USER2MOD ? '' : " AND reviewrequired = 0";
         $allq = $forceall ? '' : "AND mailedtoall = 0 AND seenbyall = 0 AND reviewrejected = 0";
-        $start = date('Y-m-d', strtotime($since));
+        $start = date('Y-m-d H:i:s', strtotime($since));
+        $end = date('Y-m-d H:i:s', time() - $delay);
         $chatq = $chatid ? " AND chatid = $chatid " : '';
-        $sql = "SELECT DISTINCT chatid, chat_rooms.chattype, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= ? $allq $reviewq AND chattype = ? $chatq;";
+        $sql = "SELECT DISTINCT chatid, chat_rooms.chattype, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages 
+    INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id 
+    WHERE date >= ? AND date <= ? $allq $reviewq AND chattype = ? $chatq;";
         #error_log("$sql, $start, $chattype");
-        $chats = $this->dbhr->preQuery($sql, [$start, $chattype]);
+        $chats = $this->dbhr->preQuery($sql, [$start, $end, $chattype]);
         #error_log("Chats to scan " . count($chats));
         $notified = 0;
         $userlist = [];
@@ -2001,7 +2002,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
             $lastmaxmailed = $r->lastMailedToAll();
             $maxbugspot = 0;
             $sentsome = FALSE;
-            $notmailed = $r->getMembersStatus($chatatts['lastmsg'], $delay, $forceall);
+            $notmailed = $r->getMembersStatus($chatatts['lastmsg'], $forceall);
             $outcometaken = '';
             $outcomewithdrawn= '';
 
