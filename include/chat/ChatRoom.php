@@ -26,6 +26,11 @@ class ChatRoom extends Entity
     const STATUS_CLOSED = 'Closed';
     const STATUS_BLOCKED = 'Blocked';
 
+    const ACTION_ALLSEEN = 'AllSeen';
+    const ACTION_NUDGE = 'Nudge';
+    const ACTION_TYPING = 'Typing';
+
+    const DELAY = 30;
     const CACHED_LIST_SIZE = 20;
 
     /** @var  $log Log */
@@ -1964,10 +1969,9 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
         return $thisone;
     }
 
-    public function notifyByEmail($chatid = NULL, $chattype, $emailoverride = NULL, $delay = 30, $since = "4 hours ago", $forceall = FALSE)
+    public function notifyByEmail($chatid = NULL, $chattype, $emailoverride = NULL, $delay = ChatRoom::DELAY, $since = "4 hours ago", $forceall = FALSE)
     {
-        # We want to find chatrooms with messages which haven't been mailed to people.  We always email messages,
-        # even if they are seen online.
+        # We want to find chatrooms with messages which haven't been mailed to people.
         #
         # We don't email until a message is older than $delay.  This allows the client to keep messages from
         # being mailed if the user is still typing the next one, so that we will then combine them.
@@ -1979,16 +1983,17 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
         $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
         $twig = new \Twig_Environment($loader);
 
-        # We run this every minute, so we don't need to check too far back.  This keeps it quick.
+        # We don't need to check too far back.  This keeps it quick.
         $reviewq = $chattype === ChatRoom::TYPE_USER2MOD ? '' : " AND reviewrequired = 0";
         $allq = $forceall ? '' : "AND mailedtoall = 0 AND seenbyall = 0 AND reviewrejected = 0";
         $start = date('Y-m-d H:i:s', strtotime($since));
         $end = date('Y-m-d H:i:s', time() - $delay);
+        #error_log("End $end from $delay current " . date('Y-m-d H:i:s'));
         $chatq = $chatid ? " AND chatid = $chatid " : '';
         $sql = "SELECT DISTINCT chatid, chat_rooms.chattype, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages 
     INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id 
     WHERE date >= ? AND date <= ? $allq $reviewq AND chattype = ? $chatq;";
-        #error_log("$sql, $start, $chattype");
+        #error_log("$sql, $start, $end, $chattype");
         $chats = $this->dbhr->preQuery($sql, [$start, $end, $chattype]);
         #error_log("Chats to scan " . count($chats));
         $notified = 0;
@@ -2659,6 +2664,18 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
         # Create a message in the chat.
         return($id);
+    }
+
+    public function typing() {
+        # This is invoked by the client when the user is typing, approximately every ten seconds.  We look for any
+        # chat messages which are too recent to have mailed out, and bump their time.  This means that if the
+        # user keeps typing, we will batch up multiple chat messages in a single email.
+        $this->dbhm->preExec("UPDATE chat_messages SET date = NOW() WHERE chatid = ? AND TIMESTAMPDIFF(SECOND, chat_messages.date, NOW()) < ? AND mailedtoall = 0;", [
+            $this->id,
+            ChatRoom::DELAY
+        ]);
+
+        return $this->dbhm->rowsAffected();
     }
 
     public function nudgess($uids) {
