@@ -211,6 +211,15 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
     }
 
     public static function geocode($addr, $allowPoint, $exact, $bbswlat = 49.959999905, $bbswlng = -7.57216793459, $bbnelat = 58.6350001085, $bbnelng = 1.68153079591) {
+        // Special cases
+        if ($addr == 'West Marsh') {
+            $addr = 'Grimsby';
+        } else if ($addr == 'Stoney Middleton') {
+            $addr .= ', Derbyshire';
+        } else if ($addr == 'Middleton Stoney') {
+            $addr .= ', Oxfordshire';
+        }
+
         $url = "https://" . GEOCODER . "/api?q=" . urlencode($addr) . "&bbox=$bbswlng%2C$bbswlat%2C$bbnelng%2C$bbnelat";
         $geocode = @file_get_contents($url);
         #error_log("Geocode $addr, allow point $allowPoint, exact $exact, $url");
@@ -540,8 +549,10 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
 
     public function swapTables() {
         # We want to swap the jobs_new table with the jobs table, atomically.
+        error_log(date("Y-m-d H:i:s", time()) . "Swap tables...");
         $this->dbhm->preExec("DROP TABLE IF EXISTS jobs_old;");
         $this->dbhm->preExec("RENAME TABLE jobs TO jobs_old, jobs_new TO jobs;");
         $this->dbhm->preExec("DROP TABLE IF EXISTS jobs_old;");
+        error_log(date("Y-m-d H:i:s", time()) . "tables swapped...");
     }
 }

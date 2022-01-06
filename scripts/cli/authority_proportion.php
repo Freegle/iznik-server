@@ -26,5 +26,6 @@ foreach ($auths as $auth) {
         echo "{$auth['name']}, " . round($acttotal, 4) . "\n";
     } catch (\Exception $e) {
         error_log("Exception on {$auth['id']} {$auth['name']} " . $e->getMessage());
+        \Sentry\captureException($e);
     }
 }

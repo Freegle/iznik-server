@@ -21,10 +21,13 @@ function isochrone() {
                 if (!count($isochrones)) {
                     # No existing one - create a default one.
                     $id = $i->create($myid, NULL, Isochrone::DEFAULT_TIME, NULL, NULL);
-                    $i = new Isochrone($dbhr, $dbhm, $id);
-                    $isochrones = [
-                        $i->getPublic()
-                    ];
+
+                    if ($id) {
+                        $i = new Isochrone($dbhr, $dbhm, $id);
+                        $isochrones = [
+                            $i->getPublic()
+                        ];
+                    }
                 }
 
                 $ret = [

@@ -84,5 +84,6 @@ try {
 } catch (\Exception $e) {
     mail("log@ehibbert.org.uk", "Error: Payment exception", var_export($e, TRUE) . "\n\n" . var_export($_REQUEST, true), NULL, '-fnoreply@modtools.org');
     error_log("Exception during purchase " . var_export($e, true));
+    \Sentry\captureException($e);
 }
 ?>

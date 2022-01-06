@@ -31,8 +31,8 @@ class newsfeedAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test Commenter';");
         $dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup';");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'TV13%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'TV13%';");
 
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup1", Group::GROUP_REUSE);
@@ -43,6 +43,8 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertNotNull($this->areaid);
         $this->pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
         $this->fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)');
+        $pcatts = $l->getPublic();
+        assertEquals($this->areaid, $pcatts['areaid']);
 
         $this->user = User::get($this->dbhr, $this->dbhm);
         $this->uid = $this->user->create(NULL, NULL, 'Test User');
@@ -50,7 +52,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->user->addMembership($gid);
         assertEquals('testgroup1', $this->user->getPublicLocation()['display']);
         $this->user->setPrivate('lastlocation', $this->fullpcid);
-        $this->user->setSetting('mylocation', $areaatts);
+        $this->user->setSetting('mylocation', $pcatts);
         assertEquals('Tuvalu Central, testgroup1', $this->user->getPublicLocation()['display']);
 
         $this->user2 = User::get($this->dbhr, $this->dbhm);
@@ -70,7 +72,7 @@ class newsfeedAPITest extends IznikAPITestCase {
     protected function tearDown() {
         $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $this->dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup';");
-        $this->dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
+        $this->deleteLocations("DELETE FROM locations  WHERE name LIKE 'Tuvalu%';");
         $this->dbhm->preExec("DELETE FROM volunteering WHERE title = 'Test opp';");
         parent::tearDown ();
     }

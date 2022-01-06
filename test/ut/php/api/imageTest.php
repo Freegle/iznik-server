@@ -225,6 +225,79 @@ class imageAPITest extends IznikAPITestCase
             'identify' => TRUE
         ]);
 
-        assertEquals(5, $ret['ret']);
+        assertEquals(2, $ret['ret']);
+    }
+
+    /**
+     * @dataProvider types
+     */
+    public function testTypes($type) {
+        $ret = $this->call('image', 'POST', [
+            'photo' => [
+                'tmp_name' => '/tmp/pan.jpg'
+            ],
+            $type => TRUE
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        $id = $ret['id'];
+
+        $ret = $this->call('image', 'DELETE', [
+            'id' => $id
+        ]);
+
+        assertEquals(0, $ret['ret']);
+    }
+
+    public function types() {
+        return [
+            [NULL],
+            ['group'],
+            ['newsletter'],
+            ['communityevent'],
+            ['chatmessage'],
+            ['user'],
+            ['newsfeed'],
+            ['volunteering'],
+            ['story']
+        ];
+    }
+
+    /**
+     * @dataProvider exif
+     */
+    public function testExif($file) {
+        $data = file_get_contents(IZNIK_BASE . "/test/ut/php/images/exif/$file.jpg");
+        file_put_contents("/tmp/$file.jpg", $data);
+
+        $ret = $this->call('image', 'POST', [
+            'photo' => [
+                'tmp_name' => "/tmp/$file.jpg"
+            ]
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        $id = $ret['id'];
+
+        $ret = $this->call('image', 'DELETE', [
+            'id' => $id
+        ]);
+
+        assertEquals(0, $ret['ret']);
+    }
+
+    public function exif() {
+        return [
+          [ 'down' ],
+            [ 'down-mirrored' ],
+            [ 'left' ],
+            [ 'left-mirrored' ],
+            [ 'right' ],
+            [ 'right-mirrored' ],
+            [ 'up' ],
+            [ 'up-mirrored' ]
+        ];
     }
 }

@@ -29,9 +29,9 @@ class notificationsTest extends IznikTestCase {
         # We test around Tuvalu.  If you're setting up Tuvalu Freegle you may need to change that.
         $dbhm->preExec("DELETE FROM locations_grids WHERE swlat >= 8.3 AND swlat <= 8.7;");
         $dbhm->preExec("DELETE FROM locations_grids WHERE swlat >= 179.1 AND swlat <= 179.3;");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'TV13%';");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE '??%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'TV13%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE '??%';");
         for ($swlat = 8.3; $swlat <= 8.6; $swlat += 0.1) {
             for ($swlng = 179.1; $swlng <= 179.3; $swlng += 0.1) {
                 $nelat = $swlat + 0.1;
@@ -120,6 +120,8 @@ class notificationsTest extends IznikTestCase {
 
         sleep(1);
         self::assertEquals(3, $n->sendEmails($uid2, '0 seconds ago', '7 days ago'));
+
+        assertEquals(0, $n->deleteOldUserType($uid2, Notifications::TYPE_LOVED_COMMENT, "2038-01-01"));
     }
 
     public function testDeleted1() {

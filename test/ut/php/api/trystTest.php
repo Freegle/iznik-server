@@ -145,20 +145,20 @@ class trystTest extends IznikAPITestCase {
         assertNull($t->getPrivate('user2response'));
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/trystnosubj'));
-        $msg = str_replace('<email1>', $email1, $msg);
-        $msg = str_replace('<email2>', $u2->getOurEmail(), $msg);
+        $msg = str_replace('<email2>', $email1, $msg);
+        $msg = str_replace('<email1>', $u2->getOurEmail(), $msg);
         $msg = str_replace('<handoverid>', $id, $msg);
-        $msg = str_replace('<uid1>', $u1id, $msg);
-        $msg = str_replace('<uid2>', $u2id, $msg);
+        $msg = str_replace('<uid2>', $u1id, $msg);
+        $msg = str_replace('<uid1>', $u2id, $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $r->received(Message::EMAIL, $email1, "handover-$id-$u1id@" . USER_DOMAIN, $msg);
+        $r->received(Message::EMAIL, $email2, "handover-$id-$u2id@" . USER_DOMAIN, $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TRYST, $rc);
 
         $t = new Tryst($this->dbhr, $this->dbhm, $id);
         assertEquals(Tryst::ACCEPTED, $t->getPrivate('user1response'));
-        assertNull($t->getPrivate('user2response'));
+        assertEquals(Tryst::ACCEPTED, $t->getPrivate('user2response'));
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/trystdecline'));
         $msg = str_replace('<email1>', $email1, $msg);
@@ -174,7 +174,7 @@ class trystTest extends IznikAPITestCase {
 
         $t = new Tryst($this->dbhr, $this->dbhm, $id);
         assertEquals(Tryst::DECLINED, $t->getPrivate('user1response'));
-        assertNull($t->getPrivate('user2response'));
+        assertEquals(Tryst::ACCEPTED, $t->getPrivate('user2response'));
 
         # Delete it.
         assertTrue($u1->login('testpw'));
@@ -241,6 +241,90 @@ class trystTest extends IznikAPITestCase {
 
         # No reminder - already sent.
         assertEquals(0, $t->sendRemindersDue($id));
+    }
+
+    public function testConfirm() {
+        $u = User::get($this->dbhr, $this->dbhm);
+
+        $u1id = $u->create('Test','User', 'Test User');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u1 = User::get($this->dbhr, $this->dbhm, $u1id);
+        $email1 = 'test-' . rand() . '@blackhole.io';
+        $u1->addEmail($email1);
+        $u2id = $u->create('Test','User', 'Test User');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u2 = User::get($this->dbhr, $this->dbhm, $u2id);
+        $email2 = 'test-' . rand() . '@blackhole.io';
+        $u2->addEmail($email2);
+
+        assertTrue($u1->login('testpw'));
+        $ret = $this->call('tryst', 'PUT', [
+            'user1' => $u1id,
+            'user2' => $u2id,
+            'arrangedfor' => Utils::ISODate('2038-01-19 03:14:06'),
+            'dup' => 1
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+        assertNotNull($id);
+
+        $ret = $this->call('tryst', 'POST', [
+            'id' => $id,
+            'confirm' => TRUE,
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Other user.
+        assertTrue($u2->login('testpw'));
+        $ret = $this->call('tryst', 'POST', [
+            'id' => $id,
+            'confirm' => TRUE,
+            'dup' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+    }
+
+    public function testDecline() {
+        $u = User::get($this->dbhr, $this->dbhm);
+
+        $u1id = $u->create('Test','User', 'Test User');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u1 = User::get($this->dbhr, $this->dbhm, $u1id);
+        $email1 = 'test-' . rand() . '@blackhole.io';
+        $u1->addEmail($email1);
+        $u2id = $u->create('Test','User', 'Test User');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u2 = User::get($this->dbhr, $this->dbhm, $u2id);
+        $email2 = 'test-' . rand() . '@blackhole.io';
+        $u2->addEmail($email2);
+
+        assertTrue($u1->login('testpw'));
+        $ret = $this->call('tryst', 'PUT', [
+            'user1' => $u1id,
+            'user2' => $u2id,
+            'arrangedfor' => Utils::ISODate('2038-01-19 03:14:06'),
+            'dup' => 1
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+        assertNotNull($id);
+
+        $ret = $this->call('tryst', 'POST', [
+            'id' => $id,
+            'decline' => TRUE,
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Other user.
+        assertTrue($u2->login('testpw'));
+        $ret = $this->call('tryst', 'POST', [
+            'id' => $id,
+            'decline' => TRUE,
+            'dup' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
     }
 }
 

@@ -28,6 +28,8 @@ function locations() {
             $nelat = Utils::presfloat('nelat', $_REQUEST, NULL);
             $nelng = Utils::presfloat('nelng', $_REQUEST, NULL);
             $typeahead = Utils::presdef('typeahead', $_REQUEST, NULL);
+            $dodgy = Utils::presbool('dodgy', $_REQUEST, FALSE);
+            $areas = Utils::presbool('areas', $_REQUEST, TRUE);
             $limit = (Utils::presint('limit', $_REQUEST, 10));
 
             if ($lat && $lng) {
@@ -41,7 +43,20 @@ function locations() {
                     }
                 }
             } else if ($swlat || $swlng || $nelat || $nelng) {
-                $ret = [ 'ret' => 0, 'status' => 'Success', 'locations' => $l->withinBox($swlat, $swlng, $nelat, $nelng) ];
+                $ret = [ 'ret' => 0, 'status' => 'Success'];
+
+                if ($areas) {
+                    $ret['locations'] = $l->withinBox($swlat, $swlng, $nelat, $nelng);
+                }
+
+                if ($dodgy) {
+                    $sql = "SELECT ld.*, l0.name AS name, l1.name AS oldname, l2.name AS newname FROM locations_dodgy ld
+INNER JOIN locations l0 ON l0.id = ld.locationid    
+INNER JOIN locations l1 ON l1.id = ld.oldlocationid
+INNER JOIN locations l2 ON l2.id = ld.newlocationid
+WHERE ld.lat BETWEEN $swlat AND $nelat AND ld.lng BETWEEN $swlng AND $nelng;";
+                    $ret['dodgy'] = $dbhr->preQuery($sql);
+                }
             }
             break;
         }
@@ -78,6 +93,7 @@ function locations() {
 
             if ($role == User::SYSTEMROLE_MODERATOR || $role == User::SYSTEMROLE_SUPPORT || $role == User::SYSTEMROLE_ADMIN) {
                 $polygon = Utils::presdef('polygon', $_REQUEST, NULL);
+
                 if ($polygon) {
                     $worked = FALSE;
                     $ret = ['ret' => 3, 'status' => 'Set failed - invalid geometry?'];

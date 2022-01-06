@@ -144,7 +144,7 @@ class Tryst extends Entity
                     ->addPart($ics, 'text/calendar');
 
                 $this->sendIt($mailer, $message);
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 error_log("Failed to send calendar invite for {$this->id}" . $e->getMessage());
             }
         }

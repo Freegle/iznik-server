@@ -14,12 +14,19 @@ jobs:
           MYSQL_ROOT_PASSWORD: ''
           MYSQL_DATABASE: iznik
           MYSQL_ROOT_HOST: 127.0.0.1
+      - image: circleci/postgres:11-postgis-ram
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD
+        environment:
+          POSTGRES_USER: iznik
+          POSTGRES_PASSWORD: iznik
     steps:
       - checkout
       - run: sudo apt-get update
 
       # PHP extensions
-      - run: sudo apt install -y libgmp-dev libxml2-dev libgd-dev libpng-dev libjpeg62-turbo-dev
+      - run: sudo apt install -y libgmp-dev libxml2-dev libgd-dev libpng-dev libjpeg62-turbo-dev imagemagick-common
       - run: sudo -E docker-php-ext-install exif
       - run: sudo -E docker-php-ext-install gmp
       - run: sudo -E docker-php-ext-install soap
@@ -29,6 +36,10 @@ jobs:
       - run: sudo -E docker-php-ext-enable mailparse
       - run: sudo docker-php-ext-install pdo_mysql
       - run: sudo -E docker-php-ext-enable pdo_mysql
+      - run: sudo -E apt-get install -y libpq-dev
+      - run: sudo -E docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql
+      - run: sudo -E docker-php-ext-install pdo pdo_pgsql pgsql
+      - run: sudo -E docker-php-ext-enable pdo_pgsql
       - run: sudo -E pecl install redis
       - run: sudo -E docker-php-ext-enable redis
 
@@ -41,7 +52,12 @@ jobs:
       - run: sudo sed -i 's/home-dir/home-dir -4/g' /etc/default/spamassassin
       - run: sudo service spamassassin start
 
-#      - run: sudo apt-get install php-ssh2
+      # Postgresql
+      - run: sudo apt-get install -y postgresql-client-common postgresql-client
+      - run: |
+          psql \
+          -h 127.0.0.1 -U iznik -d circle_test \
+          -c "CREATE DATABASE iznik;"
 
       # GeoIP
       - run: sudo apt-get install -y automake autoconf libtool build-essential libcurl4-openssl-dev zlib1g-dev
@@ -71,6 +87,7 @@ jobs:
       - run: sudo sed -ie "s/'FBGRAFFITIAPP_SECRET', 'zzz'/'FBGRAFFITIAPP_SECRET', '$FBGRAFFITIAPP_SECRET'/g" /etc/iznik.conf
       - run: sudo sed -ie "s/'CHAT_HOST', 'users.ilovefreegle.org'/'CHAT_HOST', NULL/g" /etc/iznik.conf
       - run: sudo sed -ie "s/'MAPBOX_TOKEN', 'zzzz'/'MAPBOX_TOKEN', '$MAPBOX_TOKEN'/g" /etc/iznik.conf
+      - run: sudo sed -ie "s/'SENTRY_DSN', 'zzzz'/'SENTRY_DSN', '$SENTRY_DSN'/g" /etc/iznik.conf
       - run: echo "define('SQLLOG', TRUE);" >> /etc/iznik.conf
 
       # phpunit.xml is set up for running tests on our debug server.
@@ -95,7 +112,7 @@ jobs:
       - run: cd composer; wget https://getcomposer.org/composer-1.phar; php composer-1.phar install; cd ..
       - run:
           name: Background job
-          command: php scripts/cron/background.php
+          command: while ! nc -z localhost 11300; do sleep 1; done; php scripts/cron/background.php
           background: true
       - run:
           name: Export job

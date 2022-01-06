@@ -14,7 +14,7 @@
   ],
   "require": {
     "php-mime-mail-parser/php-mime-mail-parser" : "^2.1",
-    "pda/pheanstalk": "^3.0",
+    "pda/pheanstalk": "^4.0",
     "geoip2/geoip2": "^2.3",
     "html2text/html2text": "^3.0",
     "minishlink/web-push": "2.0.1",
@@ -42,7 +42,8 @@
     "griffinledingham/php-apple-signin": "^1.1",
     "phpoffice/phpspreadsheet": "^1.14",
     "eluceo/ical": "^0.16.1",
-    "prewk/xml-string-streamer": "^1.2"
+    "prewk/xml-string-streamer": "^1.2",
+    "sentry/sdk": "^3.1"
   },
   "repositories": [
     {

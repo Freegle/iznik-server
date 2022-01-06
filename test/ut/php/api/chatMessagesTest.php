@@ -359,7 +359,7 @@ class chatMessagesAPITest extends IznikAPITestCase
             'roomid' => $this->cid,
             'id' => $mid1
         ]);
-        error_log("Get message " . var_export($ret, TRUE));
+        $this->log("Get message " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals($mid1, $ret['chatmessage']['id']);
         assertEquals($iid, $ret['chatmessage']['image']['id']);
@@ -369,7 +369,7 @@ class chatMessagesAPITest extends IznikAPITestCase
     public function testLink() {
         $m = new ChatMessage($this->dbhr, $this->dbhm);;
 
-        assertTrue($m->checkReview("Hi ↵↵repetitionbowie.com/sportscapping.php?meant=mus2x216xkrn0mpb↵↵↵↵↵Thank you!", FALSE, NULL));
+        assertEquals(ChatMessage::REVIEW_SPAM, $m->checkReview("Hi ↵↵repetitionbowie.com/sportscapping.php?meant=mus2x216xkrn0mpb↵↵↵↵↵Thank you!", FALSE, NULL));
     }
 
     public function testReview() {
@@ -422,11 +422,17 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertNotNull($ret['id']);
         $mid3 = $ret['id'];
 
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid1);
+        self::assertEquals(1, $cm->getPrivate('reviewrequired'));
+        self::assertEquals(ChatMessage::REVIEW_SPAM, $cm->getPrivate('reportreason'));
+
         $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid2);
         self::assertEquals(1, $cm->getPrivate('reviewrequired'));
+        self::assertEquals(ChatMessage::REVIEW_LAST, $cm->getPrivate('reportreason'));
 
         $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid3);
         self::assertEquals(1, $cm->getPrivate('reviewrequired'));
+        self::assertEquals(ChatMessage::REVIEW_LAST, $cm->getPrivate('reportreason'));
 
         # Now log in as the other user.
         assertTrue($this->user2->login('testpw'));
@@ -485,8 +491,11 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertEquals(3, count($ret['chatmessages']));
         assertEquals($mid1, $ret['chatmessages'][0]['id']);
         assertEquals(ChatMessage::TYPE_REPORTEDUSER, $ret['chatmessages'][0]['type']);
+        assertEquals(Spam::REASON_LINK, $ret['chatmessages'][0]['reviewreason']);
         assertEquals($mid2, $ret['chatmessages'][1]['id']);
+        assertEquals(ChatMessage::REVIEW_LAST, $ret['chatmessages'][1]['reviewreason']);
         assertEquals($mid3, $ret['chatmessages'][2]['id']);
+        assertEquals(ChatMessage::REVIEW_LAST, $ret['chatmessages'][2]['reviewreason']);
         assertEquals($this->groupid, $ret['chatmessages'][0]['group']['id']);
         assertEquals($this->groupid, $ret['chatmessages'][0]['groupfrom']['id']);
 
@@ -725,6 +734,80 @@ class chatMessagesAPITest extends IznikAPITestCase
             assertEquals("Test message $i", $ret['chatmessages'][$i]['message']);
         }
     }
+
+    public function testTyping() {
+        assertTrue($this->user->login('testpw'));
+
+        $this->user->addEmail('test@test.com');
+        $this->user2->addEmail('test2@test.com');
+
+        # Create a chat to the second user with a referenced message from the second user.
+        $ret = $this->call('chatrooms', 'PUT', [
+            'userid' => $this->uid2
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $rid = $ret['id'];
+        assertNotNull($rid);
+
+        $r = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $rid))
+            ->setMethods(array('mailer'))
+            ->getMock();
+
+        $r->method('mailer')->willReturn(TRUE);
+
+        # Send a message.
+        $ret = $this->call('chatmessages', 'POST', [
+            'roomid' => $rid,
+            'message' => 'Test'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        $cmid = $ret['id'];
+
+        # Notify - too soon.
+        assertEquals(0, $r->notifyByEmail($rid, ChatRoom::TYPE_USER2USER, NULL, 30));
+
+        sleep(10);
+
+        # Notify again - still too soon.
+        assertEquals(0, $r->notifyByEmail($rid, ChatRoom::TYPE_USER2USER, NULL, 30));
+
+        # Say we're still typing.  Should bump 1 chat message.
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $cmid);
+        $olddate = $cm->getPrivate('date');
+        $this->log("Message time before bump $olddate");
+        $ret = $this->call('chatrooms', 'POST', [
+            'id' => $rid,
+            'action' => ChatRoom::ACTION_TYPING
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, $ret['count']);
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $cmid);
+        $newdate = $cm->getPrivate('date');
+        $this->log("Message time after bump $newdate");
+        assertNotEquals($olddate, $newdate);
+
+        sleep(25);
+
+        # Notify again.  Message would get mailed by now, except that it has been bumped.
+        assertEquals(0, $r->notifyByEmail($rid, ChatRoom::TYPE_USER2USER, NULL, 30));
+
+        sleep(10);
+
+        # Notify again.  Will send this time.
+        assertEquals(1, $r->notifyByEmail($rid, ChatRoom::TYPE_USER2USER, NULL, 30));
+
+        # Say we're still typing - nothing to bump.
+        $ret = $this->call('chatrooms', 'POST', [
+            'id' => $rid,
+            'action' => ChatRoom::ACTION_TYPING
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, $ret['count']);
+    }
+
 //
 //    public function testEH2()
 //    {

@@ -34,7 +34,9 @@ foreach ($auths as $auth) {
         $total = round($total / 1000, 1);
         $weights[$auth['id']] = $total;
         error_log($a->getPrivate('name') . " weight {$total} tonnes");
-    } catch (\Exception $e) {}
+    } catch (\Exception $e) {
+        \Sentry\captureException($e);
+    }
 }
 
 arsort($weights);

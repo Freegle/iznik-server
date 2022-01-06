@@ -26,6 +26,11 @@ class ChatRoom extends Entity
     const STATUS_CLOSED = 'Closed';
     const STATUS_BLOCKED = 'Blocked';
 
+    const ACTION_ALLSEEN = 'AllSeen';
+    const ACTION_NUDGE = 'Nudge';
+    const ACTION_TYPING = 'Typing';
+
+    const DELAY = 30;
     const CACHED_LIST_SIZE = 20;
 
     /** @var  $log Log */
@@ -95,7 +100,8 @@ chat_messages.id AS lastmsg, chat_messages.message AS chatmsg, chat_messages.dat
   (SELECT MAX(chat_roster.lastmsgseen) AS lastmsgseen FROM chat_roster WHERE chatid = chat_rooms.id AND userid = $myid)
 ELSE
   (SELECT chat_roster.lastmsgseen FROM chat_roster WHERE chatid = chat_rooms.id AND userid = $myid)
-END AS lastmsgseen" : '') . "     
+END AS lastmsgseen" : '') . ",     
+messages.type AS refmsgtype
 FROM chat_rooms LEFT JOIN `groups` ON groups.id = chat_rooms.groupid 
 LEFT JOIN users u1 ON chat_rooms.user1 = u1.id
 LEFT JOIN users u2 ON chat_rooms.user2 = u2.id 
@@ -103,6 +109,7 @@ LEFT JOIN users_images i1 ON i1.userid = u1.id
 LEFT JOIN users_images i2 ON i2.userid = u2.id
 LEFT JOIN groups_images i3 ON i3.groupid = chat_rooms.groupid 
 LEFT JOIN chat_messages ON chat_messages.id = (SELECT id FROM chat_messages WHERE chat_messages.chatid = chat_rooms.id AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY chat_messages.id DESC LIMIT 1)
+LEFT JOIN messages ON messages.id = chat_messages.refmsgid
 WHERE chat_rooms.id IN $idlist;";
 
         $rooms = $this->dbhm->preQuery($sql, [
@@ -187,7 +194,7 @@ WHERE chat_rooms.id IN $idlist;";
                     'user2id' => $room['user2']
                 ];
                 
-                $thisone['snippet'] = $this->getSnippet($room['chatmsgtype'], $room['chatmsg']);
+                $thisone['snippet'] = $this->getSnippet($room['chatmsgtype'], $room['chatmsg'], $room['refmsgtype']);
 
                 switch ($room['chattype']) {
                     case ChatRoom::TYPE_USER2USER:
@@ -717,8 +724,20 @@ WHERE chat_rooms.id IN $idlist;";
         if (Utils::pres('lastmsg', $this->chatroom)) {
             $ret['lastmsg'] = $this->chatroom['lastmsg'];
             $ret['lastdate'] = $this->chatroom['lastdate'];
+            $refmsgtype = NULL;
 
-            $ret['snippet'] = $this->getSnippet($this->chatroom['chatmsgtype'], $this->chatroom['chatmsg']);
+            if ($this->chatroom['chatmsgtype'] == ChatMessage::TYPE_COMPLETED) {
+                # Find the type of the message that has completed.
+                $types = $this->dbhr->preQuery("SELECT messages.type FROM messages INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id WHERE chat_messages.id = ?;", [
+                    $this->chatroom['lastmsg']
+                ]);
+
+                foreach ($types as $type) {
+                    $refmsgtype = $type['type'];
+                }
+            }
+
+            $ret['snippet'] = $this->getSnippet($this->chatroom['chatmsgtype'], $this->chatroom['chatmsg'], $refmsgtype);
         }
 
         if (!$summary) {
@@ -734,13 +753,11 @@ WHERE chat_rooms.id IN $idlist;";
         return ($ret);
     }
 
-    public function getSnippet($msgtype, $chatmsg) {
+    public function getSnippet($msgtype, $chatmsg, $refmsgtype) {
         switch ($msgtype) {
             case ChatMessage::TYPE_ADDRESS: $ret = 'Address sent...'; break;
             case ChatMessage::TYPE_NUDGE: $ret = 'Nudged'; break;
-            case ChatMessage::TYPE_SCHEDULE: $ret = 'Availability updated...'; break;
-            case ChatMessage::TYPE_SCHEDULE_UPDATED: $ret = 'Availability updated...'; break;
-            case ChatMessage::TYPE_COMPLETED: $ret = 'Item completed...'; break;
+            case ChatMessage::TYPE_COMPLETED: $ret = $refmsgtype == Message::TYPE_OFFER ? 'Item marked as TAKEN' : 'Item marked as RECEIVED...'; break;
             case ChatMessage::TYPE_PROMISED: $ret = 'Item promised...'; break;
             case ChatMessage::TYPE_RENEGED: $ret = 'Promise cancelled...'; break;
             case ChatMessage::TYPE_IMAGE: $ret = 'Image...'; break;
@@ -1032,7 +1049,8 @@ WHERE chat_rooms.id IN $idlist;";
                     $u = new User($this->dbhr, $this->dbhm, $room['user1']);
                     $username = $u->getName();
                     $username = strlen(trim($username)) > 0 ? $username : 'A freegler';
-                    $ret = $room['user1'] == $myid ? "{$ret['group']['namedisplay']} Volunteers" : "$username on {$ret['group']['nameshort']}";
+                    $g = Group::get($this->dbhr, $this->dbhm, $room['groupid']);
+                    $ret = $room['user1'] == $myid ? "{$g->getName()} Volunteers" : "$username on {$g->getName()}";
                     break;
                 case ChatRoom::TYPE_MOD2MOD:
                     # Mods chatting to each other.
@@ -1113,45 +1131,49 @@ WHERE chat_rooms.id IN $idlist;";
         }
     }
 
-    public function upToDateAll($myid) {
-        $chatids = $this->listForUser(Session::modtools(), $myid);
+    public function upToDateAll($myid, $chattypes = NULL) {
+        $chatids = $this->listForUser(Session::modtools(), $myid, $chattypes);
+        $found = FALSE;
 
-        # Find current values.  This allows us to filter out many updates.
-        $currents = count($chatids) ? $this->dbhr->preQuery("SELECT chatid, lastmsgseen, (SELECT MAX(id) AS max FROM chat_messages WHERE chatid = chat_roster.chatid) AS maxmsg FROM chat_roster WHERE userid = ? AND chatid IN (" . implode(',', $chatids) . ");", [
-            $myid
-        ]) : [];
+        if ($chatids) {
+            # Find current values.  This allows us to filter out many updates.
+            $currents = count($chatids) ? $this->dbhr->preQuery("SELECT chatid, lastmsgseen, (SELECT MAX(id) AS max FROM chat_messages WHERE chatid = chat_roster.chatid) AS maxmsg FROM chat_roster WHERE userid = ? AND chatid IN (" . implode(',', $chatids) . ");", [
+                $myid
+            ]) : [];
 
-        foreach ($chatids as $chatid) {
-            $found = FALSE;
+            foreach ($chatids as $chatid) {
+                foreach ($currents as $current) {
+                    if ($current['chatid'] == $chatid) {
+                        # We already have a roster entry.
+                        $found = TRUE;
 
-            foreach ($currents as $current) {
-                if ($current['chatid'] == $chatid) {
-                    # We already have a roster entry.
-                    $found = TRUE;
-
-                    if ($current['maxmsg'] > $current['lastmsgseen']) {
-                        $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ?, lastemailed = NOW() WHERE chatid = ? AND userid = ?;", [
-                            $current['maxmsg'],
-                            $current['maxmsg'],
-                            $chatid,
-                            $myid
-                        ]);
+                        if ($current['maxmsg'] > $current['lastmsgseen']) {
+                            $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ?, lastemailed = NOW() WHERE chatid = ? AND userid = ?;", [
+                                $current['maxmsg'],
+                                $current['maxmsg'],
+                                $chatid,
+                                $myid
+                            ]);
+                        }
                     }
                 }
-            }
 
-            if (!$found) {
-                # We don't currently have one.  Add it; include duplicate processing for timing window.
-                error_log("upToDateAll: Add $myid into $chatid");
-                $this->dbhm->preExec("INSERT INTO chat_roster (chatid, userid, lastmsgseen, lastmsgemailed, lastemailed) VALUES (?, ?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE lastmsgseen = ?, lastmsgemailed = ?, lastemailed = NOW();",
-                    [
-                        $chatid,
-                        $myid,
-                        0,
-                        0,
-                        0,
-                        0
+                if (!$found) {
+                    # We don't currently have one.  Add it; include duplicate processing for timing window.
+                    $max = $this->dbhr->preQuery("SELECT MAX(id) AS max FROM chat_messages WHERE chatid = ?;", [
+                        $chatid
                     ]);
+
+                    $this->dbhm->preExec("INSERT INTO chat_roster (chatid, userid, lastmsgseen, lastmsgemailed, lastemailed) VALUES (?, ?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE lastmsgseen = ?, lastmsgemailed = ?, lastemailed = NOW();",
+                                         [
+                                             $chatid,
+                                             $myid,
+                                             $max[0]['max'],
+                                             $max[0]['max'],
+                                             $max[0]['max'],
+                                             $max[0]['max'],
+                                         ]);
+                }
             }
         }
 
@@ -1186,11 +1208,18 @@ WHERE chat_rooms.id IN $idlist;";
             ], FALSE);
         }
 
-        if ($lastmsgseen && !is_nan($lastmsgseen)) {
+        if ($lastmsgseen === 0) {
+            # This can happen if we are marking the only message in a chat as unread.
+            $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = NULL WHERE chatid = ? AND userid = ?;", [
+                $this->id,
+                $userid,
+            ], FALSE);
+        } else if ($lastmsgseen && !is_nan($lastmsgseen)) {
             # Update the last message seen - taking care not to go backwards, which can happen if we have multiple
             # windows open.
             $backq = $allowBackwards ? " AND ? " : " AND (lastmsgseen IS NULL OR lastmsgseen < ?)";
-            $rc = $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ? WHERE chatid = ? AND userid = ? $backq;", [
+            $rc = $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ? WHERE chatid = ? AND userid = ? $backq;", [
+                $lastmsgseen,
                 $lastmsgseen,
                 $this->id,
                 $userid,
@@ -1423,7 +1452,7 @@ WHERE chat_rooms.id IN $idlist;";
         }
         $groupq = implode(',', $groupids);
 
-        $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages_byemail.msgid, m1.settings AS m1settings, m1.groupid, m2.groupid AS groupidfrom, chat_messages_held.userid AS heldby, chat_messages_held.timestamp, chat_rooms.user1, chat_rooms.user2
+        $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages.reportreason, chat_messages_byemail.msgid, m1.settings AS m1settings, m1.groupid, m2.groupid AS groupidfrom, chat_messages_held.userid AS heldby, chat_messages_held.timestamp, chat_rooms.user1, chat_rooms.user2
 FROM chat_messages
 LEFT JOIN chat_messages_held ON chat_messages.id = chat_messages_held.msgid
 LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messages.id
@@ -1500,6 +1529,33 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                 $thisone['date'] = Utils::ISODate($thisone['date']);
                 $thisone['msgid'] = $msg['msgid'];
 
+                $thisone['reviewreason'] = $msg['reportreason'];
+
+                if ($thisone['reviewreason'] == ChatMessage::REVIEW_SPAM) {
+                    # Pass this through the spam checks again to see if we can get a more detailed reason.
+                    $s = new Spam($this->dbhr, $this->dbhm);
+                    list ($spam, $reason, $text) = $s->checkSpam($thisone['message'], [ Spam::ACTION_SPAM, Spam::ACTION_REVIEW ]);
+
+                    if ($spam) {
+                        $thisone['reviewreason'] = "$reason $text";
+                    } else {
+                        list ($spam, $reason, $text) = $s->checkSpam($thisone['fromuser']['displayname'], [ Spam::ACTION_SPAM ]);
+
+                        if ($spam) {
+                            $thisone['reviewreason'] = "$reason $text";
+                        } else
+                        {
+                            $reason = $s->checkReview($thisone['message'], true);
+
+                            if ($reason)
+                            {
+                                $thisone['reviewreason'] = $reason;
+                            }
+                        }
+                    }
+                }
+
+
                 $ctx['msgid'] = $msg['id'];
 
                 $ret[] = $thisone;
@@ -1563,17 +1619,6 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
             $atts['bymailid'] = Utils::presdef('bymailid', $msg, NULL);
 
             $refmsgid = $m->getPrivate('refmsgid');
-
-            if ($lastm &&
-                ($lastm->getPrivate('type') == ChatMessage::TYPE_SCHEDULE_UPDATED ||
-                    $lastm->getPrivate('type') == ChatMessage::TYPE_SCHEDULE) &&
-                ($m->getPrivate('type') == ChatMessage::TYPE_SCHEDULE_UPDATED ||
-                    $m->getPrivate('type') == ChatMessage::TYPE_SCHEDULE)) {
-                # Duplicate schedule updates are common as people tweak them; remove the previous one, so that
-                # we retain the latest dated one.  The contents will be the same as it will point to the same
-                # schedule, but we want the date.
-                array_pop($ret);
-            }
 
             if (!$lastmsg || $atts['message'] != $lastmsg || $lastref != $refmsgid) {
                 # We can get duplicate messages for a variety of reasons; suppress.
@@ -1659,23 +1704,18 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
         return ($ret);
     }
 
-    public function getMembersStatus($lastmessage, $delay = 600, $forceall = FALSE)
+    public function getMembersStatus($lastmessage, $forceall = FALSE)
     {
-        # There are some general restrictions on when we email:
-        # - When we have a new message since our last email, we don't email more often than every 10 minutes, so that if
-        #   someone keeps hammering away in chat we don't flood the recipient with emails.
         $ret = [];
         #error_log("Get not seen {$this->chatroom['chattype']}");
 
         if ($this->chatroom['chattype'] == ChatRoom::TYPE_USER2USER) {
             # This is a conversation between two users.  They're both in the roster so we can see what their last
             # seen message was and decide who to chase.  If they've blocked this chat we don't want to see it.
-            #
-            # Used to use lastmsgseen rather than lastmsgemailed - but that never stops if they don't visit the site.
-            $readyq = $forceall ? '' : "HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(SECOND, lastemailed, NOW()) >= $delay)";
-            $sql = "SELECT chat_roster.* FROM chat_roster WHERE chatid = ? AND (status IS NULL OR status != 'Blocked') $readyq;";
+            $readyq = $forceall ? '' : "HAVING lastemailed IS NULL OR lastmsgemailed < ? ";
+            $sql = "SELECT chat_roster.* FROM chat_roster WHERE chatid = ? AND (status IS NULL OR status != ?) $readyq;";
             #error_log("$sql {$this->id}, $lastmessage");
-            $users = $this->dbhr->preQuery($sql, $forceall ? [$this->id] : [$this->id, $lastmessage]);
+            $users = $this->dbhr->preQuery($sql, $forceall ? [$this->id, ChatRoom::STATUS_BLOCKED] : [$this->id, ChatRoom::STATUS_BLOCKED, $lastmessage]);
 
             foreach ($users as $user) {
                 # What's the max message this user has either seen or been mailed?
@@ -1702,7 +1742,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
             # seen/been chased, and all the mods if none of them have seen/been chased.
             #
             # First the user.
-            $readyq = $forceall ? '' : "HAVING lastemailed IS NULL OR (lastmsgemailed < ? AND TIMESTAMPDIFF(SECOND, lastemailed, NOW()) > $delay)";
+            $readyq = $forceall ? '' : "HAVING lastemailed IS NULL OR lastmsgemailed < ? ";
             $sql = "SELECT chat_roster.* FROM chat_roster INNER JOIN chat_rooms ON chat_rooms.id = chat_roster.chatid WHERE chatid = ? AND chat_roster.userid = chat_rooms.user1 $readyq;";
             #error_log("Check User2Mod $sql, {$this->id}, $lastmessage");
             $users = $this->dbhr->preQuery($sql, $forceall ? [$this->id] : [$this->id, $lastmessage]);
@@ -1846,7 +1886,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
         return $thistwig;
     }
 
-    private function getTextSummary($unmailedmsg, $thisu, $otheru, $allowpastschedules, $multiple, &$intsubj) {
+    private function getTextSummary($unmailedmsg, $thisu, $otheru, $multiple, &$intsubj) {
         $thisone = NULL;
 
         switch ($unmailedmsg['type']) {
@@ -1919,17 +1959,6 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                 break;
             }
 
-            case ChatMessage::TYPE_SCHEDULE:
-            case ChatMessage::TYPE_SCHEDULE_UPDATED: {
-                $s = new Schedule($this->dbhr, $this->dbhm, $unmailedmsg['userid'], $allowpastschedules);
-                $summ = $s->getSummary();
-
-                if (strlen($summ)) {
-                    $thisone = ($unmailedmsg['userid'] == $thisu->getId()) ? ("You updated your availability: $summ") : ($otheru->getName() . " has updated when they may be available: $summ");
-                }
-                break;
-            }
-
             default: {
                 # Use the text in the message.
                 $thisone = $unmailedmsg['message'];
@@ -1940,10 +1969,12 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
         return $thisone;
     }
 
-    public function notifyByEmail($chatid = NULL, $chattype, $emailoverride = NULL, $delay = 600, $allowpastschedules = FALSE, $since = "4 hours ago", $forceall = FALSE)
+    public function notifyByEmail($chatid = NULL, $chattype, $emailoverride = NULL, $delay = ChatRoom::DELAY, $since = "4 hours ago", $forceall = FALSE)
     {
-        # We want to find chatrooms with messages which haven't been mailed to people.  We always email messages,
-        # even if they are seen online.
+        # We want to find chatrooms with messages which haven't been mailed to people.
+        #
+        # We don't email until a message is older than $delay.  This allows the client to keep messages from
+        # being mailed if the user is still typing the next one, so that we will then combine them.
         #
         # These could either be a group chatroom, or a conversation.  There aren't too many of the former, but there
         # could be a large number of the latter.  However we don't want to keep nagging people forever - so we are
@@ -1952,14 +1983,18 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
         $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
         $twig = new \Twig_Environment($loader);
 
-        # We run this every minute, so we don't need to check too far back.  This keeps it quick.
+        # We don't need to check too far back.  This keeps it quick.
         $reviewq = $chattype === ChatRoom::TYPE_USER2MOD ? '' : " AND reviewrequired = 0";
         $allq = $forceall ? '' : "AND mailedtoall = 0 AND seenbyall = 0 AND reviewrejected = 0";
-        $start = date('Y-m-d', strtotime($since));
+        $start = date('Y-m-d H:i:s', strtotime($since));
+        $end = date('Y-m-d H:i:s', time() - $delay);
+        #error_log("End $end from $delay current " . date('Y-m-d H:i:s'));
         $chatq = $chatid ? " AND chatid = $chatid " : '';
-        $sql = "SELECT DISTINCT chatid, chat_rooms.chattype, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE date >= ? $allq $reviewq AND chattype = ? $chatq;";
-        #error_log("$sql, $start, $chattype");
-        $chats = $this->dbhr->preQuery($sql, [$start, $chattype]);
+        $sql = "SELECT DISTINCT chatid, chat_rooms.chattype, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages 
+    INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id 
+    WHERE date >= ? AND date <= ? $allq $reviewq AND chattype = ? $chatq;";
+        #error_log("$sql, $start, $end, $chattype");
+        $chats = $this->dbhr->preQuery($sql, [$start, $end, $chattype]);
         #error_log("Chats to scan " . count($chats));
         $notified = 0;
         $userlist = [];
@@ -1972,7 +2007,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
             $lastmaxmailed = $r->lastMailedToAll();
             $maxbugspot = 0;
             $sentsome = FALSE;
-            $notmailed = $r->getMembersStatus($chatatts['lastmsg'], $delay, $forceall);
+            $notmailed = $r->getMembersStatus($chatatts['lastmsg'], $forceall);
             $outcometaken = '';
             $outcomewithdrawn= '';
 
@@ -2047,7 +2082,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                 $firstid = $unmailedmsg['id'];
                             }
 
-                            $thisone = $this->getTextSummary($unmailedmsg, $sendingto, $sendingfrom, $allowpastschedules, count($unmailedmsgs) > 1, $intsubj);
+                            $thisone = $this->getTextSummary($unmailedmsg, $sendingto, $sendingfrom, count($unmailedmsgs) > 1, $intsubj);
 
                             switch ($unmailedmsg['type']) {
                                 case ChatMessage::TYPE_INTERESTED:
@@ -2068,15 +2103,6 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                         );
                                     }
                                     break;
-                                }
-
-                                case ChatMessage::TYPE_SCHEDULE:
-                                case ChatMessage::TYPE_SCHEDULE_UPDATED:
-                                {
-                                    if (!$thisone) {
-                                        # No point sending this if there's no availability.
-                                        continue 2;
-                                    }
                                 }
                             }
 
@@ -2210,7 +2236,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                                                        $sendingto,
                                                                        $sendingfrom,
                                                                        $bin,
-                                                                       $this->getTextSummary($p, $sendingto, $sendingfrom, $allowpastschedules, count($prevmsgs) > 1, $intsubj),
+                                                                       $this->getTextSummary($p, $sendingto, $sendingfrom, count($prevmsgs) > 1, $intsubj),
                                                                     $userlist);
                                 }
                             }
@@ -2638,6 +2664,18 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
         # Create a message in the chat.
         return($id);
+    }
+
+    public function typing() {
+        # This is invoked by the client when the user is typing, approximately every ten seconds.  We look for any
+        # chat messages which are too recent to have mailed out, and bump their time.  This means that if the
+        # user keeps typing, we will batch up multiple chat messages in a single email.
+        $this->dbhm->preExec("UPDATE chat_messages SET date = NOW() WHERE chatid = ? AND TIMESTAMPDIFF(SECOND, chat_messages.date, NOW()) < ? AND mailedtoall = 0;", [
+            $this->id,
+            ChatRoom::DELAY
+        ]);
+
+        return $this->dbhm->rowsAffected();
     }
 
     public function nudgess($uids) {

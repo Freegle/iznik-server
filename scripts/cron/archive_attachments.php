@@ -112,21 +112,4 @@ foreach ($atts as $att) {
     error_log("...$count / $total");
 }
 
-$sql = "SELECT id FROM booktastic_images WHERE archived = 0;";
-$atts = $dbhr->preQuery($sql);
-error_log(count($atts) . " book images to archive");
-$count = 0;
-$total = count($atts);
-
-foreach ($atts as $att) {
-    $a = new Attachment($dbhr, $dbhm, $att['id'], Attachment::TYPE_BOOKTASTIC);
-    if (!$a->archive()) {
-        error_log("Failed to archive {$att['id']}");
-        //$a->delete();
-    }
-
-    $count++;
-    error_log("...$count / $total");
-}
-
 Utils::unlockScript($lockh);

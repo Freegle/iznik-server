@@ -9,6 +9,12 @@ define('SQLPASSWORD', '');
 define('PASSWORD_SALT', 'zzzz');
 define('MODERATOR_EMAIL', 'modtools@modtools.org');
 
+# We use Postgresql for limited purposes.
+define('PGSQLHOST', '127.0.0.1:5432');
+define('PGSQLUSER', 'iznik');
+define('PGSQLDB', 'iznik');
+define('PGSQLPASSWORD', 'iznik');
+
 # Logos
 define('USERLOGO', 'https://www.ilovefreegle.org/icon.png');
 define('MODLOGO', 'https://modtools.org/images/modlogo-large.jpg');
@@ -82,9 +88,6 @@ define('FORUM_API', 'zzz');
 # We fetch jobs to display.
 define('WHATJOBS_DUMP', 'zzzz');
 
-# We verify email addresses.
-define('BRITEVERIFY_PRIVATE_KEY', 'zzzz');
-
 define('SERVER_LIST', '');
 define('GEOCODER', 'geocode.ilovefreegle.org');
 
@@ -93,6 +96,9 @@ define('PHEANSTALK_SERVER', '127.0.0.1');
 
 # Host to monitor
 define('MONIT_HOST', 'zzz');
+
+# We use Sentry to capture exceptions.
+define('SENTRY_DSN', 'zzzz');
 
 # You can force all user activity onto a test group
 define('USER_GROUP_OVERRIDE', 'FreeglePlayground');
@@ -158,6 +164,7 @@ define('MENTORS_ADDR', 'mentors@ilovefreegle.org');
 define('NEWGROUPS_ADDR', 'newgroups@ilovefreegle.org');
 define('VOLUNTEERS_ADDR', 'volunteers@ilovefreegle.org');
 define('FUNDRAISING_ADDR', 'xxx');
+define('CHITCHAT_SUPPORT_ADDR', 'support@ilovefreegle.org');
 
 define('NOREPLY_ADDR', 'noreply@ilovefreegle.org');
 

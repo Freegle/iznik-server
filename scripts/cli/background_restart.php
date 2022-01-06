@@ -11,12 +11,11 @@ global $dbhr, $dbhm;
 use Pheanstalk\Pheanstalk;
 
 # For gracefully restarting the background processing; signal to it.
-$pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
+$pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
 
 do {
     $stats = $pheanstalk->stats();
     $workers = $stats['current-workers'];
-    #error_log("Workers $workers");
     $id = $pheanstalk->put(json_encode(array(
                                            'type' => 'exit'
                                        )));

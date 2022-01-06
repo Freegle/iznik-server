@@ -67,10 +67,9 @@ function user() {
                     if ($info && $id && $u->getId() == $id) {
                         $u->ensureAvatar($ret['user']);
                         $ret['user']['info'] = $u->getInfo();
-                    }
 
-                    if ($me && $me->isModerator()) {
-                        $ret['user']['trustlevel'] = $u->getPrivate('trustlevel');
+                        $s = new Spam($dbhr, $dbhm);
+                        $ret['user']['spammer'] = ($s->getSpammerByUserid($id) !== NULL);
                     }
                 }
             }

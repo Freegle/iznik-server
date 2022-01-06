@@ -462,6 +462,7 @@ try{
   echo "Mail sent to geeks: ".$numSent."\r\n";
 
 } catch (\Exception $e) {
+ \Sentry\captureException($e);
   echo $e->getMessage();
   error_log("Failed with " . $e->getMessage());
   $message = \Swift_Message::newInstance()

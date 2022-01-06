@@ -32,7 +32,7 @@ class messageTest extends IznikTestCase {
         # We test around Tuvalu.  If you're setting up Tuvalu Freegle you may need to change that.
         $dbhm->preExec("DELETE FROM locations_grids WHERE swlat >= 8.3 AND swlat <= 8.7;");
         $dbhm->preExec("DELETE FROM locations_grids WHERE swlat >= 179.1 AND swlat <= 179.3;");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
         for ($swlat = 8.3; $swlat <= 8.6; $swlat += 0.1) {
             for ($swlng = 179.1; $swlng <= 179.3; $swlng += 0.1) {
                 $nelat = $swlat + 0.1;
@@ -556,16 +556,7 @@ class messageTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertTrue($m->isAutoreply());
-
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
-        $m = new Message($this->dbhr, $this->dbhm, $id);
-        $m->setPrivate('fromaddr', 'notify@yahoogroups.com');
-        assertTrue($m->isAutoreply());
-
-        }
+    }
 
     public function testBounce() {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -604,7 +595,7 @@ class messageTest extends IznikTestCase {
         $this->user->addEmail($email);
         $id1 = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $m = new Message($this->dbhr, $this->dbhm, $id1);
-        $m->setPrivate('sourceheader', 'Platform');
+        $m->setPrivate('source', Message::PLATFORM);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -617,7 +608,7 @@ class messageTest extends IznikTestCase {
         $id2 = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $this->log("Due message $id2");
         $m = new Message($this->dbhr, $this->dbhm, $id2);
-        $m->setPrivate('sourceheader', 'Platform');
+        $m->setPrivate('source', Message::PLATFORM);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -709,7 +700,7 @@ class messageTest extends IznikTestCase {
         $id2 = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $this->log("Due message $id2");
         $m = new Message($this->dbhr, $this->dbhm, $id2);
-        $m->setPrivate('sourceheader', 'Platform');
+        $m->setPrivate('source', Message::PLATFORM);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -759,6 +750,7 @@ class messageTest extends IznikTestCase {
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $mid);
+        $m->setPrivate('source', Message::PLATFORM);
 
         # Create a reply
         $u = User::get($this->dbhr, $this->dbhm);

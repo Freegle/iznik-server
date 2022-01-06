@@ -274,6 +274,14 @@ class spammersAPITest extends IznikAPITestCase {
 
         assertFalse($found);
 
+        # If we fetch that user, should be flagged as a spammer.
+        $ret = $this->call('user', 'GET', [
+            'id' => $uid,
+            'info' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertTrue($ret['user']['spammer']);
+
         # Trigger removal
         $membs = $u->getMemberships();
         $this->log("Memberships " . var_export($membs, TRUE));
@@ -474,7 +482,6 @@ class spammersAPITest extends IznikAPITestCase {
     }
 
     public function testPerf() {
-        $this->dbhr->errorLog = TRUE;
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($this->user->login('testpw'));

@@ -18,7 +18,7 @@ $max = 120;
 
 do {
     error_log("Start User2Mod " . date("Y-m-d H:i:s", time()));
-    $count = $c->notifyByEmail(NULL, ChatRoom::TYPE_USER2MOD, NULL, 0, FALSE, "4 hours ago");
+    $count = $c->notifyByEmail(NULL, ChatRoom::TYPE_USER2MOD, NULL, 30, "4 hours ago");
     error_log("Sent $count for User2Mod " . date("Y-m-d H:i:s", time()));
 
     if (!$count) {

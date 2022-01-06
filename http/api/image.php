@@ -19,7 +19,6 @@ function image() {
     $newsfeed = Utils::presdef('newsfeed', $_REQUEST, NULL);
     $story = Utils::presdef('story', $_REQUEST, NULL);
     $circle = Utils::presdef('circle', $_REQUEST, NULL);
-    $booktastic = Utils::presdef('booktastic', $_REQUEST, NULL);
 
     $sizelimit = 800;
     
@@ -39,8 +38,6 @@ function image() {
         $type = Attachment::TYPE_NEWSFEED;
     } else if ($story) {
         $type = Attachment::TYPE_STORY;
-    } else if ($booktastic) {
-        $type = Attachment::TYPE_BOOKTASTIC;
     } else {
         $type = Attachment::TYPE_MESSAGE;
     }
@@ -132,97 +129,104 @@ function image() {
                     Utils::pres('tmp_name', $photo)) {
                     try {
                         # We may need to rotate.
+                        $ret = [ 'ret' => 2, 'status' => 'Invalid data provided' ];
                         $data = file_get_contents($photo['tmp_name']);
-                        $image = imagecreatefromstring($data);
-                        $exif = @exif_read_data($photo['tmp_name']);
+                        $image = @imagecreatefromstring($data);
 
-                        if($exif && !empty($exif['Orientation'])) {
-                            switch($exif['Orientation']) {
-                                case 2:
-                                    imageflip($image , IMG_FLIP_HORIZONTAL);
-                                    break;
-                                case 3:
-                                    $image = imagerotate($image,180,0);
-                                    break;
-                                case 4:
-                                    $image = imagerotate($image,180,0);
-                                    imageflip($image , IMG_FLIP_HORIZONTAL);
-                                    break;
-                                case 5:
-                                    $image = imagerotate($image,90,0);
-                                    imageflip ($image , IMG_FLIP_VERTICAL);
-                                    break;
-                                case 6:
-                                    $image = imagerotate($image,-90,0);
-                                    break;
-                                case 7:
-                                    $image = imagerotate($image,-90,0);
-                                    imageflip ($image , IMG_FLIP_VERTICAL);
-                                    break;
-                                case 8:
-                                    $image = imagerotate($image,90,0);
-                                    break;
+                        if ($image) {
+                            $exif = @exif_read_data($photo['tmp_name']);
+
+                            if($exif && !empty($exif['Orientation'])) {
+                                switch($exif['Orientation']) {
+                                    case 2:
+                                        imageflip($image , IMG_FLIP_HORIZONTAL);
+                                        break;
+                                    case 3:
+                                        $image = imagerotate($image,180,0);
+                                        break;
+                                    case 4:
+                                        $image = imagerotate($image,180,0);
+                                        imageflip($image , IMG_FLIP_HORIZONTAL);
+                                        break;
+                                    case 5:
+                                        $image = imagerotate($image,90,0);
+                                        imageflip ($image , IMG_FLIP_VERTICAL);
+                                        break;
+                                    case 6:
+                                        $image = imagerotate($image,-90,0);
+                                        break;
+                                    case 7:
+                                        $image = imagerotate($image,-90,0);
+                                        imageflip ($image , IMG_FLIP_VERTICAL);
+                                        break;
+                                    case 8:
+                                        $image = imagerotate($image,90,0);
+                                        break;
+                                }
+
+                                ob_start();
+                                imagejpeg($image, NULL, 100);
+                                $data = ob_get_contents();
+                                ob_end_clean();
                             }
 
-                            ob_start();
-                            imagejpeg($image, NULL, 100);
-                            $data = ob_get_contents();
-                            ob_end_clean();
-                        }
+                            if ($data) {
+                                $a = new Attachment($dbhr, $dbhm, NULL, $imgtype);
+                                $id = $a->create($msgid,$data);
 
-                        if ($data) {
-                            $a = new Attachment($dbhr, $dbhm, NULL, $imgtype);
-                            $id = $a->create($msgid,$data);
+                                # Make sure it's not too large, to keep DB size down.  Ought to have been resized by
+                                # client, but you never know.
+                                $data = $a->getData();
+                                $i = new Image($data);
 
-                            # Make sure it's not too large, to keep DB size down.  Ought to have been resized by
-                            # client, but you never know.
-                            $data = $a->getData();
-                            $i = new Image($data);
-                            $h = $i->height();
-                            $w = $i->width();
+                                if ($i && $i->img) {
+                                    $h = $i->height();
+                                    $w = $i->width();
 
-                            if ($w > $sizelimit) {
-                                $h = $h * $sizelimit / $w;
-                                $w = $sizelimit;
-                                $i->scale($w, $h);
-                                $data = $i->getData(100);
-                                $a->setPrivate('data', $data);
-                            }
+                                    if ($w > $sizelimit) {
+                                        $h = $h * $sizelimit / $w;
+                                        $w = $sizelimit;
+                                        $i->scale($w, $h);
+                                        $data = $i->getData(100);
+                                        $a->setPrivate('data', $data);
+                                    }
+                                }
 
-                            $ret = [
-                                'ret' => 0,
-                                'status' => 'Success',
-                                'id' => $id,
-                                'path' => $a->getPath(FALSE),
-                                'paththumb' => $a->getPath(TRUE)
-                            ];
+                                $ret = [
+                                    'ret' => 0,
+                                    'status' => 'Success',
+                                    'id' => $id,
+                                    'path' => $a->getPath(FALSE),
+                                    'paththumb' => $a->getPath(TRUE)
+                                ];
 
-                            # Return a new thumbnail (which might be a different orientation).
-                            $ret['initialPreview'] =  [
-                                '<img src="' . $a->getPath(TRUE) . '" class="file-preview-image img-responsive">',
-                            ];
+                                # Return a new thumbnail (which might be a different orientation).
+                                $ret['initialPreview'] =  [
+                                    '<img src="' . $a->getPath(TRUE) . '" class="file-preview-image img-responsive">',
+                                ];
 
-                            $ret['initialPreviewConfig'] = [
-                                [
-                                    'key' => $id
-                                ]
-                            ];
+                                $ret['initialPreviewConfig'] = [
+                                    [
+                                        'key' => $id
+                                    ]
+                                ];
 
-                            $ret['append'] = TRUE;
+                                $ret['append'] = TRUE;
 
-                            if ($identify) {
-                                $a = new Attachment($dbhr, $dbhm, $id);
-                                $ret['items'] = $a->identify();
-                            }
+                                if ($identify) {
+                                    $a = new Attachment($dbhr, $dbhm, $id);
+                                    $ret['items'] = $a->identify();
+                                }
 
-                            if ($ocr) {
-                                $a = new Attachment($dbhr, $dbhm, $id, $type);
-                                $ret['ocr'] = $a->ocr();
-                            }
+                                if ($ocr) {
+                                    $a = new Attachment($dbhr, $dbhm, $id, $type);
+                                    $ret['ocr'] = $a->ocr();
+                                }
 
-                            if ($objects) {
-                                $a = new Attachment($dbhr, $dbhm, $id, $type);
-                                $ret['objects'] = $a->objects();
+                                if ($objects) {
+                                    $a = new Attachment($dbhr, $dbhm, $id, $type);
+                                    $ret['objects'] = $a->objects();
+                                }
                             }
                         }
                     } catch (\Exception $e) {

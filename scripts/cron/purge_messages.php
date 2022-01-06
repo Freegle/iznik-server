@@ -51,27 +51,6 @@ try {
         }
     } while (count($msgs) > 0);
 
-    # Purge Yahoo notify messages
-    $start = date('Y-m-d', strtotime("midnight 2 days ago"));
-    error_log("Purge Yahoo notify messages before $start");
-    $total = 0;
-
-    $m = new Message($dbhr, $dbhm);
-
-    do {
-        $sql = "SELECT messages.id FROM messages WHERE fromaddr = 'notify@yahoogroups.com' AND date <= '$start' LIMIT 1000;";
-        $msgs = $dbhm->query($sql)->fetchAll();
-        foreach ($msgs as $msg) {
-            #error_log($msg['id']);
-            $m->quickDelete($schema, $msg['id']);
-            $total++;
-
-            if ($total % 10 == 0) {
-                error_log("...$total");
-            }
-        }
-    } while (count($msgs) > 0);
-
     # Purge old messages_history - it's only used for spam checking so we don't need to keep it indefinitely.
     $start = date('Y-m-d', strtotime(MessageCollection::RECENTPOSTS));
     error_log("Purge messages_history before $start");
@@ -280,6 +259,7 @@ try {
     # problems.  So zap 'em.
     $dbhm->preExec("DELETE FROM users_emails WHERE userid IS NULL");
 } catch (\Exception $e) {
+    \Sentry\captureException($e);
     error_log("Failed with " . $e->getMessage());
     mail(GEEKS_ADDR, "Daily message purge failed", $e->getMessage());
     exit(1);

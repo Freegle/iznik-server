@@ -28,6 +28,7 @@ for ($i = 0; $i < getenv('STANDALONE') ? 10000 : 10; $i++) {
         $mysqltime = date("Y-m-d H:i:s", strtotime("midnight 7 days ago"));
         $dbhm->preExec("UPDATE users_exports SET data = NULL WHERE completed IS NOT NULL AND completed < '$mysqltime';");
     } catch (\Exception $e) {
+        \Sentry\captureException($e);
         error_log("Top-level exception " . $e->getMessage() . "\n");
 
         if (strpos($e->getMessage(), 'Call to a member function prepare() on a non-object (null)') !== FALSE) {

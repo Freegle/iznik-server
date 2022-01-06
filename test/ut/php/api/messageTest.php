@@ -27,7 +27,7 @@ class messageAPITest extends IznikAPITestCase
 
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup';");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
         $dbhm->preExec("DELETE FROM messages_drafts WHERE (SELECT fromuser FROM messages WHERE id = msgid) IS NULL;");
         $dbhm->preExec("DELETE FROM worrywords WHERE keyword LIKE 'UTtest%';");
         $dbhm->preExec("DELETE FROM messages WHERE messageid LIKE 'GTUBE1.1010101@example.net';");
@@ -331,7 +331,6 @@ class messageAPITest extends IznikAPITestCase
         assertEquals($id, $ret['message']['id']);
 
         # Approve the message.
-        error_log("Now approve");
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'groupid' => $this->gid,
@@ -528,7 +527,6 @@ class messageAPITest extends IznikAPITestCase
 
         assertEquals(Message::TYPE_OFFER, $m->getType());
         $senduser = $m->getFromUser();
-        error_log("Send user $senduser");
 
         # Set to platform for testing message visibility.
         $m->setPrivate('sourceheader', Message::PLATFORM);
@@ -851,7 +849,6 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
 
         # Route and delete approved.
-        error_log("Set def");
         $this->log("Route and delete approved");
         $msg = $this->unique($msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -1101,7 +1098,8 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'PATCH', [
             'id' => $id,
             'groupid' => $this->gid,
-            'subject' => 'Test edit long'
+            'subject' => 'Test edit long',
+            'FOP' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
 
@@ -1169,7 +1167,10 @@ class messageAPITest extends IznikAPITestCase
         assertEquals('Test edit', $ret['message']['edits'][0]['newtext']);
     }
 
-    public function testEditAsMember()
+    /**
+     * @dataProvider editProvider
+     */
+    public function testEditAsMember($anonymous)
     {
         $l = new Location($this->dbhr, $this->dbhm);
         $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)');
@@ -1316,7 +1317,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'AddBy',
-            'userid' => $u1id,
+            'userid' => $anonymous ? NULL : $u1id,
             'count' => 4,
         ]);
         assertEquals(0, $ret['ret']);
@@ -1331,7 +1332,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'AddBy',
-            'userid' => $u2id,
+            'userid' => $anonymous ? NULL : $u2id,
             'count' => 7,
         ]);
         assertEquals(0, $ret['ret']);
@@ -1341,7 +1342,7 @@ class messageAPITest extends IznikAPITestCase
         ]);
 
         assertEquals(10, $ret['message']['availableinitially']);
-        assertEquals(0, Utils::presdef('availablenow', $ret['message'], 0));
+        assertEquals($anonymous ? 3 : 0, Utils::presdef('availablenow', $ret['message'], 0));
 
         # Now back as the mod and check the edit history.
         assertTrue($mod->login('testpw'));
@@ -1352,7 +1353,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'RemoveBy',
-            'userid' => $u2id
+            'userid' => $anonymous ? NULL : $u2id
         ]);
         assertEquals(0, $ret['ret']);
 
@@ -1361,12 +1362,12 @@ class messageAPITest extends IznikAPITestCase
         ]);
 
         assertEquals(10, $ret['message']['availableinitially']);
-        assertEquals(6, $ret['message']['availablenow']);
+        assertEquals($anonymous ? 10 : 6, $ret['message']['availablenow']);
 
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'AddBy',
-            'userid' => $u1id,
+            'userid' => $anonymous ? NULL : $u1id,
             'count' => 7,
         ]);
         assertEquals(0, $ret['ret']);
@@ -1381,7 +1382,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'RemoveBy',
-            'userid' => $u1id
+            'userid' => $anonymous ? NULL : $u1id
         ]);
         assertEquals(0, $ret['ret']);
 
@@ -1455,6 +1456,13 @@ class messageAPITest extends IznikAPITestCase
 
         assertEquals('OFFER: a thing (TV1)', $ret['message']['subject']);
         assertEquals('Text body', $ret['message']['textbody']);
+    }
+
+    public function editProvider() {
+        return [
+            [ TRUE ],
+            [ FALSE ]
+        ];
     }
 
     public function testEditAsMemberPending()
@@ -1731,6 +1739,12 @@ class messageAPITest extends IznikAPITestCase
         assertEquals('Text body', $msg['textbody']);
         assertEquals($attid, $msg['attachments'][0]['id']);
 
+        # Tick off a coverage case.
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $userlist = [];
+        $locationlist = [];
+        assertEquals($attid, $m->getPublic(TRUE, TRUE, FALSE, $userlist, $locationlist, TRUE)['attachments'][0]['id']);
+
         # Now create a new attachment and update the draft.
         $ret = $this->call('image', 'POST', [
             'photo' => [
@@ -1970,7 +1984,9 @@ class messageAPITest extends IznikAPITestCase
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $uid2 = $u->create(NULL, NULL, 'Test User');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $uid3 = $u->create(NULL, NULL, 'Test User');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
@@ -2007,6 +2023,21 @@ class messageAPITest extends IznikAPITestCase
         $this->log("Got message " . var_export($ret, TRUE));
         assertEquals(1, count($ret['message']['promises']));
         assertEquals($uid2, $ret['message']['promises'][0]['userid']);
+
+        # Promised to me flag shouldn't show, because it isn't.
+        assertFalse(array_key_exists('promisedtome', $ret['message']));
+
+        # But should to that user.
+        $u2 = User::get($this->dbhr, $this->dbhm, $uid2);
+        assertTrue($u2->login('testpw'));
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertTrue($ret['message']['promisedtome']);
+
+        assertTrue($u->login('testpw'));
 
         # Can promise to multiple users
         $ret = $this->call('message', 'POST', [
@@ -2086,7 +2117,6 @@ class messageAPITest extends IznikAPITestCase
         # Promise it to the other user.
         global $sessionPrepared;
         $sessionPrepared = FALSE;
-        error_log("Promise");
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'userid' => $uid2,
@@ -2107,7 +2137,6 @@ class messageAPITest extends IznikAPITestCase
         # Promise it without a user id.
         global $sessionPrepared;
         $sessionPrepared = FALSE;
-        error_log("Promise");
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'action' => 'Promise',
@@ -2151,6 +2180,8 @@ class messageAPITest extends IznikAPITestCase
         $m->setPrivate('lat', 50.0657);
         $m->setPrivate('lng', -5.7132);
         $m->addToSpatialIndex();
+        $m->deleteFromSpatialIndex();
+        $m->addToSpatialIndex();
 
         # Should show in our open post count.
         assertTrue($u->login('testpw'));
@@ -2175,6 +2206,9 @@ class messageAPITest extends IznikAPITestCase
             'userid' => $uid
         ]);
         assertEquals(0, $ret['ret']);
+
+        # For coverage.
+        $m->addToSpatialIndex();
 
         # Should no longer show in our open post count.
         $ret = $this->call('session', 'GET', [
@@ -3452,5 +3486,67 @@ class messageAPITest extends IznikAPITestCase
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertEquals(MessageCollection::PENDING, $m->getPublic()['groups'][0]['collection']);
         assertEquals(Spam::REASON_WORRY_WORD, $m->getPrivate('spamtype'));
+    }
+
+    /**
+     * @dataProvider markProvider
+     */
+    public function testMarkPartner($type, $outcome)
+    {
+        $key = Utils::randstr(64);
+        $id = $this->dbhm->preExec("INSERT INTO partners_keys (`partner`, `key`, `domain`) VALUES ('UT', ?, ?);", [$key, 'blackhole.io']);
+        assertNotNull($id);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+        $u->addMembership($this->gid);
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        $email = 'test-' . rand() . '@blackhole.io';
+        $u->addEmail($email);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_ireplace('Basic test', "$type: A thing (A place)", $msg);
+        $msg = str_ireplace('test@test.com', $email, $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Mark as taken.
+        global $sessionPrepared;
+        $sessionPrepared = FALSE;
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'Outcome',
+            'outcome' => $outcome,
+            'partner' => $key
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $id
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['message']['outcomes']));
+        assertEquals($outcome, $ret['message']['outcomes'][0]['outcome']);
+    }
+
+    public function markProvider() {
+        return [
+            [
+                Message::TYPE_OFFER, Message::OUTCOME_TAKEN
+            ],
+            [
+                Message::TYPE_OFFER, Message::OUTCOME_WITHDRAWN
+            ],
+            [
+                Message::TYPE_WANTED, Message::OUTCOME_RECEIVED
+            ],
+            [
+                Message::TYPE_WANTED, Message::OUTCOME_WITHDRAWN
+            ],
+        ];
     }
 }

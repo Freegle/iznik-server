@@ -272,6 +272,7 @@ class userTest extends IznikTestCase {
         $u->setRole(User::ROLE_OWNER, $group1);
         assertEquals($u->getRoleForGroup($group1), User::ROLE_OWNER);
         assertTrue($u->isModOrOwner($group1));
+        assertTrue($u->isModOrOwner($group1));
         assertTrue(array_key_exists('work', $u->getMemberships(FALSE, NULL, TRUE)[0]));
         $settings = $u->getGroupSettings($group1);
         $this->log("Settings " . var_export($settings, TRUE));
@@ -728,7 +729,10 @@ class userTest extends IznikTestCase {
 
         }
 
-    public function testCheck(){
+    /**
+     * @dataProvider checkProvider
+     */
+    public function testCheck($mod) {
         $u1 = User::get($this->dbhr, $this->dbhm);
         $id1 = $u1->create('Test', 'User', NULL);
         assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -745,7 +749,7 @@ class userTest extends IznikTestCase {
             $groupids[] = $gid;
 
             $u1->addMembership($gid, User::ROLE_MODERATOR);
-            $u2->addMembership($gid);
+            $u2->addMembership($gid, $mod ? User::ROLE_MODERATOR : User::ROLE_MEMBER);
 
             $u2 = User::get($this->dbhr, $this->dbhm, $id2, FALSE);
             $this->waitBackground();
@@ -754,14 +758,14 @@ class userTest extends IznikTestCase {
             $this->log("$i");
 
             # Should not show for review until we exceed the threshold.
-            if ($i < Spam::SEEN_THRESHOLD) {
+            if ($i < Spam::SEEN_THRESHOLD || $mod) {
                 assertNull($u2->getMembershipAtt($gid, 'reviewrequestedat'), "Shouldn't be flagged as not exceeded threshold");
             } else {
-                # Should now show for review on this group,
+                # Should now show for review on this group, but only the member, not the mod.
                 assertNotNull($u2->getMembershipAtt($gid, 'reviewrequestedat'));
                 $ctx = NULL;
                 $membs = $g->getMembers(10, NULL, $ctx, NULL, MembershipCollection::SPAM, [ $gid ]);
-                assertEquals(2, count($membs), "Should be flagged on $gid");
+                assertEquals(1, count($membs), "Should be flagged on $gid");
 
                 # ...but not any previous groups because we flagged as reviewed on those.
                 foreach ($groupids as $checkgid) {
@@ -778,6 +782,13 @@ class userTest extends IznikTestCase {
             $u1->memberReview($gid, FALSE, 'UT');
             $u2->memberReview($gid, FALSE, 'UT');
         }
+    }
+
+    public function checkProvider() {
+        return [
+            [ FALSE ],
+            [ TRUE ]
+        ];
     }
 
     public function testVerifyMail() {
@@ -987,6 +998,18 @@ class userTest extends IznikTestCase {
         $atts = $u->getPublic();
         $u->ensureAvatar($atts);
         assertTrue($atts['profile']['gravatar']);
+
+        $uid = $u->create("Test", "User", "Test User");
+        $this->log("Created user $uid");
+        $eid = $u->addEmail('test@gmail.com');
+        $this->dbhr->errorLog = true;
+        $this->dbhm->errorLog = true;
+        $u->setSetting('useprofile', FALSE);
+        User::clearCache();
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $atts = $u->getPublic();
+        $u->ensureAvatar($atts);
+        assertTrue($atts['profile']['default']);
     }
 
     public function testBadYahooId() {
@@ -1113,8 +1136,12 @@ class userTest extends IznikTestCase {
 
         $settings = [
             'mylocation' => [
+                'id' => 1,
                 'lat' => 8.51111,
-                'lng' => 179.11111
+                'lng' => 179.11111,
+                'area' => [
+                    'name' => 'Somewhere'
+                ]
             ],
             'modnotifs' => $modnotifs,
             'backupmodnotifs' => $backupmodnotifs
@@ -1126,12 +1153,17 @@ class userTest extends IznikTestCase {
         $u->setPrivate('settings', json_encode($settings));
         assertEquals(8.51111, $u->getPublic()['settings']['mylocation']['lat']);
         assertEquals(179.11111, $u->getPublic()['settings']['mylocation']['lng']);
+        assertEquals('Somewhere', $u->getPublic()['settings']['mylocation']['area']['name']);
 
         # Get blurred location.
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_UT);
+        $u->addMembership($gid);
         $atts = $u->getPublic();
         $latlngs = $u->getLatLngs([ $atts ], TRUE, TRUE, TRUE, NULL, Utils::BLUR_1K);
         assertEquals(8.5153, $latlngs[$u->getId()]['lat']);
         assertEquals(179.1191, $latlngs[$u->getId()]['lng']);
+        assertEquals('testgroup', $latlngs[$u->getId()]['group']);
 
         $nid = $n->create(Newsfeed::TYPE_MESSAGE, $uid, 'Test');
 
@@ -1272,8 +1304,9 @@ class userTest extends IznikTestCase {
 
         $l = new Location($this->dbhr, $this->dbhm);
         $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))');
-        $areaatts = $l->getPublic();
         assertNotNull($areaid);
+        $areaatts = $l->getPublic();
+        assertNull($areaatts['areaid']);
         $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
         $fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)');
         $locid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
@@ -1585,14 +1618,14 @@ class userTest extends IznikTestCase {
 
         $settings = [
             'mylocation' => [
-                'lat' => 8.51111,
-                'lng' => 179.11111,
+                'lat' => 52.57,
+                'lng' => -2.03,
             ],
         ];
 
         $u->setPrivate('settings', json_encode($settings));
         $jobs = $u->getJobAds();
-        assertGreaterThan(0, count($jobs));
+        assertGreaterThan(0, strlen($jobs['jobs']));
     }
 
     public function testSetPostcode() {
@@ -1630,6 +1663,28 @@ class userTest extends IznikTestCase {
         assertEquals('t***1@test.com', $u->obfuscateEmail('test1@test.com'));
         assertEquals('t***2@test.com', $u->obfuscateEmail('test12@test.com'));
         assertEquals('tes***890@test.com', $u->obfuscateEmail('test1234567890@test.com'));
+    }
+
+    public function testGetCity() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+
+        $settings = [
+            'mylocation' => [
+                'id' => 1,
+                'lat' => 55.9,
+                'lng' => -3.15,
+                'area' => [
+                    'name' => 'Somewhere'
+                ]
+            ]
+        ];
+
+        $u->setPrivate('settings', json_encode($settings));
+        list ($city, $lat, $lng) = $u->getCity();
+        assertEquals(55.9, $lat);
+        assertEquals(-3.15, $lng);
+        assertEquals('Edinburgh', $city);
     }
 }
 

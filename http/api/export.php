@@ -32,7 +32,7 @@ function export()
 
                 if (!$sync) {
                     # Request an export.  We do this in the background because it can take minutes and we don't want
-                    # to tie up HHVM, especially if we got multiple happening at the same time.
+                    # to tie up the process, especially if we got multiple happening at the same time.
                     list($id, $tag) = $me->requestExport();
 
                     $ret = [

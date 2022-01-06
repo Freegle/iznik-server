@@ -444,7 +444,7 @@ class Newsfeed extends Entity
                                 # disruptive member it looks like their posts are there but no other user can see them.
                                 $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
-                                if (!$hidden || $myid == $reply['userid'] || $me->isModerator()) {
+                                if (!$hidden || $myid == $reply['userid'] || ($me && $me->isModerator())) {
                                     if ($reply['visible'] &&
                                         $last &&
                                         $last['userid'] == $reply['userid'] &&
@@ -584,7 +584,7 @@ class Newsfeed extends Entity
 
                 # Don't use hidden entries unless they are ours.  This means that to a spammer or suppressed user
                 # it looks like their posts are there but nobody else sees them.
-                if (!$hidden || $myid == $entry['userid'] || $me->isModerator()) {
+                if (!$hidden || $myid == $entry['userid'] || ($me && $me->isModerator())) {
                     if (!$me || !$me->isModerator()) {
                         unset($entry['hidden']);
                     }
@@ -771,17 +771,18 @@ class Newsfeed extends Entity
                 $this->id
             ]);
 
-            $this->dbhm->preExec("INSERT INTO newsfeed_reports (userid, newsfeedid, reason) VALUES (?, ?, ?);", [
+            $this->dbhm->preExec("INSERT INTO newsfeed_reports (userid, newsfeedid, reason) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE reason = ?;", [
                 $me->getId(),
                 $this->id,
+                $reason,
                 $reason
             ]);
 
             # Ask someone to take a look.
             $message = \Swift_Message::newInstance()
-                ->setSubject($me->getName() . " #" . $me->getId() . "(" . $me->getEmailPreferred() . ") has reported a ChitChat thread")
+                ->setSubject($me->getName() . " #" . $me->getId() . " (" . $me->getEmailPreferred() . ") has reported a ChitChat thread")
                 ->setFrom([GEEKS_ADDR])
-                ->setTo([SUPPORT_ADDR => 'Freegle'])
+                ->setTo(explode(',', CHITCHAT_SUPPORT_ADDR))
                 ->setBody("They reported this thread\r\n\r\nhttps://" . USER_SITE . "/chitchat/{$this->id}\r\n\r\n...with this message:\r\n\r\n$reason");
 
             list ($transport, $mailer) = Mail::getMailer();
@@ -814,7 +815,7 @@ class Newsfeed extends Entity
 
         $latlng = $u->getLatLng(FALSE);
 
-        if ($u->sendOurMails() && ($latlng[0] || $latlng[1]) && $u->getSetting('notificationmails', TRUE)) {
+        if ($u->sendOurMails() && $u->getEmailPreferred() && ($latlng[0] || $latlng[1]) && $u->getSetting('notificationmails', TRUE)) {
             # We have a location for them.
             # Find the last one we saw.  Use master as we might have updated this for a previous group.
             $seens = $this->dbhm->preQuery("SELECT * FROM newsfeed_users WHERE userid = ?;", [

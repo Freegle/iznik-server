@@ -1,4 +1,6 @@
 <?php
+// Some packages we use generate warning/deprecated messages which we want to suppress, especially for Sentry.
+error_reporting(E_ALL & ~E_WARNING & ~E_DEPRECATED & ~E_NOTICE);
 
 if (!defined('REDIS_CONNECT')) {
     if (file_exists('/var/run/redis/redis.sock')) {
@@ -25,7 +27,7 @@ if (!defined('IZNIK_BASE')) {
             }
         }
 
-        foreach ([ '/include/', '/include/user/', '/include/session/', '/include/group/', '/include/message/', '/include/misc/', '/include/chat/', '/include/newsfeed/', '/include/spam/', '/include/config/', '/include/dashboard/', '/include/mail/', '/include/noticeboard/', '/test/ut/', '/include/booktastic/' ] as $dir) {
+        foreach ([ '/include/', '/include/user/', '/include/session/', '/include/group/', '/include/message/', '/include/misc/', '/include/chat/', '/include/newsfeed/', '/include/spam/', '/include/config/', '/include/dashboard/', '/include/mail/', '/include/noticeboard/', '/test/ut/' ] as $dir) {
             $fn = IZNIK_BASE . $dir . $class . '.php';
             #error_log("Check $class_name $fn");
             if (file_exists($fn)) {
@@ -68,6 +70,32 @@ if (!defined('IZNIK_BASE')) {
 
     # There are some historical domains.
     define('OURDOMAINS', USER_DOMAIN . ",direct.ilovefreegle.org,republisher.freegle.in");
+
+    if(defined('SENTRY_DSN') && !defined('SENTRY_INITIALISED')) {
+        define('SENTRY_INITIALISED', TRUE);
+        \Sentry\init([
+            'dsn' => SENTRY_DSN,
+            'attach_stacktrace' => TRUE,
+            'before_send' => function (\Sentry\Event $event): ?\Sentry\Event {
+                if ($event) {
+                    $msg = $event->getMessage();
+
+                    if ($msg) {
+                        if (strpos($msg, 'Warning: fwrite(): supplied resource is not a valid stream resource') !== FALSE) {
+                            // This happens within Pheanstalk.  It's a benign reconnection case.
+                            return FALSE;
+                        } else if (strpos($msg, 'Notice: unserialize(): Error at offset') !== FALSE) {
+                            // This happens in SwiftMailer, when spooling.  It's an issue, but there is no way of
+                            // recovering from it.
+                            return FALSE;
+                        }
+                    }
+                }
+
+                return $event;
+            },
+        ]);
+    }
 }
 
 if (!defined('RETURN_PATH')) {

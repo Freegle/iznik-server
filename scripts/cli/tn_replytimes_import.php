@@ -22,7 +22,9 @@ foreach ($users['changes'] as $user) {
                 $user['reply_time'],
                 $user['date']
             ]);
-        } catch (\Exception $e) {}
+        } catch (\Exception $e) {
+            \Sentry\captureException($e);
+        }
 
         if ($user['about_me']) {
             try {
@@ -31,7 +33,9 @@ foreach ($users['changes'] as $user) {
                     $user['date'],
                     $user['about_me']
                 ]);
-            } catch (\Exception $e) {}
+            } catch (\Exception $e) {
+                \Sentry\captureException($e);
+            }
         }
     }
 }

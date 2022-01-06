@@ -305,6 +305,20 @@ class chatRoomsAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(0, $ret['count']);
+
+        # Mark as unseen.
+        $ret = $this->call('chatrooms', 'POST', [
+            'id' => $rid,
+            'lastmsgseen' => null
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('chatrooms', 'GET', [
+            'chattypes' => [ ChatRoom::TYPE_USER2USER ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals($rid, $ret['chatrooms'][0]['id']);
+        assertEquals(1, $ret['chatrooms'][0]['unseen']);
     }
 
     public function testNudge() {
@@ -419,7 +433,74 @@ class chatRoomsAPITest extends IznikAPITestCase
         ]);
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['users'][0]['bans']));
+    }
 
+    public function testMark() {
+        $u1 = User::get($this->dbhr, $this->dbhr);
+        $uid1 = $u1->create(NULL, NULL, 'Test User');
+        $u1->addEmail('test3@test.com');
+        assertNotNull($uid1);
+        assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u2 = User::get($this->dbhr, $this->dbhr);
+        $uid2 = $u2->create(NULL, NULL, 'Test User');
+        assertNotNull($uid2);
+        assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+
+        $gid = $this->groupid;
+        $u1->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED);
+        $u2->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED);
+
+        # Put a message on the group.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_ireplace('test@test.com', 'test3@test.com', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $msgid = $r->received(Message::EMAIL, 'test3@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $msgid);
+        assertEquals($uid1, $m->getFromuser());
+        $m->approve($gid);
+
+        # u2 logs in and replies to message.
+        $u2->login('testpw');
+        $ret = $this->call('chatrooms', 'PUT', [
+            'userid' => $uid1,
+            'chattype' => ChatRoom::TYPE_USER2USER
+        ]);
+        assertEquals(0, $ret['ret']);
+        $rid = $ret['id'];
+        assertNotNull($rid);
+
+        $ret = $this->call('chatmessages', 'POST', [
+            'roomid' => $rid,
+            'message' => 'Test',
+            'refmsgid' => $msgid
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Reply should show in snippet.
+        $ret = $this->call('chatrooms', 'GET', [
+            'id' => $rid
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals('Test', $ret['chatroom']['snippet']);
+
+        # u1 logs in and marked message as taken.
+        $u1->login('testpw');
+        $ret = $this->call('message', 'POST', [
+            'id' => $msgid,
+            'action' => 'Outcome',
+            'outcome' => Message::OUTCOME_TAKEN
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Taken should show in snippet.
+        $ret = $this->call('chatrooms', 'GET', [
+            'id' => $rid
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals('Item marked as TAKEN', $ret['chatroom']['snippet']);
     }
 
 //

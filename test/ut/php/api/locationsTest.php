@@ -34,9 +34,9 @@ class locationsAPITest extends IznikAPITestCase
         # We test around Tuvalu.  If you're setting up Tuvalu Freegle you may need to change that.
         $dbhm->preExec("DELETE FROM locations_grids WHERE swlat >= 8.3 AND swlat <= 8.7;");
         $dbhm->preExec("DELETE FROM locations_grids WHERE swlat >= 179.1 AND swlat <= 179.3;");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE '??%';");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'TV1%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE '??%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'TV1%';");
         for ($swlat = 8.3; $swlat <= 8.6; $swlat += 0.1) {
             for ($swlng = 179.1; $swlng <= 179.3; $swlng += 0.1) {
                 $nelat = $swlat + 0.1;
@@ -250,8 +250,12 @@ class locationsAPITest extends IznikAPITestCase
     public function testPatch()
     {
         $l = new Location($this->dbhr, $this->dbhm);
+
+        # Make sure the relevant Postgres table exists.
+        $l->copyLocationsToPostgresql();
+
         $lid2 = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.22 8.53, 179.22 8.54, 179.21 8.54, 179.21 8.53))');
-        $lid1 = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
+        $lid1 = $l->create(NULL, 'TV13 1AA', 'Postcode', 'POINT(179.2167 8.53333)');
         $this->log("Created location $lid1");
 
         $ret = $this->call('locations', 'GET', [
@@ -342,10 +346,12 @@ class locationsAPITest extends IznikAPITestCase
         assertNotNull($ret['id']);
         $areaid = $ret['id'];
 
+        $l->copyLocationsToPostgresql();
+        $l->remapPostcodes();
+
         $l = new Location($this->dbhr, $this->dbhm, $lid1);
         assertEquals($areaid, $l->getPrivate('areaid'));
-
-        }
+    }
 
     public function findMyStreet()
     {
@@ -358,12 +364,24 @@ class locationsAPITest extends IznikAPITestCase
 
         assertEquals(0, $ret['ret']);
         assertGreaterThan(0, count($ret['streets']));
+    }
 
-        }
+    public function testCopyLocationsToPostgresql() {
+        $l = new Location($this->dbhr, $this->dbhm);
+
+        $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))');
+        assertNotNull($areaid);
+        $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
+        $fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)');
+        $locid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
+
+        assertGreaterThan(0, $l->copyLocationsToPostgresql());
+        assertGreaterThan(0, $l->remapPostcodes());
+    }
 
 //    public function testEH() {
-////        $this->dbhr->errorLog = true;
-////        $this->dbhm->errorLog = true;
+//        $this->dbhr->errorLog = true;
+//        $this->dbhm->errorLog = true;
 //        $_SESSION['id'] = 35909200;
 //        $ret = $this->call('locations', 'PATCH', [
 //            'id' => 1859090,

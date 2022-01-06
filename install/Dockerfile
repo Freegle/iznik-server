@@ -44,8 +44,16 @@ RUN apt-get install -y autoconf automake libtool re2c flex make libxml2-dev libs
 	sysstat libwww-perl nasm php-zip unzip mysql-client php-mysql php-xdebug pflogsumm mailutils nginx psmisc \
 	build-essential chrpath libssl-dev libxft-dev libfreetype6-dev libfreetype6 libfontconfig1-dev libfontconfig1  \
 	monit iotop openssh-client php-dev php-gd gsutil php-redis php-gmp xfsprogs php-soap php-mbstring php-curl \
-	php-xml php-mailparse php-mysql php-zip vim net-tools telnet git rsyslog
+	php-xml php-mailparse php-mysql php-zip vim net-tools telnet git rsyslog php-pgsql
 RUN apt-get remove -y apache2* sendmail* mlocate php-ssh2
+
+# Postgres
+RUN apt-get install postgresql postgis postgresql-12-postgis-3
+RUN sed -i  '/^local.*all.*all.*peer/ s/peer/md5/' /etc/postgresql/12/main/pg_hba.conf
+RUN /etc/init.d/postgresql start
+RUN su -c "psql -c \"CREATE USER iznik WITH PASSWORD 'iznik'\";" postgres
+RUN su -c "psql -c \"ALTER ROLE iznik superuser;\"" postgres
+RUN su -c "psql -c \"CREATE DATABASE iznik;\"" postgres
 
 # GeoIP
 #

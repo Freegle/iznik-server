@@ -8,35 +8,40 @@ use GeoIp2\Database\Reader;
 use LanguageDetection\Language;
 
 class Spam {
-    CONST TYPE_SPAMMER = 'Spammer';
-    CONST TYPE_WHITELIST = 'Whitelisted';
-    CONST TYPE_PENDING_ADD = 'PendingAdd';
-    CONST TYPE_PENDING_REMOVE = 'PendingRemove';
-    CONST SPAM = 'Spam';
-    CONST HAM = 'Ham';
+    const TYPE_SPAMMER = 'Spammer';
+    const TYPE_WHITELIST = 'Whitelisted';
+    const TYPE_PENDING_ADD = 'PendingAdd';
+    const TYPE_PENDING_REMOVE = 'PendingRemove';
+    const SPAM = 'Spam';
+    const HAM = 'Ham';
 
-    CONST USER_THRESHOLD = 5;
-    CONST GROUP_THRESHOLD = 20;
-    CONST SUBJECT_THRESHOLD = 30;  // SUBJECT_THRESHOLD must be > GROUP_THRESHOLD for UT
+    const USER_THRESHOLD = 5;
+    const GROUP_THRESHOLD = 20;
+    const SUBJECT_THRESHOLD = 30;  // SUBJECT_THRESHOLD must be > GROUP_THRESHOLD for UT
 
     # For checking users as suspect.
-    CONST SEEN_THRESHOLD = 16; // Number of groups to join or apply to before considered suspect
-    CONST ESCALATE_THRESHOLD = 2; // Level of suspicion before a user is escalated to support/admin for review
-    CONST DISTANCE_THRESHOLD = 100; // Replies to items further apart than this is suspicious.  In miles.
+    const SEEN_THRESHOLD = 16; // Number of groups to join or apply to before considered suspect
+    const ESCALATE_THRESHOLD = 2; // Level of suspicion before a user is escalated to support/admin for review
+    const DISTANCE_THRESHOLD = 100; // Replies to items further apart than this is suspicious.  In miles.
 
-    CONST REASON_NOT_SPAM = 'NotSpam';
-    CONST REASON_COUNTRY_BLOCKED = 'CountryBlocked';
-    CONST REASON_IP_USED_FOR_DIFFERENT_USERS = 'IPUsedForDifferentUsers';
-    CONST REASON_IP_USED_FOR_DIFFERENT_GROUPS = 'IPUsedForDifferentGroups';
-    CONST REASON_SUBJECT_USED_FOR_DIFFERENT_GROUPS = 'SubjectUsedForDifferentGroups';
-    CONST REASON_SPAMASSASSIN = 'SpamAssassin';
-    CONST REASON_GREETING = 'Greetings spam';
-    CONST REASON_REFERRED_TO_SPAMMER = 'Referenced known spammer';
-    CONST REASON_KNOWN_KEYWORD = 'Known spam keyword';
-    CONST REASON_DBL = 'URL on DBL';
-    CONST REASON_BULK_VOLUNTEER_MAIL = 'BulkVolunteerMail';
-    CONST REASON_USED_OUR_DOMAIN = 'UsedOurDonain';
-    CONST REASON_WORRY_WORD = 'WorryWord';
+    const REASON_NOT_SPAM = 'NotSpam';
+    const REASON_COUNTRY_BLOCKED = 'CountryBlocked';
+    const REASON_IP_USED_FOR_DIFFERENT_USERS = 'IPUsedForDifferentUsers';
+    const REASON_IP_USED_FOR_DIFFERENT_GROUPS = 'IPUsedForDifferentGroups';
+    const REASON_SUBJECT_USED_FOR_DIFFERENT_GROUPS = 'SubjectUsedForDifferentGroups';
+    const REASON_SPAMASSASSIN = 'SpamAssassin';
+    const REASON_GREETING = 'Greetings spam';
+    const REASON_REFERRED_TO_SPAMMER = 'Referenced known spammer';
+    const REASON_KNOWN_KEYWORD = 'Known spam keyword';
+    const REASON_DBL = 'URL on DBL';
+    const REASON_BULK_VOLUNTEER_MAIL = 'BulkVolunteerMail';
+    const REASON_USED_OUR_DOMAIN = 'UsedOurDomain';
+    const REASON_WORRY_WORD = 'WorryWord';
+    const REASON_SCRIPT = 'Script';
+    const REASON_LINK = 'Link';
+    const REASON_MONEY = 'Money';
+    const REASON_EMAIL = 'Email';
+    const REASON_LANGUAGE = 'Language';
 
     const ACTION_SPAM = 'Spam';
     const ACTION_REVIEW = 'Review';
@@ -264,7 +269,7 @@ class Spam {
 
         if (!$check && stripos($message, '<script') !== FALSE) {
             # Looks dodgy.
-            $check = TRUE;
+            $check = self::REASON_SCRIPT;
         }
 
         if (!$check) {
@@ -308,7 +313,7 @@ class Spam {
 
                 if ($valid < $count) {
                     # At least one URL which we don't trust.
-                    $check = TRUE;
+                    $check = self::REASON_LINK;
                 }
             }
         }
@@ -323,13 +328,13 @@ class Spam {
                     preg_match('/\b' . $w . '\b/i', $message) &&
                     (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
                     #error_log("Spam keyword {$word['word']}");
-                    $check = TRUE;
+                    $check = self::REASON_KNOWN_KEYWORD;
                 }
             }
         }
 
         if (!$check && (strpos($message, '$') !== FALSE || strpos($message, '£') !== FALSE || strpos($message, '(a)') !== FALSE)) {
-            $check = TRUE;
+            $check = self::REASON_MONEY;
         }
 
         # Email addresses are suspect too; a scammer technique is to take the conversation offlist.
@@ -337,14 +342,14 @@ class Spam {
             foreach ($matches as $val) {
                 foreach ($val as $email) {
                     if (!Mail::ourDomain($email) && strpos($email, 'trashnothing') === FALSE && strpos($email, 'yahoogroups') === FALSE) {
-                        $check = TRUE;
+                        $check = self::REASON_EMAIL;
                     }
                 }
             }
         }
 
         if (!$check && $this->checkReferToSpammer($message)) {
-            $check = TRUE;
+            $check = self::REASON_REFERRED_TO_SPAMMER;
         }
 
         if (!$check && $language) {
@@ -372,7 +377,7 @@ class Spam {
                 $check = !($firstlang == 'en' || $firstlang == 'cy' || $ourprob >= 0.8 * $firstprob);
 
                 if ($check) {
-                    error_log("$message not in English " . var_export($lang, TRUE));
+                    $check = self::REASON_LANGUAGE;
                 }
             }
         }
@@ -477,6 +482,13 @@ class Spam {
         # needs rechecking.
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
+        $u = User::get($this->dbhr, $this->dbhm, $userid);
+
+        if ($u->getId() == $userid && $u->isModerator()) {
+            # We whitelist all mods.
+            return FALSE;
+        }
+
         $suspect = FALSE;
         $reason = NULL;
         $suspectgroups = [];
@@ -573,7 +585,6 @@ class Spam {
                 'text' => $reason
             ]);
 
-            $u = User::get($this->dbhr, $this->dbhm, $userid);
             $memberships = $u->getMemberships();
 
             foreach ($memberships as $membership) {

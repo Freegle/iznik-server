@@ -57,7 +57,7 @@ class changesAPITest extends IznikAPITestCase
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
-        # Post a messag to show up.
+        # Post a message to show up.
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'action' => 'Outcome',

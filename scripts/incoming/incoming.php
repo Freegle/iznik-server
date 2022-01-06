@@ -32,20 +32,18 @@ error_log("\n----------------------\n$envfrom => $envto");
 
 $rc = MailRouter::DROPPED;
 
-$groupname = NULL;
-
 # Chat reply or email submission.  We don't want to log chat replies - there are a lot and they clutter up
 # the logs.
 $chat = preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $envto);
-
-# We don't want to prune mails to mods, because we will relay on the full message.
-$tomods = preg_match('/' . GROUP_DOMAIN. '/', $envto);
 
 $id = $r->received(Message::EMAIL, $envfrom, $envto, $msg, NULL, !$chat);
 
 if ($id) {
     $rc = $r->route();
+    fwrite($logh, "Route of $envfrom => $envto returned $rc\n");
+    exit(0);
+} else {
+    fwrite($logh, "Failed to parse message for $envfrom => $envto\n");
+    exit(1);
 }
 
-fwrite($logh, "Route returned $rc\n");
-exit(0);

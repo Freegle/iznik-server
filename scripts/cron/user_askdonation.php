@@ -22,8 +22,7 @@ error_log("Look between $start and $end");
 $d = new Donations($dbhr, $dbhm);
 
 # Find the users who have received things.
-$users = $dbhr->preQuery("SELECT DISTINCT userid, COUNT(*) AS count FROM messages_outcomes INNER JOIN users ON users.id = userid AND outcome = ? WHERE messages_outcomes.timestamp >= ? AND messages_outcomes.timestamp < ? GROUP BY userid ORDER BY count DESC;", [
-    Message::OUTCOME_TAKEN,
+$users = $dbhr->preQuery("SELECT DISTINCT userid, COUNT(*) AS count FROM messages_by INNER JOIN users ON users.id = userid WHERE timestamp >= ? AND timestamp < ? GROUP BY userid ORDER BY count DESC;;", [
     $start,
     $end
 ]);
@@ -82,7 +81,10 @@ foreach ($users as $user) {
                 $m->attach($htmlPart);
 
                 $mailer->send($m);
-            } catch (\Exception $e) { error_log("Failed " . $e->getMessage()); };
+            } catch (\Exception $e) {
+                \Sentry\captureException($e);
+                error_log("Failed " . $e->getMessage());
+            };
         }
 
         $d->recordAsk($user['userid']);

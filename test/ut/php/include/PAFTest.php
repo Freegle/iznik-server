@@ -22,9 +22,9 @@ class PAFTest extends IznikTestCase {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
-        $this->dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
-        $this->dbhm->preExec("DELETE FROM locations WHERE name LIKE 'TV1%';");
-        $this->dbhm->preExec("DELETE FROM locations WHERE name LIKE 'ZZZZ ZZZ';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'TV1%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'ZZZZ ZZZ';");
     }
 
     public function testLoad() {
@@ -84,13 +84,14 @@ class PAFTest extends IznikTestCase {
         $t = str_replace('zzz', $udprn, $t);
         file_put_contents('/tmp/ut.csv', $t);
         $this->log("Update with changes");
-        self::assertEquals(5, $p->update('/tmp/ut.csv'));
+        self::assertEquals(7, $p->update('/tmp/ut.csv'));
 
         $pcids = $this->dbhr->preQuery("SELECT paf_addresses.postcodeid, name FROM paf_addresses INNER JOIN locations ON locations.id = paf_addresses.postcodeid WHERE paf_addresses.postcodeid IS NOT NULL LIMIT 1;");
         $name = $pcids[0]['name'];
         $ids = $p->listForPostcode($name);
         assertGreaterThan(0, count($ids));
         $line = $p->getSingleLine($ids[0]);
+        error_log($line);
         $this->log($line);
         assertGreaterThanOrEqual(0, strpos($line, $name));
     }

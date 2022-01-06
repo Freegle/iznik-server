@@ -28,6 +28,42 @@ class chatRoomsTest extends IznikTestCase {
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
     }
 
+    public function testPromoteRead() {
+        # Create an unread chat message between a user and a mod on a group.
+        $u = new User($this->dbhr, $this->dbhm);
+        $mod = $u->create(NULL, NULL, "Test User 1");
+        $u->addMembership($this->groupid, User::ROLE_MODERATOR);
+
+        $member = $u->create(NULL, NULL, "Test User 2");
+        $u->addMembership($this->groupid, User::ROLE_MEMBER);
+
+        $r = new ChatRoom($this->dbhm, $this->dbhm);
+        $id = $r->createUser2Mod($member, $this->groupid);
+
+        assertEquals('testgroup Volunteers', $r->getName($id, $member));
+        assertEquals('Test User 2 on testgroup', $r->getName($id, $member + 1));
+
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cm, $banned) = $m->create($id, $member, "Testing", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
+        assertNotNull($cm);
+        assertFalse($banned);
+
+        assertEquals(1, $r->countAllUnseenForUser($mod, [
+            ChatRoom::TYPE_USER2MOD
+        ]));
+
+        # Create a new user and promote to mod.
+        $newmod = $u->create(NULL, NULL, "Test User 3");
+        $u->addMembership($this->groupid, User::ROLE_MEMBER);
+        $u->setRole(User::ROLE_MODERATOR, $this->groupid);
+
+        # The chat message should have been marked as read for this user to avoid flooding them with unread old chat
+        # messages.
+        assertEquals(0, $r->countAllUnseenForUser($newmod, [
+            ChatRoom::TYPE_USER2MOD
+        ]));
+    }
+
     public function testGroup() {
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         $id = $r->createGroupChat('test', $this->groupid);
@@ -362,7 +398,7 @@ class chatRoomsTest extends IznikTestCase {
         $this->msgsSent = [];
 
         # Notify - will email just one as we don't notify our own by default.
-        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
 
         $text = $this->msgsSent[0]['body'];
         assertTrue(strpos($text, 'Test u1 -> u2 1') !== FALSE);
@@ -401,54 +437,31 @@ class chatRoomsTest extends IznikTestCase {
         $this->log("Chat room $id for $u1 <-> $u2");
         assertNotNull($id);
 
-
         # Send a message from 1 -> 2
         # Notify - should be 1 (notification to u2, no copy required)
         $m1 = new ChatMessage($this->dbhr, $this->dbhm);
         list ($cm, $banned) = $m1->create($id, $u1, "Testing", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->log("$cm: Will email just $u2");
-        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
 
         # Reply from 2 -> 1
-        # Notify - should be 1 (copy to u2 too soon, notification to u1 OK)
+        # Notify - should be 2 (copy to u2, notification to u1)
         $m2 = new ChatMessage($this->dbhr, $this->dbhm);
         list ($cm, $banned) = $m2->create($id, $u2, "Testing 1", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->log("$cm: Will email just $u1");
-        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
-
-        $m1->setPrivate('reviewrequired', 1);
-        $m2->setPrivate('reviewrequired', 1);
-        sleep(31); // Set review to reduce chance of background script kicking in on live system
-        $m1->setPrivate('reviewrequired', 0);
-        $m2->setPrivate('reviewrequired', 0);
-
-        # Notify again - will send copy to u2.  There was a bug here where the previous notify was marking all as
-        # sent and therefore this didn't happen.
-        $this->log("$cm: Will email just $u2");
-        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
+        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
 
         # Reply back from 1 -> 2
         # Notify - none (too soon)
         list ($cm, $banned) = $m1->create($id, $u1, "Testing 2", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->log("$cm: Will email none");
-        assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
+        assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 30));
 
         # Reply back from 2 -> 1
-        # Notify - just 1 (notification to u1 OK, too soon for copy to u2)
+        # Notify - 2 (notification to u1, copy to u2)
         list ($cm, $banned) = $m2->create($id, $u2, "Testing 2", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->log("$cm: Will email just $u1");
-        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
-
-        # Wait
-        $m1->setPrivate('reviewrequired', 1);
-        $m2->setPrivate('reviewrequired', 1);
-        sleep(31); // Set review to reduce chance of background script kicking in on live system
-        $m1->setPrivate('reviewrequired', 0);
-        $m2->setPrivate('reviewrequired', 0);
-
-        # Notify - should be 1 (delayed copy)
-        $this->log("$cm: Will email just $u2");
-        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
+        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
     }
 
     public function testNotifyUser2UserOwn2() {
@@ -484,13 +497,12 @@ class chatRoomsTest extends IznikTestCase {
         $this->log("Chat room $id for $u1 <-> $u2");
         assertNotNull($id);
 
-
         # Send a message from 2 -> 1
         # Notify - should be 2 (notification to u1, copy required)
         $m1 = new ChatMessage($this->dbhr, $this->dbhm);
         list ($cm, $banned) = $m1->create($id, $u2, "Testing", ChatMessage::TYPE_ADDRESS, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->log("$cm: Will email both $u1 and $u2");
-        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
+        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 0));
 
         # Reply from 1 -> 2
         # Notify - should be 0 (copy to u2 too soon, notification to u1 too soon)
@@ -506,17 +518,9 @@ class chatRoomsTest extends IznikTestCase {
         $this->log("$cm: Will email none");
         assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
 
-        $m1->setPrivate('reviewrequired', 1);
-        $m2->setPrivate('reviewrequired', 1);
-        $m3->setPrivate('reviewrequired', 1);
-        sleep(31); // Set review to reduce chance of background script kicking in on live system
-        $m1->setPrivate('reviewrequired', 0);
-        $m2->setPrivate('reviewrequired', 0);
-        $m3->setPrivate('reviewrequired', 0);
-
         # Notify again - should be the delayed 2 now.
         $this->log("$cm: Will email both $u1 and $u2");
-        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 30));
+        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0, 0));
     }
 
     public function testNotifyAddress() {
@@ -563,63 +567,9 @@ class chatRoomsTest extends IznikTestCase {
 
         # Notify - will email just one.
         $this->log("Will email justone");
-        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, 0));
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
         assertContains('Test desc', $this->msgsSent[0]['body']);
         assertContains('sent you an address', $this->msgsSent[0]['body']);
-
-        }
-
-    public function testNotifyAvailability() {
-        $this->log(__METHOD__ );
-
-        # Set up a chatroom
-        $u = User::get($this->dbhr, $this->dbhm);
-        $u1 = $u->create(NULL, NULL, "Test User 1");
-        $u->addMembership($this->groupid);
-        $u->addEmail('test1@test.com');
-        $u->addEmail('test1@' . USER_DOMAIN);
-        $u2 = $u->create(NULL, NULL, "Test User 2");
-        $u->addMembership($this->groupid);
-        $u->addEmail('test2@test.com');
-        $u->addEmail('test2@' . USER_DOMAIN);
-
-        $this->log("Schedule for $u1");
-        $s = new Schedule($this->dbhr, $this->dbhm, NULL, TRUE);
-        $s->create($u1, [
-            [
-                "hour" => 0,
-                "date" => "2018-05-24T00:00:00+01:00",
-                "available" => 1
-            ]
-        ]);
-
-        $r = new ChatRoom($this->dbhr, $this->dbhm);
-        list ($id, $blocked) = $r->createConversation($u1, $u2);
-        $this->log("Chat room $id for $u1 <-> $u2");
-        assertNotNull($id);
-
-        $m = new ChatMessage($this->dbhr, $this->dbhm);
-        list ($cm, $banned) = $m->create($id, $u1, NULL, ChatMessage::TYPE_SCHEDULE_UPDATED, NULL, TRUE, NULL, NULL, NULL, NULL);
-        $this->log("Created chat message $cm");
-        $m = new ChatMessage($this->dbhr, $this->dbhm, $cm);
-
-        $r = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
-            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
-            ->setMethods(array('mailer'))
-            ->getMock();
-
-        $r->method('mailer')->will($this->returnCallback(function($message) {
-            return($this->mailer($message));
-        }));
-
-        $this->msgsSent = [];
-
-        # Notify - will email just one.
-        $this->log("Will email justone");
-        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0, TRUE));
-
-        $this->log("Mailed " . var_export($this->msgsSent, TRUE));
-        self::assertEquals("Test User 1 has updated when they may be available: Wednesday morning\r\n\r\n\r\n-------\r\nThis is a text-only version of the message; you can also view this message in HTML if you have it turned on, and on the website.  We're adding this because short text messages don't always get delivered successfully.\r\n", $this->msgsSent[0]['body']);
 
         }
 
@@ -725,9 +675,9 @@ class chatRoomsTest extends IznikTestCase {
             return($this->mailer($message));
         }));
 
-        # Notify mods; we don't notify user of our own by default, but we do mail the mod who has already seen it.
+        # Notify mods; we don't notify our own messages by default. Nor do we mail the mod who has already seen it.
         $this->msgsSent = [];
-        assertEquals(2, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, NULL, 0));
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2MOD, NULL, 0));
         assertEquals("Member conversation on testgroup with Test User 1 (test1@test.com)", $this->msgsSent[0]['subject']);
         assertNull($this->msgsSent[0]['groupid']);
 

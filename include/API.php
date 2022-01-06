@@ -157,6 +157,7 @@ class API
                             }
                         }
                     } catch (\Exception $e) {
+                        // Don't log to Sentry - this can happen validly for some IPs (e.g. on CircleCI).
                     }
                 }
 
@@ -229,7 +230,7 @@ class API
                 try {
                     # Each call is inside a file with a suitable name.
                     #
-                    # call_user_func doesn't scale well on multicores with HHVM, so we need can't figure out the function from
+                    # call_user_func doesn't scale well on multicores with some versions of PHP, so we need can't figure out the function from
                     # the call name - use a switch instead.
                     switch ($call) {
                         case 'abtest':
@@ -282,11 +283,6 @@ class API
                         case 'isochrone':
                             $ret = isochrone();
                             break;
-                        // @codeCoverageIgnoreStart
-                        case 'catalogue':
-                            $ret = catalogue();
-                            break;
-                        // @codeCoverageIgnoreEnd
                         case 'jobs':
                             $ret = jobs();
                             break;
@@ -367,9 +363,6 @@ class API
                             break;
                         case 'request':
                             $ret = request();
-                            break;
-                        case 'schedule':
-                            $ret = schedule();
                             break;
                         case 'shortlink':
                             $ret = shortlink();
@@ -502,6 +495,11 @@ class API
                                 error_log("Sleep for WSREP");
                                 sleep(1);
                             } else {
+                                if ($call != 'DBexceptionFail') {
+                                    # Don't log deliberate exceptions in UT.
+                                    \Sentry\captureException($e);
+                                }
+
                                 $ret = [
                                     'ret' => 997,
                                     'status' => 'DB operation failed after retry',
@@ -513,6 +511,11 @@ class API
                         }
                     } else {
                         # Something else.
+                        if ($call != 'exception') {
+                            # Don't log deliberate exceptions in UT.
+                            \Sentry\captureException($e);
+                        }
+
                         error_log(
                             "Uncaught exception at " . $e->getFile() . " line " . $e->getLine() . " " . $e->getMessage()
                         );

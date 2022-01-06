@@ -33,7 +33,6 @@ class Attachment
     const TYPE_NEWSFEED = 'Newsfeed';
     const TYPE_VOLUNTEERING = 'Volunteering';
     const TYPE_STORY = 'Story';
-    const TYPE_BOOKTASTIC = 'Booktastic';
 
     /**
      * @return mixed
@@ -58,7 +57,6 @@ class Attachment
             case Attachment::TYPE_USER: $name = 'uimg'; break;
             case Attachment::TYPE_NEWSFEED: $name = 'fimg'; break;
             case Attachment::TYPE_STORY: $name = 'simg'; break;
-            case Attachment::TYPE_BOOKTASTIC: $name = 'zimg'; break;
         }
 
         $name = $thumb ? "t$name" : $name;
@@ -99,7 +97,6 @@ class Attachment
             case Attachment::TYPE_USER: $this->table = 'users_images'; $this->idatt = 'userid'; $url = ', url'; break;
             case Attachment::TYPE_NEWSFEED: $this->table = 'newsfeed_images'; $this->idatt = 'newsfeedid'; break;
             case Attachment::TYPE_STORY: $this->table = 'users_stories_images'; $this->idatt = 'storyid'; break;
-            case Attachment::TYPE_BOOKTASTIC: $this->table = 'booktastic_images'; $this->idatt = 'ocrid'; break;
         }
 
         if ($id) {
@@ -215,7 +212,6 @@ class Attachment
                     case Attachment::TYPE_CHAT_MESSAGE: $tname = 'tmimg'; $name = 'mimg'; break;
                     case Attachment::TYPE_NEWSFEED: $tname = 'tfimg'; $name = 'fimg'; break;
                     case Attachment::TYPE_COMMUNITY_EVENT: $tname = 'tcimg'; $name = 'cimg'; break;
-                    case Attachment::TYPE_BOOKTASTIC: $tname = 'tzimg'; $name = 'zimg'; break;
                 }
 
                 if ($name) {
@@ -270,7 +266,6 @@ class Attachment
                 case Attachment::TYPE_CHAT_MESSAGE: $tname = 'tmimg'; $name = 'mimg'; break;
                 case Attachment::TYPE_NEWSFEED: $tname = 'tfimg'; $name = 'fimg'; break;
                 case Attachment::TYPE_COMMUNITY_EVENT: $tname = 'tcimg'; $name = 'cimg'; break;
-                case Attachment::TYPE_BOOKTASTIC: $tname = 'tzimg'; $name = 'zimg'; break;
             }
 
             return 'https://' . IMAGE_ARCHIVED_DOMAIN . "/{$name}_{$this->id}.jpg";
@@ -421,82 +416,39 @@ class Attachment
             }';
         }
 
+        $url = 'https://vision.googleapis.com/v1/images:annotate?key=' . GOOGLE_VISION_KEY;
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-type: application/json"));
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $r_json);
+
         if ($video) {
-//            error_log("Key " . GOOGLE_VIDEO_KEY);
-//            $url = 'https://videointelligence.googleapis.com/v1/videos:annotate';
-//
-//            $videoIntelligenceServiceClient = new VideoIntelligenceServiceClient([
-//                'credentials' => json_decode(file_get_contents('/etc/booktastic.json'), true)
-//            ]);
-//
-//            $inputUri = "gs://freegle_backup_uk/video2.mp4";
-//
-//            $features = [
-//                Feature::TEXT_DETECTION,
-//            ];
-//            $operationResponse = $videoIntelligenceServiceClient->annotateVideo([
-//                'inputUri' => $inputUri,
-//                'features' => $features
-//            ]);
-//
-//            $operationResponse->pollUntilComplete();
-//
-//            if ($operationResponse->operationSucceeded()) {
-//                $results = $operationResponse->getResult()->getAnnotationResults()[0];
-//
-//                # Process video/segment level label annotations
-//                foreach ($results->getTextAnnotations() as $text) {
-//                    printf('Video text description: %s' . PHP_EOL, $text->getText());
-//                    foreach ($text->getSegments() as $segment) {
-//                        $start = $segment->getSegment()->getStartTimeOffset();
-//                        $end = $segment->getSegment()->getEndTimeOffset();
-//                        printf('  Segment: %ss to %ss' . PHP_EOL,
-//                            $start->getSeconds() + $start->getNanos()/1000000000.0,
-//                            $end->getSeconds() + $end->getNanos()/1000000000.0);
-//                        printf('  Confidence: %f' . PHP_EOL, $segment->getConfidence());
-//                    }
-//                }
-//                print(PHP_EOL);
-//            } else {
-//                $error = $operationResponse->getError();
-//                echo "error: " . $error->getMessage() . PHP_EOL;
-//
-//            }
-        } else {
-            $url = 'https://vision.googleapis.com/v1/images:annotate?key=' . GOOGLE_VISION_KEY;
-            $curl = curl_init();
-            curl_setopt($curl, CURLOPT_URL, $url);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-type: application/json"));
-            curl_setopt($curl, CURLOPT_POST, true);
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $r_json);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, array("Authorization: Bearer " . GOOGLE_VIDEO_KEY));
+        }
 
-            if ($video) {
-                curl_setopt($curl, CURLOPT_HTTPHEADER, array("Authorization: Bearer " . GOOGLE_VIDEO_KEY));
-            }
+        $json_response = curl_exec($curl);
+        $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-            $json_response = curl_exec($curl);
-            $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $text = '';
+        $rsps = NULL;
 
-            $text = '';
-            $rsps = NULL;
+        if ($status) {
+            error_log("Rsp $json_response");
+            $rsp = json_decode($json_response, TRUE);
 
-            if ($status) {
-                error_log("Rsp $json_response");
-                $rsp = json_decode($json_response, TRUE);
+            if (array_key_exists('responses', $rsp) && count($rsp['responses']) > 0 && array_key_exists('textAnnotations', $rsp['responses'][0])) {
+                $rsps = $rsp['responses'][0]['textAnnotations'];
 
-                if (array_key_exists('responses', $rsp) && count($rsp['responses']) > 0 && array_key_exists('textAnnotations', $rsp['responses'][0])) {
-                    $rsps = $rsp['responses'][0]['textAnnotations'];
-
-                    foreach ($rsps as $rsp) {
-                        $text .= $rsp['description'] . "\n";
-                        break;
-                    }
+                foreach ($rsps as $rsp) {
+                    $text .= $rsp['description'] . "\n";
+                    break;
                 }
             }
-
-            curl_close($curl);
         }
+
+        curl_close($curl);
 
         return($returnfull ? $rsps : $text);
     }

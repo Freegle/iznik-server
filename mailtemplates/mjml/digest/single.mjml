@@ -6,11 +6,9 @@
     </mj-attributes>
     <mj-preview>{{ textbody }}</mj-preview>
   </mj-head>
-  <mj-body>
-    <mj-wrapper padding="0px" full-width="full-width">
-      <mj-raw>
-        <!-- header section -->
-      </mj-raw>
+
+  <mj-body background-color="white">
+
       <mj-section background-url="https://www.ilovefreegle.org/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0px">
         <mj-group>
           <mj-column>
@@ -20,53 +18,49 @@
             <mj-text align="center"><a font-weight="bold" href="{{ visit }}">Browse</a></mj-text>
           </mj-column>
           <mj-column>
-            <mj-text align="center"><a font-weight="bold" href="{{ unsubscribe }}">Leave</a></mj-text>
+            <mj-text align="center"><a font-weight="bold" href="{{ unsubscribe }}">Unsubscribe</a></mj-text>
           </mj-column>
         </mj-group>
       </mj-section>
-      <mj-section background-color="#FFF8DC">
-        <mj-column>
-          <mj-text padding-top="0" padding-bottom="0" color="#61AE24" font-size="18px" line-height="1.25">{{ subject }}</mj-text>
+
+ 			<mj-section padding="0px" background-color="#F5F5F5">
+        <mj-column padding="0px">
+          <mj-text padding-left="10px" padding-right="0px" color="#000080" font-size="24px" font-weight="bold">{{ subject }}</mj-text>
+      		<mj-raw>{% if firstposted is defined and firstposted > 0 %}</mj-raw>
+          	<mj-text  padding-left="0px" padding-right="0px" padding-top="10px" padding-bottom="0px" color="grey" font-size="10px" line-height="1.25">First posted&nbsp;{{ firstposted }}</mj-text>
+          <mj-raw>{% endif %}</mj-raw>
         </mj-column>
       </mj-section>
-      <mj-raw>{% if firstposted is defined and firstposted > 0 %}</mj-raw>
-      <mj-section background-color="#FFF8DC">
-        <mj-column>
-          <mj-text padding-top="0px" padding-bottom="0px" color="grey" font-size="10px" line-height="1.25">First posted&nbsp;{{ firstposted }}</mj-text>
-        </mj-column>
-      </mj-section>
-      <mj-raw>{% endif %}</mj-raw>
+
       <mj-raw>{% if image is defined and image is not null %}</mj-raw>
-      <mj-section padding-top="0" padding-bottom="0" background-color="#FFF8DC">
-        <mj-column width="66%">
-          <mj-text font-size="18px">{{ textbody|nl2br }}</mj-text>
-        </mj-column>
-        <mj-column width="34%">
-          <mj-image fluid-on-mobile="true" alt="Item picture" href="{{ replyweb }}" align="right" border-radius="5px" src="{{ image }}"></mj-image>
-        </mj-column>
-      </mj-section>
-      <mj-raw>{% else %}</mj-raw>
-      <mj-section background-color="#FFF8DC">
-        <mj-column>
-          <mj-text font-size="18px">{{ textbody|nl2br }}</mj-text>
-        </mj-column>
-      </mj-section>
+    		<mj-section padding="0px">
+          <mj-column padding="0px">
+            <mj-image padding="0px" href="{{ replyweb }}" src="{{ image }}"></mj-image>
+          </mj-column>
+    		</mj-section>
       <mj-raw>{% endif %}</mj-raw>
-      <mj-section background-color="#FFF8DC">
-        <mj-column>
-          <mj-text color="darkgrey">Posted by&nbsp;{{ fromname }}&nbsp;on&nbsp;{{ date }}.</mj-text>
+
+      <mj-section padding="0px" background-color="#F5F5F5">
+        <mj-column padding="0px">
+          <mj-text font-size="18px" padding-left="10px" padding-right="10px">{{ textbody|nl2br }}</mj-text>
         </mj-column>
       </mj-section>
-      <mj-section background-color="#FFF8DC">
+
+      <mj-section padding="0px">
+        <mj-column padding="0px">
+          <mj-text color="darkgrey" padding-left="0px" padding-right="0px">Posted by&nbsp;{{ fromname }}&nbsp;on&nbsp;{{ date }}.</mj-text>
+        </mj-column>
+      </mj-section>
+
+      <mj-section padding="0px">
         <mj-group>
           <mj-column>
-            <mj-text align="center"><a font-weight="bold" href="{{ replyweb }}">Reply on Web</a></mj-text>
-          </mj-column>
-          <mj-column>
-            <mj-text align="center"><a font-weight="bold" href="{{ replyemail }}">Reply via Email</a></mj-text>
+            <mj-button align="center" font-size="25px" href="{{ replyweb }}" background-color="darkgreen">Click to Reply</mj-button>
+            <mj-text align="center"><a padding-bottom="10px" font-weight="bold" href="{{ replyemail }}">Or reply via email</a></mj-text>
           </mj-column>
         </mj-group>
       </mj-section>
+
       <mj-section background-color="#F7F6EC" padding="0px">
         <mj-column>
           <mj-text background-color="#FFF8DC" color="#61AE24" font-size="20px" line-height="1.25" padding-bottom="0px">Jobs near you<br /></mj-text>
@@ -107,6 +101,6 @@
               <hr style="border: 0; border-top: 1px solid #AAA; " /> Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.</mj-text>
         </mj-column>
       </mj-section>
-    </mj-wrapper>
+
   </mj-body>
 </mjml>

@@ -42,6 +42,7 @@ do {
                 }
             } catch (\Exception $e) {
                 error_log("Ratings sync failed " . $e->getMessage() . " " . var_export($rating, TRUE));
+                \Sentry\captureException($e);
             }
         }
     }
@@ -78,10 +79,12 @@ do {
                             ]
                         );
                     } catch (\Exception $e) {
+                        \Sentry\captureException($e);
                     }
                 }
             } catch (\Exception $e) {
                 error_log("Ratings sync failed " . $e->getMessage() . " " . var_export($rating, true));
+                \Sentry\captureException($e);
             }
         }
     }

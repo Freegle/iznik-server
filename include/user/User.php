@@ -1052,7 +1052,7 @@ class User extends Entity
         $modq = $modonly ? " AND role IN ('Owner', 'Moderator') " : "";
         $typeq = $grouptype ? (" AND `type` = " . $this->dbhr->quote($grouptype)) : '';
         $publishq = Session::modtools() ? "" : "AND groups.publish = 1";
-        $sql = "SELECT groupid FROM memberships INNER JOIN `groups` ON groups.id = memberships.groupid $publishq WHERE userid = ? $modq $typeq;";
+        $sql = "SELECT groupid FROM memberships INNER JOIN `groups` ON groups.id = memberships.groupid $publishq WHERE userid = ? $modq $typeq ORDER BY memberships.added DESC;";
         $groups = $this->dbhr->preQuery($sql, [$id]);
         #error_log("getMemberships $sql {$id} " . var_export($groups, TRUE));
         $groupids = array_filter(array_column($groups, 'groupid'));
@@ -1213,11 +1213,11 @@ class User extends Entity
     public function isModOrOwner($groupid)
     {
         # Very frequently used.  Cache in session.
-        if (session_status() !== PHP_SESSION_NONE &&
+        #error_log("modOrOwner " . var_export($_SESSION['modorowner'], TRUE));
+        if ((session_status() !== PHP_SESSION_NONE || getenv('UT')) &&
             array_key_exists('modorowner', $_SESSION) &&
             array_key_exists($this->id, $_SESSION['modorowner']) &&
             array_key_exists($groupid, $_SESSION['modorowner'][$this->id])) {
-            #error_log("{$this->id} group $groupid cached");
             return ($_SESSION['modorowner'][$this->id][$groupid]);
         } else {
             $sql = "SELECT groupid FROM memberships WHERE userid = ? AND role IN ('Moderator', 'Owner') AND groupid = ?;";
@@ -1473,32 +1473,45 @@ class User extends Entity
 
     public function setRole($role, $groupid)
     {
+        $rc = TRUE;
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         Session::clearSessionCache();
 
-        $l = new Log($this->dbhr, $this->dbhm);
-        $l->log([
-            'type' => Log::TYPE_USER,
-            'byuser' => $me ? $me->getId() : NULL,
-            'subtype' => Log::SUBTYPE_ROLE_CHANGE,
-            'groupid' => $groupid,
-            'user' => $this->id,
-            'text' => $role
-        ]);
+        $currentRole = $this->getRoleForGroup($groupid, FALSE);
 
-        $this->clearMembershipCache();
-        $sql = "UPDATE memberships SET role = ? WHERE userid = ? AND groupid = ?;";
-        $rc = $this->dbhm->preExec($sql, [
-            $role,
-            $this->id,
-            $groupid
-        ]);
+        if ($currentRole != $role) {
+            $l = new Log($this->dbhr, $this->dbhm);
+            $l->log([
+                        'type' => Log::TYPE_USER,
+                        'byuser' => $me ? $me->getId() : NULL,
+                        'subtype' => Log::SUBTYPE_ROLE_CHANGE,
+                        'groupid' => $groupid,
+                        'user' => $this->id,
+                        'text' => $role
+                    ]);
 
-        # We might need to update the systemrole.
-        #
-        # Not the end of the world if this fails.
-        $this->updateSystemRole($role);
+            $this->clearMembershipCache();
+            $sql = "UPDATE memberships SET role = ? WHERE userid = ? AND groupid = ?;";
+            $rc = $this->dbhm->preExec($sql, [
+                $role,
+                $this->id,
+                $groupid
+            ]);
+
+            # We might need to update the systemrole.
+            #
+            # Not the end of the world if this fails.
+            $this->updateSystemRole($role);
+
+            if ($currentRole == User::ROLE_MEMBER) {
+                # We have promoted this member.  We want to ensure that they have no unread old chats.
+                $r = new ChatRoom($this->dbhr, $this->dbhm);
+                $r->upToDateAll($this->getId(),[
+                    ChatRoom::TYPE_USER2MOD
+                ]);
+            }
+        }
 
         return ($rc);
     }
@@ -1756,17 +1769,11 @@ class User extends Entity
         return ($miles);
     }
 
-    public function gravatar($email, $s = 80, $d = 'mm', $r = 'g', $img = false, $atts = array())
+    public function gravatar($email, $s = 80, $d = 'mm', $r = 'g')
     {
         $url = 'https://www.gravatar.com/avatar/';
         $url .= md5(strtolower(trim($email)));
         $url .= "?s=$s&d=$d&r=$r";
-        if ($img) {
-            $url = '<img src="' . $url . '"';
-            foreach ($atts as $key => $val)
-                $url .= ' ' . $key . '="' . $val . '"';
-            $url .= ' />';
-        }
         return $url;
     }
 
@@ -1940,6 +1947,7 @@ class User extends Entity
                 # We have some extra attributes.
                 $atts[] = 'deleted';
                 $atts[] = 'lastaccess';
+                $atts[] = 'trustlevel';
             }
 
             foreach ($atts as $att) {
@@ -1993,7 +2001,7 @@ class User extends Entity
                     $rets[$user['id']]['systemrole'] == User::SYSTEMROLE_SUPPORT ||
                     $rets[$user['id']]['systemrole'] == User::SYSTEMROLE_MODERATOR;
                 $showmod = $ismod && Utils::presdef('showmod', $rets[$user['id']]['settings'], FALSE);
-                $rets[$user['id']]['settings'] = ['showmod' => $showmod];
+                $rets[$user['id']]['settings']['showmod'] = $showmod;
                 $rets[$user['id']]['yahooid'] = NULL;
             }
 
@@ -3152,9 +3160,6 @@ class User extends Entity
             }
 
             if ($m) {
-                # Allow mailing to happen.
-                $m->setPrivate('reviewrequired', 0);
-
                 # We, as a mod, have seen this message - update the roster to show that.  This avoids this message
                 # appearing as unread to us.
                 $r->updateRoster($myid, $mid);
@@ -3178,6 +3183,9 @@ class User extends Entity
                     $m->setPrivate('mailedtoall', 1);
                     $m->setPrivate('seenbyall', 1);
                 }
+
+                # Allow mailing to happen.
+                $m->setPrivate('reviewrequired', 0);
             }
         }
     }
@@ -3267,6 +3275,7 @@ class User extends Entity
     }
 
     public function listComments(&$ctx, $groupid = NULL) {
+        $comments = [];
         $ctxq = '';
 
         if ($ctx) {
@@ -3278,28 +3287,30 @@ class User extends Entity
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $groupids = $me->getModeratorships();
 
-        $sql = "SELECT * FROM users_comments WHERE $groupq $ctxq groupid IN (" . implode(',', $groupids) . ") ORDER BY reviewed ASC LIMIT 10;";
-        $comments = $this->dbhr->preQuery($sql);
+        if (count($groupids)) {
+            $sql = "SELECT * FROM users_comments WHERE $groupq $ctxq groupid IN (" . implode(',', $groupids) . ") ORDER BY reviewed ASC LIMIT 10;";
+            $comments = $this->dbhr->preQuery($sql);
 
-        $uids = array_unique(array_merge(array_column($comments, 'byuserid'), array_column($comments, 'userid')));
-        $u = new User($this->dbhr, $this->dbhm);
-        $users = $u->getPublicsById($uids, NULL, FALSE, FALSE, FALSE, FALSE);
+            $uids = array_unique(array_merge(array_column($comments, 'byuserid'), array_column($comments, 'userid')));
+            $u = new User($this->dbhr, $this->dbhm);
+            $users = $u->getPublicsById($uids, NULL, FALSE, FALSE, FALSE, FALSE);
 
-        foreach ($comments as &$comment) {
-            $comment['date'] = Utils::ISODate($comment['date']);
-            $comment['reviewed'] = Utils::ISODate($comment['reviewed']);
+            foreach ($comments as &$comment) {
+                $comment['date'] = Utils::ISODate($comment['date']);
+                $comment['reviewed'] = Utils::ISODate($comment['reviewed']);
 
-            if (Utils::pres('userid', $comment)) {
-                $comment['user'] = $users[$comment['userid']];
-                unset($comment['userid']);
+                if (Utils::pres('userid', $comment)) {
+                    $comment['user'] = $users[$comment['userid']];
+                    unset($comment['userid']);
+                }
+
+                if (Utils::pres('byuserid', $comment)) {
+                    $comment['byuser'] = $users[$comment['byuserid']];
+                    unset($comment['byuserid']);
+                }
+
+                $ctx['id'] = $comment['id'];
             }
-
-            if (Utils::pres('byuserid', $comment)) {
-                $comment['byuser'] = $users[$comment['byuserid']];
-                unset($comment['byuserid']);
-            }
-
-            $ctx['id'] = $comment['id'];
         }
 
         return $comments;
@@ -3360,8 +3371,7 @@ class User extends Entity
             }
         }
 
-        if (!$added && $me->isAdminOrSupport()) {
-            $rc = NULL;
+        if (!$added && $me && $me->isAdminOrSupport()) {
             $sql = "INSERT INTO users_comments (userid, groupid, byuserid, user1, user2, user3, user4, user5, user6, user7, user8, user9, user10, user11) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
             $this->dbhm->preExec($sql, [
                 $this->id,
@@ -4659,9 +4669,7 @@ class User extends Entity
             # Get a group name.
             $membs = $this->dbhr->preQuery("SELECT userid, nameshort, namefull FROM `groups` INNER JOIN memberships ON memberships.groupid = groups.id WHERE userid IN (" . implode(',', array_filter(array_column($users, 'id'))) . ") ORDER BY added ASC;", NULL, FALSE, FALSE);
             foreach ($membs as $memb) {
-                $ret[$memb['userid']] = [
-                    'group' => Utils::presdef('namefull', $memb, $memb['nameshort'])
-                ];
+                $ret[$memb['userid']]['group'] = Utils::presdef('namefull', $memb, $memb['nameshort']);
             }
         }
 

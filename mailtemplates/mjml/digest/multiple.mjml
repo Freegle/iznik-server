@@ -38,26 +38,11 @@
           <mj-text>{{ jobads }}</mj-text>
         </mj-column>
       </mj-section>
-      <mj-raw>{% for sponsor in sponsors %}</mj-raw>
-      <mj-section background-color="white">
-        <mj-column width="150px">
-          <mj-image alt="Sponsor logo" href="{{ sponsor.linkurl }}" align="left" border-radius="5px" src="{{ sponsor.imageurl }}" width="80px"></mj-image>
-        </mj-column>
-        <mj-column>
-          <mj-text>
-            <p>This community is kindly sponsored by:</p>
-            <a href="{{ sponsor.linkurl }}">{{ sponsor.name }}</a></mj-text>
-          <mj-raw>{% if sponsor.tagline is defined %}</mj-raw>
-          <mj-text><b>{{ sponsor.tagline }}</b></mj-text>
-          <mj-raw>{% endif %}</mj-raw>
-        </mj-column>
-      </mj-section>
-      <mj-raw>{% endfor %}</mj-raw>
       <mj-raw><a id="top" name="top" /> {% if availablemessages | length > 0 %}</mj-raw>
       <mj-section background-color="#FFF8DC" padding="0px">
         <mj-column>
           <mj-text background-color="#FFF8DC" color="#1D6607" font-size="20px" line-height="1.25" padding-bottom="0px">Active Posts</mj-text>
-          <mj-text background-color="#FFF8DC" color="#1D6607" line-height="1.25"><br /> Here are new posts or reposts since we last mailed you. Depending on your email client you may be able to click on a post to move down this email; otherwise please scroll down.</mj-text>
+          <mj-text background-color="#FFF8DC" color="#1D6607" line-height="1.25"><br /> Here are new posts or reposts since our last mail.  Click on a post to move down this email; if that doesn't work in your email client, scroll down.</mj-text>
           <mj-raw>{% for message in availablemessages %}</mj-raw>
           <mj-raw>{% if message.firstposted is defined and message.firstposted %}</mj-raw>
           <mj-text color="#1D6607" font-weight="bold" padding-top="0" padding-bottom="2px"><a jumpthis="msg-{{ message.id }}" href="#msg-{{ message.id }}">
@@ -102,18 +87,22 @@
       </mj-section>
       <mj-raw>{% endif %}</mj-raw>
       <mj-section background-color="#FFF8DC" padding-top="0" padding-bottom="0px">
-        <mj-column>
-          <mj-text color="darkgrey" padding-top="0" padding-bottom="0px">Posted by&nbsp;{{ message.fromname }}&nbsp;on&nbsp;{{ message.date }}.
-            <a href="#top" style="float: right">Back to top</a></mj-text>
+          <mj-column>
+            <mj-text color="darkgrey" padding-top="0" padding-bottom="0px">
+              Posted by&nbsp;{{ message.fromname }}&nbsp;on&nbsp;{{ message.date }}.
+            </mj-text>
         </mj-column>
       </mj-section>
       <mj-section background-color="#FFF8DC" padding="0px">
         <mj-group>
           <mj-column>
-            <mj-text align="center"><a font-weight="bold" href="{{ message.replyweb }}">Reply on Web</a></mj-text>
+            <mj-button align="center" href="{{ message.replyweb }}" background-color="darkgreen">Reply</mj-button>
+          </mj-column>
+          <mj-column >
+            <mj-text padding-top="20px" align="center"><a font-weight="bold" href="{{ message.replyemail }}">Reply by email</a></mj-text>
           </mj-column>
           <mj-column>
-            <mj-text align="center"><a font-weight="bold" href="{{ message.replyemail }}">Reply via Email</a></mj-text>
+            <mj-text padding-top="20px" align="center"><a href="#top" style="float: right">Back to top</a></mj-text>
           </mj-column>
         </mj-group>
       </mj-section>
@@ -168,6 +157,21 @@
       </mj-section>
       <mj-raw>{% endfor %}</mj-raw>
       <mj-raw>{% endif %}</mj-raw>
+      <mj-raw>{% for sponsor in sponsors %}</mj-raw>
+      <mj-section background-color="white">
+        <mj-column width="150px">
+          <mj-image alt="Sponsor logo" href="{{ sponsor.linkurl }}" align="left" border-radius="5px" src="{{ sponsor.imageurl }}" width="80px"></mj-image>
+        </mj-column>
+        <mj-column>
+          <mj-text>
+            <p>This community is kindly sponsored by:</p>
+            <a href="{{ sponsor.linkurl }}">{{ sponsor.name }}</a></mj-text>
+          <mj-raw>{% if sponsor.tagline is defined %}</mj-raw>
+          <mj-text><b>{{ sponsor.tagline }}</b></mj-text>
+          <mj-raw>{% endif %}</mj-raw>
+        </mj-column>
+      </mj-section>
+      <mj-raw>{% endfor %}</mj-raw>
       <mj-section background-color="#E0E0E0">
         <mj-column>
           <mj-text font-size="9px" color="#707070">You've received this automated mail because you're a member of <a href="{{ visit }}">{{ groupname }}</a>. You are set to receive updates for&nbsp;{{ groupname }}&nbsp;{{ frequency }}.<br /> <br /> You can change your settings by clicking

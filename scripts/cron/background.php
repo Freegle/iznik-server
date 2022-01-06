@@ -38,103 +38,117 @@ function doSQL($sql) {
 }
 
 try {
-    $pheanstalk = new Pheanstalk('127.0.0.1');
     $exit = FALSE;
 
     while (!$exit) {
-        $job = $pheanstalk->reserve();
-
-         $count = 0;
-         $chatlistsqueued = 0;
+        $job = NULL;
 
         try {
-            $count++;
-            $data = json_decode($job->getData(), true);
+            // Pheanstalk doesn't recovery well after an error, so recreate each time.
+            error_reporting(0);
+            $pheanstalk = Pheanstalk::create('127.0.0.1');
+            $job = $pheanstalk->reserve();
+            error_reporting(E_ALL & ~E_WARNING & ~E_DEPRECATED & ~E_NOTICE);
+        } catch (\Exception $e) {
+            error_log("Failed to reserve, sleeping");
+            sleep(1);
+        }
 
-            if ($data) {
-                switch ($data['type']) {
-                    case 'sql': {
-                        doSQL($data['sql']);
-                        break;
-                    }
+        if ($job) {
+            try {
+                $data = json_decode($job->getData(), true);
 
-                    case 'sqlfile': {
-                        $sql = file_get_contents($data['file']);
-                        unlink($data['file']);
-                        doSQL($sql);
-                        break;
-                    }
-
-                    case 'webpush': {
-                        $n = new PushNotifications($dbhr, $dbhm);
-
-                        # Some Android devices stack the notifications rather than replace them, and the app code doesn't
-                        # get invoked so can't help.  We can stop this by sending a "clear" notification first.  We do
-                        # this here rather than queueing two of them because there are multiple instances and we can
-                        # end up with them out of order.
-                        $payload = [
-                            'badge' => 0,
-                            'count' => 0,
-                            'chatcount' => 0,
-                            'notifcount' => 0,
-                            'title' => NULL,
-                            'message' => '',
-                            'chatids' => [],
-                            'content-available' => FALSE,
-                            'image' => $data['payload']['image'],
-                            'modtools' => $data['payload']['modtools'],
-                            'route' => NULL
-                        ];
-
-                        switch ($data['notiftype']) {
-                            case PushNotifications::PUSH_GOOGLE:
-                            {
-                                $params = [
-                                    'GCM' => GOOGLE_PUSH_KEY
-                                ];
-                                break;
-                            }
+                if ($data) {
+                    switch ($data['type']) {
+                        case 'sql': {
+                            doSQL($data['sql']);
+                            break;
                         }
 
-                        try {
-                            $n->executeSend($data['userid'], $data['notiftype'], $data['params'], $data['endpoint'], $payload);
-                        } catch (\Exception $e) {}
+                        case 'sqlfile': {
+                            $sql = file_get_contents($data['file']);
+                            unlink($data['file']);
+                            doSQL($sql);
+                            break;
+                        }
 
-                        # Now the real one.
-                        $n->executeSend($data['userid'], $data['notiftype'], $data['params'], $data['endpoint'], $data['payload']);
-                        break;
-                    }
+                        case 'webpush': {
+                            $n = new PushNotifications($dbhr, $dbhm);
 
-                    case 'poke': {
-                        $n = new PushNotifications($dbhr, $dbhm);
-                        $n->executePoke($data['groupid'], $data['data'], $data['modtools']);
-                        break;
-                    }
+                            # Some Android devices stack the notifications rather than replace them, and the app code doesn't
+                            # get invoked so can't help.  We can stop this by sending a "clear" notification first.  We do
+                            # this here rather than queueing two of them because there are multiple instances and we can
+                            # end up with them out of order.
+                            $payload = [
+                                'badge' => 0,
+                                'count' => 0,
+                                'chatcount' => 0,
+                                'notifcount' => 0,
+                                'title' => NULL,
+                                'message' => '',
+                                'chatids' => [],
+                                'content-available' => FALSE,
+                                'image' => $data['payload']['image'],
+                                'modtools' => $data['payload']['modtools'],
+                                'route' => NULL
+                            ];
 
-                    case 'facebooknotif': {
-                        $n = new Facebook($dbhr, $dbhm);
-                        $n->executeNotify($data['fbid'], $data['message'], $data['href']);
-                        break;
-                    }
+                            switch ($data['notiftype']) {
+                                case PushNotifications::PUSH_GOOGLE:
+                                {
+                                    $params = [
+                                        'GCM' => GOOGLE_PUSH_KEY
+                                    ];
+                                    break;
+                                }
+                            }
 
-                    case 'exit': {
-                        error_log("Asked to exit");
-                        $exit = TRUE;
-                        break;
-                    }
+                            try {
+                                $n->executeSend($data['userid'], $data['notiftype'], $data['params'], $data['endpoint'], $payload);
+                            } catch (\Exception $e) {}
 
-                    default: {
-                        error_log("Unknown job type {$data['type']} " . var_export($data, TRUE));
+                            # Now the real one.
+                            $n->executeSend($data['userid'], $data['notiftype'], $data['params'], $data['endpoint'], $data['payload']);
+                            break;
+                        }
+
+                        case 'poke': {
+                            $n = new PushNotifications($dbhr, $dbhm);
+                            $n->executePoke($data['groupid'], $data['data'], $data['modtools']);
+                            break;
+                        }
+
+                        case 'facebooknotif': {
+                            $n = new Facebook($dbhr, $dbhm);
+                            $n->executeNotify($data['fbid'], $data['message'], $data['href']);
+                            break;
+                        }
+
+                        case 'exit': {
+                            error_log("Asked to exit");
+                            $exit = TRUE;
+                            break;
+                        }
+
+                        default: {
+                            error_log("Unknown job type {$data['type']} " . var_export($data, TRUE));
+                        }
                     }
                 }
+            } catch (\Exception $e) {
+                error_log("Exception " . $e->getMessage());
+                if ($job) {
+                    \Sentry\captureException($e);
+                }
             }
-        } catch (\Exception $e) { error_log("Exception " . $e->getMessage()); }
 
-        # Whatever it is, we need to delete the job to avoid getting stuck.
-        $rc = $pheanstalk->delete($job);
+            # Whatever it is, we need to delete the job to avoid getting stuck.
+            $pheanstalk->delete($job);
+        }
     }
 } catch (\Exception $e) {
     error_log("Top-level exception " . $e->getMessage() . "\n");
+    \Sentry\captureException($e);
 }
 
 Utils::unlockScript($lockh);

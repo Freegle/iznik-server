@@ -20,8 +20,6 @@ class ChatMessage extends Entity
     const TYPE_IMAGE = 'Image';
     const TYPE_ADDRESS = 'Address';
     const TYPE_NUDGE = 'Nudge';
-    const TYPE_SCHEDULE = 'Schedule';
-    const TYPE_SCHEDULE_UPDATED = 'ScheduleUpdated';
 
     const ACTION_APPROVE = 'Approve';
     const ACTION_APPROVE_ALL_FUTURE = 'ApproveAllFuture';
@@ -31,6 +29,14 @@ class ChatMessage extends Entity
     const ACTION_REDACT = 'Redact';
 
     const TOO_MANY_RECENT = 40;
+
+    const REVIEW_LAST = 'Last';
+    const REVIEW_FORCE = 'Force';
+    const REVIEW_FULLY = 'Fully';
+    const REVIEW_TOO_MANY = 'TooMany';
+    const REVIEW_USER = 'User';
+    const REVIEW_UNKNOWN_MESSAGE = 'UnknownMessage';
+    const REVIEW_SPAM = 'Spam';
 
     /** @var  $log Log */
     private $log;
@@ -81,7 +87,7 @@ class ChatMessage extends Entity
 
     public function checkReview($message, $language = FALSE, $userid = NULL) {
         $s = new Spam($this->dbhr, $this->dbhm);
-        $ret = $s->checkReview($message, $language);
+        $ret = $s->checkReview($message, $language) ? self::REVIEW_SPAM : NULL;
 
         if (!$ret && $userid) {
             # Check whether this member has sent a lot of chat messages in the last couple of days.  This is something
@@ -93,7 +99,7 @@ class ChatMessage extends Entity
             ]);
 
             if ($counts[0]['count'] > self::TOO_MANY_RECENT) {
-                $ret = TRUE;
+                $ret = self::REVIEW_TOO_MANY;
             }
         }
 
@@ -102,7 +108,8 @@ class ChatMessage extends Entity
 
     public function checkSpam($message) {
         $s = new Spam($this->dbhr, $this->dbhm);
-        return($s->checkSpam($message, [ Spam::ACTION_SPAM ]) !== NULL);
+        list ($spam, $reason, $text) = $s->checkSpam($message, [ Spam::ACTION_SPAM ]);
+        return $spam ? $reason : NULL;
     }
 
     public function chatByEmail($chatmsgid, $msgid) {
@@ -153,6 +160,7 @@ class ChatMessage extends Entity
 
             # We might have been asked to force this to go to review.
             $review = 0;
+            $reviewreason = NULL;
             $spam = 0;
             $blocked = FALSE;
 
@@ -179,7 +187,11 @@ class ChatMessage extends Entity
 
                 $modstatus = $u->getPrivate('chatmodstatus');
 
-                if (count($last) && $last[0]['reviewrequired'] || ($forcereview && $modstatus !== User::CHAT_MODSTATUS_UNMODERATED)) {
+                if (count($last) && $last[0]['reviewrequired']) {
+                    $reviewreason = self::REVIEW_LAST;
+                    $review = 1;
+                } else if ($forcereview && $modstatus !== User::CHAT_MODSTATUS_UNMODERATED) {
+                    $reviewreason = self::REVIEW_FORCE;
                     $review = 1;
                 } else {
                     # Mods may need to refer to spam keywords in replies.  We should only check chat messages of types which
@@ -191,11 +203,21 @@ class ChatMessage extends Entity
                         if ($chattype != ChatRoom::TYPE_USER2MOD &&
                             !$u->isModerator() &&
                             ($type === ChatMessage::TYPE_DEFAULT || $type === ChatMessage::TYPE_INTERESTED || $type === ChatMessage::TYPE_REPORTEDUSER || $type === ChatMessage::TYPE_ADDRESS)) {
-                            $review = ($modstatus == User::CHAT_MODSTATUS_FULLY) || $this->checkReview($message, TRUE, $userid);
+                            if ($modstatus == User::CHAT_MODSTATUS_FULLY) {
+                                $reviewreason = self::REVIEW_FULLY;
+                                $review = $reviewreason ? 1 : 0;
+                            } else {
+                                $reviewreason = $this->checkReview($message, TRUE, $userid);
+                                $review = $reviewreason ? 1 : 0;
+                            }
+
                             $spam = $this->checkSpam($message) || $this->checkSpam($u->getName());
 
                             # If we decided it was spam then it doesn't need reviewing.
-                            $review = $spam ? 0 : $review;
+                            if ($spam) {
+                                $review = 0;
+                                $reviewreason = NULL;
+                            }
                         }
 
                         if (!$review && $type === ChatMessage::TYPE_INTERESTED && $refmsgid) {
@@ -208,7 +230,10 @@ class ChatMessage extends Entity
                                 $s = new Spam($this->dbhr, $this->dbhm);
 
                                 # Don't check memberships otherwise they might show up repeatedly.
-                                $review = $s->checkUser($userid, NULL, $m['lat'], $m['lng'], FALSE);
+                                if ($s->checkUser($userid, NULL, $m['lat'], $m['lng'], FALSE)) {
+                                    $reviewreason = self::REVIEW_USER;
+                                    $review = TRUE;
+                                }
                             }
                         }
                     }
@@ -222,6 +247,7 @@ class ChatMessage extends Entity
                         # or to one already complete.  We get periodic floods of these in spam attacks.
                         $spam = 1;
                         $review = 0;
+                        $reviewreason = self::REVIEW_UNKNOWN_MESSAGE;
                     }
                 }
             }
@@ -236,9 +262,9 @@ class ChatMessage extends Entity
                 $refmsgid,
                 $platform,
                 $review,
-                $spam,
+                $spam ? 1 : 0,
                 $spamscore,
-                $reportreason,
+                $reportreason ? $reportreason : $reviewreason,
                 $refchatid,
                 $imageid,
                 $facebookid
@@ -389,20 +415,6 @@ class ChatMessage extends Entity
             $ret['message'] = NULL;
             $a = new Address($this->dbhr, $this->dbhm, $id);
             $ret['address'] = $a->getPublic();
-        }
-
-        if ($ret['type'] == ChatMessage::TYPE_SCHEDULE || $ret['type'] == ChatMessage::TYPE_SCHEDULE_UPDATED) {
-            # We want to return the currently matching dates.
-            $s = new Schedule($this->dbhr, $this->dbhm);
-            $r = new ChatRoom($this->dbhr, $this->dbhm, $this->chatmessage['chatid']);
-            $myid = Session::whoAmId($this->dbhr, $this->dbhm);
-
-            if ($myid) {
-                $user1 = $r->getPrivate('user1');
-                $user2 = $r->getPrivate('user2');
-                $other = $myid == $user1 ? $user2 : $user1;
-                $ret['matches'] = $s->match($myid, $other);
-            }
         }
 
         # Strip any remaining quoted text in replies.

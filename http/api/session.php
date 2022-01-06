@@ -26,7 +26,7 @@ function session() {
             @session_destroy();
             @session_unset();
             @session_start();
-            session_regenerate_id(true);
+            @session_regenerate_id(true);
         } catch (\Exception $e) {
         }
 
@@ -47,7 +47,7 @@ function session() {
             if ($appversion == '2') {
                 $ret = array('ret' => 123, 'status' => 'App is out of date');
             } else {
-                if (Utils::pres('id', $_SESSION)) {
+                if (Utils::pres('id', $_SESSION) && $me) {
                     # We're logged in.
                     if (!$modtools) {
                         # ...but we are running an old version of the code, probably the app, because we have
@@ -234,7 +234,7 @@ function session() {
                                             ];
 
                                             $group['polygon'] = $poly['poly'];
-                                        } catch (Exception $e) {
+                                        } catch (\Exception $e) {
                                             error_log("Bad polygon data for {$group['id']}");
                                         }
                                     }

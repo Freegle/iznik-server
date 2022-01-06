@@ -802,7 +802,6 @@ function message() {
                                             break;
                                         }
                                         case Message::OUTCOME_WITHDRAWN: {
-                                            $m->withdraw($comment, $happiness, $userid);
                                             $ret = ['ret' => 0, 'status' => 'Success'];
 
                                             # The message might still be pending.

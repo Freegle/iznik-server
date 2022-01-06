@@ -438,21 +438,17 @@ HAVING logincount > 0
             #
             # This code matches the feedback code on the client.
             $mysqltime = date("Y-m-d", strtotime(MessageCollection::RECENTPOSTS));
-            $sql = "SELECT  messages_groups.groupid, COUNT(DISTINCT messages_outcomes.id) AS count FROM messages_outcomes 
-INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid 
-WHERE reviewed = 0 AND timestamp > '$mysqltime' 
-AND arrival > '$mysqltime'
-AND groupid IN $groupq
-AND messages_outcomes.comments IS NOT NULL
-              AND messages_outcomes.comments != 'Sorry, this is no longer available.'
-              AND messages_outcomes.comments != 'Thanks, this has now been taken.'
-              AND messages_outcomes.comments != 'Thanks, I\'m no longer looking for this.' 
-              AND messages_outcomes.comments != 'Sorry, this has now been taken.'
-              AND messages_outcomes.comments != 'Thanks for the interest, but this has now been taken.'
-              AND messages_outcomes.comments != 'Thanks, these have now been taken.'
-              AND messages_outcomes.comments != 'Thanks, this has now been received.'
+            $happsql = "SELECT messages_groups.groupid, COUNT(DISTINCT messages_groups.msgid) AS count FROM messages_outcomes 
+              INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid 
+              INNER JOIN messages ON messages.id = messages_outcomes.msgid
+              WHERE messages_outcomes.timestamp > '$mysqltime' 
+              AND messages_groups.arrival > '$mysqltime'
+              AND groupid IN $groupq
+                " . $this->getHappinessFilter() . "
+              AND reviewed = 0 
               GROUP BY groupid";
-            $happinesscounts = $this->dbhr->preQuery($sql);
+            $happinesscounts = $this->dbhr->preQuery($happsql);
+            #error_log($happsql);
 
             $c = new ChatMessage($this->dbhr, $this->dbhm);
             $reviewcounts = $c->getReviewCountByGroup($me, NULL, FALSE);
@@ -588,6 +584,17 @@ AND messages_outcomes.comments IS NOT NULL
         }
 
         return($ret);
+    }
+
+    private function getHappinessFilter() {
+        return " AND messages_outcomes.comments IS NOT NULL
+              AND messages_outcomes.comments != 'Sorry, this is no longer available.'
+              AND messages_outcomes.comments != 'Thanks, this has now been taken.'
+              AND messages_outcomes.comments != 'Thanks, I\'m no longer looking for this.' 
+              AND messages_outcomes.comments != 'Sorry, this has now been taken.'
+              AND messages_outcomes.comments != 'Thanks for the interest, but this has now been taken.'
+              AND messages_outcomes.comments != 'Thanks, these have now been taken.'
+              AND messages_outcomes.comments != 'Thanks, this has now been received.'";
     }
 
     public function getPublic($summary = FALSE) {
@@ -788,18 +795,16 @@ AND messages_outcomes.comments IS NOT NULL
             }
         }
 
+        $banusers = [];
+
         if ($groupids && count($groupids) == 1) {
             # Get the bans.
-            $banusers = [];
-
             if (count($uids)) {
                 $bans = $this->dbhr->preQuery("SELECT * FROM users_banned WHERE userid IN (" . implode(',', $uids) . ') AND groupid = ?;', [
                     $groupids[0]
                 ]);
 
                 foreach ($bans as $ban) {
-                    $g = Group::get($this->dbhr, $this->dbhm, $ban['groupid']);
-                    $banner = User::get($this->dbhr, $this->dbhm, $ban['byuser']);
                     $banusers[$ban['userid']] = [
                         'bandate' => Utils::ISODate($ban['date']),
                         'bannedby' => $ban['byuser']
@@ -943,13 +948,12 @@ AND messages_outcomes.comments IS NOT NULL
                  messages_outcomes.id < " . intval($ctx['id']) . "))");
 
         $sql = "SELECT messages_outcomes.*, messages.fromuser, messages_groups.groupid, messages.subject FROM messages_outcomes
-INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid AND $groupq2
-INNER JOIN messages ON messages.id = messages_outcomes.msgid
-$ctxq
-$filterq
-AND messages_outcomes.comments IS NOT NULL
-ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messages_outcomes.id DESC LIMIT $limit
-";
+            INNER JOIN messages_groups ON messages_groups.msgid = messages_outcomes.msgid AND $groupq2
+            INNER JOIN messages ON messages.id = messages_outcomes.msgid
+            $ctxq
+            $filterq " . $this->getHappinessFilter() . "
+            AND messages_groups.arrival > '$start'
+            ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messages_outcomes.id DESC LIMIT $limit";
         $members = $this->dbhr->preQuery($sql, []);
 
         # Get the users in a single go for speed.
@@ -961,9 +965,11 @@ ORDER BY messages_outcomes.reviewed ASC, messages_outcomes.timestamp DESC, messa
         $u->getPublicEmails($users);
 
         foreach ($users as $userid => $user) {
-            foreach ($user['emails'] as $email) {
-                if ($email['preferred'] || (!Mail::ourDomain($email['email']) && !Utils::pres('email', $users[$userid]))) {
-                    $users[$userid]['email'] = $email['email'];
+            if (Utils::pres('emails', $user)) {
+                foreach ($user['emails'] as $email) {
+                    if ($email['preferred'] || (!Mail::ourDomain($email['email']) && !Utils::pres('email', $users[$userid]))) {
+                        $users[$userid]['email'] = $email['email'];
+                    }
                 }
             }
         }

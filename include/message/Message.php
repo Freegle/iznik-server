@@ -32,7 +32,6 @@ class Message
     const LIKE_VIEW = 'View';
 
     const EMAIL_REGEXP = '/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i';
-    const LOVEJUNK_AREA = 'POLYGON((-0.21284415586420025 51.68497949384652,-0.198767922954044 51.68625660505424,-0.18194510801263775 51.68370234661232,-0.16615226133295025 51.687746522596925,-0.15104606016107525 51.685405201585354,-0.136969827250919 51.687746522596925,-0.1211769805712315 51.68817220431696,-0.10710074766107525 51.691790337324136,-0.08650138242670025 51.68966205881485,-0.07894828184076275 51.687959363957326,-0.06521537168451275 51.683489485237345,-0.058005593852481496 51.682638029729965,-0.055259011821231496 51.683276622861634,-0.027106546000918996 51.681573687828724,-0.009597085551700246 51.68050932090834,0.0017325653272060038 51.68136081644617,0.023361898823299754 51.677954738220215,0.038468099995174754 51.67944492896868,0.048424459858456004 51.68412806636002,0.06524727479986225 51.68838504367593,0.090996481342831 51.6894492254601,0.10026619569829975 51.68753368023585,0.1136557831006435 51.68178655821048,0.12773201601079975 51.67944492896868,0.14970467226079975 51.67007720103184,0.15863106386236225 51.668160836162826,0.169274069233456 51.66134643782319,0.176140524311581 51.657299903861244,0.1864402069287685 51.65474401202227,0.196739889545956 51.6517619560304,0.207726217670956 51.64515813383615,0.2152793182568935 51.638553349617816,0.22317574159673725 51.63173449871459,0.2290122284131435 51.626619687749645,0.246178366108456 51.620864836073935,0.255791403217831 51.61596197929035,0.266777731342831 51.60487530702578,0.26918099062017475 51.59570543654094,0.2715842498975185 51.588453530353384,0.2770774139600185 51.5837605035281,0.28222725526861225 51.577573500230606,0.284630514545956 51.57245258461065,0.290123678608456 51.561568723208794,0.28840706483892475 51.55409789893853,0.2839438690381435 51.548333853131375,0.2811972870068935 51.54022025506192,0.27879402772954975 51.53018301398858,0.27124092714361225 51.5192890356121,0.266777731342831 51.510742915045064,0.2688376678662685 51.50091289410549,0.26643440858892475 51.48231553414723,0.2660910858350185 51.47376247781017,0.2551047577100185 51.4607159787735,0.2413718475537685 51.4519449240603,0.23553536073736225 51.44723780963772,0.23896858827642475 51.430759087341904,0.23690865175298725 51.424551274035586,0.22111580507329975 51.414488544108146,0.19639656679204975 51.39328533262892,0.192620016499081 51.38707242919167,0.18403694765142475 51.37743004669281,0.17305061952642475 51.371643642062104,0.16343758241704975 51.36735694487111,0.15794441835454975 51.36178363854049,0.15588448183111225 51.356209653941896,0.15657112733892475 51.34227172482453,0.15657112733892475 51.33519392278045,0.15863106386236225 51.32918765794293,0.159661032124081 51.30987647731056,0.155541159077206 51.30451081760925,0.14627144472173725 51.300003178622646,0.1424948944287685 51.29184537323423,0.13185188905767475 51.28776592693084,0.11262581483892475 51.285833431133774,0.1026694549756435 51.28304190475026,0.07966683046392475 51.27724357703399,0.064903952045956 51.27337761859726,0.042931295795956004 51.272733260563825,0.028168417377987254 51.2701557380646,0.014435507221737254 51.267578070978566,-0.012686990336856496 51.269296531767935,-0.022986672954043996 51.267578070978566,-0.037406228618106496 51.259199654361296,-0.048049233989200246 51.258125387929155,-0.0648720489306065 51.2589848030832,-0.08032157285638775 51.25791053163025,-0.094397805766544 51.257265956708444,-0.1225502715868565 51.262637138246234,-0.1349098907274815 51.264570609965986,-0.15104606016107525 51.2660743650729,-0.16477897031732525 51.269296531767935,-0.17851188047357525 51.26628918321458,-0.19087149961420025 51.260918428436476,-0.2008278594774815 51.25834024322393,-0.2145607696337315 51.2572659567087,-0.23001029355951275 51.25962935390531,-0.2475197540087315 51.26714844574058,-0.259192727641544 51.27359240260059,-0.2667458282274815 51.28368611820632,-0.28013541562982525 51.29034246149802,-0.3038246856493565 51.29420699229139,-0.31378104551263775 51.296783165453334,-0.327857278422794 51.31245177113023,-0.334723733500919 51.31545609790481,-0.344336770610294 51.316314440849126,-0.35909964902826275 51.313095572000684,-0.37489249570795025 51.311807961226044,-0.39137198789545025 51.30730103894954,-0.4013283477587315 51.305369365321006,-0.408881448344669 51.30665715677414,-0.4301674590868565 51.313739363837634,-0.45111014707513775 51.322966054161014,-0.4644997344774815 51.32554061326973,-0.4713661895556065 51.32618423046487,-0.48200919492670025 51.332619905623595,-0.485785745219669 51.33862572085923,-0.4864723907274815 51.348061840924586,-0.5081017242235752 51.37121499040318,-0.5125649200243565 51.37914439650124,-0.524237893657169 51.38792943154818,-0.5335076080126377 51.393713777632755,-0.539344094829044 51.40271019583661,-0.5424339996142002 51.409563422110836,-0.539344094829044 51.41919903391512,-0.5414040313524815 51.42947478137162,-0.5369408355517002 51.435681925802044,-0.5304177032274815 51.441032235510114,-0.528357766704044 51.44638191851498,-0.5232079253954502 51.450661213710575,-0.5170281158251377 51.461143791991574,-0.5081017242235752 51.46798825806409,-0.5039818511767002 51.47504553851119,-0.5032952056688877 51.4810326779455,-0.495398782329044 51.49001191357496,-0.49505545957513775 51.49834819204551,-0.5019219146532627 51.50711032826451,-0.5012352691454502 51.51480252224192,-0.49848868711420025 51.52292065133426,-0.499518655375919 51.53295949359639,-0.502265237407169 51.53979318351118,-0.507758401469669 51.54491777764819,-0.5184014068407627 51.54897433873463,-0.5259545074267002 51.5530305381518,-0.5317909942431065 51.55964777132141,-0.5355675445360752 51.5722392006088,-0.5355675445360752 51.577360140268176,-0.524237893657169 51.624701484961086,-0.5108483062548252 51.63706181358589,-0.5019219146532627 51.64430595767679,-0.4960854278368565 51.65559599198794,-0.494025491313419 51.65879077420664,-0.494025491313419 51.66539261045245,-0.4892189727587315 51.6698642756091,-0.4796059356493565 51.672632228086115,-0.4644997344774815 51.67348387174268,-0.4507668243212315 51.681147944066566,-0.4466469512743565 51.68689514715198,-0.44699027402826275 51.6930672564007,-0.4452736602587315 51.69902573576184,-0.4384072051806065 51.70498343063746,-0.42227103574701275 51.713705782838986,-0.40647818906732525 51.71498208355159,-0.39823844297357525 51.71391850212565,-0.3862221465868565 51.71668376180786,-0.369056008891544 51.71498208355179,-0.3573830352587315 51.711365804652665,-0.3450234161181065 51.70902570540367,-0.329230569438419 51.71030213818374,-0.319617532329044 51.71221671981851,-0.3038246856493565 51.710727607772895,-0.2969582305712315 51.709663926296095,-0.2832253204149815 51.71562022040149,-0.27258231504388775 51.71647105552771,-0.248206399516544 51.70370684777468,-0.24374320371576275 51.700940794665975,-0.239966653422794 51.694769759127304,-0.23275687559076275 51.68859788203805,-0.22314383848138775 51.68519234822022,-0.21284415586420025 51.68497949384652))';
 
     private $replycount = 0;
 
@@ -145,8 +144,6 @@ class Message
         'Display trusted message'
     ];
 
-    private $loveJunkPoly = null;
-    
     static public function checkType($type) {
         switch($type) {
             case Message::TYPE_OFFER:
@@ -331,12 +328,12 @@ class Message
         }
 
         # It's possible (for TN) that we are editing a message that has been rejected.  This is how
-        # rejected messages are resubmitted.  Move it back to Pending.
+        # rejected messages are resubmitted.  Move it back to Pending.  Bump the arrival time to avoid auto-approval.
         $groups = $this->getGroups(FALSE, FALSE);
 
         foreach ($groups as $group) {
             if ($group['collection'] == MessageCollection::REJECTED) {
-                $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ? AND groupid = ?", [
+                $this->dbhm->preExec("UPDATE messages_groups SET collection = ?, arrival = NOW() WHERE msgid = ? AND groupid = ?", [
                     MessageCollection::PENDING,
                     $this->id,
                     $group['groupid']
@@ -889,9 +886,10 @@ class Message
         return($promises[0]['count']);
     }
 
-    private function getPublicAtts($me, $myid, $msgs, $roles, $seeall, $summary) {
+    private function getPublicAtts($me, $msgs, $roles, $seeall, $summary) {
         # Get the attributes which are visible based on our role.
         $rets = [];
+        $myid = $me ? $me->getId() : NULL;
 
         foreach ($msgs as $msg) {
             $role = $roles[$msg['id']][0];
@@ -918,10 +916,6 @@ class Message
                 foreach ($this->ownerAtts as $att) {
                     $ret[$att] = Utils::presdef($att, $msg, NULL);
                 }
-            }
-
-            if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
-                $this->checkLoveJunk($ret);
             }
 
             $blur = TRUE;
@@ -990,22 +984,6 @@ class Message
         }
 
         return($rets);
-    }
-
-    public function checkLoveJunk(&$ret) {
-        if ($ret['lat'] || $ret['lng']) {
-            # Check if this is a possibility for lovejunk.
-            if (!$this->loveJunkPoly) {
-                $this->loveJunkPoly = \geoPHP::load(self::LOVEJUNK_AREA, 'wkt');
-            }
-
-            $point = \geoPHP::load("POINT({$ret['lng']} {$ret['lat']})", 'wkt');
-
-            if ($this->loveJunkPoly->contains($point)) {
-                # Add in the hashed value of the ID which can be used to refer to LoveJunk.
-                $ret['lovejunkhash'] = defined('LOVEJUNK_SECRET') ? hash_hmac('sha256', $ret['id'], LOVEJUNK_SECRET, FALSE) : NULL;
-            }
-        }
     }
 
     private function getThisAsArray() {
@@ -1357,7 +1335,20 @@ ORDER BY lastdate DESC;";
                                     $thisone['lastuserid'] = $lastreply['userid'];
 
                                     $r = new ChatRoom($this->dbhr, $this->dbhm);
-                                    $thisone['snippet'] = $r->getSnippet($lastreply['type'], $lastreply['message']);
+                                    $refmsgtype = NULL;
+
+                                    if ($lastreply['type'] == ChatMessage::TYPE_COMPLETED) {
+                                        # Find the type of the message that has completed.
+                                        $types = $this->dbhr->preQuery("SELECT type FROM messages WHERE id = ?;", [
+                                            $lastreply['refmsgid']
+                                        ]);
+
+                                        foreach ($types as $type) {
+                                            $refmsgtype = $type['type'];
+                                        }
+                                    }
+
+                                    $thisone['snippet'] = $r->getSnippet($lastreply['type'], $lastreply['message'], $refmsgtype);
                                 }
                             }
 
@@ -1395,6 +1386,12 @@ ORDER BY lastdate DESC;";
                             foreach ($rets[$msg['id']]['promises'] as $promise) {
                                 $rets[$msg['id']]['replies'][$key]['promised'] = Utils::presdef('promised', $reply, FALSE) || ($promise['userid'] == $reply['user']['id']);
                             }
+                        }
+                    }
+
+                    foreach ($promises as $promise) {
+                        if ($promise['userid'] == $myid) {
+                            $rets[$msg['id']]['promisedtome'] = TRUE;
                         }
                     }
 
@@ -1767,7 +1764,7 @@ ORDER BY lastdate DESC;";
         # We call the methods that handle an array of messages, which are shared with MessageCollection.  Each of
         # these return their info in an array indexed by message id.
         $roles = $this->getRolesForMessages($me, $msgs);
-        $rets = $this->getPublicAtts($me, $myid, $msgs, $roles, $seeall, $summary);
+        $rets = $this->getPublicAtts($me, $msgs, $roles, $seeall, $summary);
         $this->getPublicReplies($me, $myid, $rets, $msgs, $summary, $roles, $seeall, FALSE);
         $this->getPublicGroups($me, $myid, $userlist, $rets, $msgs, $roles, $summary, $seeall);
         $this->getPublicOutcomes($me, $myid, $rets, $msgs, $summary, $roles, $seeall);
@@ -2220,7 +2217,7 @@ ORDER BY lastdate DESC;";
 
         if (!$this->sourceheader) {
             if (Mail::ourDomain($this->fromaddr)) {
-                $this->sourceheader = 'Platform';
+                $this->sourceheader = Message::PLATFORM;
             } else {
                 $this->sourceheader = 'Yahoo-Email';
             }
@@ -2761,7 +2758,7 @@ ORDER BY lastdate DESC;";
     }
 
     public function getHeader($hdr) {
-        return($this->parser->getHeader($hdr));
+        return($this->parser ? $this->parser->getHeader($hdr) : NULL);
     }
 
     public function getTo() {
@@ -2902,9 +2899,6 @@ ORDER BY lastdate DESC;";
             }
 
             if ($m) {
-                # Allow mailing to happen.
-                $m->setPrivate('reviewrequired', 0);
-
                 # We, as a mod, have seen this message - update the roster to show that.  This avoids this message
                 # appearing as unread to us.
                 $r->updateRoster($myid, $mid);
@@ -2928,6 +2922,9 @@ ORDER BY lastdate DESC;";
                     $m->setPrivate('mailedtoall', 1);
                     $m->setPrivate('seenbyall', 1);
                 }
+
+                # Allow mailing to happen.
+                $m->setPrivate('reviewrequired', 0);
             }
         }
     }
@@ -4035,13 +4032,14 @@ ORDER BY lastdate DESC;";
         return($ret);
     }
 
-    public function constructSubject($groupid) {
+    public function constructSubject($groupid, $set = TRUE) {
         # Construct the subject - do this now as it may get displayed to the user before we get the membership.
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
         $keywords = $g->getSetting('keywords', $g->defaultSettings['keywords']);
 
         $locationid = $this->getPrivate('locationid');
         $items = $this->getItems();
+        $subject = NULL;
 
         if ($locationid && count($items) > 0) {
             $l = new Location($this->dbhr, $this->dbhm, $locationid);
@@ -4071,8 +4069,13 @@ ORDER BY lastdate DESC;";
             }
 
             $subject = Utils::presdef(strtolower($this->type), $keywords, strtoupper($this->type)) . ': ' . $items[0]['name'] . " ($loc)";
-            $this->setPrivate('subject', $subject);
+
+            if ($set) {
+                $this->setPrivate('subject', $subject);
+            }
         }
+
+        return $subject;
     }
 
     public function addItem($itemid) {
@@ -4424,11 +4427,15 @@ INNER JOIN users ON messages.fromuser = users.id
 INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid 
 LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid 
 LEFT OUTER JOIN messages_promises ON messages_promises.msgid = messages.id 
-WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL $msgq;";
+WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' 
+  AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') 
+  AND messages.source = ?
+  AND messages.deleted IS NULL $msgq;";
                 #error_log("$sql, $mindate, {$group['id']}");
                 $messages = $this->dbhr->preQuery($sql, [
                     $mindate,
-                    $group['id']
+                    $group['id'],
+                    Message::PLATFORM
                 ]);
 
                 $now = time();
@@ -4570,16 +4577,18 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                 # The sending user must also still be a member of the group.
                 #
                 # Using UNION means we can be more efficiently indexed.
-                $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, lastchaseup, messages.type, messages.fromaddr FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid LEFT OUTER JOIN messages_related ON id1 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN chat_messages ON messages.id = chat_messages.refmsgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL
-                        UNION SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, lastchaseup, messages.type, messages.fromaddr FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid LEFT OUTER JOIN messages_related ON id2 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN chat_messages ON messages.id = chat_messages.refmsgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND sourceheader IN ('Platform', 'FDv2') AND messages.deleted IS NULL;";
+                $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, lastchaseup, messages.type, messages.fromaddr FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid LEFT OUTER JOIN messages_related ON id1 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN chat_messages ON messages.id = chat_messages.refmsgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND messages.source = ? AND messages.deleted IS NULL
+                        UNION SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, lastchaseup, messages.type, messages.fromaddr FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid LEFT OUTER JOIN messages_related ON id2 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN chat_messages ON messages.id = chat_messages.refmsgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND messages.source = ? AND messages.deleted IS NULL;";
                 #error_log("$sql, $mindate, {$group['id']}");
                 $messages = $this->dbhr->preQuery(
                     $sql,
                     [
                         $mindate,
                         $group['id'],
+                        Message::PLATFORM,
                         $mindate,
-                        $group['id']
+                        $group['id'],
+                        Message::PLATFORM
                     ]
                 );
 
@@ -4664,17 +4673,6 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                                             ) . " " . $m->getSubject() . " chaseup due"
                                         );
 
-                                        $lovejunk = NULL;
-
-                                        if ($m->getType() == Message::TYPE_OFFER && Utils::pres('lovejunkhash', $matts)) {
-                                            $lovejunk = $u->loginLink(
-                                                USER_SITE,
-                                                $u->getId(),
-                                                "/mypost/{$message['msgid']}/lovejunk",
-                                                User::SRC_CHASEUP
-                                            );
-                                        }
-
                                         $text = "Can you let us know what happened with this?  Click $repost to post it again, or $completed to mark as $othertype, or $withdraw to withdraw it.  Thanks.";
 
                                         $html = $twig->render(
@@ -4686,8 +4684,7 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                                                 'type' => $othertype,
                                                 'repost' => $repost,
                                                 'completed' => $completed,
-                                                'withdraw' => $withdraw,
-                                                'lovejunk' => $lovejunk
+                                                'withdraw' => $withdraw
                                             ]
                                         );
                                     }
@@ -4798,8 +4795,9 @@ $mq", [
         foreach ($languishing as $user => $count) {
             # Only want one outstanding notification of this type.
             $n = new Notifications($this->dbhr, $this->dbhm);
-            $n->deleteUserType($user, Notifications::TYPE_OPEN_POSTS);
-            $n->add(NULL, $user, Notifications::TYPE_OPEN_POSTS, NULL, NULL, NULL, NULL, $count);
+            if (!$n->deleteOldUserType($user, Notifications::TYPE_OPEN_POSTS)) {
+                $n->add(NULL, $user, Notifications::TYPE_OPEN_POSTS, NULL, NULL, NULL, NULL, $count);
+            }
         }
 
         return $count;
@@ -5101,11 +5099,6 @@ $mq", [
             }
         }
 
-        if (!$autoreply && stripos($this->getFromaddr(), 'notify@yahoogroups.com') !== FALSE) {
-            # Some Yahoo system message we don't want to see.
-            $autoreply = TRUE;
-        }
-
         return ($autoreply);
     }
 
@@ -5277,7 +5270,6 @@ $mq", [
         $mysqltime = date("Y-m-d", strtotime(MessageCollection::RECENTPOSTS));
 
         # Add/update messages which are recent or have changed location or group or been reposted.
-        error_log("Add recent");
         $sql = "SELECT DISTINCT messages.id, messages.lat, messages.lng, messages_groups.groupid, messages_groups.arrival, messages_groups.msgtype FROM messages 
     INNER JOIN messages_groups ON messages_groups.msgid = messages.id
     LEFT JOIN messages_spatial ON messages_spatial.msgid = messages_groups.msgid
@@ -5303,7 +5295,6 @@ $mq", [
         }
 
         # Update any message outcomes.
-        error_log("Update outcomes");
         $sql = "SELECT messages_spatial.id, messages_spatial.msgid, messages_spatial.successful, messages_outcomes.outcome FROM messages_spatial LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages_spatial.msgid ORDER BY messages_outcomes.timestamp DESC;";
         $msgs = $this->dbhr->preQuery($sql);
 
@@ -5331,7 +5322,6 @@ $mq", [
         }
 
         # Remove any messages which are deleted.
-        error_log("Remove deleted");
         $sql = "SELECT DISTINCT messages_spatial.id FROM messages_spatial INNER JOIN messages ON messages_spatial.msgid = messages.id AND messages.deleted IS NOT NULL";
         $msgs = $this->dbhr->preQuery($sql);
 
@@ -5343,7 +5333,6 @@ $mq", [
         }
 
         # Remove any messages which are now old.
-        error_log("Remove old");
         $sql = "SELECT DISTINCT messages_spatial.id FROM messages_spatial INNER JOIN messages_groups ON messages_groups.msgid = messages_spatial.msgid WHERE messages_groups.arrival < ?;";
         $msgs = $this->dbhr->preQuery($sql, [
             $mysqltime
@@ -5357,7 +5346,6 @@ $mq", [
         }
 
         # Remove any messages which are no longer in Approved.  This can happen (e.g. for edits).
-        error_log("Remove no longer approved");
         $sql = "SELECT DISTINCT messages_spatial.id, messages_spatial.msgid FROM messages_spatial INNER JOIN messages_groups ON messages_groups.msgid = messages_spatial.msgid WHERE collection != ?;";
         $msgs = $this->dbhr->preQuery($sql, [
             MessageCollection::APPROVED
@@ -5431,7 +5419,6 @@ $mq", [
 
     public function removeBy($userid) {
         $this->dbhm->beginTransaction();
-        error_log("Remove $userid");
 
         # We might be replacing an old value, in which case we should restore the number available to the message.
         if ($userid) {

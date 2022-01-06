@@ -1,8 +1,6 @@
 <?php
 namespace Freegle\Iznik;
 
-
-
 use Minishlink\WebPush\WebPush;
 use Pheanstalk\Pheanstalk;
 use Kreait\Firebase\Factory;
@@ -22,7 +20,7 @@ class PushNotifications
     const APPTYPE_MODTOOLS = 'ModTools';
     const APPTYPE_USER = 'User';
 
-    private $dbhr, $dbhm, $log, $pheanstalk = NULL, $firebase = NULL;
+    private $dbhr, $dbhm, $log, $pheanstalk = NULL, $firebase = NULL, $messaging = NULL;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
@@ -92,7 +90,7 @@ class PushNotifications
             $this->uthook();
 
             if (!$this->pheanstalk) {
-                $this->pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
+                $this->pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
             }
 
             $str = json_encode(array(
@@ -249,7 +247,7 @@ class PushNotifications
                     $params = $params ? $params : [];
                     $webPush = new WebPush($params);
                     #error_log("Send params " . var_export($params, TRUE) . " " . ($payload['count'] > 0) . "," . (!is_null($payload['title'])));
-                    if (($payload['count'] > 0) && (!is_null($payload['title']))) {
+                    if (($payload && ($payload['count'] > 0) && (!is_null($payload['title'])))) {
                         $rc = $webPush->sendNotification($endpoint, $payload['title'], NULL, TRUE);
                     } else
                         $rc = TRUE;
@@ -390,7 +388,7 @@ class PushNotifications
             $this->uthook();
 
             if (!$this->pheanstalk) {
-                $this->pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
+                $this->pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
             }
 
             $str = json_encode(array(

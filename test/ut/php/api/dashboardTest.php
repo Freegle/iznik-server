@@ -14,7 +14,8 @@ require_once(UT_DIR . '/../../include/db.php');
  */
 class dashboardTest extends IznikAPITestCase {
     public function testAdmin() {
-        $u = User::get($this->dbhr, $this->dbhm);
+        # Use a full pathname.  This is a test of our autoloader for coverage.
+        $u = \Freegle\Iznik\User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $u = User::get($this->dbhr, $this->dbhm, $id);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -320,7 +321,6 @@ class dashboardTest extends IznikAPITestCase {
             'group' => $gid
         ]);
 
-        error_log("returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['components'][Dashboard::COMPONENTS_WEIGHT]));
 
@@ -333,10 +333,8 @@ class dashboardTest extends IznikAPITestCase {
             'group' => $gid
         ]);
 
-        error_log("returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['components'][Dashboard::COMPONENTS_OUTCOMES]));
-
 
         $ret = $this->call('dashboard', 'GET', [
             'components' => [
@@ -346,9 +344,30 @@ class dashboardTest extends IznikAPITestCase {
             'end' => date('Y-m-d', strtotime('tomorrow'))
         ]);
 
-        error_log("returned " . var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertTrue(array_key_exists(Dashboard::COMPONENTS_ACTIVE_USERS, $ret['components']));
+
+        $ret = $this->call('dashboard', 'GET', [
+            'components' => [
+                Dashboard::COMPONENTS_DONATIONS
+            ],
+            'start' => date('Y-m-d'),
+            'end' => date('Y-m-d', strtotime('tomorrow'))
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertTrue(array_key_exists(Dashboard::COMPONENTS_DONATIONS, $ret['components']));
+
+        $ret = $this->call('dashboard', 'GET', [
+            'components' => [
+                Dashboard::COMPONENTS_DISCOURSE_TOPICS
+            ],
+            'start' => date('Y-m-d'),
+            'end' => date('Y-m-d', strtotime('tomorrow'))
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertTrue(array_key_exists(Dashboard::COMPONENTS_DISCOURSE_TOPICS, $ret['components']));
     }
 
 //

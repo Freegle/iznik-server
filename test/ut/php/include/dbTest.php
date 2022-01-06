@@ -2,6 +2,7 @@
 namespace Freegle\Iznik;
 
 use PhpMimeMailParser\Exception;
+use Pheanstalk\Pheanstalk;
 
 if (!defined('UT_DIR')) {
     define('UT_DIR', dirname(__FILE__) . '/../..');
@@ -25,6 +26,9 @@ class dbTest extends IznikTestCase {
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+
+        $this->dbhr->suppressSentry = TRUE;
+        $this->dbhm->suppressSentry = TRUE;
 
         assertNotNull($this->dbhr);
         assertNotNull($this->dbhm);
@@ -119,7 +123,7 @@ class dbTest extends IznikTestCase {
             ->disableOriginalConstructor()
             ->setMethods(array('put'))
             ->getMock();
-        $mock->method('put')->willReturn(true);
+        $mock->method('put')->willReturn(new \Pheanstalk\Job(1, 'ok'));
         $this->dbhm->setPheanstalk($mock);
         $this->dbhm->background('INSERT INTO test VALUES ();');
 
@@ -419,6 +423,8 @@ class dbTest extends IznikTestCase {
 
         $worked = false;
 
+        $mock->suppressSentry = TRUE;
+
         try {
             $mock->preQuery('SHOW COLUMNS FROM test;');
         } catch (DBException $e) {
@@ -464,6 +470,17 @@ class dbTest extends IznikTestCase {
             assertFalse(TRUE);
         } catch (\Exception $e) {
             assertFalse(FALSE);
+        }
+    }
+
+    public function testFailConnect() {
+        global $dbconfig;
+        $d = new LoggedPDO('127.0.0.2:1234', $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE);
+        try {
+            $d->doConnect();
+            assertFalse(TRUE);
+        } catch (DBException $e) {
+            assertFalse($d->isConnected());
         }
     }
 }

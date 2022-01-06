@@ -26,9 +26,11 @@ class LoggedPDO {
     private $readconn;
     private $username = NULL;
     private $password = NULL;
+    private $variant = NULL;
     private $sqllog = SQLLOG;
     private $preparedStatements = [];
     private $version;
+    public $suppressSentry = FALSE;
 
     const MAX_LOG_SIZE = 100000;
     const MAX_BACKGROUND_SIZE = 100000;  # Max size of sql that we can pass to beanstalk directly; larger goes in file
@@ -82,9 +84,10 @@ class LoggedPDO {
         $this->pheanstalk = $pheanstalk;
     }
 
-    public function __construct($hosts, $database, $username, $password, $readonly = FALSE, \Freegle\Iznik\LoggedPDO $readconn = NULL)
+    public function __construct($hosts, $database, $username, $password, $readonly = FALSE, \Freegle\Iznik\LoggedPDO $readconn = NULL, $variant = 'mysql')
     {
         $this->hosts = explode(',', $hosts);
+        $this->variant = $variant;
         $this->database = $database;
         $this->username = $username;
         $this->password = $password;
@@ -100,7 +103,7 @@ class LoggedPDO {
         $this->preparedStatements = [];
     }
 
-    private function doConnect() {
+    public function doConnect() {
         if (!$this->connected) {
             # We haven't connected yet.  Do so now.  We defer the connect because all API calls have both a read
             # and a write connection, and many won't use the write one, so it's a waste of time opening it until we
@@ -118,7 +121,11 @@ class LoggedPDO {
                     $host = $this->hosts[$hostindex];
                     $hostname = substr($host, 0, strpos($host, ':'));
                     $port = substr($host, strpos($host, ':') + 1);
-                    $dsn = "mysql:host=$hostname;port=$port;dbname={$this->database};charset=utf8";
+                    $dsn = "{$this->variant}:host=$hostname;port=$port;dbname={$this->database}";
+
+                    if ($this->variant == 'mysql') {
+                        $dsn .= ";charset=utf8";
+                    }
 
                     # Check if we know that the server is down.  This avoids problems where the server is not
                     # responding to network connections, which would otherwise cause our connect attempt to hang
@@ -188,7 +195,11 @@ class LoggedPDO {
 
             $this->dbwaittime += microtime(true) - $start;
 
-            $this->connected = TRUE;
+            if ($gotit) {
+                $this->connected = TRUE;
+            } else {
+                throw new DBException("Failed to connect to DB after $count retried");
+            }
         }
     }
 
@@ -251,9 +262,15 @@ class LoggedPDO {
                 $sth = $this->preparedStatements[$sql];
                 $rc = $this->executeStatement($sth, $params);
 
-                if (!$select) {
-                    $this->lastInsert = $this->_db->lastInsertId();
-                    $this->rowsAffected = $sth->rowCount();
+                if ($rc && !$select) {
+                    $this->lastInsert = 0;
+                    $this->rowsAffected = 0;
+
+                    # lastInsertId might fail on Postgresql, eg for CREATE TABLE.
+                    try {
+                        $this->lastInsert = $this->_db->lastInsertId();
+                        $this->rowsAffected = $sth->rowCount();
+                    } catch (\Exception $e) {}
                 }
 
                 if ($rc) {
@@ -321,6 +338,10 @@ class LoggedPDO {
                 } else {
                     $msg = "Non-deadlock DB Exception " . $e->getMessage() . " $sql";
                     error_log($msg);
+                    if (!$this->suppressSentry) {
+                        \Sentry\captureMessage($msg);
+                    }
+
                     $try = $this->tries;
                 }
             }
@@ -624,7 +645,7 @@ class LoggedPDO {
                 # This SQL needs executing, but not in the foreground, and it's not the end of the
                 # world if we drop it, or duplicate it.
                 if (!$this->pheanstalk) {
-                    $this->pheanstalk = new Pheanstalk(PHEANSTALK_SERVER);
+                    $this->pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
                 }
 
                 if (strlen($sql) > LoggedPDO::MAX_BACKGROUND_SIZE) {
@@ -667,5 +688,9 @@ class LoggedPDO {
 
     private function giveUp($msg) {
         throw new DBException("Unexpected database error $msg", 999);
+    }
+
+    public function isConnected() {
+        return $this->connected;
     }
 }

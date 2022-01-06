@@ -33,14 +33,16 @@ do {
                 if ($sent) {
                     echo "Sent $sent emails\n";
                 }
-            } catch (\Throwable $ex) {
-                error_log("Flush error " . $ex->getMessage());
+            } catch (\Throwable $e) {
+                // Don't log to Sentry - this can happen.
+                error_log("Flush error " . $e->getMessage());
             }
         } else {
             error_log("Couldn't get spool, sleep and retry");
         }
     } catch (\Exception $e) {
         error_log("Exception; sleep and retry " . $e->getMessage());
+        \Sentry\captureException($e);
     }
 
     if (file_exists('/tmp/iznik.mail.abort')) {

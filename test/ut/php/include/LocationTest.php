@@ -27,9 +27,9 @@ class locationTest extends IznikTestCase {
         # We test around Tuvalu.  If you're setting up Tuvalu Freegle you may need to change that.
         $dbhm->preExec("DELETE FROM locations_grids WHERE swlat >= 8.3 AND swlat <= 8.7;");
         $dbhm->preExec("DELETE FROM locations_grids WHERE swlat >= 179.1 AND swlat <= 179.3;");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'TV13%';");
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE '??%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'TV13%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE '??%';");
         for ($swlat = 8.3; $swlat <= 8.6; $swlat += 0.1) {
             for ($swlng = 179.1; $swlng <= 179.3; $swlng += 0.1) {
                 $nelat = $swlat + 0.1;
@@ -90,7 +90,9 @@ class locationTest extends IznikTestCase {
         $this->log("Loc id $id");
         $l = new Location($this->dbhr, $this->dbhm, $id);
         $atts = $l->getPublic();
-        assertEquals($areaid, $atts['areaid']);
+
+        # No area as not a postcode.
+        assertNull($atts['areaid']);
 
         $id2 = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)');
         $this->log("Full postcode id $id");
@@ -101,8 +103,8 @@ class locationTest extends IznikTestCase {
     }
 
     public function testParentsOverlap() {
-        $clat = 179.25;
-        $clng = 8.53;
+        $clat = 8.53;
+        $clng = 179.25;
 
         $sw['lat'] = $clat - 0.1;
         $sw['lng'] = $clng - 0.1;
@@ -113,8 +115,8 @@ class locationTest extends IznikTestCase {
 
         $sw['lat'] = $clat - 0.05;
         $sw['lng'] = $clng - 0.05;
-        $ne['lat'] = $clat + 0.1;
-        $ne['lng'] = $clng + 0.1;
+        $ne['lat'] = $clat + 0.05;
+        $ne['lng'] = $clng + 0.05;
 
         $box2 = "POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))";
 
@@ -131,7 +133,10 @@ class locationTest extends IznikTestCase {
         $this->log("Area id $areaid2");
         assertNotNull($areaid2);
 
-        # Postcode should be in area 2.
+        # Postcode should be in area 2, because it contains the postcode and is smaller than area 1.
+        $l->copyLocationsToPostgresql();
+        $l->remapPostcodes();
+
         $l = new Location($this->dbhr, $this->dbhm, $pcid);
         assertEquals($areaid2, $l->getPrivate('areaid'));
 
@@ -146,8 +151,19 @@ class locationTest extends IznikTestCase {
         $l = new Location($this->dbhr, $this->dbhm, $areaid2);
         $l->setGeometry($box3);
 
-        $l = new Location($this->dbhr, $this->dbhm, $pcid);
-        assertEquals($areaid1, $l->getPrivate('areaid'));
+        $l->copyLocationsToPostgresql();
+        $l->remapPostcodes();
+
+        # Change to a non-overlapping area for coverage.
+        $sw['lat'] = $clat + 0.5;
+        $sw['lng'] = $clng + 0.5;
+        $ne['lat'] = $clat + 0.6;
+        $ne['lng'] = $clng + 0.6;
+
+        $box3 = "POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))";
+
+        $l = new Location($this->dbhr, $this->dbhm, $areaid2);
+        $l->setGeometry($box3);
     }
 
     public function testInvent() {
@@ -179,7 +195,6 @@ class locationTest extends IznikTestCase {
 
         # Change the geometry to something which isn't a point or a polygon.  We'll invent a polygon.  We need to
         # mock this as the convex hull function relies on a PHP extension which is a faff to install.
-        error_log("Force invent");
         $mock = $this->getMockBuilder('Freegle\Iznik\Location')
             ->setConstructorArgs([$this->dbhr, $this->dbhm, FALSE])
             ->setMethods(array('convexHull'))

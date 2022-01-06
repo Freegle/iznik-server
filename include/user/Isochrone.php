@@ -13,7 +13,9 @@ class Isochrone extends Entity
     const CYCLE = 'Cycle';
     const DRIVE = 'Drive';
 
-    const DEFAULT_TIME = 20;
+    const DEFAULT_TIME = 15;
+    const MIN_TIME = 5;
+    const MAX_TIME = 45;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
@@ -115,6 +117,9 @@ class Isochrone extends Entity
         list ($lat, $lng, $locationid) = $this->findLocation($userid, $locationid);
 
         if ($locationid) {
+            $minutes = min(self::MAX_TIME, $minutes);
+            $minutes = max(self::MIN_TIME, $minutes);
+
             $isochroneid = $this->ensureIsochroneExists($locationid, $minutes, $transport);
 
             if ($isochroneid) {
@@ -214,9 +219,21 @@ class Isochrone extends Entity
         $isochroneid = $this->ensureIsochroneExists($this->isochrone['locationid'], $minutes, $transport);
 
         # And update this entry.
-        $this->dbhm->preExec("UPDATE isochrones_users SET isochroneid = ? WHERE id = ?;", [
-            $isochroneid,
-            $this->id
-        ]);
+        if ($isochroneid) {
+            try {
+                $this->dbhm->preExec("UPDATE isochrones_users SET isochroneid = ? WHERE id = ?;", [
+                    $isochroneid,
+                    $this->id
+                ]);
+            } catch (DBException $e) {
+                if (strpos($e->getMessage(), 'Duplicate entry') !== FALSE) {
+                    # This can happen due to a timing window.  We already have an entry for this user/isochrone, so
+                    # we no longer need this one.
+                    $this->dbhm->preExec("DELETE FROM isochrones_users WHERE id = ?;", [
+                        $this->id
+                    ]);
+                }
+            }
+        }
     }
 }

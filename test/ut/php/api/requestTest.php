@@ -26,7 +26,7 @@ class requestAPITest extends IznikAPITestCase {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
-        $dbhm->preExec("DELETE FROM locations WHERE name LIKE 'TV13%';");
+        $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'TV13%';");
     }
 
     public function testBasic() {

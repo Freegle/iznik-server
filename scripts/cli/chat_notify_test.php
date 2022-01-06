@@ -12,5 +12,5 @@ global $dbhr, $dbhm;
 $opts = getopt('i:e:');
 
 $c = new ChatRoom($dbhr, $dbhm, $opts['i']);
-$count = $c->notifyByEmail($opts['i'], $c->getPrivate('chattype'), $opts['e'], 0, FALSE, "10 years ago", TRUE);
+$count = $c->notifyByEmail($opts['i'], $c->getPrivate('chattype'), $opts['e'], 0,  "10 years ago", TRUE);
 error_log("Sent $count to User2User " . date("Y-m-d H:i:s", time()));

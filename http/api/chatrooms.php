@@ -45,7 +45,6 @@ function chatrooms() {
                     }
                 }
             } else {
-                $ctx = NULL;
                 $ret = [ 'ret' => 1, 'status' => 'Not logged in' ];
 
                 if ($myid) {
@@ -114,12 +113,15 @@ function chatrooms() {
             $action = Utils::presdef('action', $_REQUEST, NULL);
 
             if ($myid) {
-                if ($action == 'AllSeen') {
+                if ($action == ChatRoom::ACTION_ALLSEEN) {
                     $r->upToDateAll($myid);
                     $ret = ['ret' => 0, 'status' => 'Success'];
-                } else if ($action == 'Nudge') {
+                } else if ($action == ChatRoom::ACTION_NUDGE) {
                     $id = $r->nudge();
                     $ret = ['ret' => 0, 'status' => 'Success', 'id' => $id];
+                } else if ($action == ChatRoom::ACTION_TYPING) {
+                    $count = $r->typing();
+                    $ret = ['ret' => 0, 'status' => 'Success', 'count' => $count ];
                 } else if ($id) {
                     # Single roster update.
                     $ret = ['ret' => 2, 'status' => "$id Not visible to you"];

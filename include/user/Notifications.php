@@ -417,10 +417,20 @@ class Notifications
         return($count > 0);
     }
 
-    public function deleteUserType($uid, $type) {
-        $this->dbhm->preQuery("DELETE FROM users_notifications WHERE touser = ? AND type = ?;", [
+    public function deleteOldUserType($uid, $type, $age = "Midnight 3 days ago") {
+        $mysqltime = date("Y-m-d", strtotime($age));
+
+        $this->dbhr->preExec("DELETE FROM users_notifications WHERE touser = ? AND type = ? AND timestamp <= ?;", [
             $uid,
-            $type
+            $type,
+            $mysqltime
         ]);
+
+        $existing = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_notifications WHERE touser = ? AND type = ?;", [
+            $uid,
+            $type,
+        ]);
+
+        return $existing[0]['count'];
     }
 }
