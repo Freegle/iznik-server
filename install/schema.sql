@@ -556,7 +556,7 @@ CREATE TABLE `chat_rooms` (
   CONSTRAINT `chat_rooms_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE,
   CONSTRAINT `chat_rooms_ibfk_2` FOREIGN KEY (`user1`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `chat_rooms_ibfk_3` FOREIGN KEY (`user2`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10073868 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10073869 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -913,7 +913,7 @@ CREATE TABLE `groups` (
   CONSTRAINT `groups_ibfk_3` FOREIGN KEY (`authorityid`) REFERENCES `authorities` (`id`) ON DELETE CASCADE,
   CONSTRAINT `groups_ibfk_4` FOREIGN KEY (`defaultlocation`) REFERENCES `locations` (`id`) ON DELETE SET NULL,
   CONSTRAINT `groups_ibfk_5` FOREIGN KEY (`affiliationconfirmedby`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=564672 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='The different groups that we host';
+) ENGINE=InnoDB AUTO_INCREMENT=564673 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='The different groups that we host';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1155,7 +1155,7 @@ CREATE TABLE `items` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`),
   KEY `popularity` (`popularity`)
-) ENGINE=InnoDB AUTO_INCREMENT=5925677 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5925678 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1233,7 +1233,7 @@ CREATE TABLE `jobs` (
   KEY `bodyhash` (`bodyhash`),
   SPATIAL KEY `geometry` (`geometry`),
   KEY `seenat` (`seenat`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1312,7 +1312,7 @@ CREATE TABLE `locations` (
   KEY `timestamp` (`timestamp`),
   KEY `newareaid` (`newareaid`),
   CONSTRAINT `locations_ibfk_1` FOREIGN KEY (`gridid`) REFERENCES `locations_grids` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=9676158 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Location data, the bulk derived from OSM';
+) ENGINE=InnoDB AUTO_INCREMENT=9676161 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Location data, the bulk derived from OSM';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1477,7 +1477,7 @@ CREATE TABLE `logs` (
   KEY `user` (`user`),
   KEY `msgid` (`msgid`),
   KEY `timestamp_2` (`timestamp`,`type`,`subtype`)
-) ENGINE=InnoDB AUTO_INCREMENT=367347441 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Logs.  Not guaranteed against loss';
+) ENGINE=InnoDB AUTO_INCREMENT=367347447 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Logs.  Not guaranteed against loss';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1501,7 +1501,7 @@ CREATE TABLE `logs_api` (
   KEY `date` (`date`),
   KEY `userid` (`userid`),
   KEY `ip` (`ip`)
-) ENGINE=InnoDB AUTO_INCREMENT=111848290 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci KEY_BLOCK_SIZE=8 COMMENT='Log of all API requests and responses';
+) ENGINE=InnoDB AUTO_INCREMENT=111848292 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci KEY_BLOCK_SIZE=8 COMMENT='Log of all API requests and responses';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3206,7 +3206,7 @@ CREATE TABLE `sessions` (
   KEY `date` (`date`),
   KEY `userid` (`userid`),
   CONSTRAINT `sessions_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=29648 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=29649 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3246,7 +3246,7 @@ CREATE TABLE `shortlinks` (
   KEY `groupid` (`groupid`),
   KEY `name` (`name`),
   CONSTRAINT `shortlinks_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=51194 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=51195 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3262,7 +3262,7 @@ CREATE TABLE `spam_countries` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   KEY `country` (`country`)
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3347,7 +3347,7 @@ CREATE TABLE `spam_whitelist_links` (
   UNIQUE KEY `domain` (`domain`),
   KEY `userid` (`userid`),
   CONSTRAINT `spam_whitelist_links_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=453884 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Whitelisted domains for URLs';
+) ENGINE=InnoDB AUTO_INCREMENT=453886 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Whitelisted domains for URLs';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3610,7 +3610,7 @@ CREATE TABLE `towns` (
   `position` point DEFAULT NULL,
   `comment` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1709 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1710 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3704,7 +3704,7 @@ CREATE TABLE `users` (
   KEY `lastrelevantcheck` (`lastrelevantcheck`),
   KEY `lastupdated` (`lastupdated`),
   CONSTRAINT `users_ibfk_1` FOREIGN KEY (`lastlocation`) REFERENCES `locations` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=64919 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=64921 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3757,6 +3757,8 @@ CREATE TABLE `users_addresses` (
   `pafid` bigint unsigned DEFAULT NULL,
   `to` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `instructions` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `lat` decimal(10,6) DEFAULT NULL,
+  `lng` decimal(10,6) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `userid_2` (`userid`,`pafid`),
   KEY `userid` (`userid`),
@@ -4018,7 +4020,7 @@ CREATE TABLE `users_emails` (
   KEY `viewed` (`viewed`),
   KEY `md5hash` (`md5hash`),
   CONSTRAINT `users_emails_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=59205 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=59206 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4161,7 +4163,7 @@ CREATE TABLE `users_logins` (
   KEY `userid` (`userid`),
   KEY `validated` (`lastaccess`),
   CONSTRAINT `users_logins_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=44386 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=44388 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4231,7 +4233,7 @@ CREATE TABLE `users_notifications` (
   CONSTRAINT `users_notifications_ibfk_1` FOREIGN KEY (`fromuser`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `users_notifications_ibfk_2` FOREIGN KEY (`newsfeedid`) REFERENCES `newsfeed` (`id`) ON DELETE CASCADE,
   CONSTRAINT `users_notifications_ibfk_3` FOREIGN KEY (`touser`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=66274 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=66276 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4888,7 +4890,7 @@ CREATE TABLE `words` (
   KEY `word` (`word`,`popularity`),
   KEY `soundex` (`soundex`,`popularity`),
   KEY `firstthree` (`firstthree`,`popularity`)
-) ENGINE=InnoDB AUTO_INCREMENT=13457002 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Unique words for searches';
+) ENGINE=InnoDB AUTO_INCREMENT=13457003 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Unique words for searches';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -5312,4 +5314,4 @@ CREATE TABLE `worrywords` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-12-30 12:12:41
+-- Dump completed on 2022-01-06 17:17:43

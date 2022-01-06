@@ -55,7 +55,9 @@ function address() {
             case 'PUT':
                 $id = $a->create($myid,
                     (Utils::presint('pafid', $_REQUEST, NULL)),
-                    Utils::presdef('instructions', $_REQUEST, NULL));
+                    Utils::presdef('instructions', $_REQUEST, NULL),
+                    Utils::presint('lat', $_REQUEST, NULL),
+                    Utils::presint('lat', $_REQUEST, NULL));
 
                 $ret = [
                     'ret' => 0,

@@ -80,16 +80,22 @@ class addressAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         self::assertEquals(1, count($ret['addresses']));
         assertEquals($id, $ret['addresses'][0]['id']);
+        assertEquals(52.006292, $ret['addresses'][0]['lat']);
+        assertEquals(-4.939858, $ret['addresses'][0]['lng']);
 
         # Edit
         $ret = $this->call('address', 'PATCH', [
             'id' => $id,
-            'instructions' => 'Test2'
+            'instructions' => 'Test2',
+            'lat' => 1,
+            'lng' => 2
         ]);
         assertEquals(0, $ret['ret']);
         $ret = $this->call('address', 'GET', ['id' => $id]);
         assertEquals(0, $ret['ret']);
         assertEquals('Test2', $ret['address']['instructions']);
+        assertEquals(1, $ret['address']['lat']);
+        assertEquals(2, $ret['address']['lng']);
 
         # Delete
         $ret = $this->call('address', 'DELETE', [
