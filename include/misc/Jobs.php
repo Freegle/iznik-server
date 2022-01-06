@@ -549,8 +549,10 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
 
     public function swapTables() {
         # We want to swap the jobs_new table with the jobs table, atomically.
+        error_log(date("Y-m-d H:i:s", time()) . "Swap tables...");
         $this->dbhm->preExec("DROP TABLE IF EXISTS jobs_old;");
         $this->dbhm->preExec("RENAME TABLE jobs TO jobs_old, jobs_new TO jobs;");
         $this->dbhm->preExec("DROP TABLE IF EXISTS jobs_old;");
+        error_log(date("Y-m-d H:i:s", time()) . "tables swapped...");
     }
 }
