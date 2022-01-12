@@ -216,34 +216,30 @@ class Group extends Entity
             } catch(\Exception $e) {
                 # Drop through with ret false.
             }
-        } else {
-            # We override this in order to clear our cache, which would otherwise be out of date.
-            if ($att == 'poly' || $att == 'polyofficial') {
-                # Check validity of spatial data
-                $ret = FALSE;
+        } else  if ($att == 'poly' || $att == 'polyofficial') {
+            # Check validity of spatial data
+            $ret = FALSE;
+            try {
+                $valid = $this->dbhm->preQuery($this->dbhr->isV8() ? "SELECT ST_IsValid(ST_GeomFromText(?, {$this->dbhr->SRID()})) AS valid;" : "SELECT ST_IsValid(ST_GeomFromText(?)) AS valid;", [
+                    $val
+                ]);
 
-                try {
-                    $valid = $this->dbhm->preQuery($this->dbhr->isV8() ? "SELECT ST_IsValid(ST_GeomFromText(?, {$this->dbhr->SRID()})) AS valid;" : "SELECT ST_IsValid(ST_GeomFromText(?)) AS valid;", [
-                        $val
-                    ]);
+                foreach ($valid as $v) {
+                    if ($v['valid']) {
+                        parent::setPrivate($att, $val);
 
-                    foreach ($valid as $v) {
-                        if ($v['valid']) {
-                            $this->dbhm->preExec("UPDATE `groups` SET polyindex = ST_GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)'), {$this->dbhr->SRID()}) WHERE id = ?;", [
-                                $this->id
-                            ]);
+                        $this->dbhm->preExec("UPDATE `groups` SET polyindex = ST_GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)'), {$this->dbhr->SRID()}) WHERE id = ?;", [
+                            $this->id
+                        ]);
 
-                            parent::setPrivate($att, $val);
-
-                            $ret = TRUE;
-                        }
+                        $ret = TRUE;
                     }
-                } catch(\Exception $e) {
-                    # Drop through with ret false.
                 }
-            } else {
-                parent::setPrivate($att, $val);
+            } catch(\Exception $e) {
+                # Drop through with ret false.
             }
+        } else {
+            parent::setPrivate($att, $val);
         }
 
         Group::clearCache($this->id);
