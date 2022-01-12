@@ -6360,7 +6360,7 @@ memberships.groupid IN $groupq
             $oldvisible = intval($rating['visible']) ? TRUE : FALSE;
 
             if ($visible != $oldvisible) {
-                $this->dbhm->preExec("UPDATE ratings SET visible = ? WHERE id = ?;", [
+                $this->dbhm->preExec("UPDATE ratings SET visible = ?, timestamp = NOW() WHERE id = ?;", [
                     $visible,
                     $rating['id']
                 ]);
