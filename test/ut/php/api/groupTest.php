@@ -213,6 +213,14 @@ class groupAPITest extends IznikAPITestCase {
         ]);
         assertEquals(3, $ret['ret']);
 
+        # Shouldn't have changed.
+        $ret = $this->call('group', 'GET', [
+            'id' => $this->groupid,
+            'polygon' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals($polystr, $ret['group']['polygon']);
+
         # Profile
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);

@@ -218,8 +218,6 @@ class Group extends Entity
             }
         } else {
             # We override this in order to clear our cache, which would otherwise be out of date.
-            parent::setPrivate($att, $val);
-
             if ($att == 'poly' || $att == 'polyofficial') {
                 # Check validity of spatial data
                 $ret = FALSE;
@@ -235,12 +233,16 @@ class Group extends Entity
                                 $this->id
                             ]);
 
+                            parent::setPrivate($att, $val);
+
                             $ret = TRUE;
                         }
                     }
                 } catch(\Exception $e) {
                     # Drop through with ret false.
                 }
+            } else {
+                parent::setPrivate($att, $val);
             }
         }
 
