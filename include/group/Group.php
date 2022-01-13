@@ -1221,4 +1221,63 @@ HAVING logincount > 0
 
         return $counts[0]['count'];
     }
+
+    public function findPopularMessages() {
+        # Delete any old ones.
+        $this->dbhm->preExec("DELETE FROM messages_popular WHERE TIMESTAMPDIFF(HOUR, timestamp, NOW()) >= 24;");
+
+        # Find messages with the most views.
+        $msgs = $this->dbhr->preQuery("SELECT COUNT(*) AS count, messages_likes.msgid, groupid FROM messages_likes 
+    INNER JOIN messages_groups ON messages_groups.msgid = messages_likes.msgid 
+    WHERE TIMESTAMPDIFF(HOUR, messages_likes.timestamp, NOW()) <= 24 AND 
+          messages_groups.deleted = 0 AND 
+          messages_groups.collection = ? 
+    GROUP BY messages_likes.msgid 
+    ORDER BY messages_groups.groupid ASC, count ASC;", [
+        MessageCollection::APPROVED
+        ]);
+
+        # Processing in this order means we'll end up with the most popular one per group.
+        $forgroup = [];
+
+        foreach ($msgs as $msg) {
+            $forgroup[$msg['groupid']] = $msg['msgid'];
+        }
+
+        foreach ($forgroup as $groupid => $msgid) {
+            $this->dbhm->preExec("INSERT INTO messages_popular (groupid, msgid) VALUES (?, ?) ON DUPLICATE KEY UPDATE msgid = ?;", [
+                $groupid,
+                $msgid,
+                $msgid
+            ]);
+        }
+    }
+
+    public function getPopularMessages($groupid) {
+        $ret = NULL;
+
+        $msgs = $this->dbhr->preQuery("SELECT * FROM messages_popular WHERE groupid = ? AND shared = 0 AND declined = 0;", [
+            $groupid
+        ]);
+
+        foreach ($msgs as $msg) {
+            $msg['timestamp'] = Utils::ISODate($msg['timestamp']);
+            $ret = $msg;
+        }
+
+        return $ret;
+    }
+
+    public function sharedPopularMessage($msgid) {
+        $this->dbhm->preExec("UPDATE messages_popular SET shared = 1 WHERE msgid = ?;", [
+            $msgid
+        ]);
+    }
+
+
+    public function declinedPopularMessage($msgid) {
+        $this->dbhm->preExec("UPDATE messages_popular SET declined = 1 WHERE msgid = ?;", [
+            $msgid
+        ]);
+    }
 }
