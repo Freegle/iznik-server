@@ -1686,5 +1686,12 @@ class userTest extends IznikTestCase {
         assertEquals(-3.15, $lng);
         assertEquals('Edinburgh', $city);
     }
+
+    public function testBadEmail() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        assertNull($u->addEmail('notify-2023105-3506086@users.ilovefreegle.org'));
+        assertNull($u->addEmail('replyto-2023105@users.ilovefreegle.org'));
+    }
 }
 

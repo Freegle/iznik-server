@@ -646,10 +646,9 @@ class User extends Entity
             # the volunteer addresses.
             $rc = NULL;
         } else if (stripos($email, 'replyto-') !== FALSE || stripos($email, 'notify-') !== FALSE) {
-            # This is a bug we're trying to track down.
+            # This can happen because of dodgy email clients replying to the wrong place.  We don't want to end up
+            # with this getting added to the user.
             $rc = NULL;
-            $headers = 'From: geeks@ilovefreegle.org';
-            mail('geek-alerts@ilovefreegle.org', "Attempt to add bad email $email to user {$this->id}", "", $headers);
         } else {
             # If the email already exists in the table, then that's fine.  But we don't want to use INSERT IGNORE as
             # that scales badly for clusters.
@@ -5430,7 +5429,7 @@ class User extends Entity
         error_log("...filter");
         Utils::filterResult($ret);
         error_log("...encode");
-        $data = json_encode($ret);
+        $data = json_encode($ret, JSON_PARTIAL_OUTPUT_ON_ERROR);
         error_log("...encoded length " . strlen($data) . ", now compress");
         $data = gzdeflate($data);
         $this->dbhm->preExec("UPDATE users_exports SET completed = NOW(), data = ? WHERE id = ? AND tag = ?;", [
