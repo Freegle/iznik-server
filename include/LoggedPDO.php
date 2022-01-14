@@ -34,6 +34,7 @@ class LoggedPDO {
 
     const MAX_LOG_SIZE = 100000;
     const MAX_BACKGROUND_SIZE = 100000;  # Max size of sql that we can pass to beanstalk directly; larger goes in file
+    const SIMPLIFY = 0.001;
 
     public function getVersion() {
         return $this->version;

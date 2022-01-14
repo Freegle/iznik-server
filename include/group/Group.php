@@ -226,7 +226,23 @@ class Group extends Entity
 
                 foreach ($valid as $v) {
                     if ($v['valid']) {
-                        parent::setPrivate($att, $val);
+                        # We can get very large geometries - so simplify it when we set it.  Party to avoid any MySQL woes, and partly because
+                        # manual editing of very granular polygons is a right old faff.
+                        $this->dbhm->preExec("UPDATE `groups` SET $att = CASE WHEN ? IS NULL THEN NULL ELSE ST_AsText(ST_Simplify(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?)) END WHERE id = ?;", [
+                            $val,
+                            $val,
+                            LoggedPDO::SIMPLIFY,
+                            $this->id
+                        ]);
+
+                        # Get value back.
+                        $vals = $this->dbhm->preQuery("SELECT $att FROM `groups` WHERE id = ?;", [
+                            $this->id
+                        ]);
+
+                        foreach ($vals as $newval) {
+                            $this->group[$att] = $newval[$att];
+                        }
 
                         $this->dbhm->preExec("UPDATE `groups` SET polyindex = ST_GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)'), {$this->dbhr->SRID()}) WHERE id = ?;", [
                             $this->id

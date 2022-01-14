@@ -501,9 +501,10 @@ class Location extends Entity
     public function setGeometry($val) {
         $rc = FALSE;
 
-        $valid = $this->dbhm->preQuery("SELECT ST_IsValid(ST_GeomFromText(?, {$this->dbhr->SRID()})) AS valid, ST_AsText(ST_Simplify(ST_GeomFromText(?, {$this->dbhr->SRID()}), 0.001)) AS simp;", [
+        $valid = $this->dbhm->preQuery("SELECT ST_IsValid(ST_GeomFromText(?, {$this->dbhr->SRID()})) AS valid, ST_AsText(ST_Simplify(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?)) AS simp;", [
             $val,
-            $val
+            $val,
+            LoggedPDO::SIMPLIFY
         ]);
 
         foreach ($valid as $v) {
@@ -622,11 +623,11 @@ class Location extends Entity
         # Simplify it - taking care as ST_Simplify can fail.
         $sql = "SELECT DISTINCT l.*,
             ST_AsText( 
-                CASE WHEN ST_Simplify(CASE WHEN l.ourgeometry IS NOT NULL THEN l.ourgeometry ELSE l.geometry END, 0.001) IS NULL
+                CASE WHEN ST_Simplify(CASE WHEN l.ourgeometry IS NOT NULL THEN l.ourgeometry ELSE l.geometry END, ?) IS NULL
                 THEN 
                    CASE WHEN l.ourgeometry IS NOT NULL THEN l.ourgeometry ELSE l.geometry END
                 ELSE   
-                    ST_Simplify(CASE WHEN l.ourgeometry IS NOT NULL THEN l.ourgeometry ELSE l.geometry END, 0.001)
+                    ST_Simplify(CASE WHEN l.ourgeometry IS NOT NULL THEN l.ourgeometry ELSE l.geometry END, ?)
                 END
             ) AS geom
             FROM
@@ -642,7 +643,7 @@ class Location extends Entity
             LIMIT 500;";
 
         #file_put_contents('/tmp/sql', $sql);
-        $areas = $this->dbhr->preQuery($sql, [ $swlat, $swlng, $nelat, $nelng ]);
+        $areas = $this->dbhr->preQuery($sql, [ LoggedPDO::SIMPLIFY, LoggedPDO::SIMPLIFY, $swlat, $swlng, $nelat, $nelng ]);
         $ret = [];
 
         foreach ($areas as $area) {
