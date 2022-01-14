@@ -1753,6 +1753,13 @@ ORDER BY lastdate DESC;";
             $rets[$this->id]['milesaway'] = $me->getDistanceBetween($mylat, $mylng, $this->lat, $this->lng);
         }
 
+        if ($me && !$summary) {
+            # Return whether we've previously interacted.
+            $r = new ChatRoom($this->dbhr, $this->dbhm);
+            list ($rid, $banned) = $r->createConversation($this->getPrivate('fromuser'), $me->getId(), TRUE);
+            $rets[$this->id]['interacted'] = $rid != NULL;
+        }
+
         $ret = $rets[$this->id];
         return($ret);
     }

@@ -169,6 +169,12 @@ class chatMessagesAPITest extends IznikAPITestCase
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
+        # The message should not yet show that we have interacted.
+        $ret = $this->call('message', 'GET', [
+            'id' => $refmsgid
+        ]);
+        assertFalse($ret['message']['interacted']);
+
         # Promise to someone else.
         $m = new Message($this->dbhr, $this->dbhm, $refmsgid);
         $m->promise($uid2);
@@ -197,6 +203,12 @@ class chatMessagesAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertNotNull($ret['id']);
         $mid1 = $ret['id'];
+
+        # The message should now yet show that we have interacted.
+        $ret = $this->call('message', 'GET', [
+            'id' => $refmsgid
+        ]);
+        assertTrue($ret['message']['interacted']);
 
         # Should be able to set the replyexpected flag
         $ret = $this->call('chatmessages', 'PATCH', [
