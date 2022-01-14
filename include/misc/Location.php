@@ -643,7 +643,7 @@ class Location extends Entity
             LIMIT 500;";
 
         #file_put_contents('/tmp/sql', $sql);
-        $areas = $this->dbhr->preQuery($sql, [ LoggedPDO::SIMPLIFY, LoggedPDO::SIMPLIFY, $swlat, $swlng, $nelat, $nelng ]);
+        $areas = $this->dbhr->preQuery($sql, [ LoggedPDO::SIMPLIFY, LoggedPDO::SIMPLIFY ]);
         $ret = [];
 
         foreach ($areas as $area) {

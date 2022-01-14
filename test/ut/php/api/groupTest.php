@@ -204,7 +204,10 @@ class groupAPITest extends IznikAPITestCase {
             'polygon' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals($polystr, $ret['group']['polygon']);
+
+        # Simplified val is different.
+        $simpstr = 'POLYGON((76.2890625 -4.740675384778361,74.8828125 6.4899833326706515,59.58984375 9.102096738726456,54.66796875 -5.0909441750333855,65.7421875 -6.839169626342807,76.2890625 -4.740675384778361))';
+        assertEquals($simpstr, $ret['group']['polygon']);
 
         # Invalid polygon
         $ret = $this->call('group', 'PATCH', [
@@ -219,7 +222,7 @@ class groupAPITest extends IznikAPITestCase {
             'polygon' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals($polystr, $ret['group']['polygon']);
+        assertEquals($simpstr, $ret['group']['polygon']);
 
         # Profile
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
