@@ -354,10 +354,11 @@ ORDER BY groups_facebook_toshare.id DESC;";
             $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
             if ($batch || $me && $me->isModOrOwner($groupid)) {
-                $pages = $this->dbhr->preQuery("SELECT uid, token FROM groups_facebook WHERE groupid = ?;", [ $groupid ]);
+                $pages = $this->dbhr->preQuery("SELECT * FROM groups_facebook WHERE groupid = ?;", [ $groupid ]);
 
                 foreach ($pages as $page)
                 {
+                    error_log(var_export($page, TRUE));
                     # Whether or not this works, remember that we've tried, so that we don't try again.
 //                    $this->dbhm->preExec(
 //                        "UPDATE messages_popular SET shared = 1, declined = 0 WHERE msgid = ? AND groupid = ?;",
@@ -368,6 +369,7 @@ ORDER BY groups_facebook_toshare.id DESC;";
 //                    );
 //
                     $fb = $this->getFB(TRUE);
+                    $token = $page['token'];
 
                     $g = Group::get($this->dbhr, $this->dbhm, $groupid);
                     $s = new Shortlink($this->dbhr, $this->dbhm);
@@ -378,14 +380,14 @@ ORDER BY groups_facebook_toshare.id DESC;";
                         $msgurl = 'https://' . USER_SITE . '/message/' . $msgid . '?src=popular';
 
                         # Scrape the URL so that previews work.
-                        $rsp = $fb->post('/?id=' . urlencode($msgurl) . '&scrape=true&access_token=' . $page['token']);
-                        error_log("URL get ". var_export($rsp, TRUE));
+//                        $rsp = $fb->post('/?id=' . urlencode($msgurl) . '&scrape=true&access_token=' . $token);
+                        #error_log("URL get ". var_export($rsp, TRUE));
 
                         $message = 'Trending yesterday for free on ' . $g->getName();
                         $message .= " $msgurl";
 
                         if (count($shortlinks)) {
-                            //$message .= '. Hop over to https://freegle.in/' . $shortlinks[0]['name'] . ' to see what\'s being given away, or ask for stuff.';
+                            $message .= ". \n\nHop over to https://freegle.in/" . $shortlinks[0]['name'] . ' to see what\'s being given away, or ask for stuff.';
                         }
 
                         $m = new Message($this->dbhr, $this->dbhm, $msgid);
@@ -393,20 +395,12 @@ ORDER BY groups_facebook_toshare.id DESC;";
 
                         $params = [
                             'message' =>  $message,
-                            'name' => $atts['subject'],
-                            'description' => $atts['textbody'],
-                            'link' => $msgurl
+                            'link' => $msgurl,
                         ];
 
-                        if (Utils::pres('attachments', $atts) && count($atts['attachments'])) {
-                            $params['picture'] = $atts['attachments'][0]['path'];
-                        }
-
-                        error_log(var_export($params, TRUE));
-
-                        $result = $fb->post($page['id'] . '/feed', $params, $page['token']);
-                        error_log("Share returned " . var_export($result, TRUE));
-                        $ret = true;
+                        $result = $fb->post($page['id'] . '/feed', $params, $token);
+                        error_log(var_export($result, TRUE));
+                        $ret = TRUE;
                     } catch (\Exception $e) {
                         error_log("Share failed with " . $e->getMessage() . " params " . json_encode($params));
                     }
