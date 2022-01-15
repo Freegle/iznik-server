@@ -244,7 +244,20 @@ class groupAPITest extends IznikAPITestCase {
         assertNotFalse(strpos($ret['group']['profile'], $attid));
         assertEquals('Test slogan', $ret['group']['tagline']);
 
-        }
+        # Null polygon
+        $ret = $this->call('group', 'PATCH', [
+            'id' => $this->groupid,
+            'poly' => ''
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('group', 'GET', [
+            'id' => $this->groupid,
+            'polygon' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertNull($ret['group']['polygon']);
+    }
 
     public function testConfirmMod() {
         $ret = $this->call('group', 'POST', [

@@ -220,7 +220,7 @@ class Group extends Entity
             # Check validity of spatial data
             $ret = FALSE;
             try {
-                $valid = $this->dbhm->preQuery($this->dbhr->isV8() ? "SELECT ST_IsValid(ST_GeomFromText(?, {$this->dbhr->SRID()})) AS valid;" : "SELECT ST_IsValid(ST_GeomFromText(?)) AS valid;", [
+                $valid = !$val ? [ [ 'valid' => TRUE ] ] :  $this->dbhm->preQuery($this->dbhr->isV8() ? "SELECT ST_IsValid(ST_GeomFromText(?, {$this->dbhr->SRID()})) AS valid;" : "SELECT ST_IsValid(ST_GeomFromText(?)) AS valid;", [
                     $val
                 ]);
 
@@ -1269,7 +1269,7 @@ HAVING logincount > 0
         }
     }
 
-    public function getPopularMessages($groupid) {
+    public function getPopularMessage($groupid) {
         $ret = NULL;
 
         $msgs = $this->dbhr->preQuery("SELECT * FROM messages_popular WHERE groupid = ? AND shared = 0 AND declined = 0;", [

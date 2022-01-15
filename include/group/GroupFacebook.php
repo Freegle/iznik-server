@@ -174,8 +174,6 @@ class GroupFacebook {
             if (count($modships) > 0) {
                 # We want to find all Facebook pages where we haven't shared this post.  To make this scale better with
                 # many groups we do a more complex query and then munge the data.
-                #
-                # We don't want groups = that's for posts, not social actions / publicity.
                 $groupids = implode(',', $modships);
                 $sql = "SELECT DISTINCT groups_facebook_toshare.*, groups_facebook.uid, 'Facebook' AS actiontype FROM groups_facebook_toshare 
 INNER JOIN groups_facebook ON groups_facebook.sharefrom = groups_facebook_toshare.sharefrom AND valid = 1 
@@ -337,5 +335,85 @@ ORDER BY groups_facebook_toshare.id DESC;";
         }
 
         return($ret);
+    }
+
+    public function sharePopularMessage($groupid, $msgid = NULL, $batch = FALSE) {
+        $ret = FALSE;
+
+        if (!$msgid) {
+            $pops = $this->dbhr->preQuery("SELECT * FROM messages_popular WHERE groupid = ? AND shared = 0 AND declined = 0;", [
+                $groupid
+            ]);
+
+            foreach ($pops as $pop) {
+                $msgid = $pop['msgid'];
+            }
+        }
+
+        if ($msgid) {
+            $me = Session::whoAmI($this->dbhr, $this->dbhm);
+
+            if ($batch || $me && $me->isModOrOwner($groupid)) {
+                $pages = $this->dbhr->preQuery("SELECT uid, token FROM groups_facebook WHERE groupid = ?;", [ $groupid ]);
+
+                foreach ($pages as $page)
+                {
+                    # Whether or not this works, remember that we've tried, so that we don't try again.
+//                    $this->dbhm->preExec(
+//                        "UPDATE messages_popular SET shared = 1, declined = 0 WHERE msgid = ? AND groupid = ?;",
+//                        [
+//                            $msgid,
+//                            $groupid
+//                        ]
+//                    );
+//
+                    $fb = $this->getFB(TRUE);
+
+                    $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+                    $s = new Shortlink($this->dbhr, $this->dbhm);
+                    $shortlinks = $s->listAll($groupid);
+
+                    try
+                    {
+                        $msgurl = 'https://' . USER_SITE . '/message/' . $msgid . '?src=popular';
+
+                        # Scrape the URL so that previews work.
+                        $rsp = $fb->post('/?id=' . urlencode($msgurl) . '&scrape=true&access_token=' . $page['token']);
+                        error_log("URL get ". var_export($rsp, TRUE));
+
+                        $message = 'Trending yesterday for free on ' . $g->getName();
+                        $message .= " $msgurl";
+
+                        if (count($shortlinks)) {
+                            //$message .= '. Hop over to https://freegle.in/' . $shortlinks[0]['name'] . ' to see what\'s being given away, or ask for stuff.';
+                        }
+
+                        $m = new Message($this->dbhr, $this->dbhm, $msgid);
+                        $atts = $m->getPublic();
+
+                        $params = [
+                            'message' =>  $message,
+                            'name' => $atts['subject'],
+                            'description' => $atts['textbody'],
+                            'link' => $msgurl
+                        ];
+
+                        if (Utils::pres('attachments', $atts) && count($atts['attachments'])) {
+                            $params['picture'] = $atts['attachments'][0]['path'];
+                        }
+
+                        error_log(var_export($params, TRUE));
+
+                        $result = $fb->post($page['id'] . '/feed', $params, $page['token']);
+                        error_log("Share returned " . var_export($result, TRUE));
+                        $ret = true;
+                    } catch (\Exception $e) {
+                        error_log("Share failed with " . $e->getMessage() . " params " . json_encode($params));
+                    }
+                }
+            }
+        }
+
+        return $ret;
     }
 }
