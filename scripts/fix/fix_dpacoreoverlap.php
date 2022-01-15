@@ -2,16 +2,14 @@
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-
-require_once(IZNIK_BASE . '/include/group/Group.php');
-
+global $dbhr, $dbhm;
 
 $groups = $dbhr->preQuery("SELECT * FROM `groups` WHERE type = 'Freegle' AND publish = 1 AND nameshort NOT LIKE '%playground%' AND nameshort NOT LIKE '%test%' AND poly IS NOT NULL ORDER BY LOWER(nameshort);");
 $found = 0;
 $notfound = 0;
 $maxoverlap = 0;
 $maxpoly = NULL;
-$threshold = 0.1;
+$threshold = 0.00005;
 
 foreach ($groups as $group) {
     try {
@@ -26,9 +24,9 @@ foreach ($groups as $group) {
             ]);
 
         foreach ($overlaps as $overlap) {
-            error_log("#{$group['id']}, {$group['nameshort']}, overlaps, #{$overlap['id']}, {$overlap['nameshort']}, with, {$overlap['area']}");
             if ($overlap['area'] > $threshold)
             {
+                error_log("#{$group['id']}, {$group['nameshort']}, overlaps, #{$overlap['id']}, {$overlap['nameshort']}, with, {$overlap['area']}");
                 if ($overlap['area'] > $maxoverlap && $overlap['id'] > $group['id']) {
                     $maxoverlap = $overlap['area'];
                     $maxpoly = $overlap['overlap'];
