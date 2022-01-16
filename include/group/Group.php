@@ -1269,7 +1269,7 @@ HAVING logincount > 0
         }
     }
 
-    public function getPopularMessages($groupid) {
+    public function getPopularMessages($groupid = NULL) {
         $ret = [];
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $gids = NULL;
