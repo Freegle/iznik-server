@@ -1066,5 +1066,9 @@ class messageTest extends IznikTestCase {
 //        $this->log(Message::determineType($m->getSubject()));
 //    }
 
+    public function testValidate() {
+        assertEquals(1, preg_match(Message::EMAIL_REGEXP, 'test@test.com'));
+        assertEquals(1, preg_match(Message::EMAIL_REGEXP, 'test@test.cloud'));
+    }
 }
 

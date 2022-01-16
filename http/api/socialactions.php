@@ -15,10 +15,13 @@ function socialactions() {
         case 'GET':
             $f = new GroupFacebook($dbhr, $dbhm);
             $actions = $f->listSocialActions($ctx);
+            $g = new Group($dbhr, $dbhm);
+
             $ret = [
                 'ret' => 0,
                 'status' => 'Success',
                 'socialactions' => $actions,
+                'popularposts' => $g->getPopularMessages(),
                 'context' => $ctx
             ];
            break;

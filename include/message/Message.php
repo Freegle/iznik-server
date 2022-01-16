@@ -31,7 +31,7 @@ class Message
     const LIKE_LAUGH = 'Laugh';
     const LIKE_VIEW = 'View';
 
-    const EMAIL_REGEXP = '/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i';
+    const EMAIL_REGEXP = '/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i';
 
     private $replycount = 0;
 

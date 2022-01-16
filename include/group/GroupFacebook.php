@@ -358,16 +358,15 @@ ORDER BY groups_facebook_toshare.id DESC;";
 
                 foreach ($pages as $page)
                 {
-                    error_log(var_export($page, TRUE));
                     # Whether or not this works, remember that we've tried, so that we don't try again.
-//                    $this->dbhm->preExec(
-//                        "UPDATE messages_popular SET shared = 1, declined = 0 WHERE msgid = ? AND groupid = ?;",
-//                        [
-//                            $msgid,
-//                            $groupid
-//                        ]
-//                    );
-//
+                    $this->dbhm->preExec(
+                        "UPDATE messages_popular SET shared = 1, declined = 0 WHERE msgid = ? AND groupid = ?;",
+                        [
+                            $msgid,
+                            $groupid
+                        ]
+                    );
+
                     $fb = $this->getFB(TRUE);
                     $token = $page['token'];
 
@@ -377,32 +376,32 @@ ORDER BY groups_facebook_toshare.id DESC;";
 
                     try
                     {
-                        $msgurl = 'https://' . USER_SITE . '/message/' . $msgid . '?src=popular';
-
-                        # Scrape the URL so that previews work.
-//                        $rsp = $fb->post('/?id=' . urlencode($msgurl) . '&scrape=true&access_token=' . $token);
-                        #error_log("URL get ". var_export($rsp, TRUE));
-
-                        $message = 'Trending yesterday for free on ' . $g->getName();
-                        $message .= " $msgurl";
-
-                        if (count($shortlinks)) {
-                            $message .= ". \n\nHop over to https://freegle.in/" . $shortlinks[0]['name'] . ' to see what\'s being given away, or ask for stuff.';
-                        }
-
+                        # Find the location.  We're assuming that this will encourage Facebook to show it to
+                        # people nearby.
                         $m = new Message($this->dbhr, $this->dbhm, $msgid);
                         $atts = $m->getPublic();
 
-                        $params = [
-                            'message' =>  $message,
-                            'link' => $msgurl,
-                        ];
+                        $results = $fb->get('/search?q=&type=place&center=' . $m->getPrivate('lat') . ',' . $m->getPrivate('lng') . '&distance=5000&access_token=' . $token . '&expires_in=5184000');
+                        error_log(var_export($results, TRUE));
+                        exit(0);
+                        $message = 'FREE!  Trending yesterday on ' . $g->getName() . ".";
+                        $link = count($shortlinks) ? ("https://freegle.in/" . $shortlinks[0]['name']) : ('https://' . USER_SITE);
+                        $message .= "\n\nHop over to $link to see what\'s being given away - or to ask for stuff you\'d like.";
 
-                        $result = $fb->post($page['id'] . '/feed', $params, $token);
-                        error_log(var_export($result, TRUE));
+                        $picture = NULL;
+
+                        if (Utils::pres('attachments', $atts) && count($atts['attachments'])) {
+                            $picture = $atts['attachments'][0]['path'];
+                        }
+
+                        $fb->post($page['id'] . '/photos', [
+                            'message' => $message,
+                            'url' => $picture
+                        ], $token);
+
                         $ret = TRUE;
                     } catch (\Exception $e) {
-                        error_log("Share failed with " . $e->getMessage() . " params " . json_encode($params));
+                        error_log("Share failed with " . $e->getMessage());
                     }
                 }
             }

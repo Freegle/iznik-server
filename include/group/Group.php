@@ -1269,16 +1269,28 @@ HAVING logincount > 0
         }
     }
 
-    public function getPopularMessage($groupid) {
+    public function getPopularMessages($groupid) {
         $ret = NULL;
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
+        $gids = NULL;
 
-        $msgs = $this->dbhr->preQuery("SELECT * FROM messages_popular WHERE groupid = ? AND shared = 0 AND declined = 0;", [
-            $groupid
-        ]);
+        if ($groupid) {
+            $gids = [ $groupid ];
+        } else if ($me) {
+            $gids = $me->getModeratorships();
+        }
 
-        foreach ($msgs as $msg) {
-            $msg['timestamp'] = Utils::ISODate($msg['timestamp']);
-            $ret = $msg;
+        if ($gids && count($gids)) {
+            $msgs = $this->dbhr->preQuery("SELECT * FROM messages_popular WHERE groupid IN (" . implode(',', $gids) . ") AND shared = 0 AND declined = 0;", [
+                $groupid
+            ]);
+
+            $ret = [];
+
+            foreach ($msgs as $msg) {
+                $msg['timestamp'] = Utils::ISODate($msg['timestamp']);
+                $ret[] = $msg;
+            }
         }
 
         return $ret;

@@ -18,13 +18,15 @@ if (count($opts) < 1) {
     $gid = $g->findByShortName($name);
 
     if ($gid) {
-        $msg = $g->getPopularMessage($gid);
+        $msgs = $g->getPopularMessages($gid);
 
-        if ($msg) {
-            $msgid = $msg['msgid'];
-            error_log("Share popular #$msgid");
-            $f = new GroupFacebook($dbhr, $dbhm);
-            $f->sharePopularMessage($gid, $msgid, TRUE);
+        if ($msgs) {
+            foreach ($msgs as $msg) {
+                $msgid = $msg['msgid'];
+                error_log("Share popular #$msgid");
+                $f = new GroupFacebook($dbhr, $dbhm);
+                $f->sharePopularMessage($gid, $msgid, TRUE);
+            }
         } else {
             error_log("No popular posts today.");
         }

@@ -196,16 +196,16 @@ class groupTest extends IznikTestCase
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
-        assertNull($g->getPopularMessage($gid));
+        assertNull($g->getPopularMessages($gid));
 
         # No views - no popular messages.
         $g->findPopularMessages();
-        assertNull($g->getPopularMessage($gid));
+        assertNull($g->getPopularMessages($gid));
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $m->like($m->getFromuser(), Message::LIKE_VIEW);
         $this->waitBackground();
         $g->findPopularMessages();
-        $popid = $g->getPopularMessage($gid)['msgid'];
+        $popid = $g->getPopularMessages($gid)[0]['msgid'];
         assertEquals($id, $popid);
 
         if ($share) {
@@ -215,7 +215,7 @@ class groupTest extends IznikTestCase
         }
 
         # Shouldn't show now.
-        assertNull($g->getPopularMessage($gid));
+        assertNull($g->getPopularMessages($gid));
     }
 
     public function popularProvider() {
