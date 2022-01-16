@@ -4826,7 +4826,8 @@ $mq", [
                          'Thanks for the interest, but this has now been taken.',
                          'Thanks, these have now been taken.',
                          'Thanks, this has now been received.',
-                         'Sorry, this is no longer available'
+                         'Sorry, this is no longer available',
+                         'Withdrawn on user unsubscribe'
                      ] as $bland) {
                 if (strcmp($comment, $bland) === 0) {
                     $dull = TRUE;

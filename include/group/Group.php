@@ -608,7 +608,8 @@ HAVING logincount > 0
               AND messages_outcomes.comments != 'Sorry, this has now been taken.'
               AND messages_outcomes.comments != 'Thanks for the interest, but this has now been taken.'
               AND messages_outcomes.comments != 'Thanks, these have now been taken.'
-              AND messages_outcomes.comments != 'Thanks, this has now been received.'";
+              AND messages_outcomes.comments != 'Thanks, this has now been received.'
+              AND messages_outcomes.comments != 'Withdrawn on user unsubscribe'";
     }
 
     public function getPublic($summary = FALSE) {
