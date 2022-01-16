@@ -593,9 +593,11 @@ UNION SELECT msgid AS id, arrival AS timestamp, 'ApprovedOrReposted' AS `type` F
             list ($lat, $lng, $loc) = $u->getLatLng($userid);
             $visibles = $this->dbhr->preQuery("SELECT id FROM `groups` WHERE id IN (" . implode(',', $groupids) . ") AND (postvisibility IS NULL OR ST_Contains(postvisibility, ST_GeomFromText('POINT($lng $lat)', {$this->dbhr->SRID()})));");
             $visibleids = array_column($visibles, 'id');
-            $msgs = array_filter($msgs, function ($msg) use ($visibleids) {
+
+            # Need to use array_values else we can return an object, rather than an array as the client expects.
+            $msgs = array_values(array_filter($msgs, function ($msg) use ($visibleids) {
                 return in_array($msg['groupid'], $visibleids);
-            });
+            }));
         }
 
         # Blur them.
