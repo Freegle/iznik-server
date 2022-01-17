@@ -856,9 +856,22 @@ class Spam {
         if ($collection == Spam::TYPE_PENDING_ADD) {
             # We don't want to overwrite an existing entry in the spammer list just because someone tries to
             # report it again.
-            $spammers = $this->dbhr->preQuery("SELECT * FROM spam_users WHERE userid = ?;", [ $userid ]);
-            foreach ($spammers as $spammer) {
-                $proceed = FALSE;
+            $u = new User($this->dbhr, $this->dbhm, $userid);
+
+            $ourDomain = FALSE;
+
+            foreach ($u->getEmails() as $email) {
+                if ($email['ourdomain']) {
+                    # Don't report spammers on our own domains.  They will be spoofed.
+                    $proceed = FALSE;
+                }
+            }
+
+            if ($proceed) {
+                $spammers = $this->dbhr->preQuery("SELECT * FROM spam_users WHERE userid = ?;", [ $userid ]);
+                foreach ($spammers as $spammer) {
+                    $proceed = FALSE;
+                }
             }
         }
 

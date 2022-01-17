@@ -452,8 +452,7 @@ class spammersAPITest extends IznikAPITestCase {
         ]);
 
         assertEquals(0, $ret['ret']);
-
-        }
+    }
 
     public function testExport() {
         $key = Utils::randstr(64);
@@ -491,6 +490,38 @@ class spammersAPITest extends IznikAPITestCase {
             'modtools' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
+    }
+
+    public function testReportOwnDomain() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid1 = $u->create(NULL, NULL, 'Test User');
+        assertGreaterThan(0, $u->addEmail('test3@' . USER_DOMAIN));
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+        assertGreaterThan(0, $u->addEmail('test4@' . GROUP_DOMAIN));
+
+        # Log in and report.
+        assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($this->user->login('testpw'));
+
+        $ret = $this->call('spammers', 'POST', [
+            'userid' => $uid1,
+            'collection' => Spam::TYPE_PENDING_ADD,
+            'reason' => 'Test reason',
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $sid = $ret['id'];
+        assertNull($sid);
+
+        $ret = $this->call('spammers', 'POST', [
+            'userid' => $uid2,
+            'collection' => Spam::TYPE_PENDING_ADD,
+            'reason' => 'Test reason',
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $sid = $ret['id'];
+        assertNull($sid);
     }
 }
 
