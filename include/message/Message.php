@@ -2141,10 +2141,6 @@ ORDER BY lastdate DESC;";
                 #
                 # Yahoo members can do a reply to all which results in a message going to both one of our users
                 # and the group, so in that case we want to ignore the group aspect.
-                if (Mail::ourDomain($t['address'])) {
-                    $toours = TRUE;
-                }
-
                 if (preg_match('/(.*)@yahoogroups\.co.*/', $t['address'], $matches) &&
                     strpos($t['address'], '-owner@') === FALSE) {
                     # Yahoo group.
@@ -2158,6 +2154,8 @@ ORDER BY lastdate DESC;";
                     $groupname = $matches[1];
                     $togroup = TRUE;
                     #error_log("Got $groupname from {$t['address']}");
+                } else if (Mail::ourDomain($t['address'])) {
+                    $toours = TRUE;
                 }
             }
 
