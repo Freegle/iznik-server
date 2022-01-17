@@ -173,7 +173,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'GET', [
             'id' => $refmsgid
         ]);
-        assertFalse($ret['message']['interacted']);
+        assertNull($ret['message']['interacted']);
 
         # Promise to someone else.
         $m = new Message($this->dbhr, $this->dbhm, $refmsgid);
@@ -208,7 +208,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'GET', [
             'id' => $refmsgid
         ]);
-        assertTrue($ret['message']['interacted']);
+        assertEquals($this->cid, $ret['message']['interacted']);
 
         # Should be able to set the replyexpected flag
         $ret = $this->call('chatmessages', 'PATCH', [

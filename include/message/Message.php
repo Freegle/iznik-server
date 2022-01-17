@@ -1757,7 +1757,7 @@ ORDER BY lastdate DESC;";
             # Return whether we've previously interacted.
             $r = new ChatRoom($this->dbhr, $this->dbhm);
             list ($rid, $banned) = $r->createConversation($this->getPrivate('fromuser'), $me->getId(), TRUE);
-            $rets[$this->id]['interacted'] = $rid != NULL;
+            $rets[$this->id]['interacted'] = $rid ? $rid : NULL;
         }
 
         $ret = $rets[$this->id];
