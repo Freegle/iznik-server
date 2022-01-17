@@ -211,7 +211,7 @@ class groupTest extends IznikTestCase
         if ($share) {
             $g->sharedPopularMessage($popid);
         } else {
-            $g->declinedPopularMessage($popid);
+            $g->hidPopularMessage($popid);
         }
 
         # Shouldn't show now.

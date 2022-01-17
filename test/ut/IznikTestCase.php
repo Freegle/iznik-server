@@ -205,5 +205,12 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
             $l->delete();
         }
     }
+
+    public function trueFalseProvider() {
+        return [
+            [ TRUE ],
+            [ FALSE ]
+        ];
+    }
 }
 

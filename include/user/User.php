@@ -1478,6 +1478,7 @@ class User extends Entity
         Session::clearSessionCache();
 
         $currentRole = $this->getRoleForGroup($groupid, FALSE);
+        error_log("Change role $currentRole => $role");
 
         if ($currentRole != $role) {
             $l = new Log($this->dbhr, $this->dbhm);
@@ -1510,6 +1511,8 @@ class User extends Entity
                     ChatRoom::TYPE_USER2MOD
                 ]);
             }
+
+            $this->memberships = NULL;
         }
 
         return ($rc);

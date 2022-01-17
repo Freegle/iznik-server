@@ -16,6 +16,8 @@ class GroupFacebook {
 
     const ACTION_DO = 'Do';
     const ACTION_HIDE = 'Hide';
+    const ACTION_DO_POPULAR  = 'DoPopular';
+    const ACTION_HIDE_POPULAR = 'HidePopular';
     const ACTION_SHARE_MESSAGE_TO_GROUP = 'ShareMessageToGroup';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $fetched = NULL)

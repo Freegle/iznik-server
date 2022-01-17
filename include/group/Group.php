@@ -1278,13 +1278,17 @@ HAVING logincount > 0
         if ($groupid) {
             $gids = [ $groupid ];
         } else if ($me) {
-            $gids = $me->getModeratorships();
+            $gids1 = $me->getModeratorships();
+
+            foreach ($gids1 as $gid) {
+                if ($me->activeModForGroup($gid)) {
+                    $gids[] = $gid;
+                }
+            }
         }
 
         if ($gids && count($gids)) {
-            $msgs = $this->dbhr->preQuery("SELECT * FROM messages_popular WHERE groupid IN (" . implode(',', $gids) . ") AND shared = 0 AND declined = 0;", [
-                $groupid
-            ]);
+            $msgs = $this->dbhr->preQuery("SELECT * FROM messages_popular WHERE groupid IN (" . implode(',', $gids) . ") AND shared = 0 AND declined = 0;");
 
             $ret = [];
 
@@ -1303,8 +1307,7 @@ HAVING logincount > 0
         ]);
     }
 
-
-    public function declinedPopularMessage($msgid) {
+    public function hidPopularMessage($msgid) {
         $this->dbhm->preExec("UPDATE messages_popular SET declined = 1 WHERE msgid = ?;", [
             $msgid
         ]);

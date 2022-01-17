@@ -51,6 +51,32 @@ function socialactions() {
                         'status' => 'Success'
                     ];
                     break;
+                case GroupFacebook::ACTION_DO_POPULAR:
+                case GroupFacebook::ACTION_HIDE_POPULAR: {
+                    $groupid = Utils::presint('groupid', $_REQUEST, NULL);
+                    $msgid = Utils::presint('msgid', $_REQUEST, NULL);
+                    $ret = [
+                        'ret' => 2,
+                        'status' => 'Invalid parameters'
+                    ];
+
+                    if ($groupid && $msgid) {
+                        $g = Group::get($dbhr, $dbhm, $groupid);
+                        if ($action == GroupFacebook::ACTION_DO_POPULAR) {
+                            $f->sharePopularMessage($groupid, $msgid);
+                            $g->sharedPopularMessage($msgid);
+                        } else {
+                            $g->hidPopularMessage($msgid);
+                        }
+
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success'
+                        ];
+                    }
+
+                    break;
+                }
             }
 
             break;
