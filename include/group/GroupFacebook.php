@@ -383,12 +383,9 @@ ORDER BY groups_facebook_toshare.id DESC;";
                         $m = new Message($this->dbhr, $this->dbhm, $msgid);
                         $atts = $m->getPublic();
 
-                        $results = $fb->get('/search?q=&type=place&center=' . $m->getPrivate('lat') . ',' . $m->getPrivate('lng') . '&distance=5000&access_token=' . $token . '&expires_in=5184000');
-                        error_log(var_export($results, TRUE));
-                        exit(0);
                         $message = 'FREE!  Trending yesterday on ' . $g->getName() . ".";
                         $link = count($shortlinks) ? ("https://freegle.in/" . $shortlinks[0]['name']) : ('https://' . USER_SITE);
-                        $message .= "\n\nHop over to $link to see what\'s being given away - or to ask for stuff you\'d like.";
+                        $message .= "\n\nHop over to $link to see what\'s being given away - or to ask for stuff people you'd like.";
 
                         $picture = NULL;
 

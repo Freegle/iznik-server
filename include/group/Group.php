@@ -492,7 +492,7 @@ HAVING logincount > 0
                     'happiness' => 0,
                     'relatedmembers' => 0,
                     'chatreview' => 0,
-                    'chatreviewother' => 0,
+                    'chatreviewother' => 0
                 ];
 
                 if ($active) {
@@ -1245,7 +1245,8 @@ HAVING logincount > 0
 
         # Find messages with the most views.
         $msgs = $this->dbhr->preQuery("SELECT COUNT(*) AS count, messages_likes.msgid, groupid FROM messages_likes 
-    INNER JOIN messages_groups ON messages_groups.msgid = messages_likes.msgid 
+    INNER JOIN messages_groups ON messages_groups.msgid = messages_likes.msgid
+    LEFT JOIN messages_attachments ma on messages_groups.msgid = ma.msgid 
     WHERE TIMESTAMPDIFF(HOUR, messages_likes.timestamp, NOW()) <= 24 AND 
           messages_groups.deleted = 0 AND 
           messages_groups.collection = ? 
@@ -1262,7 +1263,7 @@ HAVING logincount > 0
         }
 
         foreach ($forgroup as $groupid => $msgid) {
-            $this->dbhm->preExec("INSERT INTO messages_popular (groupid, msgid) VALUES (?, ?) ON DUPLICATE KEY UPDATE msgid = ?;", [
+            $this->dbhm->preExec("INSERT INTO messages_popular (groupid, msgid) VALUES (?, ?) ON DUPLICATE KEY UPDATE msgid = ?, shared = 0, declined = 0;", [
                 $groupid,
                 $msgid,
                 $msgid
