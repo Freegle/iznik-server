@@ -1170,7 +1170,7 @@ class messageAPITest extends IznikAPITestCase
     /**
      * @dataProvider editProvider
      */
-    public function testEditAsMember($anonymous)
+    public function testEditAsMember($anonymous, $revert)
     {
         $l = new Location($this->dbhr, $this->dbhm);
         $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)');
@@ -1267,11 +1267,18 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals(1, $ret['me']['openposts']);
 
-        # Edit the message.
+        # Edit the message twice.
         $ret = $this->call('message', 'PATCH', [
             'id' => $mid,
             'groupid' => $this->gid,
             'item' => 'Edited',
+            'location' => 'TV1 1AB'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'PATCH', [
+            'id' => $mid,
+            'groupid' => $this->gid,
             'textbody' => 'Another text body',
             'location' => 'TV1 1AB'
         ]);
@@ -1283,13 +1290,13 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(8.6, $m->getPrivate('lat'));
 
         # Again but with no actual change
-        $ret = $this->call('message', 'PATCH', [
-            'id' => $mid,
-            'groupid' => $this->gid,
-            'item' => 'Edited',
-            'textbody' => 'Another text body'
-        ]);
-        assertEquals(0, $ret['ret']);
+//        $ret = $this->call('message', 'PATCH', [
+//            'id' => $mid,
+//            'groupid' => $this->gid,
+//            'item' => 'Edited',
+//            'textbody' => 'Another text body'
+//        ]);
+//        assertEquals(0, $ret['ret']);
 
         # Test the available numbers.
         $ret = $this->call('message', 'PATCH', [
@@ -1394,12 +1401,17 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(10, $ret['message']['availablenow']);
 
         # Check edit history.  Edit should show as needing approval.
-        assertEquals(1, count($ret['message']['edits']));
+        assertEquals(2, count($ret['message']['edits']));
         assertEquals('Text body', $ret['message']['edits'][0]['oldtext']);
         assertEquals('Another text body', $ret['message']['edits'][0]['newtext']);
         assertEquals(TRUE, $ret['message']['edits'][0]['reviewrequired']);
-        assertEquals('OFFER: a thing (TV1)', $ret['message']['edits'][0]['oldsubject']);
-        assertEquals('OFFER: Edited (TV1)', $ret['message']['edits'][0]['newsubject']);
+        assertNull($ret['message']['edits'][0]['oldsubject']);
+        assertNull($ret['message']['edits'][0]['newsubject']);
+        assertNull($ret['message']['edits'][1]['oldtext']);
+        assertNull($ret['message']['edits'][1]['newtext']);
+        assertEquals(TRUE, $ret['message']['edits'][1]['reviewrequired']);
+        assertEquals('OFFER: a thing (TV1)', $ret['message']['edits'][1]['oldsubject']);
+        assertEquals('OFFER: Edited (TV1)', $ret['message']['edits'][1]['newsubject']);
 
         # This message should also show up in edits.
         $ret = $this->call('messages', 'GET', [
@@ -1415,7 +1427,7 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(MessageCollection::APPROVED, $ret['messages'][0]['groups'][0]['collection']);
 
         # And will show the edit.
-        assertEquals(1, count($ret['messages'][0]['edits']));
+        assertEquals(2, count($ret['messages'][0]['edits']));
         $editid = $ret['messages'][0]['edits'][0]['id'];
 
         # And also in the counts.
@@ -1425,15 +1437,39 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(1, $ret['groups'][0]['work']['editreview']);
         assertEquals(1, $ret['work']['editreview']);
 
-        # Now approve the edit.
-        $ret = $this->call('message', 'POST', [
-            'id' => $mid,
-            'action' => 'ApproveEdits',
-            'editid' => $editid
-        ]);
-        assertEquals(0, $ret['ret']);
+        if ($revert) {
+            # Revert all edits.
+            $ret = $this->call('message', 'POST', [
+                'id' => $mid,
+                'action' => 'RevertEdits'
+            ]);
+            assertEquals(0, $ret['ret']);
 
-        # No longer showing for review.
+            # Should be back as it was.
+            $ret = $this->call('message', 'GET', [
+                'id' => $mid
+            ]);
+
+            assertEquals('OFFER: a thing (TV1)', $ret['message']['subject']);
+            assertEquals('Text body', $ret['message']['textbody']);
+        } else {
+            # Approve the edits.
+            $ret = $this->call('message', 'POST', [
+                'id' => $mid,
+                'action' => 'ApproveEdits'
+            ]);
+            assertEquals(0, $ret['ret']);
+
+            # Should have applied..
+            $ret = $this->call('message', 'GET', [
+                'id' => $mid
+            ]);
+
+            assertEquals('OFFER: Edited (TV1)', $ret['message']['subject']);
+            assertEquals('Another text body', $ret['message']['textbody']);
+        }
+
+        # Not showing for review.
         $ret = $this->call('messages', 'GET', [
             'groupid' => $this->gid,
             'collection' => MessageCollection::EDITS
@@ -1441,27 +1477,14 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['messages']));
 
-        # Now revert it.
-        $ret = $this->call('message', 'POST', [
-            'id' => $mid,
-            'action' => 'RevertEdits',
-            'editid' => $editid
-        ]);
-        assertEquals(0, $ret['ret']);
-
-        # Should be back as it was.
-        $ret = $this->call('message', 'GET', [
-            'id' => $mid
-        ]);
-
-        assertEquals('OFFER: a thing (TV1)', $ret['message']['subject']);
-        assertEquals('Text body', $ret['message']['textbody']);
     }
 
     public function editProvider() {
         return [
-            [ TRUE ],
-            [ FALSE ]
+            [ TRUE, TRUE ],
+            [ FALSE, TRUE ],
+            [ TRUE, FALSE ],
+            [ FALSE, FALSE ],
         ];
     }
 
