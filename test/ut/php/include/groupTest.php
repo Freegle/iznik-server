@@ -184,7 +184,7 @@ class groupTest extends IznikTestCase
         $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         $u->addEmail('test@test.com');
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $msg = str_replace("Hey", "Hey {{username}}", $msg);
