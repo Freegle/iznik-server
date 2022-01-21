@@ -48,12 +48,9 @@ RUN apt-get install -y autoconf automake libtool re2c flex make libxml2-dev libs
 RUN apt-get remove -y apache2* sendmail* mlocate php-ssh2
 
 # Postgres
-RUN apt-get install postgresql postgis postgresql-12-postgis-3
+RUN apt-get install -y postgresql postgis postgresql-12-postgis-3
 RUN sed -i  '/^local.*all.*all.*peer/ s/peer/md5/' /etc/postgresql/12/main/pg_hba.conf
-RUN /etc/init.d/postgresql start
-RUN su -c "psql -c \"CREATE USER iznik WITH PASSWORD 'iznik'\";" postgres
-RUN su -c "psql -c \"ALTER ROLE iznik superuser;\"" postgres
-RUN su -c "psql -c \"CREATE DATABASE iznik;\"" postgres
+RUN ls -l /etc/postgresql
 
 # GeoIP
 #
@@ -124,6 +121,15 @@ CMD rm -rf /var/lib/mysql/* \
 	&& echo max_allowed_packet=32MB >> /etc/mysql/my.cnf \
 	&& /etc/init.d/mysql start \
 	&& mysql -u root -e 'CREATE DATABASE IF NOT EXISTS iznik;' \
+	&& /etc/init.d/postgresql start \
+	# Do the next bit in a script as it can fail on re-run
+  && echo "psql -c \"CREATE USER iznik WITH PASSWORD 'iznik'\" > /dev/null 2>&1" > /tmp/pgadduser \
+  && echo "psql -c \"ALTER ROLE iznik superuser;\" > /dev/null 2>&1"  >> /tmp/pgadduser \
+  && echo "psql -c \"CREATE DATABASE iznik;\" > /dev/null 2>&1" >> /tmp/pgadduser \
+  && echo "psql -c \"CREATE EXTENSION postgis;\" > /dev/null 2>&1" >> /tmp/pgadduser \
+  && echo "psql -c \"CREATE EXTENSION btree_gist;\" > /dev/null 2>&1" >> /tmp/pgadduser \
+  && echo "return 0" >> /tmp/pgadduser \
+  && su -c ". /tmp/pgadduser" postgres \
 	&& /etc/init.d/redis-server start \
 	&& /etc/init.d/beanstalkd start \
 	&& /etc/init.d/nginx start \
