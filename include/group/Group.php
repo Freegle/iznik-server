@@ -1246,7 +1246,7 @@ HAVING logincount > 0
         # Find messages with the most views.
         $msgs = $this->dbhr->preQuery("SELECT COUNT(*) AS count, messages_likes.msgid, groupid FROM messages_likes 
     INNER JOIN messages_groups ON messages_groups.msgid = messages_likes.msgid
-    LEFT JOIN messages_attachments ma on messages_groups.msgid = ma.msgid 
+    INNER JOIN messages_attachments ma on messages_groups.msgid = ma.msgid 
     WHERE TIMESTAMPDIFF(HOUR, messages_likes.timestamp, NOW()) <= 24 AND 
           messages_groups.deleted = 0 AND 
           messages_groups.collection = ? 
