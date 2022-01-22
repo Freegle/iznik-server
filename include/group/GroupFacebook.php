@@ -343,7 +343,7 @@ ORDER BY groups_facebook_toshare.id DESC;";
         $ret = FALSE;
 
         if (!$msgid) {
-            $pops = $this->dbhr->preQuery("SELECT * FROM messages_popular WHERE groupid = ? AND shared = 0 AND declined = 0;", [
+            $pops = $this->dbhr->preQuery("SELECT * FROM messages_popular WHERE groupid = ? AND shared = 0 AND declined = 0 AND expired = 0;", [
                 $groupid
             ]);
 
@@ -385,7 +385,7 @@ ORDER BY groups_facebook_toshare.id DESC;";
 
                         $message = 'FREE!  Trending yesterday on ' . $g->getName() . ".";
                         $link = count($shortlinks) ? ("https://freegle.in/" . $shortlinks[0]['name']) : ('https://' . USER_SITE);
-                        $message .= "\n\nHop over to $link to see what's being given away - or to ask for stuff you'd like.";
+                        $message .= "\n\nHop over to $link to see what else is being given away - or to ask for stuff you'd like.";
 
                         $picture = NULL;
 

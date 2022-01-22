@@ -1241,7 +1241,7 @@ HAVING logincount > 0
 
     public function findPopularMessages() {
         # Delete any old ones.
-        $this->dbhm->preExec("DELETE FROM messages_popular WHERE TIMESTAMPDIFF(HOUR, timestamp, NOW()) >= 24;");
+        $this->dbhm->preExec("UPDATE messages_popular SET expired = 1 WHERE TIMESTAMPDIFF(HOUR, timestamp, NOW()) >= 24 AND shared = 0 AND declined = 0;");
 
         # Find messages with the most views.
         $msgs = $this->dbhr->preQuery("SELECT COUNT(*) AS count, messages_likes.msgid, groupid FROM messages_likes 
@@ -1263,11 +1263,17 @@ HAVING logincount > 0
         }
 
         foreach ($forgroup as $groupid => $msgid) {
-            $this->dbhm->preExec("INSERT INTO messages_popular (groupid, msgid) VALUES (?, ?) ON DUPLICATE KEY UPDATE msgid = ?, shared = 0, declined = 0;", [
-                $groupid,
-                $msgid,
+            # Don't share the same message multiple times.
+            $exists = $this->dbhr->preQuery("SELECT id FROM messages_popular WHERE msgid = ?;", [
                 $msgid
             ]);
+
+            if (!count($exists)) {
+                $this->dbhm->preExec("INSERT INTO messages_popular (groupid, msgid) VALUES (?, ?);", [
+                    $groupid,
+                    $msgid
+                ]);
+            }
         }
     }
 
@@ -1289,7 +1295,7 @@ HAVING logincount > 0
         }
 
         if ($gids && count($gids)) {
-            $msgs = $this->dbhr->preQuery("SELECT * FROM messages_popular WHERE groupid IN (" . implode(',', $gids) . ") AND shared = 0 AND declined = 0;");
+            $msgs = $this->dbhr->preQuery("SELECT * FROM messages_popular WHERE TIMESTAMPDIFF(HOUR, timestamp, NOW()) <= 48 AND groupid IN (" . implode(',', $gids) . ") AND shared = 0 AND declined = 0 AND expired = 0;");
 
             $ret = [];
 
