@@ -385,7 +385,7 @@ ORDER BY groups_facebook_toshare.id DESC;";
 
                         $message = 'FREE!  Trending yesterday on ' . $g->getName() . ".";
                         $link = count($shortlinks) ? ("https://freegle.in/" . $shortlinks[0]['name']) : ('https://' . USER_SITE);
-                        $message .= "\n\nHop over to $link to see what else is being given away - or to ask for stuff you'd like.";
+                        $message .= "\n\n" . $m->getSubject() . "\n\nHop over to $link to see what else is being given away - or to ask for stuff you'd like.";
 
                         $picture = NULL;
 
