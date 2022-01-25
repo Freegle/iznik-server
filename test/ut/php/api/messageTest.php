@@ -2373,17 +2373,35 @@ class messageAPITest extends IznikAPITestCase
 
         assertEquals(0, count($ret['message']['outcomes']));
 
-        # Now expire it on the group by.
+        # Now expire it on the group.
         $this->dbhm->preExec("UPDATE messages_groups SET arrival = '$expired' WHERE msgid = $id;");
+
+        # ...but add a recent chat referencing it.
+        $cr = new ChatRoom($this->dbhr, $this->dbhm);
+        $cm = new ChatMessage($this->dbhr, $this->dbhm);
+        $u2 = User::get($this->dbhr, $this->dbhm);
+        $uid2 = $u2->create(NULL, NULL, 'Test User');
+        list ($cid, $banned) = $cr->createConversation($uid, $uid2);
+        list ($cmid, $banned) = $cm->create($cid, $uid2, 'Please', ChatMessage::TYPE_INTERESTED, $id);
+
+        # Shouldn't have expired yet.
+        self::assertEquals(0, count($ret['message']['outcomes']));
 
         # Should now have expired.
         $ret = $this->call('message', 'GET', [
             'id' => $id,
         ]);
 
-        self::assertEquals(Message::OUTCOME_EXPIRED, $ret['message']['outcomes'][0]['outcome']);
+        # Delete the chat message - should now look like it's expired.
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $cmid);
+        $cm->delete();
 
-        }
+        $ret = $this->call('message', 'GET', [
+            'id' => $id,
+        ]);
+
+        self::assertEquals(Message::OUTCOME_EXPIRED, $ret['message']['outcomes'][0]['outcome']);
+    }
 
     public function testIntendedTaken()
     {

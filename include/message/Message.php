@@ -1451,14 +1451,23 @@ ORDER BY lastdate DESC;";
                     $rets[$msg['id']]['expiresat'] = $expiredat;
 
                     if ($grouparrivalago > $expiretime) {
-                        # Assume anything this old is no longer available.
+                        # Anything this old is probably no longer available.  But check to see if we have an ongoing
+                        # conversation which references it in the last few days.  Find the most recent message in
+                        # any chats which reference it.
+                        $ongoings = $this->dbhr->preQuery("SELECT MAX(latestmessage) AS max FROM chat_rooms INNER JOIN chat_messages ON chat_rooms.id = chat_messages.chatid WHERE refmsgid = ?;", [
+                            $msg['id']
+                        ]);
 
-                        $rets[$msg['id']]['outcomes'] = [
-                            [
-                                'timestamp' => $expiredat,
-                                'outcome' => Message::OUTCOME_EXPIRED
-                            ]
-                        ];
+                        $max = $ongoings[0]['max'];
+
+                        if (!$max || (time() - strtotime($max)) > 6 * 24 * 60 * 60) {
+                            $rets[$msg['id']]['outcomes'] = [
+                                [
+                                    'timestamp' => $expiredat,
+                                    'outcome' => Message::OUTCOME_EXPIRED
+                                ]
+                            ];
+                        }
                     }
                 }
             }
