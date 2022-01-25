@@ -30,9 +30,12 @@ if (count($opts) < 2) {
         $tog->setPrivate('publish', 0);
         $tog->setPrivate('onmap', 0);
         $tog->setPrivate('listable', 0);
+        $tog->setPrivate('onyahoo', 0);
         $tog->setPrivate('onhere', 1);
+        $tog->setPrivate('ontn', 0);
+        $tog->setPrivate('showonyahoo', 0);
 
-        foreach (['settings', 'region', 'authorityid', 'tagline', 'description', 'welcomemail'] as $att) {
+        foreach (['settings', 'type', 'region', 'lat', 'lng', 'poly', 'polyofficial', 'authorityid', 'tagline', 'description', 'welcomemail'] as $att) {
             $tog->setPrivate($att, $fromg->getPrivate($att));
         }
     }
