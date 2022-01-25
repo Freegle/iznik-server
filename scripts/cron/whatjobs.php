@@ -14,6 +14,11 @@ use Prewk\XmlStringStreamer;
 use Prewk\XmlStringStreamer\Stream;
 use Prewk\XmlStringStreamer\Parser;
 
+# This is slow, so increase the timeout otherwise we will fail to complete.
+ini_set("default_socket_timeout", 1200);
+$dbhr->setAttribute(\PDO::ATTR_TIMEOUT, 1200);
+$dbhm->setAttribute(\PDO::ATTR_TIMEOUT, 1200);
+
 $lockh = Utils::lockScript(basename(__FILE__));
 
 # Get the oldest date before we start because the script can run for ages.

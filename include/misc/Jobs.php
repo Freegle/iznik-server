@@ -445,6 +445,7 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
                             if ($job->body) {
                                 # Truncate the body - we only display the body as a snippet to get people to click
                                 # through.
+                                #
                                 # Fix up line endings which cause problems with fputcsv, and other weirdo characters
                                 # that get mangled en route to us.  This isn't a simple UTF8 problem because the data
                                 # comes from all over the place and is a bit of a mess.
@@ -455,7 +456,15 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
                                 $body = str_replace('–', '-', $body);
                                 $body = str_replace('Â', '-', $body);
                                 $body = substr($body, 0, 256);
+
+                                # The truncation might happen to leave a \ at the end of the string, which would then
+                                # escape the following quote added by fputcsv, and the world would explode in a ball of
+                                # fire.  Add a space to avoid that.
+                                $body .= ' ';
                             }
+
+                            # Sometimes the geocode can end up with line breaks.
+                            $geom = str_replace(["\n", "\r"], '', $geom);
 
                             # Write the job to CSV, ready for LOAD DATA INFILE later.
                             # location, title, city, state, zip, country, job_type, posted_at, job_reference, company,
