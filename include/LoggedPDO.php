@@ -659,7 +659,7 @@ class LoggedPDO {
                                                                  'type' => 'sqlfile',
                                                                  'queued' => microtime(TRUE),
                                                                  'file' => $fn,
-                                                                 'ttr' => 300
+                                                                 'ttr' => Utils::PHEANSTALK_TTR
                                                              )));
                 } else {
                     # Can pass inline and save the disk write.
@@ -667,7 +667,7 @@ class LoggedPDO {
                                                                  'type' => 'sql',
                                                                  'queued' => microtime(TRUE),
                                                                  'sql' => $sql,
-                                                                 'ttr' => 300
+                                                                 'ttr' => Utils::PHEANSTALK_TTR
                                                              )));
                 }
                 #error_log("Backgroupd $id for $sql");
