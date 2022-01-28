@@ -3980,7 +3980,7 @@ CREATE TABLE `users_donations` (
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `TransactionID` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `GrossAmount` decimal(10,2) NOT NULL,
-  `source` enum('DonateWithPayPal','PayPalGivingFund','Facebook','eBay','BankTransfer') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'DonateWithPayPal',
+  `source` enum('DonateWithPayPal','PayPalGivingFund','Facebook','eBay','BankTransfer','External') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'DonateWithPayPal',
   `giftaidconsent` tinyint(1) NOT NULL DEFAULT '0',
   `giftaidclaimed` timestamp NULL DEFAULT NULL,
   `giftaidchaseup` timestamp NULL DEFAULT NULL,

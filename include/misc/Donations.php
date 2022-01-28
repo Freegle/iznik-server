@@ -10,6 +10,8 @@ class Donations
     const PERIOD_FUTURE = 'Future';
     const PERIOD_DECLINED = 'Declined';
 
+    const TYPE_EXTERNAL = 'External';
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid = NULL)
     {
         $this->dbhr = $dbhr;
