@@ -32,15 +32,6 @@ class donationsAPITest extends IznikAPITestCase
     public function testBasic()
     {
         $ret = $this->call('donations', 'GET', []);
-        assertEquals(1, $ret['ret']);
-
-        $u = User::get($this->dbhr, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
-        $u->setPrivate('permissions', User::PERM_GIFTAID);
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
-
-        $ret = $this->call('donations', 'GET', []);
         assertEquals(0, $ret['ret']);
         assertTrue(array_key_exists('donations', $ret));
     }

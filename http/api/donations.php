@@ -10,20 +10,14 @@ function donations() {
 
     switch ($_REQUEST['type']) {
         case 'GET': {
+            # No permissions needed - this discloses a summary, not the details.
             $d = new Donations($dbhr, $dbhm, $groupid);
-
             $ret = [
-                'ret' => 1,
-                'status' => 'Permission denied'
+                'ret' => 0,
+                'status' => 'Success',
+                'donations' => $d->get()
             ];
 
-            if ($me && $me->hasPermission(User::PERM_GIFTAID)) {
-                $ret = [
-                    'ret' => 0,
-                    'status' => 'Success',
-                    'donations' => $d->get()
-                ];
-            }
             break;
         }
 
