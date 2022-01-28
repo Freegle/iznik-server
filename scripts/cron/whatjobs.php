@@ -25,7 +25,7 @@ $lockh = Utils::lockScript(basename(__FILE__));
 $oldest = date('Y-m-d H:i:s', strtotime("9 hours ago"));
 
 # Get the jobs file.
-system('cd /tmp/; rm feed.xml*; wget -O - ' . WHATJOBS_DUMP . '| gzip -d -c > feed.xml');
+system('cd /tmp/; rm feed.xml*; rm feed*.csv; wget -O - ' . WHATJOBS_DUMP . '| gzip -d -c > feed.xml');
 
 # Generate a CSV containing what we want.
 $j = new Jobs($dbhr, $dbhm);
