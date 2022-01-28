@@ -32,6 +32,5 @@ $msg = \Swift_Message::newInstance()
 
 $msg->attach($htmlPart);
 
-$transport = \Swift_SmtpTransport::newInstance('localhost');
-$mailer = \Swift_Mailer::newInstance($transport);
+list ($transport, $mailer) = Mail::getMailer();
 $mailer->send($msg);
