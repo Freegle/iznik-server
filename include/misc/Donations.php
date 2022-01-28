@@ -12,6 +12,8 @@ class Donations
 
     const TYPE_EXTERNAL = 'External';
 
+    const MANUAL_THANKS = 20;
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid = NULL)
     {
         $this->dbhr = $dbhr;

@@ -55,7 +55,7 @@ class donationsAPITest extends IznikAPITestCase
 
         $ret = $this->call('donations', 'PUT', [
             'userid' => $u->getId(),
-            'amount' => 1,
+            'amount' => 25,
             'date' => '2022-01-01'
         ]);
         assertEquals(0, $ret['ret']);

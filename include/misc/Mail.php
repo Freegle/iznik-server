@@ -44,6 +44,7 @@ class Mail {
     const UNSUBSCRIBE = 40;
     const MISSING = 41;
     const NOTICEBOARD_CHASEUP_OWNER = 42;
+    const DONATE_EXTERNAL = 43;
 
     const DESCRIPTIONS = [
         Mail::DIGEST => 'Digest',

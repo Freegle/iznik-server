@@ -49,6 +49,29 @@ function donations() {
                     ];
 
                     if ($id) {
+                        $giftaid = $d->getGiftAid($u->getId());
+
+                        if (!$giftaid || $giftaid['period'] == Donations::PERIOD_THIS) {
+                            # Ask them to complete a gift aid form.
+                            $n = new Notifications($dbhr, $dbhm);
+                            $n->add(NULL, $u->getId(), Notifications::TYPE_GIFTAID, NULL);
+                        }
+
+                        if ($amount > Donations::MANUAL_THANKS) {
+                            $text = $u->getName() ." (" . $u->getEmailPreferred() . ") donated £$amount.  Please can you thank them?";
+                            $message = \Swift_Message::newInstance()
+                                ->setSubject($text)
+                                ->setFrom(NOREPLY_ADDR)
+                                ->setTo(INFO_ADDR)
+                                ->setCc('log@ehibbert.org.uk')
+                                ->setBody($text);
+
+                            list ($transport, $mailer) = Mail::getMailer();
+                            Mail::addHeaders($message, Mail::DONATE_EXTERNAL);
+
+                            $mailer->send($message);
+                        }
+
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',
