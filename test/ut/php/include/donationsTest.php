@@ -57,6 +57,19 @@ class donationsTest extends IznikTestCase {
         $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 3', 0);
         assertNotNull($did);
 
+        # Test the donations show up for Support Tools.
+        $mod = new User($this->dbhr, $this->dbhm);
+        $mod->create('Test', 'User', NULL);
+        $mod->setPrivate('systemrole', User::ROLE_MODERATOR);
+        $mod->setPrivate('permissions', User::PERM_GIFTAID);
+        assertGreaterThan(0, $mod->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($mod->login('testpw'));
+
+        $ctx = NULL;
+        $searches = $u->search($id , $ctx);
+        assertEquals(1, count($searches));
+        assertEquals(3, count($searches[0]['donations']));
+
         # Add consent.
         $gid = $d->setGiftAid($id, Donations::PERIOD_SINCE, 'Test User', 'Nowheresville');
         $d->editGiftAid($gid, NULL, NULL, NULL, NULL, NULL, TRUE, FALSE);
