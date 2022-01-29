@@ -315,4 +315,16 @@ class Donations
 
         return $found;
     }
+
+    public function listByUser($userid) {
+        $donations = $this->dbhr->preQuery("SELECT * FROM users_donations WHERE userid = ? ORDER BY id DESC;", [
+            $userid
+        ]);
+
+        foreach ($donations as &$donation) {
+            $donation['timestamp'] = Utils::ISODate($donation['timestamp']);
+        }
+
+        return $donations;
+    }
 }

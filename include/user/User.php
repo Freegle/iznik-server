@@ -4022,6 +4022,10 @@ class User extends Entity
             $d = new Donations($this->dbhr, $this->dbhm);
             $thisone['giftaid'] = $d->getGiftAid($user['userid']);
 
+            if ($me->hasPermission(User::PERM_GIFTAID)) {
+                $thisone['donations'] = $d->listByUser($user['userid']);
+            }
+
             $ret[] = $thisone;
         }
 
