@@ -451,6 +451,13 @@ class ChatMessage extends Entity
                 $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
                 $r->pokeMembers();
                 $r->notifyMembers($u->getName(), $msg['message'], $msg['userid'], TRUE);
+
+                $this->log->log([
+                                    'type' => Log::TYPE_CHAT,
+                                    'subtype' => Log::SUBTYPE_APPROVED,
+                                    'byuser' => $myid,
+                                    'user' => $msg['userid'],
+                                ]);
             }
         }
     }
