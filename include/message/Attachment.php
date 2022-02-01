@@ -201,6 +201,9 @@ class Attachment
                 unlink($temp);
                 error_log("scp $temp to $host $rem returned $rc failed? $failed");
             }
+
+            # Exit gracefully - might help with file truncation.
+            ssh2_exec($connection, 'exit');
         }
     }
 
