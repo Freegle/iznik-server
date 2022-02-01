@@ -50,29 +50,37 @@ class FreebieAlerts
         $status = NULL;
         $json_response = NULL;
 
+        # Only want outstanding OFFERs.
         if (!$m->hasOutcome() && $m->getPrivate('type') == Message::TYPE_OFFER) {
-            $atts = $m->getPublic();
+            $u = User::get($this->dbhr, $this->dbhm, $m->getFromuser());
 
-            $images = [];
+            # TN messages are sync'd from TN itself.
+            if (!$u->isTN()) {
+                $atts = $m->getPublic();
 
-            foreach ($atts['attachments'] as $att) {
-                $images[] = $att['path'];
+                $images = [];
+
+                foreach ($atts['attachments'] as $att) {
+                    $images[] = $att['path'];
+                }
+
+                $body = $m->getTextbody();
+                $body = $body ? $body : 'No description';
+
+                $params = [
+                    'id' => $msgid,
+                    'title' => $m->getSubject(),
+                    'description' => $body,
+                    'latitude' => $atts['lat'],
+                    'longitude' => $atts['lng'],
+                    'images' => implode(',', $images),
+                    'created_at' => Utils::ISODate($m->getPrivate('arrival'))
+                ];
+
+                list ($status, $json_response) = $this->doCurl('https://api.freebiealerts.app/freegle/post/create', $params);
+            } else {
+                error_log("Skip TN message");
             }
-
-            $body = $m->getTextbody();
-            $body = $body ? $body : 'No description';
-
-            $params = [
-                'id' => $msgid,
-                'title' => $m->getSubject(),
-                'description' => $body,
-                'latitude' => $atts['lat'],
-                'longitude' => $atts['lng'],
-                'images' => implode(',', $images),
-                'created_at' => Utils::ISODate($m->getPrivate('arrival'))
-            ];
-
-            list ($status, $json_response) = $this->doCurl('https://api.freebiealerts.app/freegle/post/create', $params);
         }
 
         return $status;
