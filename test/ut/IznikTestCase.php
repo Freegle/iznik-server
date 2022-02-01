@@ -65,7 +65,6 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
     }
 
     protected function setUp() : void {
-        file_put_contents('/tmp/testcasse', var_export(debug_backtrace(), TRUE));
         parent::setUp ();
 
         $this->log(__METHOD__);

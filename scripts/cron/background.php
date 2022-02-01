@@ -129,7 +129,7 @@ try {
                             $f->add($data['msgid']);
                         }
 
-                        case 'freebiealertsdelete': {
+                        case 'freebiealertsremove': {
                             $f = new FreebieAlerts($dbhr, $dbhm);
                             $f->remove($data['msgid']);
                         }
