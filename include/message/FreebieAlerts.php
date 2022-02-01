@@ -12,20 +12,28 @@ class FreebieAlerts
     }
 
     public function doCurl($url, $fields) {
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, $url);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 60);
-        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 60);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, [
-            "Content-type: application/json",
-            "Key: " . FREEBIE_ALERTS_KEY
-        ]);
-        curl_setopt($curl, CURLOPT_POST, true);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $fields);
+        $status = NULL;
+        $json_response = NULL;
 
-        $json_response = FREEBIE_ALERTS_KEY ? curl_exec($curl) : NULL;
-        $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        try {
+            $curl = curl_init();
+            curl_setopt($curl, CURLOPT_URL, $url);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 60);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, [
+                "Content-type: application/json",
+                "Key: " . FREEBIE_ALERTS_KEY
+            ]);
+            curl_setopt($curl, CURLOPT_POST, true);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $fields);
+
+            $json_response = FREEBIE_ALERTS_KEY ? curl_exec($curl) : NULL;
+            $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        } catch (\Exception $e) {
+            error_log("Failed to update Freebie Alerts " . $e->getMessage());
+            \Sentry\captureException($e);
+        }
 
         return [ $status, $json_response ];
     }
