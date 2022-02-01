@@ -127,11 +127,13 @@ try {
                         case 'freebiealertsadd': {
                             $f = new FreebieAlerts($dbhr, $dbhm);
                             $f->add($data['msgid']);
+                            break;
                         }
 
                         case 'freebiealertsremove': {
                             $f = new FreebieAlerts($dbhr, $dbhm);
                             $f->remove($data['msgid']);
+                            break;
                         }
 
                         case 'exit': {

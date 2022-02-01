@@ -190,7 +190,7 @@ class dbTest extends IznikTestCase {
             $mock->retryQuery('SHOW COLUMNS FROM test;');
         } catch (DBException $e) {
             $worked = true;
-            assertContains('Non-deadlock', $e->getMessage());
+            assertStringContainsString('Non-deadlock', $e->getMessage());
         }
         assertTrue($worked);
 
@@ -279,7 +279,7 @@ class dbTest extends IznikTestCase {
             $mock->retryExec('INSERT INTO test VALUES ();');
         } catch (DBException $e) {
             $worked = true;
-            assertContains('Non-deadlock', $e->getMessage());
+            assertStringContainsString('Non-deadlock', $e->getMessage());
         }
         assertTrue($worked);
 
@@ -429,7 +429,7 @@ class dbTest extends IznikTestCase {
             $mock->preQuery('SHOW COLUMNS FROM test;');
         } catch (DBException $e) {
             $worked = true;
-            assertContains('Non-deadlock', $e->getMessage());
+            assertStringContainsString('Non-deadlock', $e->getMessage());
         }
         assertTrue($worked);
 
@@ -445,7 +445,7 @@ class dbTest extends IznikTestCase {
             $mock->preQuery('SHOW COLUMNS FROM test;');
         } catch (DBException $e) {
             $worked = true;
-            assertContains('Unexpected database error Faked deadlock exception', $e->getMessage());
+            assertStringContainsString('Unexpected database error Faked deadlock exception', $e->getMessage());
         }
         assertTrue($worked);
 
