@@ -124,6 +124,16 @@ try {
                             break;
                         }
 
+                        case 'freebiealertsadd': {
+                            $f = new FreebieAlerts($dbhr, $dbhm);
+                            $f->add($data['msgid']);
+                        }
+
+                        case 'freebiealertsdelete': {
+                            $f = new FreebieAlerts($dbhr, $dbhm);
+                            $f->remove($data['msgid']);
+                        }
+
                         case 'exit': {
                             error_log("Asked to exit");
                             $exit = TRUE;

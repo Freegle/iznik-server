@@ -22,6 +22,9 @@ define('MODLOGO', 'https://modtools.org/images/modlogo-large.jpg');
 # We can query Trash Nothing to get real email addresses for their users.
 define('TNKEY', 'zzzzz');
 
+# We push posts to Freebie Alerts
+define('FREEBIE_ALERTS_KEY', NULL);
+
 # We can use push notifications
 define('GOOGLE_PROJECT', 'zzz');
 define('GOOGLE_PUSH_KEY', 'zzzz');

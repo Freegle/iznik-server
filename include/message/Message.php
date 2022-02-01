@@ -8,6 +8,7 @@ require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 
 use GeoIp2\Database\Reader;
 use Oefenweb\DamerauLevenshtein\DamerauLevenshtein;
+use Pheanstalk\Pheanstalk;
 
 class Message
 {
@@ -4281,7 +4282,7 @@ ORDER BY lastdate DESC;";
         ]);
     }
 
-    public function mark($outcome, $comment, $happiness, $userid) {
+    public function mark($outcome, $comment, $happiness, $userid, $background = TRUE) {
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $intcomment = $this->interestingComment($comment);
 
@@ -4341,7 +4342,7 @@ WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND message
         }
 
         # Update in spatial index so that the count of our posts changes.
-        $this->markSuccessfulInSpatial($this->id);
+        $this->markSuccessfulInSpatial($this->id, $background);
     }
 
     public function withdraw($comment, $happiness) {
@@ -5275,15 +5276,29 @@ $mq", [
     }
 
     public function markSuccessfulInSpatial($msgid) {
+        if (!$this->pheanstalk) {
+            $this->pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
+        }
+
         $this->dbhm->preExec("UPDATE messages_spatial SET successful = 1 WHERE msgid = ?;", [
             $msgid
         ]);
+
+        $this->pheanstalk->put(json_encode(array(
+                                               'type' => 'freebiealertsremove',
+                                               'msgid' => $msgid,
+                                               'ttr' => Utils::PHEANSTALK_TTR
+                                           )));
     }
 
     public function updateSpatialIndex() {
         $count = 0;
 
         $mysqltime = date("Y-m-d", strtotime(MessageCollection::RECENTPOSTS));
+
+        if (!$this->pheanstalk) {
+            $this->pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
+        }
 
         # Add/update messages which are recent or have changed location or group or been reposted.
         $sql = "SELECT DISTINCT messages.id, messages.lat, messages.lng, messages_groups.groupid, messages_groups.arrival, messages_groups.msgtype FROM messages 
@@ -5307,6 +5322,14 @@ $mq", [
                 $msg['msgtype'],
                 $msg['arrival']
             ]);
+
+            $this->pheanstalk->put(json_encode(array(
+                                                         'type' => 'freebiealertsadd',
+                                                         'queued' => microtime(TRUE),
+                                                         'msgid' => $msg['id'],
+                                                         'ttr' => Utils::PHEANSTALK_TTR
+                                                     )));
+
             $count++;
         }
 
@@ -5529,5 +5552,13 @@ $mq", [
         }
 
         return [ $type, $item, $location ];
+    }
+
+    /**
+     * @param null $pheanstalk
+     */
+    public function setPheanstalk($pheanstalk)
+    {
+        $this->pheanstalk = $pheanstalk;
     }
 }
