@@ -16,7 +16,7 @@ class searchTest extends IznikTestCase
 {
     private $dbhr, $dbhm;
 
-    protected function setUp()
+    protected function setUp() : void
     {
         parent::setUp();
 
@@ -36,7 +36,7 @@ class searchTest extends IznikTestCase
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
     }
 
-    protected function tearDown()
+    protected function tearDown() : void
     {
 //        parent::tearDown();
 //        $this->dbhm->preExec("DROP TABLE IF EXISTS test_index");

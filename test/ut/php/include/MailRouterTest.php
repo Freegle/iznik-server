@@ -16,7 +16,7 @@ class MailRouterTest extends IznikTestCase {
     private $dbhr, $dbhm;
     private $msgsSent = [];
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         global $dbhr, $dbhm;
@@ -54,7 +54,7 @@ class MailRouterTest extends IznikTestCase {
         ];
     }
 
-    protected function tearDown() {
+    protected function tearDown() : void {
         parent::tearDown ();
 
         $this->dbhm->preExec("DELETE FROM spam_whitelist_ips WHERE ip = '1.2.3.4';", []);

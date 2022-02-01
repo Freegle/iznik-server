@@ -16,7 +16,7 @@ class socialactionsAPITest extends IznikAPITestCase
 {
     public $dbhr, $dbhm;
 
-    protected function setUp()
+    protected function setUp() : void
     {
         parent::setUp();
 

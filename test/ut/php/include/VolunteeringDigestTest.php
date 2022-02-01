@@ -17,14 +17,14 @@ class volunteeringDigestTest extends IznikTestCase {
 
     private $volunteeringSent = [];
 
-    protected function tearDown() {
+    protected function tearDown() : void {
         parent::tearDown ();
         $this->dbhm->preExec("DELETE FROM volunteering WHERE title = 'Test vacancy';");
         $this->dbhm->preExec("DELETE FROM volunteering WHERE title LIKE 'Test volunteering%';");
         $this->dbhm->preExec("DELETE FROM volunteering WHERE title LIKE 'Test Op %';");
     }
 
-    protected function setUp()
+    protected function setUp() : void
     {
         parent::setUp();
 

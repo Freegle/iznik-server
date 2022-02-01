@@ -17,7 +17,7 @@ class groupCollectionTest extends IznikTestCase
 {
     private $dbhr, $dbhm;
 
-    protected function setUp()
+    protected function setUp() : void
     {
         parent::setUp();
 

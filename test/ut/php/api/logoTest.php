@@ -17,7 +17,7 @@ class logoTest extends IznikAPITestCase {
 
     private $count = 0;
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         /** @var LoggedPDO $dbhr */
@@ -29,7 +29,7 @@ class logoTest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM logos WHERE path LIKE '%UTTest%';");
     }
 
-    protected function tearDown() {
+    protected function tearDown() : void {
         $this->dbhm->preExec("DELETE FROM logos WHERE path LIKE '%UTTest%';");
         parent::tearDown ();
     }

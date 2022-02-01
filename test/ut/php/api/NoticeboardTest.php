@@ -25,7 +25,7 @@ class noticeboardAPITest extends IznikAPITestCase {
         $this->msgsSent[] = $message->getSubject();
     }
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         /** @var LoggedPDO $dbhr */
@@ -37,7 +37,7 @@ class noticeboardAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM noticeboards WHERE name LIKE 'UTTest%';");
     }
 
-    protected function tearDown() {
+    protected function tearDown() : void {
         $this->dbhm->preExec("DELETE FROM noticeboards WHERE name LIKE 'UTTest%';");
         parent::tearDown ();
     }

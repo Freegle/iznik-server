@@ -17,7 +17,7 @@ class newsletterTest extends IznikTestCase {
 
     private $newslettersSent = [];
 
-    protected function setUp()
+    protected function setUp() : void
     {
         parent::setUp();
 

@@ -16,7 +16,7 @@ class notificationsTest extends IznikTestCase {
     private $dbhr, $dbhm;
     private $msgsSent = [];
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         global $dbhr, $dbhm;
@@ -59,7 +59,7 @@ class notificationsTest extends IznikTestCase {
         }
     }
 
-    public function tearDown()
+    protected function tearDown() : void
     {
         parent::tearDown();
 

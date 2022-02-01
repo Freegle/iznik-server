@@ -31,7 +31,7 @@ abstract class IznikWebTestCase extends PHPUnit_Framework_TestCase {
     /**
      *
      */
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         global $dbhr, $dbhm;
@@ -42,7 +42,7 @@ abstract class IznikWebTestCase extends PHPUnit_Framework_TestCase {
         $dbhm->preExec("DELETE FROM `groups` WHERE nameshort LIKE 'testgroup%';");
     }
 
-    protected function tearDown() {
+    protected function tearDown() : void {
         parent::tearDown ();
         $this->driver->quit();
         @session_destroy();

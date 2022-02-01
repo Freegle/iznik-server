@@ -20,7 +20,7 @@ class dbTest extends IznikTestCase {
     /** @var $dbhm LoggedPDO */
     private $dbhr, $dbhm;
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp();
 
         global $dbhr, $dbhm;
@@ -44,7 +44,7 @@ class dbTest extends IznikTestCase {
         $this->dbhm->setErrorLog(TRUE);
     }
 
-    protected function tearDown() {
+    protected function tearDown() : void {
         $rc = $this->dbhm->exec('DROP TABLE IF EXISTS test;');
         assertEquals(0, $rc);
         parent::tearDown ();

@@ -15,7 +15,7 @@ require_once(UT_DIR . '/../../include/db.php');
 class groupAPITest extends IznikAPITestCase {
     public $dbhr, $dbhm;
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         /** @var LoggedPDO $dbhr */
@@ -43,7 +43,7 @@ class groupAPITest extends IznikAPITestCase {
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
     }
 
-    protected function tearDown() {
+    protected function tearDown() : void {
         $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
 
         parent::tearDown ();

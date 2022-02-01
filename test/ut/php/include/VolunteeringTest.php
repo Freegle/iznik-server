@@ -15,7 +15,7 @@ require_once(UT_DIR . '/../../include/db.php');
 class volunteeringTest extends IznikTestCase {
     private $dbhr, $dbhm;
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         global $dbhr, $dbhm;
@@ -29,7 +29,7 @@ class volunteeringTest extends IznikTestCase {
         $dbhm->preExec("DELETE FROM volunteering WHERE title LIKE 'Test volunteering%';");
     }
 
-    protected function tearDown() {
+    protected function tearDown() : void {
         parent::tearDown ();
         $this->dbhm->preExec("DELETE FROM volunteering WHERE title = 'Test opp';");
         $this->dbhm->preExec("DELETE FROM volunteering WHERE title = 'Test vacancy';");

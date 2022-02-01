@@ -15,7 +15,7 @@ require_once(UT_DIR . '/../../include/db.php');
 class RequestTest extends IznikTestCase {
     private $dbhr, $dbhm, $count;
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         global $dbhr, $dbhm;

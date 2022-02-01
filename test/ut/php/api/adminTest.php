@@ -16,7 +16,7 @@ class adminAPITest extends IznikAPITestCase
 {
     public $dbhr, $dbhm;
 
-    protected function setUp()
+    protected function setUp() : void
     {
         parent::setUp();
 
@@ -43,7 +43,7 @@ class adminAPITest extends IznikAPITestCase
         $this->groupid2 = $g->create('testgroup2', Group::GROUP_UT);
     }
 
-    protected function tearDown()
+    protected function tearDown() : void
     {
         parent::tearDown();
         $this->dbhm->preExec("DELETE FROM admins WHERE subject LIKE 'UT %';");

@@ -4282,7 +4282,7 @@ ORDER BY lastdate DESC;";
         ]);
     }
 
-    public function mark($outcome, $comment, $happiness, $userid, $background = TRUE) {
+    public function mark($outcome, $comment, $happiness, $userid) {
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $intcomment = $this->interestingComment($comment);
 
@@ -4342,7 +4342,7 @@ WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND message
         }
 
         # Update in spatial index so that the count of our posts changes.
-        $this->markSuccessfulInSpatial($this->id, $background);
+        $this->markSuccessfulInSpatial($this->id);
     }
 
     public function withdraw($comment, $happiness) {

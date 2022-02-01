@@ -17,7 +17,7 @@ class messageAPITest extends IznikAPITestCase
 {
     public $dbhr, $dbhm;
 
-    protected function setUp()
+    protected function setUp() : void
     {
         parent::setUp();
 
@@ -46,7 +46,7 @@ class messageAPITest extends IznikAPITestCase
         $this->user = $u;
     }
 
-    protected function tearDown()
+    protected function tearDown() : void
     {
         $this->dbhm->preExec("DELETE FROM partners_keys WHERE partner = 'UT';");
         parent::tearDown();

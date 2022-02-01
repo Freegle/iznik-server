@@ -64,7 +64,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         $predis->del($lockkey, $datakey);
     }
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         $this->log(__METHOD__);
@@ -72,7 +72,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         putenv('UT=1');
 
         if (file_exists(IZNIK_BASE . '/standalone')) {
-            # Probably in Docket
+            # Probably in Docker.
             putenv('STANDALONE=1');
         }
 
@@ -98,7 +98,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         set_time_limit(600);
     }
 
-    protected function tearDown() {
+    protected function tearDown() : void {
         parent::tearDown ();
         try {
             $this->dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup';");

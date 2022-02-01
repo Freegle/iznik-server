@@ -1,4 +1,4 @@
-<phpunit stderr="true">
+<phpunit stderr="true" testdox="true">
     <testsuites>
         <testsuite name="Unit Tests">
             <directory>test/ut/php</directory>

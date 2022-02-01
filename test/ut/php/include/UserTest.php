@@ -19,7 +19,7 @@ class userTest extends IznikTestCase {
         $this->msgsSent[] = $message->toString();
     }
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         global $dbhr, $dbhm;

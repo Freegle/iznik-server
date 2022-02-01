@@ -15,7 +15,7 @@ require_once(UT_DIR . '/../../include/db.php');
 class engageTest extends IznikTestCase {
     private $dbhr, $dbhm, $msgsSent;
 
-    protected function setUp()
+    protected function setUp() : void
     {
         parent::setUp();
 
