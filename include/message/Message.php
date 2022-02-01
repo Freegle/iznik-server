@@ -5301,7 +5301,8 @@ $mq", [
         }
 
         # Add/update messages which are recent or have changed location or group or been reposted.
-        $sql = "SELECT DISTINCT messages.id, messages.lat, messages.lng, messages_groups.groupid, messages_groups.arrival, messages_groups.msgtype FROM messages 
+        $sql = "SELECT DISTINCT messages.id, messages.lat, messages.lng, messages_groups.groupid, messages_groups.arrival, messages_groups.msgtype, messages_spatial.msgid AS existing 
+    FROM messages 
     INNER JOIN messages_groups ON messages_groups.msgid = messages.id
     LEFT JOIN messages_spatial ON messages_spatial.msgid = messages_groups.msgid
     WHERE messages_groups.arrival >= ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL AND messages.deleted IS NULL AND messages_groups.collection = ? AND 
@@ -5323,12 +5324,14 @@ $mq", [
                 $msg['arrival']
             ]);
 
-            $this->pheanstalk->put(json_encode(array(
-                                                         'type' => 'freebiealertsadd',
-                                                         'queued' => microtime(TRUE),
-                                                         'msgid' => $msg['id'],
-                                                         'ttr' => Utils::PHEANSTALK_TTR
-                                                     )));
+            if (!Utils::pres('existing', $msg)) {
+                $this->pheanstalk->put(json_encode(array(
+                                                       'type' => 'freebiealertsadd',
+                                                       'queued' => microtime(TRUE),
+                                                       'msgid' => $msg['id'],
+                                                       'ttr' => Utils::PHEANSTALK_TTR
+                                                   )));
+            }
 
             $count++;
         }
