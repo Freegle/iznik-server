@@ -1663,6 +1663,7 @@ class userTest extends IznikTestCase {
         assertEquals('t***1@test.com', $u->obfuscateEmail('test1@test.com'));
         assertEquals('t***2@test.com', $u->obfuscateEmail('test12@test.com'));
         assertEquals('tes***890@test.com', $u->obfuscateEmail('test1234567890@test.com'));
+        assertEquals('Your Apple ID', $u->obfuscateEmail('1234@privaterelay.appleid.com'));
     }
 
     public function testGetCity() {

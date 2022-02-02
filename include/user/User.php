@@ -6506,14 +6506,19 @@ memberships.groupid IN $groupq
 
     public function obfuscateEmail($email) {
         $p = strpos($email, '@');
+        $q = strpos($email, 'privaterelay.appleid.com');
 
-        # For very short emails, we just show the first character.
-        if ($p <= 3) {
-            $email = substr($email, 0, 1) . "***" . substr($email, $p);
-        } else if ($p < 10) {
-            $email = substr($email, 0, 1) . "***" . substr($email, $p - 1);
+        if ($q) {
+            $email = 'Your Apple ID';
         } else {
-            $email = substr($email, 0, 3) . "***" . substr($email, $p - 3);
+            # For very short emails, we just show the first character.
+            if ($p <= 3) {
+                $email = substr($email, 0, 1) . "***" . substr($email, $p);
+            } else if ($p < 10) {
+                $email = substr($email, 0, 1) . "***" . substr($email, $p - 1);
+            } else {
+                $email = substr($email, 0, 3) . "***" . substr($email, $p - 3);
+            }
         }
 
         return $email;
