@@ -5,6 +5,7 @@
 // 2019-12-13 Use header auth not query params
 // 2019-12-13 Add bounce reporting
 // 2021-02-28 Fix DateTime namespace
+// 2022-02-02 Look up altemail for mods
 
 namespace Freegle\Iznik;
 use \Datetime;
@@ -317,13 +318,29 @@ try{
     if( $external_id){
       $u = new User($dbhr, $dbhm, $external_id);
       if( $u){
-        if ($u->isModerator()) {  // Is mod: OK
-          //echo "IS MOD\r\n";
-          $ismod++;
-        } else {  // Not a mod: report
+        $useremail = '';
+        $ismod = $u->isModerator();
+        if( !$ismod){
+          // May have been merged so look up main account id
           usleep(250000);
           // Get email from Discourse
           $useremail = GetUserEmail($user->username);
+          $sql = "SELECT * FROM users_emails where email = ?;";
+          $altemails = $dbhr->preQuery($sql, [$useremail]);
+          $actualid = 0;
+          foreach ($altemails as $altemail) {
+            $actualid = $altemail['userid'];
+          }
+          if( $actualid!=0 && $actualid!=$external_id){
+            $u = new User($dbhr, $dbhm, $actualid);
+            $ismod = $u->isModerator();
+          }        
+        }
+
+        if ($ismod) {  // Is mod: OK
+          //echo "IS MOD\r\n";
+          $ismod++;
+        } else {  // Not a mod: report
           echo "NOT A MOD\r\n";
           $notmod++;
           $report .= 'NOT A MOD. MT id: '.$external_id.', Discourse username: '.$user->username.', email: '.$useremail."\r\n";
@@ -424,7 +441,7 @@ try{
 
   $mailedcentralmods = false;
   $subject = 'Discourse checkuser OK';
-
+  
   if( $notmod || $notuser){
     $subject = 'Discourse checkuser USERS TO CHECK';
     $message = \Swift_Message::newInstance()
@@ -450,7 +467,7 @@ try{
     $numSent = $mailer->send($message);
     echo "Mail sent to centralmods: ".$numSent."\r\n";
   }
-
+  
   //$report = wordwrap($report, 70, "\r\n");
   $message = \Swift_Message::newInstance()
       ->setSubject($subject)
