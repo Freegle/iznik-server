@@ -861,7 +861,7 @@ class Spam {
             $ourDomain = FALSE;
 
             foreach ($u->getEmails() as $email) {
-                if ($email['ourdomain']) {
+                if (strpos($email['email'], USER_DOMAIN) === FALSE && $email['ourdomain']) {
                     # Don't report spammers on our own domains.  They will be spoofed.
                     $proceed = FALSE;
                 }

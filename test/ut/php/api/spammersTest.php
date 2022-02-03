@@ -43,6 +43,7 @@ class spammersAPITest extends IznikAPITestCase {
     public function testBasic() {
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail($u->inventEmail());
         assertGreaterThan(0, $u->addEmail('test3@test.com'));
         assertGreaterThan(0, $u->addEmail('test4@test.com'));
 
