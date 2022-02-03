@@ -496,9 +496,7 @@ class spammersAPITest extends IznikAPITestCase {
     public function testReportOwnDomain() {
         $u = User::get($this->dbhr, $this->dbhm);
         $uid1 = $u->create(NULL, NULL, 'Test User');
-        assertGreaterThan(0, $u->addEmail('test3@' . USER_DOMAIN));
-        $uid2 = $u->create(NULL, NULL, 'Test User');
-        assertGreaterThan(0, $u->addEmail('test4@' . GROUP_DOMAIN));
+        assertGreaterThan(0, $u->addEmail('test3@' . GROUP_DOMAIN));
 
         # Log in and report.
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -506,16 +504,6 @@ class spammersAPITest extends IznikAPITestCase {
 
         $ret = $this->call('spammers', 'POST', [
             'userid' => $uid1,
-            'collection' => Spam::TYPE_PENDING_ADD,
-            'reason' => 'Test reason',
-        ]);
-
-        assertEquals(0, $ret['ret']);
-        $sid = $ret['id'];
-        assertNull($sid);
-
-        $ret = $this->call('spammers', 'POST', [
-            'userid' => $uid2,
             'collection' => Spam::TYPE_PENDING_ADD,
             'reason' => 'Test reason',
         ]);
