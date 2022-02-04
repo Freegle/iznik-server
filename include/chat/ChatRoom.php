@@ -1142,6 +1142,8 @@ WHERE chat_rooms.id IN $idlist;";
             ]) : [];
 
             foreach ($chatids as $chatid) {
+                $found = FALSE;
+
                 foreach ($currents as $current) {
                     if ($current['chatid'] == $chatid) {
                         # We already have a roster entry.
