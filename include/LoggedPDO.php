@@ -328,9 +328,10 @@ class LoggedPDO {
                     }
                 } else if (stripos($e->getMessage(), 'has gone away') !== FALSE ||
                     stripos($e->getMessage(), 'Lost connection to MySQL server') !== FALSE ||
-                    stripos($e->getMessage(), 'Call to a member function prepare() on a non-object (null)')
+                    stripos($e->getMessage(), 'Call to a member function prepare() on a non-object (null)') !== FALSE ||
+                    stripos($e->getMessage(), 'WSREP has not yet prepared node for application use') !== FALSE
                 ) {
-                    # Try re-opening the connection.
+                    # Temporary errors (hopefully).  Try re-opening the connection, delaying and retrying.
                     $try++;
                     error_log("Server gone away, sleep and retry 2");
                     sleep(1);
