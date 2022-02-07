@@ -2377,6 +2377,20 @@ ORDER BY lastdate DESC;";
             if ($tnid) {
                 $u = User::get($this->dbhr, $this->dbhm, $userid);
                 // TODO Need schema change to be able to add this to the user.
+
+                // Record the last location.
+                if ($latlng) {
+                    $l = new Location($this->dbhr, $this->dbhm);
+                    $pc = $l->closestPostcode($this->lat, $this->lng);
+
+                    if ($pc) {
+                        $this->dbhm->preExec("UPDATE users SET lastlocation = ? WHERE id = ?;", [
+                            $pc['id'],
+                            $this->fromuser
+                        ]);
+                        User::clearCache($this->fromuser);
+                    }
+                }
             }
         }
 

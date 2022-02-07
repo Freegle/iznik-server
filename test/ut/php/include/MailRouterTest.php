@@ -404,6 +404,12 @@ class MailRouterTest extends IznikTestCase {
         $id = $m->save();
         $this->log("Saved $id");
 
+        # Check lastlocation set
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
+        $l = new Location($this->dbhr, $this->dbhm, $u->getPrivate('lastlocation'));
+        assertEquals('EH3 6SS', $l->getPrivate('name'));
+
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
