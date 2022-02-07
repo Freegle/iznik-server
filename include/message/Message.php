@@ -197,6 +197,12 @@ class Message
         }
     }
 
+    private function getPheanstalk() {
+        if (!$this->pheanstalk) {
+            $this->pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
+        }
+    }
+
     public function getPrivate($att) {
         return($this->$att);
     }
@@ -3059,6 +3065,7 @@ ORDER BY lastdate DESC;";
                 );
 
                 if (!count($existings)) {
+                    $this->getPheanstalk();
                     $this->pheanstalk->put(json_encode(array(
                                                            'type' => 'freebiealertsadd',
                                                            'queued' => microtime(TRUE),
@@ -5289,14 +5296,11 @@ $mq", [
     }
 
     public function markSuccessfulInSpatial($msgid) {
-        if (!$this->pheanstalk) {
-            $this->pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
-        }
-
         $this->dbhm->preExec("UPDATE messages_spatial SET successful = 1 WHERE msgid = ?;", [
             $msgid
         ]);
 
+        $this->getPheanstalk();
         $this->pheanstalk->put(json_encode(array(
                                                'type' => 'freebiealertsremove',
                                                'msgid' => $msgid,
@@ -5308,10 +5312,6 @@ $mq", [
         $count = 0;
 
         $mysqltime = date("Y-m-d", strtotime(MessageCollection::RECENTPOSTS));
-
-        if (!$this->pheanstalk) {
-            $this->pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
-        }
 
         # Add/update messages which are recent or have changed location or group or been reposted.
         $sql = "SELECT DISTINCT messages.id, messages.lat, messages.lng, messages_groups.groupid, messages_groups.arrival, messages_groups.msgtype, messages_spatial.msgid AS existing 
@@ -5338,6 +5338,7 @@ $mq", [
             ]);
 
             if (!Utils::pres('existing', $msg)) {
+                $this->getPheanstalk();
                 $this->pheanstalk->put(json_encode(array(
                                                        'type' => 'freebiealertsadd',
                                                        'queued' => microtime(TRUE),
