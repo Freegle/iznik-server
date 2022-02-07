@@ -78,7 +78,7 @@ class FreebieAlerts
                 ];
 
                 list ($status, $json_response) = $this->doCurl('https://api.freebiealerts.app/freegle/post/create', $params);
-                error_log(date("Y-m-d H:i:s") . " Added $msgid returned " . $json_response);
+                error_log(date("Y-m-d H:i:s") . " Added $msgid to freebies returned " . $json_response);
             } else {
                 error_log(date("Y-m-d H:i:s") . " Skip TN message " . $u->getEmailPreferred());
             }
