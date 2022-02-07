@@ -3040,6 +3040,10 @@ ORDER BY lastdate DESC;";
                 $gid = $g['groupid'];
                 $arrival = $g['arrival'];
 
+                $existings = $this->dbhr->preQuery("SELECT id FROM messages_spatial WHERE msgid = ?;", [
+                    $this->id
+                ]);
+
                 $sql = "INSERT INTO messages_spatial (msgid, point, groupid, msgtype, arrival) VALUES (?, ST_GeomFromText('POINT({$this->lng} {$this->lat})', {$this->dbhr->SRID()}), ?, ?, ?) ON DUPLICATE KEY UPDATE point = ST_GeomFromText('POINT({$this->lng} {$this->lat})', {$this->dbhr->SRID()}), groupid = ?, msgtype = ?, arrival = ?;";
                 $this->dbhm->preExec(
                     $sql,
@@ -3053,6 +3057,15 @@ ORDER BY lastdate DESC;";
                         $arrival,
                     ]
                 );
+
+                if (!count($existings)) {
+                    $this->pheanstalk->put(json_encode(array(
+                                                           'type' => 'freebiealertsadd',
+                                                           'queued' => microtime(TRUE),
+                                                           'msgid' => $this->id,
+                                                           'ttr' => Utils::PHEANSTALK_TTR
+                                                       )));
+                }
             }
         }
     }

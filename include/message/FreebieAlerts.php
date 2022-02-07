@@ -31,7 +31,7 @@ class FreebieAlerts
             $json_response = FREEBIE_ALERTS_KEY ? curl_exec($curl) : NULL;
             $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-            $msg = "Add to freebies returned $status $json_response";
+            $msg = date("Y-m-d H:i:s") . " post to freebies returned $status $json_response";
             error_log($msg);
 
             if ($status != 200 || $json_response != '{"success":true}') {

@@ -126,12 +126,14 @@ try {
 
                         case 'freebiealertsadd': {
                             $f = new FreebieAlerts($dbhr, $dbhm);
+                            error_log("Background thread add {$data['msgid']}");
                             $f->add($data['msgid']);
                             break;
                         }
 
                         case 'freebiealertsremove': {
                             $f = new FreebieAlerts($dbhr, $dbhm);
+                            error_log("Background thread remove {$data['msgid']}");
                             $f->remove($data['msgid']);
                             break;
                         }
