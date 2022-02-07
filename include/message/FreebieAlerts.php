@@ -78,12 +78,12 @@ class FreebieAlerts
                 ];
 
                 list ($status, $json_response) = $this->doCurl('https://api.freebiealerts.app/freegle/post/create', $params);
-                error_log("Added $msgid");
+                error_log(date("Y-m-d H:i:s") . " Added $msgid returned " . $json_response);
             } else {
-                error_log("Skip TN message " . $u->getEmailPreferred());
+                error_log(date("Y-m-d H:i:s") . " Skip TN message " . $u->getEmailPreferred());
             }
         } else {
-            error_log("Skip message " . $m->hasOutcome() . " type " . $m->getPrivate('type'));
+            error_log(date("Y-m-d H:i:s") . " Skip message " . $m->hasOutcome() . " type " . $m->getPrivate('type'));
         }
 
         return $status;

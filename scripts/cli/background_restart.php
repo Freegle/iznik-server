@@ -10,6 +10,8 @@ global $dbhr, $dbhm;
 
 use Pheanstalk\Pheanstalk;
 
+$lockh = Utils::lockScript(basename(__FILE__));
+
 # For gracefully restarting the background processing; signal to it.
 $pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
 
@@ -21,3 +23,5 @@ do {
                                        )));
     sleep(30);
 } while ($workers);
+
+Utils::unlockScript($lockh);
