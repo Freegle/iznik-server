@@ -12,23 +12,23 @@ global $dbhr, $dbhm;
 $srcs = $dbhr->preQuery("SELECT * FROM logs_src WHERE src = 'sms' ORDER BY date ASC;");
 
 foreach ($srcs as $src) {
-    #error_log("{$src['date']} user {$src['userid']} session {$src['session']}");
+    error_log("{$src['date']} user {$src['userid']} session {$src['session']}");
     if ($src['userid']) {
         # They were logged in, so we know who they were.
-        #error_log("...logged in");
+        error_log("...logged in");
         $dbhm->preExec("UPDATE users_phones SET lastclicked = ? WHERE userid = ?", [
             $src['date'],
             $src['userid']
         ]);
     } else {
         # They weren't logged in, but we have a session, so we may be able to identify them from the API logs.
-        #error_log("...not logged in");
+        error_log("...not logged in");
         $logs = $dbhr->preQuery("SELECT * FROM logs_api WHERE session = ? AND userid IS NOT NULL LIMIT 1;", [
             $src['session']
         ]);
 
         foreach ($logs as $log) {
-            #error_log("...but found {$log['userid']} in logs");
+            error_log("...but found {$log['userid']} in logs");
             $dbhm->preExec("UPDATE users_phones SET lastclicked = ? WHERE userid = ?", [
                 $src['date'],
                 $log['userid']
