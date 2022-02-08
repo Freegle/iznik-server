@@ -136,7 +136,8 @@ class Message
         "I won't be able to check any emails until after",
         "I'm on leave at the moment",
         "We'll get back to you as soon as possible",
-        'currently on leave'
+        'currently on leave',
+        'To complete this verification'
     ];
 
     private $autoreply_text_start = [
