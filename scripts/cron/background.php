@@ -138,12 +138,6 @@ try {
                             break;
                         }
 
-                        case 'exit': {
-                            error_log("Asked to exit");
-                            $exit = TRUE;
-                            break;
-                        }
-
                         default: {
                             error_log("Unknown job type {$data['type']} " . var_export($data, TRUE));
                         }
@@ -158,6 +152,10 @@ try {
 
             # Whatever it is, we need to delete the job to avoid getting stuck.
             $pheanstalk->delete($job);
+
+            if (file_exists('/tmp/iznik.background.abort')) {
+                $exit = TRUE;
+            }
         }
     }
 } catch (\Exception $e) {

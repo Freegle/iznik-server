@@ -12,16 +12,9 @@ use Pheanstalk\Pheanstalk;
 
 $lockh = Utils::lockScript(basename(__FILE__));
 
-# For gracefully restarting the background processing; signal to it.
-$pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
-
-do {
-    $stats = $pheanstalk->stats();
-    $workers = $stats['current-workers'];
-    $id = $pheanstalk->put(json_encode(array(
-                                           'type' => 'exit'
-                                       )));
-    sleep(30);
-} while ($workers);
+# For gracefully restarting the background processing.
+touch('/tmp/iznik.background.abort');
+sleep(30);
+unlink('/tmp/iznik.background.abort');
 
 Utils::unlockScript($lockh);
