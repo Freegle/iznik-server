@@ -1247,11 +1247,12 @@ HAVING logincount > 0
         # Find messages with the most views which lie within the official group area (CGA).
         $msgs = $this->dbhr->preQuery("SELECT COUNT(*) AS count, messages_likes.msgid, groupid FROM messages_likes 
     INNER JOIN messages_groups ON messages_groups.msgid = messages_likes.msgid
-    INNER JOIN groups ON groups.id = messages_groups.groupid
+    INNER JOIN `groups` ON groups.id = messages_groups.groupid
+    INNER JOIN messages ON messages.id = messages_groups.msgid
     INNER JOIN messages_attachments ma on messages_groups.msgid = ma.msgid 
     WHERE TIMESTAMPDIFF(HOUR, messages_likes.timestamp, NOW()) <= 24 AND 
           messages_groups.deleted = 0 AND 
-          messages_groups.collection = ? AND ST_Contains(groups.polyofficial, POINT(messages.lng,messages.lat))          
+          messages_groups.collection = ? AND ST_Contains(ST_GeomFromText(groups.polyofficial, {$this->dbhr->SRID()}), ST_SRID(POINT(messages.lng,messages.lat),  {$this->dbhr->SRID()}))          
     GROUP BY messages_likes.msgid 
     ORDER BY messages_groups.groupid ASC, count ASC;", [
         MessageCollection::APPROVED
