@@ -14,7 +14,7 @@ $threshold = 0.00005;
 foreach ($groups as $group) {
     try {
         $poly = $group['poly'];
-        #$poly = $group['polyofficial'];
+        $poly = $group['polyofficial'];
         $sql = "SELECT id, nameshort, ST_Area(ST_Intersection(ST_GeomFromText(polyofficial), ST_GeomFromText(?))) AS area FROM `groups` WHERE id != ? AND ST_Overlaps(ST_GeomFromText(polyofficial), ST_GeomFromText(?)) AND publish = 1;";
         $overlaps = $dbhr->preQuery($sql,
             [
