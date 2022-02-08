@@ -3193,7 +3193,6 @@ ORDER BY lastdate DESC;";
 
                 if ($groupid) {
                     $this->notif->notifyGroupMods($groupid);
-                    error_log("Delete notify $groupid");
 
                     $this->maybeMail($groupid, $subject, $body, $group['collection'] == MessageCollection::APPROVED ? 'Delete Approved Message' : 'Delete');
                 }
