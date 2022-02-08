@@ -177,6 +177,7 @@ class groupTest extends IznikTestCase
     public function testPopular($share) {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
+        $g->setPrivate('polyofficial', 'POLYGON((179.25 8.5, 179.27 8.5, 179.27 8.6, 179.2 8.6, 179.25 8.5))');
 
         $u = new User($this->dbhr, $this->dbhm);
         $uid = $u->create('Test', 'User', 'Test User');
@@ -202,6 +203,8 @@ class groupTest extends IznikTestCase
         $g->findPopularMessages();
         assertEquals([], $g->getPopularMessages($gid));
         $m = new Message($this->dbhr, $this->dbhm, $id);
+        $m->setPrivate('lat', 8.55);
+        $m->setPrivate('lng', 179.26);
         $m->like($m->getFromuser(), Message::LIKE_VIEW);
         $this->waitBackground();
         $g->findPopularMessages();
