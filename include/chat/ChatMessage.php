@@ -433,7 +433,7 @@ class ChatMessage extends Entity
         $msgs = $this->dbhr->preQuery($sql, [ $myid, $id ]);
 
         foreach ($msgs as $msg) {
-            $heldby = Utils::presdef('heldbuser', $msg, NULL);
+            $heldby = Utils::presdef('heldbyuser', $msg, NULL);
 
             # Can't act on messages which are held by someone else.
             if (!$heldby || $heldby == $myid) {
@@ -466,33 +466,52 @@ class ChatMessage extends Entity
         $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         # We can only reject if we can see this message for review.
-        $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.message FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator')) AND chat_messages.id = ?;";
+        $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.message FROM chat_messages 
+    INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid
+    INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships 
+    WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator')) AND chat_messages.id = ?;";
         $msgs = $this->dbhr->preQuery($sql, [ $myid, $id ]);
 
         foreach ($msgs as $msg) {
-            $this->dbhm->preExec("UPDATE chat_messages SET reviewrequired = 0, reviewedby = ?, reviewrejected = 1 WHERE id = ?;", [
-                $myid,
-                $id
-            ]);
+            $heldby = Utils::presdef('heldbyuser', $msg, NULL);
 
-            $r = new ChatRoom($this->dbhr, $this->dbhm, $msg['chatid']);
-            $r->updateMessageCounts();
+            # Can't act on messages which are held by someone else.
+            if (!$heldby || $heldby == $myid)
+            {
+                $this->dbhm->preExec(
+                    "UPDATE chat_messages SET reviewrequired = 0, reviewedby = ?, reviewrejected = 1 WHERE id = ?;",
+                    [
+                        $myid,
+                        $id
+                    ]
+                );
 
-            # Help with flood of spam by marking any identical messages currently awaiting as spam.
-            $start = date("Y-m-d", strtotime("24 hours ago"));
-            $others = $this->dbhr->preQuery("SELECT id, chatid FROM chat_messages WHERE date >= ? AND reviewrequired = 1 AND message LIKE ?;", [
-                $start,
-                $msg['message']
-            ]);
-
-            foreach ($others as $other) {
-                $this->dbhm->preExec("UPDATE chat_messages SET reviewrequired = 0, reviewedby = ?, reviewrejected = 1 WHERE id = ?;", [
-                    $myid,
-                    $other['id']
-                ]);
-
-                $r = new ChatRoom($this->dbhr, $this->dbhm, $other['chatid']);
+                $r = new ChatRoom($this->dbhr, $this->dbhm, $msg['chatid']);
                 $r->updateMessageCounts();
+
+                # Help with flood of spam by marking any identical messages currently awaiting as spam.
+                $start = date("Y-m-d", strtotime("24 hours ago"));
+                $others = $this->dbhr->preQuery(
+                    "SELECT id, chatid FROM chat_messages WHERE date >= ? AND reviewrequired = 1 AND message LIKE ?;",
+                    [
+                        $start,
+                        $msg['message']
+                    ]
+                );
+
+                foreach ($others as $other)
+                {
+                    $this->dbhm->preExec(
+                        "UPDATE chat_messages SET reviewrequired = 0, reviewedby = ?, reviewrejected = 1 WHERE id = ?;",
+                        [
+                            $myid,
+                            $other['id']
+                        ]
+                    );
+
+                    $r = new ChatRoom($this->dbhr, $this->dbhm, $other['chatid']);
+                    $r->updateMessageCounts();
+                }
             }
         }
     }
@@ -625,7 +644,9 @@ class ChatMessage extends Entity
         $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         # We can only hold if we can see this message for review.
-        $sql = "SELECT chat_messages.* FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator')) AND chat_messages.id = ?;";
+        $sql = "SELECT chat_messages.* FROM chat_messages 
+    INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid
+    INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator')) AND chat_messages.id = ?;";
         $msgs = $this->dbhr->preQuery($sql, [ $myid, $id ]);
         foreach ($msgs as $msg) {
             $this->dbhm->preExec("REPLACE INTO chat_messages_held (msgid, userid) VALUES (?, ?);", [
@@ -639,12 +660,22 @@ class ChatMessage extends Entity
         $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         # We can only release if we can see this message for review.
-        $sql = "SELECT chat_messages.* FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator')) AND chat_messages.id = ?;";
+        $sql = "SELECT chat_messages.*, chat_messages_held.userid AS heldbyuser FROM chat_messages 
+    INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid 
+    LEFT JOIN chat_messages_held ON chat_messages_held.msgid = chat_messages_held.msgid
+    INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships
+    WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator')) AND chat_messages.id = ?;";
         $msgs = $this->dbhr->preQuery($sql, [ $myid, $id ]);
+
         foreach ($msgs as $msg) {
-            $this->dbhm->preExec("DELETE FROM chat_messages_held WHERE msgid = ?;", [
-                $id
-            ]);
+            $heldby = Utils::presdef('heldbyuser', $msg, NULL);
+
+            # Can't act on messages which are held by someone else.
+            if (!$heldby || $heldby == $myid) {
+                $this->dbhm->preExec("DELETE FROM chat_messages_held WHERE msgid = ?;", [
+                    $id
+                ]);
+            }
         }
     }
 
@@ -652,14 +683,25 @@ class ChatMessage extends Entity
         $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
         # We can only redact if we can see this message for review.
-        $sql = "SELECT chat_messages.* FROM chat_messages INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator')) AND chat_messages.id = ?;";
+        $sql = "SELECT chat_messages.*, chat_messages_held.userid AS heldbyuser FROM chat_messages 
+    INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid
+    LEFT JOIN chat_messages_held ON chat_messages_held.msgid = chat_messages_held.msgid
+    INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN (SELECT groupid FROM memberships WHERE memberships.userid = ? AND memberships.role IN ('Owner', 'Moderator')) AND chat_messages.id = ?;";
         $msgs = $this->dbhr->preQuery($sql, [ $myid, $id ]);
+
         foreach ($msgs as $msg) {
-            # Remove any emails
-            $this->dbhm->preExec("UPDATE chat_messages SET message = ? WHERE id = ?;", [
-                preg_replace(Message::EMAIL_REGEXP, '(email removed)', $msg['message']),
-                $msg['id']
-            ]);
+            $heldby = Utils::presdef('heldbyuser', $msg, NULL);
+
+            # Can't act on messages which are held by someone else.
+            # We can act on messages we held, but not other people's.
+            if (!$heldby || $heldby == $myid)
+            {
+                # Remove any emails
+                $this->dbhm->preExec("UPDATE chat_messages SET message = ? WHERE id = ?;", [
+                    preg_replace(Message::EMAIL_REGEXP, '(email removed)', $msg['message']),
+                    $msg['id']
+                ]);
+            }
         }
     }
 
