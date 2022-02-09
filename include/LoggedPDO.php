@@ -235,6 +235,24 @@ class LoggedPDO {
         return($sth->execute($params));
     }
 
+    private function retryable($e) {
+        $msg = $e->getMessage();
+        $ret = stripos($msg, 'has gone away') !== FALSE ||
+            stripos($msg, 'Lost connection to MySQL server') !== FALSE ||
+            stripos($msg, 'Call to a member function prepare() on a non-object (null)') !== FALSE ||
+            stripos($msg, 'WSREP has not yet prepared node for application use') !== FALSE ||
+            stripos($msg, 'Faked deadlock exception') !== FALSE;
+
+        if ($ret) {
+            # Temporary errors (hopefully).  Try re-opening the connection, delaying and retrying.
+            sleep(1);
+            $this->close();
+            $this->doConnect();
+        }
+
+        return $ret;
+    }
+
     private function prex($sql, $params = NULL, $select, $log) {
         if (stripos($sql, 'SLEEP(') !== FALSE) {
             throw new \Exception("Invalid SQL");
@@ -326,17 +344,8 @@ class LoggedPDO {
                         error_log($msg);
                         $try = $this->tries;
                     }
-                } else if (stripos($e->getMessage(), 'has gone away') !== FALSE ||
-                    stripos($e->getMessage(), 'Lost connection to MySQL server') !== FALSE ||
-                    stripos($e->getMessage(), 'Call to a member function prepare() on a non-object (null)') !== FALSE ||
-                    stripos($e->getMessage(), 'WSREP has not yet prepared node for application use') !== FALSE
-                ) {
-                    # Temporary errors (hopefully).  Try re-opening the connection, delaying and retrying.
+                } else if ($this->retryable($e)) {
                     $try++;
-                    error_log("Server gone away, sleep and retry 2");
-                    sleep(1);
-                    $this->close();
-                    $this->doConnect();
                 } else {
                     $msg = "Non-deadlock DB Exception " . $e->getMessage() . " $sql";
                     error_log($msg);
@@ -407,19 +416,9 @@ class LoggedPDO {
                 } else {
                     $msg = var_export($this->errorInfo(), true);
                     $try++;
-                    if (stripos($msg, 'has gone away') !== FALSE) {
-                        # This can happen if we have issues with the DB, e.g. one server dies or the connection is
-                        # timed out.  We re-open the connection and try again.
-
-                        error_log("Server gone away, sleep and retry 3");
-                        sleep(1);
-                        $this->close();
-                        $this->doConnect();
-                    }
                 }
             } catch (\Exception $e) {
-                if (stripos($e->getMessage(), 'deadlock') !== FALSE) {
-                    # It's a Percona deadlock - retry.
+                if ($this->retryable($e)) {
                     $try++;
                     $msg = $e->getMessage();
                 } else {
@@ -468,18 +467,9 @@ class LoggedPDO {
                 } else {
                     $try++;
                     $msg = var_export($this->errorInfo(), true);
-                    if (stripos($msg, 'has gone away') !== FALSE) {
-                        # This can happen if we have issues with the DB, e.g. one server dies or the connection is
-                        # timed out.  We re-open the connection and try again.
-                        error_log("Server gone away, sleep and retry 4");
-                        sleep(1);
-                        $this->close();
-                        $this->doConnect();
-                    }
                 }
             } catch (\Exception $e) {
-                if (stripos($e->getMessage(), 'deadlock') !== FALSE) {
-                    # Retry.
+                if ($this->retryable($e)) {
                     $try++;
                     $msg = $e->getMessage();
                 } else {
