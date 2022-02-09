@@ -67,6 +67,9 @@ class FreebieAlerts
                 $body = $m->getTextbody();
                 $body = $body ? $body : 'No description';
 
+                # We want to pass the date it was approved.
+                $groups = $m->getGroups(FALSE, FALSE);
+
                 $params = [
                     'id' => $msgid,
                     'title' => $m->getSubject(),
@@ -74,7 +77,7 @@ class FreebieAlerts
                     'latitude' => $atts['lat'],
                     'longitude' => $atts['lng'],
                     'images' => implode(',', $images),
-                    'created_at' => Utils::ISODate($m->getPrivate('arrival'))
+                    'created_at' => Utils::ISODate(count($groups) ? $groups[0]['arrival'] : $m->getPrivate('arrival'))
                 ];
 
                 list ($status, $json_response) = $this->doCurl('https://api.freebiealerts.app/freegle/post/create', $params);
