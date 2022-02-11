@@ -49,6 +49,9 @@
           <mj-button align="center" href="{{ withdraw }}" background-color="darkblue">Withdraw</mj-button>
         </mj-column>
       </mj-section>
+      <mj-raw>
+        {% if offer %}
+      </mj-raw>
       <mj-section background-color="#F7F6EC">
         <mj-column>
           <mj-text>
@@ -61,6 +64,9 @@
           <mj-button align="center" href="{{ promised }}" background-color="darkgreen">Mark as Promised</mj-button>
         </mj-column>
       </mj-section>
+      <mj-raw>
+      {% endif %}
+      </mj-raw>
       <mj-section background-color="#F7F6EC">
         <mj-column>
           <mj-text>
