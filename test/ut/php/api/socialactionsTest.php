@@ -226,13 +226,22 @@ class socialactionsAPITest extends IznikAPITestCase
 
         assertEquals([], $g->getPopularMessages($gid));
 
-        # No views - no popular messages.
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $m->setPrivate('lat', 8.55);
         $m->setPrivate('lng', 179.26);
         $m->approve($gid);
         $m->like($m->getFromuser(), Message::LIKE_VIEW);
         $this->waitBackground();
+
+        # No Facebook link - no popular messages.
+        $g->findPopularMessages();
+        error_log(var_export($g->getPopularMessages($gid), TRUE));
+        assertEquals([], $g->getPopularMessages($gid));
+
+        # Add a Facebook link.
+        $gf = new GroupFacebook($this->dbhr, $this->dbhm);
+        $gf->add($gid, 'UT', 'UT', 1);
+
         $g->findPopularMessages();
         $popid = $g->getPopularMessages($gid)[0]['msgid'];
         assertEquals($id, $popid);
