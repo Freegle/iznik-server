@@ -4559,7 +4559,8 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                                                     'type' => $othertype,
                                                     'completed' => $completed,
                                                     'withdraw' => $withdraw,
-                                                    'promised' => $promise
+                                                    'promised' => $promise,
+                                                    'offer' => $m->getType() == Message::TYPE_OFFER
                                                 ]);
 
                                                 list ($transport, $mailer) = Mail::getMailer();
