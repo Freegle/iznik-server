@@ -202,12 +202,19 @@ class groupTest extends IznikTestCase
         # No views - no popular messages.
         $g->findPopularMessages();
         assertEquals([], $g->getPopularMessages($gid));
+
+        # Add a message but no Facebook links.
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $m->setPrivate('lat', 8.55);
         $m->setPrivate('lng', 179.26);
         $m->like($m->getFromuser(), Message::LIKE_VIEW);
         $this->waitBackground();
         $g->findPopularMessages();
+        assertEquals([], $g->getPopularMessages($gid));
+
+        # Add a Facebook link.
+        $gf = new GroupFacebook($this->dbhr, $this->dbhm);
+        $gf->add($gid, 'UT', 'UT', 1);
         $popid = $g->getPopularMessages($gid)[0]['msgid'];
         assertEquals($id, $popid);
 
