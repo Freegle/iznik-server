@@ -14,11 +14,11 @@ $dsn = "mysql:host={$dbconfig['host']};dbname=iznik;charset=utf8";
 $at = 0;
 
 # Extract the messages
-$msgs = $dbhr->preQuery("SELECT messages_spamham.spamham, messages.message FROM messages_spamham INNER JOIN messages ON messages.id = messages_spamham.msgid;");
-foreach ($msgs as $msgs) {
+$msgs = $dbhr->preQuery("SELECT messages_spamham.spamham, messages.message FROM messages_spamham INNER JOIN messages ON messages.id = messages_spamham.msgid WHERE message IS NOT NULL AND LENGTH(message) > 0;");
+foreach ($msgs as $msg) {
     $fn = tempnam($msgs['spamham'] == 'Spam' ? '/tmp/sa_train/spam' : '/tmp/sa_train/ham', 'msg');
     error_log($fn);
-    file_put_contents($fn, $msgs['message']);
+    file_put_contents($fn, $msg['message']);
 }
 
 Utils::unlockScript($lockh);
