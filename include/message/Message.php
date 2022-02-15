@@ -5365,11 +5365,15 @@ $mq", [
             $count++;
         }
 
-        # Update any message outcomes.
-        $sql = "SELECT messages_spatial.id, messages_spatial.msgid, messages_spatial.successful, messages_outcomes.outcome FROM messages_spatial LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages_spatial.msgid ORDER BY messages_outcomes.timestamp DESC;";
+        # Update any message outcomes and promises.
+        $sql = "SELECT messages_spatial.id, messages_spatial.msgid, messages_spatial.successful, messages_spatial.promised, messages_outcomes.outcome, messages_promises.promisedat FROM messages_spatial 
+    LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages_spatial.msgid 
+    LEFT JOIN messages_promises ON messages_promises.msgid = messages_spatial.msgid
+    ORDER BY messages_outcomes.timestamp DESC;";
         $msgs = $this->dbhr->preQuery($sql);
 
-        foreach ($msgs as $msg) {
+        foreach ($msgs as $msg)
+        {
             if ($msg['outcome'] == Message::OUTCOME_WITHDRAWN || $msg['outcome'] == Message::OUTCOME_EXPIRED) {
                 # Remove from the index.
                 error_log("{$msg['msgid']} expired or withdrawn, remove from index");
@@ -5386,6 +5390,20 @@ $mq", [
             } else if ($msg['successful']) {
                 error_log("{$msg['msgid']} no longer taken or received, update");
                 $this->dbhm->preExec("UPDATE messages_spatial SET successful = 0 WHERE id = ?;", [
+                    $msg['id']
+                ]);
+                $count++;
+            }
+
+            if ($msg['promised'] && !$msg['promisedat']) {
+                error_log("{$msg['msgid']} no longer promised");
+                $this->dbhm->preExec("UPDATE messages_spatial SET promised = 0 WHERE id = ?;", [
+                    $msg['id']
+                ]);
+                $count++;
+            } else if (!$msg['promised'] && $msg['promisedat']) {
+                error_log("{$msg['msgid']} promised");
+                $this->dbhm->preExec("UPDATE messages_spatial SET promised = 1 WHERE id = ?;", [
                     $msg['id']
                 ]);
                 $count++;

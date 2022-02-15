@@ -2020,6 +2020,20 @@ class messageAPITest extends IznikAPITestCase
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
+        # Not yet promised in spatial index.
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $m->setPrivate('lat', 8.5);
+        $m->setPrivate('lng', 179.3);
+        $m->updateSpatialIndex();
+
+        $spatials = $this->dbhr->preQuery("SELECT * FROM messages_spatial WHERE msgid = ?", [
+            $id
+        ]);
+
+        assertEquals(1, count($spatials));
+        assertEquals(0, $spatials[0]['successful']);
+        assertEquals(0, $spatials[0]['promised']);
+
         # Shouldn't be able to promise logged out
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -2037,7 +2051,17 @@ class messageAPITest extends IznikAPITestCase
             'action' => 'Promise'
         ]);
         assertEquals(0, $ret['ret']);
-        
+
+        # Should show in spatial index.
+        $m->updateSpatialIndex();
+        $spatials = $this->dbhr->preQuery("SELECT * FROM messages_spatial WHERE msgid = ?", [
+            $id
+        ]);
+
+        assertEquals(1, count($spatials));
+        assertEquals(0, $spatials[0]['successful']);
+        assertEquals(1, $spatials[0]['promised']);
+
         # Promise should show
         $ret = $this->call('message', 'GET', [
             'id' => $id
@@ -2098,6 +2122,16 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals(1, $ret['user']['info']['reneged']);
 
+        # Still promised.
+        $m->updateSpatialIndex();
+        $spatials = $this->dbhr->preQuery("SELECT * FROM messages_spatial WHERE msgid = ?", [
+            $id
+        ]);
+
+        assertEquals(1, count($spatials));
+        assertEquals(0, $spatials[0]['successful']);
+        assertEquals(1, $spatials[0]['promised']);
+
         # Check we can't promise on someone else's message.
         $u = User::get($this->dbhr, $this->dbhm, $uid3);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -2116,6 +2150,28 @@ class messageAPITest extends IznikAPITestCase
             'action' => 'Renege'
         ]);
         assertEquals(2, $ret['ret']);
+
+        # Renege on the other.
+        $u = User::get($this->dbhr, $this->dbhm, $this->uid);
+        assertTrue($u->login('testpw'));
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'userid' => $uid3,
+            'action' => 'Renege',
+            'dup' => 1
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # No longer promised.
+        $m->updateSpatialIndex();
+        $spatials = $this->dbhr->preQuery("SELECT * FROM messages_spatial WHERE msgid = ?", [
+            $id
+        ]);
+
+        assertEquals(1, count($spatials));
+        assertEquals(0, $spatials[0]['successful']);
+        assertEquals(0, $spatials[0]['promised']);
     }
 
     public function testPromisePartner() {
