@@ -16,6 +16,11 @@ class Attachment
     protected $filename;
 
     /**
+     * @var string $contentType Mime Type
+     */
+    protected $contentType;
+
+    /**
      * @var string $content File Content
      */
     protected $content;
@@ -49,6 +54,7 @@ class Attachment
      * Attachment constructor.
      *
      * @param string   $filename
+     * @param string   $contentType
      * @param resource $stream
      * @param string   $contentDisposition
      * @param string   $contentId
@@ -57,6 +63,7 @@ class Attachment
      */
     public function __construct(
         $filename,
+        $contentType,
         $stream,
         $contentDisposition = 'attachment',
         $contentId = '',
@@ -64,6 +71,7 @@ class Attachment
         $mimePartStr = ''
     ) {
         $this->filename = $filename;
+        $this->contentType = $contentType;
         $this->stream = $stream;
         $this->content = null;
         $this->contentDisposition = $contentDisposition;
@@ -80,6 +88,16 @@ class Attachment
     public function getFilename()
     {
         return $this->filename;
+    }
+
+    /**
+     * Retrieve the Attachment Content-Type
+     *
+     * @return string
+     */
+    public function getContentType()
+    {
+        return $this->contentType;
     }
 
     /**

@@ -462,6 +462,7 @@ class Parser
 
                 $attachments[] = new Attachment(
                     $filename,
+                    $this->getPart('content-type', $part),
                     $this->getAttachmentStream($part),
                     $disposition,
                     $contentidAttachments,
