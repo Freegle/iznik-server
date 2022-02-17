@@ -35,7 +35,7 @@ if (count($opts) < 2) {
         $tog->setPrivate('ontn', 0);
         $tog->setPrivate('showonyahoo', 0);
 
-        foreach (['settings', 'type', 'region', 'lat', 'lng', 'poly', 'polyofficial', 'authorityid', 'tagline', 'description', 'welcomemail'] as $att) {
+        foreach (['settings', 'type', 'region', 'lat', 'lng', 'poly', 'polyofficial', 'tagline', 'description', 'welcomemail'] as $att) {
             $tog->setPrivate($att, $fromg->getPrivate($att));
         }
     }
