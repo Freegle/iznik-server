@@ -1244,15 +1244,18 @@ HAVING logincount > 0
         # Delete any old ones.
         $this->dbhm->preExec("UPDATE messages_popular SET expired = 1 WHERE TIMESTAMPDIFF(HOUR, timestamp, NOW()) >= 24 AND shared = 0 AND declined = 0;");
 
-        # Find messages with the most views which lie within the official group area (CGA).
-        $msgs = $this->dbhr->preQuery("SELECT COUNT(*) AS count, messages_likes.msgid, groupid FROM messages_likes 
+        # Find messages with the most views which lie within the official group area (CGA), and which have not
+        # previously been popular.
+        $msgs = $this->dbhr->preQuery("SELECT COUNT(*) AS count, messages_likes.msgid, messages_groups.groupid FROM messages_likes 
     INNER JOIN messages_groups ON messages_groups.msgid = messages_likes.msgid
     INNER JOIN `groups` ON groups.id = messages_groups.groupid
     INNER JOIN messages ON messages.id = messages_groups.msgid
     INNER JOIN messages_attachments ma on messages_groups.msgid = ma.msgid 
+    LEFT JOIN messages_popular ON messages_popular.msgid = messages_groups.msgid
     WHERE TIMESTAMPDIFF(HOUR, messages_likes.timestamp, NOW()) <= 24 AND 
           messages_groups.deleted = 0 AND 
-          messages_groups.collection = ? AND ST_Contains(ST_GeomFromText(groups.polyofficial, {$this->dbhr->SRID()}), ST_SRID(POINT(messages.lng,messages.lat),  {$this->dbhr->SRID()}))          
+          messages_groups.collection = ? AND ST_Contains(ST_GeomFromText(groups.polyofficial, {$this->dbhr->SRID()}), ST_SRID(POINT(messages.lng,messages.lat),  {$this->dbhr->SRID()})) AND
+          messages_popular.id IS NULL
     GROUP BY messages_likes.msgid 
     ORDER BY messages_groups.groupid ASC, count ASC;", [
         MessageCollection::APPROVED
