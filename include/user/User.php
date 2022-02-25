@@ -5842,15 +5842,17 @@ class User extends Entity
         return($this->dbhm->lastInsertId());
     }
 
-    public function rate($rater, $ratee, $rating) {
+    public function rate($rater, $ratee, $rating, $reason = NULL, $text = NULL) {
         $ret = NULL;
 
         if ($rater != $ratee) {
             # Can't rate yourself.
-            $this->dbhm->preExec("REPLACE INTO ratings (rater, ratee, rating, timestamp) VALUES (?, ?, ?, NOW());", [
+            $this->dbhm->preExec("REPLACE INTO ratings (rater, ratee, rating, reason, text, timestamp) VALUES (?, ?, ?, ?, ?, NOW());", [
                 $rater,
                 $ratee,
-                $rating
+                $rating,
+                $reason,
+                $text
             ]);
 
             $ret = $this->dbhm->lastInsertId();
