@@ -100,7 +100,8 @@ class PushNotifications
                 'userid' => $userid,
                 'params' => $params,
                 'endpoint' => $endpoint,
-                'payload' => $payload
+                'payload' => $payload,
+                'ttr' => Utils::PHEANSTALK_TTR
             ));
 
             $id = $this->pheanstalk->put($str);
@@ -396,7 +397,8 @@ class PushNotifications
                 'queued' => microtime(TRUE),
                 'groupid' => $userid,
                 'data' => $data,
-                'modtools' => $modtools
+                'modtools' => $modtools,
+                'ttr' => Utils::PHEANSTALK_TTR
             ));
 
             $this->pheanstalk->put($str);

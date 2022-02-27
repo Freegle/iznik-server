@@ -183,11 +183,27 @@ class Attachment
                 $temp = tempnam(sys_get_temp_dir(), "img_archive_$fn");
                 file_put_contents($temp, $data);
                 $rem = "/var/www/iznik/images/$fn";
-                $rc = @ssh2_scp_send($connection, $temp, $rem, 0644);
+                $retry = 0;
+
+                do {
+                    $rc = ssh2_scp_send($connection, $temp, $rem, 0644);
+
+                    if (!$rc) {
+                        $msg = "SCP of $rem failed, retry $retry";
+                        \Sentry\captureMessage($msg);
+                        error_log($msg);
+                        sleep(1);
+                    }
+
+                    $retry++;
+                } while (!$rc && $retry < 5);
                 $failed = !$rc;
                 unlink($temp);
                 error_log("scp $temp to $host $rem returned $rc failed? $failed");
             }
+
+            # Exit gracefully - might help with file truncation.
+            ssh2_exec($connection, 'exit');
         }
     }
 
@@ -223,8 +239,11 @@ class Attachment
                         if ($i->img) {
                             $i->scale(250, 250);
                             $thumbdata = $i->getData(100);
-                            $this->scp($host, $thumbdata, "{$tname}_{$this->id}.jpg", $failed);
-                            $this->scp($host, $data, "{$name}_{$this->id}.jpg", $failed);
+                            $this->scp($host, $thumbdata, "{$tname}_{$this->id}.jpg", $failed2);
+                            $failed |= $failed2;
+                            $this->scp($host, $data, "{$name}_{$this->id}.jpg", $failed3);
+                            $failed |= $failed3;
+
                         } else {
                             error_log("...failed to create image {$this->id}");
                         }

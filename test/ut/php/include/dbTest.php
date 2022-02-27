@@ -20,7 +20,7 @@ class dbTest extends IznikTestCase {
     /** @var $dbhm LoggedPDO */
     private $dbhr, $dbhm;
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp();
 
         global $dbhr, $dbhm;
@@ -44,7 +44,7 @@ class dbTest extends IznikTestCase {
         $this->dbhm->setErrorLog(TRUE);
     }
 
-    protected function tearDown() {
+    protected function tearDown() : void {
         $rc = $this->dbhm->exec('DROP TABLE IF EXISTS test;');
         assertEquals(0, $rc);
         parent::tearDown ();
@@ -190,7 +190,7 @@ class dbTest extends IznikTestCase {
             $mock->retryQuery('SHOW COLUMNS FROM test;');
         } catch (DBException $e) {
             $worked = true;
-            assertContains('Non-deadlock', $e->getMessage());
+            assertStringContainsString('Non-deadlock', $e->getMessage());
         }
         assertTrue($worked);
 
@@ -279,7 +279,7 @@ class dbTest extends IznikTestCase {
             $mock->retryExec('INSERT INTO test VALUES ();');
         } catch (DBException $e) {
             $worked = true;
-            assertContains('Non-deadlock', $e->getMessage());
+            assertStringContainsString('Non-deadlock', $e->getMessage());
         }
         assertTrue($worked);
 
@@ -429,7 +429,7 @@ class dbTest extends IznikTestCase {
             $mock->preQuery('SHOW COLUMNS FROM test;');
         } catch (DBException $e) {
             $worked = true;
-            assertContains('Non-deadlock', $e->getMessage());
+            assertStringContainsString('Non-deadlock', $e->getMessage());
         }
         assertTrue($worked);
 
@@ -445,7 +445,7 @@ class dbTest extends IznikTestCase {
             $mock->preQuery('SHOW COLUMNS FROM test;');
         } catch (DBException $e) {
             $worked = true;
-            assertContains('Unexpected database error Faked deadlock exception', $e->getMessage());
+            assertStringContainsString('Unexpected database error Faked deadlock exception', $e->getMessage());
         }
         assertTrue($worked);
 

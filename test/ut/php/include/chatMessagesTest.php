@@ -15,7 +15,7 @@ require_once(UT_DIR . '/../../include/db.php');
 class chatMessagesTest extends IznikTestCase {
     private $dbhr, $dbhm;
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         global $dbhr, $dbhm;
@@ -190,8 +190,7 @@ class chatMessagesTest extends IznikTestCase {
         $replyid = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::DROPPED, $rc);
-
-        }
+    }
 
     public function testStripOurFooter() {
         # Put a valid message on a group.

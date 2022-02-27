@@ -273,7 +273,7 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
         return [ $swlat, $swlng, $nelat, $nelng, $geom, $area ];
     }
 
-    public function scanToCSV($inputFile, $outputFile, $maxage = 7, $fakeTime = FALSE, $distribute = 0.0005) {
+    public function scanToCSV($inputFile, $outputFile, $maxage = 7, $fakeTime = FALSE, $distribute = 0.0005, $perFile = 1000) {
         $now = $fakeTime ? '2001-01-01 00:00:00' : date("Y-m-d H:i:s", time());
         $out = fopen("$outputFile.tmp", 'w');
 
@@ -445,6 +445,7 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
                             if ($job->body) {
                                 # Truncate the body - we only display the body as a snippet to get people to click
                                 # through.
+                                #
                                 # Fix up line endings which cause problems with fputcsv, and other weirdo characters
                                 # that get mangled en route to us.  This isn't a simple UTF8 problem because the data
                                 # comes from all over the place and is a bit of a mess.
@@ -455,7 +456,15 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
                                 $body = str_replace('–', '-', $body);
                                 $body = str_replace('Â', '-', $body);
                                 $body = substr($body, 0, 256);
+
+                                # The truncation might happen to leave a \ at the end of the string, which would then
+                                # escape the following quote added by fputcsv, and the world would explode in a ball of
+                                # fire.  Add a space to avoid that.
+                                $body .= ' ';
                             }
+
+                            # Sometimes the geocode can end up with line breaks.
+                            $geom = str_replace(["\n", "\r"], '', $geom);
 
                             # Write the job to CSV, ready for LOAD DATA INFILE later.
                             # location, title, city, state, zip, country, job_type, posted_at, job_reference, company,
@@ -509,16 +518,27 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
         fclose($out);
 
         # Now unquote any "\N" into \N.
+        error_log(date("Y-m-d H:i:s", time()) . "...finished loop, split");
         $data = file_get_contents("$outputFile.tmp");
         $data = str_replace('"\N"', '\N', $data);
         file_put_contents($outputFile, $data);
+        error_log(date("Y-m-d H:i:s", time()) . "...written file");
     }
 
     public function loadCSV($csv) {
+        # Percona cluster has non-standard behaviour for LOAD DATA INFILE, and commits are performed every 10K rows.
+        # But even this seems to place too much load on cluster syncing, and can cause lockups.  So we split the CSV
+        # into 1K rows and load each of them in turn.
+        error_log(date("Y-m-d H:i:s", time()) . "...Split CSV file");
+        system("cd /tmp/; rm feed-split*; split -1000 $csv feed-split");
+        error_log(date("Y-m-d H:i:s", time()) . "...DROP jobs_new");
         $this->dbhm->preExec("DROP TABLE IF EXISTS jobs_new;");
+        error_log(date("Y-m-d H:i:s", time()) . "...CREATE jobs_new");
         $this->dbhm->preExec("CREATE TABLE jobs_new LIKE jobs;");
         $this->dbhm->preExec("SET GLOBAL local_infile=1;");
-        $this->dbhm->preExec("LOAD DATA LOCAL INFILE '$csv' INTO TABLE jobs_new
+        error_log(date("Y-m-d H:i:s", time()) . "...load files");
+        foreach (glob('/tmp/feed-split*') as $fn) {
+            $this->dbhm->preExec("LOAD DATA LOCAL INFILE '$fn' INTO TABLE jobs_new
             CHARACTER SET latin1
             FIELDS TERMINATED BY ',' 
             OPTIONALLY ENCLOSED BY '\"' 
@@ -526,12 +546,16 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
             (id, location, title, city, state, zip, country, job_type, posted_at, job_reference, company,
              mobile_friendly_apply, category, html_jobs, url, body, cpc, @GEOM, clickability,
              bodyhash, seenat, visible) SET geometry = ST_GeomFromText(@GEOM, " . $this->dbhm->SRID() . ");");
+            error_log(date("Y-m-d H:i:s", time()) . "...loaded file $fn");
+        }
+        error_log(date("Y-m-d H:i:s", time()) . "...finished file load");
     }
 
     public function deleteSpammyJobs() {
         # There are some "spammy" jobs which are posted with identical descriptions across the UK.  They feel scuzzy, so
         # remove them.
         $spamcount = 0;
+        error_log(date("Y-m-d H:i:s", time()) . "Count spammy jobs");
         $spams = $this->dbhr->preQuery("SELECT COUNT(*) as count, title, bodyhash FROM jobs_new GROUP BY bodyhash HAVING count > 50 AND bodyhash IS NOT NULL;");
 
         error_log(date("Y-m-d H:i:s", time()) . "Delete spammy jobs");
@@ -549,10 +573,10 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
 
     public function swapTables() {
         # We want to swap the jobs_new table with the jobs table, atomically.
-        error_log(date("Y-m-d H:i:s", time()) . "Swap tables...");
+        error_log(date("Y-m-d H:i:s", time()) . " Swap tables...");
         $this->dbhm->preExec("DROP TABLE IF EXISTS jobs_old;");
         $this->dbhm->preExec("RENAME TABLE jobs TO jobs_old, jobs_new TO jobs;");
         $this->dbhm->preExec("DROP TABLE IF EXISTS jobs_old;");
-        error_log(date("Y-m-d H:i:s", time()) . "tables swapped...");
+        error_log(date("Y-m-d H:i:s", time()) . "...tables swapped...");
     }
 }

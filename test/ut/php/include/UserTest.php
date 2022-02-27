@@ -19,7 +19,7 @@ class userTest extends IznikTestCase {
         $this->msgsSent[] = $message->toString();
     }
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         global $dbhr, $dbhm;
@@ -1663,6 +1663,7 @@ class userTest extends IznikTestCase {
         assertEquals('t***1@test.com', $u->obfuscateEmail('test1@test.com'));
         assertEquals('t***2@test.com', $u->obfuscateEmail('test12@test.com'));
         assertEquals('tes***890@test.com', $u->obfuscateEmail('test1234567890@test.com'));
+        assertEquals('Your Apple ID', $u->obfuscateEmail('1234@privaterelay.appleid.com'));
     }
 
     public function testGetCity() {
@@ -1685,6 +1686,13 @@ class userTest extends IznikTestCase {
         assertEquals(55.9, $lat);
         assertEquals(-3.15, $lng);
         assertEquals('Edinburgh', $city);
+    }
+
+    public function testBadEmail() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        assertNull($u->addEmail('notify-2023105-3506086@users.ilovefreegle.org'));
+        assertNull($u->addEmail('replyto-2023105@users.ilovefreegle.org'));
     }
 }
 

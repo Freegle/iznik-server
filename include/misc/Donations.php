@@ -10,6 +10,10 @@ class Donations
     const PERIOD_FUTURE = 'Future';
     const PERIOD_DECLINED = 'Declined';
 
+    const TYPE_EXTERNAL = 'External';
+
+    const MANUAL_THANKS = 20;
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid = NULL)
     {
         $this->dbhr = $dbhr;
@@ -310,5 +314,17 @@ class Donations
         }
 
         return $found;
+    }
+
+    public function listByUser($userid) {
+        $donations = $this->dbhr->preQuery("SELECT * FROM users_donations WHERE userid = ? ORDER BY id DESC;", [
+            $userid
+        ]);
+
+        foreach ($donations as &$donation) {
+            $donation['timestamp'] = Utils::ISODate($donation['timestamp']);
+        }
+
+        return $donations;
     }
 }

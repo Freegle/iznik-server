@@ -2,6 +2,8 @@
 
 namespace Freegle\Iznik;
 
+use PhpMimeMailParser\Exception;
+
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
 
@@ -29,17 +31,22 @@ function logIt($msg) {
     ]);
 
     if (count($logs) == 0) {
-        # We don't - just insert.  Use IGNORE in case we have a stupid long eximid.
-        $dbhm->preExec("INSERT IGNORE INTO logs_emails (timestamp, eximid, userid, `from`, `to`, messageid, subject, status) VALUES (?,?,?,?,?,?,?,?);", [
-            $timestamp,
-            $msg['eximid'],
-            $uid,
-            Utils::presdef('from', $msg, NULL),
-            Utils::presdef('to', $msg, NULL),
-            Utils::presdef('messageid', $msg, NULL),
-            Utils::presdef('subject', $msg, NULL),
-            Utils::presdef('status', $msg, NULL)
-        ], FALSE);
+        # We don't - just insert.
+        try {
+            $dbhm->preExec("INSERT INTO logs_emails (timestamp, eximid, userid, `from`, `to`, messageid, subject, status) VALUES (?,?,?,?,?,?,?,?);", [
+                $timestamp,
+                $msg['eximid'],
+                $uid,
+                Utils::presdef('from', $msg, NULL),
+                Utils::presdef('to', $msg, NULL),
+                Utils::presdef('messageid', $msg, NULL),
+                Utils::presdef('subject', $msg, NULL),
+                Utils::presdef('status', $msg, NULL)
+            ], FALSE);
+        } catch (Exception $e) {
+            \Sentry\captureException($e);
+            error_log("Failed to log " . json_encode($msg));
+        }
     } else {
         # We do.  We might have extra info.
         foreach ($logs as $log) {
@@ -111,7 +118,7 @@ while ($line = fgets($fh)) {
 }
 
 # We will have some messages which we've not managed to send out.
-error_log("Remaining messages " . count($msgs));
+error_log("Remaining messages " . count($msgs) . " maxtime $maxtime");
 foreach ($msgs as $msgid => $msg) {
     logIt($msg);
 }

@@ -16,7 +16,7 @@ require_once(UT_DIR . '/../../include/db.php');
 class IsochroneTest extends IznikTestCase {
     public $dbhr, $dbhm;
 
-    protected function setUp()
+    protected function setUp() : void
     {
         parent::setUp();
 

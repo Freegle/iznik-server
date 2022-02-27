@@ -17,7 +17,7 @@ class messageAPITest extends IznikAPITestCase
 {
     public $dbhr, $dbhm;
 
-    protected function setUp()
+    protected function setUp() : void
     {
         parent::setUp();
 
@@ -46,7 +46,7 @@ class messageAPITest extends IznikAPITestCase
         $this->user = $u;
     }
 
-    protected function tearDown()
+    protected function tearDown() : void
     {
         $this->dbhm->preExec("DELETE FROM partners_keys WHERE partner = 'UT';");
         parent::tearDown();
@@ -1170,7 +1170,7 @@ class messageAPITest extends IznikAPITestCase
     /**
      * @dataProvider editProvider
      */
-    public function testEditAsMember($anonymous)
+    public function testEditAsMember($anonymous, $revert)
     {
         $l = new Location($this->dbhr, $this->dbhm);
         $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)');
@@ -1267,11 +1267,18 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals(1, $ret['me']['openposts']);
 
-        # Edit the message.
+        # Edit the message twice.
         $ret = $this->call('message', 'PATCH', [
             'id' => $mid,
             'groupid' => $this->gid,
             'item' => 'Edited',
+            'location' => 'TV1 1AB'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'PATCH', [
+            'id' => $mid,
+            'groupid' => $this->gid,
             'textbody' => 'Another text body',
             'location' => 'TV1 1AB'
         ]);
@@ -1283,13 +1290,13 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(8.6, $m->getPrivate('lat'));
 
         # Again but with no actual change
-        $ret = $this->call('message', 'PATCH', [
-            'id' => $mid,
-            'groupid' => $this->gid,
-            'item' => 'Edited',
-            'textbody' => 'Another text body'
-        ]);
-        assertEquals(0, $ret['ret']);
+//        $ret = $this->call('message', 'PATCH', [
+//            'id' => $mid,
+//            'groupid' => $this->gid,
+//            'item' => 'Edited',
+//            'textbody' => 'Another text body'
+//        ]);
+//        assertEquals(0, $ret['ret']);
 
         # Test the available numbers.
         $ret = $this->call('message', 'PATCH', [
@@ -1394,12 +1401,17 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(10, $ret['message']['availablenow']);
 
         # Check edit history.  Edit should show as needing approval.
-        assertEquals(1, count($ret['message']['edits']));
+        assertEquals(2, count($ret['message']['edits']));
         assertEquals('Text body', $ret['message']['edits'][0]['oldtext']);
         assertEquals('Another text body', $ret['message']['edits'][0]['newtext']);
         assertEquals(TRUE, $ret['message']['edits'][0]['reviewrequired']);
-        assertEquals('OFFER: a thing (TV1)', $ret['message']['edits'][0]['oldsubject']);
-        assertEquals('OFFER: Edited (TV1)', $ret['message']['edits'][0]['newsubject']);
+        assertNull($ret['message']['edits'][0]['oldsubject']);
+        assertNull($ret['message']['edits'][0]['newsubject']);
+        assertNull($ret['message']['edits'][1]['oldtext']);
+        assertNull($ret['message']['edits'][1]['newtext']);
+        assertEquals(TRUE, $ret['message']['edits'][1]['reviewrequired']);
+        assertEquals('OFFER: a thing (TV1)', $ret['message']['edits'][1]['oldsubject']);
+        assertEquals('OFFER: Edited (TV1)', $ret['message']['edits'][1]['newsubject']);
 
         # This message should also show up in edits.
         $ret = $this->call('messages', 'GET', [
@@ -1415,7 +1427,7 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(MessageCollection::APPROVED, $ret['messages'][0]['groups'][0]['collection']);
 
         # And will show the edit.
-        assertEquals(1, count($ret['messages'][0]['edits']));
+        assertEquals(2, count($ret['messages'][0]['edits']));
         $editid = $ret['messages'][0]['edits'][0]['id'];
 
         # And also in the counts.
@@ -1425,15 +1437,39 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(1, $ret['groups'][0]['work']['editreview']);
         assertEquals(1, $ret['work']['editreview']);
 
-        # Now approve the edit.
-        $ret = $this->call('message', 'POST', [
-            'id' => $mid,
-            'action' => 'ApproveEdits',
-            'editid' => $editid
-        ]);
-        assertEquals(0, $ret['ret']);
+        if ($revert) {
+            # Revert all edits.
+            $ret = $this->call('message', 'POST', [
+                'id' => $mid,
+                'action' => 'RevertEdits'
+            ]);
+            assertEquals(0, $ret['ret']);
 
-        # No longer showing for review.
+            # Should be back as it was.
+            $ret = $this->call('message', 'GET', [
+                'id' => $mid
+            ]);
+
+            assertEquals('OFFER: a thing (TV1)', $ret['message']['subject']);
+            assertEquals('Text body', $ret['message']['textbody']);
+        } else {
+            # Approve the edits.
+            $ret = $this->call('message', 'POST', [
+                'id' => $mid,
+                'action' => 'ApproveEdits'
+            ]);
+            assertEquals(0, $ret['ret']);
+
+            # Should have applied..
+            $ret = $this->call('message', 'GET', [
+                'id' => $mid
+            ]);
+
+            assertEquals('OFFER: Edited (TV1)', $ret['message']['subject']);
+            assertEquals('Another text body', $ret['message']['textbody']);
+        }
+
+        # Not showing for review.
         $ret = $this->call('messages', 'GET', [
             'groupid' => $this->gid,
             'collection' => MessageCollection::EDITS
@@ -1441,27 +1477,14 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['messages']));
 
-        # Now revert it.
-        $ret = $this->call('message', 'POST', [
-            'id' => $mid,
-            'action' => 'RevertEdits',
-            'editid' => $editid
-        ]);
-        assertEquals(0, $ret['ret']);
-
-        # Should be back as it was.
-        $ret = $this->call('message', 'GET', [
-            'id' => $mid
-        ]);
-
-        assertEquals('OFFER: a thing (TV1)', $ret['message']['subject']);
-        assertEquals('Text body', $ret['message']['textbody']);
     }
 
     public function editProvider() {
         return [
-            [ TRUE ],
-            [ FALSE ]
+            [ TRUE, TRUE ],
+            [ FALSE, TRUE ],
+            [ TRUE, FALSE ],
+            [ FALSE, FALSE ],
         ];
     }
 
@@ -1997,6 +2020,20 @@ class messageAPITest extends IznikAPITestCase
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
+        # Not yet promised in spatial index.
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $m->setPrivate('lat', 8.5);
+        $m->setPrivate('lng', 179.3);
+        $m->updateSpatialIndex();
+
+        $spatials = $this->dbhr->preQuery("SELECT * FROM messages_spatial WHERE msgid = ?", [
+            $id
+        ]);
+
+        assertEquals(1, count($spatials));
+        assertEquals(0, $spatials[0]['successful']);
+        assertEquals(0, $spatials[0]['promised']);
+
         # Shouldn't be able to promise logged out
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -2014,7 +2051,17 @@ class messageAPITest extends IznikAPITestCase
             'action' => 'Promise'
         ]);
         assertEquals(0, $ret['ret']);
-        
+
+        # Should show in spatial index.
+        $m->updateSpatialIndex();
+        $spatials = $this->dbhr->preQuery("SELECT * FROM messages_spatial WHERE msgid = ?", [
+            $id
+        ]);
+
+        assertEquals(1, count($spatials));
+        assertEquals(0, $spatials[0]['successful']);
+        assertEquals(1, $spatials[0]['promised']);
+
         # Promise should show
         $ret = $this->call('message', 'GET', [
             'id' => $id
@@ -2075,6 +2122,16 @@ class messageAPITest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals(1, $ret['user']['info']['reneged']);
 
+        # Still promised.
+        $m->updateSpatialIndex();
+        $spatials = $this->dbhr->preQuery("SELECT * FROM messages_spatial WHERE msgid = ?", [
+            $id
+        ]);
+
+        assertEquals(1, count($spatials));
+        assertEquals(0, $spatials[0]['successful']);
+        assertEquals(1, $spatials[0]['promised']);
+
         # Check we can't promise on someone else's message.
         $u = User::get($this->dbhr, $this->dbhm, $uid3);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -2093,6 +2150,28 @@ class messageAPITest extends IznikAPITestCase
             'action' => 'Renege'
         ]);
         assertEquals(2, $ret['ret']);
+
+        # Renege on the other.
+        $u = User::get($this->dbhr, $this->dbhm, $this->uid);
+        assertTrue($u->login('testpw'));
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'userid' => $uid3,
+            'action' => 'Renege',
+            'dup' => 1
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # No longer promised.
+        $m->updateSpatialIndex();
+        $spatials = $this->dbhr->preQuery("SELECT * FROM messages_spatial WHERE msgid = ?", [
+            $id
+        ]);
+
+        assertEquals(1, count($spatials));
+        assertEquals(0, $spatials[0]['successful']);
+        assertEquals(0, $spatials[0]['promised']);
     }
 
     public function testPromisePartner() {
@@ -2350,17 +2429,35 @@ class messageAPITest extends IznikAPITestCase
 
         assertEquals(0, count($ret['message']['outcomes']));
 
-        # Now expire it on the group by.
+        # Now expire it on the group.
         $this->dbhm->preExec("UPDATE messages_groups SET arrival = '$expired' WHERE msgid = $id;");
+
+        # ...but add a recent chat referencing it.
+        $cr = new ChatRoom($this->dbhr, $this->dbhm);
+        $cm = new ChatMessage($this->dbhr, $this->dbhm);
+        $u2 = User::get($this->dbhr, $this->dbhm);
+        $uid2 = $u2->create(NULL, NULL, 'Test User');
+        list ($cid, $banned) = $cr->createConversation($uid, $uid2);
+        list ($cmid, $banned) = $cm->create($cid, $uid2, 'Please', ChatMessage::TYPE_INTERESTED, $id);
+
+        # Shouldn't have expired yet.
+        self::assertEquals(0, count($ret['message']['outcomes']));
 
         # Should now have expired.
         $ret = $this->call('message', 'GET', [
             'id' => $id,
         ]);
 
-        self::assertEquals(Message::OUTCOME_EXPIRED, $ret['message']['outcomes'][0]['outcome']);
+        # Delete the chat message - should now look like it's expired.
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $cmid);
+        $cm->delete();
 
-        }
+        $ret = $this->call('message', 'GET', [
+            'id' => $id,
+        ]);
+
+        self::assertEquals(Message::OUTCOME_EXPIRED, $ret['message']['outcomes'][0]['outcome']);
+    }
 
     public function testIntendedTaken()
     {

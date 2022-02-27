@@ -17,7 +17,7 @@ class twitterTest extends IznikTestCase {
 
     private $msgsSent = [];
 
-    protected function setUp()
+    protected function setUp() : void
     {
         parent::setUp();
 

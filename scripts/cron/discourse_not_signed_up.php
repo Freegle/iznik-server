@@ -7,6 +7,7 @@
 // hub/archive scripts/cron/discourse_checkusers.php
 //
 // 2021-03-28 Start
+// 2022-01-02 Move groups not on Discourse to top of report
 
 namespace Freegle\Iznik;
 use \Datetime;
@@ -158,11 +159,11 @@ try{
   // Look for active mods in MT, checking to see if user on Discourse
   $now = new \DateTime();
   $count = 0;
-  $report = 'Total Discourse users: '.count($allDusers)."\r\n";
+  $reportTop = 'Total Discourse users: '.count($allDusers)."\r\n";
 
   $sql = "SELECT * FROM `groups` WHERE `publish`=1 ORDER BY nameshort ASC";
   $allgroups = $dbhr->preQuery($sql);
-  $report .= "Published groups: ".count($allgroups)."\r\n";
+  $reportTop .= "Published groups: ".count($allgroups)."\r\n";
   $groups = array();
   foreach ($allgroups as $group) {
     $groups[$group['id']] = false;
@@ -180,8 +181,9 @@ try{
   "WHERE memberships.role IN ('Owner', 'Moderator') AND groups.type = 'Freegle' AND `lastaccess` > DATE_SUB(now(), INTERVAL 6 MONTH) ".
   "ORDER BY users.id";
   $allactivemods = $dbhr->preQuery($sql);
-  $report .= 'Total active mods: '.count($allactivemods)." (in last 6 months)\r\n";
-  $report .= "\r\nList of these volunteers not on Discourse:\r\n";
+  $reportTop .= 'Total active mods: '.count($allactivemods)." (in last 6 months)\r\n";
+  
+  $reportMid = "\r\nList of these volunteers not on Discourse:\r\n";
 
   foreach ($allDusers as $duser) {
     $duser->external_id = false;
@@ -227,7 +229,7 @@ try{
     //echo "CHECKING: ".$lastmodid." ".$modfirstseen." ".$found."\r\n";
     if( $modfirstseen && !$found) {
       //echo "NOT ON DISCOURSE\r\n";
-      $report .= "* ".$activemod['id'].": ".$activemod['fullname']." - ".$activemod['lastaccess']."\r\n";
+      $reportMid .= "* ".$activemod['id'].": ".$activemod['fullname']." - ".$activemod['lastaccess']."\r\n";
       $notondiscourse++;
     }
     if( $found) {
@@ -246,8 +248,8 @@ try{
     //if( $count>10) break;
   }
 
-  $report .= "\r\n";
-  $report .= "Active volunteers not on discourse: $notondiscourse\r\n\r\n";
+  $reportMid .= "\r\n";
+  $reportMid .= "Active volunteers not on discourse: $notondiscourse\r\n\r\n";
 
   $notrepresentedcount = 0;
   $count = 0;
@@ -255,10 +257,10 @@ try{
     $groupid = $group['id'];
     //echo "CHECK:".$groupid."\r\n";
     if( !$groups[$groupid]){
-      $report .= "NOT REPRESENTED ".$groupid." - ".$group['nameshort']."\r\n";
+      $reportTop .= "NOT REPRESENTED ".$groupid." - ".$group['nameshort']."\r\n";
       foreach ($allactivemodsgroups as $activemod) {
         if( $activemod['groupid']==$groupid){
-          $report .= "* Moderator: ".$activemod['id']." - ".$activemod['fullname']."\r\n";
+          $reportTop .= "* Moderator: ".$activemod['id']." - ".$activemod['fullname']."\r\n";
         }
       }
  
@@ -266,15 +268,18 @@ try{
     }
     //if( $count>10) break;
   }
-  $report .= "\r\n";
-  $report .= "Groups without active volunteers on Discourse: $notrepresentedcount\r\n\r\n";
+  $reportTop .= "\r\n";
+  $reportTop .= "Groups without active volunteers on Discourse: $notrepresentedcount\r\n\r\n";
+
+  $report = $reportTop.$reportMid;
 
   echo $report;
   echo "\r\n";
 
-  $subject = 'Discourse: all active volunteers on here';
-  if( $notondiscourse>0) $subject = 'Discourse: '.$notondiscourse.' volunteers not signed up';
-  if( $notrepresentedcount>0) $subject .= ". $notrepresentedcount groups not represented";
+  $subject = 'Discourse: ';
+  if( $notrepresentedcount>0) $subject .= "$notrepresentedcount groups not represented. ";
+  if( $notondiscourse>0) $subject .= "$notondiscourse volunteers not signed up. ";
+  if( $notrepresentedcount==0 && $notondiscourse==0) $subject .= 'all active volunteers on here';
 
   $mailedcentralmods = false;
   /*if( $notmod || $notuser){

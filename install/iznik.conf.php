@@ -22,6 +22,9 @@ define('MODLOGO', 'https://modtools.org/images/modlogo-large.jpg');
 # We can query Trash Nothing to get real email addresses for their users.
 define('TNKEY', 'zzzzz');
 
+# We push posts to Freebie Alerts
+define('FREEBIE_ALERTS_KEY', NULL);
+
 # We can use push notifications
 define('GOOGLE_PROJECT', 'zzz');
 define('GOOGLE_PUSH_KEY', 'zzzz');
@@ -97,8 +100,8 @@ define('PHEANSTALK_SERVER', '127.0.0.1');
 # Host to monitor
 define('MONIT_HOST', 'zzz');
 
-# We use Sentry to capture exceptions.
-define('SENTRY_DSN', 'zzzz');
+# We use Sentry to capture exceptions.  But we don't define it here, as UT doesn't use it.
+# define('SENTRY_DSN', 'zzzz');
 
 # You can force all user activity onto a test group
 define('USER_GROUP_OVERRIDE', 'FreeglePlayground');

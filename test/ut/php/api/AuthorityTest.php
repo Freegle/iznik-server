@@ -18,7 +18,7 @@ class authorityAPITest extends IznikAPITestCase
 
     private $count = 0;
 
-    protected function setUp()
+    protected function setUp() : void
     {
         parent::setUp();
 
@@ -38,7 +38,7 @@ class authorityAPITest extends IznikAPITestCase
         $l->copyLocationsToPostgresql();
     }
 
-    protected function tearDown()
+    protected function tearDown() : void
     {
 //        $this->dbhm->preExec("DELETE FROM authorities WHERE name LIKE 'UTAuth%';");
         parent::tearDown();

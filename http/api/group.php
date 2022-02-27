@@ -214,7 +214,7 @@ function group() {
 
                         # Other support-settable attributes
                         if ($me->isAdminOrSupport()) {
-                            foreach (['publish', 'licenserequired', 'lat', 'lng'] as $att) {
+                            foreach (['publish', 'licenserequired', 'lat', 'lng', 'altlat', 'altlng'] as $att) {
                                 $val = Utils::presdef($att, $_REQUEST, NULL);
                                 if (array_key_exists($att, $_REQUEST)) {
                                     $g->setPrivate($att, $val);

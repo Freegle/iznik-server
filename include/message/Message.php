@@ -8,6 +8,7 @@ require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 
 use GeoIp2\Database\Reader;
 use Oefenweb\DamerauLevenshtein\DamerauLevenshtein;
+use Pheanstalk\Pheanstalk;
 
 class Message
 {
@@ -31,7 +32,7 @@ class Message
     const LIKE_LAUGH = 'Laugh';
     const LIKE_VIEW = 'View';
 
-    const EMAIL_REGEXP = '/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i';
+    const EMAIL_REGEXP = '/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i';
 
     private $replycount = 0;
 
@@ -135,7 +136,8 @@ class Message
         "I won't be able to check any emails until after",
         "I'm on leave at the moment",
         "We'll get back to you as soon as possible",
-        'currently on leave'
+        'currently on leave',
+        'To complete this verification'
     ];
 
     private $autoreply_text_start = [
@@ -193,6 +195,12 @@ class Message
             if ($rc) {
                 $this->$att = $val;
             }
+        }
+    }
+
+    private function getPheanstalk() {
+        if (!$this->pheanstalk) {
+            $this->pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
         }
     }
 
@@ -1451,14 +1459,23 @@ ORDER BY lastdate DESC;";
                     $rets[$msg['id']]['expiresat'] = $expiredat;
 
                     if ($grouparrivalago > $expiretime) {
-                        # Assume anything this old is no longer available.
+                        # Anything this old is probably no longer available.  But check to see if we have an ongoing
+                        # conversation which references it in the last few days.  Find the most recent message in
+                        # any chats which reference it.
+                        $ongoings = $this->dbhr->preQuery("SELECT MAX(latestmessage) AS max FROM chat_rooms INNER JOIN chat_messages ON chat_rooms.id = chat_messages.chatid WHERE refmsgid = ?;", [
+                            $msg['id']
+                        ]);
 
-                        $rets[$msg['id']]['outcomes'] = [
-                            [
-                                'timestamp' => $expiredat,
-                                'outcome' => Message::OUTCOME_EXPIRED
-                            ]
-                        ];
+                        $max = $ongoings[0]['max'];
+
+                        if (!$max || (time() - strtotime($max)) > 6 * 24 * 60 * 60) {
+                            $rets[$msg['id']]['outcomes'] = [
+                                [
+                                    'timestamp' => $expiredat,
+                                    'outcome' => Message::OUTCOME_EXPIRED
+                                ]
+                            ];
+                        }
                     }
                 }
             }
@@ -1751,6 +1768,13 @@ ORDER BY lastdate DESC;";
         if ($me && ($this->lat || $this->lng)) {
             list ($mylat, $mylng) = $me->getLatLng();
             $rets[$this->id]['milesaway'] = $me->getDistanceBetween($mylat, $mylng, $this->lat, $this->lng);
+        }
+
+        if ($me && !$summary) {
+            # Return whether we've previously interacted.
+            $r = new ChatRoom($this->dbhr, $this->dbhm);
+            list ($rid, $banned) = $r->createConversation($this->getPrivate('fromuser'), $me->getId(), TRUE);
+            $rets[$this->id]['interacted'] = $rid ? $rid : NULL;
         }
 
         $ret = $rets[$this->id];
@@ -2134,10 +2158,6 @@ ORDER BY lastdate DESC;";
                 #
                 # Yahoo members can do a reply to all which results in a message going to both one of our users
                 # and the group, so in that case we want to ignore the group aspect.
-                if (Mail::ourDomain($t['address'])) {
-                    $toours = TRUE;
-                }
-
                 if (preg_match('/(.*)@yahoogroups\.co.*/', $t['address'], $matches) &&
                     strpos($t['address'], '-owner@') === FALSE) {
                     # Yahoo group.
@@ -2151,6 +2171,8 @@ ORDER BY lastdate DESC;";
                     $groupname = $matches[1];
                     $togroup = TRUE;
                     #error_log("Got $groupname from {$t['address']}");
+                } else if (Mail::ourDomain($t['address'])) {
+                    $toours = TRUE;
                 }
             }
 
@@ -2356,6 +2378,20 @@ ORDER BY lastdate DESC;";
             if ($tnid) {
                 $u = User::get($this->dbhr, $this->dbhm, $userid);
                 // TODO Need schema change to be able to add this to the user.
+
+                // Record the last location.
+                if ($latlng) {
+                    $l = new Location($this->dbhr, $this->dbhm);
+                    $pc = $l->closestPostcode($this->lat, $this->lng);
+
+                    if ($pc) {
+                        $this->dbhm->preExec("UPDATE users SET lastlocation = ? WHERE id = ?;", [
+                            $pc['id'],
+                            $this->fromuser
+                        ]);
+                        User::clearCache($this->fromuser);
+                    }
+                }
             }
         }
 
@@ -3025,6 +3061,10 @@ ORDER BY lastdate DESC;";
                 $gid = $g['groupid'];
                 $arrival = $g['arrival'];
 
+                $existings = $this->dbhr->preQuery("SELECT id FROM messages_spatial WHERE msgid = ?;", [
+                    $this->id
+                ]);
+
                 $sql = "INSERT INTO messages_spatial (msgid, point, groupid, msgtype, arrival) VALUES (?, ST_GeomFromText('POINT({$this->lng} {$this->lat})', {$this->dbhr->SRID()}), ?, ?, ?) ON DUPLICATE KEY UPDATE point = ST_GeomFromText('POINT({$this->lng} {$this->lat})', {$this->dbhr->SRID()}), groupid = ?, msgtype = ?, arrival = ?;";
                 $this->dbhm->preExec(
                     $sql,
@@ -3038,6 +3078,16 @@ ORDER BY lastdate DESC;";
                         $arrival,
                     ]
                 );
+
+                if (!count($existings)) {
+                    $this->getPheanstalk();
+                    $this->pheanstalk->put(json_encode(array(
+                                                           'type' => 'freebiealertsadd',
+                                                           'queued' => microtime(TRUE),
+                                                           'msgid' => $this->id,
+                                                           'ttr' => Utils::PHEANSTALK_TTR
+                                                       )));
+                }
             }
         }
     }
@@ -3144,7 +3194,6 @@ ORDER BY lastdate DESC;";
 
                 if ($groupid) {
                     $this->notif->notifyGroupMods($groupid);
-                    error_log("Delete notify $groupid");
 
                     $this->maybeMail($groupid, $subject, $body, $group['collection'] == MessageCollection::APPROVED ? 'Delete Approved Message' : 'Delete');
                 }
@@ -4510,7 +4559,8 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                                                     'type' => $othertype,
                                                     'completed' => $completed,
                                                     'withdraw' => $withdraw,
-                                                    'promised' => $promise
+                                                    'promised' => $promise,
+                                                    'offer' => $m->getType() == Message::TYPE_OFFER
                                                 ]);
 
                                                 list ($transport, $mailer) = Mail::getMailer();
@@ -4819,7 +4869,9 @@ $mq", [
                          'Thanks for the interest, but this has now been taken.',
                          'Thanks, these have now been taken.',
                          'Thanks, this has now been received.',
-                         'Sorry, this is no longer available'
+                         'Sorry, this is no longer available',
+                         'Withdrawn on user unsubscribe',
+                         'Expired'
                      ] as $bland) {
                 if (strcmp($comment, $bland) === 0) {
                     $dull = TRUE;
@@ -5262,6 +5314,13 @@ $mq", [
         $this->dbhm->preExec("UPDATE messages_spatial SET successful = 1 WHERE msgid = ?;", [
             $msgid
         ]);
+
+        $this->getPheanstalk();
+        $this->pheanstalk->put(json_encode(array(
+                                               'type' => 'freebiealertsremove',
+                                               'msgid' => $msgid,
+                                               'ttr' => Utils::PHEANSTALK_TTR
+                                           )));
     }
 
     public function updateSpatialIndex() {
@@ -5270,7 +5329,8 @@ $mq", [
         $mysqltime = date("Y-m-d", strtotime(MessageCollection::RECENTPOSTS));
 
         # Add/update messages which are recent or have changed location or group or been reposted.
-        $sql = "SELECT DISTINCT messages.id, messages.lat, messages.lng, messages_groups.groupid, messages_groups.arrival, messages_groups.msgtype FROM messages 
+        $sql = "SELECT DISTINCT messages.id, messages.lat, messages.lng, messages_groups.groupid, messages_groups.arrival, messages_groups.msgtype, messages_spatial.msgid AS existing 
+    FROM messages 
     INNER JOIN messages_groups ON messages_groups.msgid = messages.id
     LEFT JOIN messages_spatial ON messages_spatial.msgid = messages_groups.msgid
     WHERE messages_groups.arrival >= ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL AND messages.deleted IS NULL AND messages_groups.collection = ? AND 
@@ -5291,14 +5351,29 @@ $mq", [
                 $msg['msgtype'],
                 $msg['arrival']
             ]);
+
+            if (!Utils::pres('existing', $msg)) {
+                $this->getPheanstalk();
+                $this->pheanstalk->put(json_encode(array(
+                                                       'type' => 'freebiealertsadd',
+                                                       'queued' => microtime(TRUE),
+                                                       'msgid' => $msg['id'],
+                                                       'ttr' => Utils::PHEANSTALK_TTR
+                                                   )));
+            }
+
             $count++;
         }
 
-        # Update any message outcomes.
-        $sql = "SELECT messages_spatial.id, messages_spatial.msgid, messages_spatial.successful, messages_outcomes.outcome FROM messages_spatial LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages_spatial.msgid ORDER BY messages_outcomes.timestamp DESC;";
+        # Update any message outcomes and promises.
+        $sql = "SELECT messages_spatial.id, messages_spatial.msgid, messages_spatial.successful, messages_spatial.promised, messages_outcomes.outcome, messages_promises.promisedat FROM messages_spatial 
+    LEFT JOIN messages_outcomes ON messages_outcomes.msgid = messages_spatial.msgid 
+    LEFT JOIN messages_promises ON messages_promises.msgid = messages_spatial.msgid
+    ORDER BY messages_outcomes.timestamp DESC;";
         $msgs = $this->dbhr->preQuery($sql);
 
-        foreach ($msgs as $msg) {
+        foreach ($msgs as $msg)
+        {
             if ($msg['outcome'] == Message::OUTCOME_WITHDRAWN || $msg['outcome'] == Message::OUTCOME_EXPIRED) {
                 # Remove from the index.
                 error_log("{$msg['msgid']} expired or withdrawn, remove from index");
@@ -5315,6 +5390,20 @@ $mq", [
             } else if ($msg['successful']) {
                 error_log("{$msg['msgid']} no longer taken or received, update");
                 $this->dbhm->preExec("UPDATE messages_spatial SET successful = 0 WHERE id = ?;", [
+                    $msg['id']
+                ]);
+                $count++;
+            }
+
+            if ($msg['promised'] && !$msg['promisedat']) {
+                error_log("{$msg['msgid']} no longer promised");
+                $this->dbhm->preExec("UPDATE messages_spatial SET promised = 0 WHERE id = ?;", [
+                    $msg['id']
+                ]);
+                $count++;
+            } else if (!$msg['promised'] && $msg['promisedat']) {
+                error_log("{$msg['msgid']} promised");
+                $this->dbhm->preExec("UPDATE messages_spatial SET promised = 1 WHERE id = ?;", [
                     $msg['id']
                 ]);
                 $count++;
@@ -5513,5 +5602,13 @@ $mq", [
         }
 
         return [ $type, $item, $location ];
+    }
+
+    /**
+     * @param null $pheanstalk
+     */
+    public function setPheanstalk($pheanstalk)
+    {
+        $this->pheanstalk = $pheanstalk;
     }
 }

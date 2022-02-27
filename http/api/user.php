@@ -366,9 +366,11 @@ function user() {
                         $ret = ['ret' => 5, 'status' => 'Invalid parameters'];
                         $ratee = (Utils::presint('ratee', $_REQUEST, 0));
                         $rating = Utils::presdef('rating', $_REQUEST, NULL);
+                        $reason = Utils::presdef('reason', $_REQUEST, NULL);
+                        $text = Utils::presdef('text', $_REQUEST, NULL);
 
                         if ($ratee && ($rating == User::RATING_UP || $rating == User::RATING_DOWN || $rating === NULL)) {
-                            $me->rate($me->getId(), $ratee, $rating);
+                            $me->rate($me->getId(), $ratee, $rating, $reason, $text);
                             $ret = [ 'ret' => 0, 'status' => 'Success' ];
                         }
                     }

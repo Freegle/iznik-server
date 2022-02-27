@@ -15,7 +15,7 @@ require_once(UT_DIR . '/../../include/db.php');
 class messageTest extends IznikTestCase {
     private $dbhr, $dbhm;
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         global $dbhr, $dbhm;
@@ -1066,5 +1066,9 @@ class messageTest extends IznikTestCase {
 //        $this->log(Message::determineType($m->getSubject()));
 //    }
 
+    public function testValidate() {
+        assertEquals(1, preg_match(Message::EMAIL_REGEXP, 'test@test.com'));
+        assertEquals(1, preg_match(Message::EMAIL_REGEXP, 'test@test.cloud'));
+    }
 }
 

@@ -16,7 +16,7 @@ require_once(UT_DIR . '/../../include/db.php');
 class AlertTest extends IznikTestCase {
     private $dbhr, $dbhm;
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         global $dbhr, $dbhm;
@@ -26,7 +26,7 @@ class AlertTest extends IznikTestCase {
         $this->dbhm->preExec("DELETE FROM `groups` WHERE `type` = 'UnitTest';");
     }
 
-    protected function tearDown() {
+    protected function tearDown() : void {
         parent::tearDown ();
         $this->dbhm->preExec("DELETE FROM alerts WHERE subject LIKE 'UT - please ignore';");
     }

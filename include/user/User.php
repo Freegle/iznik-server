@@ -646,10 +646,9 @@ class User extends Entity
             # the volunteer addresses.
             $rc = NULL;
         } else if (stripos($email, 'replyto-') !== FALSE || stripos($email, 'notify-') !== FALSE) {
-            # This is a bug we're trying to track down.
+            # This can happen because of dodgy email clients replying to the wrong place.  We don't want to end up
+            # with this getting added to the user.
             $rc = NULL;
-            $headers = 'From: geeks@ilovefreegle.org';
-            mail('geek-alerts@ilovefreegle.org', "Attempt to add bad email $email to user {$this->id}", "", $headers);
         } else {
             # If the email already exists in the table, then that's fine.  But we don't want to use INSERT IGNORE as
             # that scales badly for clusters.
@@ -1511,6 +1510,8 @@ class User extends Entity
                     ChatRoom::TYPE_USER2MOD
                 ]);
             }
+
+            $this->memberships = NULL;
         }
 
         return ($rc);
@@ -4020,6 +4021,10 @@ class User extends Entity
             $d = new Donations($this->dbhr, $this->dbhm);
             $thisone['giftaid'] = $d->getGiftAid($user['userid']);
 
+            if ($me->hasPermission(User::PERM_GIFTAID)) {
+                $thisone['donations'] = $d->listByUser($user['userid']);
+            }
+
             $ret[] = $thisone;
         }
 
@@ -4182,6 +4187,7 @@ class User extends Entity
                 'pendingvolunteering' => [ 'volunteer op', 'volunteerops', '/modtools/volunteering' ],
                 'pendingevents' => [ 'event', 'events', '/modtools/communityevents' ],
                 'socialactions' => [ 'publicity item', 'publicity items', '/modtools/publicity' ],
+                'popularposts' => [ 'publicity item', 'publicity items', '/modtools/publicity' ],
                 'stories' => [ 'story', 'stories', '/modtools/members/stories' ],
                 'newsletterstories' => [ 'newsletter story', 'newsletter stories', '/modtools/members/newsletter' ],
                 'chatreview' => [ 'chat message to review', 'chat messages to review', '/modtools/chats/review' ],
@@ -5430,7 +5436,7 @@ class User extends Entity
         error_log("...filter");
         Utils::filterResult($ret);
         error_log("...encode");
-        $data = json_encode($ret);
+        $data = json_encode($ret, JSON_PARTIAL_OUTPUT_ON_ERROR);
         error_log("...encoded length " . strlen($data) . ", now compress");
         $data = gzdeflate($data);
         $this->dbhm->preExec("UPDATE users_exports SET completed = NOW(), data = ? WHERE id = ? AND tag = ?;", [
@@ -5836,15 +5842,17 @@ class User extends Entity
         return($this->dbhm->lastInsertId());
     }
 
-    public function rate($rater, $ratee, $rating) {
+    public function rate($rater, $ratee, $rating, $reason = NULL, $text = NULL) {
         $ret = NULL;
 
         if ($rater != $ratee) {
             # Can't rate yourself.
-            $this->dbhm->preExec("REPLACE INTO ratings (rater, ratee, rating, timestamp) VALUES (?, ?, ?, NOW());", [
+            $this->dbhm->preExec("REPLACE INTO ratings (rater, ratee, rating, reason, text, timestamp) VALUES (?, ?, ?, ?, ?, NOW());", [
                 $rater,
                 $ratee,
-                $rating
+                $rating,
+                $reason,
+                $text
             ]);
 
             $ret = $this->dbhm->lastInsertId();
@@ -6255,6 +6263,9 @@ memberships.groupid IN $groupq
         $f = new GroupFacebook($this->dbhr, $this->dbhm);
         $ret['socialactions'] = count($f->listSocialActions($ctx,$this));
 
+        $g = new Group($this->dbhr, $this->dbhm);
+        $ret['popularposts'] = count($g->getPopularMessages());
+
         if ($this->hasPermission(User::PERM_GIFTAID)) {
             $d = new Donations($this->dbhr, $this->dbhm);
             $ret['giftaid'] = $d->countGiftAidReview();
@@ -6284,6 +6295,7 @@ memberships.groupid IN $groupq
         $worktypes = [
             'pendingvolunteering',
             'socialactions',
+            'popularposts',
             'chatreview',
             'relatedmembers',
             'stories',
@@ -6360,7 +6372,7 @@ memberships.groupid IN $groupq
             $oldvisible = intval($rating['visible']) ? TRUE : FALSE;
 
             if ($visible != $oldvisible) {
-                $this->dbhm->preExec("UPDATE ratings SET visible = ? WHERE id = ?;", [
+                $this->dbhm->preExec("UPDATE ratings SET visible = ?, timestamp = NOW() WHERE id = ?;", [
                     $visible,
                     $rating['id']
                 ]);
@@ -6496,14 +6508,19 @@ memberships.groupid IN $groupq
 
     public function obfuscateEmail($email) {
         $p = strpos($email, '@');
+        $q = strpos($email, 'privaterelay.appleid.com');
 
-        # For very short emails, we just show the first character.
-        if ($p <= 3) {
-            $email = substr($email, 0, 1) . "***" . substr($email, $p);
-        } else if ($p < 10) {
-            $email = substr($email, 0, 1) . "***" . substr($email, $p - 1);
+        if ($q) {
+            $email = 'Your Apple ID';
         } else {
-            $email = substr($email, 0, 3) . "***" . substr($email, $p - 3);
+            # For very short emails, we just show the first character.
+            if ($p <= 3) {
+                $email = substr($email, 0, 1) . "***" . substr($email, $p);
+            } else if ($p < 10) {
+                $email = substr($email, 0, 1) . "***" . substr($email, $p - 1);
+            } else {
+                $email = substr($email, 0, 3) . "***" . substr($email, $p - 3);
+            }
         }
 
         return $email;

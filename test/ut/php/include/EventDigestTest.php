@@ -17,7 +17,7 @@ class eventDigestTest extends IznikTestCase {
 
     private $eventsSent = [];
 
-    protected function setUp()
+    protected function setUp() : void
     {
         parent::setUp();
 

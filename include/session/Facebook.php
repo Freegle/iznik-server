@@ -346,7 +346,8 @@ class Facebook
                 'queued' => microtime(TRUE),
                 'fbid' => $fbid,
                 'message' => $message,
-                'href' => $href
+                'href' => $href,
+                'ttr' => Utils::PHEANSTALK_TTR
             ));
 
             $id = $this->pheanPut($str);

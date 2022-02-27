@@ -15,7 +15,7 @@ require_once(UT_DIR . '/../../include/db.php');
 class chatRoomsTest extends IznikTestCase {
     private $dbhr, $dbhm;
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         global $dbhr, $dbhm;
@@ -568,8 +568,8 @@ class chatRoomsTest extends IznikTestCase {
         # Notify - will email just one.
         $this->log("Will email justone");
         assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
-        assertContains('Test desc', $this->msgsSent[0]['body']);
-        assertContains('sent you an address', $this->msgsSent[0]['body']);
+        assertStringContainsString('Test desc', $this->msgsSent[0]['body']);
+        assertStringContainsString('sent you an address', $this->msgsSent[0]['body']);
 
         }
 

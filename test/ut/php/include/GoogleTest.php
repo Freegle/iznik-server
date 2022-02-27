@@ -16,7 +16,7 @@ class GoogleTest extends IznikTestCase {
     private $dbhr, $dbhm;
     public $people;
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         global $dbhr, $dbhm;

@@ -15,7 +15,7 @@ require_once(UT_DIR . '/../../include/db.php');
 class itemTest extends IznikTestCase {
     private $dbhr, $dbhm;
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         global $dbhr, $dbhm;
@@ -25,7 +25,7 @@ class itemTest extends IznikTestCase {
         $dbhm->preExec("DELETE FROM items WHERE name LIKE 'UTTest%';");
     }
 
-    protected function tearDown() {
+    protected function tearDown() : void {
         $this->dbhm->preExec("DELETE FROM items WHERE name LIKE 'UTTest%';");
         parent::tearDown ();
     }

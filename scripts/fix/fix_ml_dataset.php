@@ -12,10 +12,11 @@ global $dbhr, $dbhm;
 $popular = $dbhr->preQuery("SELECT itemid, COUNT(*) AS count, items.name AS name FROM `messages_items` INNER JOIN items ON items.id = messages_items.itemid GROUP BY itemid ORDER BY count DESC LIMIT 100;");
 
 # Now scan all messages
-$msgs = $dbhr->query("SELECT DISTINCT messages.id, messages.subject, ma.id AS attid FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id INNER JOIN messages_attachments ma on messages.id = ma.msgid WHERE messages.type = 'Offer' ORDER BY messages.id DESC LIMIT 100000;");
+$msgs = $dbhr->query("SELECT DISTINCT messages.id, messages.subject, ma.id AS attid FROM messages INNER JOIN messages_groups ON messages_groups.msgid = messages.id INNER JOIN messages_attachments ma on messages.id = ma.msgid WHERE messages.type = 'Offer' ORDER BY messages.id DESC LIMIT 100001, 200000;");
 
 $f = fopen("/tmp/ml_dataset.csv", "w");
 
+mkdir('/tmp/ml');
 fputcsv($f, ['Message ID', 'Title', 'Matched popular item', 'Image link']);
 
 foreach ($msgs as $msg) {

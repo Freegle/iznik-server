@@ -16,7 +16,7 @@ class socialactionsAPITest extends IznikAPITestCase
 {
     public $dbhr, $dbhm;
 
-    protected function setUp()
+    protected function setUp() : void
     {
         parent::setUp();
 
@@ -196,5 +196,84 @@ class socialactionsAPITest extends IznikAPITestCase
         }
 
         assertTrue(TRUE);
+    }
+
+    /**
+     * @dataProvider trueFalseProvider
+     */
+    public function testPopular($share) {
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+        $g->setPrivate('polyofficial', 'POLYGON((179.25 8.5, 179.27 8.5, 179.27 8.6, 179.2 8.6, 179.25 8.5))');
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', 'Test User');
+        $u->addMembership($gid, User::ROLE_MODERATOR);
+        $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        $u->addEmail('test@test.com');
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment'));
+        $msg = str_replace("FreeglePlayground", "testgroup", $msg);
+        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
+        $msg = str_replace("Hey", "Hey {{username}}", $msg);
+
+        $r = new MailRouter($this->dbhm, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
+        assertNotNull($id);
+        $this->log("Created message $id");
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+
+        assertEquals([], $g->getPopularMessages($gid));
+
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $m->setPrivate('lat', 8.55);
+        $m->setPrivate('lng', 179.26);
+        $m->approve($gid);
+        $m->like($m->getFromuser(), Message::LIKE_VIEW);
+        $this->waitBackground();
+
+        # No Facebook link - no popular messages.
+        $g->findPopularMessages();
+        error_log(var_export($g->getPopularMessages($gid), TRUE));
+        assertEquals([], $g->getPopularMessages($gid));
+
+        # Add a Facebook link.
+        $gf = new GroupFacebook($this->dbhr, $this->dbhm);
+        $gf->add($gid, 'UT', 'UT', 1);
+
+        $g->findPopularMessages();
+        $popid = $g->getPopularMessages($gid)[0]['msgid'];
+        assertEquals($id, $popid);
+
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        # Should show as sharable.
+        $ret = $this->call('socialactions', 'GET', []);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals($id, $ret['popularposts'][0]['msgid']);
+        assertEquals($gid, $ret['popularposts'][0]['groupid']);
+
+        if ($share) {
+            $ret = $this->call('socialactions', 'POST', [
+                'action' => GroupFacebook::ACTION_DO_POPULAR,
+                'msgid' => $id,
+                'groupid' => $gid
+            ]);
+        } else {
+            $ret = $this->call('socialactions', 'POST', [
+                'action' => GroupFacebook::ACTION_HIDE_POPULAR,
+                'msgid' => $id,
+                'groupid' => $gid
+            ]);
+        }
+
+        assertEquals(0, $ret['ret']);
+
+        # Should no longer show as sharable.
+        $ret = $this->call('socialactions', 'GET', []);
+        assertEquals([], $ret['popularposts']);
     }
 }

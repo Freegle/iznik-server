@@ -15,7 +15,7 @@ require_once(UT_DIR . '/../../include/db.php');
 class StoryTest extends IznikTestCase {
     private $dbhr, $dbhm;
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         global $dbhr, $dbhm;
@@ -24,7 +24,7 @@ class StoryTest extends IznikTestCase {
         $this->dbhm->preExec("DELETE FROM users_stories WHERE headline =  'Test';");
     }
 
-    protected function tearDown() {
+    protected function tearDown() : void {
         parent::tearDown ();
         $this->dbhm->preExec("DELETE FROM users_stories WHERE headline =  'Test';");
     }

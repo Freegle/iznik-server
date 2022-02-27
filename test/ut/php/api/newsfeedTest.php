@@ -19,7 +19,7 @@ class newsfeedAPITest extends IznikAPITestCase {
 
     private $count = 0;
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         /** @var LoggedPDO $dbhr */
@@ -69,7 +69,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->dbhm->preExec("DELETE FROM volunteering WHERE title = 'Test opp';");
     }
 
-    protected function tearDown() {
+    protected function tearDown() : void {
         $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $this->dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup';");
         $this->deleteLocations("DELETE FROM locations  WHERE name LIKE 'Tuvalu%';");

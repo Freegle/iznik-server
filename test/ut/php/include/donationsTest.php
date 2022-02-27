@@ -15,7 +15,7 @@ require_once(UT_DIR . '/../../include/db.php');
 class donationsTest extends IznikTestCase {
     private $dbhr, $dbhm;
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         global $dbhr, $dbhm;
@@ -56,6 +56,19 @@ class donationsTest extends IznikTestCase {
         $mysqltime = date("Y-m-d H:i:s", strtotime('tomorrow'));
         $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 3', 0);
         assertNotNull($did);
+
+        # Test the donations show up for Support Tools.
+        $mod = new User($this->dbhr, $this->dbhm);
+        $mod->create('Test', 'User', NULL);
+        $mod->setPrivate('systemrole', User::ROLE_MODERATOR);
+        $mod->setPrivate('permissions', User::PERM_GIFTAID);
+        assertGreaterThan(0, $mod->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($mod->login('testpw'));
+
+        $ctx = NULL;
+        $searches = $u->search($id , $ctx);
+        assertEquals(1, count($searches));
+        assertEquals(3, count($searches[0]['donations']));
 
         # Add consent.
         $gid = $d->setGiftAid($id, Donations::PERIOD_SINCE, 'Test User', 'Nowheresville');
@@ -107,7 +120,6 @@ class donationsTest extends IznikTestCase {
         $this->log("Created $id");
 
         # Add three donations - one before, one on, and one after the consent date.
-        $d = new Donations($this->dbhr, $this->dbhm);
         $d = new Donations($this->dbhr, $this->dbhm);
         $mysqltime = date("Y-m-d H:i:s", strtotime('yesterday'));
         $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 1', 0);

@@ -15,7 +15,7 @@ require_once(UT_DIR . '/../../include/db.php');
 class userAPITest extends IznikAPITestCase {
     public $dbhr, $dbhm;
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         /** @var LoggedPDO $dbhr */
@@ -827,7 +827,9 @@ class userAPITest extends IznikAPITestCase {
         $ret = $this->call('user', 'POST', [
             'action' => 'Rate',
             'ratee' => $uid,
-            'rating' => User::RATING_DOWN
+            'rating' => User::RATING_DOWN,
+            'reason' => 'NoShow',
+            'text' => "Didn't turn up"
         ]);
 
         $ret = $this->call('user', 'GET', [

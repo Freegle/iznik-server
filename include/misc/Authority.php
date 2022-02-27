@@ -60,8 +60,9 @@ class Authority extends Entity
                     # The simplify call may fail.  We've seen this where there is a multipolygon, and the simplify
                     # returns a polygon with only two vertices, which then fails to update because it's invalid as
                     # a polygon.  So we do it separately and catch the exception.
-                    $this->dbhm->preExec("UPDATE authorities SET simplified = ST_Simplify(ST_GeomFromText(polygon, {$this->dbhr->SRID()}), 0.001) WHERE id = ?;", [
-                        $id
+                    $this->dbhm->preExec("UPDATE authorities SET simplified = ST_Simplify(ST_GeomFromText(polygon, {$this->dbhr->SRID()}), ?) WHERE id = ?;", [
+                        $id,
+                        LoggedPDO::SIMPLIFY
                     ]);
                 } catch (\Exception $e) {}
 

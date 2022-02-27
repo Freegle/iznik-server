@@ -19,7 +19,7 @@ abstract class IznikAPITestCase extends IznikTestCase {
 
     private $lastOutput = NULL;
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         global $dbhr, $dbhm;

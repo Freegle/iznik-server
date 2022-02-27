@@ -458,9 +458,18 @@ WHERE chat_rooms.id IN $idlist;";
 
         if (count($chats) > 0) {
             # We have an existing chat.  That'll do nicely.
-            $id = $chats[0]['id'];
+            if ($checkonly) {
+                # Check if we have any messages.
+                $msgs = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = ?;", [
+                    $chats[0]['id']
+                ]);
 
-            $this->ensureAppearInList($id);
+                $id = $msgs[0]['count'] ? $chats[0]['id'] : NULL;
+            } else {
+                # Return and bump.
+                $id = $chats[0]['id'];
+                $this->ensureAppearInList($id);
+            }
         } else if (!$checkonly) {
             # We don't have one.
             #
@@ -1142,6 +1151,8 @@ WHERE chat_rooms.id IN $idlist;";
             ]) : [];
 
             foreach ($chatids as $chatid) {
+                $found = FALSE;
+
                 foreach ($currents as $current) {
                     if ($current['chatid'] == $chatid) {
                         # We already have a roster entry.

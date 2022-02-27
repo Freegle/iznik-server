@@ -514,9 +514,9 @@ UNION SELECT msgid AS id, arrival AS timestamp, 'ApprovedOrReposted' AS `type` F
         }
 
         if ($groupid) {
-            $sql = "SELECT ST_Y(point) AS lat, ST_X(point) AS lng, messages_spatial.msgid AS id, messages_spatial.successful, messages_spatial.groupid, messages_spatial.msgtype AS type, messages_spatial.arrival FROM messages_spatial WHERE messages_spatial.groupid = $groupid ORDER BY messages_spatial.arrival DESC, messages_spatial.msgid DESC;";
+            $sql = "SELECT ST_Y(point) AS lat, ST_X(point) AS lng, messages_spatial.msgid AS id, messages_spatial.successful, messages_spatial.promised, messages_spatial.groupid, messages_spatial.msgtype AS type, messages_spatial.arrival FROM messages_spatial WHERE messages_spatial.groupid = $groupid ORDER BY messages_spatial.arrival DESC, messages_spatial.msgid DESC;";
         } else {
-            $sql = "SELECT ST_Y(point) AS lat, ST_X(point) AS lng, messages_spatial.msgid AS id, messages_spatial.successful, messages_spatial.groupid, messages_spatial.msgtype AS type, messages_spatial.arrival FROM messages_spatial INNER JOIN messages_groups ON messages_groups.msgid = messages_spatial.msgid WHERE ST_Contains(ST_GeomFromText('POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))', {$this->dbhr->SRID()}), point) ORDER BY messages_spatial.arrival DESC, messages_spatial.msgid DESC;";
+            $sql = "SELECT ST_Y(point) AS lat, ST_X(point) AS lng, messages_spatial.msgid AS id, messages_spatial.successful, messages_spatial.promised, messages_spatial.groupid, messages_spatial.msgtype AS type, messages_spatial.arrival FROM messages_spatial INNER JOIN messages_groups ON messages_groups.msgid = messages_spatial.msgid WHERE ST_Contains(ST_GeomFromText('POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))', {$this->dbhr->SRID()}), point) ORDER BY messages_spatial.arrival DESC, messages_spatial.msgid DESC;";
         }
 
         $msgs = $this->dbhr->preQuery($sql);
@@ -538,7 +538,7 @@ UNION SELECT msgid AS id, arrival AS timestamp, 'ApprovedOrReposted' AS `type` F
         $ctx = $ctx ? $ctx : [];
 
         if (count($groupids)) {
-            $sql = "SELECT ST_Y(point) AS lat, ST_X(point) AS lng, messages_spatial.msgid AS id, messages_spatial.successful, messages_spatial.groupid, messages_spatial.msgtype AS type, messages_spatial.arrival FROM messages_spatial WHERE messages_spatial.groupid IN (" . implode(
+            $sql = "SELECT ST_Y(point) AS lat, ST_X(point) AS lng, messages_spatial.msgid AS id, messages_spatial.successful, messages_spatial.promised, messages_spatial.groupid, messages_spatial.msgtype AS type, messages_spatial.arrival FROM messages_spatial WHERE messages_spatial.groupid IN (" . implode(
                     ',',
                     $groupids
                 ) . ") $ctxq ORDER BY messages_spatial.arrival DESC, messages_spatial.msgid DESC $limitq;";
@@ -574,7 +574,7 @@ UNION SELECT msgid AS id, arrival AS timestamp, 'ApprovedOrReposted' AS `type` F
         $ctx = $ctx ? $ctx : [];
 
         # Find any messages within any of the user's isochrones.
-        $sql = "SELECT ST_Y(point) AS lat, ST_X(point) AS lng, messages_spatial.msgid AS id, messages_spatial.successful, messages_spatial.groupid, messages_spatial.msgtype AS type, messages_spatial.arrival
+        $sql = "SELECT ST_Y(point) AS lat, ST_X(point) AS lng, messages_spatial.msgid AS id, messages_spatial.successful, messages_spatial.promised, messages_spatial.groupid, messages_spatial.msgtype AS type, messages_spatial.arrival
          FROM messages_spatial
          INNER JOIN isochrones ON ST_Contains(isochrones.polygon, point)
          INNER JOIN isochrones_users ON isochrones.id = isochrones_users.isochroneid
@@ -593,9 +593,11 @@ UNION SELECT msgid AS id, arrival AS timestamp, 'ApprovedOrReposted' AS `type` F
             list ($lat, $lng, $loc) = $u->getLatLng($userid);
             $visibles = $this->dbhr->preQuery("SELECT id FROM `groups` WHERE id IN (" . implode(',', $groupids) . ") AND (postvisibility IS NULL OR ST_Contains(postvisibility, ST_GeomFromText('POINT($lng $lat)', {$this->dbhr->SRID()})));");
             $visibleids = array_column($visibles, 'id');
-            $msgs = array_filter($msgs, function ($msg) use ($visibleids) {
+
+            # Need to use array_values else we can return an object, rather than an array as the client expects.
+            $msgs = array_values(array_filter($msgs, function ($msg) use ($visibleids) {
                 return in_array($msg['groupid'], $visibleids);
-            });
+            }));
         }
 
         # Blur them.

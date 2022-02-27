@@ -15,7 +15,7 @@ require_once(UT_DIR . '/../../include/db.php');
 class membershipsAPITest extends IznikAPITestCase {
     public $dbhr, $dbhm;
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         /** @var LoggedPDO $dbhr */

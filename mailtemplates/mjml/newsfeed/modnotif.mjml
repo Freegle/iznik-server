@@ -25,7 +25,7 @@
         <mj-section background-color="#F7F6EC">
           <mj-column>
               <mj-text>
-                <p>We mail you when members in your active groups' areas post on the Newsfeed.  Replying to these
+                <p>We mail you when members in your active groups' areas post on ChitChat.  Replying to these
                 can help your members and makes Freegle look nice and friendly.</p>
                 <p>You can turn these on/off in <a href="{{settings}}">ModTools Settings</a>.</p>
               </mj-text>

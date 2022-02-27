@@ -69,7 +69,7 @@ if (!defined('IZNIK_BASE')) {
     }
 
     # There are some historical domains.
-    define('OURDOMAINS', USER_DOMAIN . ",direct.ilovefreegle.org,republisher.freegle.in");
+    define('OURDOMAINS', USER_DOMAIN . "," . GROUP_DOMAIN . ",direct.ilovefreegle.org,republisher.freegle.in");
 
     if(defined('SENTRY_DSN') && !defined('SENTRY_INITIALISED')) {
         define('SENTRY_INITIALISED', TRUE);

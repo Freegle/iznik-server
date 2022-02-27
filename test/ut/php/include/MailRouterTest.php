@@ -16,7 +16,7 @@ class MailRouterTest extends IznikTestCase {
     private $dbhr, $dbhm;
     private $msgsSent = [];
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         global $dbhr, $dbhm;
@@ -54,7 +54,7 @@ class MailRouterTest extends IznikTestCase {
         ];
     }
 
-    protected function tearDown() {
+    protected function tearDown() : void {
         parent::tearDown ();
 
         $this->dbhm->preExec("DELETE FROM spam_whitelist_ips WHERE ip = '1.2.3.4';", []);
@@ -403,6 +403,12 @@ class MailRouterTest extends IznikTestCase {
         assertEquals('TN-email', $m->getSourceheader());
         $id = $m->save();
         $this->log("Saved $id");
+
+        # Check lastlocation set
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
+        $l = new Location($this->dbhr, $this->dbhm, $u->getPrivate('lastlocation'));
+        assertEquals('EH3 6SS', $l->getPrivate('name'));
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();

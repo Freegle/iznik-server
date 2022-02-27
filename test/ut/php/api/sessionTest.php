@@ -15,7 +15,7 @@ require_once(UT_DIR . '/../../include/db.php');
  */
 class sessionTest extends IznikAPITestCase
 {
-    protected function setUp()
+    protected function setUp() : void
     {
         parent::setUp();
 
@@ -27,7 +27,7 @@ class sessionTest extends IznikAPITestCase
         $this->dbhm->preExec("DELETE FROM users_push_notifications WHERE `type` = 'Test';");
     }
 
-    public function tearDown()
+    protected function tearDown() : void
     {
     }
 

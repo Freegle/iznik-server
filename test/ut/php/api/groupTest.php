@@ -15,7 +15,7 @@ require_once(UT_DIR . '/../../include/db.php');
 class groupAPITest extends IznikAPITestCase {
     public $dbhr, $dbhm;
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         /** @var LoggedPDO $dbhr */
@@ -43,7 +43,7 @@ class groupAPITest extends IznikAPITestCase {
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
     }
 
-    protected function tearDown() {
+    protected function tearDown() : void {
         $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
 
         parent::tearDown ();
@@ -204,7 +204,10 @@ class groupAPITest extends IznikAPITestCase {
             'polygon' => TRUE
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals($polystr, $ret['group']['polygon']);
+
+        # Simplified val is different.
+        $simpstr = 'POLYGON((76.2890625 -4.740675384778361,74.8828125 6.4899833326706515,59.58984375 9.102096738726456,54.66796875 -5.0909441750333855,65.7421875 -6.839169626342807,76.2890625 -4.740675384778361))';
+        assertEquals($simpstr, $ret['group']['polygon']);
 
         # Invalid polygon
         $ret = $this->call('group', 'PATCH', [
@@ -212,6 +215,14 @@ class groupAPITest extends IznikAPITestCase {
             'poly' => 'POLYGON((59.58984375 9.102096738726456,54.66796875 -5.0909441750333855,65.7421875 -6.839169626342807,76.2890625 -4.740675384778361,74.8828125 6.4899833326706515,59.58984375 9.102096738726456)))'
         ]);
         assertEquals(3, $ret['ret']);
+
+        # Shouldn't have changed.
+        $ret = $this->call('group', 'GET', [
+            'id' => $this->groupid,
+            'polygon' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals($simpstr, $ret['group']['polygon']);
 
         # Profile
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
@@ -233,7 +244,20 @@ class groupAPITest extends IznikAPITestCase {
         assertNotFalse(strpos($ret['group']['profile'], $attid));
         assertEquals('Test slogan', $ret['group']['tagline']);
 
-        }
+        # Null polygon
+        $ret = $this->call('group', 'PATCH', [
+            'id' => $this->groupid,
+            'poly' => ''
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('group', 'GET', [
+            'id' => $this->groupid,
+            'polygon' => TRUE
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertNull($ret['group']['polygon']);
+    }
 
     public function testConfirmMod() {
         $ret = $this->call('group', 'POST', [

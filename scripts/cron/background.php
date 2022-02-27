@@ -124,9 +124,17 @@ try {
                             break;
                         }
 
-                        case 'exit': {
-                            error_log("Asked to exit");
-                            $exit = TRUE;
+                        case 'freebiealertsadd': {
+                            $f = new FreebieAlerts($dbhr, $dbhm);
+                            error_log("Background thread add {$data['msgid']}");
+                            $f->add($data['msgid']);
+                            break;
+                        }
+
+                        case 'freebiealertsremove': {
+                            $f = new FreebieAlerts($dbhr, $dbhm);
+                            error_log("Background thread remove {$data['msgid']}");
+                            $f->remove($data['msgid']);
                             break;
                         }
 
@@ -144,6 +152,10 @@ try {
 
             # Whatever it is, we need to delete the job to avoid getting stuck.
             $pheanstalk->delete($job);
+
+            if (file_exists('/tmp/iznik.background.abort')) {
+                $exit = TRUE;
+            }
         }
     }
 } catch (\Exception $e) {

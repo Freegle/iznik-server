@@ -216,32 +216,46 @@ class Group extends Entity
             } catch(\Exception $e) {
                 # Drop through with ret false.
             }
-        } else {
-            # We override this in order to clear our cache, which would otherwise be out of date.
-            parent::setPrivate($att, $val);
+        } else  if ($att == 'poly' || $att == 'polyofficial') {
+            # Check validity of spatial data
+            $ret = FALSE;
+            try {
+                $valid = !$val ? [ [ 'valid' => TRUE ] ] :  $this->dbhm->preQuery($this->dbhr->isV8() ? "SELECT ST_IsValid(ST_GeomFromText(?, {$this->dbhr->SRID()})) AS valid;" : "SELECT ST_IsValid(ST_GeomFromText(?)) AS valid;", [
+                    $val
+                ]);
 
-            if ($att == 'poly' || $att == 'polyofficial') {
-                # Check validity of spatial data
-                $ret = FALSE;
+                foreach ($valid as $v) {
+                    if ($v['valid']) {
+                        # We can get very large geometries - so simplify it when we set it.  Party to avoid any MySQL woes, and partly because
+                        # manual editing of very granular polygons is a right old faff.
+                        $this->dbhm->preExec("UPDATE `groups` SET $att = CASE WHEN ? IS NULL THEN NULL ELSE ST_AsText(ST_Simplify(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?)) END WHERE id = ?;", [
+                            $val,
+                            $val,
+                            LoggedPDO::SIMPLIFY,
+                            $this->id
+                        ]);
 
-                try {
-                    $valid = $this->dbhm->preQuery($this->dbhr->isV8() ? "SELECT ST_IsValid(ST_GeomFromText(?, {$this->dbhr->SRID()})) AS valid;" : "SELECT ST_IsValid(ST_GeomFromText(?)) AS valid;", [
-                        $val
-                    ]);
+                        # Get value back.
+                        $vals = $this->dbhm->preQuery("SELECT $att FROM `groups` WHERE id = ?;", [
+                            $this->id
+                        ]);
 
-                    foreach ($valid as $v) {
-                        if ($v['valid']) {
-                            $this->dbhm->preExec("UPDATE `groups` SET polyindex = ST_GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)'), {$this->dbhr->SRID()}) WHERE id = ?;", [
-                                $this->id
-                            ]);
-
-                            $ret = TRUE;
+                        foreach ($vals as $newval) {
+                            $this->group[$att] = $newval[$att];
                         }
+
+                        $this->dbhm->preExec("UPDATE `groups` SET polyindex = ST_GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)'), {$this->dbhr->SRID()}) WHERE id = ?;", [
+                            $this->id
+                        ]);
+
+                        $ret = TRUE;
                     }
-                } catch(\Exception $e) {
-                    # Drop through with ret false.
                 }
+            } catch(\Exception $e) {
+                # Drop through with ret false.
             }
+        } else {
+            parent::setPrivate($att, $val);
         }
 
         Group::clearCache($this->id);
@@ -478,7 +492,7 @@ HAVING logincount > 0
                     'happiness' => 0,
                     'relatedmembers' => 0,
                     'chatreview' => 0,
-                    'chatreviewother' => 0,
+                    'chatreviewother' => 0
                 ];
 
                 if ($active) {
@@ -594,7 +608,9 @@ HAVING logincount > 0
               AND messages_outcomes.comments != 'Sorry, this has now been taken.'
               AND messages_outcomes.comments != 'Thanks for the interest, but this has now been taken.'
               AND messages_outcomes.comments != 'Thanks, these have now been taken.'
-              AND messages_outcomes.comments != 'Thanks, this has now been received.'";
+              AND messages_outcomes.comments != 'Thanks, this has now been received.'
+              AND messages_outcomes.comments != 'Withdrawn on user unsubscribe'
+              AND messages_outcomes.comments != 'Expired'";
     }
 
     public function getPublic($summary = FALSE) {
@@ -1222,5 +1238,94 @@ HAVING logincount > 0
         ]);
 
         return $counts[0]['count'];
+    }
+
+    public function findPopularMessages() {
+        # Delete any old ones.
+        $this->dbhm->preExec("UPDATE messages_popular SET expired = 1 WHERE TIMESTAMPDIFF(HOUR, timestamp, NOW()) >= 24 AND shared = 0 AND declined = 0;");
+
+        # Find messages with the most views which lie within the official group area (CGA), and which have not
+        # previously been popular.
+        $msgs = $this->dbhr->preQuery("SELECT COUNT(*) AS count, messages_likes.msgid, messages_groups.groupid FROM messages_likes 
+    INNER JOIN messages_groups ON messages_groups.msgid = messages_likes.msgid
+    INNER JOIN `groups` ON groups.id = messages_groups.groupid
+    INNER JOIN messages ON messages.id = messages_groups.msgid
+    INNER JOIN messages_attachments ma on messages_groups.msgid = ma.msgid 
+    LEFT JOIN messages_popular ON messages_popular.msgid = messages_groups.msgid
+    WHERE TIMESTAMPDIFF(HOUR, messages_likes.timestamp, NOW()) <= 24 AND 
+          messages_groups.deleted = 0 AND 
+          messages_groups.collection = ? AND ST_Contains(ST_GeomFromText(groups.polyofficial, {$this->dbhr->SRID()}), ST_SRID(POINT(messages.lng,messages.lat),  {$this->dbhr->SRID()})) AND
+          messages_popular.id IS NULL
+    GROUP BY messages_likes.msgid 
+    ORDER BY messages_groups.groupid ASC, count ASC;", [
+        MessageCollection::APPROVED
+        ]);
+
+        # Processing in this order means we'll end up with the most popular one per group.
+        $forgroup = [];
+
+        foreach ($msgs as $msg) {
+            $forgroup[$msg['groupid']] = $msg['msgid'];
+        }
+
+        foreach ($forgroup as $groupid => $msgid) {
+            # Don't share the same message multiple times.
+            $exists = $this->dbhr->preQuery("SELECT id FROM messages_popular WHERE msgid = ?;", [
+                $msgid
+            ]);
+
+            if (!count($exists)) {
+                $this->dbhm->preExec("INSERT INTO messages_popular (groupid, msgid) VALUES (?, ?);", [
+                    $groupid,
+                    $msgid
+                ]);
+            }
+        }
+    }
+
+    public function getPopularMessages($groupid = NULL) {
+        $ret = [];
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
+        $gids = NULL;
+
+        if ($groupid) {
+            $gids = [ $groupid ];
+        } else if ($me) {
+            $gids1 = $me->getModeratorships();
+
+            foreach ($gids1 as $gid) {
+                if ($me->activeModForGroup($gid)) {
+                    $gids[] = $gid;
+                }
+            }
+        }
+
+        if ($gids && count($gids)) {
+            $msgs = $this->dbhr->preQuery("SELECT messages_popular.* FROM messages_popular
+            INNER JOIN groups_facebook ON groups_facebook.groupid = messages_popular.groupid
+            WHERE TIMESTAMPDIFF(HOUR, timestamp, NOW()) <= 48 AND messages_popular.groupid IN (" . implode(',', $gids) . ") AND shared = 0 AND declined = 0 AND expired = 0
+            GROUP BY messages_popular.id;");
+
+            $ret = [];
+
+            foreach ($msgs as $msg) {
+                $msg['timestamp'] = Utils::ISODate($msg['timestamp']);
+                $ret[] = $msg;
+            }
+        }
+
+        return $ret;
+    }
+
+    public function sharedPopularMessage($msgid) {
+        $this->dbhm->preExec("UPDATE messages_popular SET shared = 1 WHERE msgid = ?;", [
+            $msgid
+        ]);
+    }
+
+    public function hidPopularMessage($msgid) {
+        $this->dbhm->preExec("UPDATE messages_popular SET declined = 1 WHERE msgid = ?;", [
+            $msgid
+        ]);
     }
 }

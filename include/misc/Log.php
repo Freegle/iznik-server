@@ -19,6 +19,7 @@ class Log
     const TYPE_STDMSG = 'StdMsg';
     const TYPE_BULKOP = 'BulkOp';
     const TYPE_LOCATION = 'Location';
+    const TYPE_CHAT = 'Chat';
 
     const SUBTYPE_CREATED = 'Created';
     const SUBTYPE_DELETED = 'Deleted';

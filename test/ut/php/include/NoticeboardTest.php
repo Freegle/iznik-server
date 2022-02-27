@@ -15,7 +15,7 @@ require_once(UT_DIR . '/../../include/db.php');
 class NoticeboardTest extends IznikTestCase {
     private $dbhr, $dbhm;
 
-    protected function setUp() {
+    protected function setUp() : void {
         parent::setUp ();
 
         global $dbhr, $dbhm;
@@ -27,7 +27,7 @@ class NoticeboardTest extends IznikTestCase {
         $dbhm->preExec("DELETE FROM noticeboards WHERE description LIKE 'Test description';");
     }
 
-    protected function tearDown()
+    protected function tearDown() : void
     {
         parent::tearDown();
 //        $this->dbhm->preExec("DELETE FROM noticeboards WHERE name LIKE 'UTTest%';");

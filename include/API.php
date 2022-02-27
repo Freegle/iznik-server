@@ -488,26 +488,18 @@ class API
                         $apicallretries++;
 
                         if ($apicallretries >= API_RETRIES) {
-                            if (strpos($e->getMessage(), 'WSREP has not yet prepared node for application') !== false) {
-                                # Our cluster is unwell.  This can happen if we are rebooting a DB server, so give ourselves
-                                # more time.
-                                $apicallretries = 0;
-                                error_log("Sleep for WSREP");
-                                sleep(1);
-                            } else {
-                                if ($call != 'DBexceptionFail') {
-                                    # Don't log deliberate exceptions in UT.
-                                    \Sentry\captureException($e);
-                                }
-
-                                $ret = [
-                                    'ret' => 997,
-                                    'status' => 'DB operation failed after retry',
-                                    'exception' => $e->getMessage()
-                                ];
-                                $encoded_ret = json_encode($ret);
-                                echo $encoded_ret;
+                            if ($call != 'DBexceptionFail') {
+                                # Don't log deliberate exceptions in UT.
+                                \Sentry\captureException($e);
                             }
+
+                            $ret = [
+                                'ret' => 997,
+                                'status' => 'DB operation failed after retry',
+                                'exception' => $e->getMessage()
+                            ];
+                            $encoded_ret = json_encode($ret);
+                            echo $encoded_ret;
                         }
                     } else {
                         # Something else.

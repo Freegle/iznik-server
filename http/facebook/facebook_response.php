@@ -7,10 +7,9 @@ if (session_status() == PHP_SESSION_NONE) {
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
+global $dbhr, $dbhm;
 
-
-$groupid = intval(Utils::presdef('graffitigroup', $_SESSION, 0));
-$url = Utils::presdef('url', $_REQUEST, NULL);;
+$groupid = intval(Utils::presint('groupid', $_REQUEST, 0));
 
 $fb = new \Facebook\Facebook([
     'app_id' => FBGRAFFITIAPP_ID,
@@ -18,6 +17,10 @@ $fb = new \Facebook\Facebook([
 ]);
 
 $helper = $fb->getRedirectLoginHelper();
+
+if (isset($_GET['state'])) {
+    $helper->getPersistentDataHandler()->set('state', $_GET['state']);
+}
 
 try {
     $accessToken = $helper->getAccessToken();
@@ -51,7 +54,7 @@ try {
     <p>These are the Facebook pages you manage.  Click on the one you want to link to your group.</p>
     <?php
     foreach ($totalPages as $page) {
-        echo '<a href="/facebook/facebook_settoken.php?id=' . urlencode($page['id']) . '&token=' . urlencode($page['access_token']) . '">' . $page['name'] . '</a><br />';
+        echo '<a href="/facebook/facebook_settoken.php?id=' . urlencode($page['id']) . '&groupid=' . $groupid . '&token=' . urlencode($page['access_token']) . '">' . $page['name'] . '</a><br />';
     }
 } catch(\Facebook\Exceptions\FacebookResponseException $e) {
     // When Graph returns an error

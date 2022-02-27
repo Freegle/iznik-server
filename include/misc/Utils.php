@@ -16,6 +16,8 @@ class Utils {
     const BLUR_USER = 400;
     const BLUR_1K = 1000;
 
+    const PHEANSTALK_TTR = 600;
+
     public static function tmpdir() {
         $tempfile = tempnam(sys_get_temp_dir(),'');
         if (file_exists($tempfile)) { unlink($tempfile); }

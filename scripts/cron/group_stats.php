@@ -38,6 +38,23 @@ foreach ($groups as $group) {
     mail('geek-alerts@ilovefreegle.org', "Bad polygon in group {$group['id']} {$group['nameshort']}", "", $headers);
 }
 
+$groups = $dbhr->preQuery("SELECT id, nameshort FROM `groups` ORDER BY id;");
+
+foreach ($groups as $group) {
+    $g = $dbhr->preQuery("SELECT ST_AsText(polyindex) AS current, ST_AsText(ST_GeomFromText(COALESCE(poly, polyofficial, 'POINT(0 0)'))) AS geomtext FROM `groups` WHERE id = ?;", [
+        $group['id']
+    ]);
+
+    if ($g[0]['current'] != $g[0]['geomtext']) {
+        $headers = 'From: geeks@ilovefreegle.org';
+        mail('geek-alerts@ilovefreegle.org', "Polyindex wrong for group group {$group['id']} {$group['nameshort']}", "", $headers);
+        $dbhm->preExec("UPDATE `groups` SET polyindex = ST_GeomFromText(?, {$dbhr->SRID()}) WHERE id = ?;", [
+            $g[0]['geomtext'],
+            $group['id']
+        ]);
+    }
+}
+
 $g = new Group($dbhr, $dbhm);
 foreach ($tngroups as $gname => $tngroup) {
     if ($tngroup['listed']) {
