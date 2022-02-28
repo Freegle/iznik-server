@@ -152,6 +152,11 @@ function memberships() {
                                         }
                                     }
                                 }
+
+                                if ($collection == MembershipCollection::HAPPINESS) {
+                                    $u = new User($dbhr, $dbhm);
+                                    $ret['ratings'] = $u->getUnreviewedRatings();
+                                }
                             }
                         }
                     }

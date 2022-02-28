@@ -373,6 +373,14 @@ function user() {
                             $me->rate($me->getId(), $ratee, $rating, $reason, $text);
                             $ret = [ 'ret' => 0, 'status' => 'Success' ];
                         }
+                    } else if ($action == 'RatingReviewed') {
+                        $ret = ['ret' => 5, 'status' => 'Invalid parameters'];
+                        $ratingid = Utils::presint('ratingid', $_REQUEST, NULL);
+
+                        if ($ratingid) {
+                            $ret = ['ret' => 0, 'status' => 'Success'];
+                            $me->ratingReviewed($ratingid);
+                        }
                     }
                 }
             }

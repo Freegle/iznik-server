@@ -29,6 +29,12 @@ class User extends Entity
     const RATING_MINE = 'Mine';
     const RATING_UNKNOWN = 'Unknown';
 
+    const RATINGS_REASON_NOSHOW = 'NoShow';
+    const RATINGS_REASON_PUNCTUALITY = 'Punctuality';
+    const RATINGS_REASON_GHOSTED = 'Ghosted';
+    const RATINGS_REASON_RUDE = 'Rude';
+    const RATINGS_REASON_OTHER = 'Other';
+
     const TRUST_EXCLUDED = 'Excluded';
     const TRUST_DECLINED = 'Declined';
     const TRUST_BASIC = 'Basic';
@@ -1195,14 +1201,17 @@ class User extends Entity
         return ($ret);
     }
 
-    public function getModeratorships($id = NULL)
+    public function getModeratorships($id = NULL, $activeonly = FALSE)
     {
         $this->cacheMemberships($id);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         $ret = [];
         foreach ($this->memberships AS $membership) {
             if ($membership['role'] == 'Owner' || $membership['role'] == 'Moderator') {
-                $ret[] = $membership['groupid'];
+                if (!$activeonly || $me->activeModForGroup($membership['groupid'])) {
+                    $ret[] = $membership['groupid'];
+                }
             }
         }
 
@@ -5847,12 +5856,14 @@ class User extends Entity
 
         if ($rater != $ratee) {
             # Can't rate yourself.
-            $this->dbhm->preExec("REPLACE INTO ratings (rater, ratee, rating, reason, text, timestamp) VALUES (?, ?, ?, ?, ?, NOW());", [
+            $review = $rating == User::RATING_DOWN && $reason && $text;
+            $this->dbhm->preExec("REPLACE INTO ratings (rater, ratee, rating, reason, text, timestamp, reviewrequired) VALUES (?, ?, ?, ?, ?, NOW(), ?);", [
                 $rater,
                 $ratee,
                 $rating,
                 $reason,
-                $text
+                $text,
+                $review
             ]);
 
             $ret = $this->dbhm->lastInsertId();
@@ -5919,6 +5930,47 @@ class User extends Entity
         }
 
         return $ratings;
+    }
+
+    public function getUnreviewedRatings($since = '7 days ago') {
+        $mysqltime = date("Y-m-d H:i:s", strtotime($since));
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
+
+        $modships = $me->getModeratorships(NULL, TRUE);
+
+        $ret = [];
+
+        if (count($modships)) {
+            $sql = "SELECT ratings.* FROM ratings 
+    INNER JOIN memberships ON memberships.userid = ratings.rater
+    WHERE ratings.timestamp >= ? AND 
+        memberships.groupid IN (" . implode(',', $modships) . ") AND
+        reviewrequired = 1
+        GROUP BY ratings.rater;";
+            $ret = $this->dbhr->preQuery($sql, [
+                $mysqltime
+            ]);
+
+            foreach ($ret as &$r) {
+                $r['timestamp'] = Utils::ISODate($r['timestamp']);
+            }
+        }
+
+        return $ret;
+    }
+
+    public function ratingReviewed($ratingid) {
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
+
+        $unreviewed = $me->getUnreviewedRatings();
+
+        foreach ($unreviewed as $r) {
+            if ($r['id'] == $ratingid) {
+                $this->dbhm->preExec("UPDATE ratings SET reviewrequired = 0 WHERE id = ?;", [
+                    $ratingid
+                ]);
+            }
+        }
     }
 
     public function getChanges($since) {

@@ -27,7 +27,6 @@ class userAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup';");
 
-        # Create a moderator and log in as them
         $this->group = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
 
@@ -828,7 +827,7 @@ class userAPITest extends IznikAPITestCase {
             'action' => 'Rate',
             'ratee' => $uid,
             'rating' => User::RATING_DOWN,
-            'reason' => 'NoShow',
+            'reason' => User::RATINGS_REASON_NOSHOW,
             'text' => "Didn't turn up"
         ]);
 
@@ -909,6 +908,32 @@ class userAPITest extends IznikAPITestCase {
 
         self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_UP]);
         self::assertEquals(1, $ret['user']['info']['ratings'][User::RATING_DOWN]);
+
+        # The rating should be visible to a mod on the rater's group.
+        $modid = $u->create('Test', 'User', 'Test User');
+        $u->addMembership($this->groupid, User::ROLE_MODERATOR);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+        $ret = $this->call('memberships', 'GET', [
+            'collection' => MembershipCollection::HAPPINESS,
+            'groupid' => $this->groupid
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['ratings']));
+        assertEquals(User::RATINGS_REASON_NOSHOW, $ret['ratings'][0]['reason']);
+        assertEquals($this->user->getId(), $ret['ratings'][0]['rater']);
+
+        # Mark the rating as reviewed.
+        $ret = $this->call('user', 'POST', [
+            'action' => 'RatingReviewed',
+            'ratingid' => $ret['ratings'][0]['id']
+        ]);
+        $ret = $this->call('memberships', 'GET', [
+            'collection' => MembershipCollection::HAPPINESS,
+            'groupid' => $this->groupid
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(0, count($ret['ratings']));
 
         # Unrate
         assertTrue($this->user->login('testpw'));
