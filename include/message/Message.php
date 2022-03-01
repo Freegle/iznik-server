@@ -5498,7 +5498,7 @@ $mq", [
         }
 
         // Update the count in the message.
-        $this->dbhm->preExec("UPDATE messages SET availablenow = LAST_INSERT_ID(GREATEST(availablenow - ?, 0)) WHERE id = ?;", [
+        $this->dbhm->preExec("UPDATE messages SET availablenow = LAST_INSERT_ID(GREATEST(LEAST(messages.availableinitially, availablenow - ?), 0)) WHERE id = ?;", [
             $count,
             $this->id
         ]);
