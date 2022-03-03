@@ -235,8 +235,7 @@ class LoggedPDO {
         return($sth->execute($params));
     }
 
-    private function retryable($e) {
-        $msg = $e->getMessage();
+    private function retryable($msg) {
         $ret = stripos($msg, 'has gone away') !== FALSE ||
             stripos($msg, 'Lost connection to MySQL server') !== FALSE ||
             stripos($msg, 'Call to a member function prepare() on a non-object (null)') !== FALSE ||
@@ -245,6 +244,7 @@ class LoggedPDO {
 
         if ($ret) {
             # Temporary errors (hopefully).  Try re-opening the connection, delaying and retrying.
+            error_log("Retryable error $msg, sleep and reconnect");
             sleep(1);
             $this->close();
             $this->doConnect();
@@ -301,14 +301,10 @@ class LoggedPDO {
                     $sth->closeCursor();
                 } else {
                     $msg = var_export($this->getErrorInfo($sth), true);
-                    if (stripos($msg, 'has gone away') !== FALSE) {
-                        # This can happen if we have issues with the DB, e.g. one server dies or the connection is
-                        # timed out.  We re-open the connection and try again.
+                    if ($this->retryable($msg)) {
                         $try++;
-                        error_log("Server gone away, sleep and retry");
-                        sleep(1);
-                        $this->close();
-                        $this->doConnect();
+                    } else {
+                        $try = $this->tries;
                     }
                 }
 
@@ -344,7 +340,7 @@ class LoggedPDO {
                         error_log($msg);
                         $try = $this->tries;
                     }
-                } else if ($this->retryable($e)) {
+                } else if ($this->retryable($e->getMessage())) {
                     $try++;
                 } else {
                     $msg = "Non-deadlock DB Exception " . $e->getMessage() . " $sql";
@@ -415,10 +411,14 @@ class LoggedPDO {
                     $worked = true;
                 } else {
                     $msg = var_export($this->errorInfo(), true);
-                    $try++;
+                    if ($this->retryable($msg)) {
+                        $try++;
+                    } else {
+                        $try = $this->tries;
+                    }
                 }
             } catch (\Exception $e) {
-                if ($this->retryable($e)) {
+                if ($this->retryable($e->getMessage())) {
                     $try++;
                     $msg = $e->getMessage();
                 } else {

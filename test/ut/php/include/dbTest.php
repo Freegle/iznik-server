@@ -397,12 +397,12 @@ class dbTest extends IznikTestCase {
         assertEquals(1, count($ids));
     }
 
-    public function prepareUntil() {
+    public function prepareUntil($msg = 'Faked deadlock exception') {
         $this->log("prepareUntil count " . $this->count);
         $this->count--;
         if ($this->count > 0) {
             $this->log("Exception");
-            throw new \Exception('Faked deadlock exception');
+            throw new \Exception($msg);
         } else {
             $this->log("No exception");
             return $this->dbhm->parentPrepare($this->sql);
@@ -482,6 +482,23 @@ class dbTest extends IznikTestCase {
         } catch (DBException $e) {
             assertFalse($d->isConnected());
         }
+    }
+
+    public function testRetryable() {
+        global $dbconfig;
+
+        $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
+            ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE])
+            ->setMethods(array('executeStatement'))
+            ->getMock();
+        $this->count = 5;
+        $this->sql = 'SHOW COLUMNS FROM test;';
+        $mock->method('executeStatement')->will($this->returnCallback(function() {
+            return($this->prepareUntil('WSREP has not yet prepared node for application use'));
+        }));
+
+        $mock->preQuery($this->sql);
+
     }
 }
 
