@@ -122,7 +122,7 @@ class donationsTest extends IznikTestCase {
         # Add three donations - one before, one on, and one after the consent date.
         $d = new Donations($this->dbhr, $this->dbhm);
         $mysqltime = date("Y-m-d H:i:s", strtotime('yesterday'));
-        $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 1', 0);
+        $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 1', 0, 'subscr_payment');
         assertNotNull($did);
 
         # Should be flagged as a supporter.
@@ -141,6 +141,12 @@ class donationsTest extends IznikTestCase {
         $d->editGiftAid($gid, NULL, NULL, NULL, NULL, NULL, TRUE, FALSE);
 
         assertEquals(2, $d->identifyGiftAidedDonations($gid));
+
+        # Test own donation info.
+        $_SESSION['id'] = $id;
+        $atts = $u->getPublic();
+        assertTrue($atts['donor']);
+        assertTrue($atts['donorrecurring']);
 
         $d->delete($did);
     }

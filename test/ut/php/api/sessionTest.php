@@ -402,6 +402,7 @@ class sessionTest extends IznikAPITestCase
         assertNotNull($u->addEmail('test@test.com'));
         $u = User::get($this->dbhm, $this->dbhm, $id);
         $u->setPrivate('permissions', json_encode([ User::PERM_NATIONAL_VOLUNTEERS, User::PERM_GIFTAID ]));
+        $u->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
@@ -449,6 +450,8 @@ class sessionTest extends IznikAPITestCase
         assertEquals(0, $ret['groups'][1]['work']['spam']);
         assertEquals(2, $ret['work']['pending']);
         assertEquals(0, $ret['work']['spam']);
+        assertEquals(0, $ret['work']['spammerpendingadd']);
+        assertEquals(0, $ret['work']['spammerpendingremove']);
 
         # Get again, just for work.
         $ret = $this->call('session', 'GET', [
@@ -469,8 +472,7 @@ class sessionTest extends IznikAPITestCase
 
         $g1->delete();
         $g2->delete();
-
-        }
+    }
 
     public function testPartner()
     {
@@ -743,6 +745,41 @@ class sessionTest extends IznikAPITestCase
         }
 
         assertTrue($found);
+
+        # Again by group id for coverage.
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup1', Group::GROUP_REUSE);
+        $u1 = User::get($this->dbhm, $this->dbhm, $id1);
+        $u2 = User::get($this->dbhm, $this->dbhm, $id2);
+        $u3 = User::get($this->dbhm, $this->dbhm, $id3);
+        $u1->addMembership($gid);
+        $u2->addMembership($gid);
+        $u3->addMembership($gid, User::ROLE_MODERATOR);
+
+        $ret = $this->call('memberships', 'GET', [
+            'collection' => MembershipCollection::RELATED,
+            'limit' => PHP_INT_MAX
+        ]);
+
+        $found = FALSE;
+
+        foreach (Utils::presdef('members', $ret, []) as $member) {
+            if ($member['id'] == $id1) {
+                $found = TRUE;
+                assertEquals($id2, $member['relatedto']['id']);
+            }
+        }
+
+        assertTrue($found);
+
+        # Mods etc shouldn't show.
+        $u1->setPrivate('systemrole', User::ROLE_MODERATOR);
+        $ret = $this->call('memberships', 'GET', [
+            'collection' => MembershipCollection::RELATED,
+            'limit' => PHP_INT_MAX
+        ]);
+
+        assertEquals(0, count($ret['members']));
     }
 
     public function testRelatedWork() {

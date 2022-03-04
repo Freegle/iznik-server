@@ -6217,16 +6217,12 @@ memberships.groupid IN $groupq
                     if ($thisone['deleted'] ||
                         $thisone['relatedto']['deleted'] ||
                         $thisone['systemrole'] != User::SYSTEMROLE_USER ||
-                        $thisone['relatedto']['systemrole'] != User::SYSTEMROLE_USER) {
+                        $thisone['relatedto']['systemrole'] != User::SYSTEMROLE_USER ||
+                        !count($logins) ||
+                        !count($rellogins)) {
                         # No sense in telling people about these.
-                        $this->dbhm->preExec("UPDATE users_related SET notified = 1 WHERE (user1 = ? AND user2 = ?) OR (user1 = ? AND user2 = ?);", [
-                            $thisone['id'],
-                            $thisone['relatedto']['id'],
-                            $thisone['relatedto']['id'],
-                            $thisone['id']
-                        ]);
-                    } elseif (!count($logins) || !count($rellogins)) {
-                        # No valid login types for one of the users - no way they can log in again so no point notifying.
+                        #
+                        # If there are n valid login types for one of the users - no way they can log in again so no point notifying.
                         $this->dbhm->preExec("UPDATE users_related SET notified = 1 WHERE (user1 = ? AND user2 = ?) OR (user1 = ? AND user2 = ?);", [
                             $thisone['id'],
                             $thisone['relatedto']['id'],
