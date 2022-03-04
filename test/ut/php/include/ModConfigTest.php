@@ -217,8 +217,37 @@ class ModConfigTest extends IznikTestCase {
         assertEquals(2, count($pub['stdmsgs']));
 
         $c->delete();
+    }
 
-        }
+    public function testOrder() {
+        $c = new ModConfig($this->dbhr, $this->dbhm);
+        $id1 = $c->create('TestConfig3');
+        assertNotNull($id1);
+        $id2 = $c->create('TestConfig1');
+        assertNotNull($id2);
+        $id3 = $c->create('TestConfig2');
+        assertNotNull($id3);
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
+        $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
+        $group3 = $g->create('testgroup3', Group::GROUP_REUSE);
+        $this->user->addMembership($group1, User::ROLE_MODERATOR);
+        $this->user->addMembership($group2, User::ROLE_MODERATOR);
+        $this->user->addMembership($group3, User::ROLE_MODERATOR);
+        $c1 = new ModConfig($this->dbhr, $this->dbhm, $id1);
+        $c1->useOnGroup($this->user->getId(), $group1);
+        $c2 = new ModConfig($this->dbhr, $this->dbhm, $id2);
+        $c2->useOnGroup($this->user->getId(), $group2);
+        $c3 = new ModConfig($this->dbhr, $this->dbhm, $id3);
+        $c3->useOnGroup($this->user->getId(), $group3);
+
+        assertTrue($this->user->login('testpw'));
+        $configs = $this->user->getConfigs(FALSE);
+        assertEquals('TestConfig1', $configs[0]['name']);
+        assertEquals('TestConfig2', $configs[1]['name']);
+        assertEquals('TestConfig3', $configs[2]['name']);
+    }
 
     public function testErrors() {
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')

@@ -1194,8 +1194,8 @@ class User extends Entity
         }
 
         # Return in alphabetical order.
-        usort($ret, function ($a, $b) {
-            return (strcmp(strtolower($a['name']), strtolower($b['name'])));
+        $rc = usort($ret, function ($a, $b) {
+            return strcasecmp($a['name'], $b['name']);
         });
 
         return ($ret);
@@ -1820,22 +1820,7 @@ class User extends Entity
 
             try {
                 foreach ($emails as $email) {
-                    if (stripos($email['email'], 'gmail') || stripos($email['email'], 'googlemail')) {
-                        # We can try to find profiles for gmail users.
-                        $json = @file_get_contents("http://picasaweb.google.com/data/entry/api/user/{$email['email']}?alt=json");
-                        $j = json_decode($json, TRUE);
-
-                        if ($j && Utils::pres('entry', $j) && Utils::pres('gphoto$thumbnail', $j['entry']) && Utils::pres('$t', $j['entry']['gphoto$thumbnail'])) {
-                            $atts['profile'] = [
-                                'url' => $j['entry']['gphoto$thumbnail']['$t'],
-                                'turl' => $j['entry']['gphoto$thumbnail']['$t'],
-                                'default' => FALSE,
-                                'google' => TRUE
-                            ];
-
-                            break;
-                        }
-                    } else if (preg_match('/(.*)-g.*@user.trashnothing.com/', $email['email'], $matches)) {
+                    if (preg_match('/(.*)-g.*@user.trashnothing.com/', $email['email'], $matches)) {
                         # TrashNothing has an API we can use.
                         $url = "https://trashnothing.com/api/users/{$matches[1]}/profile-image?default=" . urlencode('https://' . IMAGE_DOMAIN . '/defaultprofile.png');
                         $atts['profile'] = [
@@ -1923,7 +1908,7 @@ class User extends Entity
 
         if ($hash == 'e070716060607120' || $hash == 'd0f0323171707030' || $hash == '13130f4e0e0e4e52' ||
             $hash == '1f0fcf9f9f9fcfff' || $hash == '23230f0c0e0e0c24' || $hash == 'c0c0e070e0603100' ||
-            $hash == 'f0f0316870f07130' || $hash == '242e070e060b0d24') {
+            $hash == 'f0f0316870f07130' || $hash == '242e070e060b0d24' || $hash == '69aa49558e4da88e') {
             # This is a default profile - replace it with ours.
             $profile['url'] = 'https://' . IMAGE_DOMAIN . '/defaultprofile.png';
             $profile['turl'] = 'https://' . IMAGE_DOMAIN . '/defaultprofile.png';
