@@ -418,12 +418,11 @@ WHERE chat_rooms.id IN $idlist;";
 
             $user2ids = array_column($user2groups, 'groupid');
             #error_log("User2ids " . json_encode($user2ids));
-            $inter = array_intersect($user1ids, $user2ids);
+            $inter = array_intersect(array_merge($user1ids, $bannedon), $user2ids);
             #error_log("Inter " . json_encode($inter));
 
             $bannedIntersect = array_intersect($inter, $bannedon);
 
-            # I
             if (count($inter) && count($bannedIntersect) == count($inter)) {
                 # They have groups in common and user1 is banned on all of them.  Block.
                 $bannedonall = TRUE;

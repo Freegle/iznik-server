@@ -424,6 +424,14 @@ class chatRoomsAPITest extends IznikAPITestCase
         assertNull($rid);
         assertTrue($blocked);
 
+        # Test a different case with other group memberships.
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid2 = $g->create('testgroup2', Group::GROUP_FREEGLE);
+        $u1->addMembership($gid2);
+        list ($rid, $blocked) = $r->createConversation($uid1, $uid2);
+        assertNull($rid);
+        assertTrue($blocked);
+
         # Ban should show in support tools.
         $u1->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
         assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
