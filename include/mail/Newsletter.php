@@ -174,6 +174,7 @@ class Newsletter extends Entity
                             '{{toname}}' => $u->getName(),
                             '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe', User::SRC_NEWSLETTER),
                             '{{email}}' => $email,
+                            '{{settings}}' => $u->loginLink(USER_SITE, $u->getId(), '/settings', User::SRC_NEWSLETTER),
                             '{{noemail}}' => 'newslettersoff-' . $user['userid'] . "@" . USER_DOMAIN
                         ];
                     }
