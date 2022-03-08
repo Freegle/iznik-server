@@ -95,6 +95,8 @@ class Donations
 
         foreach ($giftaids as &$giftaid) {
             $giftaid['timestamp'] = Utils::ISODate($giftaid['timestamp']);
+            $u = User::get($this->dbhr, $this->dbhm, $giftaid['userid']);
+            $giftaid['email'] = $u->getEmailPreferred();
         }
 
         return $giftaids;
