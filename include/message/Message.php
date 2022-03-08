@@ -2481,7 +2481,9 @@ ORDER BY lastdate DESC;";
                     foreach ($imgs as $img) {
                         $src = $img->getAttribute('src');
 
-                        if (strpos($src, '/img/') !== FALSE || strpos($src, '/tn-photos/')) {
+                        if (strpos($src, '/img/') !== FALSE ||
+                            strpos($src, '/tn-photos/') !== FALSE ||
+                            strpos($src, '/photos.trashnothing/') !== FALSE) {
                             $ctx = stream_context_create(array('http' =>
                                 array(
                                     'timeout' => 120
