@@ -137,7 +137,8 @@ class Message
         "I'm on leave at the moment",
         "We'll get back to you as soon as possible",
         'currently on leave',
-        'To complete this verification'
+        'To complete this verification',
+        'I am currently away from my computer, but will reply to your message as soon as I return'
     ];
 
     private $autoreply_text_start = [
