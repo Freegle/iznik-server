@@ -2483,7 +2483,7 @@ ORDER BY lastdate DESC;";
 
                         if (strpos($src, '/img/') !== FALSE ||
                             strpos($src, '/tn-photos/') !== FALSE ||
-                            strpos($src, '/photos.trashnothing/') !== FALSE) {
+                            strpos($src, 'photos.trashnothing.com') !== FALSE) {
                             $ctx = stream_context_create(array('http' =>
                                 array(
                                     'timeout' => 120
