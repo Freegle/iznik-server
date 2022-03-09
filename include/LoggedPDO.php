@@ -187,6 +187,7 @@ class LoggedPDO {
                         # We've checked all hosts.  We'll go round again. Sleep for a second so that if
                         # one comes back in a few seconds we'll spot it.
                         error_log("Sleep for all DB hosts down");
+                        set_time_limit(30);
                         sleep(1);
                         $count++;
                         $hostindex = 0;
@@ -245,6 +246,7 @@ class LoggedPDO {
         if ($ret) {
             # Temporary errors (hopefully).  Try re-opening the connection, delaying and retrying.
             error_log("Retryable error $msg, sleep and reconnect");
+            set_time_limit(30);
             sleep(1);
             $this->close();
             $this->doConnect();
