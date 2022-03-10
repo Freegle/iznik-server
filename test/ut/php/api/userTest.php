@@ -776,6 +776,8 @@ class userAPITest extends IznikAPITestCase {
     public function testRating() {
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($this->groupid);
         $uid2 = $u->create(NULL, NULL, 'Test User');
         $u2 = new User($this->dbhr, $this->dbhm, $uid2);
         assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -830,6 +832,8 @@ class userAPITest extends IznikAPITestCase {
             'reason' => User::RATINGS_REASON_NOSHOW,
             'text' => "Didn't turn up"
         ]);
+
+        assertEquals(0, $ret['ret']);
 
         $ret = $this->call('user', 'GET', [
             'id' => $uid,
@@ -909,7 +913,7 @@ class userAPITest extends IznikAPITestCase {
         self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_UP]);
         self::assertEquals(1, $ret['user']['info']['ratings'][User::RATING_DOWN]);
 
-        # The rating should be visible to a mod on the rater's group.
+        # The rating should be visible to a mod on the rater and ratee's group.
         $modid = $u->create('Test', 'User', 'Test User');
         $u->addMembership($this->groupid, User::ROLE_MODERATOR);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));

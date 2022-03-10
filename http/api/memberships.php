@@ -247,10 +247,6 @@ function memberships() {
                         case 'HappinessReviewed':
                             $u->happinessReviewed($happinessid);
                             break;
-                        case 'RatingReviewed':
-                            $id = Utils::presint('id', $_REQUEST, NULL);
-                            $u->ratingReviewed($id);
-                            break;
                         case 'Unban': {
                             $u->unban($groupid);
                             break;
