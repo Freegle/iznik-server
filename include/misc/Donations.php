@@ -97,6 +97,7 @@ class Donations
             $giftaid['timestamp'] = Utils::ISODate($giftaid['timestamp']);
             $u = User::get($this->dbhr, $this->dbhm, $giftaid['userid']);
             $giftaid['email'] = $u->getEmailPreferred();
+            $giftaid['donations'] = $this->listByUser($giftaid['userid']);
         }
 
         return $giftaids;
