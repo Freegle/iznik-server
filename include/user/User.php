@@ -5926,12 +5926,15 @@ class User extends Entity
         $ret = [];
 
         if (count($modships)) {
-            $sql = "SELECT ratings.* FROM ratings 
-    INNER JOIN memberships ON memberships.userid = ratings.rater
+            $sql = "SELECT ratings.*, m1.groupid FROM ratings 
+    INNER JOIN memberships m1 ON m1.userid = ratings.rater
+    INNER JOIN memberships m2 ON m2.userid = ratings.ratee
     WHERE ratings.timestamp >= ? AND 
-        memberships.groupid IN (" . implode(',', $modships) . ") AND
+        m1.groupid IN (" . implode(',', $modships) . ") AND
+        m2.groupid IN (" . implode(',', $modships) . ") AND
         reviewrequired = 1
-        GROUP BY ratings.rater;";
+        GROUP BY ratings.rater ORDER BY ratings.timestamp DESC;";
+
             $ret = $this->dbhr->preQuery($sql, [
                 $mysqltime
             ]);
