@@ -109,13 +109,13 @@ class Authority extends Entity
         # Find groups which overlap with this area.
         $sql = "SELECT groups.id, nameshort, namefull, lat, lng, 
        CASE WHEN poly IS NOT NULL THEN poly ELSE polyofficial END AS poly,
-       CASE WHEN ST_GeometryType(St_intersection(polyindex, Coalesce(simplified, polygon))) = 'POLYGON' THEN 
+       CASE WHEN ST_GeometryType(St_intersection(polyindex, Coalesce(simplified, polygon))) != 'GEOMCOLLECTION' THEN 
            CASE WHEN polyindex = Coalesce(simplified, polygon) THEN 1 
            ELSE St_area(St_intersection(polyindex, Coalesce(simplified, polygon))) / St_area(polyindex) 
            END
        ELSE 0
        END AS overlap, 
-       CASE WHEN ST_GeometryType(St_intersection(polyindex, Coalesce(simplified, polygon))) = 'POLYGON' THEN 
+       CASE WHEN ST_GeometryType(St_intersection(polyindex, Coalesce(simplified, polygon))) != 'GEOMCOLLECTION' THEN 
            CASE WHEN polyindex = Coalesce(simplified, polygon) THEN 1 
            ELSE St_area(polyindex) / St_area(St_intersection(polyindex, Coalesce(simplified, polygon)))
            END
