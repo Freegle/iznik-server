@@ -5917,13 +5917,14 @@ class User extends Entity
         return $ratings;
     }
 
-    public function getUnreviewedRatings($since = '7 days ago') {
+    public function getVisibleRatings($unreviewedonly, $since = '7 days ago') {
         $mysqltime = date("Y-m-d H:i:s", strtotime($since));
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         $modships = $me->getModeratorships(NULL, TRUE);
 
         $ret = [];
+        $revq = $unreviewedonly ? " AND reviewrequired = 1" : '';
 
         if (count($modships)) {
             $sql = "SELECT ratings.*, m1.groupid FROM ratings 
@@ -5931,8 +5932,8 @@ class User extends Entity
     INNER JOIN memberships m2 ON m2.userid = ratings.ratee
     WHERE ratings.timestamp >= ? AND 
         m1.groupid IN (" . implode(',', $modships) . ") AND
-        m2.groupid IN (" . implode(',', $modships) . ") AND
-        reviewrequired = 1
+        m2.groupid IN (" . implode(',', $modships) . ") 
+        $revq
         GROUP BY ratings.rater ORDER BY ratings.timestamp DESC;";
 
             $ret = $this->dbhr->preQuery($sql, [
@@ -5950,7 +5951,7 @@ class User extends Entity
     public function ratingReviewed($ratingid) {
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
-        $unreviewed = $me->getUnreviewedRatings();
+        $unreviewed = $me->getVisibleRatings(TRUE);
 
         foreach ($unreviewed as $r) {
             if ($r['id'] == $ratingid) {
