@@ -778,6 +778,8 @@ class userAPITest extends IznikAPITestCase {
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($this->groupid);
+        $u->addEmail('test@test.com');
+
         $uid2 = $u->create(NULL, NULL, 'Test User');
         $u2 = new User($this->dbhr, $this->dbhm, $uid2);
         assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -899,9 +901,14 @@ class userAPITest extends IznikAPITestCase {
         self::assertEquals(0, $ret['user']['info']['ratings'][User::RATING_DOWN]);
 
         # Add the other kind of interaction.  Fake a reply from $uid to a message ostensibly posted by $this->user.
-        $ids = $this->dbhr->preQuery("SELECT id FROM messages LIMIT 1");
-        assertEquals(1, count($ids));
-        $cm->create($cid, $uid, "test", ChatMessage::TYPE_DEFAULT, $ids[0]['id']);
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment');
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        assertEquals(MailRouter::PENDING, $rc);
+
+        $cm->create($cid, $uid, "test", ChatMessage::TYPE_DEFAULT, $id);
 
         $u->ratingVisibility();
 
@@ -927,7 +934,7 @@ class userAPITest extends IznikAPITestCase {
         assertEquals(User::RATINGS_REASON_NOSHOW, $ret['ratings'][0]['reason']);
         assertEquals($this->user->getId(), $ret['ratings'][0]['rater']);
 
-        # Mark the rating as reviewed.
+        # Mark the rating as reviewed.  Should still show.
         $ret = $this->call('user', 'POST', [
             'action' => 'RatingReviewed',
             'ratingid' => $ret['ratings'][0]['id']
@@ -937,7 +944,7 @@ class userAPITest extends IznikAPITestCase {
             'groupid' => $this->groupid
         ]);
         assertEquals(0, $ret['ret']);
-        assertEquals(0, count($ret['ratings']));
+        assertEquals(1, count($ret['ratings']));
 
         # Unrate
         assertTrue($this->user->login('testpw'));
