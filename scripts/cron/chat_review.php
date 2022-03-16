@@ -58,7 +58,7 @@ foreach ($groups as $group) {
             ->setTo($g->getModsEmail())
             ->setDate(time())
             ->setBody(
-                "Dear " . $g->getPrivate('nameshort') . " Volunteers,\r\n\r\nMessages between members are scanned to spot spam.  For some of these, we need you to review them to check whether they are really spam or not.\r\n\r\nYou currently have some messages which have been waiting for 48 hours for review.  Some of these may be real messages which members won't have received yet, so they may be wondering what's going on.\r\n\r\nPlease can you review these at https://" . MOD_SITE . "/modtools/conversations/spam ?  They will automatically be deleted after 7 days.\r\n\r\nThanks.\r\n\r\nP.S. This is an automated mail sent once a day.  If you need help using ModTools, please ask the Mentor folk at " . MENTORS_ADDR . "."
+                "Dear " . $g->getPrivate('nameshort') . " Volunteers,\r\n\r\nMessages between members are scanned to spot spam.  For some of these, we need you to review them to check whether they are really spam or not.\r\n\r\nYou currently have some messages which have been waiting for 48 hours for review.  Some of these may be real messages which members won't have received yet, so they may be wondering what's going on.\r\n\r\nPlease can you review these at https://" . MOD_SITE . "/modtools/chats/review?  They will automatically be deleted after 7 days.\r\n\r\nThanks.\r\n\r\nP.S. This is an automated mail sent once a day.  If you need help using ModTools, please ask the Mentor folk at " . MENTORS_ADDR . "."
             );
         $mailer->send($message);
 
