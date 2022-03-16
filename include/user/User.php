@@ -5932,8 +5932,9 @@ class User extends Entity
     INNER JOIN memberships m2 ON m2.userid = ratings.ratee
     WHERE ratings.timestamp >= ? AND 
         m1.groupid IN (" . implode(',', $modships) . ") AND
-        m2.groupid IN (" . implode(',', $modships) . ") 
-        $revq
+        m2.groupid IN (" . implode(',', $modships) . ") AND
+        ratings.rating IS NOT NULL 
+        $revq    
         GROUP BY ratings.rater ORDER BY ratings.timestamp DESC;";
 
             $ret = $this->dbhr->preQuery($sql, [
