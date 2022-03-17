@@ -34,7 +34,9 @@ function chatrooms() {
 
                 if ($r->canSee($myid)) {
                     $ret['chatroom'] = $r->getPublic();
-                    $ret['chatroom']['unseen'] = $r->unseenCountForUser($myid);
+
+                    # Want to get a count even if we have closed/blocked, since we're explicitly fetching this room.
+                    $ret['chatroom']['unseen'] = $r->unseenCountForUser($myid, FALSE);
                     $ret['chatroom']['lastmsgseen'] = $r->lastSeenForUser($myid);
 
                     if (!Session::modtools() && (!Utils::pres('latestmessage', $ret['chatroom']) ||

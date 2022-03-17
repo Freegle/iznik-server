@@ -836,15 +836,14 @@ WHERE chat_rooms.id IN $idlist;";
         ]);
     }
 
-    public function unseenCountForUser($userid)
+    public function unseenCountForUser($userid, $check = TRUE)
     {
         # Find if we have any unseen messages.  Exclude any pending review.
-        $sql = "SELECT COUNT(*) AS count FROM chat_messages WHERE id > COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ? AND status != ? AND status != ?), 0) AND chatid = ? AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0;";
+        $checkq = $check ? (" AND status != '" . ChatRoom::STATUS_CLOSED . "' AND status != '" . ChatRoom::STATUS_BLOCKED . "' ") : '';
+        $sql = "SELECT COUNT(*) AS count FROM chat_messages WHERE id > COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ? $checkq), 0) AND chatid = ? AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0;";
         $counts = $this->dbhm->preQuery($sql, [
             $this->id,
             $userid,
-            ChatRoom::STATUS_CLOSED,
-            ChatRoom::STATUS_BLOCKED,
             $this->id,
             $userid
         ]);
