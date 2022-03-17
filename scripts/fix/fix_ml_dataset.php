@@ -29,8 +29,7 @@ foreach ($msgs as $msg) {
         # Check if this is probably a common item.
         foreach ($popular as $p)
         {
-            if (strpos(strtolower($item), strtolower($p['name'])) !== false)
-            {
+            if (preg_match('/\b' . preg_quote($item) . '\b/i', $p['name'])) {
                 #error_log("{$item} matches {$p['name']}");
                 $data = file_get_contents('https://www.ilovefreegle.org/img_' . $msg['attid'] . '.jpg');
 
