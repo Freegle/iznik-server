@@ -1,4 +1,50 @@
-<?xml version="1.0" encoding="UTF-8"?><source><jobs>
-    <job><location>Cheshire West and Chester</location><title>Field Sales Manager - Roofing</title><city>Cheshire West and Chester</city><state></state><zip></zip><country>United Kingdom</country><job_type>Full Time</job_type><posted_at>2021-08-21</posted_at><job_reference>12726_9694085</job_reference><company>WhatJobs</company><mobile_friendly_apply>No</mobile_friendly_apply><category>Sales</category><html_jobs>No</html_jobs><url>https://click.appcast.io/track/88d6j37?cs=jrp&amp;jg=3foe&amp;bid=ZTAIU9X3zQHjJYLb9Yqb8A==</url><body>Blah blah</body><cpc>0.12</cpc></job>
-</jobs>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<source>
+    <publisher>Whatjobs GB</publisher>
+    <publisherurl>https://uk.whatjobs.com/</publisherurl>
+    <lastbuilddate>2022-03-23 13:22:27</lastbuilddate>
+    <jobs>
+        <job>
+            <id><![CDATA[634_518020]]></id>
+            <title><![CDATA[Loans Agency Transaction Manager]]></title>
+            <description>
+                <![CDATA[ An exciting opportunity to join a global loan agency business, with an ambitious and growing team. We are looking for a motivated transaction manager to help to build a sustainable and growing loan agency business and take responsibility for driving exceptional client service and building long lasting client relationships. <br>  Key Responsibilities  <br> Manage the onboarding of new loan agency transactions.  <br> Wo...  <br>    <br>    <br>    <br>    <br>    <br>    <br>    <br>    <br>  <br>    <br>    <br>    <br>    <br>    <br>    <br>  <br>]]></description>
+            <urlDeeplink>
+                <![CDATA[https://uk.whatjobs.com/coopob__cpl___634_518020__1040?utm_source=1040&utm_medium=feed&keyword=Loans-Agency-Transaction&location=City-of-London]]></urlDeeplink>
+            <timePosted><![CDATA[2021-07-02 06:46:45]]></timePosted>
+
+            <company>
+                <name><![CDATA[Johnson & Associates Rec Specialists Ltd]]></name>
+                <description><![CDATA[]]></description>
+            </company>
+            <locations>
+
+                <location>
+                    <zip><![CDATA[EC2M 7PR]]></zip>
+                    <location><![CDATA[City of London]]></location>
+                    <city><![CDATA[City of London]]></city>
+                    <state><![CDATA[London]]></state>
+                    <country><![CDATA[GB]]></country>
+                </location>
+            </locations>
+            <category><![CDATA[Customer Service;Management;Banking]]></category>
+
+            <salaryDetails>
+                <salaryFrom><![CDATA[80000.0]]></salaryFrom>
+                <salaryTo><![CDATA[]]></salaryTo>
+                <salaryPeriod><![CDATA[]]></salaryPeriod>
+            </salaryDetails>
+            <misc>
+                <employmentStatus><![CDATA[]]></employmentStatus>
+                <professionalExperienceMonth><![CDATA[]]></professionalExperienceMonth>
+                <minimumEducationQualification><![CDATA[]]></minimumEducationQualification>
+                <salaryType><![CDATA[]]></salaryType>
+            </misc>
+            <custom>
+                <feedID><![CDATA[634]]></feedID>
+                <currency><![CDATA[GBP]]></currency>
+                <CPC><![CDATA[0.14]]></CPC>
+            </custom>
+        </job>
+    </jobs>
 </source>

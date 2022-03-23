@@ -70,7 +70,7 @@ class jobsTest extends IznikTestCase
         $j->scanToCSV(IZNIK_BASE . '/test/ut/php/misc/jobs.xml', $csvFile, PHP_INT_MAX, TRUE, 0);
         $j->loadCSV($csvFile);
         $found = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM jobs_new WHERE job_reference = ?;", [
-            '12726_9694085'
+            '634_518020'
         ]);
         assertEquals(1, $found[0]['count']);
 
@@ -78,7 +78,7 @@ class jobsTest extends IznikTestCase
         $j->swapTables();
 
         $found = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM jobs WHERE job_reference = ?;", [
-            '12726_9694085'
+            '634_518020'
         ]);
         assertEquals(1, $found[0]['count']);
     }

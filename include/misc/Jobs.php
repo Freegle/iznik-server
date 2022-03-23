@@ -280,7 +280,8 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
         # This scans the XML job file provided by WhatJobs, filters out the ones we want, and writes to a
         # CSV file.
         $options = array(
-            "captureDepth" => 3
+            "captureDepth" => 3,
+            "expectGT" => TRUE
         );
 
         $parser = new Parser\StringWalker($options);
@@ -300,16 +301,17 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
             $job = simplexml_load_string($node);
 
             # Only add new jobs.
-            $age = (time() - strtotime($job->posted_at)) / (60 * 60 * 24);
+            $age = (time() - strtotime($job->timePosted)) / (60 * 60 * 24);
+            $cpc = $job->custom->CPC;
 
             if ($age < $maxage) {
-                if (!$job->job_reference) {
-                    #error_log("No job reference for {$job->title}, {$job->location}");
-                } else if (floatval($job->cpc) < Jobs::MINIMUM_CPC) {
+                if (!$job->id) {
+                    #error_log("No job id for {$job->title}, {$job->locations->location->location}");
+                } else if (floatval($cpc) < Jobs::MINIMUM_CPC) {
                     # Ignore this job - not worth us showing.
                     $toolow++;
                 } else {
-                    $geokey = "{$job->city},{$job->state},{$job->country}";
+                    $geokey = "{$job->locations->location->city},{$job->locations->location->state},{$job->locations->location->country}";
                     $geom = NULL;
 
                     $wascached = array_key_exists($geokey, $geocache);
@@ -324,14 +326,14 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
                         $geo = $this->dbhr->preQuery(
                             "SELECT ST_AsText(ST_Envelope(geometry)) AS geom FROM jobs WHERE city = ? AND state = ? AND country = ? LIMIT 1;",
                             [
-                                $job->city,
-                                $job->state,
-                                $job->country
+                                $job->locations->location->city,
+                                $job->locations->location->state,
+                                $job->locations->location->country
                             ]
                         );
 
                         $geom = null;
-                        #error_log("Found " . count($geo) . " {$job->city}, {$job->state}, {$job->country}");
+                        #error_log("Found " . count($geo) . " {$job->locations->location->city}, {$job->locations->location->state}, {$job->locations->location->country}");
 
                         if (count($geo))
                         {
@@ -353,48 +355,48 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
                         #
                         # We have location, city, state, and country.  We can ignore the country.
                         $badStates = [ 'not specified', 'united kingdom of great britain and northern ireland', 'united kingdom', 'uk', 'england', 'scotland', 'wales', 'home based' ];
-                        if ($job->state && strlen(trim($job->state)) && !in_array(strtolower(trim($job->state)), $badStates)) {
+                        if ($job->locations->location->state && strlen(trim($job->locations->location->state)) && !in_array(strtolower(trim($job->locations->location->state)), $badStates)) {
                             # Sometimes the state is a region.  Sometimes it is a much more specific location. Sigh.
                             #
                             # So first, geocode the state; if we get a specific location we can use that.  If it's a larger
                             # location then we can use it as a bounding box.
                             #
                             # Geocoding gets confused by "Borough of", e.g. "Borough of Swindon".
-                            $state = str_ireplace($job->state, 'Borough of ', '');
+                            $state = str_ireplace($job->locations->location->state, 'Borough of ', '');
 
                             list ($swlat, $swlng, $nelat, $nelng, $geom, $area) = Jobs::geocode($job, FALSE, TRUE);
 
                             if ($area && $area < 0.05) {
                                 # We have a small 'state', which must be an actual location.  Stop.
-                                #error_log("Got small area {$job->state}");
+                                #error_log("Got small area {$job->locations->location->state}");
                             } else if ($geom) {
                                 # We have a large state, which is a plausible region. Use it as a bounding box for the
                                 # city.
-                                #error_log("Gecoded {$job->state} to $geom");
-                                list ($swlat, $swlng, $nelat, $nelng, $geom, $area) = Jobs::geocode($job->city, TRUE, FALSE, $swlat, $swlng, $nelat, $nelng);
+                                #error_log("Gecoded {$job->locations->location->state} to $geom");
+                                list ($swlat, $swlng, $nelat, $nelng, $geom, $area) = Jobs::geocode($job->locations->location->city, TRUE, FALSE, $swlat, $swlng, $nelat, $nelng);
 
                                 if (!$geom) {
-                                    #error_log("Failed to geocode {$job->city} in {$job->state}");
+                                    #error_log("Failed to geocode {$job->locations->location->city} in {$job->locations->location->state}");
                                 }
                             }
                         }
                     }
 
                     $badCities = [ 'not specified', 'null', 'home based', 'united kingdom', ', , united kingdom' ];
-                    if (!$geom && $job->city && strlen(trim($job->city)) && !in_array(strtolower(trim($job->city)), $badCities)) {
+                    if (!$geom && $job->locations->location->city && strlen(trim($job->locations->location->city)) && !in_array(strtolower(trim($job->locations->location->city)), $badCities)) {
                         # We have not managed anything from the state.  Try just the city.  This will lead to some being
                         # wrong, but that's life.
-                        #error_log("State no use, use city {$job->city}");
-                        list ($swlat, $swlng, $nelat, $nelng, $geom, $area) = Jobs::geocode($job->city, TRUE, FALSE);
+                        #error_log("State no use, use city {$job->locations->location->city}");
+                        list ($swlat, $swlng, $nelat, $nelng, $geom, $area) = Jobs::geocode($job->locations->location->city, TRUE, FALSE);
 
                         if ($area > 50) {
-                            #error_log("{$job->city} => $geom is too large at $area");
+                            #error_log("{$job->locations->location->city} => $geom is too large at $area");
                             $geom = NULL;
                         }
                     }
 
                     if ($geom) {
-                        #error_log("Geocoded {$job->city}, {$job->state} => $geom");
+                        #error_log("Geocoded {$job->locations->location->city}, {$job->locations->location->state} => $geom");
 
                         if (!$wascached) {
                             $geocache[$geokey] = [ $geom, $swlat, $swlng, $nelat, $nelng];
@@ -422,7 +424,7 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
                         $id = "\N";
 
                         $oldids = $this->dbhr->preQuery("SELECT id FROM jobs WHERE job_reference = ?;", [
-                            $job->job_reference
+                            $job->id
                         ]);
 
                         foreach ($oldids as $oldid) {
@@ -442,14 +444,14 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
 
                             $body = NULL;
 
-                            if ($job->body) {
+                            if ($job->description) {
                                 # Truncate the body - we only display the body as a snippet to get people to click
                                 # through.
                                 #
                                 # Fix up line endings which cause problems with fputcsv, and other weirdo characters
                                 # that get mangled en route to us.  This isn't a simple UTF8 problem because the data
                                 # comes from all over the place and is a bit of a mess.
-                                $body = html_entity_decode($job->body);
+                                $body = html_entity_decode($job->description);
                                 $body = str_replace("\r\n", " ", $body);
                                 $body = str_replace("\r", " ", $body);
                                 $body = str_replace("\n", " ", $body);
@@ -472,22 +474,22 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
                             # bodyhash, seenat
                             fputcsv($out, [
                                $id,
-                               $job->location ? html_entity_decode($job->location) : NULL,
+                               $job->locations->location->location ? html_entity_decode($job->locations->location->location) : NULL,
                                $title,
-                               $job->city ? html_entity_decode($job->city) : NULL,
-                               $job->state ? html_entity_decode($job->state) : NULL,
-                               $job->zip ? html_entity_decode($job->zip) : NULL,
-                               $job->country ? html_entity_decode($job->country) : NULL,
-                               $job->job_type ? html_entity_decode($job->job_type) : NULL,
-                               $job->posted_at ? html_entity_decode($job->posted_at) : NULL,
-                               $job->job_reference ? html_entity_decode($job->job_reference) : NULL,
-                               $job->company ? html_entity_decode($job->company) : NULL,
-                               $job->mobile_friendly_apply ? html_entity_decode($job->mobile_friendly_apply) : NULL,
+                               $job->locations->location->city ? html_entity_decode($job->locations->location->city) : NULL,
+                               $job->locations->location->state ? html_entity_decode($job->locations->location->state) : NULL,
+                               $job->locations->location->zip ? html_entity_decode($job->locations->location->zip) : NULL,
+                               $job->locations->location->country ? html_entity_decode($job->locations->location->country) : NULL,
+                               NULL,
+                               $job->timePosted ? html_entity_decode($job->timePosted) : NULL,
+                               $job->id ? html_entity_decode($job->id) : NULL,
+                               $job->company->name ? html_entity_decode($job->company->name) : NULL,
+                               NULL,
                                $job->category ? html_entity_decode($job->category) : NULL,
-                               $job->html_jobs ? html_entity_decode($job->html_jobs) : NULL,
-                               $job->url ? html_entity_decode($job->url) : NULL,
+                               NULL,
+                               $job->urlDeeplink ? html_entity_decode($job->urlDeeplink) : NULL,
                                $body,
-                               $job->cpc ? html_entity_decode($job->cpc) : NULL,
+                               $cpc ? html_entity_decode($cpc) : NULL,
                                $geom,
                                $clickability,
                                md5($body),
@@ -500,7 +502,7 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
                             error_log("Failed to add {$job->title} $geom " . $e->getMessage());
                         }
                     } else {
-                        #error_log("Couldn't geocode {$job->city}, {$job->state}");
+                        #error_log("Couldn't geocode {$job->locations->location->city}, {$job->locations->location->state}");
                         $nogeocode++;
                     }
                 }
@@ -538,6 +540,7 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
         $this->dbhm->preExec("SET GLOBAL local_infile=1;");
         error_log(date("Y-m-d H:i:s", time()) . "...load files");
         foreach (glob('/tmp/feed-split*') as $fn) {
+            set_time_limit(600);
             $this->dbhm->preExec("LOAD DATA LOCAL INFILE '$fn' INTO TABLE jobs_new
             CHARACTER SET latin1
             FIELDS TERMINATED BY ',' 
@@ -562,7 +565,9 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
 
         foreach ($spams as $spam) {
             error_log("Delete spammy job {$spam['title']} * {$spam['count']}");
+            set_time_limit(600);
             $spamcount += $spam['count'];
+
             do {
                 $this->dbhm->preExec("DELETE FROM jobs_new WHERE bodyhash = ? LIMIT 1;", [
                     $spam['bodyhash']
