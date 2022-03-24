@@ -929,6 +929,61 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->log("Created non dup feed {$ret['id']}");
         assertNotEquals($nid, $ret['id']);
     }
+
+    public function testOwnPosts() {
+        assertTrue($this->user->login('testpw'));
+
+        $settings = [
+            'mylocation' => [
+                'lat' => 52.57,
+                'lng' => -2.03,
+            ],
+        ];
+
+        $u->setPrivate('settings', json_encode($settings));
+
+        # Post something.
+        $this->log("Post something as {$this->uid}");
+        $ret = $this->call('newsfeed', 'POST', [
+            'message' => 'Test with url https://google.co.uk',
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertNotNull($ret['id']);
+        $this->log("Created feed {$ret['id']}");
+        $nid = $ret['id'];
+
+        # Get it back as part of the feed.
+        $found = FALSE;
+        $ret = $this->call('newsfeed', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        foreach ($ret['newsfeed'] as $n) {
+            if ($n['id'] == $nid) {
+                $found = TRUE;
+            }
+        }
+        assertTrue($found);
+
+        # Move to another location.
+        $settings = [
+            'mylocation' => [
+                'lat' => 53.57,
+                'lng' => -3.03,
+            ],
+        ];
+
+        $u->setPrivate('settings', json_encode($settings));
+
+        # Should still be visible as it's ours.
+        $found = FALSE;
+        $ret = $this->call('newsfeed', 'GET', []);
+        assertEquals(0, $ret['ret']);
+        foreach ($ret['newsfeed'] as $n) {
+            if ($n['id'] == $nid) {
+                $found = TRUE;
+            }
+        }
+        assertTrue($found);
+    }
 //
 //    public function testEH() {
 //        $u = new User($this->dbhr, $this->dbhm);

@@ -80,20 +80,22 @@ class Location extends Entity
             $p = strpos($name, ' ');
 
             if ($type == 'Polygon') {
-                # This is an area.  Copy into Postgres for future mapping. If we fail, carry on.  There is a
-                # background cron job to save us.
-                error_log("Copy $name into postgresql");
-                try {
-                    $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
+                if (PGSQLHOST) {
+                    # This is an area.  Copy into Postgres for future mapping. If we fail, carry on.  There is a
+                    # background cron job to save us.
+                    error_log("Copy $name into postgresql");
+                    try {
+                        $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
 
-                    $pgsql->preExec("INSERT INTO locations (locationid, name, type, area, location)
+                        $pgsql->preExec("INSERT INTO locations (locationid, name, type, area, location)
                         VALUES (?, ?, ?, ST_Area(ST_GeomFromText(?, {$this->dbhr->SRID()})), ST_GeomFromText(?, {$this->dbhr->SRID()}));", [
-                        $id, $name, $type, $geometry, $geometry
-                    ]);
-                } catch (\Exception $e) {}
+                            $id, $name, $type, $geometry, $geometry
+                        ]);
+                    } catch (\Exception $e) {}
 
-                # Map this new postcode to an area.
-                $this->remapPostcodes($geometry);
+                    # Map this new postcode to an area.
+                    $this->remapPostcodes($geometry);
+                }
             }
 
             if ($type == 'Postcode' && $p !== FALSE) {
@@ -314,17 +316,19 @@ class Location extends Entity
 
         $rc = $this->dbhm->preExec("DELETE FROM locations WHERE id = ?;", [$this->id]);
 
-        # Delete from Postgresql too.  If we fail, carry on.  There is a background cron job to save us.
-        try {
-            $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
+        if (PGSQLHOST) {
+            # Delete from Postgresql too.  If we fail, carry on.  There is a background cron job to save us.
+            try {
+                $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
 
-            if ($pgsql)
-            {
-                $pgsql->preExec("DELETE FROM locations WHERE locationid = ?;", [
-                    $this->id
-                ]);
-            }
-        } catch (\Exception $e) {}
+                if ($pgsql)
+                {
+                    $pgsql->preExec("DELETE FROM locations WHERE locationid = ?;", [
+                        $this->id
+                    ]);
+                }
+            } catch (\Exception $e) {}
+        }
 
         if ($rc) {
             $this->log->log([
@@ -543,24 +547,26 @@ class Location extends Entity
                         [$val]
                     );
 
-                    # Copy into Postgres.  Continue if we don't manage to connect - background cron will save us.
-                    $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
+                    if (PGSQLHOST) {
+                        # Copy into Postgres.  Continue if we don't manage to connect - background cron will save us.
+                        $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
 
-                    if ($pgsql) {
-                        $pgsql->preExec("INSERT INTO locations (locationid, name, type, area, location)
+                        if ($pgsql) {
+                            $pgsql->preExec("INSERT INTO locations (locationid, name, type, area, location)
                         VALUES (?, ?, ?, ST_Area(ST_GeomFromText(?, {$this->dbhr->SRID()})), ST_GeomFromText(?, {$this->dbhr->SRID()}))
                         ON CONFLICT(locationid) DO UPDATE SET location = ST_GeomFromText(?, {$this->dbhr->SRID()});", [
-                            $this->id, $this->loc['name'], $this->loc['type'], $val, $val, $val
-                        ]);
+                                $this->id, $this->loc['name'], $this->loc['type'], $val, $val, $val
+                            ]);
 
-                        if ($oldval[0]['unioned']) {
-                            # We want to remap the areas.  A common case is when we are tweaking areas, and therefore the
-                            # old and new value will overlap.  We can save time by only mapping the union.
-                            $this->remapPostcodes($oldval[0]['unioned']);
-                        } else {
-                            # They are completely separate.  Remap both.
-                            $this->remapPostcodes($oldval[0]['geometry']);
-                            $this->remapPostcodes($val);
+                            if ($oldval[0]['unioned']) {
+                                # We want to remap the areas.  A common case is when we are tweaking areas, and therefore the
+                                # old and new value will overlap.  We can save time by only mapping the union.
+                                $this->remapPostcodes($oldval[0]['unioned']);
+                            } else {
+                                # They are completely separate.  Remap both.
+                                $this->remapPostcodes($oldval[0]['geometry']);
+                                $this->remapPostcodes($val);
+                            }
                         }
                     }
 
@@ -731,89 +737,95 @@ class Location extends Entity
     }
 
     public function copyLocationsToPostgresql() {
-        # We make limited use of Postgresql, because Postgis is fab. This method copies all relevant locations from
-        # the locations table into Postgresql.  We try to keep the Postgresql table in sync in setGeometry, but
-        # doing this full copy regularly is a safety net.
-        $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
+        $count = 0;
 
-        # When running on Docker/CircleCI, the database is not set up fully.
-        $pgsql->preExec("CREATE EXTENSION IF NOT EXISTS postgis;");
-        $pgsql->preExec("CREATE EXTENSION IF NOT EXISTS btree_gist;");
+        if (PGSQLHOST) {
+            # We make limited use of Postgresql, because Postgis is fab. This method copies all relevant locations from
+            # the locations table into Postgresql.  We try to keep the Postgresql table in sync in setGeometry, but
+            # doing this full copy regularly is a safety net.
+            $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
 
-        # We use a tmp table.  This can mean that any location changes which happen during this process will not
-        # get picked up until the next time we do this processing.
-        $uniq = uniqid('_');
-        $pgsql->preExec("DROP TABLE IF EXISTS locations_tmp$uniq;");
-        $pgsql->preExec("DROP INDEX IF EXISTS idx_location$uniq;");
-        $pgsql->preExec("DROP INDEX IF EXISTS idx_location_id$uniq;");
-        try {
-            # No easy way to CREATE TYPE IF NOT EXISTS.
-            $pgsql->preExec("CREATE TYPE location_type AS ENUM('Road','Polygon','Line','Point','Postcode');");
-        } catch (\Exception $e) {}
-        $pgsql->preExec("CREATE TABLE locations_tmp$uniq (id serial, locationid bigint, name text, type location_type, area numeric, location geometry);");
-        $pgsql->preExec("ALTER TABLE locations_tmp$uniq SET UNLOGGED");
+            # When running on Docker/CircleCI, the database is not set up fully.
+            $pgsql->preExec("CREATE EXTENSION IF NOT EXISTS postgis;");
+            $pgsql->preExec("CREATE EXTENSION IF NOT EXISTS btree_gist;");
 
-        # Get the locations.  Go direct to PDO as we want an unbuffered query to reduce memory usage.
-        $this->dbhr->doConnect();
+            # We use a tmp table.  This can mean that any location changes which happen during this process will not
+            # get picked up until the next time we do this processing.
+            $uniq = uniqid('_');
+            $pgsql->preExec("DROP TABLE IF EXISTS locations_tmp$uniq;");
+            $pgsql->preExec("DROP INDEX IF EXISTS idx_location$uniq;");
+            $pgsql->preExec("DROP INDEX IF EXISTS idx_location_id$uniq;");
+            try {
+                # No easy way to CREATE TYPE IF NOT EXISTS.
+                $pgsql->preExec("CREATE TYPE location_type AS ENUM('Road','Polygon','Line','Point','Postcode');");
+            } catch (\Exception $e) {}
+            $pgsql->preExec("CREATE TABLE locations_tmp$uniq (id serial, locationid bigint, name text, type location_type, area numeric, location geometry);");
+            $pgsql->preExec("ALTER TABLE locations_tmp$uniq SET UNLOGGED");
 
-        # Get non-excluded polygons.
-        $locations = $this->dbhr->_db->query("SELECT locations.id, name, type, 
+            # Get the locations.  Go direct to PDO as we want an unbuffered query to reduce memory usage.
+            $this->dbhr->doConnect();
+
+            # Get non-excluded polygons.
+            $locations = $this->dbhr->_db->query("SELECT locations.id, name, type, 
                ST_AsText(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) AS geom
                FROM locations LEFT JOIN locations_excluded le on locations.id = le.locationid 
                WHERE le.locationid IS NULL AND ST_Dimension(CASE WHEN ourgeometry IS NOT NULL THEN ourgeometry ELSE geometry END) = 2 AND type != 'Postcode';");
 
-        $count = 0;
-        foreach ($locations as $location) {
-            $pgsql->preExec("INSERT INTO locations_tmp$uniq (locationid, name, type, area, location) VALUES (?, ?, ?, ST_Area(ST_GeomFromText(?, {$this->dbhr->SRID()})), ST_GeomFromText(?, {$this->dbhr->SRID()}));", [
-                $location['id'], $location['name'], $location['type'], $location['geom'], $location['geom']
-            ]);
+            $count = 0;
+            foreach ($locations as $location) {
+                $pgsql->preExec("INSERT INTO locations_tmp$uniq (locationid, name, type, area, location) VALUES (?, ?, ?, ST_Area(ST_GeomFromText(?, {$this->dbhr->SRID()})), ST_GeomFromText(?, {$this->dbhr->SRID()}));", [
+                    $location['id'], $location['name'], $location['type'], $location['geom'], $location['geom']
+                ]);
 
-            $count++;
+                $count++;
 
-            if ($count % 1000 == 0) {
-                error_log("...added $count");
+                if ($count % 1000 == 0) {
+                    error_log("...added $count");
+                }
             }
+
+            $pgsql->preExec("CREATE INDEX idx_location$uniq ON locations_tmp$uniq USING gist(location);");
+            $pgsql->preExec("CREATE UNIQUE INDEX idx_locationid$uniq ON locations_tmp$uniq USING BTREE(locationid);");
+            $pgsql->preExec("ALTER TABLE locations_tmp$uniq SET LOGGED");
+
+            # Atomic swap of tables.
+            $pgsql->preExec("CREATE TABLE IF NOT EXISTS locations (LIKE locations_tmp$uniq);");
+            $pgsql->preExec("BEGIN;");
+            $pgsql->preExec("ALTER TABLE locations RENAME TO locations_old$uniq;");
+            $pgsql->preExec("ALTER TABLE locations_tmp$uniq RENAME TO locations;");
+            $pgsql->preExec("DROP TABLE locations_old$uniq;");
+            $pgsql->preExec("COMMIT;");
         }
-
-        $pgsql->preExec("CREATE INDEX idx_location$uniq ON locations_tmp$uniq USING gist(location);");
-        $pgsql->preExec("CREATE UNIQUE INDEX idx_locationid$uniq ON locations_tmp$uniq USING BTREE(locationid);");
-        $pgsql->preExec("ALTER TABLE locations_tmp$uniq SET LOGGED");
-
-        # Atomic swap of tables.
-        $pgsql->preExec("CREATE TABLE IF NOT EXISTS locations (LIKE locations_tmp$uniq);");
-        $pgsql->preExec("BEGIN;");
-        $pgsql->preExec("ALTER TABLE locations RENAME TO locations_old$uniq;");
-        $pgsql->preExec("ALTER TABLE locations_tmp$uniq RENAME TO locations;");
-        $pgsql->preExec("DROP TABLE locations_old$uniq;");
-        $pgsql->preExec("COMMIT;");
 
         return $count;
     }
     
     public function remapPostcodes($geom = NULL) {
-        # We make use of Postgresql for this, because Postgis is fab. This method maps all the postcodes to
-        # locations using the data in Postgresql.
-        #
-        # This method assumes that copyLocationsToPostgresql has been called.
-        $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
-        $geomq = $geom ? " ST_Contains(ST_GeomFromText('$geom', {$this->dbhr->SRID()}), locations_spatial.geometry) AND " : '';
+        $count = 0;
 
-        $pcs = $this->dbhr->preQuery("SELECT DISTINCT locations_spatial.locationid, locations.name, locations.lat, locations.lng, locations.name AS areaname, locations.id AS areaid FROM locations_spatial 
+        if (PGSQLHOST) {
+            # We make use of Postgresql for this, because Postgis is fab. This method maps all the postcodes to
+            # locations using the data in Postgresql.
+            #
+            # This method assumes that copyLocationsToPostgresql has been called.
+            $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
+            $geomq = $geom ? " ST_Contains(ST_GeomFromText('$geom', {$this->dbhr->SRID()}), locations_spatial.geometry) AND " : '';
+
+            $pcs = $this->dbhr->preQuery("SELECT DISTINCT locations_spatial.locationid, locations.name, locations.lat, locations.lng, locations.name AS areaname, locations.id AS areaid FROM locations_spatial 
     INNER JOIN locations ON locations_spatial.locationid = locations.id
     WHERE $geomq locations.type = 'Postcode'  
     AND locate(' ', locations.name) > 0
     ;");
 
-        $count = 0;
-        $total = count($pcs);
+            $total = count($pcs);
 
-        foreach ($pcs as $pc) {
-            // This query is the heart of things.  Postgis allows us to find KNN efficiently.  We use that to
-            // find a bunch of nearby candidate locations.  Then we simulate the algorithm we used to use, of
-            // having a small box which gradually increases in size until it finds us a location, by
-            // having a bunch of ST_Intersects queries.  This is well-indexed too.  Then we can choose the
-            // smallest of these.
-            $pgareas = $pgsql->preQuery("
+            foreach ($pcs as $pc) {
+                // This query is the heart of things.  Postgis allows us to find KNN efficiently.  We use that to
+                // find a bunch of nearby candidate locations.  Then we simulate the algorithm we used to use, of
+                // having a small box which gradually increases in size until it finds us a location, by
+                // having a bunch of ST_Intersects queries.  This is well-indexed too.  Then we can choose the
+                // smallest of these.
+                $pgareas = $pgsql->preQuery("
 WITH ourpoint AS
 (
  SELECT ST_MakePoint(?, ?) as p
@@ -849,29 +861,30 @@ SELECT
 ) q
 ORDER BY intersects ASC, area ASC LIMIT 1;
 ", [
-                $pc['lng'],
-                $pc['lat'],
-            ]);
+                    $pc['lng'],
+                    $pc['lat'],
+                ]);
 
-            if (count($pgareas)) {
-                $pgarea = $pgareas[0];
-                #error_log("Mapped {$pc['name']} to {$pgarea['name']}, {$pgarea['locationid']} vs {$pc['areaid']}");
+                if (count($pgareas)) {
+                    $pgarea = $pgareas[0];
+                    #error_log("Mapped {$pc['name']} to {$pgarea['name']}, {$pgarea['locationid']} vs {$pc['areaid']}");
 
-                if ($pgarea['locationid'] != $pc['areaid']) {
-                    #error_log("Set area {$pgarea['locationid']} in {$pc['locationid']}");
-                    $this->dbhm->preExec("UPDATE locations SET areaid = ? WHERE id = ?", [
-                        $pgarea['locationid'],
-                        $pc['locationid']
-                    ]);
+                    if ($pgarea['locationid'] != $pc['areaid']) {
+                        #error_log("Set area {$pgarea['locationid']} in {$pc['locationid']}");
+                        $this->dbhm->preExec("UPDATE locations SET areaid = ? WHERE id = ?", [
+                            $pgarea['locationid'],
+                            $pc['locationid']
+                        ]);
+                    }
+                } else {
+                    error_log("#{$pc['locationid']} {$pc['name']} {$pc['lat']}, {$pc['lng']} = {$pc['areaid']} {$pc['areaname']} => not mapped");
                 }
-            } else {
-                error_log("#{$pc['locationid']} {$pc['name']} {$pc['lat']}, {$pc['lng']} = {$pc['areaid']} {$pc['areaname']} => not mapped");
-            }
 
-            $count++;
+                $count++;
 
-            if ($count % 1000 == 0) {
-                error_log("...$count / $total");
+                if ($count % 1000 == 0) {
+                    error_log("...$count / $total");
+                }
             }
         }
 

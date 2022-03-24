@@ -13,7 +13,7 @@ ENV MYSQL_USER=mysql \
 	  STANDALONE=TRUE
 
 # 3rd party components
-RUN apt-get update \
+RUN apt-get -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false update \
 	&& apt-get install -y mysql-server \
 	&& rm -rf /var/lib/mysql \
 	&& mkdir /var/lib/mysql \
