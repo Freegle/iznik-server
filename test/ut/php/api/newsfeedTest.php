@@ -940,7 +940,7 @@ class newsfeedAPITest extends IznikAPITestCase {
             ],
         ];
 
-        $u->setPrivate('settings', json_encode($settings));
+        $this->user->setPrivate('settings', json_encode($settings));
 
         # Post something.
         $this->log("Post something as {$this->uid}");
@@ -971,7 +971,7 @@ class newsfeedAPITest extends IznikAPITestCase {
             ],
         ];
 
-        $u->setPrivate('settings', json_encode($settings));
+        $this->user->setPrivate('settings', json_encode($settings));
 
         # Should still be visible as it's ours.
         $found = FALSE;

@@ -17,8 +17,9 @@ RUN apt-get -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false upd
 	&& apt-get install -y mysql-server \
 	&& rm -rf /var/lib/mysql \
 	&& mkdir /var/lib/mysql \
+    && locale-gen es_ES.UTF-8 \
 	&& apt-get install -y redis-server \
-	&& apt-get install -y beanstalkd 
+	&& apt-get install -y beanstalkd
 
 # SSHD
 RUN apt-get -y install openssh-server \
@@ -69,7 +70,7 @@ RUN apt-get install -y php-mbstring php-mailparse
 #
 RUN mkdir -p /var/www \
 	&& cd /var/www \
-	&& apt-get update \
+	&& apt-get -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false update \
 	&& git clone https://github.com/Freegle/iznik-server.git iznik \
 	&& cp iznik/install/mysqldamlevlim.so /usr/lib/mysql/plugin/ \
   && touch iznik/standalone

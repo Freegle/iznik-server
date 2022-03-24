@@ -524,7 +524,7 @@ class Newsfeed extends Entity
 
             # We return most recent first.
             $tq = Utils::pres('timestamp', $ctx) ? ("newsfeed.timestamp < " . $this->dbhr->quote($ctx['timestamp'])) : 'newsfeed.id > 0';
-            $first = $dist ? "(MBRContains($box, position) OR `type` IN ('CentralPublicity', 'Alert') OR userid = {$u->getId()} AND $tq" : $tq;
+            $first = $dist ? "(MBRContains($box, position) OR `type` IN ('CentralPublicity', 'Alert') OR newsfeed.userid = {$u->getId()}) AND $tq" : $tq;
             $typeq = $types ? (" AND `type` IN ('" . implode("','", $types) . "') ") : '';
 
             # We might have pinned some posts in a previous call.  Don't show them again.
