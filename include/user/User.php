@@ -5933,6 +5933,7 @@ class User extends Entity
     WHERE ratings.timestamp >= ? AND 
         m1.groupid IN (" . implode(',', $modships) . ") AND
         m2.groupid IN (" . implode(',', $modships) . ") AND
+        m1.groupid = m2.groupid AND
         ratings.rating IS NOT NULL 
         $revq    
         GROUP BY ratings.rater ORDER BY ratings.timestamp DESC;";
