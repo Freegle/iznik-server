@@ -685,6 +685,51 @@ class messageTest extends IznikTestCase {
         self::assertNotNull($log);
     }
 
+    public function testAutoRepostAfterManual() {
+        $m = new Message($this->dbhr, $this->dbhm);
+
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $this->user->addEmail($email);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment'));
+        $msg = str_replace('test@test.com', $email, $msg);
+        $msg = str_replace('Test att', 'OFFER: Test due (Tuvalu High Street)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        list ($id2, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+        $this->log("Due message $id2");
+        $m = new Message($this->dbhr, $this->dbhm, $id2);
+        $m->setPrivate('source', Message::PLATFORM);
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        # Manually repost.
+        $m->repost();
+
+        # Hack the arrival time on the group to make it look old.
+        $mysqltime = date("Y-m-d H:i:s", strtotime('59 hours ago'));
+        $this->dbhm->preExec("UPDATE messages_groups SET arrival = '$mysqltime' WHERE msgid = ?;", [ $id2 ]);
+
+        $m = new Message($this->dbhr, $this->dbhm);
+
+        # Should now get a warning.
+        $this->log("Expect warning for $id2");
+        list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $this->gid);
+        assertEquals(0, $count);
+        assertEquals(1, $warncount);
+
+        # Make the message and warning look longer ago.  Then call - should cause a repost.
+        $this->log("Expect repost");
+        $mysqltime = date("Y-m-d H:i:s", strtotime('77 hours ago'));
+        $this->dbhm->preExec("UPDATE messages_groups SET arrival = '$mysqltime' WHERE msgid = ?;", [ $id2 ]);
+        $this->dbhm->preExec("UPDATE messages_groups SET lastautopostwarning = '2016-01-01' WHERE msgid = ?;", [ $id2 ]);
+
+        list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $this->gid);
+        assertEquals(1, $count);
+        assertEquals(0, $warncount);
+    }
+
     public function testAutoRepostOff() {
         $m = new Message($this->dbhr, $this->dbhm);
 
