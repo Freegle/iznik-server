@@ -3714,6 +3714,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `yahooUserId` (`yahooUserId`),
   UNIQUE KEY `yahooid` (`yahooid`),
+  UNIQUE KEY `tnuserid` (`tnuserid`),
   KEY `systemrole` (`systemrole`),
   KEY `added` (`added`,`lastaccess`),
   KEY `fullname` (`fullname`),
@@ -5317,4 +5318,4 @@ CREATE TABLE `worrywords` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-03-25 10:56:58
+-- Dump completed on 2022-03-25 11:11:04

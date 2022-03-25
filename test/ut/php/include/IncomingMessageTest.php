@@ -162,6 +162,11 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         assertEquals(55.957570, $m->getPrivate('lat'));
         assertEquals(-3.205330, $m->getPrivate('lng'));
 
+        # The user we have created should have tnuserid set.
+        $uid = $m->getFromUser();
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        assertEquals(2079027, $u->getPrivate('tnuserid'));
+
         $m->delete();
     }
 

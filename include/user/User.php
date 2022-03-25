@@ -537,6 +537,20 @@ class User extends Entity
         return ($ret);
     }
 
+    public function findByTNId($id) {
+        $ret = NULL;
+
+        $users = $this->dbhr->preQuery("SELECT id FROM users WHERE tnuserid = ?;", [
+            $id
+        ]);
+
+        foreach ($users as $user) {
+            $ret = $user['id'];
+        }
+
+        return $ret;
+    }
+
     public function findByEmail($email)
     {
         if (preg_match('/.*\-(.*)\@' . USER_DOMAIN . '/', $email, $matches)) {

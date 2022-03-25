@@ -2342,8 +2342,19 @@ ORDER BY lastdate DESC;";
             $emailid = NULL;
             $this->modmail = FALSE;
 
+            # TN passes the user id in a header.
+            $tnid = $this->getHeader('x-trash-nothing-user-id');
+
+            # And so do we.
             $iznikid = $Parser->getHeader('x-iznik-from-user');
-            if ($iznikid) {
+
+            if ($tnid) {
+                # This is our first preference.  For legacy reasons we might have TN users in the DB for whom we
+                # don't have tnuserid set, but in that case we will find them by email below.
+                $userid = $u->findByTNId($tnid);
+            }
+
+            if (!$userid && $iznikid) {
                 # We know who claims to have sent this.  There's a slight exploit here where someone could spoof
                 # the modmail setting and get a more prominent display.  I may regret writing this comment.
                 $userid = $iznikid;
@@ -2374,11 +2385,12 @@ ORDER BY lastdate DESC;";
 
             $this->fromuser = $userid;
 
-            $tnid = $this->getHeader('x-trash-nothing-user-id');
-
             if ($tnid) {
                 $u = User::get($this->dbhr, $this->dbhm, $userid);
-                $u->setPrivate('tnuserid', $tnid);
+
+                if ($u->getPrivate('tnuserid') != $tnid) {
+                    $u->setPrivate('tnuserid', $tnid);
+                }
 
                 // Record the last location.
                 if ($latlng) {
