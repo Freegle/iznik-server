@@ -2716,13 +2716,10 @@ ORDER BY lastdate DESC;";
                 $this->locationid
             ]);
         } catch (\Exception $e) {
-            error_log("Exception on INSERT" . $e->getMessage());
-
             if (strpos($e->getMessage(), 'Duplicate entry') !== FALSE) {
                 # This can happen if we receive duplicate copies of messages with the same message id, e.g. if TN
                 # resends a bunch of messages for some reason.
                 $failok = TRUE;
-                error_log("Fail ok");
             }
 
             $rc = FALSE;

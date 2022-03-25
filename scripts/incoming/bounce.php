@@ -4,7 +4,7 @@ namespace Freegle\Iznik;
 
 require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
-
+global $dbhr, $dbhm;
 
 $to = getenv('RECIPIENT');
 $msg = '';

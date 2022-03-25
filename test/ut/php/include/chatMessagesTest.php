@@ -396,7 +396,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('OFFER: a test item (location)', 'OFFER: A spade and broom handle (Conniburrow MK14', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid1 = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        list ($refmsgid1, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -404,14 +404,14 @@ class chatMessagesTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('OFFER: a test item (location)', 'Wanted: bike (Conniburrow MK14', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid2 = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        list ($refmsgid2, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
         $msg = str_replace('Re: Basic test', 'Re: A spade and broom handle (Conniburrow MK14)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
+        list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TO_USER, $rc);
 
@@ -550,7 +550,7 @@ class chatMessagesTest extends IznikTestCase {
         # Now reply to it with an attachment.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replyimage'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $replyid = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
+        list ($replyid, $failok) = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
         $m = new Message($this->dbhr, $this->dbhm, $replyid);
         $atts = $m->getAttachments();
 
@@ -611,7 +611,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = str_replace('OFFER: a test item (location)', 'OFFER: spade', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid1 = $r->received(Message::EMAIL, 'test1@test.com', 'to@test.com', $msg);
+        list ($refmsgid1, $failok) = $r->received(Message::EMAIL, 'test1@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -619,7 +619,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = str_replace('OFFER: a test item (location)', 'OFFER: fork', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid2 = $r->received(Message::EMAIL, 'test2@test.com', 'to@test.com', $msg);
+        list ($refmsgid2, $failok) = $r->received(Message::EMAIL, 'test2@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -634,14 +634,14 @@ class chatMessagesTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
         $msg = str_replace('Re: Basic test', 'Re: OFFER: spade (location)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $replyid1 = $r->received(Message::EMAIL, 'from2@test.com', $m1->getFromaddr(), $msg);
+        list ($replyid1, $failok) = $r->received(Message::EMAIL, 'from2@test.com', $m1->getFromaddr(), $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TO_USER, $rc);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
         $msg = str_replace('Re: Basic test', 'Re: OFFER: fork (location)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $replyid2 = $r->received(Message::EMAIL, 'from2@test.com', $m2->getFromaddr(), $msg);
+        list ($replyid2, $failok) = $r->received(Message::EMAIL, 'from2@test.com', $m2->getFromaddr(), $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TO_USER, $rc);
 
