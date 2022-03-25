@@ -2378,7 +2378,7 @@ ORDER BY lastdate DESC;";
 
             if ($tnid) {
                 $u = User::get($this->dbhr, $this->dbhm, $userid);
-                // TODO Need schema change to be able to add this to the user.
+                $u->setPrivate('tnuserid', $tnid);
 
                 // Record the last location.
                 if ($latlng) {
