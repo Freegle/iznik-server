@@ -305,7 +305,9 @@ class messageAPITest extends IznikAPITestCase
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
+        assertFalse($failok);
+        assertNotNull($id);
         $this->log("Created spam message $id");
         $rc = $r->route();
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
@@ -347,8 +349,9 @@ class messageAPITest extends IznikAPITestCase
 
         # Now send it again - should fail as duplicate message id.
         $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id2, $failok) = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
+        list ($id2, $failok) = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
         assertNull($id2);
+        assertTrue($failok);
     }
 
     public function testSpamNoLongerMember()
@@ -2712,7 +2715,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -2720,7 +2723,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
         $msg = str_replace('Re: Basic test', 'Re: OFFER: a test item (location)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $replyid = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
+        list ($replyid, $failok) = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TO_USER, $rc);
 

@@ -2692,7 +2692,7 @@ ORDER BY lastdate DESC;";
 
         # Save into the messages table.
         try {
-            $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, replyto, fromip, subject, suggestedsubject, messageid, tnpostid, textbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)  ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);";
+            $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, replyto, fromip, subject, suggestedsubject, messageid, tnpostid, textbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
             $rc = $this->dbhm->preExec($sql, [
                 $this->date,
                 $this->source,
@@ -2718,13 +2718,14 @@ ORDER BY lastdate DESC;";
         } catch (\Exception $e) {
             error_log("Exception on INSERT" . $e->getMessage());
 
-            if (strpos($e->getMessage(), 'Duplicate key') !== FALSE) {
+            if (strpos($e->getMessage(), 'Duplicate entry') !== FALSE) {
                 # This can happen if we receive duplicate copies of messages with the same message id, e.g. if TN
                 # resends a bunch of messages for some reason.
                 $failok = TRUE;
-            } else {
-                $rc = FALSE;
+                error_log("Fail ok");
             }
+
+            $rc = FALSE;
         }
 
         if ($rc) {
