@@ -282,7 +282,7 @@ WHERE chat_rooms.id IN $idlist;";
     }
 
     # This can be overridden in UT.
-    public function constructMessage(User $u, $id, $toname, $to, $fromname, $from, $subject, $text, $html, $fromuid = NULL, $groupid = NULL)
+    public function constructMessage(User $u, $id, $toname, $to, $fromname, $from, $subject, $text, $html, $fromuid = NULL, $groupid = NULL, $refmsgs = [])
     {
         $_SERVER['SERVER_NAME'] = USER_DOMAIN;
         $message = \Swift_Message::newInstance()
@@ -308,6 +308,10 @@ WHERE chat_rooms.id IN $idlist;";
             $headers = $message->getHeaders();
 
             $headers->addTextHeader('List-Unsubscribe', $u->listUnsubscribe(USER_SITE, $id, User::SRC_CHATNOTIF));
+
+            if ($refmsgs && count($refmsgs)) {
+                $headers->addTextHeader('X-Freegle-Msgids', implode(',', $refmsgs));
+            }
 
             if ($fromuid) {
                 $headers->addTextHeader('X-Freegle-From-UID', $fromuid);
@@ -2069,8 +2073,13 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                     $firstid = NULL;
                     $fromname = NULL;
                     $firstmsg = NULL;
+                    $refmsgs = [];
 
                     foreach ($unmailedmsgs as $unmailedmsg) {
+                        if (Utils::pres('refmsgid', $unmailedmsg)) {
+                            $refmsgs[] = $unmailedmsg['refmsgid'];
+                        }
+
                         # Message might be empty.
                         $unmailedmsg['message'] = strlen(trim($unmailedmsg['message'])) === 0 ? "(Empty message)" : $unmailedmsg['message'];
 
@@ -2368,7 +2377,8 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                         $textsummary,
                                         $includehtml ? $html : NULL,
                                         $chattype == ChatRoom::TYPE_USER2USER ? $sendingfrom->getId() : NULL,
-                                        $groupid);
+                                        $groupid,
+                                        $refmsgs);
 
                                     if ($message) {
                                         if ($chattype == ChatRoom::TYPE_USER2USER && $sendingto->getId() && !$justmine) {
