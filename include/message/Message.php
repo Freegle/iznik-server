@@ -2658,6 +2658,8 @@ ORDER BY lastdate DESC;";
 
     # Save a parsed message to the DB
     public function save($log = TRUE) {
+        $failok = FALSE;
+
         # Despite what the RFCs might say, it's possible that a message can appear on Yahoo without a Message-ID.  We
         # require unique message ids, so this causes us a problem.  Invent one.
         $this->messageid = $this->messageid ? $this->messageid : (microtime(TRUE). '@' . USER_DOMAIN);
@@ -2690,7 +2692,7 @@ ORDER BY lastdate DESC;";
 
         # Save into the messages table.
         try {
-            $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, replyto, fromip, subject, suggestedsubject, messageid, tnpostid, textbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, replyto, fromip, subject, suggestedsubject, messageid, tnpostid, textbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)  ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);";
             $rc = $this->dbhm->preExec($sql, [
                 $this->date,
                 $this->source,
@@ -2714,7 +2716,15 @@ ORDER BY lastdate DESC;";
                 $this->locationid
             ]);
         } catch (\Exception $e) {
-            $rc = FALSE;
+            error_log("Exception on INSERT" . $e->getMessage());
+
+            if (strpos($e->getMessage(), 'Duplicate key') !== FALSE) {
+                # This can happen if we receive duplicate copies of messages with the same message id, e.g. if TN
+                # resends a bunch of messages for some reason.
+                $failok = TRUE;
+            } else {
+                $rc = FALSE;
+            }
         }
 
         if ($rc) {
@@ -2771,7 +2781,7 @@ ORDER BY lastdate DESC;";
         # Attachments now safely stored in the DB
         $this->removeAttachDir();
 
-        return $this->id;
+        return [ $this->id, $failok ];
     }
 
     public function addToMessageHistory() {

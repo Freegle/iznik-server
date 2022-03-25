@@ -46,7 +46,7 @@ class microvolunteeringAPITest extends IznikAPITestCase
         $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $r = new MailRouter($this->dbhm, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
         assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
@@ -193,7 +193,7 @@ class microvolunteeringAPITest extends IznikAPITestCase
         $u->addMembership($gid);
 
         $r = new MailRouter($this->dbhm, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
         assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
@@ -315,7 +315,7 @@ class microvolunteeringAPITest extends IznikAPITestCase
         $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $r = new MailRouter($this->dbhm, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
         assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();

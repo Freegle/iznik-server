@@ -44,7 +44,7 @@ class imageAPITest extends IznikAPITestCase
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment');
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 

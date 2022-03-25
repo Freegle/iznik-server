@@ -36,12 +36,14 @@ $rc = MailRouter::DROPPED;
 # the logs.
 $chat = preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $envto);
 
-$id = $r->received(Message::EMAIL, $envfrom, $envto, $msg, NULL, !$chat);
+list ($id, $failok) = $r->received(Message::EMAIL, $envfrom, $envto, $msg, NULL, !$chat);
 
 if ($id) {
     $rc = $r->route();
     fwrite($logh, "Route of $envfrom => $envto returned $rc\n");
     exit(0);
+} else if ($failok) {
+    fwrite($logh, "Failure ok for $envfrom => $envto returned $rc\n");
 } else {
     fwrite($logh, "Failed to parse message for $envfrom => $envto\n");
     exit(1);

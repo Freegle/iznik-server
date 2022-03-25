@@ -74,7 +74,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -82,7 +82,7 @@ class chatMessagesTest extends IznikTestCase {
         $this->log("Reply with spam");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
+       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TO_USER, $rc);
 
@@ -97,7 +97,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -105,7 +105,7 @@ class chatMessagesTest extends IznikTestCase {
         $this->log("Reply with spam");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
+       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TO_USER, $rc);
 
@@ -136,7 +136,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -144,7 +144,7 @@ class chatMessagesTest extends IznikTestCase {
         $this->log("Reply with not spam");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply5'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
+       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TO_USER, $rc);
 
@@ -159,7 +159,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -198,7 +198,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -233,7 +233,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -246,7 +246,7 @@ class chatMessagesTest extends IznikTestCase {
         $this->log("Reply with to self $email");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, $email, $email, $msg);
+       list ($refmsgid, $failok) = $r->received(Message::EMAIL, $email, $email, $msg);
         $rc = $r->route();
         assertEquals(MailRouter::DROPPED, $rc);
 
@@ -258,7 +258,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -266,7 +266,7 @@ class chatMessagesTest extends IznikTestCase {
         $this->log("Reply with spam");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply3'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, 'spammer@test.com', 'test@test.com', $msg);
+       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'spammer@test.com', 'test@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
     }
@@ -279,7 +279,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = str_ireplace('OFFER: a test item (location)', 'Testing', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -293,7 +293,7 @@ class chatMessagesTest extends IznikTestCase {
         $this->log("Reply direct to $email");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply6'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, 'spammer@test.com', $email, $msg);
+       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'spammer@test.com', $email, $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TO_USER, $rc);
         $chatmessages = $this->dbhr->preQuery("SELECT chat_messages.id, chatid, reviewrequired, reviewrejected FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE chat_rooms.user2 = ?", [
@@ -313,7 +313,7 @@ class chatMessagesTest extends IznikTestCase {
         $this->log("Reply to reply-to");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply6'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, 'spammer@test.com', "replyto-$refmsgid-" . $m->getFromuser() . '@' . USER_DOMAIN, $msg);
+       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'spammer@test.com', "replyto-$refmsgid-" . $m->getFromuser() . '@' . USER_DOMAIN, $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TO_USER, $rc);
         $chatmessages = $this->dbhr->preQuery("SELECT chat_messages.id, reviewrequired FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE chat_rooms.user2 = ?", [
@@ -331,7 +331,7 @@ class chatMessagesTest extends IznikTestCase {
         $this->log("Reply to reply-to");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply6'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, 'spammer@test.com', "notify-$chatid-" . $m->getFromuser() . '@' . USER_DOMAIN, $msg);
+       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'spammer@test.com', "notify-$chatid-" . $m->getFromuser() . '@' . USER_DOMAIN, $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TO_USER, $rc);
         $chatmessages = $this->dbhr->preQuery("SELECT chat_messages.id, reviewrequired FROM chat_messages INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id WHERE chat_rooms.user2 = ?", [
@@ -353,7 +353,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -366,7 +366,7 @@ class chatMessagesTest extends IznikTestCase {
         error_log("Spam reply.");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply7'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, 'spammer@test.com', 'test@test.com', $msg);
+       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'spammer@test.com', 'test@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
     }
@@ -377,7 +377,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -385,7 +385,7 @@ class chatMessagesTest extends IznikTestCase {
         $this->log("Reply with spam");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replyjobspam'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, 'spammer@test.com', 'test@test.com', $msg);
+       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'spammer@test.com', 'test@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TO_USER, $rc);
 
@@ -411,7 +411,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
         $msg = str_replace('Re: Basic test', 'Re: A spade and broom handle (Conniburrow MK14)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
+       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TO_USER, $rc);
 
@@ -541,7 +541,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $m = new Message($this->dbhr, $this->dbhm, $refmsgid);
         $fromuid = $m->getFromuser();
         $rc = $r->route();

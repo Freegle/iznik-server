@@ -9,6 +9,9 @@ require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
 $r = new MailRouter($dbhr, $dbhm);
-$id = $r->received(Message::EMAIL, 'sj88ok-g4983@user.trashnothing.com', 'notify-12017336-40979534@users.ilovefreegle.org', file_get_contents('/tmp/a.c'));
-$rc = $r->route();
-error_log("Routed $id to $rc");
+list ($id, $failok) = $r->received(Message::EMAIL, 'sj88ok-g4983@user.trashnothing.com', 'notify-12017336-40979534@users.ilovefreegle.org', file_get_contents('/tmp/a.c'));
+
+if ($id) {
+    $rc = $r->route();
+    error_log("Routed $id to $rc");
+}

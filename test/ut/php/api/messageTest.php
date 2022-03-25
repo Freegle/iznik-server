@@ -58,7 +58,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -94,7 +94,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -156,7 +156,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -175,7 +175,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -228,7 +228,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
         $this->log("Created spam message $id");
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
@@ -305,7 +305,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
         $this->log("Created spam message $id");
         $rc = $r->route();
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
@@ -347,7 +347,7 @@ class messageAPITest extends IznikAPITestCase
 
         # Now send it again - should fail as duplicate message id.
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id2 = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
+       list ($id2, $failok) = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
         assertNull($id2);
     }
 
@@ -357,7 +357,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
         $this->log("Created spam message $id");
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
@@ -414,7 +414,7 @@ class messageAPITest extends IznikAPITestCase
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
         $this->user->addEmail($email);
 
-        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -514,7 +514,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_replace('Subject: Basic test', 'Subject: OFFER: thing (place)', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -717,7 +717,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -800,7 +800,7 @@ class messageAPITest extends IznikAPITestCase
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_MODERATED);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -852,7 +852,7 @@ class messageAPITest extends IznikAPITestCase
         $this->log("Route and delete approved");
         $msg = $this->unique($msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -872,7 +872,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $origmsg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
@@ -941,7 +941,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $origmsg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
@@ -968,7 +968,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -1060,7 +1060,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertFalse($m->isEdited());
         $rc = $r->route();
@@ -1986,12 +1986,12 @@ class messageAPITest extends IznikAPITestCase
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id1 = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id1, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
         $msg = str_ireplace('testgroup1', 'testgroup2', $msg);
-        $id2 = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id2, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -2016,7 +2016,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_ireplace('Basic test', 'OFFER: A thing (A place)', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -2189,7 +2189,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_ireplace('Basic test', 'OFFER: A thing (A place)', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -2249,7 +2249,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -2301,7 +2301,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_replace('Basic test', 'WANTED: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -2360,7 +2360,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -2414,7 +2414,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -2477,7 +2477,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -2520,7 +2520,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -2557,7 +2557,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_replace('Basic test', 'WANTED: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -2600,7 +2600,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_replace('Basic test', 'WANTED: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -2643,7 +2643,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_replace('Basic test', 'WANTED: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -2712,7 +2712,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -2864,7 +2864,7 @@ class messageAPITest extends IznikAPITestCase
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list ($id, $failok) = $m->save();
 
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
@@ -3133,7 +3133,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -3279,7 +3279,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -3337,7 +3337,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -3477,7 +3477,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -3495,7 +3495,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -3607,7 +3607,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_ireplace('test@test.com', $email, $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 

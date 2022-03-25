@@ -120,7 +120,7 @@ class isochroneAPITest extends IznikAPITestCase
         $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -252,7 +252,7 @@ class isochroneAPITest extends IznikAPITestCase
         $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);

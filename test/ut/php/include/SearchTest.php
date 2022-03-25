@@ -49,7 +49,7 @@ class searchTest extends IznikTestCase
         $msg = str_replace('Basic test', 'OFFER: Test zzzutzzz (location)', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id1 = $m->save();
+        list ($id1, $failok) = $m->save();
         $m->index();
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
         $m1->setPrivate('lat', 8.4);
@@ -180,7 +180,7 @@ class searchTest extends IznikTestCase
         $msg = str_replace('Basic test', 'OFFER: Test zzzutzzz (location)', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id1 = $m->save();
+        list ($id1, $failok) = $m->save();
 
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
         $m1->index();
@@ -194,7 +194,7 @@ class searchTest extends IznikTestCase
         $msg = str_replace('Basic test', 'OFFER: Test yyyutyyy (location)', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id2 = $m->save();
+        list ($id2, $failok) = $m->save();
         $m2 = new Message($this->dbhr, $this->dbhm, $id2);
         $m2->index();
         $m2->setPrivate('lat', 8.4);

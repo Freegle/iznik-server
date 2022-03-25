@@ -44,7 +44,7 @@ class logsAPITest extends IznikAPITestCase
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/approved'));
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $mid = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+       list ($mid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 

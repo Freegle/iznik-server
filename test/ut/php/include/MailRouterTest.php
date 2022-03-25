@@ -80,7 +80,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace("X-Yahoo-Group-Post: member; u=420816297", "X-Yahoo-Group-Post: member; u=-1", $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertNotNull($id);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
@@ -89,7 +89,7 @@ class MailRouterTest extends IznikTestCase {
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/fromyahoo'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertEquals('Yahoo-Web', $m->getSourceheader());
         $rc = $r->route();
@@ -103,7 +103,7 @@ class MailRouterTest extends IznikTestCase {
         User::clearCache();
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/fromyahoo'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertEquals('Yahoo-Web', $m->getSourceheader());
         $rc = $r->route();
@@ -118,7 +118,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("freegleplayground@yahoogroups.com", "nogroup@yahoogroups.com", $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertNotNull($id);
         assertEquals(MailRouter::DROPPED, $r->route());
     }
@@ -127,7 +127,7 @@ class MailRouterTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $msg = str_replace("FreeglePlayground <freegleplayground@yahoogroups.com>", "Nowhere <nogroup@yahoogroups.com>", $msg);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::DROPPED, $rc);
     }
@@ -150,7 +150,7 @@ class MailRouterTest extends IznikTestCase {
             $msg = str_replace('Basic test', $subj, $msg);
             $msg = "X-Apparently-To: testgroup$i@yahoogroups.com\r\n" . $msg;
 
-            $msgid = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+           list ($msgid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
             $rc = $r->route();
 
             if ($i < Spam::SUBJECT_THRESHOLD - 1) {
@@ -176,7 +176,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list ($id, $failok) = $m->save();
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertEquals(Message::EMAIL, $m->getSource());
@@ -213,7 +213,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamcam');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list ($id, $failok) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route(NULL);
@@ -235,17 +235,17 @@ class MailRouterTest extends IznikTestCase {
         $r->method('mail')->willReturn(false);
 
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/greetingsspam');
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/greetingsspam2');
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/greetingsspam3');
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
@@ -273,7 +273,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
         $msg = str_replace('Hey', "Please reply to $email", $msg);
 
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
@@ -288,7 +288,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list ($id, $failok) = $m->save();
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertEquals(Message::EMAIL, $m->getSource());
@@ -304,7 +304,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('Precedence: junk', 'X-Freegle-IP: 1.2.3.4', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list ($id, $failok) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
@@ -317,7 +317,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('chippenham-freegle', 'testgroup', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list ($id, $failok) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
@@ -333,7 +333,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list ($id, $failok) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
@@ -369,7 +369,7 @@ class MailRouterTest extends IznikTestCase {
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list ($id, $failok) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
@@ -401,7 +401,7 @@ class MailRouterTest extends IznikTestCase {
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertEquals('20065945', $m->getTnpostid());
         assertEquals('TN-email', $m->getSourceheader());
-        $id = $m->save();
+        list ($id, $failok) = $m->save();
         $this->log("Saved $id");
 
         # Check lastlocation set
@@ -427,7 +427,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list ($id, $failok) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $mock = $this->getMockBuilder('spamc')
@@ -450,7 +450,7 @@ class MailRouterTest extends IznikTestCase {
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list ($id, $failok) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
@@ -653,7 +653,7 @@ class MailRouterTest extends IznikTestCase {
             $msg = str_replace('1.2.3.4', '4.3.2.1', $msg);
 
             $r = new MailRouter($this->dbhr, $this->dbhm);
-            $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+           list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
             $this->log("Msg $id");
             $rc = $r->route();
 
@@ -709,7 +709,7 @@ class MailRouterTest extends IznikTestCase {
             $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
 
             $r = new MailRouter($this->dbhr, $this->dbhm);
-            $id = $r->received(Message::EMAIL, 'from@test.com', "testgroup$i-volunteers@" . GROUP_DOMAIN, $msg);
+           list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', "testgroup$i-volunteers@" . GROUP_DOMAIN, $msg);
             $this->log("Msg $id");
             $rc = $r->route();
 
@@ -733,7 +733,7 @@ class MailRouterTest extends IznikTestCase {
 
             $r = new MailRouter($this->dbhr, $this->dbhm);
             $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-            $id = $r->received(Message::EMAIL, $email, "testgroup$i-volunteers@" . GROUP_DOMAIN, $msg);
+           list ($id, $failok) = $r->received(Message::EMAIL, $email, "testgroup$i-volunteers@" . GROUP_DOMAIN, $msg);
             $this->log("Msg $id");
             $rc = $r->route();
 
@@ -752,7 +752,7 @@ class MailRouterTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertNotNull($m->getGroupId());
-        $id = $m->save();
+        list ($id, $failok) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $r->routeAll();
@@ -782,7 +782,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment_large');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list ($id, $failok) = $m->save();
         assertNotNull($id);
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -802,7 +802,7 @@ class MailRouterTest extends IznikTestCase {
 
         # A request to confirm an application
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext');
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::DROPPED, $rc);
 
@@ -833,7 +833,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertNotNull($id);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
@@ -852,7 +852,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $origid = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($origid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertNotNull($origid);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
@@ -865,7 +865,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
         $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
         assertNotNull($id);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertNotNull($m->getFromuser());
@@ -918,7 +918,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replyhtml'));
         $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test3@test.com', 'test@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test3@test.com', 'test@test.com', $msg);
         assertNotNull($id);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertNotNull($m->getFromuser());
@@ -972,7 +972,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $origid = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($origid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertNotNull($origid);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
@@ -1005,7 +1005,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply2'));
         $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test2@test.com', "user-$uid1@" . USER_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test2@test.com', "user-$uid1@" . USER_DOMAIN, $msg);
         assertNotNull($id);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertNotNull($m->getFromuser());
@@ -1032,7 +1032,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $origid = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($origid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertNotNull($origid);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
@@ -1042,7 +1042,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('zzzz', $origid, $msg);
         $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
         assertNotNull($id);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertNotNull($m->getFromuser());
@@ -1060,7 +1060,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $origid = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($origid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertNotNull($origid);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
@@ -1070,7 +1070,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
         assertNotNull($id);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertNotNull($m->getFromuser());
@@ -1113,7 +1113,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $origid = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($origid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertNotNull($origid);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
@@ -1126,7 +1126,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
         $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test2@test.com', "replyto-$origid-$uid2@" . USER_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test2@test.com', "replyto-$origid-$uid2@" . USER_DOMAIN, $msg);
         assertNotNull($id);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertNotNull($m->getFromuser());
@@ -1173,7 +1173,7 @@ class MailRouterTest extends IznikTestCase {
         # Turn off by email
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', "digestoff-$uid-$gid@" . USER_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', "digestoff-$uid-$gid@" . USER_DOMAIN, $msg);
         assertNotNull($id);
         $rc = $r->route();
         assertEquals($rc, MailRouter::TO_SYSTEM);
@@ -1193,7 +1193,7 @@ class MailRouterTest extends IznikTestCase {
         # Turn events off by email
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', "eventsoff-$uid-$gid@" . USER_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', "eventsoff-$uid-$gid@" . USER_DOMAIN, $msg);
         assertNotNull($id);
         $rc = $r->route();
         assertEquals($rc, MailRouter::TO_SYSTEM);
@@ -1219,7 +1219,7 @@ class MailRouterTest extends IznikTestCase {
         # Turn off by email
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', "notificationmailsoff-$uid@" . USER_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', "notificationmailsoff-$uid@" . USER_DOMAIN, $msg);
         assertNotNull($id);
         $rc = $r->route();
         assertEquals($rc, MailRouter::TO_SYSTEM);
@@ -1243,7 +1243,7 @@ class MailRouterTest extends IznikTestCase {
         # Turn events off by email
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', "relevantoff-$uid@" . USER_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', "relevantoff-$uid@" . USER_DOMAIN, $msg);
         assertNotNull($id);
         $rc = $r->route();
         assertEquals($rc, MailRouter::TO_SYSTEM);
@@ -1262,7 +1262,7 @@ class MailRouterTest extends IznikTestCase {
         # Turn events off by email
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', "newslettersoff-$uid@" . USER_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', "newslettersoff-$uid@" . USER_DOMAIN, $msg);
         assertNotNull($id);
         $rc = $r->route();
         assertEquals($rc, MailRouter::TO_SYSTEM);
@@ -1276,7 +1276,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tovols'));
         $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-volunteers@' . GROUP_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-volunteers@' . GROUP_DOMAIN, $msg);
         $this->log("Created $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
@@ -1286,7 +1286,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tovols'));
         $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-auto@' . GROUP_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-auto@' . GROUP_DOMAIN, $msg);
         $this->log("Created $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
@@ -1297,7 +1297,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
         $this->log("Reply with spam $msg");
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-auto@' . GROUP_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-auto@' . GROUP_DOMAIN, $msg);
         $this->log("Created $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
@@ -1312,7 +1312,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/htmlonly'));
         $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-volunteers@' . GROUP_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-volunteers@' . GROUP_DOMAIN, $msg);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
         assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
@@ -1325,7 +1325,7 @@ class MailRouterTest extends IznikTestCase {
         $this->user->removeMembership($this->gid);
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
         $this->log("Mail message $id when not a member");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
@@ -1335,7 +1335,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tovols'));
         $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-subscribe@' . GROUP_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-subscribe@' . GROUP_DOMAIN, $msg);
         $this->log("Created $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
@@ -1358,7 +1358,7 @@ class MailRouterTest extends IznikTestCase {
         # Mail - first to pending for new member, moderated by default, then to approved for group settings.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
         $this->log("Mail message $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
@@ -1369,7 +1369,7 @@ class MailRouterTest extends IznikTestCase {
         self::assertEquals(MessageCollection::APPROVED, $u->postToCollection($this->gid));
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
         $this->log("Mail message $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
@@ -1380,7 +1380,7 @@ class MailRouterTest extends IznikTestCase {
         $this->group->setSettings([ 'moderated' => TRUE ]);
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
         $this->log("Mail message $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
@@ -1392,7 +1392,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tovols'));
         $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-unsubscribe@' . GROUP_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-unsubscribe@' . GROUP_DOMAIN, $msg);
         $this->log("Created $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
@@ -1440,7 +1440,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('test@test.com', $email, $msg);
         $msg = str_ireplace("FreeglePlayground", "testgroup1", $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $origid = $r->received(Message::EMAIL, $email, 'testgroup1@yahoogroups.com', $msg);
+       list ($origid, $failok) = $r->received(Message::EMAIL, $email, 'testgroup1@yahoogroups.com', $msg);
         assertNotNull($origid);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
@@ -1450,7 +1450,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
         $msg = str_replace("To: test@test.com", "To: $email, testgroup1@yahoogroups.com", $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test2@test.com', $email, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test2@test.com', $email, $msg);
         assertNotNull($id);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertNotNull($m->getFromuser());
@@ -1489,7 +1489,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/approved'));
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $mid = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($mid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
 
@@ -1510,7 +1510,7 @@ class MailRouterTest extends IznikTestCase {
 
         $msg = str_replace('test@test.com', 'from@yahoogroups.com', $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/approved')));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $mid = $r->received(Message::EMAIL, 'from@yahoogroups.com', 'to@test.com', $msg);
+       list ($mid, $failok) = $r->received(Message::EMAIL, 'from@yahoogroups.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::DROPPED, $rc);
 
@@ -1533,7 +1533,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('X-Apparently-To: freegleplayground@yahoogroups.com', 'X-Apparently-To: ' . MODERATOR_EMAIL, $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'testgroup-volunteers@groups.ilovefreegle.org', MODERATOR_EMAIL, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'testgroup-volunteers@groups.ilovefreegle.org', MODERATOR_EMAIL, $msg);
         assertNotNull($id);
         $rc = $r->route();
         assertEquals(MailRouter::DROPPED, $rc);
@@ -1551,7 +1551,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('test@test.com', 'support@twitter.com', $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/twitterappeal')));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $r->log = TRUE;
-        $mid = $r->received(Message::EMAIL, 'support@twitter.com', 'testgroup1-volunteers@groups.ilovefreegle.org', $msg);
+       list ($mid, $failok) = $r->received(Message::EMAIL, 'support@twitter.com', 'testgroup1-volunteers@groups.ilovefreegle.org', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::TO_SYSTEM, $rc);
     }
@@ -1571,7 +1571,7 @@ class MailRouterTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
 
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/worry');
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -1586,7 +1586,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tovols'));
         $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-subscribe@' . GROUP_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-subscribe@' . GROUP_DOMAIN, $msg);
         $this->log("Created $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
@@ -1603,7 +1603,7 @@ class MailRouterTest extends IznikTestCase {
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
         $this->log("Mail message $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
@@ -1618,7 +1618,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $msgid = $r->received(Message::EMAIL, 'test2@test.com', 'freegleplayground@' . GROUP_DOMAIN, $msg);
+       list ($msgid, $failok) = $r->received(Message::EMAIL, 'test2@test.com', 'freegleplayground@' . GROUP_DOMAIN, $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $msgid);
@@ -1644,7 +1644,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_ireplace('a test item', 'viagra', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $msgid = $r->received(Message::EMAIL, 'test2@test.com', 'freegleplayground@' . GROUP_DOMAIN, $msg);
+       list ($msgid, $failok) = $r->received(Message::EMAIL, 'test2@test.com', 'freegleplayground@' . GROUP_DOMAIN, $msg);
         $rc = $r->route();
         assertEquals(MailRouter::DROPPED, $rc);
 
@@ -1658,7 +1658,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_ireplace('Hey', 'wobble', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list ($id, $failok) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
@@ -1672,7 +1672,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tovols'));
         $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-subscribe@' . GROUP_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-subscribe@' . GROUP_DOMAIN, $msg);
         $this->log("Created $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
@@ -1687,7 +1687,7 @@ class MailRouterTest extends IznikTestCase {
         # Mail - should be dropped.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
         $this->log("Mail message $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
@@ -1704,7 +1704,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
         $msg = str_replace('Test native', 'OFFER: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
         $this->log("Mail message $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
@@ -1713,7 +1713,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
         $msg = str_replace('Test native', 'TAKEN: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
         $this->log("Mail message $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
@@ -1730,7 +1730,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
         $msg = str_replace('Test native', 'OFFER: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
         $this->log("Mail message $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
@@ -1738,7 +1738,7 @@ class MailRouterTest extends IznikTestCase {
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/TNtaken'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
         $this->log("Mail message $id");
         $m2 = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m2);
@@ -1751,7 +1751,7 @@ class MailRouterTest extends IznikTestCase {
         # This reply contains a gravatar which should be tripped.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/reply_with_gravatar'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertEquals(0, count($m->getAttachments()));
     }
@@ -1771,7 +1771,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_ireplace('Hey', 'wobble', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list ($id, $failok) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
@@ -1800,7 +1800,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('test@test.com', 'test1@test.com', $msg);
         $msg = str_replace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id1 = $r->received(Message::EMAIL, 'test1@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+       list ($id1, $failok) = $r->received(Message::EMAIL, 'test1@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
         assertNotNull($id1);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
@@ -1812,7 +1812,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('test@test.com', 'test2@test.com', $msg);
         $msg = str_replace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id2 = $r->received(Message::EMAIL, 'test2@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+       list ($id2, $failok) = $r->received(Message::EMAIL, 'test2@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
         assertNotNull($id1);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
@@ -1825,7 +1825,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('test@test.com', 'test2@test.com', $msg);
         $msg = str_replace('test2@test.com', 'test1@test.com', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test1@test.com', 'test2@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test1@test.com', 'test2@test.com', $msg);
         assertNotNull($id);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertNotNull($m->getFromuser());
@@ -1849,7 +1849,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('test@test.com', 'test1@test.com', $msg);
         $msg = str_replace('test2@test.com', 'test2@test.com', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'test2@test.com', 'test1@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'test2@test.com', 'test1@test.com', $msg);
         assertNotNull($id);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         assertNotNull($m->getFromuser());
@@ -1869,7 +1869,7 @@ class MailRouterTest extends IznikTestCase {
 //        $r = new MailRouter($this->dbhr, $this->dbhm);
 //        $m = new Message($this->dbhr, $this->dbhm, 25206247);
 //        $r->route($m);
-//        $id = $r->received(Message::EMAIL, 'xxxxxxx@ntlworld.com', "hertfordfreegle-volunteers@groups.ilovefreegle.org", $msg);
+//       list ($id, $failok) = $r->received(Message::EMAIL, 'xxxxxxx@ntlworld.com', "hertfordfreegle-volunteers@groups.ilovefreegle.org", $msg);
 //        assertNotNull($id);
 //        $rc = $r->route();
 //        assertEquals(MailRouter::TO_VOLUNTEERS, $rc);

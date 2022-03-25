@@ -43,7 +43,7 @@ class visualiseAPITest extends IznikAPITestCase
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id1 = $m->save();
+        list ($id1, $failok) = $m->save();
 
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
 

@@ -56,7 +56,7 @@ class spammersAPITest extends IznikAPITestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list ($id, $failok) = $m->save();
         $this->log("Created message $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);

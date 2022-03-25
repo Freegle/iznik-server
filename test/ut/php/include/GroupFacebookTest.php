@@ -114,7 +114,7 @@ class groupFacebookTest extends IznikTestCase {
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list ($id, $failok) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();

@@ -164,7 +164,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->user2->setMembershipAtt($this->groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $refmsgid = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         self::assertNotNull($refmsgid);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);

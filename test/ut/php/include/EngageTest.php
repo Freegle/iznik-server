@@ -113,7 +113,7 @@ class engageTest extends IznikTestCase {
         $msg = str_replace('Basic test', 'OFFER: Thing 1 (Place)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id1 = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id1, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -125,21 +125,21 @@ class engageTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Thing 2 (Place)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $id2 = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id2, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
 
         assertEquals(MailRouter::PENDING, $rc);
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Thing 3 (Place)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $id3 = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id3, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Thing 4 (Place)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $id4 = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id4, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 

@@ -65,7 +65,7 @@ class digestTest extends IznikTestCase {
         $msg = str_replace("Hey", "Hey {{username}}", $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
         assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
@@ -100,7 +100,7 @@ class digestTest extends IznikTestCase {
         $msg = str_replace("Hey", "Hey {{username}}", $msg);
 
         $r = new MailRouter($this->dbhm, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
         assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
@@ -156,7 +156,7 @@ class digestTest extends IznikTestCase {
         $msg = str_replace("Hey", "Hey {{username}}", $msg);
 
         $r = new MailRouter($this->dbhm, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
         assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
@@ -185,7 +185,7 @@ class digestTest extends IznikTestCase {
         $msg = str_replace("Hey", "Hey {{username}}", $msg);
 
         $r = new MailRouter($this->dbhm, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
         assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
@@ -235,7 +235,7 @@ class digestTest extends IznikTestCase {
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
         assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
@@ -245,7 +245,7 @@ class digestTest extends IznikTestCase {
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test thing (location)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
         assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
@@ -255,7 +255,7 @@ class digestTest extends IznikTestCase {
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'TAKEN: Test item (location)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
         assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
@@ -306,7 +306,7 @@ class digestTest extends IznikTestCase {
         $msg = str_replace("FreeglePlayground", "testgroup1", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item 1 (location)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id1 = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid1);
+       list ($id1, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid1);
         assertNotNull($id1);
         $this->log("Created message $id1");
         $rc = $r->route();
@@ -316,7 +316,7 @@ class digestTest extends IznikTestCase {
         $msg = str_replace("FreeglePlayground", "testgroup2", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item 2 (location)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id2 = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid2);
+       list ($id2, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid2);
         assertNotNull($id2);
         $this->log("Created message $id2");
         $rc = $r->route();

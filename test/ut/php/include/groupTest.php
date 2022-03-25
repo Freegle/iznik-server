@@ -192,7 +192,7 @@ class groupTest extends IznikTestCase
         $msg = str_replace("Hey", "Hey {{username}}", $msg);
 
         $r = new MailRouter($this->dbhm, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
         assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();

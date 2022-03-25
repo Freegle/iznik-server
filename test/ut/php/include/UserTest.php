@@ -328,7 +328,7 @@ class userTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'testgroup1@yahoogroups.com', $msg);
-        $mid = $m->save();
+        list ($mid, $failok) = $m->save();
         $m = new Message($this->dbhm, $this->dbhm, $mid);
 
         # Make it not from us else we'll have moderator role.
@@ -1221,7 +1221,7 @@ class userTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'test@test.com', 'testgroup1@yahoogroups.com', $msg);
-        $mid = $m->save();
+        list ($mid, $failok) = $m->save();
         $m = new Message($this->dbhm, $this->dbhm, $mid);
 
         $c = new ChatRoom($this->dbhr, $this->dbhm);
@@ -1326,7 +1326,7 @@ class userTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'test@test.com', 'testgroup1@yahoogroups.com', $msg);
-        $mid = $m->save();
+        list ($mid, $failok) = $m->save();
         $m = new Message($this->dbhr, $this->dbhm, $mid);
         $m->setPrivate('sourceheader', Message::PLATFORM);
         $m->setPrivate('fromuser', $uid);
@@ -1398,7 +1398,7 @@ class userTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'test@test.com', 'testgroup1@yahoogroups.com', $msg);
-        $mid = $m->save();
+        list ($mid, $failok) = $m->save();
         $m = new Message($this->dbhr, $this->dbhm, $mid);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -1409,7 +1409,7 @@ class userTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'test@test.com', 'testgroup1@yahoogroups.com', $msg);
-        $mid = $m->save();
+        list ($mid, $failok) = $m->save();
         $m = new Message($this->dbhr, $this->dbhm, $mid);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -1420,7 +1420,7 @@ class userTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'test@test.com', 'testgroup1@yahoogroups.com', $msg);
-        $mid = $m->save();
+        list ($mid, $failok) = $m->save();
         $m = new Message($this->dbhr, $this->dbhm, $mid);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -1486,7 +1486,7 @@ class userTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 

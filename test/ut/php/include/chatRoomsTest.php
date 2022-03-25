@@ -177,7 +177,7 @@ class chatRoomsTest extends IznikTestCase {
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $msgid = $m->save();
+        list ($msgid, $failok) = $m->save();
 
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_CHAT_MESSAGE);
@@ -244,7 +244,7 @@ class chatRoomsTest extends IznikTestCase {
         # get attached to the correct user.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
         $mr = new MailRouter($this->dbhm, $this->dbhm);
-        $mid = $mr->received(Message::EMAIL, 'from2@test.com', "notify-$id-$u2@" . USER_DOMAIN, $msg);
+        list ($mid, $failok) = $mr->received(Message::EMAIL, 'from2@test.com', "notify-$id-$u2@" . USER_DOMAIN, $msg);
         $rc = $mr->route();
         assertEquals(MailRouter::TO_USER, $rc);
         $r = new ChatRoom($this->dbhr, $this->dbhm, $id);
@@ -294,7 +294,7 @@ class chatRoomsTest extends IznikTestCase {
         # Now send an email from the blocked member.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
         $mr = new MailRouter($this->dbhm, $this->dbhm);
-        $mid = $mr->received(Message::EMAIL, 'test2@test.com', "notify-$id-$u2@" . USER_DOMAIN, $msg);
+        list ($mid, $failok) = $mr->received(Message::EMAIL, 'test2@test.com', "notify-$id-$u2@" . USER_DOMAIN, $msg);
         $rc = $mr->route();
         assertEquals(MailRouter::TO_USER, $rc);
 
@@ -316,7 +316,7 @@ class chatRoomsTest extends IznikTestCase {
         # Now send an email from the unblocked member - should reopen the chat.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
         $mr = new MailRouter($this->dbhm, $this->dbhm);
-        $mid = $mr->received(Message::EMAIL, 'test1@test.com', "notify-$id-$u1@" . USER_DOMAIN, $msg);
+        list ($mid, $failok) = $mr->received(Message::EMAIL, 'test1@test.com', "notify-$id-$u1@" . USER_DOMAIN, $msg);
         $rc = $mr->route();
         assertEquals(MailRouter::TO_USER, $rc);
 
@@ -375,7 +375,7 @@ class chatRoomsTest extends IznikTestCase {
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
         $mr = new MailRouter($this->dbhm, $this->dbhm);
-        $mid = $mr->received(Message::EMAIL, 'from2@test.com', "notify-$id-$u2@" . USER_DOMAIN, $msg);
+        list ($mid, $failok) = $mr->received(Message::EMAIL, 'from2@test.com', "notify-$id-$u2@" . USER_DOMAIN, $msg);
         $rc = $mr->route();
         assertEquals(MailRouter::TO_USER, $rc);
 
@@ -959,7 +959,7 @@ class chatRoomsTest extends IznikTestCase {
         # Now fake a read receipt.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
         $mr = new MailRouter($this->dbhm, $this->dbhm);
-        $mid = $mr->received(Message::EMAIL, 'from2@test.com', "readreceipt-$id-$u2-$cm@" . USER_DOMAIN, $msg);
+        list ($mid, $failok) = $mr->received(Message::EMAIL, 'from2@test.com', "readreceipt-$id-$u2-$cm@" . USER_DOMAIN, $msg);
         $rc = $mr->route();
         assertEquals(MailRouter::RECEIPT, $rc);
 

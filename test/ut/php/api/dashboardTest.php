@@ -134,7 +134,7 @@ class dashboardTest extends IznikAPITestCase {
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
 
         $r = new MailRouter($this->dbhm, $this->dbhm);
-        $mid = $r->received(Message::EMAIL, 'from@test.com', 'testgroup@groups.ilovefreegle.org', $msg, $gid);
+       list ($mid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'testgroup@groups.ilovefreegle.org', $msg, $gid);
         assertNotNull($mid);
         $this->log("Created message $mid");
         $rc = $r->route();

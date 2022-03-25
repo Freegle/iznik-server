@@ -86,7 +86,7 @@ class messageTest extends IznikTestCase {
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id1 = $m->save();
+        list ($id1, $failok) = $m->save();
 
         # TAKEN after OFFER - should match
         $msg = str_replace('OFFER: Test item', 'TAKEN: Test item', $msg);
@@ -122,13 +122,13 @@ class messageTest extends IznikTestCase {
         $msg = str_replace('Basic test', '[hertford_freegle] Offered - Grey Driveway Blocks - Hoddesdon', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id1 = $m->save();
+        list ($id1, $failok) = $m->save();
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', '[hertford_freegle] Offer - Pedestal Fan - Hoddesdon', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id2 = $m->save();
+        list ($id2, $failok) = $m->save();
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', '[hertford_freegle] TAKEN: Grey Driveway Blocks (Hoddesdon)', $msg);
@@ -164,14 +164,14 @@ class messageTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id1 = $m->save();
+        list ($id1, $failok) = $m->save();
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test (Location)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup2', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id2 = $m->save();
+        list ($id2, $failok) = $m->save();
 
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
         $m2 = new Message($this->dbhr, $this->dbhm, $id2);
@@ -183,7 +183,7 @@ class messageTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id3 = $m->save();
+        list ($id3, $failok) = $m->save();
 
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
         assertEquals(Message::OUTCOME_TAKEN, $m1->hasOutcome());
@@ -195,7 +195,7 @@ class messageTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup2', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id4 = $m->save();
+        list ($id4, $failok) = $m->save();
 
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
         assertEquals(Message::OUTCOME_TAKEN, $m1->hasOutcome());
@@ -232,7 +232,7 @@ class messageTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'testgroup1@yahoogroups.com', $msg);
-        $mid = $m->save();
+        list ($mid, $failok) = $m->save();
         $m = new Message($this->dbhr, $this->dbhm, $mid);
         $atts = $m->getPublic();
         $this->log("Public " . var_export($atts, true));
@@ -280,7 +280,7 @@ class messageTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -297,7 +297,7 @@ class messageTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $msg = str_ireplace('test@test.com', 'test2@test.com', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from2@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from2@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -325,7 +325,7 @@ class messageTest extends IznikTestCase {
         $this->user = $u;
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
     }
@@ -368,7 +368,7 @@ class messageTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -593,7 +593,7 @@ class messageTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
         $this->user->addEmail($email);
-        $id1 = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+       list ($id1, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $m = new Message($this->dbhr, $this->dbhm, $id1);
         $m->setPrivate('source', Message::PLATFORM);
         $rc = $r->route();
@@ -605,7 +605,7 @@ class messageTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id2 = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+       list ($id2, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $this->log("Due message $id2");
         $m = new Message($this->dbhr, $this->dbhm, $id2);
         $m->setPrivate('source', Message::PLATFORM);
@@ -697,7 +697,7 @@ class messageTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id2 = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+       list ($id2, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $this->log("Due message $id2");
         $m = new Message($this->dbhr, $this->dbhm, $id2);
         $m->setPrivate('source', Message::PLATFORM);
@@ -745,7 +745,7 @@ class messageTest extends IznikTestCase {
         $msg = str_replace('test@test.com', $email, $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $mid = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($mid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertNotNull($mid);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
@@ -805,7 +805,7 @@ class messageTest extends IznikTestCase {
         $msg = str_replace('test@test.com', $email, $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $mid = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+       list ($mid, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         assertNotNull($mid);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
@@ -920,7 +920,7 @@ class messageTest extends IznikTestCase {
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'test@user.trashnothing.com', 'to@test.com', $msg);
-        $id1 = $m->save();
+        list ($id1, $failok) = $m->save();
         $atts = $m->getPublic();
         assertTrue($m->canSee($atts));
         $m->delete();
@@ -947,7 +947,7 @@ class messageTest extends IznikTestCase {
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $id = $m->save();
+        list ($id, $failok) = $m->save();
 
         $m->quickDelete($schema, $id);
 
@@ -965,7 +965,7 @@ class messageTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
@@ -1032,7 +1032,7 @@ class messageTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id2 = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+       list ($id2, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $m = new Message($this->dbhr, $this->dbhm, $id2);
 
         // Test the fromname.
@@ -1052,7 +1052,7 @@ class messageTest extends IznikTestCase {
 //        $m = new Message($this->dbhr, $this->dbhm);
 //        $rc = $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
 //        assertTrue($rc);
-//        $id = $m->save();
+//        list ($id, $failok) = $m->save();
 //        $m = new Message($this->dbhr, $this->dbhm, $id);
 //        $this->log("IP " . $m->getFromIP());
 //        $s = new Spam($this->dbhr, $this->dbhm);
