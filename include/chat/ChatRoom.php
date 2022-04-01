@@ -2041,9 +2041,11 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                 # want to notify that email.
                 #
                 # If this is a conversation between the user and a mod, we always mail the user.
+                #
+                # And we always mail TN members.
                 $emailnotifson = $sendingto->notifsOn(User::NOTIFS_EMAIL, $r->getPrivate('groupid'));
                 $forcemailfrommod = ($chat['chattype'] === ChatRoom::TYPE_USER2MOD && $chat['user1'] === $member['userid']);
-                $mailson = $emailnotifson || $forcemailfrommod;
+                $mailson = $emailnotifson || $forcemailfrommod || $sendingto->isTN();
                 #error_log("Consider mail {$member['userid']}, mails on " . $sendingto->notifsOn(User::NOTIFS_EMAIL) . ", memberships " . count($sendingto->getMemberships()));
 
                 # Now collect a summary of what they've missed.  Don't include anything stupid old, in case they
