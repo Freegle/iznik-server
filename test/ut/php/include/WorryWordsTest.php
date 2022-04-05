@@ -70,8 +70,13 @@ class worryWordsTest extends IznikTestCase
 
     public function testAllowed()
     {
-        $this->dbhm->preExec("INSERT INTO worrywords (keyword, type) VALUES (?, ?);", [
-            'UTtest1',
+        $this->dbhm->preExec("INSERT IGNORE INTO worrywords (keyword, type) VALUES (?, ?);", [
+            'Pound',
+            WorryWords::TYPE_REVIEW
+        ]);
+
+        $this->dbhm->preExec("INSERT IGNORE INTO worrywords (keyword, type) VALUES (?, ?);", [
+            'Pound Hill',
             WorryWords::TYPE_ALLOWED
         ]);
 
@@ -82,7 +87,10 @@ class worryWordsTest extends IznikTestCase
         $m = new Message($this->dbhr, $this->dbhm);
         $mid = $m->createDraft();
         $m = new Message($this->dbhr, $this->dbhm, $mid);
-        $m->setPrivate('subject', 'OFFER: UTtest1 (Somewhere)');
+        $m->setPrivate('subject', 'OFFER: Pound (Somewhere)');
+        $m->setPrivate('textbody', 'A body');
+        assertNotNull($w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody()));
+        $m->setPrivate('subject', 'OFFER: Pound Hill (Somewhere)');
         $m->setPrivate('textbody', 'A body');
         assertNull($w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody()));
     }
