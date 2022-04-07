@@ -5941,9 +5941,14 @@ class User extends Entity
         $revq = $unreviewedonly ? " AND reviewrequired = 1" : '';
 
         if (count($modships)) {
-            $sql = "SELECT ratings.*, m1.groupid FROM ratings 
+            $sql = "SELECT ratings.*, m1.groupid,
+       CASE WHEN u1.fullname IS NOT NULL THEN u1.fullname ELSE CONCAT(u1.firstname, ' ', u1.lastname) END AS raterdisplayname,
+       CASE WHEN u2.fullname IS NOT NULL THEN u2.fullname ELSE CONCAT(u2.firstname, ' ', u2.lastname) END AS rateedisplayname
+    FROM ratings 
     INNER JOIN memberships m1 ON m1.userid = ratings.rater
     INNER JOIN memberships m2 ON m2.userid = ratings.ratee
+    INNER JOIN users u1 ON ratings.rater = u1.id
+    INNER JOIN users u2 ON ratings.ratee = u2.id
     WHERE ratings.timestamp >= ? AND 
         m1.groupid IN (" . implode(',', $modships) . ") AND
         m2.groupid IN (" . implode(',', $modships) . ") AND
