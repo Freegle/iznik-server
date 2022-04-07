@@ -191,6 +191,7 @@ class sessionTest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
         assertEquals($group1, $ret['groups'][0]['id']);
         assertEquals('test@test.com', $ret['emails'][0]['email']);
+        assertNotNull($ret['jwt']);
 
         # Set something
         $ret = $this->call('session', 'PATCH', [

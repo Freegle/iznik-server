@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-
+use Firebase\JWT\JWT;
 
 $sessionPrepared = FALSE;
 
@@ -304,5 +304,24 @@ class Session {
 
         $_SESSION['id'] = NULL;
         $_SESSION['logged_in'] = FALSE;
+    }
+
+    public static function JWT($dbhr, $dbhm) {
+        $ret = NULL;
+
+        # Generate a JWT for this user.
+        $id = Session::whoAmI($dbhr, $dbhm);
+
+        $privateKey = file_get_contents('/etc/iznik_jwt_rsa');
+
+        if ($privateKey) {
+            $ret = JWT::encode([
+                'id' => $id
+           ],
+           $privateKey,
+           'RS256');
+        }
+
+        return $ret;
     }
 }

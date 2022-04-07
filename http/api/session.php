@@ -120,6 +120,7 @@ function session() {
                     }
 
                     $ret['persistent'] = Utils::presdef('persistent', $_SESSION, NULL);
+                    $ret['jwt'] = Session::JWT($dbhr, $dbhm);
 
                     if (!$components || in_array('notifications', $components)) {
                         $settings = $me->getPrivate('settings');
