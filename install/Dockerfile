@@ -87,7 +87,7 @@ RUN cp install/iznik.conf.php /etc/iznik.conf \
     && sed -ie "s/'PLAYGROUND_SECRET', 'zzzz'/'PLAYGROUND_SECRET', ' \PLAYGROUND_SECRET'/g" /etc/iznik.conf \
     # phpunit.xml is set up for running tests on our debug server.
     && sed -ie 's/\/var\/www\/iznik.mt.dbg\//\//g' test/ut/php/phpunit.xml \
-    && ssh-keygen -t rsa -m PEM -q -f /etc/iznik_jwt_rsa -N ""
+    && echo secret > /tmp/iznik_jwt_secret
 
 # Install composer dependencies
 RUN apt-get install wget \
