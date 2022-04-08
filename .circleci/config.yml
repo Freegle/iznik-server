@@ -75,7 +75,7 @@ jobs:
       - run: sudo chmod 777 /etc/iznik.conf
 
       # Key for JWT.
-      - run: sudo echo secret > /etc/iznik_jwt_secret
+      - run: sudo sh -c 'echo secret > /etc/iznik_jwt_secret'
       - run: sudo chmod 777 /etc/iznik_jwt_secret
 
       # Redis listens on localhost, whereas we use a unix socket on the live servers.
