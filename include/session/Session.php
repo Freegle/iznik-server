@@ -310,16 +310,20 @@ class Session {
         $ret = NULL;
 
         # Generate a JWT for this user.
-        $id = Session::whoAmI($dbhr, $dbhm);
+        $id = Session::whoAmId($dbhr, $dbhm);
 
-        $privateKey = file_get_contents('/etc/iznik_jwt_rsa');
+        $privateKey = trim(file_get_contents('/etc/iznik_jwt_secret'));
 
         if ($privateKey) {
+            // We don't need long expiry on this token, as it is currently only used for requests to the Go API, and
+            // therefore only needs to be valid from now.  If we ever used JWT for long-lived sessions that would
+            // be different and would require a method to cancel them.
             $ret = JWT::encode([
-                'id' => $id
+                'id' => $id . "",
+                'exp' => (time() + 30 * 60)
            ],
            $privateKey,
-           'RS256');
+           'HS256');
         }
 
         return $ret;
