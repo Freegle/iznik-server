@@ -179,6 +179,9 @@ class Admin extends Entity
 
                     Mail::addHeaders($msg, Mail::ADMIN, $u->getId());
 
+                    $headers = $msg->getHeaders();
+                    $headers->addTextHeader('List-Unsubscribe', "<https://" . USER_SITE . "/unsubscribe" . ">");
+
                     # Pick a random spooler.  This gives more throughput.
                     $mailer = $mailers[rand(1, Admin::SPOOLERS)];
                     $mailer->send($msg);
