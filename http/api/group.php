@@ -128,6 +128,7 @@ function group() {
                                 $toshow[] = [
                                     'id' => $mod['userid'],
                                     'firstname' => $atts['firstname'],
+                                    'lastname' => $atts['lastname'],
                                     'displayname' => $atts['displayname'],
                                     'profile' => $atts['profile']
                                 ];
