@@ -3731,6 +3731,11 @@ class User extends Entity
                                 }
                             }
                         }
+
+                        if (stripos($email, '%') !== FALSE) {
+                            # This may indicate a case where the real email is encoded on the LHS, eg gtempaccount.com
+                            $email = NULL;
+                        }
                     }
                 }
 

@@ -908,6 +908,14 @@ class userTest extends IznikTestCase {
         $email = $u->inventEmail();
         $this->log("No emails, invented $email");
         error_log("Invented $email");
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id = $u->create('Wibble', 'User', NULL);
+        $u->addEmail('real%test.com@gtempaccount.com');
+        $email = $u->inventEmail();
+        $this->log("Other email, invented $email");
+        error_log("Invented $email");
+        assertFalse(strpos($email, 'test'));
     }
 
     public function testThank() {
