@@ -112,6 +112,8 @@ class Team extends Entity
                     $name = $vol['firstname'] . ' ' . $vol['lastname'];
                 }
 
+                $name = User::removeTNGroup($name);
+
                 $profiles = $this->dbhr->preQuery("SELECT id, url, `default` FROM users_images WHERE userid = ? ORDER BY id DESC LIMIT 1;", [
                     $vol['userid']
                 ]);

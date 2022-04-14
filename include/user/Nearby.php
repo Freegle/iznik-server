@@ -213,6 +213,8 @@ class Nearby
                 }
 
                 if ($name) {
+                    $name = User::removeTNGroup($name);
+
                     $ret[$user['userid']] = $user;
                     $ret[$user['userid']]['displayname'] = $name;
 

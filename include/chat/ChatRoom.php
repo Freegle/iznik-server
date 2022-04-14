@@ -698,6 +698,9 @@ WHERE chat_rooms.id IN $idlist;";
                 } else {
                     $ret['name'] = $u1id != $myid ? $ret['user1']['displayname'] : $ret['user2']['displayname'];
                 }
+
+                $ret['name'] = User::removeTNGroup($name);
+
                 break;
             case ChatRoom::TYPE_USER2MOD:
                 # If we started it, we're chatting to the group volunteers; otherwise to the user.
@@ -1672,7 +1675,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
                         $users[$msg['userid']] = [
                             'id' => $msg['userid'],
-                            'displayname' => $msg['userdisplayname'],
+                            'displayname' => User::removeTNGroup($msg['userdisplayname']),
                             'systemrole' => $msg['systemrole'],
                             'profile' => [
                                 'url' => $profileurl,

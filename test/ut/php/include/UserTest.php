@@ -1702,5 +1702,11 @@ class userTest extends IznikTestCase {
         assertNull($u->addEmail('notify-2023105-3506086@users.ilovefreegle.org'));
         assertNull($u->addEmail('replyto-2023105@users.ilovefreegle.org'));
     }
+
+    public function testTNName() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id = $u->create(NULL, NULL, 'wibble-g123');
+        assertEquals('wibble', $u->getName(TRUE, NULL, TRUE));
+    }
 }
 

@@ -289,7 +289,7 @@ class User extends Entity
         return ("bounce-{$this->id}-" . time() . "@" . USER_DOMAIN);
     }
 
-    public function getName($default = TRUE, $atts = NULL)
+    public function getName($default = TRUE, $atts = NULL, $forcetn = FALSE)
     {
         $atts = $atts ? $atts : $this->user;
 
@@ -338,7 +338,16 @@ class User extends Entity
         # Numeric names confuse the client.
         $name = is_numeric($name) ? "$name." : $name;
 
+        if ($forcetn || !Session::modtools()) {
+            $name = User::removeTNGroup($name);
+        }
+
         return ($name);
+    }
+
+    public static function removeTNGroup($name) {
+        # For users, we hide the "-gxxx" part of names, which will almost always be for TN members.
+        return preg_replace('/^([\s\S]+?)-g[0-9]+$/', '$1', $name);
     }
 
     /**
