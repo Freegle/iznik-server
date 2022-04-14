@@ -699,7 +699,7 @@ WHERE chat_rooms.id IN $idlist;";
                     $ret['name'] = $u1id != $myid ? $ret['user1']['displayname'] : $ret['user2']['displayname'];
                 }
 
-                $ret['name'] = User::removeTNGroup($name);
+                $ret['name'] = User::removeTNGroup($ret['name']);
 
                 break;
             case ChatRoom::TYPE_USER2MOD:
