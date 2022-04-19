@@ -678,6 +678,11 @@ HAVING logincount > 0
         if ($search) {
             # Remove wildcards - people put them in, but that's not how it works.
             $search = str_replace('*', '', $search);
+
+            if (preg_match('/(.*)\-(.*)(@user.trashnothing.com)/', $search, $matches)) {
+                # Sometimes people search on one TN email when that email isn't a member of the group.
+                $search = $matches[1];
+            }
         }
 
         # If we're searching for a notify address, switch to the user it.
