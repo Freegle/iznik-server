@@ -336,6 +336,12 @@ class Digest
                         }
                     }
 
+                    if (!$subjinfo && count($available)) {
+                        # Need something, at least.
+                        list ($type, $item, $location ) = Message::parseSubject($available[0]['subject']);
+                        $subjinfo = $item;
+                    }
+
                     $textsumm .= "\r\n\r\nThese posts are new since your last mail but have already been completed. If you missed something, try changing how frequently we send you email in Settings.\r\n\r\n";
 
                     foreach ($unavailable as $msg) {

@@ -381,5 +381,54 @@ class digestTest extends IznikTestCase {
             [ TRUE]
         ];
     }
+
+    public function testLongItem() {
+        # Mock the actual send
+        $mock = $this->getMockBuilder('Freegle\Iznik\Digest')
+            ->setConstructorArgs([$this->dbhr, $this->dbhm, NULL, TRUE])
+            ->setMethods(array('sendOne'))
+            ->getMock();
+        $mock->method('sendOne')->will($this->returnCallback(function($mailer, $message) {
+            return($this->sendMock($mailer, $message));
+        }));
+
+        # Create a group with two messages on it.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace("FreeglePlayground", "testgroup", $msg);
+        $msg = str_replace('Basic test', 'OFFER: Test item Test item Test item Test item Test item Test item (location)', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
+        assertNotNull($id);
+        $this->log("Created message $id");
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace("FreeglePlayground", "testgroup", $msg);
+        $msg = str_replace('Basic test', 'OFFER: Test thing  thing  thing  thing  thing  thing  thing  thing  thing  thing (location)', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
+        assertNotNull($id);
+        $this->log("Created message $id");
+        $rc = $r->route();
+        assertEquals(MailRouter::APPROVED, $rc);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test@blackhole.io');
+        $eid = $u->addEmail('test@' . USER_DOMAIN);
+        $this->log("Created user $uid email $eid");
+        assertGreaterThan(0, $eid);
+        $u->addMembership($this->gid, User::ROLE_MEMBER, $eid);
+
+        # Now test.
+        assertEquals(2, $mock->send($this->gid, Digest::DAILY));
+        assertEquals(2, count($this->msgsSent));
+        error_log(var_export($this->msgsSent, TRUE));
+
+        # Should include the long subject
+        assertNotFalse(strpos($this->msgsSent[0], 'Subject: [testgroup] What\'s New (2 messages) - Test item Test item Test'));
+        assertNotFalse(strpos($this->msgsSent[0], ' Test item Test item Test item...'));
+    }
 }
 
