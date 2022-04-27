@@ -4721,47 +4721,48 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                                     $text = NULL;
                                     $html = NULL;
 
-                                    if ($m->promiseCount()) {
-                                        # If it's promised we want to send a differently worded mail.
-                                        error_log(
-                                            $g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr(
-                                            ) . " " . $m->getSubject() . " chaseup due, promised"
-                                        );
+                                    if ($m->canRepost()) {
+                                        if ($m->promiseCount()) {
+                                            # If it's promised we want to send a differently worded mail.
+                                            error_log(
+                                                $g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr() . " " . $m->getSubject() . " chaseup due, promised"
+                                            );
 
-                                        $text = "Did it get collected?  If so click $completed to mark as $othertype, or post it again with $repost or withdraw it with $withdraw.  Thanks.";
+                                            $text = "Did it get collected?  If so click $completed to mark as $othertype, or post it again with $repost or withdraw it with $withdraw.  Thanks.";
 
-                                        $html = $twig->render(
-                                            'chaseup_promised.html',
-                                            [
-                                                'subject' => $subj,
-                                                'name' => $u->getName(),
-                                                'email' => $to,
-                                                'type' => $othertype,
-                                                'repost' => $repost,
-                                                'completed' => $completed,
-                                                'withdraw' => $withdraw,
-                                            ]
-                                        );
-                                    } else if ($m->canRepost()) {
-                                        error_log(
-                                            $g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr(
-                                            ) . " " . $m->getSubject() . " chaseup due"
-                                        );
+                                            $html = $twig->render(
+                                                'chaseup_promised.html',
+                                                [
+                                                    'subject' => $subj,
+                                                    'name' => $u->getName(),
+                                                    'email' => $to,
+                                                    'type' => $othertype,
+                                                    'repost' => $repost,
+                                                    'completed' => $completed,
+                                                    'withdraw' => $withdraw,
+                                                ]
+                                            );
+                                        } else {
+                                            error_log(
+                                                $g->getPrivate('nameshort') . " #{$message['msgid']} " . $m->getFromaddr(
+                                                ) . " " . $m->getSubject() . " chaseup due"
+                                            );
 
-                                        $text = "Can you let us know what happened with this?  Click $repost to post it again, or $completed to mark as $othertype, or $withdraw to withdraw it.  Thanks.";
+                                            $text = "Can you let us know what happened with this?  Click $repost to post it again, or $completed to mark as $othertype, or $withdraw to withdraw it.  Thanks.";
 
-                                        $html = $twig->render(
-                                            'chaseup.html',
-                                            [
-                                                'subject' => $subj,
-                                                'name' => $u->getName(),
-                                                'email' => $to,
-                                                'type' => $othertype,
-                                                'repost' => $repost,
-                                                'completed' => $completed,
-                                                'withdraw' => $withdraw
-                                            ]
-                                        );
+                                            $html = $twig->render(
+                                                'chaseup.html',
+                                                [
+                                                    'subject' => $subj,
+                                                    'name' => $u->getName(),
+                                                    'email' => $to,
+                                                    'type' => $othertype,
+                                                    'repost' => $repost,
+                                                    'completed' => $completed,
+                                                    'withdraw' => $withdraw
+                                                ]
+                                            );
+                                        }
                                     }
 
                                     if ($text && $html) {
