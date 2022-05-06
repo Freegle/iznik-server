@@ -96,7 +96,7 @@ function team() {
         case 'PATCH': {
             $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
-            if ($me && $me->hasPermission(User::PERM_TEAMS)) {
+            if ($me && ($me->isAdminOrSupport() || $me->hasPermission(User::PERM_TEAMS))) {
                 $t->setAttributes($_REQUEST);
                 $userid = (Utils::presint('userid', $_REQUEST, NULL));
                 $desc = Utils::presdef('description', $_REQUEST, NULL);
