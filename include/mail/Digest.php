@@ -194,6 +194,7 @@ class Digest
                     $atts = $m->getPublic(FALSE, TRUE, TRUE);
                     $atts['autoreposts'] = $message['autoreposts'];
                     $atts['subject'] = $subject;
+                    $atts['namedisplay'] = User::removeTNGroup($atts['namedisplay']);
 
                     $atts['firstposted'] = NULL;
 
