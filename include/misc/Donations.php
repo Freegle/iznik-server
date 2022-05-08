@@ -191,8 +191,15 @@ class Donations
     }
 
     public function deleteGiftAid($userid) {
-        $this->dbhm->preExec("UPDATE giftaid SET deleted = NOW() WHERE userid = ?", [
-            $userid
+        // They may or may not already exist in the table.
+        $u = User::get($this->dbhr, $this->dbhm, $userid);
+
+        $this->dbhm->preExec("INSERT INTO giftaid (userid, period, fullname, homeaddress) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE period = ?, deleted = NOW()", [
+            $userid,
+            'Declined',
+            $u->getName(),
+            '',
+            'Declined'
         ]);
     }
 
