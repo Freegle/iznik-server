@@ -3649,4 +3649,90 @@ class messageAPITest extends IznikAPITestCase
             ],
         ];
     }
+
+    public function testPromiseMultipleTimes() {
+        $u = $this->user;
+        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($u->login('testpw'));
+
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $uid3 = $u->create(NULL, NULL, 'Test User');
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)');
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'groupid' => $this->gid,
+            'textbody' => 'Text body',
+            'availablenow' => 2
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        $mid = $ret['id'];
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'JoinAndPost',
+            'ignoregroupoverride' => true,
+            'email' => 'test@test.com'
+        ]);
+
+        # Correct to 1 available.
+        $ret = $this->call('message', 'PATCH', [
+            'id' => $mid,
+            'availablenow' => 1,
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Promise it to the other user, twice
+        $u = User::get($this->dbhr, $this->dbhm, $this->uid);
+        assertTrue($u->login('testpw'));
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'userid' => $uid2,
+            'action' => 'Promise'
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'userid' => $uid2,
+            'action' => 'Promise',
+            'dup' => 1
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Now say the other person has taken 1, twice.
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'AddBy',
+            'userid' => $uid2,
+            'count' => 1,
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Now none available.
+        $m = new Message($this->dbhr, $this->dbhm, $mid);
+        assertEquals(0, $m->getPrivate('availablenow'));
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'AddBy',
+            'userid' => $uid2,
+            'count' => 1,
+            'dup' => 2
+        ]);
+        assertEquals(0, $ret['ret']);
+
+        # Should still be none available.
+        $m = new Message($this->dbhr, $this->dbhm, $mid);
+        assertEquals(0, $m->getPrivate('availablenow'));
+    }
 }
