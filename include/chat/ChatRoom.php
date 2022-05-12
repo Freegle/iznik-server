@@ -1079,7 +1079,7 @@ WHERE chat_rooms.id IN $idlist;";
             }
         }
 
-        return $ret;
+        return User::removeTNGroup($ret);
     }
 
     public function canSee($userid, $checkmod = TRUE)
