@@ -965,8 +965,13 @@ class MailRouter
                             );
 
                             $appmemb = $u->isApprovedMember($group['groupid']);
+                            $ourPS = $u->getMembershipAtt($group['groupid'], 'ourPostingStatus');
 
-                            if (!$notspam && $appmemb && $worry)
+                            if ($ourPS == Group::POSTING_PROHIBITED)
+                            {
+                                if ($log) { error_log("Prohibited, drop"); }
+                                $ret = MailRouter::DROPPED;
+                            } else if (!$notspam && $appmemb && $worry)
                             {
                                 if ($log) { error_log("Worrying => spam"); }
                                 if ($this->markPending($notspam))
@@ -974,8 +979,7 @@ class MailRouter
                                     $ret = MailRouter::PENDING;
                                     $this->markAsSpam(Spam::REASON_WORRY_WORD, 'Referred to worry word');
                                 }
-                            } else
-                            {
+                            } else {
                                 if ($log) { error_log("Approved member " . $u->getEmailPreferred() . " on {$group['groupid']}? $appmemb"); }
 
                                 if ($appmemb)
@@ -988,61 +992,52 @@ class MailRouter
                                     # this has been requested by volunteers.
                                     $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
 
-                                    $ourPS = $u->getMembershipAtt($group['groupid'], 'ourPostingStatus');
-
-                                    if ($ourPS == Group::POSTING_PROHIBITED)
+                                    if ($log) { error_log("Check big switch " . $g->getPrivate('overridemoderation'));
+                                    }
+                                    if ($g->getPrivate('overridemoderation') == Group::OVERRIDE_MODERATION_ALL)
                                     {
-                                        if ($log) { error_log("Prohibited, drop"); }
-                                        $ret = MailRouter::DROPPED;
+                                        # The Big Switch is in operation.
+                                        $ps = Group::POSTING_MODERATED;
                                     } else
                                     {
-                                        if ($log) { error_log("Check big switch " . $g->getPrivate('overridemoderation'));
+                                        $ps = ($u->isModOrOwner($group['groupid']) || $g->getSetting(
+                                                'moderated',
+                                                0
+                                            )) ? Group::POSTING_MODERATED : $ourPS;
+                                        $ps = $ps ? $ps : Group::POSTING_MODERATED;
+                                        if ($log)
+                                        {
+                                            error_log("Member of {$group['groupid']}, Our PS is $ps");
                                         }
-                                        if ($g->getPrivate('overridemoderation') == Group::OVERRIDE_MODERATION_ALL)
-                                        {
-                                            # The Big Switch is in operation.
-                                            $ps = Group::POSTING_MODERATED;
-                                        } else
-                                        {
-                                            $ps = ($u->isModOrOwner($group['groupid']) || $g->getSetting(
-                                                    'moderated',
-                                                    0
-                                                )) ? Group::POSTING_MODERATED : $ourPS;
-                                            $ps = $ps ? $ps : Group::POSTING_MODERATED;
-                                            if ($log)
-                                            {
-                                                error_log("Member of {$group['groupid']}, Our PS is $ps");
-                                            }
-                                        }
-
-                                        if ($ps == Group::POSTING_MODERATED)
-                                        {
-                                            if ($log) { error_log("Mark as pending"); }
-
-                                            if ($this->markPending($notspam))
-                                            {
-                                                $ret = MailRouter::PENDING;
-                                            }
-                                        } else
-                                        {
-                                            if ($log) { error_log("Mark as approved"); }
-                                            $ret = MailRouter::FAILURE;
-
-                                            if ($this->markApproved())
-                                            {
-                                                $ret = MailRouter::APPROVED;
-                                            }
-                                        }
-
-                                        # Record the posting of this message.
-                                        $sql = "INSERT INTO messages_postings (msgid, groupid, repost, autorepost) VALUES(?,?,?,?);";
-                                        $this->dbhm->preExec($sql, [
-                                            $this->msg->getId(),
-                                            $g->getId(),
-                                            0,
-                                            0
-                                        ]);
                                     }
+
+                                    if ($ps == Group::POSTING_MODERATED)
+                                    {
+                                        if ($log) { error_log("Mark as pending"); }
+
+                                        if ($this->markPending($notspam))
+                                        {
+                                            $ret = MailRouter::PENDING;
+                                        }
+                                    } else
+                                    {
+                                        if ($log) { error_log("Mark as approved"); }
+                                        $ret = MailRouter::FAILURE;
+
+                                        if ($this->markApproved())
+                                        {
+                                            $ret = MailRouter::APPROVED;
+                                        }
+                                    }
+
+                                    # Record the posting of this message.
+                                    $sql = "INSERT INTO messages_postings (msgid, groupid, repost, autorepost) VALUES(?,?,?,?);";
+                                    $this->dbhm->preExec($sql, [
+                                        $this->msg->getId(),
+                                        $g->getId(),
+                                        0,
+                                        0
+                                    ]);
                                 } else {
                                     # Not a member.  Reply to let them know.  This is particularly useful to
                                     # Trash Nothing.
