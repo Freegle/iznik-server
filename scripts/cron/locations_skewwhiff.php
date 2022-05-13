@@ -10,7 +10,7 @@ global $dbhr, $dbhm;
 
 $lockh = Utils::lockScript(basename(__FILE__));
 
-$locations = $dbhr->preQuery("SELECT DISTINCT locations.id,lat,lng,name FROM locations WHERE lat < lng AND locations.name != 'BF1 3AD';");
+$locations = $dbhr->preQuery("SELECT DISTINCT locations.id,lat,lng,name FROM locations WHERE lat < lng AND locations.name NOT LIKE 'BF%';");
 
 $str = '';
 
