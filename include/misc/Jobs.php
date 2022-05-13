@@ -218,6 +218,8 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
             $addr .= ', Derbyshire';
         } else if ($addr == 'Middleton Stoney') {
             $addr .= ', Oxfordshire';
+        } else if ($addr == 'Kirkwall') {
+            $addr .= ', Orkney';
         }
 
         $url = "https://" . GEOCODER . "/api?q=" . urlencode($addr) . "&bbox=$bbswlng%2C$bbswlat%2C$bbnelng%2C$bbnelat";
