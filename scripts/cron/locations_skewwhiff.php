@@ -10,17 +10,31 @@ global $dbhr, $dbhm;
 
 $lockh = Utils::lockScript(basename(__FILE__));
 
-$locations = $dbhr->preQuery("SELECT DISTINCT locations.id,lat,lng,name FROM locations INNER JOIN users ON users.lastlocation = locations.id WHERE lat < 30 and lng > 30 AND locations.name != 'BF1 3AD';");
+$locations = $dbhr->preQuery("SELECT DISTINCT locations.id,lat,lng,name FROM locations WHERE lat < lng AND locations.name NOT LIKE 'BF%';");
 
 $str = '';
 
 foreach ($locations as $location) {
     $str .= "{$location['id']}, {$location['name']}, {$location['lat']}, {$location['lng']}\n";
-//    $dbhm->preExec("UPDATE locations SET lat = ?, lng = ? WHERE id = ?", [
-//        $location['lng'],
-//        $location['lat'],
-//        $location['id']
-//    ]);
+    $dbhm->preExec("UPDATE locations SET lat = ?, lng = ? WHERE id = ?", [
+        $location['lng'],
+        $location['lat'],
+        $location['id']
+    ]);
+
+    $msgs = $dbhr->preQuery("SELECT id FROM messages WHERE locationid = ?;", [
+        $location['id']
+    ]);
+
+    foreach ($msgs as $msg) {
+        $dbhm->preExec("UPDATE messages SET lat = ?, lng = ? WHERE id = ?;", [
+            $location['lng'],
+            $location['lat'],
+            $msg['id']
+        ]);
+
+        $str .= "...fix message {$msg['id']}\n";
+    }
 }
 
 if (count($locations) > 0) {
