@@ -1058,7 +1058,7 @@ class User extends Entity
                 $groupid
             ]);
 
-        if ($this->dbhm->rowsAffected()) {
+        if ($this->dbhm->rowsAffected() || $ban) {
             $l = new Log($this->dbhr, $this->dbhm);
             $l->log([
                 'type' => Log::TYPE_GROUP,

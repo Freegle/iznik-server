@@ -46,6 +46,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $this->user2 = User::get($this->dbhr, $this->dbhm, $this->uid2);
         $this->user2->addEmail('tes2t@test.com');
         assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertGreaterThan(0, $this->user2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($this->user->login('testpw'));
     }
 
@@ -797,6 +798,31 @@ class membershipsAPITest extends IznikAPITestCase {
         assertEquals(1, count($ret['members']));
         assertEquals($this->user2->getId(), $ret['members'][0]['userid']);
         assertEquals(MembershipCollection::BANNED, $ret['members'][0]['collection']);
+    }
+
+    public function testBanNonMember() {
+        assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
+        assertTrue($this->user->login('testpw'));
+
+        // Search for the member - should find.
+        $ret = $this->call('memberships', 'DELETE', [
+            'groupid' => $this->groupid,
+            'userid' => $this->user2->getId(),
+            'ban' => TRUE
+        ]);
+
+        assertEquals(0, $ret['ret']);
+
+        // Try to join - should fail.
+        assertTrue($this->user2->login('testpw'));
+        $ret = $this->call('memberships', 'PUT', [
+            'groupid' => $this->groupid,
+            'userid' => $this->uid2,
+            'role' => 'Member'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertNull($this->user2->isApprovedMember($this->groupid));
+        assertTrue($this->user2->isBanned($this->groupid));
     }
 //
 //    public function testEH() {
