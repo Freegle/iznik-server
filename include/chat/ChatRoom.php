@@ -81,6 +81,7 @@ class ChatRoom extends Entity
         # We do this because chat rooms are performance critical, especially for people with many chats.
         $oldest = date("Y-m-d", strtotime("Midnight 31 days ago"));
         $idlist = "(" . implode(',', $ids) . ")";
+        $modq = Session::modtools() ? "" : " AND reviewrequired = 0 AND reviewrejected = 0 ";
         $sql = "
 SELECT chat_rooms.*, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS groupname, 
 CASE WHEN u1.fullname IS NOT NULL THEN u1.fullname ELSE CONCAT(u1.firstname, ' ', u1.lastname) END AS u1name,
@@ -89,7 +90,7 @@ u1.settings AS u1settings,
 u2.settings AS u2settings,
 (SELECT COUNT(*) AS count FROM chat_messages WHERE id > 
   COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = chat_rooms.id AND userid = ? AND status != ? AND status != ?), 0) 
-  AND chatid = chat_rooms.id AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0) AS unseen,
+  AND chatid = chat_rooms.id AND userid != ? $modq) AS unseen,
 (SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = chat_rooms.id AND replyexpected = 1 AND replyreceived = 0 AND userid != ? AND chat_messages.date >= '$oldest' AND chat_rooms.chattype = 'User2User') AS replyexpected,
 i1.id AS u1imageid,
 i2.id AS u2imageid,
@@ -108,7 +109,7 @@ LEFT JOIN users u2 ON chat_rooms.user2 = u2.id
 LEFT JOIN users_images i1 ON i1.userid = u1.id
 LEFT JOIN users_images i2 ON i2.userid = u2.id
 LEFT JOIN groups_images i3 ON i3.groupid = chat_rooms.groupid 
-LEFT JOIN chat_messages ON chat_messages.id = (SELECT id FROM chat_messages WHERE chat_messages.chatid = chat_rooms.id AND reviewrequired = 0 AND reviewrejected = 0 ORDER BY chat_messages.id DESC LIMIT 1)
+LEFT JOIN chat_messages ON chat_messages.id = (SELECT id FROM chat_messages WHERE chat_messages.chatid = chat_rooms.id $modq ORDER BY chat_messages.id DESC LIMIT 1)
 LEFT JOIN messages ON messages.id = chat_messages.refmsgid
 WHERE chat_rooms.id IN $idlist;";
 
