@@ -28,6 +28,7 @@ $helper = $fb->getRedirectLoginHelper();
 
 $permissions = [
     'pages_manage_posts',
+    'pages_read_engagement'
 ];
 
 $url = $helper->getLoginUrl('https://' . $_SERVER['HTTP_HOST'] . '/facebook/facebook_response.php?groupid=' . $groupid, $permissions);
