@@ -1610,9 +1610,9 @@ ORDER BY lastdate DESC;";
 
             foreach ($rets as $ix => $ret) {
                 foreach ($bys as $by) {
-                    $rets[$ix]['by']['name'] = User::removeTNGroup($by['name']);
 
                     if ($by['msgid'] == $ret['id']) {
+                        $by['name'] = User::removeTNGroup($by['name']);
                         $by['timestamp'] = Utils::ISODate($by['timestamp']);
                         $rets[$ix]['by'][] = $by;
                     }
