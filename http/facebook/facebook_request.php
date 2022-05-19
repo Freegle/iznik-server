@@ -20,14 +20,14 @@ $groupid = intval(Utils::presdef('groupid', $_REQUEST, 0));
 
 $fb = new \Facebook\Facebook([
     'app_id' => FBGRAFFITIAPP_ID,
-    'app_secret' => FBGRAFFITIAPP_SECRET
+    'app_secret' => FBGRAFFITIAPP_SECRET,
+    'default_graph_version' =>  'v13.0'
 ]);
 
 $helper = $fb->getRedirectLoginHelper();
 
 $permissions = [
-    'manage_pages',
-    'publish_pages'
+    'pages_manage_posts',
 ];
 
 $url = $helper->getLoginUrl('https://' . $_SERVER['HTTP_HOST'] . '/facebook/facebook_response.php?groupid=' . $groupid, $permissions);

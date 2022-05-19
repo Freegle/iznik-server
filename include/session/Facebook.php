@@ -31,7 +31,8 @@ class Facebook
 
         $fb = new \Facebook\Facebook([
             'app_id' => $appid,
-            'app_secret' => $secret
+            'app_secret' => $secret,
+            'default_graph_version' =>  'v13.0'
         ]);
 
         return($fb);
@@ -284,7 +285,8 @@ class Facebook
     public function fbpost($fbid, $notif) {
         $fb = new \Facebook\Facebook([
                                         'app_id' => FBAPP_ID,
-                                        'app_secret' => FBAPP_SECRET
+                                        'app_secret' => FBAPP_SECRET,
+                                         'default_graph_version' =>  'v13.0'
                                     ]);
 
         $fb->setDefaultAccessToken(FBAPP_ID . '|' . FBAPP_SECRET);

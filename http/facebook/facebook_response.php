@@ -13,7 +13,8 @@ $groupid = intval(Utils::presint('groupid', $_REQUEST, 0));
 
 $fb = new \Facebook\Facebook([
     'app_id' => FBGRAFFITIAPP_ID,
-    'app_secret' => FBGRAFFITIAPP_SECRET
+    'app_secret' => FBGRAFFITIAPP_SECRET,
+    'default_graph_version' =>  'v13.0'
 ]);
 
 $helper = $fb->getRedirectLoginHelper();

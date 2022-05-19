@@ -57,7 +57,8 @@ class GroupFacebook {
         #error_log("Get FB $graffiti");
         $fb = new \Facebook\Facebook([
             'app_id' => $graffiti ? FBGRAFFITIAPP_ID : FBAPP_ID,
-            'app_secret' => $graffiti ? FBGRAFFITIAPP_SECRET : FBAPP_SECRET
+            'app_secret' => $graffiti ? FBGRAFFITIAPP_SECRET : FBAPP_SECRET,
+            'default_graph_version' =>  'v13.0'
         ]);
 
         if ($apptoken) {
