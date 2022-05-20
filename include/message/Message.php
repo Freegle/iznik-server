@@ -5308,7 +5308,7 @@ $mq", [
 
                 error_log("Group $gid " . $g->getName() . " " . $g->getSetting('closed', FALSE) . "," . $g->getPrivate('autofunctionoverride'));
 
-                if (!$g->getSetting('closed', FALSE) && !$g->getPrivate('autofunctionoverride')) {
+                if ($g->getSetting('publish') && !$g->getSetting('closed', FALSE) && !$g->getPrivate('autofunctionoverride')) {
                     error_log("will do it");
                     $joined = $u->getMembershipAtt($gid, 'added');
                     $hoursago = round((time() - strtotime($joined)) / 3600);
