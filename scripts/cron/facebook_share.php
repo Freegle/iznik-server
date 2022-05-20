@@ -10,6 +10,11 @@ global $dbhr, $dbhm;
 
 $lockh = Utils::lockScript(basename(__FILE__));
 
+# You can get this token using the graph explorer - select the Freegle Graffiti app, then get a User Token.
+# Once you get that, you can run this script, and it will output the long-lived token.  That then needs to
+# go into the crontab invocation, and also into the CircleCI FACEBOOK_PAGEACCESS_TOKEN environment variable.
+#
+#
 $opts = getopt('t:');
 $token = $opts['t'];
 
