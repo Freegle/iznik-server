@@ -634,7 +634,9 @@ class User extends Entity
 
         # Remove plus addressing, which is sometimes used by spammers as a trick, except for Facebook where it
         # appears to be genuinely used for routing to distinct users.
-        if (preg_match('/(.*)\+(.*)(@.*)/', $email, $matches) && strpos($email, '@proxymail.facebook.com') === FALSE) {
+        #
+        # O2 puts a + at the start of an email address.  That would lead to us canonicalising all emails the same.
+        if (substr($email, 0, 1) != '+' && preg_match('/(.*)\+(.*)(@.*)/', $email, $matches) && strpos($email, '@proxymail.facebook.com') === FALSE) {
             $email = $matches[1] . $matches[3];
         }
 

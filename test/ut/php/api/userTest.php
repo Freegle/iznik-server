@@ -510,6 +510,15 @@ class userAPITest extends IznikAPITestCase {
         assertEquals(1, count($ret['users']));
         assertEquals($this->uid, $ret['users'][0]['id']);
 
+        # Test a phone number.
+        $this->user->addEmail('+44794000000@mediamessaging.o2.co.uk', 0, FALSE);
+        $ret = $this->call('user', 'GET', [
+            'search' => '+44794000000@mediamessaging.o2.co.uk'
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['users']));
+        assertEquals($this->uid, $ret['users'][0]['id']);
+
         # Test that a mod can't see stuff
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
         assertEquals(1, $this->user->removeMembership($this->groupid));
@@ -520,8 +529,7 @@ class userAPITest extends IznikAPITestCase {
         ]);
         $this->log("Should fail " . var_export($ret, TRUE));
         assertEquals(2, $ret['ret']);
-
-        }
+    }
 
     public function testMerge() {
         $u1 = User::get($this->dbhm, $this->dbhm);

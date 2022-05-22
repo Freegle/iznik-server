@@ -860,8 +860,8 @@ class userTest extends IznikTestCase {
         assertEquals('test@usertrashnothingcom', User::canonMail('test-x1@user.trashnothing.com'));
         assertEquals('test-x1@usertrashnothingcom', User::canonMail('test-x1-x2@user.trashnothing.com'));
         assertEquals('app+test@proxymailfacebookcom', User::canonMail('app+test@proxymail.facebook.com'));
-
-        }
+        assertEquals('+123@testcom', User::canonMail('+123@testcom'));
+    }
 
     public function testInvent() {
         # No emails - should invent something.
