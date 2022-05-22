@@ -6162,7 +6162,7 @@ class User extends Entity
                     $u1 = User::get($this->dbhr, $this->dbhm, $user1);
                     $u2 = User::get($this->dbhr, $this->dbhm, $user2);
 
-                    if ($u1->getId() && $u2->getId()) {
+                    if ($u1->getId() && $u2->getId() && !$u1->isAdminOrSupport() && !$u2->isAdminOrSupport()) {
                         $this->dbhm->background("INSERT INTO users_related (user1, user2) VALUES ($user1, $user2) ON DUPLICATE KEY UPDATE timestamp = NOW();");
                     }
                 }
