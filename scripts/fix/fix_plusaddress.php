@@ -12,7 +12,6 @@ $emails = $dbhr->preQuery("SELECT * FROM users_emails WHERE canon = '@mediamessa
 
 foreach ($emails as $email) {
     $newCanon = User::canonMail($email['email']);
-    error_log("New $newCanon");
     $dbhm->preQuery("UPDATE users_emails SET canon = ?, backwards = ? WHERE id = ?;", [
         $newCanon,
         strrev($newCanon),
