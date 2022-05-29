@@ -634,7 +634,9 @@ class User extends Entity
 
         # Remove plus addressing, which is sometimes used by spammers as a trick, except for Facebook where it
         # appears to be genuinely used for routing to distinct users.
-        if (preg_match('/(.*)\+(.*)(@.*)/', $email, $matches) && strpos($email, '@proxymail.facebook.com') === FALSE) {
+        #
+        # O2 puts a + at the start of an email address.  That would lead to us canonicalising all emails the same.
+        if (substr($email, 0, 1) != '+' && preg_match('/(.*)\+(.*)(@.*)/', $email, $matches) && strpos($email, '@proxymail.facebook.com') === FALSE) {
             $email = $matches[1] . $matches[3];
         }
 
@@ -6162,7 +6164,7 @@ class User extends Entity
                     $u1 = User::get($this->dbhr, $this->dbhm, $user1);
                     $u2 = User::get($this->dbhr, $this->dbhm, $user2);
 
-                    if ($u1->getId() && $u2->getId()) {
+                    if ($u1->getId() && $u2->getId() && !$u1->isAdminOrSupport() && !$u2->isAdminOrSupport()) {
                         $this->dbhm->background("INSERT INTO users_related (user1, user2) VALUES ($user1, $user2) ON DUPLICATE KEY UPDATE timestamp = NOW();");
                     }
                 }

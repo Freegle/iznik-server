@@ -54,7 +54,6 @@ if (count($opts) < 1) {
         }
 
         # Tables with foreign keys.
-        # TODO Automate via schema inspection?
         foreach ([
             'memberships' => [ 'userid' ],
             'spam_users' => [ 'userid', 'byuserid' ],
@@ -167,7 +166,6 @@ if (count($opts) < 1) {
                 }
             }
         }
-
 
         # Undelete messages and re-add to groups.
         error_log("Undelete messages");
