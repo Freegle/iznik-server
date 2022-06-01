@@ -24,7 +24,10 @@ if (count($opts) != 1) {
         $donations = [];
         $mindate = NULL;
         $minepoch = PHP_INT_MAX;
-            
+
+        # Skip headers.
+        fgetcsv($fh);
+
         while (!feof($fh)) {
             # Format is:
             #
