@@ -45,7 +45,7 @@ try {
 
     if (!$fp) {
         error_log("Failed to post request back to paypal");
-        mail("log@ehibbert.org.uk", "Error: Payment failed to contact PayPal", $sql . "\r\n\r\n" . var_export($_REQUEST, true) . "\r\n\r\n$res", NULL, '-fnoreply@modtools.org');
+        mail("log@ehibbert.org.uk", "Error: Payment failed to contact PayPal", $sql . "\r\n\r\n" . var_export($_REQUEST, true) . "\r\n\r\n$res", [], '-fnoreply@modtools.org');
     } else {
         error_log("put data");
         fputs($fp, $header . $req);
@@ -68,13 +68,13 @@ try {
 
                     error_log("Affected " . $dbhm->rowsAffected());
                 } else {
-                    mail("log@ehibbert.org.uk", "Payment failed", var_export($_POST, TRUE), NULL, '-fnoreply@modtools.org');
+                    mail("log@ehibbert.org.uk", "Payment failed", var_export($_POST, TRUE), [], '-fnoreply@modtools.org');
                 }
             } else {
 //                if (strcmp($res, "INVALID") == 0)
 
                 // log for manual investigation
-                mail("log@ehibbert.org.uk", "Error: Payment failed validation", var_export($_REQUEST, true), NULL, '-fnoreply@modtools.org');
+                mail("log@ehibbert.org.uk", "Error: Payment failed validation", var_export($_REQUEST, true), [], '-fnoreply@modtools.org');
             }
         }
         error_log("Close");
@@ -82,7 +82,7 @@ try {
         fclose($fp);
     }
 } catch (\Exception $e) {
-    mail("log@ehibbert.org.uk", "Error: Payment exception", var_export($e, TRUE) . "\n\n" . var_export($_REQUEST, true), NULL, '-fnoreply@modtools.org');
+    mail("log@ehibbert.org.uk", "Error: Payment exception", var_export($e, TRUE) . "\n\n" . var_export($_REQUEST, true), [], '-fnoreply@modtools.org');
     error_log("Exception during purchase " . var_export($e, true));
     \Sentry\captureException($e);
 }
