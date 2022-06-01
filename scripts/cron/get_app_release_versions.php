@@ -4,6 +4,7 @@
 // This script fetches the latest app version numbers from the app stores - doing in the apps themselves runs into CORS
 
 namespace Freegle\Iznik;
+
 define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
 
@@ -13,6 +14,8 @@ global $dbhr, $dbhm;
 echo "get_app_release_versions\r\n";
 
 define('GEEKSALERTS_ADDR','geek-alerts@ilovefreegle.org');
+
+$debug = "\r\n\r\n";
 
 try{
   $headers = 'From: geeks@ilovefreegle.org';
@@ -38,7 +41,7 @@ try{
   if( $iOSfreegle->resultCount==1){
     $FD_iOS_currentVersionReleaseDate = $iOSfreegle->results[0]->currentVersionReleaseDate;
     $FD_iOS_version = $iOSfreegle->results[0]->version;
-    echo "iOS FD: ".$FD_iOS_currentVersionReleaseDate.": ".$FD_iOS_version."\r\n";
+    echo "iOS FD:     ".$FD_iOS_version.": ".$FD_iOS_currentVersionReleaseDate."\r\n";
   }
 
   // IOS MODTOOLS
@@ -49,23 +52,93 @@ try{
   if( $iOSmodtools->resultCount==1){
     $MT_iOS_currentVersionReleaseDate = $iOSmodtools->results[0]->currentVersionReleaseDate;
     $MT_iOS_version = $iOSmodtools->results[0]->version;
-    echo "iOS MT: ".$MT_iOS_currentVersionReleaseDate.": ".$MT_iOS_version."\r\n";
+    echo "iOS MT:     ".$MT_iOS_version.": ".$MT_iOS_currentVersionReleaseDate."\r\n";
   }
+
 
   // Android
   //        const FD_LOOKUP = 'https://play.google.com/store/apps/details?id=org.ilovefreegle.direct&hl=en'
   //        const MT_LOOKUP = 'https://play.google.com/store/apps/details?id=org.ilovefreegle.modtools&hl=en'
 
-  $lookfor = '<span class="htlgb">';  // 2nd = June 4, 2021, 8th = 2.0.77
+  $lookfor = '[null,null,[]],null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,[[["';
   $lookforlen = strlen($lookfor);
 
+  $lookfor2 = ']]]],[["';
+  $lookfor2len = strlen($lookfor2);
 
+  // '[[["2.0.102"]],[[[30,"11"]],[[[22,"5.1"]]]],[["May 15, 2022"]]]'
+  // '[[["0.3.76"]],[[[30,"11"]],[[[22,"5.1"]]]],[["May 14, 2022"]]]'
+  
   // ANDROID FREEGLE
   $url = "https://play.google.com/store/apps/details?id=org.ilovefreegle.direct&hl=en";
   $data = file_get_contents($url);
+  $savefilenamefr = false;
+
+  $pos = strpos($data,$lookfor);
+  if( $pos!==FALSE){
+    $pos += $lookforlen;
+    $endpos = strpos($data,'"',$pos);
+    if( $endpos!==FALSE){
+      $FD_Android_version = substr($data,$pos,$endpos-$pos);
+      //echo "Android FD: ".$FD_Android_version."\r\n";
+      $pos = strpos($data,$lookfor2,$pos);
+      if( $pos!==FALSE){
+        $pos += $lookfor2len;
+        $endpos = strpos($data,'"',$pos);
+        if( $endpos!==FALSE){
+          $FD_Android_currentVersionReleaseDate = substr($data,$pos,$endpos-$pos);
+          echo "Android FD: ".$FD_Android_version.": ".$FD_Android_currentVersionReleaseDate."\r\n";
+        }
+      }
+    }
+  } else{
+    $savefilenamefr = "/tmp/get_app_android_fr.htm";
+    $savefile = fopen($savefilenamefr, "w");
+    fwrite($savefile, $data);
+    fclose($savefile);
+  }
+
+  // ANDROID MODTOOLS
+  $url = "https://play.google.com/store/apps/details?id=org.ilovefreegle.modtools&hl=en";
+  $data = file_get_contents($url);
+  $savefilenamefr = false;
+
+  $pos = strpos($data,$lookfor);
+  if( $pos!==FALSE){
+    $pos += $lookforlen;
+    $endpos = strpos($data,'"',$pos);
+    if( $endpos!==FALSE){
+      $MT_Android_version = substr($data,$pos,$endpos-$pos);
+      //echo "Android MT: ".$MT_Android_version."\r\n";
+      $pos = strpos($data,$lookfor2,$pos);
+      if( $pos!==FALSE){
+        $pos += $lookfor2len;
+        $endpos = strpos($data,'"',$pos);
+        if( $endpos!==FALSE){
+          $MT_Android_currentVersionReleaseDate = substr($data,$pos,$endpos-$pos);
+          echo "Android MT: ".$MT_Android_version.": ".$MT_Android_currentVersionReleaseDate."\r\n";
+        }
+      }
+    }
+  } else{
+    $savefilenamefr = "/tmp/get_app_android_mt.htm";
+    $savefile = fopen($savefilenamefr, "w");
+    fwrite($savefile, $data);
+    fclose($savefile);
+  }
+
+  // ANDROID FREEGLE
+  /*
+  $lookfor = '<span class="htlgb">';  // 2nd = June 4, 2021, 8th = 2.0.77
+  $lookforlen = strlen($lookfor);
+  
+  $url = "https://play.google.com/store/apps/details?id=org.ilovefreegle.direct&hl=en";
+  $data = file_get_contents($url);
+  $savefilenamefr = false;
 
   $spancount = substr_count($data,$lookfor);
   //echo "Android FD spancount: ".$spancount."\r\n";
+  $debug .= "Android FD spancount:".$spancount."\r\n";
   if( $spancount==22){
     $pos = strpos($data,$lookfor)+$lookforlen;
     $pos = strpos($data,$lookfor,$pos)+$lookforlen;
@@ -80,14 +153,21 @@ try{
     $closepos = strpos($data,'<',$pos);
     $FD_Android_version = substr($data,$pos,$closepos-$pos);
     echo "Android FD: ".$FD_Android_currentVersionReleaseDate.": ".$FD_Android_version."\r\n";
+  } else {
+    $savefilenamefr = "/tmp/get_app_android_fr.htm";
+    $savefile = fopen($savefilenamefr, "w");
+    fwrite($savefile, $data);
+    fclose($savefile);
   }
 
   // ANDROID MODTOOLS
   $url = "https://play.google.com/store/apps/details?id=org.ilovefreegle.modtools&hl=en";
   $data = file_get_contents($url);
+  $savefilenamemt = false;
 
   $spancount = substr_count($data,$lookfor);
   //echo "Android MT spancount: ".$spancount."\r\n";
+  $debug .= "Android MT spancount:".$spancount."\r\n";
   if( $spancount==22){
     $pos = strpos($data,$lookfor)+$lookforlen;
     $pos = strpos($data,$lookfor,$pos)+$lookforlen;
@@ -102,7 +182,13 @@ try{
     $closepos = strpos($data,'<',$pos);
     $MT_Android_version = substr($data,$pos,$closepos-$pos);
     echo "Android MT: ".$MT_Android_currentVersionReleaseDate.": ".$MT_Android_version."\r\n";
+  } else {
+    $savefilenamemt = "/tmp/get_app_android_mt.htm";
+    $savefile = fopen($savefilenamemt, "w");
+    fwrite($savefile, $data);
+    fclose($savefile);
   }
+  */
 
   $subject = 'get_app_release_versions: ';
   $gotIOS_FD = $FD_iOS_version !== false;
@@ -134,6 +220,11 @@ try{
   $report .= "\r\nAndroid \r\n\r\n";
   $report .= "FD: ".$FD_Android_version.": ".$FD_Android_currentVersionReleaseDate."\r\n";
   $report .= "MT: ".$MT_Android_version.": ".$MT_Android_currentVersionReleaseDate."\r\n";
+  if( $savefilenamefr) $report .= "Received file written to: ".$savefilenamefr."\r\n";
+  if( $savefilenamemt) $report .= "Received file written to: ".$savefilenamemt."\r\n";
+
+  $report .= $debug;
+
 
   $sent = mail(GEEKSALERTS_ADDR, $subject, $report,$headers);
   echo "Mail sent to geeks: ".$sent."\r\n";
