@@ -544,6 +544,7 @@ function session() {
                 $u = User::get($dbhr, $dbhm, $id);
                 $ret['user'] = $u->getPublic();
                 $ret['persistent'] = Utils::presdef('persistent', $_SESSION, NULL);
+                $ret['jwt'] = Session::JWT($dbhr, $dbhm);
             }
 
             break;
