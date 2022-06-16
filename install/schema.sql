@@ -3709,6 +3709,7 @@ CREATE TABLE `users` (
   `engagement` enum('New','Occasional','Frequent','Obsessed','Inactive','Dormant') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `trustlevel` enum('Declined','Excluded','Basic','Moderate','Advanced') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `lastupdated` timestamp NULL DEFAULT NULL,
+  `tnuserid` bigint unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `yahooUserId` (`yahooUserId`),
