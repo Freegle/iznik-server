@@ -24,7 +24,7 @@ class Donations
     }
 
     public function add($eid, $email, $name, $date, $txnid, $gross, $donationType, $transactionType = NULL) {
-        $this->dbhm->preExec("INSERT INTO users_donations (userid, Payer, PayerDisplayName, timestamp, TransactionID, GrossAmount, TransactionType, type) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE userid = ?, timestamp = ?;", [
+        $this->dbhm->preExec("INSERT INTO users_donations (userid, Payer, PayerDisplayName, timestamp, TransactionID, GrossAmount, TransactionType, `type`) VALUES (?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE userid = ?, timestamp = ?;", [
             $eid,
             $email,
             $name,
