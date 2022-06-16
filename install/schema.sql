@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 8.0.28, for Linux (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.27, for Linux (x86_64)
 --
 -- Host: 127.0.0.1    Database: iznik
 -- ------------------------------------------------------
--- Server version	8.0.28-0ubuntu0.20.04.3
+-- Server version	8.0.27-0ubuntu0.20.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -3709,12 +3709,10 @@ CREATE TABLE `users` (
   `engagement` enum('New','Occasional','Frequent','Obsessed','Inactive','Dormant') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `trustlevel` enum('Declined','Excluded','Basic','Moderate','Advanced') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `lastupdated` timestamp NULL DEFAULT NULL,
-  `tnuserid` bigint DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `yahooUserId` (`yahooUserId`),
   UNIQUE KEY `yahooid` (`yahooid`),
-  UNIQUE KEY `tnuserid` (`tnuserid`),
   KEY `systemrole` (`systemrole`),
   KEY `added` (`added`,`lastaccess`),
   KEY `fullname` (`fullname`),
@@ -3971,7 +3969,7 @@ DROP TABLE IF EXISTS `users_donations`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users_donations` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `type` enum('PayPal','External') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `type` enum('PayPal','External','Other') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PayPal',
   `userid` bigint unsigned DEFAULT NULL,
   `Payer` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `PayerDisplayName` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -5318,4 +5316,4 @@ CREATE TABLE `worrywords` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-03-25 11:11:04
+-- Dump completed on 2022-06-16 15:21:32

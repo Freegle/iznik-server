@@ -41,7 +41,7 @@ function donations() {
                 ];
 
                 if ($u->getId() == $uid) {
-                    $id = $d->add($uid, $u->getEmailPreferred(), $u->getName(), $date, 'External added at ' . date("Y-m-d H:i:s", time()), $amount, Donations::TYPE_EXTERNAL);
+                    $id = $d->add($uid, $u->getEmailPreferred(), $u->getName(), $date, 'External added at ' . date("Y-m-d H:i:s", time()), $amount, Donations::TYPE_EXTERNAL, NULL);
 
                     $ret = [
                         'ret' => 3,

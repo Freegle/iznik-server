@@ -45,6 +45,7 @@ if (Utils::pres('mc_gross', $transaction)) {
         date("Y-m-d H:i:s", strtotime($transaction['payment_date'])),
         $transaction['txn_id'],
         $transaction['mc_gross'],
+        Donations::TYPE_PAYPAL,
         $transaction['txn_type']
     );
 

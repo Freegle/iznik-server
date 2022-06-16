@@ -10,7 +10,9 @@ class Donations
     const PERIOD_FUTURE = 'Future';
     const PERIOD_DECLINED = 'Declined';
 
+    const TYPE_PAYPAL = 'PayPal';
     const TYPE_EXTERNAL = 'External';
+    const TYPE_OTHER = 'Other';
 
     const MANUAL_THANKS = 20;
 
@@ -21,15 +23,16 @@ class Donations
         $this->groupid = $groupid;
     }
 
-    public function add($eid, $email, $name, $date, $txnid, $gross, $type = NULL) {
-        $this->dbhm->preExec("INSERT INTO users_donations (userid, Payer, PayerDisplayName, timestamp, TransactionID, GrossAmount, `type`) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE userid = ?, timestamp = ?;", [
+    public function add($eid, $email, $name, $date, $txnid, $gross, $donationType, $transactionType = NULL) {
+        $this->dbhm->preExec("INSERT INTO users_donations (userid, Payer, PayerDisplayName, timestamp, TransactionID, GrossAmount, TransactionType, type) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE userid = ?, timestamp = ?;", [
             $eid,
             $email,
             $name,
             $date,
             $txnid,
             $gross,
-            $type,
+            $transactionType,
+            $donationType,
             $eid,
             $date
         ]);

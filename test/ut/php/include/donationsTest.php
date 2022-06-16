@@ -46,15 +46,15 @@ class donationsTest extends IznikTestCase {
         # Add three donations - one before, one on, and one after the consent date.
         $d = new Donations($this->dbhr, $this->dbhm);
         $mysqltime = date("Y-m-d H:i:s", strtotime('yesterday'));
-        $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 1', 0);
+        $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 1', 0, Donations::TYPE_PAYPAL);
         assertNotNull($did);
 
         $mysqltime = date("Y-m-d H:i:s", time());
-        $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 2', 0);
+        $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 2', 0, Donations::TYPE_PAYPAL);
         assertNotNull($did);
 
         $mysqltime = date("Y-m-d H:i:s", strtotime('tomorrow'));
-        $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 3', 0);
+        $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 3', 0, Donations::TYPE_PAYPAL);
         assertNotNull($did);
 
         # Test the donations show up for Support Tools.
@@ -93,15 +93,15 @@ class donationsTest extends IznikTestCase {
         $d = new Donations($this->dbhr, $this->dbhm);
         $d = new Donations($this->dbhr, $this->dbhm);
         $mysqltime = date("Y-m-d H:i:s", strtotime('yesterday'));
-        $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 1', 0);
+        $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 1', 0, Donations::TYPE_PAYPAL);
         assertNotNull($did);
 
         $mysqltime = date("Y-m-d H:i:s", time());
-        $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 2', 0);
+        $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 2', 0, Donations::TYPE_PAYPAL);
         assertNotNull($did);
 
         $mysqltime = date("Y-m-d H:i:s", strtotime('tomorrow'));
-        $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 3', 0);
+        $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 3', 0, Donations::TYPE_PAYPAL);
         assertNotNull($did);
 
         # Add consent.
@@ -122,18 +122,18 @@ class donationsTest extends IznikTestCase {
         # Add three donations - one before, one on, and one after the consent date.
         $d = new Donations($this->dbhr, $this->dbhm);
         $mysqltime = date("Y-m-d H:i:s", strtotime('yesterday'));
-        $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 1', 0, 'subscr_payment');
+        $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 1', 0, Donations::TYPE_PAYPAL, 'subscr_payment');
         assertNotNull($did);
 
         # Should be flagged as a supporter.
         assertTrue($u->getPublic()['supporter']);
 
         $mysqltime = date("Y-m-d H:i:s", time());
-        $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 2', 0);
+        $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 2', 0, Donations::TYPE_PAYPAL);
         assertNotNull($did);
 
         $mysqltime = date("Y-m-d H:i:s", strtotime('tomorrow'));
-        $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 3', 0);
+        $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 3', 0, Donations::TYPE_PAYPAL);
         assertNotNull($did);
 
         # Add consent.
