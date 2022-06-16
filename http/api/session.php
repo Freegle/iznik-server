@@ -405,7 +405,7 @@ function session() {
             $id = NULL;
             $user = User::get($dbhr, $dbhm);
             $f = NULL;
-            $ret = array('ret' => 1, 'status' => 'Invalid login details', 'req' => $_REQUEST);
+            $ret = array('ret' => 1, 'status' => 'Invalid login details');
 
             if ($keyu && $keyk) {
                 # uid and key login, used in email links and impersonation.

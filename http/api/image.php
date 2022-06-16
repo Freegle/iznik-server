@@ -62,7 +62,6 @@ function image() {
                 $ret = [
                     'ret' => 1,
                     'status' => "Failed to create image $id of type $type",
-                    'req'=> $_REQUEST
                 ];
 
 
