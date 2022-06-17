@@ -33,7 +33,7 @@ if (count($opts) < 4) {
     error_log("...got " . count($ids));
 
     foreach ($ids as $uid) {
-        if ($n->haveSent($uid, Notifications::TYPE_EXHORT, "30 days ago")) {
+        if ($n->haveSent($uid, Notifications::TYPE_EXHORT, "90 days ago")) {
             #error_log("...already sent to $uid");
         } else {
             #error_log("...send to $uid");
