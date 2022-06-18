@@ -106,7 +106,7 @@ try {
     $total = 0;
     $start = date('Y-m-d', strtotime("midnight 30 days ago"));
     $end = date('Y-m-d', strtotime("midnight 60 days ago"));
-    $logs = $dbhm->query("SELECT logs.id FROM logs LEFT JOIN messages ON messages.id = logs.msgid WHERE logs.type = 'Message' AND logs.msgid IS NOT NULL AND messages.id IS NULL AND logs.timestamp >= '$end' AND logs.timestamp < '$start';");
+    $logs = $dbhm->query("SELECT logs.id FROM logs LEFT JOIN messages ON messages.id = logs.msgid WHERE logs.msgid IS NOT NULL AND messages.id IS NULL AND logs.timestamp >= '$end' AND logs.timestamp < '$start';");
 
     foreach ($logs as $log) {
         $sql = "DELETE FROM logs WHERE id = {$log['id']};";
