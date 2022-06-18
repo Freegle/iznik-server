@@ -518,10 +518,9 @@ class User extends Entity
     public function getIdForEmail($email)
     {
         # Email is a unique key but conceivably we could be called with an email for another user.
-        $ids = $this->dbhr->preQuery("SELECT id, userid FROM users_emails WHERE (email = ? OR canon = ? OR canon = ?);", [
+        $ids = $this->dbhr->preQuery("SELECT id, userid FROM users_emails WHERE (email = ? OR canon = ?);", [
             $email,
             User::canonMail($email),
-            User::canonMail($email, TRUE)
         ]);
 
         foreach ($ids as $id) {
@@ -578,11 +577,10 @@ class User extends Entity
         # Take care not to pick up empty or null else that will cause is to overmerge.
         #
         # Use canon to match - that handles variant TN addresses or % addressing.
-        $users = $this->dbhr->preQuery("SELECT userid FROM users_emails WHERE (email = ? OR canon = ? OR canon = ?) AND canon IS NOT NULL AND LENGTH(canon) > 0;",
+        $users = $this->dbhr->preQuery("SELECT userid FROM users_emails WHERE (email = ? OR canon = ?) AND canon IS NOT NULL AND LENGTH(canon) > 0;",
             [
                 $email,
                 User::canonMail($email),
-                User::canonMail($email, TRUE)
             ]);
 
         foreach ($users as $user) {
@@ -620,8 +618,7 @@ class User extends Entity
         return (NULL);
     }
 
-    # TODO The $old paramter can be retired after 01/07/17
-    public static function canonMail($email, $old = FALSE)
+    public static function canonMail($email)
     {
         # Googlemail is Gmail really in US and UK.
         $email = str_replace('@googlemail.', '@gmail.', $email);
@@ -642,15 +639,13 @@ class User extends Entity
 
         # Remove dots in LHS, which are ignored by gmail and can therefore be used to give the appearance of separate
         # emails.
-        #
-        # TODO For migration purposes we can remove them from all domains.  This will disappear in time.
         $p = strpos($email, '@');
 
         if ($p !== FALSE) {
             $lhs = substr($email, 0, $p);
             $rhs = substr($email, $p);
 
-            if (stripos($rhs, '@gmail') !== FALSE || stripos($rhs, '@googlemail') !== FALSE || $old) {
+            if (stripos($rhs, '@gmail') !== FALSE || stripos($rhs, '@googlemail') !== FALSE) {
                 $lhs = str_replace('.', '', $lhs);
             }
 
@@ -3962,11 +3957,16 @@ class User extends Entity
 
         $canon = $this->dbhr->quote(User::canonMail($search) . "%");
 
+        # canonMail might not strip the dots out if we don't have a full email to search on, but for this Support Tools
+        # search we want to try quite hard.
+        $canon2 = $this->dbhr->quote(User::canonMail(str_replace('.', '', $search)) . "%");
+
         # If we're searching for a notify address, switch to the user it.
         $search = preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $search, $matches) ? $matches[2] : $search;
 
         $sql = "SELECT DISTINCT userid FROM
                 ((SELECT userid FROM users_emails WHERE canon LIKE $canon OR backwards LIKE $qb) UNION
+                (SELECT userid FROM users_emails WHERE canon LIKE $canon2) UNION
                 (SELECT id AS userid FROM users WHERE fullname LIKE $q) UNION
                 (SELECT id AS userid FROM users WHERE yahooid LIKE $q) UNION
                 (SELECT id AS userid FROM users WHERE id = ?) UNION
