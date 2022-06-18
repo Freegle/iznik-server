@@ -6,7 +6,9 @@ define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
 
 require_once(IZNIK_BASE . '/include/db.php');
-global $dbhr, $dbhm;
+global $dbhr, $dbhm, $dbconfig;
+
+$mergefail = 0;
 
 if (($handle = fopen("/tmp/tnnames.csv", "r")) !== FALSE)
 {
@@ -51,18 +53,36 @@ if (($handle = fopen("/tmp/tnnames.csv", "r")) !== FALSE)
         }
 
         # Check if we have accounts for both the old and new names.
-        $newusers = $dbhr->preQuery("SELECT DISTINCT(userid) FROM users_emails WHERE email LIKE '$tnname-g%@user.trashnothing.com'");
-        $oldusers = $dbhr->preQuery("SELECT DISTINCT(userid) FROM users_emails WHERE email LIKE '$tnold-g%@user.trashnothing.com'");
+        $newusers = $dbhr->preQuery("SELECT DISTINCT(userid) FROM users_emails WHERE email LIKE '$tnname-g%@user.trashnothing.com';");
+        $newids = array_column($newusers, 'userid');
+        $oldusers = $dbhr->preQuery("SELECT DISTINCT(userid) FROM users_emails WHERE email LIKE '$tnold-g%@user.trashnothing.com';");
+        $oldids = array_column($oldusers, 'userid');
 
         if (count($newusers) && count($oldusers)) {
-            $newids = array_column('userid', $newusers);
-            $oldids = array_column('userid', $oldusers);
+            $all = array_unique(array_merge($oldids, $newids));
 
-            if ($newids != $oldids) {
-                error_log("TN user $tnid, $tnname, $tnold has FD ids " . json_encode($newids) . " and " . json_encode($oldids));
+            if (count($all) > 1) {
+                # Merge all users into the latest one, and set the TN id in that.
+                $mergeto = array_pop($all);
+
+                foreach ($all as $mergefrom) {
+                    error_log("Merge TN user $mergefrom into $mergeto");
+                    try {
+                        $u1 = new User($dbhr, $dbhm, $mergeto);
+                        $u1->merge($mergeto, $mergefrom, 'TN user rename', TRUE);
+                        $dbhm->preExec("UPDATE users SET tnuserid = ? WHERE id = ?", [
+                            $tnid,
+                            $mergeto
+                        ]);
+                    } catch (\Exception $e) {
+                        $mergefail++;
+                    }
+                }
             } else {
-                error_log("TN user $tnid, $tnname, $tnold same IDs");
+                #error_log("TN user $tnid, $tnname, $tnold same IDs");
             }
         }
     }
 }
+
+error_log("Failed merged $mergefail");

@@ -2774,7 +2774,7 @@ class User extends Entity
                         if (count($id1membs) == 0) {
                             # id1 is not already a member.  Just change our id2 membership to id1.
                             #error_log("...$id1 not a member, UPDATE");
-                            $rc2 = $this->dbhm->preExec("UPDATE memberships SET userid = $id1 WHERE userid = $id2 AND groupid = {$id2memb['groupid']};");
+                            $rc2 = $this->dbhm->preExec("UPDATE IGNORE memberships SET userid = $id1 WHERE userid = $id2 AND groupid = {$id2memb['groupid']};");
 
                             #error_log("Membership UPDATE merge returned $rc2");
                         } else {
@@ -3013,6 +3013,14 @@ class User extends Entity
                     $this->dbhm->preExec("UPDATE users SET lastupdated = NOW() WHERE id = ?;", [
                         $id1
                     ]);
+
+                    $tnid1 = $u2->getPrivate('tnuserid');
+                    $tnid2 = $u2->getPrivate('tnuserid');
+
+                    if (!$tnid1 && $tnid2) {
+                        $u2->setPrivate('tnuserid', NULL);
+                        $u1->setPrivate('tnuserid', $tnid2);
+                    }
 
                     if ($rc) {
                         # Log the merge - before the delete otherwise we will fail to log it.
