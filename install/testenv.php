@@ -36,10 +36,10 @@ if (!$gid) {
     $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
     $u->create('Test', 'User', 'Test User');
-    $u->addEmail('test2@test.com');
+    $u->addEmail('testmod@test.com');
     $u->addLogin(User::LOGIN_NATIVE, NULL, 'freegle');
-    $u->addMembership($gid2, User::ROLE_MODERATOR);
-    $u->setMembershipAtt($gid2, 'ourPostingStatus', Group::POSTING_DEFAULT);
+    $u->addMembership($gid, User::ROLE_MODERATOR);
+    $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
     $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment');
     $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
