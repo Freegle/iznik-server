@@ -18,7 +18,7 @@ if (!$gid) {
     $g->setPrivate('onhere', 1);
     $g->setPrivate('polyofficial', 'POLYGON((-3.1902622 55.9910847, -3.2472542 55.98263430000001, -3.2863922 55.9761038, -3.3159182 55.9522754, -3.3234712 55.9265089, -3.304932200000001 55.911888, -3.3742832 55.8880206, -3.361237200000001 55.8718436, -3.3282782 55.8729997, -3.2520602 55.8964911, -3.2177282 55.895336, -3.2060552 55.8903307, -3.1538702 55.88648049999999, -3.1305242 55.893411, -3.0989382 55.8972611, -3.0680392 55.9091938, -3.0584262 55.9215076, -3.0982522 55.928048, -3.1037452 55.9418938, -3.1236572 55.9649602, -3.168289199999999 55.9849393, -3.1902622 55.9910847))');
     $g->setPrivate('lat', 55.9533);
-    $g->setPrivate('lng', 3.1883);
+    $g->setPrivate('lng', -3.1883);
 
     $l = new Location($dbhr, $dbhm);
     $areaid = $l->create(NULL, 'Central', 'Polygon', 'POLYGON((-3.217620849609375 55.9565040997114,-3.151702880859375 55.9565040997114,-3.151702880859375 55.93304863776238,-3.217620849609375 55.93304863776238,-3.217620849609375 55.9565040997114))');
@@ -29,6 +29,21 @@ if (!$gid) {
     $u->addEmail('test@test.com');
     $u->addLogin(User::LOGIN_NATIVE, NULL, 'freegle');
     $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
+    $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+    $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
+    $r = new MailRouter($this->dbhr, $this->dbhm);
+    list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+    $rc = $r->route();
+
+    $m = new Message($this->dbhr, $this->dbhm, $id);
+    $m->setPrivate('lat', 55.9533);
+    $m->setPrivate('lng',  -3.1883);
+    $m->setPrivate('locationid', $pcid);
+
+    # Index
+    $m = new Message($this->dbhr, $this->dbhm);
+    $m->updateSpatialIndex();
 
     $i = new Item($dbhr, $dbhm);
     $i->create('chair');
