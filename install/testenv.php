@@ -33,8 +33,12 @@ if (!$gid) {
     $u->addEmail('test@test.com');
     $u->addLogin(User::LOGIN_NATIVE, NULL, 'freegle');
     $u->addMembership($gid);
-    $u->addMembership($gid2, User::ROLE_MODERATOR);
     $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
+    $u->create('Test', 'User', 'Test User');
+    $u->addEmail('test2@test.com');
+    $u->addLogin(User::LOGIN_NATIVE, NULL, 'freegle');
+    $u->addMembership($gid2, User::ROLE_MODERATOR);
     $u->setMembershipAtt($gid2, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
     $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment');
