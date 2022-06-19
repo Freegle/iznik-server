@@ -20,6 +20,10 @@ if (!$gid) {
     $g->setPrivate('lat', 55.9533);
     $g->setPrivate('lng', -3.1883);
 
+    $gid2 = $g->create('FreeglePlayground2', Group::GROUP_FREEGLE);
+    $g->setPrivate('contactmail', 'test@test.com');
+    $g->setPrivate('namefull', 'Freegle Playground2');
+
     $l = new Location($dbhr, $dbhm);
     $areaid = $l->create(NULL, 'Central', 'Polygon', 'POLYGON((-3.217620849609375 55.9565040997114,-3.151702880859375 55.9565040997114,-3.151702880859375 55.93304863776238,-3.217620849609375 55.93304863776238,-3.217620849609375 55.9565040997114))');
     $pcid = $l->create(NULL, 'EH3 6SS', 'Postcode', 'POINT(-3.205333 55.957571)');
