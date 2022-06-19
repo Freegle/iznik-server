@@ -56,15 +56,20 @@ class Spam {
 
     /** @var  $dbhm LoggedPDO */
     private $dbhm;
-    private $reader;
+    private $reader = NULL;
 
     private $spamwords = NULL;
 
-    function __construct($dbhr, $dbhm, $id = NULL)
+    function __construct($dbhr, $dbhm)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
-        $this->reader = new Reader(MMDB);
+
+        try {
+            // This may fail in some test environments.
+            $this->reader = new Reader(MMDB);
+        } catch (\Exception $e) {}
+
         $this->log = new Log($this->dbhr, $this->dbhm);
     }
 
@@ -100,7 +105,7 @@ class Spam {
             }
         }
 
-        if ($ip) {
+        if ($ip && $this->reader) {
             # We have an IP, we reckon.  It's unlikely that someone would fake an IP which gave a spammer match, so
             # we don't have to worry too much about false positives.
             try {
