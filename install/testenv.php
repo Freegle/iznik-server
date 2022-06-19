@@ -30,19 +30,19 @@ if (!$gid) {
     $u->addLogin(User::LOGIN_NATIVE, NULL, 'freegle');
     $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-    $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+    $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
     $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
-    $r = new MailRouter($this->dbhr, $this->dbhm);
+    $r = new MailRouter($dbhr, $dbhm);
     list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
     $rc = $r->route();
 
-    $m = new Message($this->dbhr, $this->dbhm, $id);
+    $m = new Message($dbhr, $dbhm, $id);
     $m->setPrivate('lat', 55.9533);
     $m->setPrivate('lng',  -3.1883);
     $m->setPrivate('locationid', $pcid);
 
     # Index
-    $m = new Message($this->dbhr, $this->dbhm);
+    $m = new Message($dbhr, $dbhm);
     $m->updateSpatialIndex();
 
     $i = new Item($dbhr, $dbhm);

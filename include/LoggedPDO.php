@@ -202,7 +202,7 @@ class LoggedPDO {
             if ($gotit) {
                 $this->connected = TRUE;
             } else {
-                throw new DBException("Failed to connect to DB after $count retried");
+                throw new DBException("Failed to connect to DB after $count retries");
             }
         }
     }
