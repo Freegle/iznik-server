@@ -83,9 +83,9 @@ class Location extends Entity
                 if (PGSQLHOST) {
                     # This is an area.  Copy into Postgres for future mapping. If we fail, carry on.  There is a
                     # background cron job to save us.
-                    error_log("Copy $name into postgresql");
                     try {
                         $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
+                        $pgsql->allDownRetries = 0;
 
                         $pgsql->preExec("INSERT INTO locations (locationid, name, type, area, location)
                         VALUES (?, ?, ?, ST_Area(ST_GeomFromText(?, {$this->dbhr->SRID()})), ST_GeomFromText(?, {$this->dbhr->SRID()}));", [
@@ -320,6 +320,7 @@ class Location extends Entity
             # Delete from Postgresql too.  If we fail, carry on.  There is a background cron job to save us.
             try {
                 $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
+                $pgsql->allDownRetries = 0;
 
                 if ($pgsql)
                 {
@@ -550,6 +551,7 @@ class Location extends Entity
                     if (PGSQLHOST) {
                         # Copy into Postgres.  Continue if we don't manage to connect - background cron will save us.
                         $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
+                        $pgsql->allDownRetries = 0;
 
                         if ($pgsql) {
                             $pgsql->preExec("INSERT INTO locations (locationid, name, type, area, location)
@@ -744,6 +746,7 @@ class Location extends Entity
             # the locations table into Postgresql.  We try to keep the Postgresql table in sync in setGeometry, but
             # doing this full copy regularly is a safety net.
             $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
+            $pgsql->allDownRetries = 0;
 
             # When running on Docker/CircleCI, the database is not set up fully.
             $pgsql->preExec("CREATE EXTENSION IF NOT EXISTS postgis;");
@@ -809,6 +812,7 @@ class Location extends Entity
             #
             # This method assumes that copyLocationsToPostgresql has been called.
             $pgsql = new LoggedPDO(PGSQLHOST, PGSQLDB, PGSQLUSER, PGSQLPASSWORD, FALSE, NULL, 'pgsql');
+            $pgsql->allDownRetries = 0;
             $geomq = $geom ? " ST_Contains(ST_GeomFromText('$geom', {$this->dbhr->SRID()}), locations_spatial.geometry) AND " : '';
 
             $pcs = $this->dbhr->preQuery("SELECT DISTINCT locations_spatial.locationid, locations.name, locations.lat, locations.lng, locations.name AS areaname, locations.id AS areaid FROM locations_spatial 

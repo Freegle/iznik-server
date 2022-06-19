@@ -16,6 +16,7 @@ class LoggedPDO {
     private $database = NULL;
     private $inTransaction = FALSE;
     private $tries = 10;
+    public $allDownRetries = 30;
     public  $errorLog = FALSE;
     private $lastInsert = NULL;
     private $rowsAffected = NULL;
@@ -195,7 +196,7 @@ class LoggedPDO {
                         $hostindex = 0;
                     }
                 }
-            } while (!$gotit && $count < 30);
+            } while (!$gotit && $count < $this->allDownRetries);
 
             $this->dbwaittime += microtime(true) - $start;
 
