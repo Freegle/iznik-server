@@ -21,6 +21,7 @@ if (!$gid) {
     $g->setPrivate('lng', -3.1883);
 
     $gid2 = $g->create('FreeglePlayground2', Group::GROUP_FREEGLE);
+    $g->setPrivate('onhere', 1);
     $g->setPrivate('contactmail', 'test@test.com');
     $g->setPrivate('namefull', 'Freegle Playground2');
 
