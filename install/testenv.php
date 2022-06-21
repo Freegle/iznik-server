@@ -45,7 +45,7 @@ if (!$gid) {
 
     # An isochrone for the user.
     $i = new Isochrone($dbhr, $dbhm);
-    $id = $i->create($uid, Isochrone::WALK, Isochrone::DEFAULT_TIME, NULL, $pcid);
+    $id = $i->create($uid, Isochrone::WALK, Isochrone::MAX_TIME, NULL, $pcid);
 
     # A mod.
     $u->create('Test', 'User', 'Test User');
