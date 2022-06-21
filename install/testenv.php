@@ -39,6 +39,8 @@ if (!$gid) {
     $u = new User($dbhr, $dbhm);
     $uid = $u->create('Test', 'User', 'Test User');
     $u->addEmail('test@test.com');
+    $ouremail = $u->inventEmail();
+    $u->addEmail($ouremail, 0, FALSE);
     $u->addLogin(User::LOGIN_NATIVE, NULL, 'freegle');
     $u->addMembership($gid);
     $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
