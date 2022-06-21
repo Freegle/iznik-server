@@ -292,11 +292,12 @@ class LoggedPDO {
                     $this->lastInsert = 0;
                     $this->rowsAffected = 0;
 
-                    # lastInsertId might fail on Postgresql, eg for CREATE TABLE.
-                    try {
+                    # Postgresql requires a sequence number for lastInsertID.  We don't really use this in our
+                    # limited use of that DB so skip it.
+                    if ($this->variant != 'pgsql') {
                         $this->lastInsert = $this->_db->lastInsertId();
                         $this->rowsAffected = $sth->rowCount();
-                    } catch (\Exception $e) {}
+                    }
                 }
 
                 if ($rc) {
@@ -597,7 +598,9 @@ class LoggedPDO {
         $this->doConnect();
         $time = microtime(true);
         $ret = $this->retryExec($sql);
-        $this->lastInsert = $this->_db->lastInsertId();
+        if ($this->variant != 'pgsql') {
+            $this->lastInsert = $this->_db->lastInsertId();
+        }
 
         $duration = microtime(true) - $time;
 
