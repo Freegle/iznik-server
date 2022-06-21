@@ -751,6 +751,10 @@ class Location extends Entity
             # When running on Docker/CircleCI, the database is not set up fully.
             $pgsql->preExec("CREATE EXTENSION IF NOT EXISTS postgis;");
             $pgsql->preExec("CREATE EXTENSION IF NOT EXISTS btree_gist;");
+            try {
+                # No easy way to CREATE TYPE IF NOT EXISTS.
+                $pgsql->preExec("CREATE TYPE location_type AS ENUM('Road','Polygon','Line','Point','Postcode');");
+            } catch (\Exception $e) {}
             $pgsql->preExec("CREATE TABLE IF NOT EXISTS locations(id serial, locationid bigint, name text, type location_type, area numeric, location geometry);");
 
             # We use a tmp table.  This can mean that any location changes which happen during this process will not
@@ -759,10 +763,6 @@ class Location extends Entity
             $pgsql->preExec("DROP TABLE IF EXISTS locations_tmp$uniq;");
             $pgsql->preExec("DROP INDEX IF EXISTS idx_location$uniq;");
             $pgsql->preExec("DROP INDEX IF EXISTS idx_location_id$uniq;");
-            try {
-                # No easy way to CREATE TYPE IF NOT EXISTS.
-                $pgsql->preExec("CREATE TYPE location_type AS ENUM('Road','Polygon','Line','Point','Postcode');");
-            } catch (\Exception $e) {}
             $pgsql->preExec("CREATE TABLE locations_tmp$uniq (id serial, locationid bigint, name text, type location_type, area numeric, location geometry);");
             $pgsql->preExec("ALTER TABLE locations_tmp$uniq SET UNLOGGED");
 
