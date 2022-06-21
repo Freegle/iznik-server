@@ -751,6 +751,7 @@ class Location extends Entity
             # When running on Docker/CircleCI, the database is not set up fully.
             $pgsql->preExec("CREATE EXTENSION IF NOT EXISTS postgis;");
             $pgsql->preExec("CREATE EXTENSION IF NOT EXISTS btree_gist;");
+            $pgsql->preExec("CREATE TABLE IF NOT EXISTS locations(id serial, locationid bigint, name text, type location_type, area numeric, location geometry);");
 
             # We use a tmp table.  This can mean that any location changes which happen during this process will not
             # get picked up until the next time we do this processing.
