@@ -42,7 +42,7 @@ if (!$gid) {
     $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
     # An isochrone for the user.
-    $i = new Isochrone($this->dbhr, $this->dbhm);
+    $i = new Isochrone($dbhr, $dbhm);
     $id = $i->create($uid, Isochrone::WALK, Isochrone::DEFAULT_TIME, NULL, $pcid);
 
     # A mod.
