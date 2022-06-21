@@ -738,7 +738,7 @@ class Location extends Entity
         }
     }
 
-    public function copyLocationsToPostgresql() {
+    public function copyLocationsToPostgresql($trans = TRUE) {
         $count = 0;
 
         if (PGSQLHOST) {
@@ -792,12 +792,20 @@ class Location extends Entity
             $pgsql->preExec("ALTER TABLE locations_tmp$uniq SET LOGGED");
 
             # Atomic swap of tables.
+            #
+            # There's something weird on CircleCI where this doesn't work inside a transaction, but it does on our
+            # live system.  We don't really care about transactions on there so hack around it.
             $pgsql->preExec("CREATE TABLE IF NOT EXISTS locations (LIKE locations_tmp$uniq);");
-            $pgsql->preExec("BEGIN;");
+            if ($trans) {
+                $pgsql->preExec("BEGIN;");
+            }
             $pgsql->preExec("ALTER TABLE locations RENAME TO locations_old$uniq;");
             $pgsql->preExec("ALTER TABLE locations_tmp$uniq RENAME TO locations;");
             $pgsql->preExec("DROP TABLE locations_old$uniq;");
-            $pgsql->preExec("COMMIT;");
+
+            if ($trans) {
+                $pgsql->preExec("COMMIT;");
+            }
         }
 
         return $count;
