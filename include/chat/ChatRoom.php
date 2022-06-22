@@ -2046,7 +2046,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                 #
                 # If this is a conversation between the user and a mod, we always mail the user.
                 #
-                # And we always mail TN members.
+                # And we always mail TN members, without batching.
                 $sendingtoTN = $sendingto->isTN();
                 $emailnotifson = $sendingto->notifsOn(User::NOTIFS_EMAIL, $r->getPrivate('groupid'));
                 $forcemailfrommod = ($chat['chattype'] === ChatRoom::TYPE_USER2MOD && $chat['user1'] === $member['userid']);
