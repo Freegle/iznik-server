@@ -1513,7 +1513,16 @@ ORDER BY lastdate DESC;";
         $emails = count($fromuids) ? $u->getEmailsById($fromuids) : [];
 
         if (count($fromuids)) {
-            $fromusers = $u->getPublicsById($fromuids, $groupids, $messagehistory, Session::modtools(), Session::modtools(), Session::modtools(), Session::modtools(), FALSE, [ MessageCollection::APPROVED ], FALSE);
+            $fromusers = $u->getPublicsById($fromuids,
+                                            $groupids,
+                                            $messagehistory,
+                                            Session::modtools(),
+                                            Session::modtools(),
+                                            Session::modtools(),
+                                            Session::modtools(),
+                                            FALSE,
+                                            Session::modtools() ? [ MessageCollection::PENDING, MessageCollection::APPROVED, MessageCollection::SPAM ] : [ MessageCollection::APPROVED ],
+                                            FALSE);
             $u->getInfos($fromusers);
         }
 
