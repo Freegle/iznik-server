@@ -2047,20 +2047,24 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                 # If this is a conversation between the user and a mod, we always mail the user.
                 #
                 # And we always mail TN members.
+                $sendingtoTN = $sendingto->isTN();
                 $emailnotifson = $sendingto->notifsOn(User::NOTIFS_EMAIL, $r->getPrivate('groupid'));
                 $forcemailfrommod = ($chat['chattype'] === ChatRoom::TYPE_USER2MOD && $chat['user1'] === $member['userid']);
-                $mailson = $emailnotifson || $forcemailfrommod || $sendingto->isTN();
+                $mailson = $emailnotifson || $forcemailfrommod || $sendingtoTN;
                 #error_log("Consider mail {$member['userid']}, mails on " . $sendingto->notifsOn(User::NOTIFS_EMAIL) . ", memberships " . count($sendingto->getMemberships()));
 
                 # Now collect a summary of what they've missed.  Don't include anything stupid old, in case they
                 # have changed settings.
                 #
+                # For TN members we only want to mail 1 message at a time.
+                #
                 # For user2mod chats we want to mail messages even if they are held for chat review, because
                 # chat review only shows user2user chats, and if we don't do this we could delay chats with mods
                 # until the mod next visits the site.
+                $limitq = $sendingtoTN ? " LIMIT 1 " : "";
                 $mysqltime = date("Y-m-d", strtotime("Midnight 90 days ago"));
                 $readyq = $forceall ? '' : "AND chat_messages.id > ? $reviewq AND reviewrejected = 0 AND chat_messages.date >= ?";
-                $unmailedmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, messages.type AS msgtype, messages.subject FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? $readyq ORDER BY id ASC;",
+                $unmailedmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, messages.type AS msgtype, messages.subject FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? $readyq ORDER BY id ASC $limitq;",
                     $forceall ? [ $chat['chatid'] ] :
                     [
                         $chat['chatid'],
