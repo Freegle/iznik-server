@@ -220,6 +220,8 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
             $addr .= ', Oxfordshire';
         } else if ($addr == 'Kirkwall') {
             $addr .= ', Orkney';
+        } else if ($addr == 'City of York') {
+            $addr = 'York';
         }
 
         $url = "https://" . GEOCODER . "/api?q=" . urlencode($addr) . "&bbox=$bbswlng%2C$bbswlat%2C$bbnelng%2C$bbnelat";
