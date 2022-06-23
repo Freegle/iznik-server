@@ -557,7 +557,6 @@ class MailRouter
                     error_log("Passed SpamAssassin $spamscore");
                 }
                 list ($rc, $reason) = $this->spam->checkMessage($this->msg);
-                #error_log("Spam reason " . var_export($reason, TRUE));
 
                 if (!$rc)
                 {
@@ -654,6 +653,10 @@ class MailRouter
                             error_log("Automated reply from ADMIN - drop");
                         }
                         $ret = MailRouter::DROPPED;
+                    }
+                } else {
+                    if ($this->log) {
+                        error_log("Spam: " . var_export($reason, TRUE));
                     }
                 }
             }
