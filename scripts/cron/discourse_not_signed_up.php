@@ -202,6 +202,13 @@ try{
       if( is_object ($fulluser->single_sign_on_record)){
         $duser->external_id  = $fulluser->single_sign_on_record->external_id;
         //echo "external_id: ".$duser->external_id."\r\n";
+
+        $sql = "SELECT * FROM `users_logins` WHERE `uid` = ? AND `type` = 'Native';";
+        $nativelogins = $dbhr->preQuery($sql, [$duser->external_id]);
+        foreach ($nativelogins as $nativelogin) {
+          $duser->external_id = $nativelogin['userid'];
+        }
+
       } else {
       echo $duser->id."single_sign_on_record NOT OBJECT"."\r\n";
       }
@@ -218,17 +225,15 @@ try{
     $modfirstseen = $lastmodid != $activemod['id'];
     $lastmodid = $activemod['id'];
     $count++;
-    //echo "CHECKING: ".$activemod['id']." ".$activemod['fullname']."\r\n";
     $found = false;
     foreach ($allDusers as $duser) {
       if( $duser->external_id==$activemod['id']){
+        //echo "FOUND\r\n";
         $found = true;
         break;
       }
     }
-    //echo "CHECKING: ".$lastmodid." ".$modfirstseen." ".$found."\r\n";
     if( $modfirstseen && !$found) {
-      //echo "NOT ON DISCOURSE\r\n";
       $reportMid .= "* ".$activemod['id'].": ".$activemod['fullname']." - ".$activemod['lastaccess']."\r\n";
       $notondiscourse++;
     }
@@ -240,7 +245,6 @@ try{
           $found = false;
         }
       }
-      //echo "ON DISCOURSE $groupid\r\n";
       if( $found){
         $groups[$groupid] = true;
       }
