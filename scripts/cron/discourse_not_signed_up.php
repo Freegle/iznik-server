@@ -1,13 +1,20 @@
 <?php
 
+// hub/archive scripts/cron/discourse_checkusers.php
+//
+// Check for groups that are no represented by an active mod in Discourse
+//  active = non-backup and lastaccess in last 6 months
+// Also look for mods that have a TN email address as their preferred email
+// Mail geeks daily and centralmods once a week
+
 // NOT DONE YET
 // BUT USE
 // SELECT DISTINCT users.* FROM users INNER JOIN memberships ON users.id = memberships.userid INNER JOIN `groups` ON groups.id = memberships.groupid WHERE memberships.role IN ('Owner', 'Moderator') AND groups.type = 'Freegle' AND `lastaccess` > '2020-09-01 00:00:00' 
 
-// hub/archive scripts/cron/discourse_checkusers.php
-//
 // 2021-03-28 Start
 // 2022-01-02 Move groups not on Discourse to top of report
+// 2022-06-24 Cope with external id being native login id
+// 2022-06-25 Check if mod's preferred mail is TN
 
 namespace Freegle\Iznik;
 use \Datetime;
@@ -160,6 +167,7 @@ try{
   $now = new \DateTime();
   $count = 0;
   $reportTop = 'Total Discourse users: '.count($allDusers)."\r\n";
+  $modswithTNpreferredemails = 0;
 
   $sql = "SELECT * FROM `groups` WHERE `publish`=1 ORDER BY nameshort ASC";
   $allgroups = $dbhr->preQuery($sql);
@@ -202,12 +210,27 @@ try{
       if( is_object ($fulluser->single_sign_on_record)){
         $duser->external_id  = $fulluser->single_sign_on_record->external_id;
         //echo "external_id: ".$duser->external_id."\r\n";
+
+        $sql = "SELECT * FROM `users_logins` WHERE `uid` = ? AND `type` = 'Native';";
+        $nativelogins = $dbhr->preQuery($sql, [$duser->external_id]);
+        foreach ($nativelogins as $nativelogin) {
+          $duser->external_id = $nativelogin['userid'];
+        }
+
+        $sql = "SELECT * FROM `users_emails` WHERE `userid` = ? AND `preferred` = 1 AND `email` LIKE '%@user.trashnothing.com';";
+        $tnemails = $dbhr->preQuery($sql, [$duser->external_id]);
+        foreach ($tnemails as $tnemail) {
+          echo "TN email: ".$duser->external_id." - ".$tnemail['email']."\r\n";
+          $reportTop .= "MOD HAS TN preferred email: ".$duser->external_id." - ".$tnemail['email']."\r\n";
+          $modswithTNpreferredemails++;
+        }
       } else {
       echo $duser->id."single_sign_on_record NOT OBJECT"."\r\n";
       }
     } else {
       echo $duser->id."NO EXTERNALID"."\r\n";
     }
+    if( $count<0) break;
     //if( $count>10) break;
   }
 
@@ -218,17 +241,15 @@ try{
     $modfirstseen = $lastmodid != $activemod['id'];
     $lastmodid = $activemod['id'];
     $count++;
-    //echo "CHECKING: ".$activemod['id']." ".$activemod['fullname']."\r\n";
     $found = false;
     foreach ($allDusers as $duser) {
       if( $duser->external_id==$activemod['id']){
+        //echo "FOUND\r\n";
         $found = true;
         break;
       }
     }
-    //echo "CHECKING: ".$lastmodid." ".$modfirstseen." ".$found."\r\n";
     if( $modfirstseen && !$found) {
-      //echo "NOT ON DISCOURSE\r\n";
       $reportMid .= "* ".$activemod['id'].": ".$activemod['fullname']." - ".$activemod['lastaccess']."\r\n";
       $notondiscourse++;
     }
@@ -240,7 +261,6 @@ try{
           $found = false;
         }
       }
-      //echo "ON DISCOURSE $groupid\r\n";
       if( $found){
         $groups[$groupid] = true;
       }
@@ -269,7 +289,8 @@ try{
     //if( $count>10) break;
   }
   $reportTop .= "\r\n";
-  $reportTop .= "Groups without active volunteers on Discourse: $notrepresentedcount\r\n\r\n";
+  $reportTop .= "Groups without active volunteers on Discourse: $notrepresentedcount\r\n";
+  $reportTop .= "Mods with TN preferred emails: $modswithTNpreferredemails\r\n\r\n";
 
   $report = $reportTop.$reportMid;
 
