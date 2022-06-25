@@ -58,7 +58,7 @@ if (!$gid) {
 
     # A chat between them.
     $r = new ChatRoom($dbhr, $dbhm);
-    $rid = $r->createConversation($u->getId(), $uid);
+    list ($rid, $banned) = $r->createConversation($u->getId(), $uid);
     $cm = new ChatMessage($dbhr, $dbhm);
     $cm->create($rid, $uid, "The plane in Spayne falls mainly on the reign.");
 
