@@ -61,6 +61,7 @@ if (!$gid) {
     list ($rid, $banned) = $r->createConversation($u->getId(), $uid);
     $cm = new ChatMessage($dbhr, $dbhm);
     $cm->create($rid, $uid, "The plane in Spayne falls mainly on the reign.");
+    list ($rid2, $banned) = $r->createUser2Mod($u->getId(), $gid);
 
     # A message with an attachment.
     $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment');
