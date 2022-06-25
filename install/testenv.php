@@ -56,6 +56,12 @@ if (!$gid) {
     $u->addMembership($gid, User::ROLE_MODERATOR);
     $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
+    # A chat between them.
+    $r = new ChatRoom($dbhr, $dbhm);
+    $rid = $r->createConversation($u->getId(), $uid);
+    $cm = new ChatMessage($dbhr, $dbhm);
+    $cm->create($rid, $uid, "The plane in Spayne falls mainly on the reign.");
+
     # A message with an attachment.
     $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment');
     $msg = str_replace('Test att', 'OFFER: Test due (Tuvalu High Street)', $msg);
