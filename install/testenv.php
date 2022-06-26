@@ -50,19 +50,24 @@ if (!$gid) {
     $id = $i->create($uid, Isochrone::WALK, Isochrone::MAX_TIME, NULL, $pcid);
 
     # A mod.
-    $u->create('Test', 'User', 'Test User');
+    $uid2 = $u->create('Test', 'User', NULL);
     $u->addEmail('testmod@test.com');
     $u->addLogin(User::LOGIN_NATIVE, NULL, 'freegle');
     $u->addMembership($gid, User::ROLE_MODERATOR);
     $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
+    $uid3 = $u->create('Test', 'User', NULL);
+
     # A chat between them.
     $r = new ChatRoom($dbhr, $dbhm);
-    list ($rid, $banned) = $r->createConversation($uid, $u->getId());
+    list ($rid, $banned) = $r->createConversation($uid, $uid2);
     $cm = new ChatMessage($dbhr, $dbhm);
     $cm->create($rid, $uid, "The plane in Spayne falls mainly on the reign.");
     list ($rid2, $banned) = $r->createUser2Mod($uid, $gid);
     $cm->create($rid2, $uid, "The plane in Spayne falls mainly on the reign.");
+    list ($rid3, $banned) = $r->createUser2Mod($uid, $gid2);
+    $cm->create($rid3, $uid, "The plane in Spayne falls mainly on the reign.");
+    list ($rid4, $banned) = $r->createConversation($uid3, $uid);
 
     # A message with an attachment.
     $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment');
