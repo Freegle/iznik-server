@@ -58,7 +58,7 @@ if (!$gid) {
 
     $uid3 = $u->create('Test', 'User', NULL);
 
-    # A chat between them.
+    # Some chats.
     $r = new ChatRoom($dbhr, $dbhm);
     list ($rid, $banned) = $r->createConversation($uid, $uid2);
     $cm = new ChatMessage($dbhr, $dbhm);
