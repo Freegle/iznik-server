@@ -2875,6 +2875,9 @@ class User extends Entity
                         $this->dbhm->preExec("UPDATE IGNORE users_images SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_invitations SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE users_logins SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_logins SET uid = $id1 WHERE userid = $id1 AND `type` = ?;", [
+                            User::LOGIN_NATIVE
+                        ]);
                         $this->dbhm->preExec("UPDATE IGNORE users_nearby SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_notifications SET fromuser = $id1 WHERE fromuser = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_notifications SET touser = $id1 WHERE touser = $id2;");
