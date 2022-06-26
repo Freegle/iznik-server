@@ -58,10 +58,10 @@ if (!$gid) {
 
     # A chat between them.
     $r = new ChatRoom($dbhr, $dbhm);
-    list ($rid, $banned) = $r->createConversation($u->getId(), $uid);
+    list ($rid, $banned) = $r->createConversation($uid, $u->getId());
     $cm = new ChatMessage($dbhr, $dbhm);
     $cm->create($rid, $uid, "The plane in Spayne falls mainly on the reign.");
-    list ($rid2, $banned) = $r->createUser2Mod($u->getId(), $gid);
+    list ($rid2, $banned) = $r->createUser2Mod($uid, $gid);
     $cm->create($rid2, $uid, "The plane in Spayne falls mainly on the reign.");
 
     # A message with an attachment.
