@@ -13,8 +13,9 @@
 
 // 2021-03-28 Start
 // 2022-01-02 Move groups not on Discourse to top of report
-// 2022-06-24 Cope with external id being native login id
+// 2022-06-24 Cope with external_id being native login id
 // 2022-06-25 Check if mod's preferred mail is TN
+// 2022-06-26 Change from native-login-id lookup to get by email instead
 
 namespace Freegle\Iznik;
 use \Datetime;
@@ -201,7 +202,7 @@ try{
     usleep(250000);
     $count++;
 
-    echo "duser: ".$duser->id." ".$duser->username."\r\n";
+    //echo "duser: ".$duser->id." ".$duser->username."\r\n";
    
     // Get external_id from Discourse ie MT user id - and last_emailed_at 
     $duser->external_id = false;
@@ -209,13 +210,32 @@ try{
     if (property_exists($fulluser, 'single_sign_on_record')){
       if( is_object ($fulluser->single_sign_on_record)){
         $duser->external_id  = $fulluser->single_sign_on_record->external_id;
-        //echo "external_id: ".$duser->external_id."\r\n";
+        echo "external_id: ".$duser->external_id."\r\n";
 
-        $sql = "SELECT * FROM `users_logins` WHERE `uid` = ? AND `type` = 'Native';";
+        // See if this external_id is an active mod:
+        $found = false;
+        foreach ($allactivemodsgroups as $activemod) {
+          if( $duser->external_id==$activemod['id']){
+            $found = true;
+          }
+        }
+        if( !$found){
+          // If not found (because external_id out of date) [or because inactive]) then lookup Discourse's email
+          $demail = GetUserEmail($duser->username);
+          $sql = "SELECT * FROM `users_emails` WHERE `email` = ?;";
+          $userfromemails = $dbhr->preQuery($sql, [$demail]);
+          foreach ($userfromemails as $userfromemail) {
+            //echo "userfromemail: ".$userfromemail['userid']."\r\n";
+            $duser->external_id = $userfromemail['userid'];
+            break;
+          }
+        }
+
+        /*$sql = "SELECT * FROM `users_logins` WHERE `uid` = ? AND `type` = 'Native';";
         $nativelogins = $dbhr->preQuery($sql, [$duser->external_id]);
         foreach ($nativelogins as $nativelogin) {
           $duser->external_id = $nativelogin['userid'];
-        }
+        }*/
 
         $sql = "SELECT * FROM `users_emails` WHERE `userid` = ? AND `preferred` = 1 AND `email` LIKE '%@user.trashnothing.com';";
         $tnemails = $dbhr->preQuery($sql, [$duser->external_id]);
@@ -230,6 +250,7 @@ try{
     } else {
       echo $duser->id."NO EXTERNALID"."\r\n";
     }
+    echo "duser: ".$duser->id." ".$duser->username." ".$duser->external_id."\r\n";
     if( $count<0) break;
     //if( $count>10) break;
   }
