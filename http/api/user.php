@@ -311,7 +311,7 @@ function user() {
                     }
                 }
 
-                if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
+                if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($me && $me->isAdminOrSupport())) {
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
                     switch ($action) {
