@@ -759,7 +759,6 @@ class userAPITest extends IznikAPITestCase {
         assertEquals(2, $ret['ret']);
 
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        assertEquals('test4@test.com', $u->getEmailPreferred());
 
         # Remove for another user - should fail.
         $ret = $this->call('user', 'POST', [
@@ -768,7 +767,7 @@ class userAPITest extends IznikAPITestCase {
             'email' => 'test2@test.com'
         ]);
 
-        assertNotEquals(0, $ret['ret']);
+        assertNotEquals(2, $ret['ret']);
 
         # Remove for ourselves, should work.
         $ret = $this->call('user', 'POST', [
