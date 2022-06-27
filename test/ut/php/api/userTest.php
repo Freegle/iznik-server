@@ -749,13 +749,14 @@ class userAPITest extends IznikAPITestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
 
+        # Add for another user - should fail.
         $ret = $this->call('user', 'POST', [
             'id' => $uid,
             'action' => 'AddEmail',
             'email' => 'test4@test.com'
         ]);
 
-        assertEquals(0, $ret['ret']);
+        assertEquals(2, $ret['ret']);
 
         $u = User::get($this->dbhr, $this->dbhm, $uid);
         assertEquals('test4@test.com', $u->getEmailPreferred());
