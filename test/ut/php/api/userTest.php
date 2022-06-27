@@ -767,7 +767,7 @@ class userAPITest extends IznikAPITestCase {
             'email' => 'test2@test.com'
         ]);
 
-        assertNotEquals(2, $ret['ret']);
+        assertEquals(2, $ret['ret']);
 
         # Remove for ourselves, should work.
         $ret = $this->call('user', 'POST', [
