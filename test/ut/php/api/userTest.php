@@ -743,6 +743,7 @@ class userAPITest extends IznikAPITestCase {
     }
 
     public function testAddEmail() {
+        $this->user->setPrivate('systemrole', User::SYSTEMROLE_USER);
         assertTrue($this->user->login('testpw'));
 
         $u = User::get($this->dbhr, $this->dbhm);
