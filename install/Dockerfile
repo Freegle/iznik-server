@@ -14,7 +14,7 @@ ENV MYSQL_USER=mysql \
 
 # 3rd party components
 RUN apt-get -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false update \
-	&& apt-get install -y mysql-server \
+	&& apt-get install -y mysql-server locales \
 	&& rm -rf /var/lib/mysql \
 	&& mkdir /var/lib/mysql \
     && locale-gen es_ES.UTF-8 \
