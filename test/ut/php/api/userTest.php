@@ -756,11 +756,37 @@ class userAPITest extends IznikAPITestCase {
             'email' => 'test4@test.com'
         ]);
 
-        assertEquals(2, $ret['ret']);
+        assertEquals(4, $ret['ret']);
 
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        # Add for ourselves, should fail - members add email via session call, not user call..
+        $ret = $this->call('user', 'POST', [
+            'id' => $this->user->getId(),
+            'action' => 'AddEmail',
+            'email' => 'test4@test.com'
+        ]);
+
+        assertEquals(4, $ret['ret']);
+        assertEquals('test@test.com', $this->user->getEmailPreferred());
+
+        # Add as an admin - should work.
+        $au = new User($this->dbhr, $this->dbhm);
+        $auid = $au->create("Test", "User", "Test User");
+        $au->setPrivate("systemrole", User::SYSTEMROLE_ADMIN);
+        assertGreaterThan(0, $au->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        assertTrue($au->login('testpw'));
+
+        $ret = $this->call('user', 'POST', [
+            'id' => $this->user->getId(),
+            'action' => 'AddEmail',
+            'email' => 'test4@test.com',
+            'dup' => TRUE
+        ]);
+
+        assertEquals(0, $ret['ret']);
+        assertEquals('test4@test.com', $this->user->getEmailPreferred());
 
         # Remove for another user - should fail.
+        assertTrue($this->user->login('testpw'));
         $ret = $this->call('user', 'POST', [
             'id' => $uid,
             'action' => 'RemoveEmail',
@@ -771,7 +797,7 @@ class userAPITest extends IznikAPITestCase {
 
         # Remove for ourselves, should work.
         $ret = $this->call('user', 'POST', [
-            'id' => $uid,
+            'id' => $this->user->getId(),
             'action' => 'RemoveEmail',
             'email' => 'test4@test.com'
         ]);

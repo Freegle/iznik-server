@@ -289,17 +289,19 @@ function user() {
                     $role = $me && $me->moderatorForUser($id) ? User::ROLE_MODERATOR : User::ROLE_NONMEMBER;
                 }
 
-                if ($me && $me->isAdminOrSupport() && $action == 'AddEmail') {
-                    $ret = [ 'ret' => 3, 'status' => 'Email already used' ];
-                    $uid = $u->findByEmail($email);
+                if ($action == 'AddEmail') {
+                    $ret = ['ret' => 4, 'status' => "You cannot administer those users"];
 
-                    if (!$uid) {
-                        $id = $u->addEmail($email);
-                        $ret = $id ? [ 'ret' => 0, 'status' => 'Success', 'emailid' => $id ] : [ 'ret' => 4, 'status' => 'Email add failed for some reason' ];
+                    if ($me && $me->isAdminOrSupport()) {
+                        $ret = [ 'ret' => 3, 'status' => 'Email already used' ];
+                        $uid = $u->findByEmail($email);
+
+                        if (!$uid) {
+                            $id = $u->addEmail($email);
+                            $ret = $id ? [ 'ret' => 0, 'status' => 'Success', 'emailid' => $id ] : [ 'ret' => 4, 'status' => 'Email add failed for some reason' ];
+                        }
                     }
-                }
-
-                if ($me && ($me->isAdminOrSupport() || $id == $me->getId()) && $action == 'RemoveEmail') {
+                } else if ($me && ($me->isAdminOrSupport() || $id == $me->getId()) && $action == 'RemoveEmail') {
                     # People can remove their own emails.
                     $ret = [ 'ret' => 3, 'status' => 'Not on same user' ];
                     $uid = $u->findByEmail($email);
@@ -309,9 +311,7 @@ function user() {
                         $ret = [ 'ret' => 0, 'status' => 'Success' ];
                         $u->removeEmail($email);
                     }
-                }
-
-                if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($me && $me->isAdminOrSupport())) {
+                } else if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($me && $me->isAdminOrSupport())) {
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];
 
                     switch ($action) {
@@ -324,9 +324,7 @@ function user() {
                             $u->unbounce($eid, TRUE);
                             break;
                     }
-                }
-
-                if ($me) {
+                } else if ($me) {
                     if ($action == 'Merge') {
                         $email1 = Utils::presdef('email1', $_REQUEST, NULL);
                         $email2 = Utils::presdef('email2', $_REQUEST, NULL);
