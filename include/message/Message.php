@@ -989,6 +989,8 @@ class Message
                 $ret['FOP'] = (Utils::pres('textbody', $ret) && (strpos($ret['textbody'], 'Fair Offer Policy') !== FALSE) || $ret['FOP']) ? 1 : 0;
             }
 
+            $ret['fromuserid'] = $msg['fromuser'];
+
             $rets[$msg['id']] = $ret;
         }
 
