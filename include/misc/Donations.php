@@ -14,6 +14,12 @@ class Donations
     const TYPE_EXTERNAL = 'External';
     const TYPE_OTHER = 'Other';
 
+    const SOURCE_DONATE_WITH_PAYPAL = 'DonateWithPayPal';
+    const SOURCE_PAYPAL_GIVING_FUND = 'PayPalGivingFund';
+    const SOURCE_FACEBOOK = 'Facebook';
+    const SOURCE_EBAY = 'eBay';
+    const SOURCE_BANK_TRANSFER = 'BankTransfer';
+
     const MANUAL_THANKS = 20;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid = NULL)
@@ -23,8 +29,8 @@ class Donations
         $this->groupid = $groupid;
     }
 
-    public function add($eid, $email, $name, $date, $txnid, $gross, $donationType, $transactionType = NULL) {
-        $this->dbhm->preExec("INSERT INTO users_donations (userid, Payer, PayerDisplayName, timestamp, TransactionID, GrossAmount, TransactionType, `type`) VALUES (?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE userid = ?, timestamp = ?;", [
+    public function add($eid, $email, $name, $date, $txnid, $gross, $donationType, $transactionType = NULL, $source = Donations::SOURCE_DONATE_WITH_PAYPAL) {
+        $this->dbhm->preExec("INSERT INTO users_donations (userid, Payer, PayerDisplayName, timestamp, TransactionID, GrossAmount, TransactionType, `type`, `source`) VALUES (?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE userid = ?, timestamp = ?;", [
             $eid,
             $email,
             $name,
@@ -33,6 +39,7 @@ class Donations
             $gross,
             $transactionType,
             $donationType,
+            $source,
             $eid,
             $date
         ]);
