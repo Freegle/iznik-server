@@ -3951,6 +3951,12 @@ class User extends Entity
             $search = User::decodeId($search);
         }
 
+        if (preg_match('/story-(.*)/', $search, $matches)) {
+            # Story.
+            $s = new Story($this->dbhr, $this->dbhm, $matches[1]);
+            $search = $s->getPrivate('userid');
+        }
+
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $id = intval(Utils::presdef('id', $ctx, 0));
         $ctx = $ctx ? $ctx : [];
