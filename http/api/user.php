@@ -301,7 +301,7 @@ function user() {
                             $ret = $id ? [ 'ret' => 0, 'status' => 'Success', 'emailid' => $id ] : [ 'ret' => 4, 'status' => 'Email add failed for some reason' ];
                         }
                     }
-                } else if ($me && ($me->isAdminOrSupport() || $id == $me->getId()) && $action == 'RemoveEmail') {
+                } else if (($me && ($me->isAdminOrSupport() || $id == $me->getId())) && $action == 'RemoveEmail') {
                     # People can remove their own emails.
                     $ret = [ 'ret' => 3, 'status' => 'Not on same user' ];
                     $uid = $u->findByEmail($email);
@@ -311,21 +311,15 @@ function user() {
                         $ret = [ 'ret' => 0, 'status' => 'Success' ];
                         $u->removeEmail($email);
                     }
-                } else if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($me && $me->isAdminOrSupport())) {
-                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
-
-                    switch ($action) {
-                        case 'Mail':
-                            $u->mail($groupid, $subject, $body, NULL);
-                            break;
-                        case 'Unbounce':
-                            $email = $u->getEmailPreferred();
-                            $eid = $u->getIdForEmail($email)['id'];
-                            $u->unbounce($eid, TRUE);
-                            break;
-                    }
                 } else if ($me) {
-                    if ($action == 'Merge') {
+                    if ($action == 'Mail' && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($me && $me->isAdminOrSupport()))) {
+                        $u->mail($groupid, $subject, $body, NULL);
+                        $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                    } else if ($action == 'Unbounce' && ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER || ($me && $me->isAdminOrSupport()))) {
+                        $email = $u->getEmailPreferred();
+                        $eid = $u->getIdForEmail($email)['id'];
+                        $u->unbounce($eid, TRUE);
+                    } else if ($action == 'Merge') {
                         $email1 = Utils::presdef('email1', $_REQUEST, NULL);
                         $email2 = Utils::presdef('email2', $_REQUEST, NULL);
                         $uid1 = Utils::presint('id1', $_REQUEST, NULL);
