@@ -6542,7 +6542,7 @@ memberships.groupid IN $groupq
 
             # A supporter is a mod, someone who has donated recently, or done microvolunteering recently.
             if (count($idsleft)) {
-                $start = date('Y-m-d', strtotime("60 days ago"));
+                $start = date('Y-m-d', strtotime("360 days ago"));
                 $info = $this->dbhr->preQuery(
                     "SELECT DISTINCT users.id AS userid, settings, systemrole FROM users LEFT JOIN microactions ON users.id = microactions.userid WHERE users.id IN (" . implode(
                         ',',
