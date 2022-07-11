@@ -131,9 +131,8 @@ class chatRoomsTest extends IznikTestCase {
 
         $id = $r->createGroupChat('test', $this->groupid);
         assertNull($id);
+    }
 
-        }
-    
     public function testNotifyUser2User() {
         $this->log(__METHOD__ );
 
@@ -627,7 +626,8 @@ class chatRoomsTest extends IznikTestCase {
             'subject' => $message->getSubject(),
             'to' => $message->getTo(),
             'body' => $message->getBody(),
-            'groupid' => $groupid
+            'groupid' => $groupid,
+            'contentType' => $message->getContentType()
         ];
     }
 
@@ -1142,6 +1142,51 @@ class chatRoomsTest extends IznikTestCase {
 
         assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
         assertEquals('[Freegle] You have a new message', $this->msgsSent[0]['subject']);
+    }
+
+    public function testNotifyUser2UserJustImage() {
+        $this->log(__METHOD__ );
+
+        # Set up a chatroom
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test1@test.com');
+        $u->addEmail('test1@' . USER_DOMAIN);
+
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
+        assertNotNull($id);
+
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
+        $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_CHAT_MESSAGE);
+        $attid = $a->create(NULL, $data);
+        assertNotNull($attid);
+
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cm, $banned) = $m->create($id, $u1, NULL, ChatMessage::TYPE_IMAGE, NULL, TRUE, NULL, NULL, NULL, $attid);
+        $this->log("Created chat message $cm");
+
+        $r = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
+            ->setMethods(array('mailer'))
+            ->getMock();
+
+        $r->method('mailer')->will($this->returnCallback(function($message) {
+            return($this->mailer($message));
+        }));
+
+        $this->msgsSent = [];
+
+        # Notify - will email just one as we don't notify our own by default.
+        $this->log("Will email justone");
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
+        assertEquals('multipart/alternative', $this->msgsSent[0]['contentType']);
     }
 }
 

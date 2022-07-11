@@ -2361,19 +2361,6 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                 error_log("Notify chat #{$chat['chatid']} $to for {$member['userid']} $subject last mailed will be $lastmsgemailed lastmax $lastmaxmailed");
                                 try {
                                     #error_log("Our email " . $sendingto->getOurEmail() . " for " . $sendingto->getEmailPreferred());
-                                    if (Utils::pres('seed', $member)) {
-                                        # If this is a seed, we want to include the HTML if we would do so for the
-                                        # recipient that it is a copy of.  That way we will analyse a representative
-                                        # sample, rather than always send a plain text only email to the seeds.
-                                        $includehtml = $member['seed']->getOurEmail();
-                                        #error_log("Seed {$member['userid']} copy of " . $member['seed']->getId() . " use html? $includehtml html len " . strlen($html));
-                                    } else {
-                                        # We only include the HTML part if this is a user on our platform; otherwise
-                                        # we just send a text bodypart containing the replies.  This means that our
-                                        # messages to users who aren't on here look less confusing.
-                                        $includehtml = $sendingto->getOurEmail();
-                                    }
-
                                     # Make the text summary longer, because this helps with spam detection according
                                     # to Litmus.
                                     $textsummary .= "\r\n\r\n-------\r\nThis is a text-only version of the message; you can also view this message in HTML if you have it turned on, and on the website.  We're adding this because short text messages don't always get delivered successfully.\r\n";
@@ -2385,7 +2372,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                         $replyto,
                                         $subject,
                                         $textsummary,
-                                        $includehtml ? $html : NULL,
+                                        $html,
                                         $chattype == ChatRoom::TYPE_USER2USER ? $sendingfrom->getId() : NULL,
                                         $groupid,
                                         $refmsgs);
