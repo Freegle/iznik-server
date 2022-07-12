@@ -34,6 +34,21 @@
           <mj-text font-size="18px">{{ textbody|nl2br }}</mj-text>
         </mj-column>
       </mj-section>
+      <mj-raw>{% for sponsor in sponsors %}</mj-raw>
+      <mj-section background-color="white">
+        <mj-column width="150px">
+          <mj-image alt="Sponsor logo" href="{{ sponsor.linkurl }}" align="left" border-radius="5px" src="{{ sponsor.imageurl }}" width="80px"></mj-image>
+        </mj-column>
+        <mj-column>
+          <mj-text>
+            <p>This community is kindly sponsored by:</p>
+            <a href="{{ sponsor.linkurl }}">{{ sponsor.name }}</a></mj-text>
+          <mj-raw>{% if sponsor.tagline is defined %}</mj-raw>
+          <mj-text><b>{{ sponsor.tagline }}</b></mj-text>
+          <mj-raw>{% endif %}</mj-raw>
+        </mj-column>
+      </mj-section>
+      <mj-raw>{% endfor %}</mj-raw>
       <mj-section background-color="#E0E0E0">
         <mj-column>
           <mj-text font-size="9px" color="#707070">You've received this mail because you're a member of <a href="{{ visit }}">{{ groupname }}</a>. You can unsubscribe from <a href="{{ unsubscribe }}">here</a>.

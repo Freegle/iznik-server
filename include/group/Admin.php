@@ -55,7 +55,7 @@ class Admin extends Entity
         return($atts);
     }
 
-    public function constructMessage($groupname, $modsmail, $to, $toname, $from, $subject, $text) {
+    public function constructMessage($groupname, $modsmail, $to, $toname, $from, $subject, $text, $sponsors) {
         $post = "https://" . USER_SITE;
         $unsubscribe = "https://" . USER_SITE . "/unsubscribe";
         $visit = "https://" .  USER_SITE . "/mygroups";
@@ -74,7 +74,8 @@ class Admin extends Entity
             'subject' => "ADMIN: $subject",
             'textbody' => $text,
             'groupname' => $groupname,
-            'unsubscribe' => "https://" . USER_SITE . "/unsubscribe"
+            'unsubscribe' => "https://" . USER_SITE . "/unsubscribe",
+            'sponsors' => $sponsors,
         ]);
 
         $message = \Swift_Message::newInstance()
@@ -175,7 +176,7 @@ class Admin extends Entity
 
             if ($preferred) {
                 try {
-                    $msg = $this->constructMessage($groupname, $modsmail, $preferred, $u->getName(), $g->getAutoEmail(), $this->admin['subject'], $this->admin['text']);
+                    $msg = $this->constructMessage($groupname, $modsmail, $preferred, $u->getName(), $g->getAutoEmail(), $this->admin['subject'], $this->admin['text'], $g->getSponsorships());
 
                     Mail::addHeaders($msg, Mail::ADMIN, $u->getId());
 

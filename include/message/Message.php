@@ -1336,7 +1336,7 @@ ORDER BY lastdate DESC;";
                                     $chatids = array_merge($chatids, array_filter(array_column($allreply, 'chatid')));
                                 }
 
-                                $sql = "SELECT DISTINCT m1.* FROM chat_messages m1 LEFT JOIN chat_messages m2 ON (m1.chatid = m2.chatid AND m1.id < m2.id) WHERE m2.id IS NULL AND m1.chatid IN (" . implode(',', $chatids) . ");";
+                                $sql = "SELECT DISTINCT m1.* FROM chat_messages m1 LEFT JOIN chat_messages m2 ON (m1.chatid = m2.chatid AND m1.id < m2.id) WHERE m2.id IS NULL AND m1.chatid IN (" . implode(',', $chatids) . ") AND m1.reviewrequired = 0;";
                                 $lastreplies = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
                             }
 
