@@ -25,8 +25,8 @@ if (count($opts) < 1) {
         $u = User::get($dbhr, $dbhm, $uid);
 
         if ($add) {
-            error_log("Added email $add");
-            $u->addEmail($add);
+            $rc = $u->addEmail($add);
+            error_log("Added email $add id $rc");
         }
 
         if ($remove) {
