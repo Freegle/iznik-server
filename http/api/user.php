@@ -319,6 +319,7 @@ function user() {
                         $email = $u->getEmailPreferred();
                         $eid = $u->getIdForEmail($email)['id'];
                         $u->unbounce($eid, TRUE);
+                        $ret = [ 'ret' => 0, 'status' => 'Success' ];
                     } else if ($action == 'Merge') {
                         $email1 = Utils::presdef('email1', $_REQUEST, NULL);
                         $email2 = Utils::presdef('email2', $_REQUEST, NULL);
