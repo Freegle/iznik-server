@@ -742,6 +742,25 @@ class userAPITest extends IznikAPITestCase {
         assertNotNull($log);
     }
 
+    public function testUnbounceAsMember()
+    {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(null, null, 'Test User');
+        $u->addEmail('test3@test.com');
+        $u->addMembership($this->groupid);
+        $u->setPrivate('bouncing', 1);
+        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+
+        assertTrue($u->login('testpw'));
+
+        $ret = $this->call('user', 'POST', [
+            'id' => $uid,
+            'action' => 'Unbounce'
+        ]);
+
+        assertEquals(0, $ret['ret']);
+    }
+
     public function testAddEmail() {
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_USER);
         assertTrue($this->user->login('testpw'));
