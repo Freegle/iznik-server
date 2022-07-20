@@ -40,7 +40,7 @@ if (($sso->validatePayload($payload,$signature))) {
 
             if( count($sessions)==0){
               error_log('discourse_sso - no login sessions');
-              echo "You have no MT login sessions. This might mean that you aren't the moderator of a Freegle group yet. Please check at <a href='https://modtools.org/' target='_blank'>https://modtools.org</a>.";
+              echo "You have no MT login sessions in this browser. If you have come from the MT app, please login at <a href='https://modtools.org/' target='_blank'>https://modtools.org</a>. Or it might mean that you aren't the moderator of a Freegle group yet.";
               exit(0);
             }
             foreach ($sessions as &$session) {
