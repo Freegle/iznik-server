@@ -2342,17 +2342,21 @@ ORDER BY lastdate DESC;";
         }
 
         if ($source == Message::EMAIL) {
-            # Make sure we have a user for the sender.
+            # Make sure we have a user for the sender.  We need to serialise this to avoid creating multiple
+            # users for the same underlying user if they send multiple requests at the same time, which TN does.
+            # We only serialise per machine as we only have one incoming mail server.  We could use LOCK TABLE if
+            # we needed to.
+            $lock = "/tmp/iznik_user_creation.lock";
+            $lockh = fopen($lock, 'wa');
+            flock($lockh, LOCK_EX);
+
             $u = User::get($this->dbhr, $this->dbhm);
 
             # If there is a Yahoo uid in here - which there isn't always - we might be able to find them that way.
             #
             # This is important as well as checking the email address as users can send from the owner address (which
             # we do not allow to be attached to a specific user, as it can be shared by many).
-            $iznikid = NULL;
             $userid = NULL;
-            $yahoouid = NULL;
-            $emailid = NULL;
             $this->modmail = FALSE;
 
             # TN passes the user id in a header.
@@ -2419,6 +2423,8 @@ ORDER BY lastdate DESC;";
                     }
                 }
             }
+
+            flock($lockh, LOCK_UN);
         }
 
         return(TRUE);
