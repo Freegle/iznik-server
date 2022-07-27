@@ -2193,7 +2193,8 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                         }
                     }
 
-                    #error_log("Consider justmine $justmine vs " . $sendingto->notifsOn(User::NOTIFS_EMAIL_MINE) . " for " . $sendingto->getId());
+                    #error_log("Consider justmine $justmine TN $sendingtoTN vs " . $sendingto->notifsOn(User::NOTIFS_EMAIL_MINE) . " for " . $sendingto->getId());
+
                     if (!$justmine || $sendingtoTN || $sendingto->notifsOn(User::NOTIFS_EMAIL_MINE)) {
                         if (count($twigmessages)) {
                             # As a subject, we should use the last "interested in" message in this chat - this is the

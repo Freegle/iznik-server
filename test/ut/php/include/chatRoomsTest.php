@@ -16,16 +16,21 @@ class chatRoomsTest extends IznikTestCase {
     private $dbhr, $dbhm;
 
     protected function setUp() : void {
-        parent::setUp ();
+        parent::setUp();
 
         global $dbhr, $dbhm;
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
         $dbhm->preExec("DELETE FROM chat_rooms WHERE name = 'test';");
+        $dbhm->preExec("DELETE FROM users_emails WHERE email LIKE 'test2@user.trashnothing.com';");
 
         $g = Group::get($dbhr, $dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
+    }
+
+    protected function tearDown(): void
+    {
     }
 
     public function testPromoteRead() {
@@ -1187,6 +1192,61 @@ class chatRoomsTest extends IznikTestCase {
         $this->log("Will email justone");
         assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
         assertEquals('multipart/alternative', $this->msgsSent[0]['contentType']);
+    }
+
+    public function testNotifyTN() {
+        $this->log(__METHOD__ );
+
+        # Set up a chatroom
+        $ua = User::get($this->dbhr, $this->dbhm);
+        $u1 = $ua->create(NULL, NULL, "Test User 1");
+        $ua->addMembership($this->groupid);
+        assertNotNull($ua->addEmail('test1@test.com'));
+
+        $ub = User::get($this->dbhr, $this->dbhm);
+        $u2 = $ub->create(NULL, NULL, "Test User 2");
+        $ub->addMembership($this->groupid);
+        assertNotNull($ub->addEmail('test2@user.trashnothing.com'));
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
+        assertNotNull($id);
+
+        # Three messages:
+        # - one from TN user
+        # - two from FD user
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cm, $banned) = $m->create($id, $u1, "test1", ChatMessage::TYPE_DEFAULT, NULL, TRUE);
+        assertNotNull($cm);
+        list ($cm, $banned) = $m->create($id, $u2, "test2", ChatMessage::TYPE_DEFAULT, NULL, FALSE);
+        assertNotNull($cm);
+        list ($cm, $banned) = $m->create($id, $u2, "test3", ChatMessage::TYPE_DEFAULT, NULL, FALSE);
+        assertNotNull($cm);
+
+        $r = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
+            ->setMethods(array('mailer'))
+            ->getMock();
+
+        $r->method('mailer')->will($this->returnCallback(function($message) {
+            return($this->mailer($message));
+        }));
+
+        # Notify:
+        # - message from TN user to FD user
+        # - message from FD user to TN user; we only notify one TN message at a time.
+        # Notify - will email just one as we don't notify our own by default.
+        $this->msgsSent = [];
+        $sent = $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0);
+        assertEquals(2, $sent);
+        assertEquals('test1@test.com', array_keys($this->msgsSent[0]['to'])[0]);
+        assertEquals('test2@user.trashnothing.com', array_keys($this->msgsSent[1]['to'])[0]);
+
+        # Notify:
+        # - other message from FD user to TN user
+        $this->msgsSent = [];
+        assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
+        assertEquals('test2@user.trashnothing.com', array_keys($this->msgsSent[0]['to'])[0]);
     }
 }
 
