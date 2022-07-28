@@ -8,6 +8,8 @@ require_once(IZNIK_BASE . '/lib/GreatCircle.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
+$lockh = Utils::lockScript(basename(__FILE__));
+
 # Find the latest TN rating we have - that's what we use to decide the time period for the sync.
 $latest = $dbhr->preQuery("SELECT MAX(timestamp) AS max FROM `ratings` WHERE tn_rating_id IS NOT NULL;");
 $from = Utils::ISODate('@' . strtotime($latest[0]['max']));
@@ -48,7 +50,7 @@ do {
     }
 } while (count($ratings) == 100);
 
-# Sync the reply time and about me/.
+# Sync the reply time and about me.
 $page = 1;
 
 do {
@@ -82,6 +84,16 @@ do {
                         \Sentry\captureException($e);
                     }
                 }
+
+                # Spot name changes.
+                $u = User::get($dbhr, $dbhm, $change['fd_user_id']);
+
+                $oldname = User::removeTNGroup($u->getName());
+
+                if ($oldname != $change['username']) {
+                    error_log("Name change for {$change['fd_user_id']} $oldname => {$change['username']}");
+                    $u->setPrivate('fullname', $change['username']);
+                }
             } catch (\Exception $e) {
                 error_log("Ratings sync failed " . $e->getMessage() . " " . var_export($rating, true));
                 \Sentry\captureException($e);
@@ -89,3 +101,5 @@ do {
         }
     }
 } while (count($changes) == 100);
+
+Utils::unlockScript($lockh);
