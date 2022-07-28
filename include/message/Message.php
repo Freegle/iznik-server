@@ -2345,7 +2345,7 @@ ORDER BY lastdate DESC;";
             # Make sure we have a user for the sender.  We need to serialise this to avoid creating multiple
             # users for the same underlying user if they send multiple requests at the same time, which TN does.
             # We only serialise per machine as we only have one incoming mail server.  We could use LOCK TABLE if
-            # we needed to.
+            # we needed to serialise across multiple machines.
             $lock = "/tmp/iznik_user_creation.lock";
             $lockh = fopen($lock, 'wa');
             flock($lockh, LOCK_EX);

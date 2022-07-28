@@ -102,4 +102,33 @@ do {
     }
 } while (count($changes) == 100);
 
+# Spot any duplicate FD users we have created for TN users.  This should no longer happen given the locking code in
+# Message::parse and so could be retired once we're convinced it is fixed.
+$users = $dbhr->preQuery("SELECT COUNT(DISTINCT(userid)) AS count, REGEXP_REPLACE(email, '(.*)-g[0-9]+@user\.trashnothing\.com', '$1') AS username FROM users_emails WHERE email LIKE '%@user.trashnothing.com' GROUP BY username HAVING count > 1;");
+
+if (count($users) > 0) {
+    error_log("Found " . count($users) . " duplicate TN users");
+    $u = User::get($dbhr, $dbhm);
+
+    foreach ($users as $user) {
+        error_log("Look for dups for {$user['username']}");
+        $userids = $dbhr->preQuery("SELECT DISTINCT(userid) FROM users_emails WHERE REGEXP_REPLACE(email, '(.*)-g[0-9]+@user\.trashnothing\.com', '$1') = ? AND email LIKE '%@user.trashnothing.com';", [
+            $user['username']]
+        );
+
+        error_log("Found " . count($userids) . " users for {$user['username']}");
+        if (count($userids) > 1) {
+            $mergeto = $userids[0]['userid'];
+
+            foreach ($userids as $userid) {
+                if ($userid['userid'] != $mergeto) {
+                    error_log("Merging {$userid['userid']} into $mergeto");
+                    $u->merge($mergeto, $userid['userid'], "Duplicate TN user created accidentally");
+                }
+            }
+        }
+    }
+}
+
+
 Utils::unlockScript($lockh);

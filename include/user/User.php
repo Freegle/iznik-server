@@ -2726,7 +2726,7 @@ class User extends Entity
 
     public function merge($id1, $id2, $reason, $forcemerge = FALSE)
     {
-        error_log("Merge $id1, $id2, $reason");
+        error_log("Merge $id2 into $id1, $reason");
 
         # We might not be able to merge them, if one or the other has the setting to prevent that.
         $u1 = User::get($this->dbhr, $this->dbhm, $id1);
