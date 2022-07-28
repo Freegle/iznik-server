@@ -726,7 +726,7 @@ HAVING logincount > 0
                 # came from Pending or Approved.
                 #
                 # If we have reviewed someone recently, don't show them again as it gets annoying.
-                $collectionq = " AND reviewrequestedat IS NOT NULL AND (reviewedat IS NULL OR DATE(reviewedat) < DATE_SUB(NOW(), INTERVAL 31 DAY)";
+                $collectionq = " AND reviewrequestedat IS NOT NULL AND (reviewedat IS NULL OR DATE(reviewedat) < DATE_SUB(NOW(), INTERVAL 31 DAY))";
             } else if ($collection) {
                 $collectionq = ' AND memberships.collection = ' . $this->dbhr->quote($collection) . ' ';
             }
