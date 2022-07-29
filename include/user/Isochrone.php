@@ -17,6 +17,8 @@ class Isochrone extends Entity
     const MIN_TIME = 5;
     const MAX_TIME = 45;
 
+    const SIMPLIFY = 0.01;
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         $this->name = 'isochrone';
@@ -100,7 +102,7 @@ class Isochrone extends Entity
                     $transport,
                     $minutes,
                     $wkt,
-                    LoggedPDO::SIMPLIFY
+                    self::SIMPLIFY
                 ]);
             }
 
