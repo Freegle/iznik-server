@@ -67,10 +67,18 @@ class jobsTest extends IznikTestCase
 
         $j = new Jobs($this->dbhr, $this->dbhm);
         $csvFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'jobs.csv';
-        $j->scanToCSV(IZNIK_BASE . '/test/ut/php/misc/jobs.xml', $csvFile, PHP_INT_MAX, TRUE, 0);
+        $csvFile2 = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'jobs2.csv';
+        $j->scanToCSV(IZNIK_BASE . '/test/ut/php/misc/jobs.xml', $csvFile, PHP_INT_MAX, TRUE, 0, 1000, 1);
+        $j->scanToCSV(IZNIK_BASE . '/test/ut/php/misc/jobs2.xml', $csvFile2, PHP_INT_MAX, TRUE, 0, 1000, 2);
+        $j->prepareForLoadCSV();
         $j->loadCSV($csvFile);
+        $j->loadCSV($csvFile2);
         $found = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM jobs_new WHERE job_reference = ?;", [
             '634_518020'
+        ]);
+        assertEquals(1, $found[0]['count']);
+        $found = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM jobs_new WHERE job_reference = ?;", [
+            '18794_1836_2834'
         ]);
         assertEquals(1, $found[0]['count']);
 
@@ -79,6 +87,10 @@ class jobsTest extends IznikTestCase
 
         $found = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM jobs WHERE job_reference = ?;", [
             '634_518020'
+        ]);
+        assertEquals(1, $found[0]['count']);
+        $found = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM jobs WHERE job_reference = ?;", [
+            '18794_1836_2834'
         ]);
         assertEquals(1, $found[0]['count']);
     }
