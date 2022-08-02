@@ -331,7 +331,8 @@ class Alert extends Entity
                     $this->alert['html'],
                     NULL,
                     $this->alert['askclick'] ? 'https://' . USER_SITE . "/alert/viewed/$trackid" : NULL,
-                    'https://' . USER_SITE . "/beacon/$trackid");
+                    'https://' . USER_SITE . "/beacon/$trackid",
+                    !$groupid);
 
                 $text = $this->alert['text'];
                 if ($this->alert['askclick']) {
@@ -359,7 +360,8 @@ class Alert extends Entity
                 $this->alert['html'] ? $this->alert['html'] : nl2br($this->alert['text']),
                 NULL,
                 FALSE,
-                'https://' . USER_SITE);
+                'https://' . USER_SITE,
+                !$groupid);
 
             $text = $this->alert['text'];
             $msg = $this->constructMessage($from, $g->getPrivate('nameshort'), NULL, $from, $this->alert['subject'], $text, $html);
