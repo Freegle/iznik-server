@@ -24,7 +24,7 @@ function abtest() {
 
             if ($r < 0.1) {
                 # The 10% case we choose a random one of the other options.
-                $s = rand(1, count($variants) - 1);
+                $s = rand(0, count($variants) - 1);
                 $variant = $variants[$s];
             } else {
                 # Most of the time we choose the currently best-performing option.
