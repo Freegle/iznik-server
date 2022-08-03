@@ -90,6 +90,7 @@ define('FORUM_API', 'zzz');
 
 # We fetch jobs to display.
 define('WHATJOBS_DUMP', 'zzzz');
+define('WHATJOBS_DUMP2', 'zzzz');
 
 define('SERVER_LIST', '');
 define('GEOCODER', 'geocode.ilovefreegle.org');

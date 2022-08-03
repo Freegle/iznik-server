@@ -14,9 +14,15 @@ global $dbhr, $dbhm;
 $lockh = Utils::lockScript(basename(__FILE__));
 
 try {
-    $sql = "use information_schema; SELECT * FROM KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_NAME = 'messages' AND table_schema = '" . SQLDB . "';";
-    $schema = $dbhr->preQuery($sql);
-    $sql = $dbhr->preQuery("use " . SQLDB);
+    # Purge isochrones which are no longer used.
+    $isochrones = $dbhr->preQuery("SELECT isochrones.id FROM isochrones LEFT JOIN isochrones_users ON isochrones_users.isochroneid = isochrones.id WHERE isochrones_users.id IS NULL");
+    error_log("...isochrones " . count($isochrones));
+
+    foreach ($isochrones as $isochrone) {
+        $dbhm->preExec("DELETE FROM isochrones WHERE id = ?;", [
+            $isochrone['id']
+        ]);
+    }
 
     # Purge info about old admins which have been sent to completion.
     $start = date('Y-m-d', strtotime("midnight 90 days ago"));

@@ -4,7 +4,7 @@ namespace Freegle\Iznik;
 require_once(IZNIK_BASE . '/mailtemplates/header.php');
 require_once(IZNIK_BASE . '/mailtemplates/footer.php');
 
-function alert_tpl($groupname, $toname, $domain, $logo, $subject, $htmlsummary, $unsub, $click, $beacon)
+function alert_tpl($groupname, $toname, $domain, $logo, $subject, $htmlsummary, $unsub, $click, $beacon, $global)
 {
     $siteurl = "https://$domain";
     $html = <<<EOT
@@ -73,7 +73,20 @@ EOT;
                                                                 <tr>
                                                                     <td>
                                                                         <h1>$subject</h1>
+EOT;
+    if ($global)
+    {
+        $html .= <<<EOT
+                                                                        <p>Dear $toname,</p>
+                                                                        <p>This is being sent to all Freegle groups.  You will only get only copy of it.</p>
+EOT;
+    } else {
+        $html .= <<<EOT
                                                                         <p>Dear $toname (for $groupname),</p>
+EOT;
+
+    }
+        $html .= <<<EOT
                                                                     </td>    
                                                                 </tr>                                                                    
                                                                 <tr>

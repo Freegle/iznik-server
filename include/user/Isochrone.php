@@ -17,6 +17,8 @@ class Isochrone extends Entity
     const MIN_TIME = 5;
     const MAX_TIME = 45;
 
+    const SIMPLIFY = 0.01;
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
         $this->name = 'isochrone';
@@ -95,11 +97,12 @@ class Isochrone extends Entity
             $wkt = $this->fetchFromMapbox($transport, $lng, $lat, $minutes);
 
             if ($wkt) {
-                $rc = $this->dbhm->preExec("INSERT INTO isochrones (locationid, transport, minutes, polygon) VALUES (?, ?, ?, ST_GeomFromText(?, {$this->dbhr->SRID()}))", [
+                $rc = $this->dbhm->preExec("INSERT INTO isochrones (locationid, transport, minutes, polygon) VALUES (?, ?, ?, ST_SIMPLIFY(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?))", [
                     $locationid,
                     $transport,
                     $minutes,
-                    $wkt
+                    $wkt,
+                    self::SIMPLIFY
                 ]);
             }
 

@@ -400,7 +400,7 @@ class Group extends Entity
             # No need to check spam_users as those will be auto-removed by the check_spammers job (in earlier times
             # this wasn't the case for all groups).
             $sql = "SELECT memberships.groupid, COUNT(*) AS count, memberships.heldby IS NOT NULL AS held FROM memberships
-                    WHERE (reviewrequestedat IS NOT NULL AND (reviewedat IS NULL OR DATE(reviewedat) < CURDATE())) AND groupid IN $groupq
+                    WHERE (reviewrequestedat IS NOT NULL AND (reviewedat IS NULL OR DATE(reviewedat) < DATE_SUB(NOW(), INTERVAL 31 DAY))) AND groupid IN $groupq
                     GROUP BY memberships.groupid, held;";
             $spammembercounts = $this->dbhr->preQuery($sql, []);
 
@@ -725,8 +725,8 @@ HAVING logincount > 0
                 # This is to avoid moving members into a spam collection and then having to remember whether they
                 # came from Pending or Approved.
                 #
-                # If we have reviewed someone today, don't show them again as it gets annoying.
-                $collectionq = " AND reviewrequestedat IS NOT NULL AND (reviewedat IS NULL OR DATE(reviewedat) < CURDATE())";
+                # If we have reviewed someone recently, don't show them again as it gets annoying.
+                $collectionq = " AND reviewrequestedat IS NOT NULL AND (reviewedat IS NULL OR DATE(reviewedat) < DATE_SUB(NOW(), INTERVAL 31 DAY))";
             } else if ($collection) {
                 $collectionq = ' AND memberships.collection = ' . $this->dbhr->quote($collection) . ' ';
             }

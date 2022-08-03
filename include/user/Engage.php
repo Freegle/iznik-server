@@ -244,7 +244,7 @@ class Engage
         }
     }
 
-    public function sendUsers($engagement, $uids) {
+    public function sendUsers($engagement, $uids, $force = FALSE) {
         $count = 0;
 
         foreach ($uids as $uid) {
@@ -252,7 +252,7 @@ class Engage
             #error_log("Consider $uid");
 
             # Only send to users who have not turned off this kind of mail.
-            if ($u->getPrivate('relevantallowed')) {
+            if ($force || $u->getPrivate('relevantallowed')) {
                 #error_log("...allowed by user");
                 try {
                     // ...and who have a membership.
@@ -376,9 +376,10 @@ class Engage
 
         # Inactive users
         #
-        # First the ones who will shortly become dormant.
+        # First the ones who will shortly become dormant.  We always want to send this, even if they have turned
+        # off the normal engagement mails.
         $uids = $this->findUsersByFilter($id, Engage::FILTER_INACTIVE);
-        $count += $this->sendUsers(Engage::ENGAGEMENT_ATRISK, $uids);
+        $count += $this->sendUsers(Engage::ENGAGEMENT_ATRISK, $uids, TRUE);
 
         # Then the other inactive ones.
         $uids = $this->findUsersByEngagement($id, Engage::ENGAGEMENT_INACTIVE, 10000);

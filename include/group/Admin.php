@@ -8,8 +8,8 @@ class Admin extends Entity
     const SPOOLNAME = '/spool_admin_';
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'groupid', 'created', 'complete', 'subject', 'text', 'createdby', 'pending', 'parentid', 'heldby', 'heldat', 'activeonly');
-    var $settableatts = [ 'subject', 'text', 'pending' ];
+    var $publicatts = array('id', 'groupid', 'created', 'complete', 'subject', 'text', 'ctatext', 'ctalink', 'createdby', 'pending', 'parentid', 'heldby', 'heldat', 'activeonly');
+    var $settableatts = [ 'subject', 'text', 'pending', 'ctatext', 'ctalink' ];
 
     /** @var  $log Log */
     private $log;
@@ -20,11 +20,11 @@ class Admin extends Entity
         $this->log = new Log($dbhr, $dbhm);
     }
 
-    public function create($groupid, $createdby, $subject, $text) {
+    public function create($groupid, $createdby, $subject, $text, $ctatext = NULL, $ctalink = NULL) {
         $id = NULL;
 
-        $rc = $this->dbhm->preExec("INSERT INTO admins (`groupid`, `createdby`, `subject`, `text`) VALUES (?,?,?,?);", [
-            $groupid, $createdby, $subject, $text
+        $rc = $this->dbhm->preExec("INSERT INTO admins (`groupid`, `createdby`, `subject`, `text`, `ctatext`, `ctalink`) VALUES (?,?,?,?,?,?);", [
+            $groupid, $createdby, $subject, $text, $ctatext, $ctalink
         ]);
 
         if ($rc) {
@@ -55,13 +55,18 @@ class Admin extends Entity
         return($atts);
     }
 
-    public function constructMessage($groupname, $modsmail, $to, $toname, $from, $subject, $text, $sponsors) {
+    public function constructMessage($groupname, $modsmail, $to, $toname, $from, $subject, $text, $sponsors, $ctatext, $ctalink) {
         $post = "https://" . USER_SITE;
         $unsubscribe = "https://" . USER_SITE . "/unsubscribe";
         $visit = "https://" .  USER_SITE . "/mygroups";
 
         $text = str_replace('$groupname', $groupname, $text);
         $text = str_replace('$owneremail', $modsmail, $text);
+
+        if ($ctatext) {
+            $text .= "\r\n\r\n" . $ctatext . ":\r\n\r\n" . $ctalink;
+        }
+
         $subject = str_replace('ADMIN: ', '', $subject);
         $subject = str_replace('ADMIN ', '', $subject);
 
@@ -76,6 +81,8 @@ class Admin extends Entity
             'groupname' => $groupname,
             'unsubscribe' => "https://" . USER_SITE . "/unsubscribe",
             'sponsors' => $sponsors,
+            'ctatext' => $ctatext,
+            'ctalink' => $ctalink,
         ]);
 
         $message = \Swift_Message::newInstance()
@@ -176,7 +183,16 @@ class Admin extends Entity
 
             if ($preferred) {
                 try {
-                    $msg = $this->constructMessage($groupname, $modsmail, $preferred, $u->getName(), $g->getAutoEmail(), $this->admin['subject'], $this->admin['text'], $g->getSponsorships());
+                    $msg = $this->constructMessage($groupname,
+                                                   $modsmail,
+                                                   $preferred,
+                                                   $u->getName(),
+                                                   $g->getAutoEmail(),
+                                                   $this->admin['subject'],
+                                                   $this->admin['text'],
+                                                   $g->getSponsorships(),
+                                                   $this->admin['ctatext'],
+                                                   $this->admin['ctalink']);
 
                     Mail::addHeaders($msg, Mail::ADMIN, $u->getId());
 
@@ -224,7 +240,7 @@ class Admin extends Entity
         # We have a suggested admin, and we want to create a per-group copy.  This allows local groups to
         # edit/approve/reject as they see fit.
         $a = new Admin($this->dbhr, $this->dbhm);
-        $id = $a->create($groupid, NULL, $this->admin['subject'], $this->admin['text']);
+        $id = $a->create($groupid, NULL, $this->admin['subject'], $this->admin['text'], $this->admin['ctatext'], $this->admin['ctalink']);
 
         if ($id) {
             $a->setPrivate('parentid', $this->id);

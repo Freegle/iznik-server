@@ -2035,6 +2035,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                 $sendingto = User::get($this->dbhr, $this->dbhm, $member['userid']);
                 $other = $member['userid'] == $chatatts['user1']['id'] ? Utils::presdef('id', $chatatts['user2'], NULL) : $chatatts['user1']['id'];
                 $sendingfrom = User::get($this->dbhr, $this->dbhm, $other);
+                #error_log("Sending to {$sendingto->getEmailPreferred()} from {$sendingfrom->getEmailPreferred()}");
 
                 # For User2Mod chats we do different things based on whether we're notifying the member or the mods.
                 $notifyingmember = $chattype === ChatRoom::TYPE_USER2MOD && $member['role'] == User::ROLE_MEMBER;
@@ -2051,7 +2052,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                 $emailnotifson = $sendingto->notifsOn(User::NOTIFS_EMAIL, $r->getPrivate('groupid'));
                 $forcemailfrommod = ($chat['chattype'] === ChatRoom::TYPE_USER2MOD && $chat['user1'] === $member['userid']);
                 $mailson = $emailnotifson || $forcemailfrommod || $sendingtoTN;
-                #error_log("Consider mail {$member['userid']}, mails on " . $sendingto->notifsOn(User::NOTIFS_EMAIL) . ", memberships " . count($sendingto->getMemberships()));
+                #error_log("Consider mail user {$member['userid']}, mails on " . $sendingto->notifsOn(User::NOTIFS_EMAIL) . ", memberships " . count($sendingto->getMemberships()));
 
                 # Now collect a summary of what they've missed.  Don't include anything stupid old, in case they
                 # have changed settings.
@@ -2064,7 +2065,12 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                 $limitq = $sendingtoTN ? " LIMIT 1 " : "";
                 $mysqltime = date("Y-m-d", strtotime("Midnight 90 days ago"));
                 $readyq = $forceall ? '' : "AND chat_messages.id > ? $reviewq AND reviewrejected = 0 AND chat_messages.date >= ?";
-                $unmailedmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, messages.type AS msgtype, messages.subject FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? $readyq ORDER BY id ASC $limitq;",
+                $sql = "SELECT chat_messages.*, messages.type AS msgtype, messages.subject FROM chat_messages 
+    LEFT JOIN messages ON chat_messages.refmsgid = messages.id 
+    WHERE chatid = ? $readyq 
+    ORDER BY id ASC $limitq;";
+                #error_log("Query $sql");
+                $unmailedmsgs = $this->dbhr->preQuery($sql,
                     $forceall ? [ $chat['chatid'] ] :
                     [
                         $chat['chatid'],
@@ -2072,7 +2078,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                         $mysqltime
                     ]);
 
-                #error_log("Unseen " . var_export($unmailedmsgs, TRUE));
+                #error_log("Unseen by {$sendingto->getId()} {$sendingto->getName()} from {$member['lastmsgemailed']} " . var_export($unmailedmsgs, TRUE));
 
                 if (count($unmailedmsgs) > 0) {
                     $textsummary = '';
@@ -2187,8 +2193,9 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                         }
                     }
 
-                    #error_log("Consider justmine $justmine vs " . $sendingto->notifsOn(User::NOTIFS_EMAIL_MINE) . " for " . $sendingto->getId());
-                    if (!$justmine || $sendingto->notifsOn(User::NOTIFS_EMAIL_MINE)) {
+                    #error_log("Consider justmine $justmine TN $sendingtoTN vs " . $sendingto->notifsOn(User::NOTIFS_EMAIL_MINE) . " for " . $sendingto->getId());
+
+                    if (!$justmine || $sendingtoTN || $sendingto->notifsOn(User::NOTIFS_EMAIL_MINE)) {
                         if (count($twigmessages)) {
                             # As a subject, we should use the last "interested in" message in this chat - this is the
                             # most likely thing they are talking about.

@@ -34,19 +34,19 @@ if (count($opts) != 1) {
             # date	donorName	donorEmail	program	currencyCode	amount
             $fields = fgetcsv($fh);
 
-            $date = $fields[1];
-            $name = $fields[2] . " " . $fields[3];
-            $email = $fields[4];
-            $program = $fields[5];
-            $ebayId = $fields[6];
-            $amount = $fields[8];
+            $date = $fields[0];
+            $name = $fields[1] . " " . $fields[2];
+            $email = $fields[3];
+            $program = $fields[4];
+            $ebayId = $fields[5];
+            $amount = $fields[7];
 
             # Invent a unique transaction ID because we might rerun on the same data.  This isn't perfect - anonymous
             # donations on the same date from PayPal will lead to the same id, and therefore get undercounted.  But
             # undercounting is probably better than overcounting for soliciting donations...
-            $txid = $fields[11];
+            $txid = $fields[10];
 
-            error_log("$date email $email amount $amount");
+            error_log("$date email $email amount $amount " . json_encode($fields));
 
             if ($email) {
                 # Not anonymous

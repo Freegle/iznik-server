@@ -45,7 +45,7 @@ class Twitter {
     }
     
     public function set($name, $token, $secret) {
-        $this->dbhm->preExec("INSERT INTO groups_twitter (groupid, name, token, secret, authdate, valid) VALUES (?,?,?,?,NOW(),1) ON DUPLICATE KEY UPDATE name = ?, token = ?, secret = ?, authdate = NOW(), valid = 1;",
+        $this->dbhm->preExec("INSERT INTO groups_twitter (groupid, name, token, secret, authdate, valid, locked) VALUES (?,?,?,?,NOW(),1,0) ON DUPLICATE KEY UPDATE name = ?, token = ?, secret = ?, authdate = NOW(), valid = 1, locked = 0;",
             [
                 $this->groupid,
                 $name, $token, $secret,
