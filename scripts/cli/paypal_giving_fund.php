@@ -48,6 +48,8 @@ if (count($opts) != 1) {
 
             error_log("$date email $email amount $amount " . json_encode($fields));
 
+            $eid = NULL;
+
             if ($email) {
                 # Not anonymous
                 $eid = $u->findByEmail($email);
