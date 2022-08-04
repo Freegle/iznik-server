@@ -125,7 +125,7 @@ class Alert extends Entity
 
             foreach ($groups as $group) {
                 #error_log("...{$alert['id']} -> {$group['nameshort']}");
-                $done += $a->mailMods($alert['id'], $group['id'], $alert['tryhard'], $groupid != NULL);
+                $done += $a->mailMods($alert['id'], $group['id'], $alert['tryhard'], $groupid != NULL, !$a->getPrivate('groupid'));
 
                 if ($groupid) {
                     # This is to a specific group.  We are now done.
@@ -234,7 +234,7 @@ class Alert extends Entity
         return($ret);
     }
 
-    public function mailMods($alertid, $groupid, $tryhard = TRUE, $cc = FALSE) {
+    public function mailMods($alertid, $groupid, $tryhard = TRUE, $cc = FALSE, $global = FALSE) {
         list ($transport, $mailer) = Mail::getMailer();
         $done = 0;
 
@@ -289,7 +289,7 @@ class Alert extends Entity
                                 NULL, # Should be $u->getUnsubLink(USER_SITE, $mod['userid']) once we go live TODO ,
                                 $this->alert['askclick'] ? 'https://' . USER_SITE . "/alert/viewed/$trackid" : NULL,
                                 'https://' . USER_SITE . "/beacon/$trackid",
-                                !$groupid);
+                                $global);
 
                             $text = $this->alert['text'];
                             if ($this->alert['askclick']) {
@@ -332,7 +332,7 @@ class Alert extends Entity
                     NULL,
                     $this->alert['askclick'] ? 'https://' . USER_SITE . "/alert/viewed/$trackid" : NULL,
                     'https://' . USER_SITE . "/beacon/$trackid",
-                    !$groupid);
+                    $global);
 
                 $text = $this->alert['text'];
                 if ($this->alert['askclick']) {
@@ -361,7 +361,7 @@ class Alert extends Entity
                 NULL,
                 FALSE,
                 'https://' . USER_SITE,
-                !$groupid);
+                $global);
 
             $text = $this->alert['text'];
             $msg = $this->constructMessage($from, $g->getPrivate('nameshort'), NULL, $from, $this->alert['subject'], $text, $html);
