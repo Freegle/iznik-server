@@ -727,7 +727,6 @@ class User extends Entity
         # We might have donations made via PayPal using this email address which we can now link to this user.  Do
         # SELECT first to avoid this having to replicate in the cluster.
         $donations = $this->dbhr->preQuery("SELECT id FROM users_donations WHERE Payer = ? AND userid IS NULL;", [
-            $this->id,
             $email
         ]);
 
