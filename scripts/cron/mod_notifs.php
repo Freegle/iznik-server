@@ -66,7 +66,7 @@ if ($hour >= 8 && $hour <= 21)
                         $now,
                         $now
                     ])[0]['count'],
-                    'Members to Review' => $dbhr->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE reviewrequestedat IS NOT NULL AND memberships.groupid = ? " . ($minage > 0 ? " AND memberships.reviewrequestedat >= '$minageq'" : '') . ";", [
+                    'Members to Review' => $dbhr->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE reviewrequestedat IS NOT NULL AND memberships.groupid = ? " . ($minage > 0 ? " AND memberships.reviewrequestedat >= '$minageq'" : '') . " AND (reviewedat IS NULL OR DATE(reviewedat) < DATE_SUB(NOW(), INTERVAL 31 DAY));", [
                         $group['id'],
                     ])[0]['count'],
                     'Pending Admins' => $dbhr->preQuery("SELECT COUNT(DISTINCT admins.id) AS count FROM admins WHERE admins.groupid = ? AND admins.complete IS NULL AND admins.pending = 1 AND admins.heldby IS NULL AND admins.created >= ?;", [
