@@ -117,7 +117,7 @@ if (count($opts) < 1) {
 
         # Output results.
         # Benefit of reuse per tonne is £711 and CO2 impact is -0.51tCO2eq based on WRAP figures.
-        # http://www.wrap.org.uk/content/monitoring-tools-and-resources
+        # https://wrap.org.uk/resources/tool/environmental-and-economic-benefits-re-use
         $op = '';
         $op .= sprintf(", %s, %s, %s, Total\n", $months[0]['formatted'], $months[1]['formatted'], $months[2]['formatted']);
         $sheet->setCellValue('B8', $months[0]['formatted']);
