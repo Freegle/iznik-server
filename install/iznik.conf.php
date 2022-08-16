@@ -170,6 +170,7 @@ define('VOLUNTEERS_ADDR', 'volunteers@ilovefreegle.org');
 define('FUNDRAISING_ADDR', 'xxx');
 define('CHITCHAT_SUPPORT_ADDR', 'support@ilovefreegle.org');
 define('COUNCILS_ADDR', 'councils@ilovefreegle.org');
+define('STORIES_ADDR', 'stories@ilovefreegle.org');
 
 define('NOREPLY_ADDR', 'noreply@ilovefreegle.org');
 

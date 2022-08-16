@@ -132,11 +132,17 @@ class storiesAPITest extends IznikAPITestCase {
         assertFalse($found);
 
         # Flag as reviewed for inclusion in the newsletter.
-        $s = new Story($this->dbhr, $this->dbhm, $id);
-        $s->setPrivate('reviewed', 1);
-        $s->setPrivate('public', 1);
-        $s->setPrivate('newsletterreviewed', 1);
-        $s->setPrivate('mailedtomembers', 0);
+        assertTrue($this->user->login('testpw'));
+        $ret = $this->call('stories', 'PATCH', [
+            'id' => $id,
+            'reviewed' => 1,
+            'public' => 1,
+            'newsletter' => 1,
+            'newsletterreviewed' => 1,
+            'mailedtomembers' => 0
+        ]);
+        assertEquals(0, $ret['ret']);
+        $_SESSION['id'] = NULL;
 
         # Should now show up for mods to like their favourites.
         $ret = $this->call('stories', 'GET', [ 'reviewnewsletter' => TRUE ]);
