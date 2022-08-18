@@ -5658,7 +5658,7 @@ class User extends Entity
             $this->id
         ]);
 
-        $this->dbhm->preExec("UPDATE users SET deleted = NOW() WHERE id = ?;", [
+        $this->dbhm->preExec("UPDATE users SET deleted = NOW(), tnuserid = NULL WHERE id = ?;", [
             $this->id
         ]);
 
