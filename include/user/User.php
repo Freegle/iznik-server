@@ -4045,6 +4045,7 @@ class User extends Entity
             ];
 
             $thisone['comments'] = $this->getCommentsForSingleUser($user['userid']);
+            $thisone['tnuserid'] = $u->getPrivate('tnuserid');
 
             $push = $this->dbhr->preQuery("SELECT MAX(lastsent) AS lastpush FROM users_push_notifications WHERE userid = ?;", [
                 $user['userid']
