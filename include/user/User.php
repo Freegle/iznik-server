@@ -3718,7 +3718,7 @@ class User extends Entity
             ->setReplyTo(SUPPORT_ADDR)
             ->setTo($this->getEmailPreferred())
             ->setDate(time())
-            ->setBody("Please click here to leave Freegle:\r\n\r\n$link\r\n\r\nIf you didn't try to leave, please ignore this mail.\r\n\r\nThanks for freegling, and do please come back in the future.");
+            ->setBody("Please click here to leave Freegle:\r\n\r\n$link\r\n\r\nThis will remove all your data and cannot be undone.  If you just want to leave a Freegle or reduce the number of emails you get, please sign in and go to Settings.\r\n\r\nIf you didn't try to leave, please ignore this mail.\r\n\r\nThanks for freegling, and do please come back in the future.");
 
         Mail::addHeaders($message, Mail::UNSUBSCRIBE);
         $this->sendIt($mailer, $message);
