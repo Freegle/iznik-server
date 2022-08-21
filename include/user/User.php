@@ -5815,7 +5815,7 @@ class User extends Entity
     {
         # We only want to send SMS to people who are clicking on the links.  So if we've sent them one and they've
         # not clicked on it, we stop.  This saves significant amounts of money.
-        $phones = $this->dbhr->preQuery("SELECT * FROM users_phones WHERE userid = ? AND valid = 1 AND (lastsent IS NULL OR (lastclicked IS NOT NULL AND lastclicked > lastsent));", [
+        $phones = $this->dbhr->preQuery("SELECT * FROM users_phones WHERE userid = ? AND valid = 1 AND (lastsent IS NULL OR (lastclicked IS NOT NULL AND DATE(lastclicked) >= DATE(lastsent)));", [
             $this->id
         ]);
 
@@ -5877,7 +5877,7 @@ class User extends Entity
     public function getPhone()
     {
         $ret = NULL;
-        $phones = $this->dbhr->preQuery("SELECT * FROM users_phones WHERE userid = ?;", [
+        $phones = $this->dbhr->preQuery("SELECT *, DATE(lastclicked) AS lastclicked, DATE(lastsent) AS lastsent FROM users_phones WHERE userid = ?;", [
             $this->id
         ]);
 
