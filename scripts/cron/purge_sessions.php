@@ -21,11 +21,11 @@ do {
 
 $start = date('Y-m-d', strtotime("midnight 31 days ago"));
 $total = 0;
-do {
-    $count = $dbhm->preExec("DELETE FROM users_logins WHERE `lastaccess` < '$start' AND `type` = ? LIMIT 1000;", [
-        User::LOGIN_LINK
-    ]);
-    $total += $count;
-    error_log("...$total logins");
-} while ($count > 0);
+$oldlinks = $dbhr->preQuery("SELECT id FROM users_logins WHERE users_logins.lastaccess < '$start' AND `type` = ?;", [
+    User::LOGIN_LINK
+]);
 
+foreach ($oldlinks as $link) {
+    $dbhm->preExec("DELETE FROM users_logins WHERE id = ?;", [ $link['id'] ]);
+    $total++;
+}
