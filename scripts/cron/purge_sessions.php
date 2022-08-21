@@ -16,6 +16,16 @@ $total = 0;
 do {
     $count = $dbhm->exec("DELETE FROM sessions WHERE `lastactive` < '$start' LIMIT 1000;");
     $total += $count;
-    error_log("...$total");
+    error_log("...$total sessions");
+} while ($count > 0);
+
+$start = date('Y-m-d', strtotime("midnight 31 days ago"));
+$total = 0;
+do {
+    $count = $dbhm->preExec("DELETE FROM users_logins WHERE `lastaccess` < '$start' AND `type` = ? LIMIT 1000;", [
+        User::LOGIN_LINK
+    ]);
+    $total += $count;
+    error_log("...$total logins");
 } while ($count > 0);
 
