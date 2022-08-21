@@ -22,101 +22,79 @@ while (!feof($fh))
 }
 
 error_log("Loaded, query for TN users");
-$tnusers = $dbhr->preQuery("SELECT email, userid, tnuserid FROM users_emails INNER JOIN users ON users.id = users_emails.userid WHERE email LIKE '%trashnothing%' AND LOCATE('-', email) AND users.added < '2022-08-12';");
+$tnusers = $dbhr->preQuery("SELECT userid, tnuserid FROM users_emails INNER JOIN users ON users.id = users_emails.userid WHERE email LIKE '%trashnothing%' AND LOCATE('-', email) AND users.added < '2022-08-12';");
 
 error_log(count($tnusers) . " TN users");
 
 $count = 0;
 $unknown = 0;
-$wrongFDIDonTN = 0;
-$wrongTNIDonFD = 0;
-$TNFDaddedToFD = 0;
-$wrongTNNameOnFD = 0;
-$TNIDalreadyInUse = 0;
-$processed = [];
+$fdmissingtnid = 0;
+$emailmoved = 0;
+$tnfdidwrong = 0;
 
 foreach ($tnusers as $tnuser) {
-    // Get part of email before -
-    $tnname = substr($tnuser['email'], 0, strrpos($tnuser['email'], '-g'));
+    # Check each email for this user.
+    $emails = $dbhr->preQuery("SELECT id, email FROM users_emails WHERE userid = {$tnuser['userid']};");
 
-    if (!array_key_exists($tnname, $processed) || $processed[$tnname] != $tnuser['tnuserid']) {
-        $processed[$tnname] = $tnuser['userid'];
+    foreach ($emails as $email) {
+        $tnname = substr($tnuser['email'], 0, strrpos($tnuser['email'], '-g'));
+        $tnname = str_replace('_', '\_', $tnname);
 
-        if (array_key_exists($tnname, $tnnames))
-        {
-            if ($tnnames[$tnname]['fdid'] && $tnnames[$tnname]['fdid'] != $tnuser['userid'])
-            {
-                error_log(
-                    "TN user $tnname has FD on TN as {$tnnames[$tnname]['fdid']} but FD is {$tnuser['userid']} - TN needs correcting"
-                );
-                $wrongFDIDonTN++;
-            }
+        # We now have a name which FD thinks is associated with this TN user.
+        if (!array_key_exists($tnname, $tnnames)) {
+            # TN doesn't know this name at all.  This is possible if the user was renamed on TN before TN recorded
+            # the rename.  It's unclear what we do.
+            error_log(
+                "unknown: FD {$tnuser['userid']} uses TN name {$tnname} which is not known on TN at all - needs work."
+            );
+            $unknown++;
+        } else if ($tnnames[$tnname]['fdid'] == $email['userid']) {
+            # TN has the right FD id for this name and hence email.  This means the email is attached to the right
+            # FD user.
 
-            if ($tnuser['tnuserid'] != $tnnames[$tnname]['tnid'])
-            {
-                $others = $dbhr->preQuery("SELECT id FROM users WHERE tnuserid = ?;", [
-                    $tnnames[$tnname]['tnid']
-                ]);
+        } else if ($tnnames[$tnname]['fdid'] != $tnuser['tnuserid']) {
+            # TN has an FD id but it is different.  This is possible if the user has been merged on FD.  TN needs
+            # updating.
+            $fdidontn = $tnnames[$tnname]['fdid'];
 
-                if ($tnuser['tnuserid']) {
-                    if (count($others)) {
-                        # The FD user with this email does have a TN userid, but it's wrong, and the correct TN userid is
-                        # in use by a different FD user.  This means that the email is attached to the wrong FD user.
-                        error_log("TN user $tnname has TN userid {$tnnames[$tnname]['tnid']} whereas FD has {$tnuser['tnuserid']} - correct FD");
-                        $dbhm->preQuery("UPDATE users_emails SET userid = ? WHERE email = ?;", [
-                            $others[0]['id'],
-                            $tnuser['email']
-                        ]);
-                    } else {
-                        # The FD user with this email does have a TN userid, it's wrong, and the correct TN userid is
-                        # not in use.  So we can just correct this user.
-                        $dbhm->preQuery("UPDATE users SET tnuserid = ? WHERE id = ?;", [
-                            $tnnames[$tnname]['tnid'],
-                            $tnuser['userid']
-                        ]);
-                    }
-
-                    $wrongTNIDonFD++;
-                } else {
-                    # The FD user with this email doesn't have a TN userid.  We can add it, unless it's in use elsewhere.
-                    if (!count($others)) {
-                        error_log("TN user $tnname has TN userid {$tnnames[$tnname]['tnid']} - FD needs adding");
-                        $dbhm->preQuery("UPDATE users SET tnuserid = ? WHERE id = ?;", [
-                            $tnnames[$tnname]['tnid'],
-                            $tnuser['userid']
-                        ]);
-                        $TNFDaddedToFD++;
-                    } else {
-                        error_log("TN user $tnname has TN userid {$tnnames[$tnname]['tnid']} which is in use by FD user {$others[0]['id']} - needs checking");
-                        $TNIDalreadyInUse++;
-                    }
-                }
-            }
-        } else if ($tnuser['tnuserid']) {
-            # We have a TN userid, so we know who this is.
+            error_log("tnfdidwrong: FD #{$tnuser['userid']} uses TN name {$tnname} but TN thinks $tnname is for FD {$fdidontn} - TN needs updating.");
+            $tnfdidwrong++;
         } else {
-            // We might have an email address for this FD user which is known on TN.
-            $others = $dbhr->preQuery("SELECT email FROM users_emails WHERE userid = ? AND email NOT LIKE '$tnname%';", [
-                $tnuser['userid']
-            ]);
+            # TN has the right FD id.
+            $tnid = $tnnames[$tnname]['tnid'];
+            $fdidontn = $tnnames[$tnname]['fdid'];
+            error_log("{$tnuser['userid']} {$tnname} {$tnid} {$fdid}");
 
-            $found = FALSE;
-            foreach ($others as $other) {
-                $tnname2 = substr($other['email'], 0, strrpos($other['email'], '-g'));
-                $tnname2 = str_replace('_', '\_', $tnname2);
+            $otherwithtnid = $dbhr->preQuery("SELECT userid FROM users_emails WHERE email LIKE '%trashnothing%' AND LOCATE('-', email) AND userid != {$tnuser['userid']} AND tnuserid = {$tnid};");
 
-                if (strlen($tnname2) && array_key_exists($tnname2, $tnnames)) {
-                    $found = TRUE;
-                    error_log("FD $tnname also known as $tnname2 on TN - FD needs correcting, perhaps splitting.");
-                    $wrongTNNameOnFD++;
-                    break;
+            if (!$tnuser['tnuserid']) {
+                # FD is missing the TN userid.
+                if (!count($otherwithtnid)) {
+                    # The TN userid is not in use elsewhere, so we can just update this user to have the correct one.
+//                    $dbhm->preExec("UPDATE users SET tnuserid = ? WHERE id = ?", [
+//                        $tnid,
+//                        $tnuser['userid']
+//                    ]);
+
+                    error_log("fdmissingtnid: FD #{$tnuser['userid']} has no TN userid, but {$tnid} is not in use elsewhere - updated");
+                    $fdmissingtnid++;
+                } else {
+                    # The TN userid for this name and hence email is in use for another FD member.  This means that this
+                    # email is attached to the wrong FD user.
+//                    $dbhm->preExec("UPDATE users_emails SET userid = ? WHERE id = ?", [
+//                        $otherwithtnid[0]['userid'],
+//                        $email['id']
+//                    ]);
+                    error_log("emailmoved: FD #{$tnuser['userid']} has email {$email['email']} which should be attached to FD #{otherwithtnid[0]['userid']} - email moved");
+                    $emailmoved++;
                 }
+            } else if ($tnid != $tnuser['tnuserid']) {
+                # FD has the wrong TN userid.  This probably means that the email is attached to the wrong user.
+                error_log("FD #{$tnuser['userid']} TN name {$tnname}  TN id {$tnid} {$tnuser['tnuserid']}");
+                $count++;
             }
-
-            if (!$found) {
-                error_log("FD TN user $tnname not on TN with that name - needs checking.");
-                $unknown++;
-            }
+            $dbhm->preExec("UPDATE users_emails SET tnuserid = ? WHERE id = ?;", [ $tnid, $email['id'] ]);
+            $count++;
         }
     }
 
@@ -127,4 +105,3 @@ foreach ($tnusers as $tnuser) {
     }
 }
 
-error_log("$unknown unknown on TN, $wrongFDIDonTN wrong FD id on TN, $wrongTNIDonFD wrong TN id on FD, $TNFDaddedToFD TN ID added to FD, $wrongTNNameOnFD wrong TN name on FD, $TNIDalreadyInUse TN ID already in use");

@@ -1,88 +1,71 @@
 <?php
-
 namespace Freegle\Iznik;
 
-define('BASE_DIR', dirname(__FILE__) . '/../..');
-require_once(BASE_DIR . '/include/config.php');
+require_once dirname(__FILE__) . '/../../include/config.php';
 
 require_once(IZNIK_BASE . '/include/db.php');
-global $dbhr, $dbhm, $dbconfig;
+require_once(IZNIK_BASE . '/include/message/Message.php');
+global $dbhr, $dbhm;
 
-$mergefail = 0;
+error_log("Loading TN names");
+$fh = fopen('/tmp/tn-new-and-old-usernames.csv', 'r');
+$tnnames = [];
+$merge = 0;
+$manual = 0;
+$deloldemail = 0;
+$nonew = 0;
 
-if (($handle = fopen("/tmp/tnnames.csv", "r")) !== FALSE)
+while (!feof($fh))
 {
-    fgetcsv($handle);
+    $fields = fgetcsv($fh);
+    $tnid = $fields[0];
+    $tncurrent = str_replace('_', '\_', $fields[1]);
+    $tnold = str_replace('_', '\_', $fields[2]);
+    $tnfdid = $fields[3];
 
-    while (($data = fgetcsv($handle, 1000, ",")) !== false) {
-        $tnid = intval($data[0]);
-        $tnname = trim($data[1]);
-        $tnold = trim($data[2]);
-        $fdid = intval($data[3]);
+    $oldemails = $dbhr->preQuery("SELECT DISTINCT userid FROM users_emails WHERE email like '$tnold-g%@user.trashnothing.com';");
 
-        # If we have the TNID for a user, check the name is correct.
-        $users = $dbhr->preQuery("SELECT id, tnuserid, fullname FROM users WHERE tnuserid = ? AND deleted IS NULL", [
-            $tnid
-        ]);
+    if (count($oldemails) > 1) {
+        error_log("TN old user $tnold #$tnid has multiple FD users " . implode(',', array_column($oldemails, 'userid')) . " - check manually and merge");
+        $manual++;
+    } else if (count($oldemails)) {
+        $newemails = $dbhr->preQuery("SELECT DISTINCT userid FROM users_emails WHERE email like '$tncurrent-g%@user.trashnothing.com';");
 
-        foreach ($users as $user) {
-            error_log("$tnid, $tnname, $tnold => {$user['id']} {$user['fullname']}");
+        if (count($newemails) > 1) {
+            error_log("TN current user $tncurrent #$tnid has multiple FD users " . implode(',', array_column($newemails, 'userid')) . " - check manually and merge");
+            $manual++;
+        } else if (count($newemails)) {
+            if ($oldemails[0]['userid'] == $newemails[0]['userid']) {
+                # We want to delete any email addresses with the old ID, as we no longer need them, and it confuses the fix_tn_ids script.
+                #error_log("TN user $tncurrent was $tnold and both are FD {$oldemails[0]['userid']} - fine");
+                $tokeeps = $dbhr->preQuery("SELECT id, email FROM users_emails WHERE userid = {$oldemails[0]['userid']} AND email LIKE '$tncurrent-g%@user.trashnothing.com';");
+                $todels = $dbhr->preQuery("SELECT id, email FROM users_emails WHERE userid = {$oldemails[0]['userid']} AND email NOT LIKE '$tncurrent-g%@user.trashnothing.com';");
 
-            if (User::removeTNGroup($user['fullname']) != $tnname) {
-                error_log("...name mismatch");
-                $dbhm->preExec("UPDATE users SET fullname = ? WHERE id = ?", [
-                    $tnname,
-                    $user['id']
-                ]);
-            }
-        }
+                if (count($todels)) {
+                    if (!count($tokeeps)) {
+                        error_log("TN user $tncurrent was has old email addresses for $tnold - but no new ones");
+                        $nonew++;
+                    } else {
+                        foreach ($todels as $todel) {
+                            error_log("TN user $tncurrent was has old email address for $tnold {$todel['email']} - delete it");
+                            $dbhm->preExec("DELETE FROM users_emails WHERE id = {$todel['id']};");
+                        }
 
-        # If we have the FD id for a user, check it is correct.
-        if ($fdid) {
-            $u = User::get($dbhr, $dbhm, $fdid);
-
-            if ($u->getId() == $fdid) {
-                #error_log("...FD id matches");
-            } else {
-                if (count($users)) {
-                    error_log("TN user $tnid FD id $fdid is invalid - should be {$users[0]['id']}");
-                } else {
-                    error_log("TN user $tnid FD id $fdid is invalid - deleted?");
-                }
-            }
-        }
-
-        # Check if we have accounts for both the old and new names.
-        $newusers = $dbhr->preQuery("SELECT DISTINCT(userid) FROM users_emails WHERE email LIKE '$tnname-g%@user.trashnothing.com';");
-        $newids = array_column($newusers, 'userid');
-        $oldusers = $dbhr->preQuery("SELECT DISTINCT(userid) FROM users_emails WHERE email LIKE '$tnold-g%@user.trashnothing.com';");
-        $oldids = array_column($oldusers, 'userid');
-
-        if (count($newusers) && count($oldusers)) {
-            $all = array_unique(array_merge($oldids, $newids));
-
-            if (count($all) > 1) {
-                # Merge all users into the latest one, and set the TN id in that.
-                $mergeto = array_pop($all);
-
-                foreach ($all as $mergefrom) {
-                    error_log("Merge TN user $mergefrom into $mergeto");
-                    try {
-                        $u1 = new User($dbhr, $dbhm, $mergeto);
-                        $u1->merge($mergeto, $mergefrom, 'TN user rename', TRUE);
-                        $dbhm->preExec("UPDATE users SET tnuserid = ? WHERE id = ?", [
-                            $tnid,
-                            $mergeto
-                        ]);
-                    } catch (\Exception $e) {
-                        $mergefail++;
+                        $deloldemail++;
                     }
                 }
             } else {
-                #error_log("TN user $tnid, $tnname, $tnold same IDs");
+                error_log("TN current user $tncurrent is FD {$newemails[0]['userid']} but TN old user $tnold is FD {$oldemails[0]['userid']} - merge");
+                $u = new User($dbhr, $dbhm);
+                $u->merge($oldemails[0]['userid'], $newemails[0]['userid'], 'Merge as renamed on TN');
+                $merge++;
             }
+        } else {
+            #error_log("FD has no record of new TN name $tncurrent - fine");
         }
+    } else {
+        #error_log("FD has no record of old TN name $tnold - fine");
     }
 }
 
-error_log("Failed merged $mergefail");
+error_log("\n\n$merge merged, $deloldemail old emails deleted, $manual manual checks required, $nonew old emails but no new ones");
