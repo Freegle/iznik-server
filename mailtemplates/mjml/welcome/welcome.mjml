@@ -38,13 +38,13 @@
           <mj-raw>{% if password is defined and password is not null %}</mj-raw>
           <mj-text font-weight="700">Here's your password: {{ password }}.</mj-text>
           <mj-raw>{% endif %}</mj-raw>
-          <mj-text>We could give you a ten page long Terms of Use. Like you'd read that.<br />As far as we're concerned, it's simple...
+          <mj-text>We could give you a ten page long Terms of Use. Like you'd read that.  As far as we're concerned, it's simple...
             <ol>
               <li>Use Freegle to pass on unwanted items direct to others.</li>
               <li>Everything must be free and legal.</li>
               <li>Be nice to other freeglers, and they'll be nice to you.</li>
               <li>We don't see or check items offered - see our <a href="https://www.ilovefreegle.org/disclaimer">disclaimer</a>.</li>
-              <li>Freegle groups may have additional rules - check your local group for details.</li>
+              <li>Freegle communities may have additional rules - please check the welcome mail you get when you join for details.</li>
               <li>Please <a href="https://www.ilovefreegle.org/disclaimer">keep yourself safe and watch out for scams</a>.</li>
               <li>Objectionable content or behaviour will not be tolerated.</li>
               <li>If you see anything inappropriate, suspicious or just dodgy then please <a href="https://www.ilovefreegle.org/help">report it</a>.</li>
@@ -64,15 +64,15 @@
         <mj-column>
           <mj-text><span style="font-size: 14pt; color: #4f7a3f">How to post an OFFER</span>
             <ol>
-              <li>Go to <a href="https://www.ilovefreegle.org">https://www.ilovefreegle.org</a> and click on 'Give stuff'.</li>
-              <li>Either click on 'Find your location' or put your postcode into the box on the right.</li>
-              <li>You will see, lower down the screen, a suggestion of which group to post on. If this is incorrect, click on the down arrow and it will bring up a list of groups you are a member of.</li>
-              <li>Click on 'Next'.</li>
+              <li>Go to <a href="https://www.ilovefreegle.org/give">https://www.ilovefreegle.org/give</a></li>
               <li>Click the 'Add photos' button to add a photo if you have one.</li>
               <li>Fill in the appropriate info in the various boxes.</li>
               <li>Click 'Next'.</li>
+              <li>Put your postcode into the box.</li>
+              <li>You will see, lower down the screen, a suggestion of which community to post on. If this is incorrect, click on the arrows and it will bring up a list of communities you are a member of.</li>
+              <li>Click on 'Next'.</li>
               <li>Fill in your email address.</li>
-              <li>That's it.</li>
+              <li>Click 'Freegle it!'</li>
             </ol>
           </mj-text>
         </mj-column>
@@ -81,15 +81,27 @@
         <mj-column>
           <mj-text><span style="font-size: 14pt; color: #346d6a">How to post a WANTED</span>
             <ol>
-              <li>Go to <a href="https://www.ilovefreegle.org">https://www.ilovefreegle.org</a> and click on 'Find stuff'.</li>
-              <li>Either click on 'Find your location' or put your postcode into the box on the right.</li>
-              <li>You will see, lower down the screen, a suggestion of which group to post on. If this is incorrect, click on the down arrow and it will bring up a list of groups you are a member of.</li>
-              <li>Click on 'Next'.</li>
-              <li>Either stick what you are looking for in the 'Search' bar or click 'Post a WANTED'.</li>
+              <li>Go to <a href="https://www.ilovefreegle.org/find">https://www.ilovefreegle.org/find</a></li>
+              <li>Click the 'Add photos' button to add a photo if you have one.</li>
               <li>Fill in the appropriate info in the various boxes.</li>
               <li>Click 'Next'.</li>
+              <li>Put your postcode into the box.</li>
+              <li>You will see, lower down the screen, a suggestion of which community to post on. If this is incorrect, click on the arrows and it will bring up a list of communities you are a member of.</li>
+              <li>Click on 'Next'.</li>
               <li>Fill in your email address.</li>
-              <li>That's it.</li>
+              <li>Click 'Freegle it!'</li>
+            </ol>
+          </mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-section background-color="#e6f3e1" padding-top="10px" padding-bottom="10px" border-top="3px solid #4f7a3f">
+        <mj-column>
+          <mj-text><span style="font-size: 14pt; color: #4f7a3f">How to join a community</span>
+            <ol>
+              <li>Go to <a href="https://www.ilovefreegle.org/explore">https://www.ilovefreegle.org/explore</a></li>
+              <li>Click on one of the 'regions' to see a list of communities in that area.</li>
+              <li>Click on the 'Join' button, or click on 'Explore' to see what's being freegled.</li>
+              <li>Alternatively, use the map to browse around, and either click on the 'Join' buttons below the map or reply to a post you're interested in.</li>
             </ol>
           </mj-text>
         </mj-column>
