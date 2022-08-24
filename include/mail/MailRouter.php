@@ -621,6 +621,12 @@ class MailRouter
                                         # one example is twitter email confirmations, where the URL is quoted (weirdly).
                                         $textbody = $this->msg->getTextBody();
 
+                                        # ...but we don't want the whole digest, if they sent that.
+                                        if (preg_match('/(.*)^\s*On.*?-auto@' . GROUP_DOMAIN . '> wrote\:(\s*)/ms', $textbody, $matches)) {
+                                            $textbody = $matches[1];
+                                            $textbody .= "\r\n\r\n(Replied to digest)";
+                                        }
+
                                         if (strlen($textbody))
                                         {
                                             $m = new ChatMessage($this->dbhr, $this->dbhm);

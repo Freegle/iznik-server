@@ -80,7 +80,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace("X-Yahoo-Group-Post: member; u=420816297", "X-Yahoo-Group-Post: member; u=-1", $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         assertNotNull($id);
         $rc = $r->route();
         assertEquals(MailRouter::APPROVED, $rc);
@@ -1861,6 +1861,28 @@ class MailRouterTest extends IznikTestCase {
         assertEquals(2, count($msgs));
         error_log ("Got messages " . var_export($msgs, TRUE));
         assertFalse(array_key_exists('refmsg', $msgs[1]));
+    }
+
+
+    public function testReplyToDigest() {
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytodigest'));
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'FreeglePlayground-volunteers@' . GROUP_DOMAIN, $msg);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route($m);
+        assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
+
+        $chatmessages = $this->dbhr->preQuery("SELECT * FROM chat_messages_byemail WHERE msgid = ?;", [
+            $id
+        ]);
+
+        assertEquals(1, count($chatmessages));
+
+        foreach ($chatmessages as $chatmessage) {
+            $cm = new ChatMessage($this->dbhr, $this->dbhm, $chatmessage['chatmsgid']);
+            assertGreaterThan(0, strpos($cm->getPrivate('message'), '(Replied to digest)'));
+        }
     }
 
     //    public function testSpecial() {
