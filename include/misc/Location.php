@@ -359,9 +359,9 @@ class Location extends Entity
     }
 
     public function closestPostcode($lat, $lng) {
-        # Find the grids nearest to this lat/lng.  We use our spatial index to narrow down the locations to search
-        # through; we start off very close to the point and work outwards. That way in densely postcoded areas we
-        # have a fast query, and in less dense areas we have some queries which are quick but don't return anything.
+        # We use our spatial index to narrow down the locations to search through; we start off very close to the
+        # point and work outwards. That way in densely postcoded areas we have a fast query, and in less dense
+        # areas we have some queries which are quick but don't return anything.
         $scan = 0.00001953125;
         $ret = NULL;
         $lat = floatval($lat);
