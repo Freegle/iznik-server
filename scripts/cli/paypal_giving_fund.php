@@ -107,7 +107,7 @@ if (count($opts) != 1) {
                 $dbhm->rowsAffected() > 0 &&
                 intval($donation['amount']) >= 20) {
                 error_log("Thank {$donation['email']} for {$donation['amount']}");
-                $text = "{$donation['name']} ({$donation['email']}) donated £{$donation['amount']}.  Please can you thank them?";
+                $text = "{$donation['name']} ({$donation['email']}) donated £{$donation['amount']} via PayPal Giving Fund.  Please can you thank them?";
                 $message = \Swift_Message::newInstance()
                     ->setSubject("{$donation['name']} ({$donation['email']}) donated £{$donation['amount']} - please send thanks")
                     ->setFrom(NOREPLY_ADDR)

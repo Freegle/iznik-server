@@ -59,7 +59,7 @@ if (Utils::pres('mc_gross', $transaction)) {
 
     # Don't ask for thanks for the PayPal Giving Fund transactions.
     if ($transaction['mc_gross'] >= Donations::MANUAL_THANKS && $transaction['payer_email'] != 'ppgfukpay@paypalgivingfund.org') {
-        $text = "{$transaction['first_name']} {$transaction['last_name']} ({$transaction['payer_email']}) donated £{$transaction['mc_gross']}.  Please can you thank them?";
+        $text = "{$transaction['first_name']} {$transaction['last_name']} ({$transaction['payer_email']}) donated £{$transaction['mc_gross']} via PayPal Donate.  Please can you thank them?";
         $message = \Swift_Message::newInstance()
             ->setSubject("{$transaction['payer_email']} donated £{$transaction['mc_gross']} - please send thanks")
             ->setFrom(NOREPLY_ADDR)

@@ -57,7 +57,7 @@ function donations() {
                             $n->add(NULL, $u->getId(), Notifications::TYPE_GIFTAID, NULL);
                         }
 
-                        $text = $u->getName() ." (" . $u->getEmailPreferred() . ") donated £$amount.  Please can you thank them?";
+                        $text = $u->getName() ." (" . $u->getEmailPreferred() . ") donated £$amount via an external donation.  Please can you thank them?";
                         $message = \Swift_Message::newInstance()
                             ->setSubject($text)
                             ->setFrom(NOREPLY_ADDR)
