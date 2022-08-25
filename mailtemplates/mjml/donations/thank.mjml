@@ -37,7 +37,12 @@
         <mj-column>
           <mj-text>It's very kind of you to donate to us. We realise that there are a lot of charities asking for your help.</mj-text>
           <mj-text>Your donation will go even further if you are able to complete a gift aid form (if you haven't already, and if you're eligible):</mj-text>
-          <mj-button href="http://www.ilovefreegle.org/giftaid" background-color="#61AE24" font-size="18px">Click to Complete a Gift Aid Form</mj-button>
+          <mj-button href="https://www.ilovefreegle.org/giftaid" background-color="#61AE24" font-size="18px">Click to Complete a Gift Aid Form</mj-button>
+          <mj-text>
+            If you don't want or can't do Gift Aid, you can record that there too.
+          </mj-text>
+          <mj-text>We love to hear why people freegle, and this helps us get more people doing it.  If you'd like to do that, click here:</mj-text>
+          <mj-button href="https://www.ilovefreegle.org/stories" background-color="#61AE24" font-size="18px">Tell us your story</mj-button>
           <mj-text>
             If you don't want or can't do Gift Aid, you can record that there too.
           </mj-text>
