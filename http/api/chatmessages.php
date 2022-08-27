@@ -79,7 +79,7 @@ function chatmessages() {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
                 if ($me) {
-                    $ret = ['ret' => 2, 'status' => 'Not visible to you'];
+                    $ret = ['ret' => 2, 'status' => "$roomid Not visible to you"];
                     $action = Utils::presdef('action', $_REQUEST, NULL);
 
                     if ($action == ChatMessage::ACTION_APPROVE && $id) {
