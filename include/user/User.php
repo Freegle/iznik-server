@@ -4037,7 +4037,7 @@ class User extends Entity
 
             # Add the public location and best guess lat/lng
             $thisone['info']['publiclocation'] = $u->getPublicLocation();
-            $latlng = $u->getLatLng();
+            $latlng = $u->getLatLng(FALSE, TRUE);
             $thisone['privateposition'] = [
                 'lat' => $latlng[0],
                 'lng' => $latlng[1],
