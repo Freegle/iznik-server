@@ -59,6 +59,7 @@ try{
   // Android
   //        const FD_LOOKUP = 'https://play.google.com/store/apps/details?id=org.ilovefreegle.direct&hl=en'
   //        const MT_LOOKUP = 'https://play.google.com/store/apps/details?id=org.ilovefreegle.modtools&hl=en'
+  // 2/9/22: $lookfor appears twice but new $lookfor2 still works
 
   //$lookfor = '[null,null,[]],null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,[[["';
   //$lookforlen = strlen($lookfor);
@@ -66,7 +67,7 @@ try{
   $lookfor = 'You can request that data be deleted"]]],null,null,null,[[["';
   $lookforlen = strlen($lookfor);
 
-  $lookfor2 = '"]],[[[30,"11"]],[[[22,"5.1"]]]],[["';
+  $lookfor2 = ']]]],[["';
   $lookfor2len = strlen($lookfor2);
 
   // '[[["2.0.102"]],[[[30,"11"]],[[[22,"5.1"]]]],[["May 15, 2022"]]]'
