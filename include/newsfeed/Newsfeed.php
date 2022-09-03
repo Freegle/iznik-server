@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/lib/GreatCircle.php');
 class Newsfeed extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'timestamp', 'added', 'type', 'userid', 'imageid', 'msgid', 'replyto', 'groupid', 'eventid', 'storyid', 'volunteeringid', 'publicityid', 'message', 'position', 'deleted', 'closed', 'html', 'pinned', 'hidden');
+    var $publicatts = array('id', 'timestamp', 'added', 'type', 'userid', 'imageid', 'msgid', 'replyto', 'groupid', 'eventid', 'storyid', 'volunteeringid', 'publicityid', 'message', 'position', 'deleted', 'closed', 'html', 'pinned', 'hidden', 'location');
 
     /** @var  $log Log */
     private $log;
@@ -81,7 +81,10 @@ class Newsfeed extends Entity
             ]);
 
             if (!count($last) || $last[0]['replyto'] != $replyto || $last[0]['type'] != $type || $last[0]['message'] != $message) {
-                $this->dbhm->preExec("INSERT INTO newsfeed (`type`, userid, imageid, msgid, replyto, groupid, eventid, volunteeringid, publicityid, storyid, message, position, hidden) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, $pos, $hidden);", [
+                $location = $userid ? $u->getPublicLocation()['display'] : NULL;
+                $location = $location ? $location : NULL;
+
+                $this->dbhm->preExec("INSERT INTO newsfeed (`type`, userid, imageid, msgid, replyto, groupid, eventid, volunteeringid, publicityid, storyid, message, position, hidden, location) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, $pos, $hidden, ?);", [
                     $type,
                     $userid,
                     $imageid,
@@ -92,7 +95,8 @@ class Newsfeed extends Entity
                     $volunteeringid,
                     $publicityid,
                     $storyid,
-                    $message
+                    $message,
+                    $location
                 ]);
 
                 $id = $this->dbhm->lastInsertId();
