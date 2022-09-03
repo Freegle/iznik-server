@@ -9,9 +9,12 @@ require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
 # Make sure that the added date of a user reflects the earliest added date on their groups.
-$users = $dbhr->preQuery("SELECT id, added FROM users;");
+$users = $dbhr->preQuery("SELECT id, added FROM users WHERE added LIKE '0000-00-00 00:00:00';");
 $total = count($users);
+error_log("Found $total");
 $count = 0;
+//$dbhr->errorLog = TRUE;
+//$dbhm->errorLog = TRUE;
 
 function correctAdded($dbhr, $dbhm, $user) {
     $mins = $dbhr->preQuery("SELECT MIN(added) AS minadd FROM memberships WHERE userid = ?;", [
@@ -19,7 +22,7 @@ function correctAdded($dbhr, $dbhm, $user) {
     ]);
 
     foreach ($mins as $min) {
-        if ($min['minadd'] && (!$user['added'] || strtotime($min['minadd']) < strtotime($user['added']))) {
+        if ($min['minadd'] && (!$user['added'] || $user['added'] == '0000-00-00 00:00:00' || strtotime($min['minadd']) < strtotime($user['added']))) {
             # We have a group membership and either no added info or we now know that the user is older.
             error_log("{$user['id']} Older min membership {$min['minadd']}");
             $dbhm->preExec("UPDATE users SET added = ? WHERE id = ?;", [
