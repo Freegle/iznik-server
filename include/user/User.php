@@ -5929,8 +5929,8 @@ class User extends Entity
         $myid = $me ? $me->getId() : NULL;
 
         # We show visible ratings, ones we have made ourselves, or those from TN.
-        $sql = "SELECT ratee, COUNT(*) AS count, rating FROM ratings WHERE ratee IN (" . implode(',', $uids) . ") AND timestamp >= '$mysqltime' AND (tn_rating_id IS NOT NULL OR rater = ? OR visible = 1) GROUP BY rating, ratee;";
-        $ratings = $this->dbhr->preQuery($sql, [ $myid ]);
+        $sql = "SELECT ratee, COUNT(*) AS count, rating FROM ratings WHERE ratee IN (" . implode(',', $uids) . ") AND (timestamp >= '$mysqltime' OR rater = ?) AND (tn_rating_id IS NOT NULL OR rater = ? OR visible = 1) GROUP BY rating, ratee;";
+        $ratings = $this->dbhr->preQuery($sql, [ $myid, $myid ]);
 
         foreach ($uids as $uid) {
             $ret[$uid] = [
