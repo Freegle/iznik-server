@@ -741,6 +741,12 @@ HAVING logincount > 0
 
         if ($collection == MembershipCollection::SPAM) {
             # Order by userid as we might have the same member subject to review on multiple groups.
+            #
+            # FORCE INDEX seems to be necessary.
+            $sqlpref = "SELECT DISTINCT memberships.* FROM memberships FORCE INDEX (reviewrequestedat) 
+              INNER JOIN `groups` ON groups.id = memberships.groupid
+              $uq
+              $filterq";
             $searchq = $searchid ? (" AND memberships.userid = " . $this->dbhr->quote($searchid) . " ") : '';
             $addq = $ctx == NULL ? '' : (" AND memberships.userid < " . $this->dbhr->quote($ctx['userid']) . " ");
             $sql = "$sqlpref WHERE $groupq $collectionq $addq $searchq $opsq $modq $bounceq";
