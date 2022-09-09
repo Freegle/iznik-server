@@ -172,7 +172,7 @@
       <mj-column>
         <mj-divider border-color="lightgrey"></mj-divider>
         <mj-text mj-class="sectiontitle" color="grey">
-          About them
+          About {{ fromname }}
         </mj-text>
       </mj-column>
     </mj-section>
