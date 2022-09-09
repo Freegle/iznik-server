@@ -339,18 +339,22 @@ function user() {
                             $ret = ['ret' => 3, 'status' => "Can't find those users."];
 
                             if ($uid1 && $uid2) {
-                                $ret = ['ret' => 4, 'status' => "You cannot administer those users"];
+                                if ($uid1 == $uid2) {
+                                    $ret = [ 'ret' => 0, 'status' => 'Already the same user' ];
+                                } else {
+                                    $ret = ['ret' => 4, 'status' => "You cannot administer those users"];
 
-                                if ($me->isAdminOrSupport() ||
-                                    ($me->moderatorForUser($uid1) && $me->moderatorForUser($uid2))) {
-                                    $ret = $u->merge($uid2, $uid1, $reason);
+                                    if ($me->isAdminOrSupport() ||
+                                        ($me->moderatorForUser($uid1) && $me->moderatorForUser($uid2))) {
+                                        $ret = $u->merge($uid2, $uid1, $reason);
 
-                                    if ($ret) {
-                                        $u = new User($dbhr, $dbhm, $uid2);
-                                        $u->addEmail($email2, 1, TRUE);
-                                        $ret = [ 'ret' => 0, 'status' => 'Success' ];
-                                    } else {
-                                        $ret = [ 'ret' => 6, 'status' => 'Merged failed'];
+                                        if ($ret) {
+                                            $u = new User($dbhr, $dbhm, $uid2);
+                                            $u->addEmail($email2, 1, TRUE);
+                                            $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                                        } else {
+                                            $ret = [ 'ret' => 6, 'status' => 'Merged failed'];
+                                        }
                                     }
                                 }
                             }

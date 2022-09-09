@@ -586,6 +586,17 @@ class userAPITest extends IznikAPITestCase {
         ]);
         assertEquals(0, $ret['ret']);
 
+        # Merge again should work.
+        $ret = $this->call('user', 'POST', [
+            'action' => 'Merge',
+            'email1' => 'test2@test.com',
+            'email2' => 'test3@test.com',
+            'reason' => 'UT',
+            'dup' => true
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals('Already the same user', $ret['status']);
+
         # This merge should end up with test3 as primary.
         $id = $u1->findByEmail('test3@test.com');
         $u = new User($this->dbhr, $this->dbhm, $id);
