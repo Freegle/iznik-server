@@ -168,56 +168,81 @@ function memberships() {
             case 'PUT': {
                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
-                # We might have been passed a userid; if not, then assume we're acting on ourselves.
-                $userid = $userid ? $userid : ($me ? $me->getId() : NULL);
-                $u = User::get($dbhr, $dbhm, $userid);
+                $partner = Utils::pres('partner', $_SESSION);
+                $partnerdomain = Utils::pres('partnerdomain', $_SESSION);
 
-                if ($u && $me && $u->getId() && $me->getId() && $groupid) {
-                    $g = Group::get($dbhr, $dbhm, $groupid);
-                    $origrole = $role;
-                    $myrole = $me->getRoleForGroup($groupid, FALSE);
+                if ($partner) {
+                    $u = User::get($dbhr, $dbhm, $userid);
+                    $uid = $u->findByEmail(Utils::presdef('email', $_REQUEST, NULL));
 
-                    if ($userid && $userid != $me->getId()) {
-                        # If this isn't us, we can add them, but not as someone with higher permissions than us, and
-                        # if we're only a user, we can't add someone else at all.
-                        $role = $myrole == User::ROLE_MEMBER ? User::ROLE_NONMEMBER : $u->roleMin($role, $myrole);
+                    $ret = ['ret' => 3, 'status' => 'User not found'];
 
-                        # ...unless there are no mods at all, in which case this lucky person could become the owner.
-                        $role = ($origrole == User::ROLE_OWNER && $role == User::ROLE_MODERATOR && count($g->getMods()) == 0) ? User::ROLE_OWNER : $role;
+                    if ($uid) {
+                        $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
-                        # If we're allowed to add another user, then they should be added as an approved member even
-                        # if the group approves members.
-                        $addtocoll = MembershipCollection::APPROVED;
+                        if (strpos($email, '@' . $partnerdomain) !== FALSE) {
+                            $u = new User($dbhr, $dbhm, $uid);
+                            $emailid = $u->getAnEmailId();
+                            $rc = $u->addMembership($groupid, $role, $emailid, MembershipCollection::APPROVED, $message);
 
-                        # Make sure they're not banned - an explicit add should override that.
-                        $u->unban($groupid);
-                    } else if ($userid) {
-                        # We're adding ourselves, i.e. joining a group.
-                        $addtocoll = MembershipCollection::APPROVED;
+                            $ret = ['ret' => 4, 'status' => 'Failed - likely ban'];
 
-                        # But joining shouldn't demote us - we can do that via PATCH.
-                        $role = $me->roleMax($role, $myrole);
+                            if ($rc) {
+                                $ret = ['ret' => 0, 'status' => 'Success', 'fduserid' => $u->getId()];
+                            }
+                        }
+                    }
+                } else {
+                    # We might have been passed a userid; if not, then assume we're acting on ourselves.
+                    $userid = $userid ? $userid : ($me ? $me->getId() : NULL);
+                    $u = User::get($dbhr, $dbhm, $userid);
+
+                    if ($u && $me && $u->getId() && $me->getId() && $userid && $groupid) {
+                        $g = Group::get($dbhr, $dbhm, $groupid);
+                        $myrole = $me->getRoleForGroup($groupid, FALSE);
+                        $origrole = $role;
+
+                        if ($userid && $userid != $me->getId()) {
+                            # If this isn't us, we can add them, but not as someone with higher permissions than us, and
+                            # if we're only a user, we can't add someone else at all.
+                            $role = $myrole == User::ROLE_MEMBER ? User::ROLE_NONMEMBER : $u->roleMin($role, $myrole);
+
+                            # ...unless there are no mods at all, in which case this lucky person could become the owner.
+                            $role = ($origrole == User::ROLE_OWNER && $role == User::ROLE_MODERATOR && count($g->getMods()) == 0) ? User::ROLE_OWNER : $role;
+
+                            # If we're allowed to add another user, then they should be added as an approved member even
+                            # if the group approves members.
+                            $addtocoll = MembershipCollection::APPROVED;
+
+                            # Make sure they're not banned - an explicit add should override that.
+                            $u->unban($groupid);
+                        } else if ($userid) {
+                            # We're adding ourselves, i.e. joining a group.
+                            $addtocoll = MembershipCollection::APPROVED;
+
+                            # But joining shouldn't demote us - we can do that via PATCH.
+                            $role = $me->roleMax($role, $myrole);
+                        }
+
+                        if ($email) {
+                            # Get the emailid we'd like to use on this group.  This will add it if absent.
+                            $emailid = $u->addEmail($email);
+                        } else {
+                            # We've not asked to use a specific email address.  Just use our preferred one.
+                            $emailid = $u->getAnEmailId();
+                        }
+
+                        if (!$userid || $role != User::ROLE_NONMEMBER) {
+                            $u->addMembership($groupid, $role, $emailid, $addtocoll, $message);
+
+                            $ret = [
+                                'ret' => 0,
+                                'status' => 'Success',
+                            ];
+                        }
                     }
 
-                    if ($email) {
-                        # Get the emailid we'd like to use on this group.  This will add it if absent.
-                        $emailid = $u->addEmail($email);
-                    } else {
-                        # We've not asked to use a specific email address.  Just use our preferred one.
-                        $emailid = $u->getAnEmailId();
-                    }
-
-                    if (!$userid || $role != User::ROLE_NONMEMBER) {
-                        $u->addMembership($groupid, $role, $emailid, $addtocoll, $message);
-
-                        $ret = [
-                            'ret' => 0,
-                            'status' => 'Success',
-                            'addedto' => $addtocoll
-                        ];
-                    }
                 }
-
                 break;
             }
 
@@ -260,32 +285,64 @@ function memberships() {
             case 'DELETE': {
                 $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
-                if ($email) {
-                    # We are unsubscribing when logged out.  There is a DoS attack here, but there's a benefit in
-                    # allowing users who can't manage to log in to unsubscribe.  We only allow an unsubscribe on a
-                    # group as a member to avoid the DoS hitting mods.
-                    $ret = ['ret' => 3, 'status' => "We don't know that email" ];
-                    $uid = $u->findByEmail($email);
+                $partner = Utils::pres('partner', $_SESSION);
+                $partnerdomain = Utils::pres('partnerdomain', $_SESSION);
+
+                if ($partner) {
+                    $u = User::get($dbhr, $dbhm, $userid);
+                    $uid = $u->findByEmail(Utils::presdef('email', $_REQUEST, NULL));
+
+                    $ret = ['ret' => 3, 'status' => 'User not found'];
 
                     if ($uid) {
-                        $u = User::get($dbhm, $dbhm, $uid);
-                        $ret = ['ret' => 4, 'status' => "Can't remove from that group" ];
-                        if ($u->isApprovedMember($groupid) && !$u->isModOrOwner($groupid)) {
-                            $ret = ['ret' => 0, 'status' => 'Success' ];
+                        $ret = ['ret' => 2, 'status' => 'Permission denied'];
+
+                        if (strpos($email, '@' . $partnerdomain) !== FALSE) {
+                            $u = new User($dbhr, $dbhm, $uid);
                             $u->removeMembership($groupid);
+                            $ret = ['ret' => 0, 'status' => 'Success', 'fduserid' => $u->getId()];
                         }
                     }
-                } else if ($u && $me && ($me->isAdminOrSupport() || $me->isModOrOwner($groupid) || $userid == $me->getId())) {
-                    # We can remove them, but not if they are someone higher than us.
-                    $myrole = $me->getRoleForGroup($groupid);
-                    if ($myrole == $u->roleMax($myrole, $u->getRoleForGroup($groupid))) {
-                        $rc = $u->removeMembership($groupid, $ban);
+                } else
+                {
+                    if ($email)
+                    {
+                        # We are unsubscribing when logged out.  There is a DoS attack here, but there's a benefit in
+                        # allowing users who can't manage to log in to unsubscribe.  We only allow an unsubscribe on a
+                        # group as a member to avoid the DoS hitting mods.
+                        $ret = ['ret' => 3, 'status' => "We don't know that email"];
+                        $uid = $u->findByEmail($email);
 
-                        if ($rc) {
-                            $ret = [
-                                'ret' => 0,
-                                'status' => 'Success'
-                            ];
+                        if ($uid)
+                        {
+                            $u = User::get($dbhm, $dbhm, $uid);
+                            $ret = ['ret' => 4, 'status' => "Can't remove from that group"];
+                            if ($u->isApprovedMember($groupid) && !$u->isModOrOwner($groupid))
+                            {
+                                $ret = ['ret' => 0, 'status' => 'Success'];
+                                $u->removeMembership($groupid);
+                            }
+                        }
+                    } else
+                    {
+                        if ($u && $me && ($me->isAdminOrSupport() || $me->isModOrOwner(
+                                    $groupid
+                                ) || $userid == $me->getId()))
+                        {
+                            # We can remove them, but not if they are someone higher than us.
+                            $myrole = $me->getRoleForGroup($groupid);
+                            if ($myrole == $u->roleMax($myrole, $u->getRoleForGroup($groupid)))
+                            {
+                                $rc = $u->removeMembership($groupid, $ban);
+
+                                if ($rc)
+                                {
+                                    $ret = [
+                                        'ret' => 0,
+                                        'status' => 'Success'
+                                    ];
+                                }
+                            }
                         }
                     }
                 }

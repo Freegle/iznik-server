@@ -824,6 +824,71 @@ class membershipsAPITest extends IznikAPITestCase {
         assertNull($this->user2->isApprovedMember($this->groupid));
         assertTrue($this->user2->isBanned($this->groupid));
     }
+
+    public function testJoinPartner() {
+        $key = Utils::randstr(64);
+        $id = $this->dbhm->preExec("INSERT INTO partners_keys (`partner`, `key`, `domain`) VALUES ('UT', ?, ?);", [$key, 'partner.com']);
+        assertNotNull($id);
+
+        // Create user with email test@partner.com
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', 'Test User');
+        $u->addEmail('test@partner.com');
+        $uid2 = $u->create('Test', 'User', 'Test User');
+        $u->addEmail('test@partner2.com');
+
+        // Without key = should fail.
+        $GLOBALS['sessionPrepared'] = FALSE;
+        $_SESSION['id'] = NULL;
+        $ret = $this->call('memberships', 'PUT', [
+            'groupid' => $this->groupid,
+            'email' => 'test@partner.com',
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        // Without key = should fail.
+        $GLOBALS['sessionPrepared'] = FALSE;
+        $_SESSION['id'] = NULL;
+        $ret = $this->call('memberships', 'PUT', [
+            'groupid' => $this->groupid,
+            'email' => 'test@partner.com',
+            'partner' => '1234'
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        // Valid key but wrong domain = should fail
+        $GLOBALS['sessionPrepared'] = FALSE;
+        $_SESSION['id'] = NULL;
+        $ret = $this->call('memberships', 'PUT', [
+            'groupid' => $this->groupid,
+            'email' => 'test@partner2.com',
+            'partner' => $key
+        ]);
+        assertEquals(2, $ret['ret']);
+
+        // Valid key, valid domain = should work
+        $GLOBALS['sessionPrepared'] = FALSE;
+        $_SESSION['id'] = NULL;
+        $ret = $this->call('memberships', 'PUT', [
+            'groupid' => $this->groupid,
+            'email' => 'test@partner.com',
+            'partner' => $key
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertTrue(array_key_exists('fduserid', $ret));
+
+        // Leave
+        $GLOBALS['sessionPrepared'] = FALSE;
+        $_SESSION['id'] = NULL;
+        $ret = $this->call('memberships', 'DELETE', [
+            'groupid' => $this->groupid,
+            'email' => 'test@partner.com',
+            'partner' => $key
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertTrue(array_key_exists('fduserid', $ret));
+    }
+
 //
 //    public function testEH() {
 //        $_SESSION['id'] = 420;
