@@ -238,6 +238,7 @@ function memberships() {
                             $ret = [
                                 'ret' => 0,
                                 'status' => 'Success',
+                                'addedto' => $addtocoll
                             ];
                         }
                     }
