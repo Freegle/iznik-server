@@ -170,10 +170,11 @@ function memberships() {
 
                 $partner = Utils::pres('partner', $_SESSION);
                 $partnerdomain = Utils::pres('partnerdomain', $_SESSION);
+                $tnuserid = Utils::presdef('tnuserid', $_REQUEST, NULL);
 
                 if ($partner) {
                     $u = User::get($dbhr, $dbhm, $userid);
-                    $uid = $u->findByEmail(Utils::presdef('email', $_REQUEST, NULL));
+                    $uid = $tnuserid ? $u->findByTNId($tnuserid) : $u->findByEmail(Utils::presdef('email', $_REQUEST, NULL));
 
                     $ret = ['ret' => 3, 'status' => 'User not found'];
 
@@ -288,10 +289,11 @@ function memberships() {
 
                 $partner = Utils::pres('partner', $_SESSION);
                 $partnerdomain = Utils::pres('partnerdomain', $_SESSION);
+                $tnuserid = Utils::presdef('tnuserid', $_REQUEST, NULL);
 
                 if ($partner) {
                     $u = User::get($dbhr, $dbhm, $userid);
-                    $uid = $u->findByEmail(Utils::presdef('email', $_REQUEST, NULL));
+                    $uid = $tnuserid ? $u->findByTNId($tnuserid) : $u->findByEmail(Utils::presdef('email', $_REQUEST, NULL));
 
                     $ret = ['ret' => 3, 'status' => 'User not found'];
 
