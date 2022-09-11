@@ -174,7 +174,15 @@ function memberships() {
 
                 if ($partner) {
                     $u = User::get($dbhr, $dbhm, $userid);
-                    $uid = $tnuserid ? $u->findByTNId($tnuserid) : $u->findByEmail(Utils::presdef('email', $_REQUEST, NULL));
+                    $uid = NULL;
+
+                    if ($tnuserid) {
+                        $uid = $u->findByTNId($tnuserid);
+                    }
+
+                    if (!$uid) {
+                        $uid = $u->findByEmail($email);
+                    }
 
                     $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
@@ -186,6 +194,7 @@ function memberships() {
                             $name =  substr($email, 0, $p);
                             $uid = $u->create(NULL, NULL, $name);
                             $u->addEmail($email);
+                            $u->setPrivate('tnuserid', $tnuserid);
                         }
 
                         $u = new User($dbhr, $dbhm, $uid);
@@ -298,7 +307,15 @@ function memberships() {
 
                 if ($partner) {
                     $u = User::get($dbhr, $dbhm, $userid);
-                    $uid = $tnuserid ? $u->findByTNId($tnuserid) : $u->findByEmail(Utils::presdef('email', $_REQUEST, NULL));
+                    $uid = NULL;
+
+                    if ($tnuserid) {
+                        $uid = $u->findByTNId($tnuserid);
+                    }
+
+                    if (!$uid) {
+                        $uid = $u->findByEmail($email);
+                    }
 
                     $ret = ['ret' => 3, 'status' => 'User not found'];
 
