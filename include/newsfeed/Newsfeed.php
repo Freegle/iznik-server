@@ -839,6 +839,7 @@ class Newsfeed extends Entity
             $max = 0;
 
             $oldest = Utils::ISODate(date("Y-m-d H:i:s", strtotime("14 days ago")));
+            $locations = [];
 
             foreach ($feeds as &$feed) {
                 #error_log("Compare {$feed['userid']} vs $userid, unseen $unseen, feed {$feed['id']} vs $lastseen, timestamp {$feed['timestamp']} vs $oldest");
@@ -848,6 +849,13 @@ class Newsfeed extends Entity
                     (Utils::pres('message', $feed) || $feed['type'] == Newsfeed::TYPE_STORY) &&
                     !$feed['deleted']) {
                     $str = $feed['message'];
+
+                    $u = User::get($this->dbhr, $this->dbhm, $feed['userid']);
+
+                    # Add the location, which makes it more interesting to click on.  Lose the group name.
+                    $location = $u->getPublicLocation()['display'];
+                    $location = strpos($location, ',') !== FALSE ? substr($location, 0, strrpos($location, ',')) : $location;
+                    $locations[] = $location;
 
                     switch ($feed['type']) {
                         case Newsfeed::TYPE_ABOUT_ME: {
@@ -881,8 +889,11 @@ class Newsfeed extends Entity
 
                         $short = $feed['message'];
                         $this->snip($short, 40);
-                        $subj = '"' . $short . '" ' . " ($count conversation" . ($count != 1 ? 's' : '') . " from your neighbours)";
-                        $subj = str_replace('""', '"', $subj);
+                        $subj = '"' . $short . '" ' . " ($count conversation" . ($count != 1 ? 's' : '') . " from your neighbours";
+                        if (count($locations)) {
+                            $subj .= ' in ' . implode(', ', array_unique($locations));
+                        }
+                        $subj = str_replace('""', '"', $subj) . ")";
 
                         $u = User::get($this->dbhr, $this->dbhm, $feed['userid']);
                         $fromname = $u->getName();
