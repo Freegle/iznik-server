@@ -889,6 +889,22 @@ class membershipsAPITest extends IznikAPITestCase {
         assertTrue(array_key_exists('fduserid', $ret));
     }
 
+    public function testJoinNewMemberPartner() {
+        $key = Utils::randstr(64);
+        $id = $this->dbhm->preExec("INSERT INTO partners_keys (`partner`, `key`, `domain`) VALUES ('UT', ?, ?);", [$key, 'partner.com']);
+        assertNotNull($id);
+
+        $GLOBALS['sessionPrepared'] = FALSE;
+        $_SESSION['id'] = NULL;
+        $ret = $this->call('memberships', 'PUT', [
+            'groupid' => $this->groupid,
+            'email' => 'test@partner.com',
+            'partner' => $key
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertTrue(array_key_exists('fduserid', $ret));
+    }
+
 //
 //    public function testEH() {
 //        $_SESSION['id'] = 420;

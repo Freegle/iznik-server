@@ -176,21 +176,26 @@ function memberships() {
                     $u = User::get($dbhr, $dbhm, $userid);
                     $uid = $tnuserid ? $u->findByTNId($tnuserid) : $u->findByEmail(Utils::presdef('email', $_REQUEST, NULL));
 
-                    $ret = ['ret' => 3, 'status' => 'User not found'];
+                    $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
-                    if ($uid) {
-                        $ret = ['ret' => 2, 'status' => 'Permission denied'];
+                    if (strpos($email, '@' . $partnerdomain) !== FALSE) {
+                        if (!$uid) {
+                            # The user doesn't already exist.  This is one way that a partner can create a new user.
+                            $p = strrpos($email, '-g');
+                            $p = $p !== FALSE ? $p : strrpos($email, '@');
+                            $name =  substr($email, 0, $p);
+                            $uid = $u->create(NULL, NULL, $name);
+                            $u->addEmail($email);
+                        }
 
-                        if (strpos($email, '@' . $partnerdomain) !== FALSE) {
-                            $u = new User($dbhr, $dbhm, $uid);
-                            $emailid = $u->getAnEmailId();
-                            $rc = $u->addMembership($groupid, $role, $emailid, MembershipCollection::APPROVED, $message);
+                        $u = new User($dbhr, $dbhm, $uid);
+                        $emailid = $u->getAnEmailId();
+                        $rc = $u->addMembership($groupid, $role, $emailid, MembershipCollection::APPROVED, $message);
 
-                            $ret = ['ret' => 4, 'status' => 'Failed - likely ban'];
+                        $ret = ['ret' => 4, 'status' => 'Failed - likely ban'];
 
-                            if ($rc) {
-                                $ret = ['ret' => 0, 'status' => 'Success', 'fduserid' => $u->getId()];
-                            }
+                        if ($rc) {
+                            $ret = ['ret' => 0, 'status' => 'Success', 'fduserid' => $u->getId()];
                         }
                     }
                 } else {
