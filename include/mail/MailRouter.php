@@ -627,17 +627,31 @@ class MailRouter
                                             $textbody .= "\r\n\r\n(Replied to digest)";
                                         }
 
-                                        if (strlen($textbody))
-                                        {
+                                        if (strlen($textbody)) {
                                             $m = new ChatMessage($this->dbhr, $this->dbhm);
+
+                                            // Force to review so that we don't mail it before we've recorded that the
+                                            // sender has seen it.
                                             list ($mid, $banned) = $m->create(
                                                 $chatid,
                                                 $uid,
                                                 $textbody,
                                                 ChatMessage::TYPE_DEFAULT,
                                                 null,
-                                                false
+                                                false,
+                                                null,
+                                                null,
+                                                null,
+                                                null,
+                                                null,
+                                                true
                                             );
+
+                                            $r->updateRoster($uid, $mid);
+
+                                            // Allow mailing to happen.
+                                            $m->setPrivate('reviewrequired', 0);
+
                                             if ($this->log)
                                             {
                                                 error_log("Created message $mid");
@@ -650,6 +664,8 @@ class MailRouter
                                         $this->addPhotosToChat($chatid);
 
                                         $ret = MailRouter::TO_VOLUNTEERS;
+
+
                                     }
                                 }
                             }
