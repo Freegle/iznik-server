@@ -93,6 +93,16 @@ do {
                 if ($oldname != $change['username']) {
                     error_log("Name change for {$change['fd_user_id']} $oldname => {$change['username']}");
                     $u->setPrivate('fullname', $change['username']);
+
+                    $emails = $u->getEmails();
+
+                    foreach ($emails as $email) {
+                        if (strpos($email['email'], "$oldname-") !== FALSE) {
+                            $u->removeEmail($email['email']);
+                            error_log("...{$email['email']} => " . str_replace("$oldname-", "{$change['username']}-", $email['email']));
+                            $u->addEmail(str_replace("$oldname-", "{$change['username']}-", $email['email']));
+                        }
+                    }
                 }
             } catch (\Exception $e) {
                 error_log("Ratings sync failed " . $e->getMessage() . " " . var_export($rating, true));
