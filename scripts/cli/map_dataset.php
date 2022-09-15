@@ -10,7 +10,7 @@ require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
-$start = date('Y-m-d', strtotime("2018-06-21"));
+$start = date('Y-m-d', strtotime("2015-11-13"));
 $msgs = $dbhr->preQuery("SELECT DISTINCT fromuser, refmsgid, lat, lng FROM chat_messages
 INNER JOIN messages ON messages.id = chat_messages.refmsgid
 WHERE chat_messages.date > ? AND refmsgid IS NOT NULL AND chat_messages.type = ? AND messages.type = ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL", [
