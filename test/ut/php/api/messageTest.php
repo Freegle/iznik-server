@@ -3135,13 +3135,15 @@ class messageAPITest extends IznikAPITestCase
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_ireplace('Basic test', 'OFFER: Thing (Place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         assertEquals(MailRouter::PENDING, $rc);
 
         $ret = $this->call('message', 'PATCH', [
             'id' => $id,
+            'subject' => 'OFFER: Thing (Another place)',
             'textbody' => 'Test edit',
             'lat' => 56.1,
             'lng' => 1.23,
@@ -3150,6 +3152,9 @@ class messageAPITest extends IznikAPITestCase
 
         assertEquals(0, $ret['ret']);
 
+        $this->user->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
+        assertTrue($this->user->login('testpw'));
+
         $ret = $this->call('message', 'GET', [
             'id' => $id,
             'partner' => $key
@@ -3157,8 +3162,12 @@ class messageAPITest extends IznikAPITestCase
 
         assertEquals(0, $ret['ret']);
         assertEquals('Test edit', $ret['message']['textbody']);
+        assertEquals('OFFER: Thing (Another place)', $ret['message']['subject']);
         assertEquals(56.1, $ret['message']['lat']);
         assertEquals(1.2365, $ret['message']['lng']);
+        assertEquals('Hey.', $ret['message']['edits'][0]['oldtext']);
+        assertEquals('OFFER: Thing (Place)', $ret['message']['edits'][0]['oldsubject']);
+        assertEquals('OFFER: Thing (Another place)', $ret['message']['edits'][0]['newsubject']);
     }
 
     public function testPartnerConsent() {

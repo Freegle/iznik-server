@@ -227,7 +227,7 @@ class Message
 
         # Get old values for edit history.  We put NULL if there is no edit.
         $oldtext = $textbody ? trim($this->getPrivate('textbody')) : NULL;
-        $oldsubject = ($type || $item || $locationid) ? $this->getPrivate('subject') : NULL;
+        $oldsubject = ($subject || $type || $item || $locationid) ? $this->getPrivate('subject') : NULL;
         $oldtype = $type ? $this->getPrivate('type') : NULL;
         $oldlocation = $locationid ? $this->getPrivate('locationid') : NULL;
         $olditems = NULL;
