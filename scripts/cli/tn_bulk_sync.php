@@ -206,7 +206,6 @@ foreach ($tnemails as $tnemail)
     }
 }
 
-
 error_log("\n\nRemoved $removed of $count TN emails\n");
 error_log("Updated TN userids $updatedid\n");
 error_log("Removed multiple TN emails for $multiples users\n");
@@ -232,19 +231,30 @@ while (!feof($fh))
     $tncurrentesc = str_replace('_', '\_', $tncurrent);
     $tnoldesc = str_replace('_', '\_', $tnold);
 
-    $current = $dbhr->preQuery("SELECT DISTINCT(userid) FROM users_emails WHERE email LIKE '$tncurrentesc-g%@user.trashnothing.com';");
-    $old = $dbhr->preQuery("SELECT DISTINCT(userid) FROM users_emails WHERE email LIKE '$tnoldesc-g%@user.trashnothing.com';");
+    $u = User::get($dbhr, $dbhm);
 
-    if (count($current) > 1 || count($old) > 1) {
-        error_log("ERROR: found multiple users for $tncurrent or $tnold - shouldn't happen");
-        exit(0);
-    } else if (count($current) == 1 && count($old) == 1 && $current['userid'] != $old['userid']) {
+    do {
+        $current = $dbhr->preQuery("SELECT DISTINCT(userid) FROM users_emails WHERE email LIKE '$tncurrentesc-g%@user.trashnothing.com';");
+
+        if (count($current) > 1) {
+            $u->merge($current[0]['userid'], $current[1]['userid'], 'Separate FD users which TN knows are the same.');
+        }
+    } while (count($current) > 1);
+
+    do {
+        $old = $dbhr->preQuery("SELECT DISTINCT(userid) FROM users_emails WHERE email LIKE '$tnoldesc-g%@user.trashnothing.com';");
+
+        if (count($old) > 1) {
+            $u->merge($old[0]['userid'], $old[1]['userid'], 'Separate FD users which TN knows are the same.');
+        }
+    } while (count($old) > 1);
+
+    if (count($current) == 1 && count($old) == 1 && $current[0]['userid'] != $old[0]['userid']) {
         // We found two separate users which should be the same.  Merge them and delete the old email addresses.
         error_log("Merge $tnold into $tncurrent");
-        $u = User::get($dbhr, $dbhm);
-        if ($u->merge($current['userid'], $old['userid'], 'Separate FD users which TN knows are renamed.')) {
+        if ($u->merge($current[0]['userid'], $old[0]['userid'], 'Separate FD users which TN knows are renamed.')) {
             $dbhm->preExec("DELETE FROM users_emails WHERE userid = ? AND email LIKE '$tnoldesc-g%@user.trashnothing.com';", [
-                $old['userid']
+                $old[0]['userid']
             ]);
         }
     }
