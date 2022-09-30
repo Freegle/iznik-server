@@ -125,6 +125,7 @@ try{
 $subject = "cron checker ".gethostname().": ".(strlen($report)===0?"OK":"FAIL");
 
 if( strlen($report)===0) $report = "No cron changes to report on ".gethostname()."\r\n";
+else $report .= "\r\n Previous cron files at ".$cronlast."\r\n";
 
 echo "RESULTS:\r\n".$report;
 
