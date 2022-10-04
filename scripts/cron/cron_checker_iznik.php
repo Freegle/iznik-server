@@ -131,8 +131,7 @@ $subject = "cron checker ".gethostname().": ".(strlen($report)===0?"OK":"FAIL");
 
 if( strlen($report)===0) {
   $report = "No cron changes to report on ".gethostname()."\r\nMail not sent\r\n";
-}
-else {
+} else {
   $report .= "\r\n Previous cron files at ".$cronlast."\r\n";
 
   $message = \Swift_Message::newInstance()
