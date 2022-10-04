@@ -1,0 +1,2872 @@
+From test@test.com Thu Sep 29 11:48:03 2022
+Return-path: <test@test.com>
+Envelope-to: testgroup-auto@groups.ilovefreegle.org
+Received: from sonic310-20.consmr.mail.gq1.yahoo.com ([98.137.69.146])
+	by bulk4.ilovefreegle.org with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+	(Exim 4.93)
+	(envelope-from <test@test.com>)
+	id 1ods1K-00EH3E-BN
+	for testgroup-auto@groups.ilovefreegle.org; Thu, 29 Sep 2022 11:48:02 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=aol.co.uk; s=a2048; t=1664452080; bh=ZMqiN1lsIhD7tPhdkhJPxJ2ByLOhugMhzp1qZL5G1v0=; h=Date:From:Reply-To:To:In-Reply-To:References:Subject:From:Subject:Reply-To; b=F1Ur5lz8tZlgExyaYGuOsQeEG7OdlLcZ1akxw+jhZq6NmHNXuhuvZ4TVbez2tjfqH4aUUHhFgu25heb9STJ830sH3WcQOCNxRc6J/i8gumTG0vQzdAlvCHRId9nFUBQbDLpsC8xxt//7RZ5ivlUUSn9IEIKQYy2ImbBlt2SfvOgX9RRxNYEo41/HNzo+1TVB2wY+HYmkIIYIBrWED5ip88V7Xa5G37LqPHqFPi0UaTosaFsROL1g9DqF5KJ20EpQ8fBUG3f+Ur+oizU1Liohv5ddCVPMGYaAs3J8GV7awSfkmFtUmz2sRGheXn/vzGWYuCwQ9e/QfV0X4UpRIduf5g==
+X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1664452080; bh=4q47izhlVfubY1UfXubEFWP4QThN/gmvQW8tEXhjr7k=; h=X-Sonic-MF:Date:From:To:Subject:From:Subject; b=WOBqwEc4NO7ZVJL/sZ86kOemxf/y/66c+B4vqYatr/tQ9dS+sWI+zpynI4OXo2kAupidjuIR1ACZhp8ZBU4QTVL7dA5CQtfMb0qY6kRtdkhqTLUk6RYknrTq/jtuI4QfllVRI5rVimD9FjQ9wLkL0rCWQxHz8j91GXA8L2id4+2bOW2E5SXusMGzHFl4nIruDTcGwnN4tFYHmNfRwUxpbVMY0i9e3JLRyD36pCIbMu0S2zP2Uy29xXB2KsJ+gcBXY0s33hHxzpM5THHrbNyKlvmOX/gEWBsru07QemHux7DdPspO1pnEqxrDHRDoCvlTrLNn3+K2mlvg3ZVTDJAorA==
+X-YMail-OSG: PpHPa5cVM1k4Feg6YOwpIAaH4nIj5yLAbIjGA7P6__lMXmDKr_LqMEx710lJV6T
+ Qo8KPy8sfJ8Q9i_UuCXyEk75UePcZuRw6QTrn61WPBZcgf34G4TcEUHr0P_y4TiX4lVSlvEW40cO
+ getyb3Q003d1zY1yZ5t5nvulE66RQ61TgZMTV.EjrahbT3ci948hnVBEMgF04Ot4lNlIIsyDRDUi
+ F5UfPQZ16K5vLLBXhtxUUIWQAS557P_65kZenDh5RZ470yqCZ_x6sjPS6wq_tLVjUh8XEij39psJ
+ DJ6vLk6icwrlS9kTD5IMnIT_1Yg3L_Z0o8EIUBB1xUCagss4khZFE8TccOSYEtgFsKkehW1CABac
+ QtajzkrVWhfiMKcLiXbtGOWo0LP9v6_YTbLWIOlfV9xfYBIvnxJM2LXekws97M36k7tuY6v9Q7JD
+ BFeEvQMU9EB1sQvW_YedbcgvRdvfH1g4xGsO2Uh37YSKAUGmCSZBPn16eYxSoQWGJ72_Agwr6Hm1
+ Tt2ZjdmmI_kSILnNyiOTZpc4lHRyH3NHD7U86LxMdauX0ctWWSwqfwyrUT.1YTCMfJ.Vqa.3dTwh
+ u3fFROpyZvJ3DYu1qm3BUyKWlzI16D198WfBwF_5AY8Ba2khKoJzsEvLK8xsczTW_rcNi2KZN7XY
+ zXsoXYmII3MvvsyEMAw5m3D8qvuAWicJxX9axM3imXF4VwU.vLnMe5F8y9M6eKUPvyJrbbtoK92u
+ DUYEo5M4XYYGQuiUh2v04PWW2YrUAUF5Ot20hkn4czfXfF7IlETsfVuMvVLiTFysFURpko4.1P8R
+ VUlGfxVpdiByi4pggmgreU2NQeS31EoBUhWBpp04_PFJYZmljxPH_lQd2UiCR_XD84OT_BBD666F
+ KJ6M4aDQunabtZj78qGf92S2x_EHa6QO6Htm7mUvaIK.u1hZjTIlhj2MiR4PwqfnYsovI3lKa8BC
+ UhZNr7bQ.QlmPsScGv6lNnV7ZCQllox.r9bu_2.aAyfgRN3dP44l07G1j08GOI_Jf.nGkDc1_t.o
+ 02jDkFmfGxi32BdUtSdob.49xaZVxahM6h0GvqAvekK.iBPdZbb7aXpN3iJPMS18DvcBwjMNXc3p
+ rK8E99Af67rMqJfUtkYyH2UYjG_gpUeeSv.cQSartmGSRbRn8t.1igtZGe5oXnMp8xALweFhjFUT
+ dHjrTciPk1yYjkaGvRCHmnd_G74hgUb..meUUoP.ZDNhHH_aeSGil_GsuEEx7XgJyFsGuze8ppt7
+ zyAQT1HCWZYmRce2nV2sOMmmcN1qXRb4AIhRf_j00HKLVk7Cf0Ol5bxETwte0aHc_A.9SONLOXYN
+ QLNUirqkLo6ZnKK9sJRYh276nVQJqGPT1mBxhzWsUo1wQrCRHVnyjc9QKOvmBJs.nbm5SHH8a_K9
+ ApG8hY_g65mmyaTIq.KPI47iDJyARhxScWZMMGK9Z.42jrE33w7Q9aVGI2AUBKE9mreX07VWtw_8
+ 0pbsujnW3cSrROsNVX1Mi1ACGLozd3Kkb0I_Qu64fYMGOONqs_qZSjW871f2Uv0bS6PNqwxZ_n.f
+ bIhFa4jSlvGJdgosnogMMXVU694ileBPHuxnk_lI6wXM34T2CiRDzJjWkQjAEbQIf7UgsQVAxguB
+ mfiKo9oxU.pvqNV56DHH9T4_hjHUY.ecMY4FiqJEPIzjKpOdpV_.2HEIe0OXHrXi_kuJ1gY3MTLC
+ vIZ5ld9HjTwiNyjCOCi3mmC8Tysp5uSSqdpWbJE_G_rqT2WzskbJ5PSCdf1roOxy_HclO7W6sFTp
+ bQtJBDmAhjcOw7T6voXRXzNARVy_RPucyw8KR5AoVjImbfZdOBSe1z2NbervjfpHY1kRFrHmo7.y
+ RCBn0uKmKMApoF9eX.DbOS_FC5Uzv9uhTTlzUVLIdFAD_Unv2I3VdfLREz6Q3ECx58vclVVH0gX0
+ 96Gb_GJ4DVPZ7dYqUJFZA6H6dm8PS.AZLqXlFcHJkfub7aXvXn_fNGZJEk_A7_NB90aL5AgfYHzi
+ xVFyhnf9onHbPBWZB0hn_vFbqio504BWyaJcIGfApoqI5pQr9G1ZqUQIySUDfgLGSID7rJN7IriP
+ Mm7E6kFr7ZU.7ZyXvbXIhRAv4C2VVV45_y7RwmbfUOPbLP.QCbHLhfre69dYjgkqB9zXr.6YBtUk
+ Maed9avypZYVnDbstPU55DTFqCiwhRkur1XHVDEIJl2kt08DcWdZ2tjUEfLSMMvVjHFJfFyEbFg3
+ .M3aQKwvM1s0Jvhkb_T5_wTjb.71z_XgreyG5RoDv3tScS64kD_2wPX.NKLGP1P1AYe60G50e.tO
+ 3BKepg9OCS1DskozzPJGz3woYMfGFK939MF37VAB14HNho_cVqyHvkgnZ4qk7rVfgULm4JwVllRO
+ pCeD6ir7PZ8ZZyvjq7okLKJLYe75lpiH4GPe7kJrBau1.XkI-
+X-Sonic-MF: <test@test.com>
+Received: from sonic.gate.mail.ne1.yahoo.com by sonic310.consmr.mail.gq1.yahoo.com with HTTP; Thu, 29 Sep 2022 11:48:00 +0000
+Date: Thu, 29 Sep 2022 11:47:58 +0000 (UTC)
+From: Test User <test@test.com>
+Reply-To: Test User <test@test.com>
+To: "testgroup-auto@groups.ilovefreegle.org" <testgroup-auto@groups.ilovefreegle.org>
+Message-ID: <726823161.1766054.1664452078818@mail.yahoo.com>
+In-Reply-To: <22106150df0eed3c8b2b60c2611affb3@users.ilovefreegle.org>
+References: <22106150df0eed3c8b2b60c2611affb3@users.ilovefreegle.org>
+Subject: Re: [Norwich Freegle] What's New (12 messages) - Mobile Phone,
+ Sewing board, Highchair, Playpen, Wall prints... ~--~~~~---~~-~--~--~~~-~-~
+MIME-Version: 1.0
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_1766051_703223162.1664452078796"
+X-Mailer: WebService/1.1.20702 aolwebmail
+Content-Length: 160828
+
+------=_Part_1766051_703223162.1664452078796
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+hello~i still have no bin and i want to freegle something~please helptest j=
+ones
+
+
+-----Original Message-----
+From: Norwich Freegle <testgroup-auto@groups.ilovefreegle.org>
+To: Test User <test@test.com>
+Sent: Thu, 29 Sep 2022 9:15
+Subject: [Norwich Freegle] What's New (12 messages) - Mobile Phone, Sewing =
+board, Highchair, Playpen, Wall prints... ~--~~~~---~~-~--~--~~~-~-~
+
+ #yiv8345534283 #yiv8345534283outlook a{padding:0;}#yiv8345534283 body{marg=
+in:0;padding:0;}#yiv8345534283 table, #yiv8345534283 td{border-collapse:col=
+lapse;}#yiv8345534283 img{border:0;height:auto;line-height:100%;outline:non=
+e;text-decoration:none;}#yiv8345534283 p{display:block;margin:13px 0;}@medi=
+a only screen and (min-width:480px){#yiv8345534283 .yiv8345534283mj-column-=
+per-100{width:100% !important;max-width:100%;}#yiv8345534283 .yiv8345534283=
+mj-column-per-33-333333333333336{width:33.333333333333336% !important;max-w=
+idth:33.333333333333336%;}#yiv8345534283 .yiv8345534283mj-column-per-50{wid=
+th:50% !important;max-width:50%;}#yiv8345534283 .yiv8345534283mj-column-per=
+-66{width:66% !important;max-width:66%;}#yiv8345534283 .yiv8345534283mj-col=
+umn-per-34{width:34% !important;max-width:34%;}#yiv8345534283 .yiv834553428=
+3mj-column-px-150{width:150px !important;max-width:150px;}}@media only scre=
+en and (max-width:480px){#yiv8345534283 table.yiv8345534283mj-full-width-mo=
+bile{width:100% !important;}#yiv8345534283 td.yiv8345534283mj-full-width-mo=
+bile{width:auto !important;}} Here are new posts or reposts since we last m=
+ailed you.REQUESTED: Mobile Phone (Norwich) at https://www.ilovefreegle.org=
+/message/93744378?u=3D41472629&src=3DdigestREQUESTED: Sewing board (New Cat=
+ton NR3) at https://www.ilovefreegle.org/message/93752727?u=3D41472629&src=
+=3DdigestOFFERED: Halogen Dimmable Uplighter (Horsford NR10) at https://www=
+.ilovefreegle.org/message/93754572?u=3D41472629&src=3DdigestREQUESTED: High=
+chair (Thorpe End NR13) at https://www.ilovefreegle.org/message/93755754?u=
+=3D41472629&src=3DdigestREQUESTED: Playpen (Thorpe End NR13) at https://www=
+.ilovefreegle.org/message/93755457?u=3D41472629&src=3DdigestREQUESTED: Body=
+ Warmer size 18/20 please (Costessey NR8) at https://www.ilovefreegle.org/m=
+essage/93762126?u=3D41472629&src=3DdigestOFFERED: Wall prints (NR6) at http=
+s://www.ilovefreegle.org/message/93763251?u=3D41472629&src=3DdigestOFFERED:=
+ Wall art (NR6) at https://www.ilovefreegle.org/message/93763323?u=3D414726=
+29&src=3DdigestOFFERED: 2 x Cannon Printers for spares or repair (Drayton N=
+R8) at https://www.ilovefreegle.org/message/93763878?u=3D41472629&src=3Ddig=
+estREQUESTED: Wall clock (Sprowston NR7) at https://www.ilovefreegle.org/me=
+ssage/93587268?u=3D41472629&src=3DdigestREQUESTED: Exercise bike (Hellesdon=
+ NR6) at https://www.ilovefreegle.org/message/92963622?u=3D41472629&src=3Dd=
+igestOFFERED: 2 Cannon Printers (Drayton NR8) at https://www.ilovefreegle.o=
+rg/message/92983230?u=3D41472629&src=3Ddigest----------------REQUESTED: Mob=
+ile Phone (Norwich) at https://www.ilovefreegle.org/message/93744378?u=3D41=
+472629&src=3DdigestDoes anyone have an old mobile phone please? Doesn't nee=
+d to be smart or anything, it's just to see me through until I can afford t=
+o buy one please!----------------REQUESTED: Sewing board (New Catton NR3) a=
+t https://www.ilovefreegle.org/message/93752727?u=3D41472629&src=3DdigestDo=
+es anyone have a cutting/sewing board for pattern making? thanks in advance=
+----------------OFFERED: Halogen Dimmable Uplighter (Horsford NR10) at http=
+s://www.ilovefreegle.org/message/93754572?u=3D41472629&src=3DdigestThis is =
+a halogen uplighter which is great if you have white ceilings. It has a bui=
+lt in dimming control in the mains lead. It=E2=80=99s not perfect as the po=
+le and reflector are a tad wobbly but the light and dimmer work fine.------=
+----------REQUESTED: Highchair (Thorpe End NR13) at https://www.ilovefreegl=
+e.org/message/93755754?u=3D41472629&src=3DdigestHighchair for when our baby=
+ granddaughter comes to stay----------------REQUESTED: Playpen (Thorpe End =
+NR13) at https://www.ilovefreegle.org/message/93755457?u=3D41472629&src=3Dd=
+igestPlaypen needed for when our baby granddaughter comes to stay----------=
+------REQUESTED: Body Warmer size 18/20 please (Costessey NR8) at https://w=
+ww.ilovefreegle.org/message/93762126?u=3D41472629&src=3DdigestI'm feeling t=
+he cold more as I'm getting older - does anyone have a body warmer they no =
+longer need please, in a plus size 18 or 20? I'm not bothered about colour.=
+ Thank you----------------OFFERED: Wall prints (NR6) at https://www.ilovefr=
+eegle.org/message/93763251?u=3D41472629&src=3DdigestNo longer needed as tur=
+ning room into baby nursery .----------------OFFERED: Wall art (NR6) at htt=
+ps://www.ilovefreegle.org/message/93763323?u=3D41472629&src=3DdigestNo long=
+er needed.----------------OFFERED: 2 x Cannon Printers for spares or repair=
+ (Drayton NR8) at https://www.ilovefreegle.org/message/93763878?u=3D4147262=
+9&src=3DdigestI have 2 Cannon printers which are not working. one has an er=
+ror code and the other i cannot get power to it.----------------REQUESTED: =
+Wall clock (Sprowston NR7) at https://www.ilovefreegle.org/message/93587268=
+?u=3D41472629&src=3DdigestBattery operated wall clock any colour about 12" =
+or 30cm.Forgot to say will pick up thankyou----------------REQUESTED: Exerc=
+ise bike (Hellesdon NR6) at https://www.ilovefreegle.org/message/92963622?u=
+=3D41472629&src=3DdigestLooking for a robust exercise bike please----------=
+------OFFERED: 2 Cannon Printers (Drayton NR8) at https://www.ilovefreegle.=
+org/message/92983230?u=3D41472629&src=3DdigestNeither of these two printers=
+ are working. One of them , when I plug it in there is no power. The other =
+one comes up with an error code. Maybe someone can get them working?-------=
+---------These posts are new since your last mail but have already been com=
+pleted. If you missed something, try changing how frequently we send you em=
+ail in Settings.OFFERED: King size summer quilt (North City NR3) at https:/=
+/www.ilovefreegle.org/message/93751278?u=3D41472629&src=3DdigestOFFERED: Ki=
+ng size summer quilt (North City NR3) (post completed, no longer active)=20
+|  =20
+|   =20
+|   =20
+|  Freegle
+ |
+
+ =20
+|  Browse
+ |
+
+ =20
+|  Leave
+ |
+
+  |
+
+ =20
+|  =20
+|  Jobs near you
+ |
+|  If you are interested and click then it will raise a little to help keep=
+ Freegle running and free to use.
+ |
+
+ =20
+| =20
+|   View more jobs   |
+
+  |
+
+  |
+
+ =20
+|  =20
+|  C# Developer (Lakenham)
+Electrical Design Engineer (Lakenham)
+Senior Quantity Surveyor / Quantity Surveyor (Lakenham)
+Coil Winder (Lakenham)
+ |
+
+  |
+
+ =20
+|  =20
+|  Active Posts |
+| =20
+Here are new posts or reposts since our last mail. Click on a post to move =
+down this email; if that doesn't work in your email client, scroll down. |
+|  REQUESTED: Mobile Phone (Norwich)=C2=A0New listing |
+|  REQUESTED: Sewing board (New Catton NR3)=C2=A0New listing |
+|  OFFERED: Halogen Dimmable Uplighter (Horsford NR10)=C2=A0New listing |
+|  REQUESTED: Highchair (Thorpe End NR13)=C2=A0New listing |
+|  REQUESTED: Playpen (Thorpe End NR13)=C2=A0New listing |
+|  REQUESTED: Body Warmer size 18/20 please (Costessey NR8)=C2=A0New listin=
+g |
+|  OFFERED: Wall prints (NR6)=C2=A0New listing |
+|  OFFERED: Wall art (NR6)=C2=A0New listing |
+|  OFFERED: 2 x Cannon Printers for spares or repair (Drayton NR8)=C2=A0New=
+ listing |
+|  REQUESTED: Wall clock (Sprowston NR7)=C2=A0First posted=C2=A0Wed, 21st S=
+eptember 6:10pm |
+|  REQUESTED: Exercise bike (Hellesdon NR6)=C2=A0First posted=C2=A0Wed, 31s=
+t August 9:57pm |
+|  OFFERED: 2 Cannon Printers (Drayton NR8)=C2=A0First posted=C2=A0Thu, 1st=
+ September 3:30pm |
+|   |
+
+  |
+
+ =20
+|  =20
+| =20
+ |
+|  REQUESTED: Mobile Phone (Norwich)=C2=A0New listing |
+
+  |
+
+ =20
+|  =20
+|  Does anyone have an old mobile phone please? Doesn't need to be smart or=
+ anything, it's just to see me through until I can afford to buy one please=
+! |
+
+  |
+
+ =20
+|  =20
+|  Posted by=C2=A0willsuckling79-g264=C2=A0on=C2=A0Wed, 28th September 9:46=
+am. |
+
+  |
+
+ =20
+|   =20
+| =20
+|   Reply   |
+
+  |
+
+ =20
+|  Reply by email
+ |
+
+ =20
+|  Back to top
+ |
+
+  |
+
+ =20
+|  =20
+|   |
+
+  |
+
+ =20
+|  =20
+| =20
+ |
+|  REQUESTED: Sewing board (New Catton NR3)=C2=A0New listing |
+
+  |
+
+ =20
+|  =20
+|  Does anyone have a cutting/sewing board for pattern making?=20
+thanks in advance |
+
+  |
+
+ =20
+|  =20
+|  Posted by=C2=A0dishedu=C2=A0on=C2=A0Wed, 28th September 3:21pm. |
+
+  |
+
+ =20
+|   =20
+| =20
+|   Reply   |
+
+  |
+
+ =20
+|  Reply by email
+ |
+
+ =20
+|  Back to top
+ |
+
+  |
+
+ =20
+|  =20
+|   |
+
+  |
+
+ =20
+|  =20
+| =20
+ |
+|  OFFERED: Halogen Dimmable Uplighter (Horsford NR10)=C2=A0New listing |
+
+  |
+
+ =20
+|  =20
+|  This is a halogen uplighter which is great if you have white ceilings. I=
+t has a built in dimming control in the mains lead. It=E2=80=99s not perfec=
+t as the pole and reflector are a tad wobbly but the light and dimmer work =
+fine. |
+
+ =20
+| =20
+|      |
+
+  |
+
+  |
+
+ =20
+|  =20
+|  Posted by=C2=A0Mutters=C2=A0on=C2=A0Wed, 28th September 4:35pm. |
+
+  |
+
+ =20
+|   =20
+| =20
+|   Reply   |
+
+  |
+
+ =20
+|  Reply by email
+ |
+
+ =20
+|  Back to top
+ |
+
+  |
+
+ =20
+|  =20
+|   |
+
+  |
+
+ =20
+|  =20
+| =20
+ |
+|  REQUESTED: Highchair (Thorpe End NR13)=C2=A0New listing |
+
+  |
+
+ =20
+|  =20
+|  Highchair for when our baby granddaughter comes to stay |
+
+  |
+
+ =20
+|  =20
+|  Posted by=C2=A0Sara=C2=A0on=C2=A0Wed, 28th September 5:23pm. |
+
+  |
+
+ =20
+|   =20
+| =20
+|   Reply   |
+
+  |
+
+ =20
+|  Reply by email
+ |
+
+ =20
+|  Back to top
+ |
+
+  |
+
+ =20
+|  =20
+|   |
+
+  |
+
+ =20
+|  =20
+| =20
+ |
+|  REQUESTED: Playpen (Thorpe End NR13)=C2=A0New listing |
+
+  |
+
+ =20
+|  =20
+|  Playpen needed for when our baby granddaughter comes to stay |
+
+  |
+
+ =20
+|  =20
+|  Posted by=C2=A0Sara=C2=A0on=C2=A0Wed, 28th September 5:08pm. |
+
+  |
+
+ =20
+|   =20
+| =20
+|   Reply   |
+
+  |
+
+ =20
+|  Reply by email
+ |
+
+ =20
+|  Back to top
+ |
+
+  |
+
+ =20
+|  =20
+|   |
+
+  |
+
+ =20
+|  =20
+| =20
+ |
+|  REQUESTED: Body Warmer size 18/20 please (Costessey NR8)=C2=A0New listin=
+g |
+
+  |
+
+ =20
+|  =20
+|  I'm feeling the cold more as I'm getting older - does anyone have a body=
+ warmer they no longer need please, in a plus size 18 or 20? I'm not bother=
+ed about colour. Thank you |
+
+  |
+
+ =20
+|  =20
+|  Posted by=C2=A0Emmanuella=C2=A0on=C2=A0Thu, 29th September 3:47am. |
+
+  |
+
+ =20
+|   =20
+| =20
+|   Reply   |
+
+  |
+
+ =20
+|  Reply by email
+ |
+
+ =20
+|  Back to top
+ |
+
+  |
+
+ =20
+|  =20
+|   |
+
+  |
+
+ =20
+|  =20
+| =20
+ |
+|  OFFERED: Wall prints (NR6)=C2=A0New listing |
+
+  |
+
+ =20
+|  =20
+|  No longer needed as turning room into baby nursery . |
+
+ =20
+| =20
+|      |
+
+  |
+
+  |
+
+ =20
+|  =20
+|  Posted by=C2=A0dksd1986-g3258=C2=A0on=C2=A0Thu, 29th September 7:17am. |
+
+  |
+
+ =20
+|   =20
+| =20
+|   Reply   |
+
+  |
+
+ =20
+|  Reply by email
+ |
+
+ =20
+|  Back to top
+ |
+
+  |
+
+ =20
+|  =20
+|   |
+
+  |
+
+ =20
+|  =20
+| =20
+ |
+|  OFFERED: Wall art (NR6)=C2=A0New listing |
+
+  |
+
+ =20
+|  =20
+|  No longer needed. |
+
+ =20
+| =20
+|      |
+
+  |
+
+  |
+
+ =20
+|  =20
+|  Posted by=C2=A0dksd1986-g3258=C2=A0on=C2=A0Thu, 29th September 7:19am. |
+
+  |
+
+ =20
+|   =20
+| =20
+|   Reply   |
+
+  |
+
+ =20
+|  Reply by email
+ |
+
+ =20
+|  Back to top
+ |
+
+  |
+
+ =20
+|  =20
+|   |
+
+  |
+
+ =20
+|  =20
+| =20
+ |
+|  OFFERED: 2 x Cannon Printers for spares or repair (Drayton NR8)=C2=A0New=
+ listing |
+
+  |
+
+ =20
+|  =20
+|  I have 2 Cannon printers which are not working. one has an error code an=
+d the other i cannot get power to it. |
+
+ =20
+| =20
+|      |
+
+  |
+
+  |
+
+ =20
+|  =20
+|  Posted by=C2=A0regina=C2=A0on=C2=A0Thu, 29th September 7:45am. |
+
+  |
+
+ =20
+|   =20
+| =20
+|   Reply   |
+
+  |
+
+ =20
+|  Reply by email
+ |
+
+ =20
+|  Back to top
+ |
+
+  |
+
+ =20
+|  =20
+|   |
+
+  |
+
+ =20
+|  =20
+| =20
+ |
+|  REQUESTED: Wall clock (Sprowston NR7)=C2=A0First posted=C2=A0Wed, 21st S=
+eptember 6:10pm |
+
+  |
+
+ =20
+|  =20
+|  Battery operated wall clock any colour about 12" or 30cm.
+
+Forgot to say will pick up thankyou |
+
+ =20
+| =20
+|      |
+
+  |
+
+  |
+
+ =20
+|  =20
+|  Posted by=C2=A0marty=C2=A0on=C2=A0Wed, 21st September 6:10pm. |
+
+  |
+
+ =20
+|   =20
+| =20
+|   Reply   |
+
+  |
+
+ =20
+|  Reply by email
+ |
+
+ =20
+|  Back to top
+ |
+
+  |
+
+ =20
+|  =20
+|   |
+
+  |
+
+ =20
+|  =20
+| =20
+ |
+|  REQUESTED: Exercise bike (Hellesdon NR6)=C2=A0First posted=C2=A0Wed, 31s=
+t August 9:57pm |
+
+  |
+
+ =20
+|  =20
+|  Looking for a robust exercise bike please |
+
+  |
+
+ =20
+|  =20
+|  Posted by=C2=A0Rosie123=C2=A0on=C2=A0Wed, 31st August 9:57pm. |
+
+  |
+
+ =20
+|   =20
+| =20
+|   Reply   |
+
+  |
+
+ =20
+|  Reply by email
+ |
+
+ =20
+|  Back to top
+ |
+
+  |
+
+ =20
+|  =20
+|   |
+
+  |
+
+ =20
+|  =20
+| =20
+ |
+|  OFFERED: 2 Cannon Printers (Drayton NR8)=C2=A0First posted=C2=A0Thu, 1st=
+ September 3:30pm |
+
+  |
+
+ =20
+|  =20
+|  Neither of these two printers are working. One of them , when I plug it =
+in there is no power. The other one comes up with an error code. Maybe some=
+one can get them working? |
+
+ =20
+| =20
+|      |
+
+  |
+
+  |
+
+ =20
+|  =20
+|  Posted by=C2=A0regina=C2=A0on=C2=A0Thu, 1st September 3:30pm. |
+
+  |
+
+ =20
+|   =20
+| =20
+|   Reply   |
+
+  |
+
+ =20
+|  Reply by email
+ |
+
+ =20
+|  Back to top
+ |
+
+  |
+
+ =20
+|  =20
+|   |
+
+  |
+
+ =20
+|  =20
+|  =20
+|  =20
+|  Other Nearby Posts |
+| =20
+ These posts are near you from other communities.=20
+=20
+   |
+
+   |
+
+  =20
+|  =20
+|  REQUESTED: Word search books (Kings Lynn)
+ |
+|  REQUESTED: Garden storage box (Kings Lynn)
+ |
+|  REQUESTED: LED light bulbs (Kings Lynn)
+ |
+|  REQUESTED: Solar items (Kings Lynn)
+ |
+|  REQUESTED: Sunlounger (Kings Lynn)
+ |
+
+   |
+
+   |
+
+   |
+
+ =20
+|  =20
+|  Completed Posts |
+| =20
+These posts are new since your last mail but have already been completed. I=
+f you missed something, try changing how frequently we send you email in Se=
+ttings.  |
+
+  |
+
+ =20
+|  =20
+|  OFFERED: King size summer quilt (North City NR3) |
+
+  |
+
+ =20
+|  =20
+|  Could deliver within 5 mile radius of Norwich |
+
+ =20
+| =20
+|      |
+
+  |
+
+  |
+
+ =20
+|  =20
+|  Posted by=C2=A0Kate Platt=C2=A0on=C2=A0Wed, 28th September 2:25pm. |
+|   |
+
+  |
+
+ =20
+|  =20
+| =20
+|      |
+
+  |
+
+ =20
+| =20
+This community is kindly sponsored by:
+Norfolk Recycles
+ |
+|  All your local councils working together |
+
+  |
+
+ =20
+|  =20
+|  You've received this automated mail because you're a member of Norwich F=
+reegle. You are set to receive updates for=C2=A0Norwich Freegle=C2=A0daily.
+
+You can change your settings by clicking here, or turn these OFFER/WANTED m=
+ails off for this group by emailing digestoff-41472629-515540@users.ilovefr=
+eegle.org=20
+
+This mail was sent to=C2=A0test@test.com.=20
+ Freegle is registered as a charity with HMRC (ref. XT32865) and is run by =
+volunteers. Which is nice. |
+
+  |
+
+=20
+ |
+
+  |
+
+ =20
+------=_Part_1766051_703223162.1664452078796
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<div style=3D"font-size:10pt;font-family:arial,helvetica,sans-serif;color:b=
+lack;"><div style=3D"font-family:arial,helvetica,sans-serif;font-size:10pt;=
+color:black;">hello~i still have no bin and i want to freegle something~ple=
+ase helpTest User<br><br><br>-----Original Message-----<br>From: Norwich F=
+reegle &lt;testgroup-auto@groups.ilovefreegle.org&gt;<br>To: test user=
+ &lt;test@test.com&gt;<br>Sent: Thu, 29 Sep 2022 9:15<br>Subject: =
+[Norwich Freegle] What's New (12 messages) - Mobile Phone, Sewing board, Hi=
+ghchair, Playpen, Wall prints... ~--~~~~---~~-~--~--~~~-~-~<br><br></div><d=
+iv id=3D"yiv8345534283">   <title></title>    <style type=3D"text/css">#yiv=
+8345534283 #yiv8345534283outlook a{padding:0;}#yiv8345534283 body{margin:0;=
+padding:0;}#yiv8345534283 table, #yiv8345534283 td{border-collapse:collapse=
+;}#yiv8345534283 img{border:0;height:auto;line-height:100%;outline:none;tex=
+t-decoration:none;}#yiv8345534283 p{display:block;margin:13px 0;}</style> <=
+style type=3D"text/css">@media only screen and (min-width:480px){#yiv834553=
+4283 .yiv8345534283mj-column-per-100{width:100% !important;max-width:100%;}=
+#yiv8345534283 .yiv8345534283mj-column-per-33-333333333333336{width:33.3333=
+33333333336% !important;max-width:33.333333333333336%;}#yiv8345534283 .yiv8=
+345534283mj-column-per-50{width:50% !important;max-width:50%;}#yiv834553428=
+3 .yiv8345534283mj-column-per-66{width:66% !important;max-width:66%;}#yiv83=
+45534283 .yiv8345534283mj-column-per-34{width:34% !important;max-width:34%;=
+}#yiv8345534283 .yiv8345534283mj-column-px-150{width:150px !important;max-w=
+idth:150px;}}</style> <style type=3D"text/css">@media only screen and (max-=
+width:480px){#yiv8345534283 table.yiv8345534283mj-full-width-mobile{width:1=
+00% !important;}#yiv8345534283 td.yiv8345534283mj-full-width-mobile{width:a=
+uto !important;}}</style>  <div> <div style=3D"display:none;font-size:1px;c=
+olor:#ffffff;line-height:1px;max-height:0px;max-width:0px;overflow:hidden;"=
+>Here are new posts or reposts since we last mailed you.
+
+REQUESTED: Mobile Phone (Norwich) at https://www.ilovefreegle.org/message/9=
+3744378?u=3D41472629&amp;src=3Ddigest
+
+REQUESTED: Sewing board  (New Catton NR3) at https://www.ilovefreegle.org/m=
+essage/93752727?u=3D41472629&amp;src=3Ddigest
+
+OFFERED: Halogen Dimmable Uplighter  (Horsford NR10) at https://www.ilovefr=
+eegle.org/message/93754572?u=3D41472629&amp;src=3Ddigest
+
+REQUESTED: Highchair (Thorpe End NR13) at https://www.ilovefreegle.org/mess=
+age/93755754?u=3D41472629&amp;src=3Ddigest
+
+REQUESTED: Playpen (Thorpe End NR13) at https://www.ilovefreegle.org/messag=
+e/93755457?u=3D41472629&amp;src=3Ddigest
+
+REQUESTED: Body Warmer size 18/20 please (Costessey NR8) at https://www.ilo=
+vefreegle.org/message/93762126?u=3D41472629&amp;src=3Ddigest
+
+OFFERED: Wall prints (NR6) at https://www.ilovefreegle.org/message/93763251=
+?u=3D41472629&amp;src=3Ddigest
+
+OFFERED: Wall art (NR6) at https://www.ilovefreegle.org/message/93763323?u=
+=3D41472629&amp;src=3Ddigest
+
+OFFERED: 2 x Cannon Printers for spares or repair (Drayton NR8) at https://=
+www.ilovefreegle.org/message/93763878?u=3D41472629&amp;src=3Ddigest
+
+REQUESTED: Wall clock (Sprowston NR7) at https://www.ilovefreegle.org/messa=
+ge/93587268?u=3D41472629&amp;src=3Ddigest
+
+REQUESTED: Exercise bike (Hellesdon NR6) at https://www.ilovefreegle.org/me=
+ssage/92963622?u=3D41472629&amp;src=3Ddigest
+
+OFFERED: 2 Cannon Printers (Drayton NR8) at https://www.ilovefreegle.org/me=
+ssage/92983230?u=3D41472629&amp;src=3Ddigest
+
+----------------
+
+REQUESTED: Mobile Phone (Norwich) at=20
+https://www.ilovefreegle.org/message/93744378?u=3D41472629&amp;src=3Ddigest
+
+Does anyone have an old mobile phone please? Doesn't need to be smart or an=
+ything, it's just to see me through until I can afford to buy one please!
+----------------
+
+REQUESTED: Sewing board  (New Catton NR3) at=20
+https://www.ilovefreegle.org/message/93752727?u=3D41472629&amp;src=3Ddigest
+
+Does anyone have a cutting/sewing board for pattern making?=20
+thanks in advance
+----------------
+
+OFFERED: Halogen Dimmable Uplighter  (Horsford NR10) at=20
+https://www.ilovefreegle.org/message/93754572?u=3D41472629&amp;src=3Ddigest
+
+This is a halogen uplighter which is great if you have white ceilings. It h=
+as a built in dimming control in the mains lead. It=E2=80=99s not perfect a=
+s the pole and reflector are a tad wobbly but the light and dimmer work fin=
+e.
+----------------
+
+REQUESTED: Highchair (Thorpe End NR13) at=20
+https://www.ilovefreegle.org/message/93755754?u=3D41472629&amp;src=3Ddigest
+
+Highchair for when our baby granddaughter comes to stay
+----------------
+
+REQUESTED: Playpen (Thorpe End NR13) at=20
+https://www.ilovefreegle.org/message/93755457?u=3D41472629&amp;src=3Ddigest
+
+Playpen needed for when our baby granddaughter comes to stay
+----------------
+
+REQUESTED: Body Warmer size 18/20 please (Costessey NR8) at=20
+https://www.ilovefreegle.org/message/93762126?u=3D41472629&amp;src=3Ddigest
+
+I'm feeling the cold more as I'm getting older - does anyone have a body wa=
+rmer they no longer need please, in a plus size 18 or 20? I'm not bothered =
+about colour. Thank you
+----------------
+
+OFFERED: Wall prints (NR6) at=20
+https://www.ilovefreegle.org/message/93763251?u=3D41472629&amp;src=3Ddigest
+
+No longer needed as turning room into baby nursery .
+----------------
+
+OFFERED: Wall art (NR6) at=20
+https://www.ilovefreegle.org/message/93763323?u=3D41472629&amp;src=3Ddigest
+
+No longer needed.
+----------------
+
+OFFERED: 2 x Cannon Printers for spares or repair (Drayton NR8) at=20
+https://www.ilovefreegle.org/message/93763878?u=3D41472629&amp;src=3Ddigest
+
+I have 2 Cannon printers which are not working. one has an error code and t=
+he other i cannot get power to it.
+----------------
+
+REQUESTED: Wall clock (Sprowston NR7) at=20
+https://www.ilovefreegle.org/message/93587268?u=3D41472629&amp;src=3Ddigest
+
+Battery operated wall clock any colour about 12" or  30cm.
+
+Forgot to say will pick up thankyou
+----------------
+
+REQUESTED: Exercise bike (Hellesdon NR6) at=20
+https://www.ilovefreegle.org/message/92963622?u=3D41472629&amp;src=3Ddigest
+
+Looking for a robust exercise bike please
+----------------
+
+OFFERED: 2 Cannon Printers (Drayton NR8) at=20
+https://www.ilovefreegle.org/message/92983230?u=3D41472629&amp;src=3Ddigest
+
+Neither of these two printers are working. One of them , when I plug it in =
+there is no power. The other one comes up with an error code. Maybe someone=
+ can get them working?
+----------------
+
+
+
+These posts are new since your last mail but have already been completed. I=
+f you missed something, try changing how frequently we send you email in Se=
+ttings.
+
+OFFERED: King size summer quilt (North City NR3) at=20
+https://www.ilovefreegle.org/message/93751278?u=3D41472629&amp;src=3Ddigest
+
+OFFERED: King size summer quilt (North City NR3) (post completed, no longer=
+ active)
+</div><div style=3D""> <table role=3D"presentation" style=3D"width:100%;" c=
+ellspacing=3D"0" cellpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <=
+tr> <td> <div style=3D"margin:0px auto;max-width:600px;"> <table role=3D"pr=
+esentation" style=3D"width:100%;" cellspacing=3D"0" cellpadding=3D"0" borde=
+r=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"direction:ltr;font-size=
+:0px;padding:20px 0;text-align:center;"> <div style=3D"background:url(https=
+://www.ilovefreegle.org/wallpaper.png) center top auto repeat;background-po=
+sition:center top;background-repeat:repeat;background-size:auto;margin:0px =
+auto;max-width:600px;"> <div style=3D"line-height:0;font-size:0;"> <table r=
+ole=3D"presentation" style=3D"background:url(https://www.ilovefreegle.org/w=
+allpaper.png) center top auto repeat;background-position:center top;backgro=
+und-repeat:repeat;background-size:auto;width:100%;" cellspacing=3D"0" cellp=
+adding=3D"0" border=3D"0" background=3D"https://www.ilovefreegle.org/wallpa=
+per.png" align=3D"center"> <tbody> <tr> <td style=3D"border-top:5px solid #=
+61AE24;direction:ltr;font-size:0px;padding:0px;text-align:center;"> <div st=
+yle=3D"font-size:0;line-height:0;text-align:left;display:inline-block;width=
+:100%;direction:ltr;" class=3D"yiv8345534283mj-column-per-100 yiv8345534283=
+mj-outlook-group-fix"> <div style=3D"font-size:0px;text-align:left;directio=
+n:ltr;display:inline-block;vertical-align:top;width:33%;" class=3D"yiv83455=
+34283mj-column-per-33-333333333333336 yiv8345534283mj-outlook-group-fix"> <=
+table role=3D"presentation" style=3D"vertical-align:top;" width=3D"100%" ce=
+llspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"f=
+ont-size:0px;padding:10px 25px;" align=3D"center"> <div style=3D"font-famil=
+y:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-align:ce=
+nter;color:#000000;"><a href=3D"https://www.ilovefreegle.org/" style=3D"col=
+or:#1d6607;text-decoration:none;font-weight:bold;" target=3D"_blank" rel=3D=
+"noreferrer noopener">Freegle</a><br data-mce-bogus=3D"1"></div></td></tr><=
+/tbody> </table> </div><div style=3D"font-size:0px;text-align:left;directio=
+n:ltr;display:inline-block;vertical-align:top;width:33%;" class=3D"yiv83455=
+34283mj-column-per-33-333333333333336 yiv8345534283mj-outlook-group-fix"> <=
+table role=3D"presentation" style=3D"vertical-align:top;" width=3D"100%" ce=
+llspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"f=
+ont-size:0px;padding:10px 25px;" align=3D"center"> <div style=3D"font-famil=
+y:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-align:ce=
+nter;color:#000000;"><a href=3D"https://www.ilovefreegle.org/mygroups?u=3D4=
+1472629&amp;src=3Ddigest" style=3D"color:#1d6607;text-decoration:none;font-=
+weight:bold;" target=3D"_blank" rel=3D"noreferrer noopener">Browse</a><br d=
+ata-mce-bogus=3D"1"></div></td></tr></tbody> </table> </div><div style=3D"f=
+ont-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-al=
+ign:top;width:33%;" class=3D"yiv8345534283mj-column-per-33-333333333333336 =
+yiv8345534283mj-outlook-group-fix"> <table role=3D"presentation" style=3D"v=
+ertical-align:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" bord=
+er=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:10px 25px;" align=
+=3D"center"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-=
+size:13px;line-height:1;text-align:center;color:#000000;"><a href=3D"https:=
+//www.ilovefreegle.org/unsubscribe?u=3D41472629&amp;src=3Ddigest" style=3D"=
+color:#1d6607;text-decoration:none;font-weight:bold;" target=3D"_blank" rel=
+=3D"noreferrer noopener">Leave</a><br data-mce-bogus=3D"1"></div></td></tr>=
+</tbody> </table> </div></div></td></tr></tbody> </table> </div></div><div =
+style=3D"background:#F7F6EC;background-color:#F7F6EC;margin:0px auto;max-wi=
+dth:600px;"> <table role=3D"presentation" style=3D"background:#F7F6EC;backg=
+round-color:#F7F6EC;width:100%;" cellspacing=3D"0" cellpadding=3D"0" border=
+=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"direction:ltr;font-size:=
+0px;padding:0px;text-align:center;"> <div style=3D"font-size:0px;text-align=
+:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;" cl=
+ass=3D"yiv8345534283mj-column-per-50 yiv8345534283mj-outlook-group-fix"> <t=
+able role=3D"presentation" style=3D"vertical-align:top;" width=3D"100%" cel=
+lspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"fo=
+nt-size:0px;padding:10px 25px;padding-bottom:0px;" align=3D"left"> <div sty=
+le=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:20px;line-height=
+:1.25;text-align:left;color:#1D6607;">Jobs near you<br></div></td></tr><tr>=
+ <td style=3D"font-size:0px;padding:10px 25px;" align=3D"left"> <div style=
+=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1=
+;text-align:left;color:#000000;">If you are interested and click then it wi=
+ll raise a little to help keep Freegle running and free to use.<br></div></=
+td></tr></tbody> </table> </div><div style=3D"font-size:0px;text-align:left=
+;direction:ltr;display:inline-block;vertical-align:top;width:100%;" class=
+=3D"yiv8345534283mj-column-per-50 yiv8345534283mj-outlook-group-fix"> <tabl=
+e role=3D"presentation" style=3D"vertical-align:top;" width=3D"100%" cellsp=
+acing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-=
+size:0px;padding:10px 25px;" align=3D"right"> <table role=3D"presentation" =
+style=3D"border-collapse:separate;line-height:100%;" cellspacing=3D"0" cell=
+padding=3D"0" border=3D"0"> <tbody><tr> <td style=3D"border:none;border-rad=
+ius:3px;cursor:auto;background:darkblue;" valign=3D"middle" bgcolor=3D"dark=
+blue" align=3D"center"> <a href=3D"https://www.ilovefreegle.org/jobs/" styl=
+e=3D"display:inline-block;background:darkblue;color:white;font-family:Helve=
+tica;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decor=
+ation:none;text-transform:none;padding:10px 25px;border-radius:3px;" target=
+=3D"_blank" rel=3D"noreferrer noopener"> View more jobs </a> </td></tr></tb=
+ody></table> </td></tr></tbody> </table> </div></td></tr></tbody> </table> =
+</div><div style=3D"background:#F7F6EC;background-color:#F7F6EC;margin:0px =
+auto;max-width:600px;"> <table role=3D"presentation" style=3D"background:#F=
+7F6EC;background-color:#F7F6EC;width:100%;" cellspacing=3D"0" cellpadding=
+=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"direction:l=
+tr;font-size:0px;padding:0px;text-align:center;"> <div style=3D"font-size:0=
+px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;wi=
+dth:100%;" class=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-outlook-=
+group-fix"> <table role=3D"presentation" style=3D"vertical-align:top;" widt=
+h=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <=
+td style=3D"font-size:0px;padding:10px 25px;" align=3D"left"> <div style=3D=
+"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;te=
+xt-align:left;color:#000000;"><span class=3D"yiv8345534283jobads"><a href=
+=3D"https://www.ilovefreegle.org/job/4876968" target=3D"_blank" rel=3D"nore=
+ferrer noopener">C# Developer (Lakenham)</a><br><a href=3D"https://www.ilov=
+efreegle.org/job/4838421" target=3D"_blank" rel=3D"noreferrer noopener">Ele=
+ctrical Design Engineer (Lakenham)</a><br><a href=3D"https://www.ilovefreeg=
+le.org/job/5532906" target=3D"_blank" rel=3D"noreferrer noopener">Senior Qu=
+antity Surveyor / Quantity Surveyor (Lakenham)</a><br><a href=3D"https://ww=
+w.ilovefreegle.org/job/3395109" target=3D"_blank" rel=3D"noreferrer noopene=
+r">Coil Winder (Lakenham)</a><br></span></div></td></tr></tbody> </table> <=
+/div></td></tr></tbody> </table> </div><a id=3D"yiv8345534283top" name=3D"t=
+op" style=3D"color:#1d6607;text-decoration:none;font-weight:bold;" href=3D"=
+" target=3D"_blank" rel=3D"noreferrer noopener"><div style=3D"background:#F=
+FF8DC;background-color:#FFF8DC;margin:0px auto;max-width:600px;"> <table ro=
+le=3D"presentation" style=3D"background:#FFF8DC;background-color:#FFF8DC;wi=
+dth:100%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0" align=3D"center=
+"> <tbody> <tr> <td style=3D"direction:ltr;font-size:0px;padding:0px;text-a=
+lign:center;"> <div style=3D"font-size:0px;text-align:left;direction:ltr;di=
+splay:inline-block;vertical-align:top;width:100%;" class=3D"yiv8345534283mj=
+-column-per-100 yiv8345534283mj-outlook-group-fix"> <table role=3D"presenta=
+tion" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" cellpa=
+dding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:1=
+0px 25px;padding-bottom:0px;" align=3D"left"> <div style=3D"font-family:Tre=
+buchet MS, Helvetica, Arial;font-size:20px;line-height:1.25;text-align:left=
+;color:#1D6607;">Active Posts</div></td></tr><tr> <td style=3D"font-size:0p=
+x;padding:10px 25px;" align=3D"left"> <div style=3D"font-family:Trebuchet M=
+S, Helvetica, Arial;font-size:13px;line-height:1.25;text-align:left;color:#=
+1D6607;"><br>Here are new posts or reposts since our last mail. Click on a =
+post to move down this email; if that doesn't work in your email client, sc=
+roll down.</div></td></tr><tr> <td style=3D"font-size:0px;padding:10px 25px=
+;padding-top:0;padding-bottom:2px;" align=3D"left"> <div style=3D"font-fami=
+ly:Trebuchet MS, Helvetica, Arial;font-size:13px;font-weight:bold;line-heig=
+ht:1;text-align:left;color:#1D6607;"><a href=3D"https://mail.aol.com/webmai=
+l-std/#msg-93744378" style=3D"color:#1d6607;text-decoration:none;font-weigh=
+t:bold;" target=3D"_blank" rel=3D"noreferrer noopener">REQUESTED: Mobile Ph=
+one (Norwich)</a>&nbsp;<span style=3D"font-size:8pt;color:red;">New listing=
+</span></div></td></tr><tr> <td style=3D"font-size:0px;padding:10px 25px;pa=
+dding-top:0;padding-bottom:2px;" align=3D"left"> <div style=3D"font-family:=
+Trebuchet MS, Helvetica, Arial;font-size:13px;font-weight:bold;line-height:=
+1;text-align:left;color:#1D6607;"><a href=3D"https://mail.aol.com/webmail-s=
+td/#msg-93752727" style=3D"color:#1d6607;text-decoration:none;font-weight:b=
+old;" target=3D"_blank" rel=3D"noreferrer noopener">REQUESTED: Sewing board=
+  (New Catton NR3)</a>&nbsp;<span style=3D"font-size:8pt;color:red;">New li=
+sting</span></div></td></tr><tr> <td style=3D"font-size:0px;padding:10px 25=
+px;padding-top:0;padding-bottom:2px;" align=3D"left"> <div style=3D"font-fa=
+mily:Trebuchet MS, Helvetica, Arial;font-size:13px;font-weight:bold;line-he=
+ight:1;text-align:left;color:#1D6607;"><a href=3D"https://mail.aol.com/webm=
+ail-std/#msg-93754572" style=3D"color:#1d6607;text-decoration:none;font-wei=
+ght:bold;" target=3D"_blank" rel=3D"noreferrer noopener">OFFERED: Halogen D=
+immable Uplighter  (Horsford NR10)</a>&nbsp;<span style=3D"font-size:8pt;co=
+lor:red;">New listing</span></div></td></tr><tr> <td style=3D"font-size:0px=
+;padding:10px 25px;padding-top:0;padding-bottom:2px;" align=3D"left"> <div =
+style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;font-wei=
+ght:bold;line-height:1;text-align:left;color:#1D6607;"><a href=3D"https://m=
+ail.aol.com/webmail-std/#msg-93755754" style=3D"color:#1d6607;text-decorati=
+on:none;font-weight:bold;" target=3D"_blank" rel=3D"noreferrer noopener">RE=
+QUESTED: Highchair (Thorpe End NR13)</a>&nbsp;<span style=3D"font-size:8pt;=
+color:red;">New listing</span></div></td></tr><tr> <td style=3D"font-size:0=
+px;padding:10px 25px;padding-top:0;padding-bottom:2px;" align=3D"left"> <di=
+v style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;font-w=
+eight:bold;line-height:1;text-align:left;color:#1D6607;"><a href=3D"https:/=
+/mail.aol.com/webmail-std/#msg-93755457" style=3D"color:#1d6607;text-decora=
+tion:none;font-weight:bold;" target=3D"_blank" rel=3D"noreferrer noopener">=
+REQUESTED: Playpen (Thorpe End NR13)</a>&nbsp;<span style=3D"font-size:8pt;=
+color:red;">New listing</span></div></td></tr><tr> <td style=3D"font-size:0=
+px;padding:10px 25px;padding-top:0;padding-bottom:2px;" align=3D"left"> <di=
+v style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;font-w=
+eight:bold;line-height:1;text-align:left;color:#1D6607;"><a href=3D"https:/=
+/mail.aol.com/webmail-std/#msg-93762126" style=3D"color:#1d6607;text-decora=
+tion:none;font-weight:bold;" target=3D"_blank" rel=3D"noreferrer noopener">=
+REQUESTED: Body Warmer size 18/20 please (Costessey NR8)</a>&nbsp;<span sty=
+le=3D"font-size:8pt;color:red;">New listing</span></div></td></tr><tr> <td =
+style=3D"font-size:0px;padding:10px 25px;padding-top:0;padding-bottom:2px;"=
+ align=3D"left"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial;f=
+ont-size:13px;font-weight:bold;line-height:1;text-align:left;color:#1D6607;=
+"><a href=3D"https://mail.aol.com/webmail-std/#msg-93763251" style=3D"color=
+:#1d6607;text-decoration:none;font-weight:bold;" target=3D"_blank" rel=3D"n=
+oreferrer noopener">OFFERED: Wall prints (NR6)</a>&nbsp;<span style=3D"font=
+-size:8pt;color:red;">New listing</span></div></td></tr><tr> <td style=3D"f=
+ont-size:0px;padding:10px 25px;padding-top:0;padding-bottom:2px;" align=3D"=
+left"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:1=
+3px;font-weight:bold;line-height:1;text-align:left;color:#1D6607;"><a href=
+=3D"https://mail.aol.com/webmail-std/#msg-93763323" style=3D"color:#1d6607;=
+text-decoration:none;font-weight:bold;" target=3D"_blank" rel=3D"noreferrer=
+ noopener">OFFERED: Wall art (NR6)</a>&nbsp;<span style=3D"font-size:8pt;co=
+lor:red;">New listing</span></div></td></tr><tr> <td style=3D"font-size:0px=
+;padding:10px 25px;padding-top:0;padding-bottom:2px;" align=3D"left"> <div =
+style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;font-wei=
+ght:bold;line-height:1;text-align:left;color:#1D6607;"><a href=3D"https://m=
+ail.aol.com/webmail-std/#msg-93763878" style=3D"color:#1d6607;text-decorati=
+on:none;font-weight:bold;" target=3D"_blank" rel=3D"noreferrer noopener">OF=
+FERED: 2 x Cannon Printers for spares or repair (Drayton NR8)</a>&nbsp;<spa=
+n style=3D"font-size:8pt;color:red;">New listing</span></div></td></tr><tr>=
+ <td style=3D"font-size:0px;padding:10px 25px;padding-top:0;padding-bottom:=
+2px;" align=3D"left"> <div style=3D"font-family:Trebuchet MS, Helvetica, Ar=
+ial;font-size:13px;font-weight:bold;line-height:1;text-align:left;color:#1D=
+6607;"><a href=3D"https://mail.aol.com/webmail-std/#msg-93587268" style=3D"=
+color:#1d6607;text-decoration:none;font-weight:bold;" target=3D"_blank" rel=
+=3D"noreferrer noopener">REQUESTED: Wall clock (Sprowston NR7)</a>&nbsp;<sp=
+an style=3D"font-size:8pt;color:grey;">First posted&nbsp;Wed, 21st Septembe=
+r 6:10pm</span></div></td></tr><tr> <td style=3D"font-size:0px;padding:10px=
+ 25px;padding-top:0;padding-bottom:2px;" align=3D"left"> <div style=3D"font=
+-family:Trebuchet MS, Helvetica, Arial;font-size:13px;font-weight:bold;line=
+-height:1;text-align:left;color:#1D6607;"><a href=3D"https://mail.aol.com/w=
+ebmail-std/#msg-92963622" style=3D"color:#1d6607;text-decoration:none;font-=
+weight:bold;" target=3D"_blank" rel=3D"noreferrer noopener">REQUESTED: Exer=
+cise bike (Hellesdon NR6)</a>&nbsp;<span style=3D"font-size:8pt;color:grey;=
+">First posted&nbsp;Wed, 31st August 9:57pm</span></div></td></tr><tr> <td =
+style=3D"font-size:0px;padding:10px 25px;padding-top:0;padding-bottom:2px;"=
+ align=3D"left"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial;f=
+ont-size:13px;font-weight:bold;line-height:1;text-align:left;color:#1D6607;=
+"><a href=3D"https://mail.aol.com/webmail-std/#msg-92983230" style=3D"color=
+:#1d6607;text-decoration:none;font-weight:bold;" target=3D"_blank" rel=3D"n=
+oreferrer noopener">OFFERED: 2 Cannon Printers (Drayton NR8)</a>&nbsp;<span=
+ style=3D"font-size:8pt;color:grey;">First posted&nbsp;Thu, 1st September 3=
+:30pm</span></div></td></tr><tr> <td style=3D"font-size:0px;padding:10px 25=
+px;padding-bottom:0px;" align=3D"left"> <div style=3D"font-family:Trebuchet=
+ MS, Helvetica, Arial;font-size:13px;line-height:1;text-align:left;color:#0=
+00000;"><hr style=3D"border:0;border-top:1px solid #aaa;"></div></td></tr><=
+/tbody> </table> </div></td></tr></tbody> </table> </div><div style=3D"back=
+ground:#FFF8DC;background-color:#FFF8DC;margin:0px auto;max-width:600px;"> =
+<table role=3D"presentation" style=3D"background:#FFF8DC;background-color:#=
+FFF8DC;width:100%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0" align=
+=3D"center"> <tbody> <tr> <td style=3D"direction:ltr;font-size:0px;padding:=
+0px;text-align:center;"> <div style=3D"font-size:0px;text-align:left;direct=
+ion:ltr;display:inline-block;vertical-align:top;width:100%;" class=3D"yiv83=
+45534283mj-column-per-100 yiv8345534283mj-outlook-group-fix"> <table role=
+=3D"presentation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=
+=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:=
+0px;padding:0px;" align=3D"left"> <div style=3D"font-family:Trebuchet MS, H=
+elvetica, Arial;font-size:13px;line-height:1;text-align:left;color:#000000;=
+"><a id=3D"yiv8345534283msg-93744378" name=3D"msg-93744378" style=3D"color:=
+#1d6607;text-decoration:none;font-weight:bold;" href=3D"" target=3D"_blank"=
+ rel=3D"noreferrer noopener"></a><br data-mce-bogus=3D"1"></div></td></tr><=
+tr> <td style=3D"font-size:0px;padding:10px 25px;padding-top:0;padding-bott=
+om:0px;" align=3D"left"> <div style=3D"font-family:Trebuchet MS, Helvetica,=
+ Arial;font-size:18px;line-height:1.25;text-align:left;color:#1D6607;">REQU=
+ESTED: Mobile Phone (Norwich)&nbsp;<span style=3D"font-size:10pt;color:red;=
+">New listing</span></div></td></tr></tbody> </table> </div></td></tr></tbo=
+dy> </table> </div><div style=3D"background:#FFF8DC;background-color:#FFF8D=
+C;margin:0px auto;max-width:600px;"> <table role=3D"presentation" style=3D"=
+background:#FFF8DC;background-color:#FFF8DC;width:100%;" cellspacing=3D"0" =
+cellpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"=
+direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-top:0=
+;text-align:center;"> <div style=3D"font-size:0px;text-align:left;direction=
+:ltr;display:inline-block;vertical-align:top;width:100%;" class=3D"yiv83455=
+34283mj-column-per-100 yiv8345534283mj-outlook-group-fix"> <table role=3D"p=
+resentation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0"=
+ cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;pa=
+dding:10px 25px;" align=3D"left"> <div style=3D"font-family:Trebuchet MS, H=
+elvetica, Arial;font-size:18px;line-height:1;text-align:left;color:#000000;=
+">Does anyone have an old mobile phone please? Doesn't need to be smart or =
+anything, it's just to see me through until I can afford to buy one please!=
+</div></td></tr></tbody> </table> </div></td></tr></tbody> </table> </div><=
+div style=3D"background:#FFF8DC;background-color:#FFF8DC;margin:0px auto;ma=
+x-width:600px;"> <table role=3D"presentation" style=3D"background:#FFF8DC;b=
+ackground-color:#FFF8DC;width:100%;" cellspacing=3D"0" cellpadding=3D"0" bo=
+rder=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"direction:ltr;font-s=
+ize:0px;padding:20px 0;padding-bottom:0px;padding-top:0;text-align:center;"=
+> <div style=3D"font-size:0px;text-align:left;direction:ltr;display:inline-=
+block;vertical-align:top;width:100%;" class=3D"yiv8345534283mj-column-per-1=
+00 yiv8345534283mj-outlook-group-fix"> <table role=3D"presentation" style=
+=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0"=
+ border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:10px 25px;pa=
+dding-top:0;padding-bottom:0px;" align=3D"left"> <div style=3D"font-family:=
+Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-align:left=
+;color:darkgrey;">Posted by&nbsp;willsuckling79-g264&nbsp;on&nbsp;Wed, 28th=
+ September 9:46am.</div></td></tr></tbody> </table> </div></td></tr></tbody=
+> </table> </div><div style=3D"background:#FFF8DC;background-color:#FFF8DC;=
+margin:0px auto;max-width:600px;"> <table role=3D"presentation" style=3D"ba=
+ckground:#FFF8DC;background-color:#FFF8DC;width:100%;" cellspacing=3D"0" ce=
+llpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"di=
+rection:ltr;font-size:0px;padding:0px;text-align:center;"> <div style=3D"fo=
+nt-size:0;line-height:0;text-align:left;display:inline-block;width:100%;dir=
+ection:ltr;" class=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-outloo=
+k-group-fix"> <div style=3D"font-size:0px;text-align:left;direction:ltr;dis=
+play:inline-block;vertical-align:top;width:33%;" class=3D"yiv8345534283mj-c=
+olumn-per-33-333333333333336 yiv8345534283mj-outlook-group-fix"> <table rol=
+e=3D"presentation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=
+=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:=
+0px;padding:10px 25px;" align=3D"center"> <table role=3D"presentation" styl=
+e=3D"border-collapse:separate;line-height:100%;" cellspacing=3D"0" cellpadd=
+ing=3D"0" border=3D"0"> <tbody><tr> <td style=3D"border:none;border-radius:=
+3px;cursor:auto;background:darkgreen;" valign=3D"middle" bgcolor=3D"darkgre=
+en" align=3D"center"> <a href=3D"https://www.ilovefreegle.org/message/93744=
+378?u=3D41472629&amp;src=3Ddigest" style=3D"display:inline-block;background=
+:darkgreen;color:#ffffff;font-family:Trebuchet MS, Helvetica, Arial;font-si=
+ze:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;t=
+ext-transform:none;padding:10px 25px;border-radius:3px;" target=3D"_blank" =
+rel=3D"noreferrer noopener"> Reply </a> </td></tr></tbody></table> </td></t=
+r></tbody> </table> </div><div style=3D"font-size:0px;text-align:left;direc=
+tion:ltr;display:inline-block;vertical-align:top;width:33%;" class=3D"yiv83=
+45534283mj-column-per-33-333333333333336 yiv8345534283mj-outlook-group-fix"=
+> <table role=3D"presentation" style=3D"vertical-align:top;" width=3D"100%"=
+ cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=
+=3D"font-size:0px;padding:10px 25px;padding-top:20px;" align=3D"center"> <d=
+iv style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-=
+height:1;text-align:center;color:#000000;"><a ymailto=3D"mailto:replyto-937=
+44378-41472629@users.ilovefreegle.org?subject=3DRe%3A%20REQUESTED%3A%20Mobi=
+le%20Phone%20%28Norwich%29" href=3D"mailto:replyto-93744378-41472629@users.=
+ilovefreegle.org?subject=3DRe%3A%20REQUESTED%3A%20Mobile%20Phone%20%28Norwi=
+ch%29" style=3D"color:#1d6607;text-decoration:none;font-weight:bold;" targe=
+t=3D"_blank" rel=3D"noreferrer noopener">Reply by email</a><br data-mce-bog=
+us=3D"1"></div></td></tr></tbody> </table> </div><div style=3D"font-size:0p=
+x;text-align:left;direction:ltr;display:inline-block;vertical-align:top;wid=
+th:33%;" class=3D"yiv8345534283mj-column-per-33-333333333333336 yiv83455342=
+83mj-outlook-group-fix"> <table role=3D"presentation" style=3D"vertical-ali=
+gn:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <=
+tbody> <tr> <td style=3D"font-size:0px;padding:10px 25px;padding-top:20px;"=
+ align=3D"center"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial=
+;font-size:13px;line-height:1;text-align:center;color:#000000;"><a href=3D"=
+https://mail.aol.com/webmail-std/#top" style=3D"color:#1d6607;text-decorati=
+on:none;font-weight:bold;float:right;" target=3D"_blank" rel=3D"noreferrer =
+noopener">Back to top</a><br data-mce-bogus=3D"1"></div></td></tr></tbody> =
+</table> </div></div></td></tr></tbody> </table> </div><div style=3D"backgr=
+ound:#FFF8DC;background-color:#FFF8DC;margin:0px auto;max-width:600px;"> <t=
+able role=3D"presentation" style=3D"background:#FFF8DC;background-color:#FF=
+F8DC;width:100%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0" align=3D=
+"center"> <tbody> <tr> <td style=3D"direction:ltr;font-size:0px;padding:0px=
+;text-align:center;"> <div style=3D"font-size:0px;text-align:left;direction=
+:ltr;display:inline-block;vertical-align:top;width:100%;" class=3D"yiv83455=
+34283mj-column-per-100 yiv8345534283mj-outlook-group-fix"> <table role=3D"p=
+resentation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0"=
+ cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;pa=
+dding:10px 25px;padding-top:0;padding-bottom:0px;" align=3D"left"> <div sty=
+le=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height=
+:1;text-align:left;color:#000000;"><hr style=3D"border:0;border-top:1px sol=
+id #aaa;"></div></td></tr></tbody> </table> </div></td></tr></tbody> </tabl=
+e> </div><div style=3D"background:#FFF8DC;background-color:#FFF8DC;margin:0=
+px auto;max-width:600px;"> <table role=3D"presentation" style=3D"background=
+:#FFF8DC;background-color:#FFF8DC;width:100%;" cellspacing=3D"0" cellpaddin=
+g=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"direction:=
+ltr;font-size:0px;padding:0px;text-align:center;"> <div style=3D"font-size:=
+0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;w=
+idth:100%;" class=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-outlook=
+-group-fix"> <table role=3D"presentation" style=3D"vertical-align:top;" wid=
+th=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> =
+<td style=3D"font-size:0px;padding:0px;" align=3D"left"> <div style=3D"font=
+-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-al=
+ign:left;color:#000000;"><a id=3D"yiv8345534283msg-93752727" name=3D"msg-93=
+752727" style=3D"color:#1d6607;text-decoration:none;font-weight:bold;" href=
+=3D"" target=3D"_blank" rel=3D"noreferrer noopener"></a><br data-mce-bogus=
+=3D"1"></div></td></tr><tr> <td style=3D"font-size:0px;padding:10px 25px;pa=
+dding-top:0;padding-bottom:0px;" align=3D"left"> <div style=3D"font-family:=
+Trebuchet MS, Helvetica, Arial;font-size:18px;line-height:1.25;text-align:l=
+eft;color:#1D6607;">REQUESTED: Sewing board  (New Catton NR3)&nbsp;<span st=
+yle=3D"font-size:10pt;color:red;">New listing</span></div></td></tr></tbody=
+> </table> </div></td></tr></tbody> </table> </div><div style=3D"background=
+:#FFF8DC;background-color:#FFF8DC;margin:0px auto;max-width:600px;"> <table=
+ role=3D"presentation" style=3D"background:#FFF8DC;background-color:#FFF8DC=
+;width:100%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0" align=3D"cen=
+ter"> <tbody> <tr> <td style=3D"direction:ltr;font-size:0px;padding:20px 0;=
+padding-bottom:0px;padding-top:0;text-align:center;"> <div style=3D"font-si=
+ze:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:to=
+p;width:100%;" class=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-outl=
+ook-group-fix"> <table role=3D"presentation" style=3D"vertical-align:top;" =
+width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <t=
+r> <td style=3D"font-size:0px;padding:10px 25px;" align=3D"left"> <div styl=
+e=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:18px;line-height:=
+1;text-align:left;color:#000000;">Does anyone have a cutting/sewing board f=
+or pattern making? <br>
+thanks in advance</div></td></tr></tbody> </table> </div></td></tr></tbody>=
+ </table> </div><div style=3D"background:#FFF8DC;background-color:#FFF8DC;m=
+argin:0px auto;max-width:600px;"> <table role=3D"presentation" style=3D"bac=
+kground:#FFF8DC;background-color:#FFF8DC;width:100%;" cellspacing=3D"0" cel=
+lpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"dir=
+ection:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-top:0;te=
+xt-align:center;"> <div style=3D"font-size:0px;text-align:left;direction:lt=
+r;display:inline-block;vertical-align:top;width:100%;" class=3D"yiv83455342=
+83mj-column-per-100 yiv8345534283mj-outlook-group-fix"> <table role=3D"pres=
+entation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" ce=
+llpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;paddi=
+ng:10px 25px;padding-top:0;padding-bottom:0px;" align=3D"left"> <div style=
+=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1=
+;text-align:left;color:darkgrey;">Posted by&nbsp;dishedu&nbsp;on&nbsp;Wed, =
+28th September 3:21pm.</div></td></tr></tbody> </table> </div></td></tr></t=
+body> </table> </div><div style=3D"background:#FFF8DC;background-color:#FFF=
+8DC;margin:0px auto;max-width:600px;"> <table role=3D"presentation" style=
+=3D"background:#FFF8DC;background-color:#FFF8DC;width:100%;" cellspacing=3D=
+"0" cellpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=
+=3D"direction:ltr;font-size:0px;padding:0px;text-align:center;"> <div style=
+=3D"font-size:0;line-height:0;text-align:left;display:inline-block;width:10=
+0%;direction:ltr;" class=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-=
+outlook-group-fix"> <div style=3D"font-size:0px;text-align:left;direction:l=
+tr;display:inline-block;vertical-align:top;width:33%;" class=3D"yiv83455342=
+83mj-column-per-33-333333333333336 yiv8345534283mj-outlook-group-fix"> <tab=
+le role=3D"presentation" style=3D"vertical-align:top;" width=3D"100%" cells=
+pacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font=
+-size:0px;padding:10px 25px;" align=3D"center"> <table role=3D"presentation=
+" style=3D"border-collapse:separate;line-height:100%;" cellspacing=3D"0" ce=
+llpadding=3D"0" border=3D"0"> <tbody><tr> <td style=3D"border:none;border-r=
+adius:3px;cursor:auto;background:darkgreen;" valign=3D"middle" bgcolor=3D"d=
+arkgreen" align=3D"center"> <a href=3D"https://www.ilovefreegle.org/message=
+/93752727?u=3D41472629&amp;src=3Ddigest" style=3D"display:inline-block;back=
+ground:darkgreen;color:#ffffff;font-family:Trebuchet MS, Helvetica, Arial;f=
+ont-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:=
+none;text-transform:none;padding:10px 25px;border-radius:3px;" target=3D"_b=
+lank" rel=3D"noreferrer noopener"> Reply </a> </td></tr></tbody></table> </=
+td></tr></tbody> </table> </div><div style=3D"font-size:0px;text-align:left=
+;direction:ltr;display:inline-block;vertical-align:top;width:33%;" class=3D=
+"yiv8345534283mj-column-per-33-333333333333336 yiv8345534283mj-outlook-grou=
+p-fix"> <table role=3D"presentation" style=3D"vertical-align:top;" width=3D=
+"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td s=
+tyle=3D"font-size:0px;padding:10px 25px;padding-top:20px;" align=3D"center"=
+> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;l=
+ine-height:1;text-align:center;color:#000000;"><a ymailto=3D"mailto:replyto=
+-93752727-41472629@users.ilovefreegle.org?subject=3DRe%3A%20REQUESTED%3A%20=
+Sewing%20board%20%20%28New%20Catton%20NR3%29" href=3D"mailto:replyto-937527=
+27-41472629@users.ilovefreegle.org?subject=3DRe%3A%20REQUESTED%3A%20Sewing%=
+20board%20%20%28New%20Catton%20NR3%29" style=3D"color:#1d6607;text-decorati=
+on:none;font-weight:bold;" target=3D"_blank" rel=3D"noreferrer noopener">Re=
+ply by email</a><br data-mce-bogus=3D"1"></div></td></tr></tbody> </table> =
+</div><div style=3D"font-size:0px;text-align:left;direction:ltr;display:inl=
+ine-block;vertical-align:top;width:33%;" class=3D"yiv8345534283mj-column-pe=
+r-33-333333333333336 yiv8345534283mj-outlook-group-fix"> <table role=3D"pre=
+sentation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" c=
+ellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padd=
+ing:10px 25px;padding-top:20px;" align=3D"center"> <div style=3D"font-famil=
+y:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-align:ce=
+nter;color:#000000;"><a href=3D"https://mail.aol.com/webmail-std/#top" styl=
+e=3D"color:#1d6607;text-decoration:none;font-weight:bold;float:right;" targ=
+et=3D"_blank" rel=3D"noreferrer noopener">Back to top</a><br data-mce-bogus=
+=3D"1"></div></td></tr></tbody> </table> </div></div></td></tr></tbody> </t=
+able> </div><div style=3D"background:#FFF8DC;background-color:#FFF8DC;margi=
+n:0px auto;max-width:600px;"> <table role=3D"presentation" style=3D"backgro=
+und:#FFF8DC;background-color:#FFF8DC;width:100%;" cellspacing=3D"0" cellpad=
+ding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"directi=
+on:ltr;font-size:0px;padding:0px;text-align:center;"> <div style=3D"font-si=
+ze:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:to=
+p;width:100%;" class=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-outl=
+ook-group-fix"> <table role=3D"presentation" style=3D"vertical-align:top;" =
+width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <t=
+r> <td style=3D"font-size:0px;padding:10px 25px;padding-top:0;padding-botto=
+m:0px;" align=3D"left"> <div style=3D"font-family:Trebuchet MS, Helvetica, =
+Arial;font-size:13px;line-height:1;text-align:left;color:#000000;"><hr styl=
+e=3D"border:0;border-top:1px solid #aaa;"></div></td></tr></tbody> </table>=
+ </div></td></tr></tbody> </table> </div><div style=3D"background:#FFF8DC;b=
+ackground-color:#FFF8DC;margin:0px auto;max-width:600px;"> <table role=3D"p=
+resentation" style=3D"background:#FFF8DC;background-color:#FFF8DC;width:100=
+%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0" align=3D"center"> <tbo=
+dy> <tr> <td style=3D"direction:ltr;font-size:0px;padding:0px;text-align:ce=
+nter;"> <div style=3D"font-size:0px;text-align:left;direction:ltr;display:i=
+nline-block;vertical-align:top;width:100%;" class=3D"yiv8345534283mj-column=
+-per-100 yiv8345534283mj-outlook-group-fix"> <table role=3D"presentation" s=
+tyle=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" cellpadding=
+=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:0px;" =
+align=3D"left"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial;fo=
+nt-size:13px;line-height:1;text-align:left;color:#000000;"><a id=3D"yiv8345=
+534283msg-93754572" name=3D"msg-93754572" style=3D"color:#1d6607;text-decor=
+ation:none;font-weight:bold;" href=3D"" target=3D"_blank" rel=3D"noreferrer=
+ noopener"></a><br data-mce-bogus=3D"1"></div></td></tr><tr> <td style=3D"f=
+ont-size:0px;padding:10px 25px;padding-top:0;padding-bottom:0px;" align=3D"=
+left"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:1=
+8px;line-height:1.25;text-align:left;color:#1D6607;">OFFERED: Halogen Dimma=
+ble Uplighter  (Horsford NR10)&nbsp;<span style=3D"font-size:10pt;color:red=
+;">New listing</span></div></td></tr></tbody> </table> </div></td></tr></tb=
+ody> </table> </div><div style=3D"background:#FFF8DC;background-color:#FFF8=
+DC;margin:0px auto;max-width:600px;"> <table role=3D"presentation" style=3D=
+"background:#FFF8DC;background-color:#FFF8DC;width:100%;" cellspacing=3D"0"=
+ cellpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D=
+"direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-top:=
+0;text-align:center;"> <div style=3D"font-size:0px;text-align:left;directio=
+n:ltr;display:inline-block;vertical-align:top;width:100%;" class=3D"yiv8345=
+534283mj-column-per-66 yiv8345534283mj-outlook-group-fix"> <table role=3D"p=
+resentation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0"=
+ cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;pa=
+dding:10px 25px;" align=3D"left"> <div style=3D"font-family:Trebuchet MS, H=
+elvetica, Arial;font-size:18px;line-height:1;text-align:left;color:#000000;=
+">This is a halogen uplighter which is great if you have white ceilings. It=
+ has a built in dimming control in the mains lead. It=E2=80=99s not perfect=
+ as the pole and reflector are a tad wobbly but the light and dimmer work f=
+ine.</div></td></tr></tbody> </table> </div><div style=3D"font-size:0px;tex=
+t-align:left;direction:ltr;display:inline-block;vertical-align:top;width:10=
+0%;" class=3D"yiv8345534283mj-column-per-34 yiv8345534283mj-outlook-group-f=
+ix"> <table role=3D"presentation" style=3D"vertical-align:top;" width=3D"10=
+0%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td styl=
+e=3D"font-size:0px;padding:10px 25px;" align=3D"right"> <table role=3D"pres=
+entation" style=3D"border-collapse:collapse;border-spacing:0px;" class=3D"y=
+iv8345534283mj-full-width-mobile" cellspacing=3D"0" cellpadding=3D"0" borde=
+r=3D"0"> <tbody> <tr> <td style=3D"width:154px;" class=3D"yiv8345534283mj-f=
+ull-width-mobile"> <a href=3D"https://www.ilovefreegle.org/message/93754572=
+?u=3D41472629&amp;src=3Ddigest" style=3D"color:#1d6607;text-decoration:none=
+;font-weight:bold;" target=3D"_blank" rel=3D"noreferrer noopener"> <img alt=
+=3D"Item picture" src=3D"https://cdn.ilovefreegle.org/timg_26655804.jpg" st=
+yle=3D"border:0;border-radius:5px;display:block;outline:none;text-decoratio=
+n:none;height:auto;width:100%;font-size:13px;" width=3D"154" height=3D"auto=
+"> </a> </td></tr></tbody> </table> </td></tr></tbody> </table> </div></td>=
+</tr></tbody> </table> </div><div style=3D"background:#FFF8DC;background-co=
+lor:#FFF8DC;margin:0px auto;max-width:600px;"> <table role=3D"presentation"=
+ style=3D"background:#FFF8DC;background-color:#FFF8DC;width:100%;" cellspac=
+ing=3D"0" cellpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td=
+ style=3D"direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;pad=
+ding-top:0;text-align:center;"> <div style=3D"font-size:0px;text-align:left=
+;direction:ltr;display:inline-block;vertical-align:top;width:100%;" class=
+=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-outlook-group-fix"> <tab=
+le role=3D"presentation" style=3D"vertical-align:top;" width=3D"100%" cells=
+pacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font=
+-size:0px;padding:10px 25px;padding-top:0;padding-bottom:0px;" align=3D"lef=
+t"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px=
+;line-height:1;text-align:left;color:darkgrey;">Posted by&nbsp;Mutters&nbsp=
+;on&nbsp;Wed, 28th September 4:35pm.</div></td></tr></tbody> </table> </div=
+></td></tr></tbody> </table> </div><div style=3D"background:#FFF8DC;backgro=
+und-color:#FFF8DC;margin:0px auto;max-width:600px;"> <table role=3D"present=
+ation" style=3D"background:#FFF8DC;background-color:#FFF8DC;width:100%;" ce=
+llspacing=3D"0" cellpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <t=
+r> <td style=3D"direction:ltr;font-size:0px;padding:0px;text-align:center;"=
+> <div style=3D"font-size:0;line-height:0;text-align:left;display:inline-bl=
+ock;width:100%;direction:ltr;" class=3D"yiv8345534283mj-column-per-100 yiv8=
+345534283mj-outlook-group-fix"> <div style=3D"font-size:0px;text-align:left=
+;direction:ltr;display:inline-block;vertical-align:top;width:33%;" class=3D=
+"yiv8345534283mj-column-per-33-333333333333336 yiv8345534283mj-outlook-grou=
+p-fix"> <table role=3D"presentation" style=3D"vertical-align:top;" width=3D=
+"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td s=
+tyle=3D"font-size:0px;padding:10px 25px;" align=3D"center"> <table role=3D"=
+presentation" style=3D"border-collapse:separate;line-height:100%;" cellspac=
+ing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody><tr> <td style=3D"border:n=
+one;border-radius:3px;cursor:auto;background:darkgreen;" valign=3D"middle" =
+bgcolor=3D"darkgreen" align=3D"center"> <a href=3D"https://www.ilovefreegle=
+.org/message/93754572?u=3D41472629&amp;src=3Ddigest" style=3D"display:inlin=
+e-block;background:darkgreen;color:#ffffff;font-family:Trebuchet MS, Helvet=
+ica, Arial;font-size:13px;font-weight:normal;line-height:120%;margin:0;text=
+-decoration:none;text-transform:none;padding:10px 25px;border-radius:3px;" =
+target=3D"_blank" rel=3D"noreferrer noopener"> Reply </a> </td></tr></tbody=
+></table> </td></tr></tbody> </table> </div><div style=3D"font-size:0px;tex=
+t-align:left;direction:ltr;display:inline-block;vertical-align:top;width:33=
+%;" class=3D"yiv8345534283mj-column-per-33-333333333333336 yiv8345534283mj-=
+outlook-group-fix"> <table role=3D"presentation" style=3D"vertical-align:to=
+p;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody=
+> <tr> <td style=3D"font-size:0px;padding:10px 25px;padding-top:20px;" alig=
+n=3D"center"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial;font=
+-size:13px;line-height:1;text-align:center;color:#000000;"><a ymailto=3D"ma=
+ilto:replyto-93754572-41472629@users.ilovefreegle.org?subject=3DRe%3A%20OFF=
+ERED%3A%20Halogen%20Dimmable%20Uplighter%20%20%28Horsford%20NR10%29" href=
+=3D"mailto:replyto-93754572-41472629@users.ilovefreegle.org?subject=3DRe%3A=
+%20OFFERED%3A%20Halogen%20Dimmable%20Uplighter%20%20%28Horsford%20NR10%29" =
+style=3D"color:#1d6607;text-decoration:none;font-weight:bold;" target=3D"_b=
+lank" rel=3D"noreferrer noopener">Reply by email</a><br data-mce-bogus=3D"1=
+"></div></td></tr></tbody> </table> </div><div style=3D"font-size:0px;text-=
+align:left;direction:ltr;display:inline-block;vertical-align:top;width:33%;=
+" class=3D"yiv8345534283mj-column-per-33-333333333333336 yiv8345534283mj-ou=
+tlook-group-fix"> <table role=3D"presentation" style=3D"vertical-align:top;=
+" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> =
+<tr> <td style=3D"font-size:0px;padding:10px 25px;padding-top:20px;" align=
+=3D"center"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-=
+size:13px;line-height:1;text-align:center;color:#000000;"><a href=3D"https:=
+//mail.aol.com/webmail-std/#top" style=3D"color:#1d6607;text-decoration:non=
+e;font-weight:bold;float:right;" target=3D"_blank" rel=3D"noreferrer noopen=
+er">Back to top</a><br data-mce-bogus=3D"1"></div></td></tr></tbody> </tabl=
+e> </div></div></td></tr></tbody> </table> </div><div style=3D"background:#=
+FFF8DC;background-color:#FFF8DC;margin:0px auto;max-width:600px;"> <table r=
+ole=3D"presentation" style=3D"background:#FFF8DC;background-color:#FFF8DC;w=
+idth:100%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0" align=3D"cente=
+r"> <tbody> <tr> <td style=3D"direction:ltr;font-size:0px;padding:0px;text-=
+align:center;"> <div style=3D"font-size:0px;text-align:left;direction:ltr;d=
+isplay:inline-block;vertical-align:top;width:100%;" class=3D"yiv8345534283m=
+j-column-per-100 yiv8345534283mj-outlook-group-fix"> <table role=3D"present=
+ation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" cellp=
+adding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:=
+10px 25px;padding-top:0;padding-bottom:0px;" align=3D"left"> <div style=3D"=
+font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;tex=
+t-align:left;color:#000000;"><hr style=3D"border:0;border-top:1px solid #aa=
+a;"></div></td></tr></tbody> </table> </div></td></tr></tbody> </table> </d=
+iv><div style=3D"background:#FFF8DC;background-color:#FFF8DC;margin:0px aut=
+o;max-width:600px;"> <table role=3D"presentation" style=3D"background:#FFF8=
+DC;background-color:#FFF8DC;width:100%;" cellspacing=3D"0" cellpadding=3D"0=
+" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"direction:ltr;fo=
+nt-size:0px;padding:0px;text-align:center;"> <div style=3D"font-size:0px;te=
+xt-align:left;direction:ltr;display:inline-block;vertical-align:top;width:1=
+00%;" class=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-outlook-group=
+-fix"> <table role=3D"presentation" style=3D"vertical-align:top;" width=3D"=
+100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td st=
+yle=3D"font-size:0px;padding:0px;" align=3D"left"> <div style=3D"font-famil=
+y:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-align:le=
+ft;color:#000000;"><a id=3D"yiv8345534283msg-93755754" name=3D"msg-93755754=
+" style=3D"color:#1d6607;text-decoration:none;font-weight:bold;" href=3D"" =
+target=3D"_blank" rel=3D"noreferrer noopener"></a><br data-mce-bogus=3D"1">=
+</div></td></tr><tr> <td style=3D"font-size:0px;padding:10px 25px;padding-t=
+op:0;padding-bottom:0px;" align=3D"left"> <div style=3D"font-family:Trebuch=
+et MS, Helvetica, Arial;font-size:18px;line-height:1.25;text-align:left;col=
+or:#1D6607;">REQUESTED: Highchair (Thorpe End NR13)&nbsp;<span style=3D"fon=
+t-size:10pt;color:red;">New listing</span></div></td></tr></tbody> </table>=
+ </div></td></tr></tbody> </table> </div><div style=3D"background:#FFF8DC;b=
+ackground-color:#FFF8DC;margin:0px auto;max-width:600px;"> <table role=3D"p=
+resentation" style=3D"background:#FFF8DC;background-color:#FFF8DC;width:100=
+%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0" align=3D"center"> <tbo=
+dy> <tr> <td style=3D"direction:ltr;font-size:0px;padding:20px 0;padding-bo=
+ttom:0px;padding-top:0;text-align:center;"> <div style=3D"font-size:0px;tex=
+t-align:left;direction:ltr;display:inline-block;vertical-align:top;width:10=
+0%;" class=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-outlook-group-=
+fix"> <table role=3D"presentation" style=3D"vertical-align:top;" width=3D"1=
+00%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td sty=
+le=3D"font-size:0px;padding:10px 25px;" align=3D"left"> <div style=3D"font-=
+family:Trebuchet MS, Helvetica, Arial;font-size:18px;line-height:1;text-ali=
+gn:left;color:#000000;">Highchair for when our baby granddaughter comes to =
+stay</div></td></tr></tbody> </table> </div></td></tr></tbody> </table> </d=
+iv><div style=3D"background:#FFF8DC;background-color:#FFF8DC;margin:0px aut=
+o;max-width:600px;"> <table role=3D"presentation" style=3D"background:#FFF8=
+DC;background-color:#FFF8DC;width:100%;" cellspacing=3D"0" cellpadding=3D"0=
+" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"direction:ltr;fo=
+nt-size:0px;padding:20px 0;padding-bottom:0px;padding-top:0;text-align:cent=
+er;"> <div style=3D"font-size:0px;text-align:left;direction:ltr;display:inl=
+ine-block;vertical-align:top;width:100%;" class=3D"yiv8345534283mj-column-p=
+er-100 yiv8345534283mj-outlook-group-fix"> <table role=3D"presentation" sty=
+le=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"=
+0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:10px 25px;=
+padding-top:0;padding-bottom:0px;" align=3D"left"> <div style=3D"font-famil=
+y:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-align:le=
+ft;color:darkgrey;">Posted by&nbsp;Sara&nbsp;on&nbsp;Wed, 28th September 5:=
+23pm.</div></td></tr></tbody> </table> </div></td></tr></tbody> </table> </=
+div><div style=3D"background:#FFF8DC;background-color:#FFF8DC;margin:0px au=
+to;max-width:600px;"> <table role=3D"presentation" style=3D"background:#FFF=
+8DC;background-color:#FFF8DC;width:100%;" cellspacing=3D"0" cellpadding=3D"=
+0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"direction:ltr;f=
+ont-size:0px;padding:0px;text-align:center;"> <div style=3D"font-size:0;lin=
+e-height:0;text-align:left;display:inline-block;width:100%;direction:ltr;" =
+class=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-outlook-group-fix">=
+ <div style=3D"font-size:0px;text-align:left;direction:ltr;display:inline-b=
+lock;vertical-align:top;width:33%;" class=3D"yiv8345534283mj-column-per-33-=
+333333333333336 yiv8345534283mj-outlook-group-fix"> <table role=3D"presenta=
+tion" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" cellpa=
+dding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:1=
+0px 25px;" align=3D"center"> <table role=3D"presentation" style=3D"border-c=
+ollapse:separate;line-height:100%;" cellspacing=3D"0" cellpadding=3D"0" bor=
+der=3D"0"> <tbody><tr> <td style=3D"border:none;border-radius:3px;cursor:au=
+to;background:darkgreen;" valign=3D"middle" bgcolor=3D"darkgreen" align=3D"=
+center"> <a href=3D"https://www.ilovefreegle.org/message/93755754?u=3D41472=
+629&amp;src=3Ddigest" style=3D"display:inline-block;background:darkgreen;co=
+lor:#ffffff;font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;font-=
+weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform=
+:none;padding:10px 25px;border-radius:3px;" target=3D"_blank" rel=3D"norefe=
+rrer noopener"> Reply </a> </td></tr></tbody></table> </td></tr></tbody> </=
+table> </div><div style=3D"font-size:0px;text-align:left;direction:ltr;disp=
+lay:inline-block;vertical-align:top;width:33%;" class=3D"yiv8345534283mj-co=
+lumn-per-33-333333333333336 yiv8345534283mj-outlook-group-fix"> <table role=
+=3D"presentation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=
+=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:=
+0px;padding:10px 25px;padding-top:20px;" align=3D"center"> <div style=3D"fo=
+nt-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-=
+align:center;color:#000000;"><a ymailto=3D"mailto:replyto-93755754-41472629=
+@users.ilovefreegle.org?subject=3DRe%3A%20REQUESTED%3A%20Highchair%20%28Tho=
+rpe%20End%20NR13%29" href=3D"mailto:replyto-93755754-41472629@users.ilovefr=
+eegle.org?subject=3DRe%3A%20REQUESTED%3A%20Highchair%20%28Thorpe%20End%20NR=
+13%29" style=3D"color:#1d6607;text-decoration:none;font-weight:bold;" targe=
+t=3D"_blank" rel=3D"noreferrer noopener">Reply by email</a><br data-mce-bog=
+us=3D"1"></div></td></tr></tbody> </table> </div><div style=3D"font-size:0p=
+x;text-align:left;direction:ltr;display:inline-block;vertical-align:top;wid=
+th:33%;" class=3D"yiv8345534283mj-column-per-33-333333333333336 yiv83455342=
+83mj-outlook-group-fix"> <table role=3D"presentation" style=3D"vertical-ali=
+gn:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <=
+tbody> <tr> <td style=3D"font-size:0px;padding:10px 25px;padding-top:20px;"=
+ align=3D"center"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial=
+;font-size:13px;line-height:1;text-align:center;color:#000000;"><a href=3D"=
+https://mail.aol.com/webmail-std/#top" style=3D"color:#1d6607;text-decorati=
+on:none;font-weight:bold;float:right;" target=3D"_blank" rel=3D"noreferrer =
+noopener">Back to top</a><br data-mce-bogus=3D"1"></div></td></tr></tbody> =
+</table> </div></div></td></tr></tbody> </table> </div><div style=3D"backgr=
+ound:#FFF8DC;background-color:#FFF8DC;margin:0px auto;max-width:600px;"> <t=
+able role=3D"presentation" style=3D"background:#FFF8DC;background-color:#FF=
+F8DC;width:100%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0" align=3D=
+"center"> <tbody> <tr> <td style=3D"direction:ltr;font-size:0px;padding:0px=
+;text-align:center;"> <div style=3D"font-size:0px;text-align:left;direction=
+:ltr;display:inline-block;vertical-align:top;width:100%;" class=3D"yiv83455=
+34283mj-column-per-100 yiv8345534283mj-outlook-group-fix"> <table role=3D"p=
+resentation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0"=
+ cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;pa=
+dding:10px 25px;padding-top:0;padding-bottom:0px;" align=3D"left"> <div sty=
+le=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height=
+:1;text-align:left;color:#000000;"><hr style=3D"border:0;border-top:1px sol=
+id #aaa;"></div></td></tr></tbody> </table> </div></td></tr></tbody> </tabl=
+e> </div><div style=3D"background:#FFF8DC;background-color:#FFF8DC;margin:0=
+px auto;max-width:600px;"> <table role=3D"presentation" style=3D"background=
+:#FFF8DC;background-color:#FFF8DC;width:100%;" cellspacing=3D"0" cellpaddin=
+g=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"direction:=
+ltr;font-size:0px;padding:0px;text-align:center;"> <div style=3D"font-size:=
+0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;w=
+idth:100%;" class=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-outlook=
+-group-fix"> <table role=3D"presentation" style=3D"vertical-align:top;" wid=
+th=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> =
+<td style=3D"font-size:0px;padding:0px;" align=3D"left"> <div style=3D"font=
+-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-al=
+ign:left;color:#000000;"><a id=3D"yiv8345534283msg-93755457" name=3D"msg-93=
+755457" style=3D"color:#1d6607;text-decoration:none;font-weight:bold;" href=
+=3D"" target=3D"_blank" rel=3D"noreferrer noopener"></a><br data-mce-bogus=
+=3D"1"></div></td></tr><tr> <td style=3D"font-size:0px;padding:10px 25px;pa=
+dding-top:0;padding-bottom:0px;" align=3D"left"> <div style=3D"font-family:=
+Trebuchet MS, Helvetica, Arial;font-size:18px;line-height:1.25;text-align:l=
+eft;color:#1D6607;">REQUESTED: Playpen (Thorpe End NR13)&nbsp;<span style=
+=3D"font-size:10pt;color:red;">New listing</span></div></td></tr></tbody> <=
+/table> </div></td></tr></tbody> </table> </div><div style=3D"background:#F=
+FF8DC;background-color:#FFF8DC;margin:0px auto;max-width:600px;"> <table ro=
+le=3D"presentation" style=3D"background:#FFF8DC;background-color:#FFF8DC;wi=
+dth:100%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0" align=3D"center=
+"> <tbody> <tr> <td style=3D"direction:ltr;font-size:0px;padding:20px 0;pad=
+ding-bottom:0px;padding-top:0;text-align:center;"> <div style=3D"font-size:=
+0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;w=
+idth:100%;" class=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-outlook=
+-group-fix"> <table role=3D"presentation" style=3D"vertical-align:top;" wid=
+th=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> =
+<td style=3D"font-size:0px;padding:10px 25px;" align=3D"left"> <div style=
+=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:18px;line-height:1=
+;text-align:left;color:#000000;">Playpen needed for when our baby granddaug=
+hter comes to stay</div></td></tr></tbody> </table> </div></td></tr></tbody=
+> </table> </div><div style=3D"background:#FFF8DC;background-color:#FFF8DC;=
+margin:0px auto;max-width:600px;"> <table role=3D"presentation" style=3D"ba=
+ckground:#FFF8DC;background-color:#FFF8DC;width:100%;" cellspacing=3D"0" ce=
+llpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"di=
+rection:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-top:0;t=
+ext-align:center;"> <div style=3D"font-size:0px;text-align:left;direction:l=
+tr;display:inline-block;vertical-align:top;width:100%;" class=3D"yiv8345534=
+283mj-column-per-100 yiv8345534283mj-outlook-group-fix"> <table role=3D"pre=
+sentation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" c=
+ellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padd=
+ing:10px 25px;padding-top:0;padding-bottom:0px;" align=3D"left"> <div style=
+=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1=
+;text-align:left;color:darkgrey;">Posted by&nbsp;Sara&nbsp;on&nbsp;Wed, 28t=
+h September 5:08pm.</div></td></tr></tbody> </table> </div></td></tr></tbod=
+y> </table> </div><div style=3D"background:#FFF8DC;background-color:#FFF8DC=
+;margin:0px auto;max-width:600px;"> <table role=3D"presentation" style=3D"b=
+ackground:#FFF8DC;background-color:#FFF8DC;width:100%;" cellspacing=3D"0" c=
+ellpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"d=
+irection:ltr;font-size:0px;padding:0px;text-align:center;"> <div style=3D"f=
+ont-size:0;line-height:0;text-align:left;display:inline-block;width:100%;di=
+rection:ltr;" class=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-outlo=
+ok-group-fix"> <div style=3D"font-size:0px;text-align:left;direction:ltr;di=
+splay:inline-block;vertical-align:top;width:33%;" class=3D"yiv8345534283mj-=
+column-per-33-333333333333336 yiv8345534283mj-outlook-group-fix"> <table ro=
+le=3D"presentation" style=3D"vertical-align:top;" width=3D"100%" cellspacin=
+g=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size=
+:0px;padding:10px 25px;" align=3D"center"> <table role=3D"presentation" sty=
+le=3D"border-collapse:separate;line-height:100%;" cellspacing=3D"0" cellpad=
+ding=3D"0" border=3D"0"> <tbody><tr> <td style=3D"border:none;border-radius=
+:3px;cursor:auto;background:darkgreen;" valign=3D"middle" bgcolor=3D"darkgr=
+een" align=3D"center"> <a href=3D"https://www.ilovefreegle.org/message/9375=
+5457?u=3D41472629&amp;src=3Ddigest" style=3D"display:inline-block;backgroun=
+d:darkgreen;color:#ffffff;font-family:Trebuchet MS, Helvetica, Arial;font-s=
+ize:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;=
+text-transform:none;padding:10px 25px;border-radius:3px;" target=3D"_blank"=
+ rel=3D"noreferrer noopener"> Reply </a> </td></tr></tbody></table> </td></=
+tr></tbody> </table> </div><div style=3D"font-size:0px;text-align:left;dire=
+ction:ltr;display:inline-block;vertical-align:top;width:33%;" class=3D"yiv8=
+345534283mj-column-per-33-333333333333336 yiv8345534283mj-outlook-group-fix=
+"> <table role=3D"presentation" style=3D"vertical-align:top;" width=3D"100%=
+" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=
+=3D"font-size:0px;padding:10px 25px;padding-top:20px;" align=3D"center"> <d=
+iv style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-=
+height:1;text-align:center;color:#000000;"><a ymailto=3D"mailto:replyto-937=
+55457-41472629@users.ilovefreegle.org?subject=3DRe%3A%20REQUESTED%3A%20Play=
+pen%20%28Thorpe%20End%20NR13%29" href=3D"mailto:replyto-93755457-41472629@u=
+sers.ilovefreegle.org?subject=3DRe%3A%20REQUESTED%3A%20Playpen%20%28Thorpe%=
+20End%20NR13%29" style=3D"color:#1d6607;text-decoration:none;font-weight:bo=
+ld;" target=3D"_blank" rel=3D"noreferrer noopener">Reply by email</a><br da=
+ta-mce-bogus=3D"1"></div></td></tr></tbody> </table> </div><div style=3D"fo=
+nt-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-ali=
+gn:top;width:33%;" class=3D"yiv8345534283mj-column-per-33-333333333333336 y=
+iv8345534283mj-outlook-group-fix"> <table role=3D"presentation" style=3D"ve=
+rtical-align:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" borde=
+r=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:10px 25px;padding-=
+top:20px;" align=3D"center"> <div style=3D"font-family:Trebuchet MS, Helvet=
+ica, Arial;font-size:13px;line-height:1;text-align:center;color:#000000;"><=
+a href=3D"https://mail.aol.com/webmail-std/#top" style=3D"color:#1d6607;tex=
+t-decoration:none;font-weight:bold;float:right;" target=3D"_blank" rel=3D"n=
+oreferrer noopener">Back to top</a><br data-mce-bogus=3D"1"></div></td></tr=
+></tbody> </table> </div></div></td></tr></tbody> </table> </div><div style=
+=3D"background:#FFF8DC;background-color:#FFF8DC;margin:0px auto;max-width:6=
+00px;"> <table role=3D"presentation" style=3D"background:#FFF8DC;background=
+-color:#FFF8DC;width:100%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0=
+" align=3D"center"> <tbody> <tr> <td style=3D"direction:ltr;font-size:0px;p=
+adding:0px;text-align:center;"> <div style=3D"font-size:0px;text-align:left=
+;direction:ltr;display:inline-block;vertical-align:top;width:100%;" class=
+=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-outlook-group-fix"> <tab=
+le role=3D"presentation" style=3D"vertical-align:top;" width=3D"100%" cells=
+pacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font=
+-size:0px;padding:10px 25px;padding-top:0;padding-bottom:0px;" align=3D"lef=
+t"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px=
+;line-height:1;text-align:left;color:#000000;"><hr style=3D"border:0;border=
+-top:1px solid #aaa;"></div></td></tr></tbody> </table> </div></td></tr></t=
+body> </table> </div><div style=3D"background:#FFF8DC;background-color:#FFF=
+8DC;margin:0px auto;max-width:600px;"> <table role=3D"presentation" style=
+=3D"background:#FFF8DC;background-color:#FFF8DC;width:100%;" cellspacing=3D=
+"0" cellpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=
+=3D"direction:ltr;font-size:0px;padding:0px;text-align:center;"> <div style=
+=3D"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertic=
+al-align:top;width:100%;" class=3D"yiv8345534283mj-column-per-100 yiv834553=
+4283mj-outlook-group-fix"> <table role=3D"presentation" style=3D"vertical-a=
+lign:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0">=
+ <tbody> <tr> <td style=3D"font-size:0px;padding:0px;" align=3D"left"> <div=
+ style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-he=
+ight:1;text-align:left;color:#000000;"><a id=3D"yiv8345534283msg-93762126" =
+name=3D"msg-93762126" style=3D"color:#1d6607;text-decoration:none;font-weig=
+ht:bold;" href=3D"" target=3D"_blank" rel=3D"noreferrer noopener"></a><br d=
+ata-mce-bogus=3D"1"></div></td></tr><tr> <td style=3D"font-size:0px;padding=
+:10px 25px;padding-top:0;padding-bottom:0px;" align=3D"left"> <div style=3D=
+"font-family:Trebuchet MS, Helvetica, Arial;font-size:18px;line-height:1.25=
+;text-align:left;color:#1D6607;">REQUESTED: Body Warmer size 18/20 please (=
+Costessey NR8)&nbsp;<span style=3D"font-size:10pt;color:red;">New listing</=
+span></div></td></tr></tbody> </table> </div></td></tr></tbody> </table> </=
+div><div style=3D"background:#FFF8DC;background-color:#FFF8DC;margin:0px au=
+to;max-width:600px;"> <table role=3D"presentation" style=3D"background:#FFF=
+8DC;background-color:#FFF8DC;width:100%;" cellspacing=3D"0" cellpadding=3D"=
+0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"direction:ltr;f=
+ont-size:0px;padding:20px 0;padding-bottom:0px;padding-top:0;text-align:cen=
+ter;"> <div style=3D"font-size:0px;text-align:left;direction:ltr;display:in=
+line-block;vertical-align:top;width:100%;" class=3D"yiv8345534283mj-column-=
+per-100 yiv8345534283mj-outlook-group-fix"> <table role=3D"presentation" st=
+yle=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D=
+"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:10px 25px=
+;" align=3D"left"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial=
+;font-size:18px;line-height:1;text-align:left;color:#000000;">I'm feeling t=
+he cold more as I'm getting older - does anyone have a body warmer they no =
+longer need please, in a plus size 18 or 20? I'm not bothered about colour.=
+ Thank you</div></td></tr></tbody> </table> </div></td></tr></tbody> </tabl=
+e> </div><div style=3D"background:#FFF8DC;background-color:#FFF8DC;margin:0=
+px auto;max-width:600px;"> <table role=3D"presentation" style=3D"background=
+:#FFF8DC;background-color:#FFF8DC;width:100%;" cellspacing=3D"0" cellpaddin=
+g=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"direction:=
+ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-top:0;text-alig=
+n:center;"> <div style=3D"font-size:0px;text-align:left;direction:ltr;displ=
+ay:inline-block;vertical-align:top;width:100%;" class=3D"yiv8345534283mj-co=
+lumn-per-100 yiv8345534283mj-outlook-group-fix"> <table role=3D"presentatio=
+n" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" cellpaddi=
+ng=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:10px=
+ 25px;padding-top:0;padding-bottom:0px;" align=3D"left"> <div style=3D"font=
+-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-al=
+ign:left;color:darkgrey;">Posted by&nbsp;Emmanuella&nbsp;on&nbsp;Thu, 29th =
+September 3:47am.</div></td></tr></tbody> </table> </div></td></tr></tbody>=
+ </table> </div><div style=3D"background:#FFF8DC;background-color:#FFF8DC;m=
+argin:0px auto;max-width:600px;"> <table role=3D"presentation" style=3D"bac=
+kground:#FFF8DC;background-color:#FFF8DC;width:100%;" cellspacing=3D"0" cel=
+lpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"dir=
+ection:ltr;font-size:0px;padding:0px;text-align:center;"> <div style=3D"fon=
+t-size:0;line-height:0;text-align:left;display:inline-block;width:100%;dire=
+ction:ltr;" class=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-outlook=
+-group-fix"> <div style=3D"font-size:0px;text-align:left;direction:ltr;disp=
+lay:inline-block;vertical-align:top;width:33%;" class=3D"yiv8345534283mj-co=
+lumn-per-33-333333333333336 yiv8345534283mj-outlook-group-fix"> <table role=
+=3D"presentation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=
+=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:=
+0px;padding:10px 25px;" align=3D"center"> <table role=3D"presentation" styl=
+e=3D"border-collapse:separate;line-height:100%;" cellspacing=3D"0" cellpadd=
+ing=3D"0" border=3D"0"> <tbody><tr> <td style=3D"border:none;border-radius:=
+3px;cursor:auto;background:darkgreen;" valign=3D"middle" bgcolor=3D"darkgre=
+en" align=3D"center"> <a href=3D"https://www.ilovefreegle.org/message/93762=
+126?u=3D41472629&amp;src=3Ddigest" style=3D"display:inline-block;background=
+:darkgreen;color:#ffffff;font-family:Trebuchet MS, Helvetica, Arial;font-si=
+ze:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;t=
+ext-transform:none;padding:10px 25px;border-radius:3px;" target=3D"_blank" =
+rel=3D"noreferrer noopener"> Reply </a> </td></tr></tbody></table> </td></t=
+r></tbody> </table> </div><div style=3D"font-size:0px;text-align:left;direc=
+tion:ltr;display:inline-block;vertical-align:top;width:33%;" class=3D"yiv83=
+45534283mj-column-per-33-333333333333336 yiv8345534283mj-outlook-group-fix"=
+> <table role=3D"presentation" style=3D"vertical-align:top;" width=3D"100%"=
+ cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=
+=3D"font-size:0px;padding:10px 25px;padding-top:20px;" align=3D"center"> <d=
+iv style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-=
+height:1;text-align:center;color:#000000;"><a ymailto=3D"mailto:replyto-937=
+62126-41472629@users.ilovefreegle.org?subject=3DRe%3A%20REQUESTED%3A%20Body=
+%20Warmer%20size%2018%2F20%20please%20%28Costessey%20NR8%29" href=3D"mailto=
+:replyto-93762126-41472629@users.ilovefreegle.org?subject=3DRe%3A%20REQUEST=
+ED%3A%20Body%20Warmer%20size%2018%2F20%20please%20%28Costessey%20NR8%29" st=
+yle=3D"color:#1d6607;text-decoration:none;font-weight:bold;" target=3D"_bla=
+nk" rel=3D"noreferrer noopener">Reply by email</a><br data-mce-bogus=3D"1">=
+</div></td></tr></tbody> </table> </div><div style=3D"font-size:0px;text-al=
+ign:left;direction:ltr;display:inline-block;vertical-align:top;width:33%;" =
+class=3D"yiv8345534283mj-column-per-33-333333333333336 yiv8345534283mj-outl=
+ook-group-fix"> <table role=3D"presentation" style=3D"vertical-align:top;" =
+width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <t=
+r> <td style=3D"font-size:0px;padding:10px 25px;padding-top:20px;" align=3D=
+"center"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-siz=
+e:13px;line-height:1;text-align:center;color:#000000;"><a href=3D"https://m=
+ail.aol.com/webmail-std/#top" style=3D"color:#1d6607;text-decoration:none;f=
+ont-weight:bold;float:right;" target=3D"_blank" rel=3D"noreferrer noopener"=
+>Back to top</a><br data-mce-bogus=3D"1"></div></td></tr></tbody> </table> =
+</div></div></td></tr></tbody> </table> </div><div style=3D"background:#FFF=
+8DC;background-color:#FFF8DC;margin:0px auto;max-width:600px;"> <table role=
+=3D"presentation" style=3D"background:#FFF8DC;background-color:#FFF8DC;widt=
+h:100%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0" align=3D"center">=
+ <tbody> <tr> <td style=3D"direction:ltr;font-size:0px;padding:0px;text-ali=
+gn:center;"> <div style=3D"font-size:0px;text-align:left;direction:ltr;disp=
+lay:inline-block;vertical-align:top;width:100%;" class=3D"yiv8345534283mj-c=
+olumn-per-100 yiv8345534283mj-outlook-group-fix"> <table role=3D"presentati=
+on" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" cellpadd=
+ing=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:10p=
+x 25px;padding-top:0;padding-bottom:0px;" align=3D"left"> <div style=3D"fon=
+t-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-a=
+lign:left;color:#000000;"><hr style=3D"border:0;border-top:1px solid #aaa;"=
+></div></td></tr></tbody> </table> </div></td></tr></tbody> </table> </div>=
+<div style=3D"background:#FFF8DC;background-color:#FFF8DC;margin:0px auto;m=
+ax-width:600px;"> <table role=3D"presentation" style=3D"background:#FFF8DC;=
+background-color:#FFF8DC;width:100%;" cellspacing=3D"0" cellpadding=3D"0" b=
+order=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"direction:ltr;font-=
+size:0px;padding:0px;text-align:center;"> <div style=3D"font-size:0px;text-=
+align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%=
+;" class=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-outlook-group-fi=
+x"> <table role=3D"presentation" style=3D"vertical-align:top;" width=3D"100=
+%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=
+=3D"font-size:0px;padding:0px;" align=3D"left"> <div style=3D"font-family:T=
+rebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-align:left;=
+color:#000000;"><a id=3D"yiv8345534283msg-93763251" name=3D"msg-93763251" s=
+tyle=3D"color:#1d6607;text-decoration:none;font-weight:bold;" href=3D"" tar=
+get=3D"_blank" rel=3D"noreferrer noopener"></a><br data-mce-bogus=3D"1"></d=
+iv></td></tr><tr> <td style=3D"font-size:0px;padding:10px 25px;padding-top:=
+0;padding-bottom:0px;" align=3D"left"> <div style=3D"font-family:Trebuchet =
+MS, Helvetica, Arial;font-size:18px;line-height:1.25;text-align:left;color:=
+#1D6607;">OFFERED: Wall prints (NR6)&nbsp;<span style=3D"font-size:10pt;col=
+or:red;">New listing</span></div></td></tr></tbody> </table> </div></td></t=
+r></tbody> </table> </div><div style=3D"background:#FFF8DC;background-color=
+:#FFF8DC;margin:0px auto;max-width:600px;"> <table role=3D"presentation" st=
+yle=3D"background:#FFF8DC;background-color:#FFF8DC;width:100%;" cellspacing=
+=3D"0" cellpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td st=
+yle=3D"direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;paddin=
+g-top:0;text-align:center;"> <div style=3D"font-size:0px;text-align:left;di=
+rection:ltr;display:inline-block;vertical-align:top;width:100%;" class=3D"y=
+iv8345534283mj-column-per-66 yiv8345534283mj-outlook-group-fix"> <table rol=
+e=3D"presentation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=
+=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:=
+0px;padding:10px 25px;" align=3D"left"> <div style=3D"font-family:Trebuchet=
+ MS, Helvetica, Arial;font-size:18px;line-height:1;text-align:left;color:#0=
+00000;">No longer needed as turning room into baby nursery .</div></td></tr=
+></tbody> </table> </div><div style=3D"font-size:0px;text-align:left;direct=
+ion:ltr;display:inline-block;vertical-align:top;width:100%;" class=3D"yiv83=
+45534283mj-column-per-34 yiv8345534283mj-outlook-group-fix"> <table role=3D=
+"presentation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"=
+0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;=
+padding:10px 25px;" align=3D"right"> <table role=3D"presentation" style=3D"=
+border-collapse:collapse;border-spacing:0px;" class=3D"yiv8345534283mj-full=
+-width-mobile" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <t=
+r> <td style=3D"width:154px;" class=3D"yiv8345534283mj-full-width-mobile"> =
+<a href=3D"https://www.ilovefreegle.org/message/93763251?u=3D41472629&amp;s=
+rc=3Ddigest" style=3D"color:#1d6607;text-decoration:none;font-weight:bold;"=
+ target=3D"_blank" rel=3D"noreferrer noopener"> <img alt=3D"Item picture" s=
+rc=3D"https://images.ilovefreegle.org/timg_26659716.jpg" style=3D"border:0;=
+border-radius:5px;display:block;outline:none;text-decoration:none;height:au=
+to;width:100%;font-size:13px;" width=3D"154" height=3D"auto"> </a> </td></t=
+r></tbody> </table> </td></tr></tbody> </table> </div></td></tr></tbody> </=
+table> </div><div style=3D"background:#FFF8DC;background-color:#FFF8DC;marg=
+in:0px auto;max-width:600px;"> <table role=3D"presentation" style=3D"backgr=
+ound:#FFF8DC;background-color:#FFF8DC;width:100%;" cellspacing=3D"0" cellpa=
+dding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"direct=
+ion:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-top:0;text-=
+align:center;"> <div style=3D"font-size:0px;text-align:left;direction:ltr;d=
+isplay:inline-block;vertical-align:top;width:100%;" class=3D"yiv8345534283m=
+j-column-per-100 yiv8345534283mj-outlook-group-fix"> <table role=3D"present=
+ation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" cellp=
+adding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:=
+10px 25px;padding-top:0;padding-bottom:0px;" align=3D"left"> <div style=3D"=
+font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;tex=
+t-align:left;color:darkgrey;">Posted by&nbsp;dksd1986-g3258&nbsp;on&nbsp;Th=
+u, 29th September 7:17am.</div></td></tr></tbody> </table> </div></td></tr>=
+</tbody> </table> </div><div style=3D"background:#FFF8DC;background-color:#=
+FFF8DC;margin:0px auto;max-width:600px;"> <table role=3D"presentation" styl=
+e=3D"background:#FFF8DC;background-color:#FFF8DC;width:100%;" cellspacing=
+=3D"0" cellpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td st=
+yle=3D"direction:ltr;font-size:0px;padding:0px;text-align:center;"> <div st=
+yle=3D"font-size:0;line-height:0;text-align:left;display:inline-block;width=
+:100%;direction:ltr;" class=3D"yiv8345534283mj-column-per-100 yiv8345534283=
+mj-outlook-group-fix"> <div style=3D"font-size:0px;text-align:left;directio=
+n:ltr;display:inline-block;vertical-align:top;width:33%;" class=3D"yiv83455=
+34283mj-column-per-33-333333333333336 yiv8345534283mj-outlook-group-fix"> <=
+table role=3D"presentation" style=3D"vertical-align:top;" width=3D"100%" ce=
+llspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"f=
+ont-size:0px;padding:10px 25px;" align=3D"center"> <table role=3D"presentat=
+ion" style=3D"border-collapse:separate;line-height:100%;" cellspacing=3D"0"=
+ cellpadding=3D"0" border=3D"0"> <tbody><tr> <td style=3D"border:none;borde=
+r-radius:3px;cursor:auto;background:darkgreen;" valign=3D"middle" bgcolor=
+=3D"darkgreen" align=3D"center"> <a href=3D"https://www.ilovefreegle.org/me=
+ssage/93763251?u=3D41472629&amp;src=3Ddigest" style=3D"display:inline-block=
+;background:darkgreen;color:#ffffff;font-family:Trebuchet MS, Helvetica, Ar=
+ial;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decora=
+tion:none;text-transform:none;padding:10px 25px;border-radius:3px;" target=
+=3D"_blank" rel=3D"noreferrer noopener"> Reply </a> </td></tr></tbody></tab=
+le> </td></tr></tbody> </table> </div><div style=3D"font-size:0px;text-alig=
+n:left;direction:ltr;display:inline-block;vertical-align:top;width:33%;" cl=
+ass=3D"yiv8345534283mj-column-per-33-333333333333336 yiv8345534283mj-outloo=
+k-group-fix"> <table role=3D"presentation" style=3D"vertical-align:top;" wi=
+dth=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr>=
+ <td style=3D"font-size:0px;padding:10px 25px;padding-top:20px;" align=3D"c=
+enter"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:=
+13px;line-height:1;text-align:center;color:#000000;"><a ymailto=3D"mailto:r=
+eplyto-93763251-41472629@users.ilovefreegle.org?subject=3DRe%3A%20OFFERED%3=
+A%20Wall%20prints%20%28NR6%29" href=3D"mailto:replyto-93763251-41472629@use=
+rs.ilovefreegle.org?subject=3DRe%3A%20OFFERED%3A%20Wall%20prints%20%28NR6%2=
+9" style=3D"color:#1d6607;text-decoration:none;font-weight:bold;" target=3D=
+"_blank" rel=3D"noreferrer noopener">Reply by email</a><br data-mce-bogus=
+=3D"1"></div></td></tr></tbody> </table> </div><div style=3D"font-size:0px;=
+text-align:left;direction:ltr;display:inline-block;vertical-align:top;width=
+:33%;" class=3D"yiv8345534283mj-column-per-33-333333333333336 yiv8345534283=
+mj-outlook-group-fix"> <table role=3D"presentation" style=3D"vertical-align=
+:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tb=
+ody> <tr> <td style=3D"font-size:0px;padding:10px 25px;padding-top:20px;" a=
+lign=3D"center"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial;f=
+ont-size:13px;line-height:1;text-align:center;color:#000000;"><a href=3D"ht=
+tps://mail.aol.com/webmail-std/#top" style=3D"color:#1d6607;text-decoration=
+:none;font-weight:bold;float:right;" target=3D"_blank" rel=3D"noreferrer no=
+opener">Back to top</a><br data-mce-bogus=3D"1"></div></td></tr></tbody> </=
+table> </div></div></td></tr></tbody> </table> </div><div style=3D"backgrou=
+nd:#FFF8DC;background-color:#FFF8DC;margin:0px auto;max-width:600px;"> <tab=
+le role=3D"presentation" style=3D"background:#FFF8DC;background-color:#FFF8=
+DC;width:100%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0" align=3D"c=
+enter"> <tbody> <tr> <td style=3D"direction:ltr;font-size:0px;padding:0px;t=
+ext-align:center;"> <div style=3D"font-size:0px;text-align:left;direction:l=
+tr;display:inline-block;vertical-align:top;width:100%;" class=3D"yiv8345534=
+283mj-column-per-100 yiv8345534283mj-outlook-group-fix"> <table role=3D"pre=
+sentation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" c=
+ellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padd=
+ing:10px 25px;padding-top:0;padding-bottom:0px;" align=3D"left"> <div style=
+=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1=
+;text-align:left;color:#000000;"><hr style=3D"border:0;border-top:1px solid=
+ #aaa;"></div></td></tr></tbody> </table> </div></td></tr></tbody> </table>=
+ </div><div style=3D"background:#FFF8DC;background-color:#FFF8DC;margin:0px=
+ auto;max-width:600px;"> <table role=3D"presentation" style=3D"background:#=
+FFF8DC;background-color:#FFF8DC;width:100%;" cellspacing=3D"0" cellpadding=
+=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"direction:l=
+tr;font-size:0px;padding:0px;text-align:center;"> <div style=3D"font-size:0=
+px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;wi=
+dth:100%;" class=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-outlook-=
+group-fix"> <table role=3D"presentation" style=3D"vertical-align:top;" widt=
+h=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <=
+td style=3D"font-size:0px;padding:0px;" align=3D"left"> <div style=3D"font-=
+family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-ali=
+gn:left;color:#000000;"><a id=3D"yiv8345534283msg-93763323" name=3D"msg-937=
+63323" style=3D"color:#1d6607;text-decoration:none;font-weight:bold;" href=
+=3D"" target=3D"_blank" rel=3D"noreferrer noopener"></a><br data-mce-bogus=
+=3D"1"></div></td></tr><tr> <td style=3D"font-size:0px;padding:10px 25px;pa=
+dding-top:0;padding-bottom:0px;" align=3D"left"> <div style=3D"font-family:=
+Trebuchet MS, Helvetica, Arial;font-size:18px;line-height:1.25;text-align:l=
+eft;color:#1D6607;">OFFERED: Wall art (NR6)&nbsp;<span style=3D"font-size:1=
+0pt;color:red;">New listing</span></div></td></tr></tbody> </table> </div><=
+/td></tr></tbody> </table> </div><div style=3D"background:#FFF8DC;backgroun=
+d-color:#FFF8DC;margin:0px auto;max-width:600px;"> <table role=3D"presentat=
+ion" style=3D"background:#FFF8DC;background-color:#FFF8DC;width:100%;" cell=
+spacing=3D"0" cellpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr>=
+ <td style=3D"direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px=
+;padding-top:0;text-align:center;"> <div style=3D"font-size:0px;text-align:=
+left;direction:ltr;display:inline-block;vertical-align:top;width:100%;" cla=
+ss=3D"yiv8345534283mj-column-per-66 yiv8345534283mj-outlook-group-fix"> <ta=
+ble role=3D"presentation" style=3D"vertical-align:top;" width=3D"100%" cell=
+spacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"fon=
+t-size:0px;padding:10px 25px;" align=3D"left"> <div style=3D"font-family:Tr=
+ebuchet MS, Helvetica, Arial;font-size:18px;line-height:1;text-align:left;c=
+olor:#000000;">No longer needed.</div></td></tr></tbody> </table> </div><di=
+v style=3D"font-size:0px;text-align:left;direction:ltr;display:inline-block=
+;vertical-align:top;width:100%;" class=3D"yiv8345534283mj-column-per-34 yiv=
+8345534283mj-outlook-group-fix"> <table role=3D"presentation" style=3D"vert=
+ical-align:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=
+=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:10px 25px;" align=
+=3D"right"> <table role=3D"presentation" style=3D"border-collapse:collapse;=
+border-spacing:0px;" class=3D"yiv8345534283mj-full-width-mobile" cellspacin=
+g=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"width:154=
+px;" class=3D"yiv8345534283mj-full-width-mobile"> <a href=3D"https://www.il=
+ovefreegle.org/message/93763323?u=3D41472629&amp;src=3Ddigest" style=3D"col=
+or:#1d6607;text-decoration:none;font-weight:bold;" target=3D"_blank" rel=3D=
+"noreferrer noopener"> <img alt=3D"Item picture" src=3D"https://images.ilov=
+efreegle.org/timg_26659770.jpg" style=3D"border:0;border-radius:5px;display=
+:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:1=
+3px;" width=3D"154" height=3D"auto"> </a> </td></tr></tbody> </table> </td>=
+</tr></tbody> </table> </div></td></tr></tbody> </table> </div><div style=
+=3D"background:#FFF8DC;background-color:#FFF8DC;margin:0px auto;max-width:6=
+00px;"> <table role=3D"presentation" style=3D"background:#FFF8DC;background=
+-color:#FFF8DC;width:100%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0=
+" align=3D"center"> <tbody> <tr> <td style=3D"direction:ltr;font-size:0px;p=
+adding:20px 0;padding-bottom:0px;padding-top:0;text-align:center;"> <div st=
+yle=3D"font-size:0px;text-align:left;direction:ltr;display:inline-block;ver=
+tical-align:top;width:100%;" class=3D"yiv8345534283mj-column-per-100 yiv834=
+5534283mj-outlook-group-fix"> <table role=3D"presentation" style=3D"vertica=
+l-align:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"=
+0"> <tbody> <tr> <td style=3D"font-size:0px;padding:10px 25px;padding-top:0=
+;padding-bottom:0px;" align=3D"left"> <div style=3D"font-family:Trebuchet M=
+S, Helvetica, Arial;font-size:13px;line-height:1;text-align:left;color:dark=
+grey;">Posted by&nbsp;dksd1986-g3258&nbsp;on&nbsp;Thu, 29th September 7:19a=
+m.</div></td></tr></tbody> </table> </div></td></tr></tbody> </table> </div=
+><div style=3D"background:#FFF8DC;background-color:#FFF8DC;margin:0px auto;=
+max-width:600px;"> <table role=3D"presentation" style=3D"background:#FFF8DC=
+;background-color:#FFF8DC;width:100%;" cellspacing=3D"0" cellpadding=3D"0" =
+border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"direction:ltr;font=
+-size:0px;padding:0px;text-align:center;"> <div style=3D"font-size:0;line-h=
+eight:0;text-align:left;display:inline-block;width:100%;direction:ltr;" cla=
+ss=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-outlook-group-fix"> <d=
+iv style=3D"font-size:0px;text-align:left;direction:ltr;display:inline-bloc=
+k;vertical-align:top;width:33%;" class=3D"yiv8345534283mj-column-per-33-333=
+333333333336 yiv8345534283mj-outlook-group-fix"> <table role=3D"presentatio=
+n" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" cellpaddi=
+ng=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:10px=
+ 25px;" align=3D"center"> <table role=3D"presentation" style=3D"border-coll=
+apse:separate;line-height:100%;" cellspacing=3D"0" cellpadding=3D"0" border=
+=3D"0"> <tbody><tr> <td style=3D"border:none;border-radius:3px;cursor:auto;=
+background:darkgreen;" valign=3D"middle" bgcolor=3D"darkgreen" align=3D"cen=
+ter"> <a href=3D"https://www.ilovefreegle.org/message/93763323?u=3D41472629=
+&amp;src=3Ddigest" style=3D"display:inline-block;background:darkgreen;color=
+:#ffffff;font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;font-wei=
+ght:normal;line-height:120%;margin:0;text-decoration:none;text-transform:no=
+ne;padding:10px 25px;border-radius:3px;" target=3D"_blank" rel=3D"noreferre=
+r noopener"> Reply </a> </td></tr></tbody></table> </td></tr></tbody> </tab=
+le> </div><div style=3D"font-size:0px;text-align:left;direction:ltr;display=
+:inline-block;vertical-align:top;width:33%;" class=3D"yiv8345534283mj-colum=
+n-per-33-333333333333336 yiv8345534283mj-outlook-group-fix"> <table role=3D=
+"presentation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"=
+0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;=
+padding:10px 25px;padding-top:20px;" align=3D"center"> <div style=3D"font-f=
+amily:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-alig=
+n:center;color:#000000;"><a ymailto=3D"mailto:replyto-93763323-41472629@use=
+rs.ilovefreegle.org?subject=3DRe%3A%20OFFERED%3A%20Wall%20art%20%28NR6%29" =
+href=3D"mailto:replyto-93763323-41472629@users.ilovefreegle.org?subject=3DR=
+e%3A%20OFFERED%3A%20Wall%20art%20%28NR6%29" style=3D"color:#1d6607;text-dec=
+oration:none;font-weight:bold;" target=3D"_blank" rel=3D"noreferrer noopene=
+r">Reply by email</a><br data-mce-bogus=3D"1"></div></td></tr></tbody> </ta=
+ble> </div><div style=3D"font-size:0px;text-align:left;direction:ltr;displa=
+y:inline-block;vertical-align:top;width:33%;" class=3D"yiv8345534283mj-colu=
+mn-per-33-333333333333336 yiv8345534283mj-outlook-group-fix"> <table role=
+=3D"presentation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=
+=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:=
+0px;padding:10px 25px;padding-top:20px;" align=3D"center"> <div style=3D"fo=
+nt-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-=
+align:center;color:#000000;"><a href=3D"https://mail.aol.com/webmail-std/#t=
+op" style=3D"color:#1d6607;text-decoration:none;font-weight:bold;float:righ=
+t;" target=3D"_blank" rel=3D"noreferrer noopener">Back to top</a><br data-m=
+ce-bogus=3D"1"></div></td></tr></tbody> </table> </div></div></td></tr></tb=
+ody> </table> </div><div style=3D"background:#FFF8DC;background-color:#FFF8=
+DC;margin:0px auto;max-width:600px;"> <table role=3D"presentation" style=3D=
+"background:#FFF8DC;background-color:#FFF8DC;width:100%;" cellspacing=3D"0"=
+ cellpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D=
+"direction:ltr;font-size:0px;padding:0px;text-align:center;"> <div style=3D=
+"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-=
+align:top;width:100%;" class=3D"yiv8345534283mj-column-per-100 yiv834553428=
+3mj-outlook-group-fix"> <table role=3D"presentation" style=3D"vertical-alig=
+n:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <t=
+body> <tr> <td style=3D"font-size:0px;padding:10px 25px;padding-top:0;paddi=
+ng-bottom:0px;" align=3D"left"> <div style=3D"font-family:Trebuchet MS, Hel=
+vetica, Arial;font-size:13px;line-height:1;text-align:left;color:#000000;">=
+<hr style=3D"border:0;border-top:1px solid #aaa;"></div></td></tr></tbody> =
+</table> </div></td></tr></tbody> </table> </div><div style=3D"background:#=
+FFF8DC;background-color:#FFF8DC;margin:0px auto;max-width:600px;"> <table r=
+ole=3D"presentation" style=3D"background:#FFF8DC;background-color:#FFF8DC;w=
+idth:100%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0" align=3D"cente=
+r"> <tbody> <tr> <td style=3D"direction:ltr;font-size:0px;padding:0px;text-=
+align:center;"> <div style=3D"font-size:0px;text-align:left;direction:ltr;d=
+isplay:inline-block;vertical-align:top;width:100%;" class=3D"yiv8345534283m=
+j-column-per-100 yiv8345534283mj-outlook-group-fix"> <table role=3D"present=
+ation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" cellp=
+adding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:=
+0px;" align=3D"left"> <div style=3D"font-family:Trebuchet MS, Helvetica, Ar=
+ial;font-size:13px;line-height:1;text-align:left;color:#000000;"><a id=3D"y=
+iv8345534283msg-93763878" name=3D"msg-93763878" style=3D"color:#1d6607;text=
+-decoration:none;font-weight:bold;" href=3D"" target=3D"_blank" rel=3D"nore=
+ferrer noopener"></a><br data-mce-bogus=3D"1"></div></td></tr><tr> <td styl=
+e=3D"font-size:0px;padding:10px 25px;padding-top:0;padding-bottom:0px;" ali=
+gn=3D"left"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-=
+size:18px;line-height:1.25;text-align:left;color:#1D6607;">OFFERED: 2 x Can=
+non Printers for spares or repair (Drayton NR8)&nbsp;<span style=3D"font-si=
+ze:10pt;color:red;">New listing</span></div></td></tr></tbody> </table> </d=
+iv></td></tr></tbody> </table> </div><div style=3D"background:#FFF8DC;backg=
+round-color:#FFF8DC;margin:0px auto;max-width:600px;"> <table role=3D"prese=
+ntation" style=3D"background:#FFF8DC;background-color:#FFF8DC;width:100%;" =
+cellspacing=3D"0" cellpadding=3D"0" border=3D"0" align=3D"center"> <tbody> =
+<tr> <td style=3D"direction:ltr;font-size:0px;padding:20px 0;padding-bottom=
+:0px;padding-top:0;text-align:center;"> <div style=3D"font-size:0px;text-al=
+ign:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"=
+ class=3D"yiv8345534283mj-column-per-66 yiv8345534283mj-outlook-group-fix">=
+ <table role=3D"presentation" style=3D"vertical-align:top;" width=3D"100%" =
+cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D=
+"font-size:0px;padding:10px 25px;" align=3D"left"> <div style=3D"font-famil=
+y:Trebuchet MS, Helvetica, Arial;font-size:18px;line-height:1;text-align:le=
+ft;color:#000000;">I have 2 Cannon printers which are not working. one has =
+an error code and the other i cannot get power to it.</div></td></tr></tbod=
+y> </table> </div><div style=3D"font-size:0px;text-align:left;direction:ltr=
+;display:inline-block;vertical-align:top;width:100%;" class=3D"yiv834553428=
+3mj-column-per-34 yiv8345534283mj-outlook-group-fix"> <table role=3D"presen=
+tation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" cell=
+padding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding=
+:10px 25px;" align=3D"right"> <table role=3D"presentation" style=3D"border-=
+collapse:collapse;border-spacing:0px;" class=3D"yiv8345534283mj-full-width-=
+mobile" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td =
+style=3D"width:154px;" class=3D"yiv8345534283mj-full-width-mobile"> <a href=
+=3D"https://www.ilovefreegle.org/message/93763878?u=3D41472629&amp;src=3Ddi=
+gest" style=3D"color:#1d6607;text-decoration:none;font-weight:bold;" target=
+=3D"_blank" rel=3D"noreferrer noopener"> <img alt=3D"Item picture" src=3D"h=
+ttps://images.ilovefreegle.org/timg_26660019.jpg" style=3D"border:0;border-=
+radius:5px;display:block;outline:none;text-decoration:none;height:auto;widt=
+h:100%;font-size:13px;" width=3D"154" height=3D"auto"> </a> </td></tr></tbo=
+dy> </table> </td></tr></tbody> </table> </div></td></tr></tbody> </table> =
+</div><div style=3D"background:#FFF8DC;background-color:#FFF8DC;margin:0px =
+auto;max-width:600px;"> <table role=3D"presentation" style=3D"background:#F=
+FF8DC;background-color:#FFF8DC;width:100%;" cellspacing=3D"0" cellpadding=
+=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"direction:l=
+tr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-top:0;text-align=
+:center;"> <div style=3D"font-size:0px;text-align:left;direction:ltr;displa=
+y:inline-block;vertical-align:top;width:100%;" class=3D"yiv8345534283mj-col=
+umn-per-100 yiv8345534283mj-outlook-group-fix"> <table role=3D"presentation=
+" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" cellpaddin=
+g=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:10px =
+25px;padding-top:0;padding-bottom:0px;" align=3D"left"> <div style=3D"font-=
+family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-ali=
+gn:left;color:darkgrey;">Posted by&nbsp;regina&nbsp;on&nbsp;Thu, 29th Septe=
+mber 7:45am.</div></td></tr></tbody> </table> </div></td></tr></tbody> </ta=
+ble> </div><div style=3D"background:#FFF8DC;background-color:#FFF8DC;margin=
+:0px auto;max-width:600px;"> <table role=3D"presentation" style=3D"backgrou=
+nd:#FFF8DC;background-color:#FFF8DC;width:100%;" cellspacing=3D"0" cellpadd=
+ing=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"directio=
+n:ltr;font-size:0px;padding:0px;text-align:center;"> <div style=3D"font-siz=
+e:0;line-height:0;text-align:left;display:inline-block;width:100%;direction=
+:ltr;" class=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-outlook-grou=
+p-fix"> <div style=3D"font-size:0px;text-align:left;direction:ltr;display:i=
+nline-block;vertical-align:top;width:33%;" class=3D"yiv8345534283mj-column-=
+per-33-333333333333336 yiv8345534283mj-outlook-group-fix"> <table role=3D"p=
+resentation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0"=
+ cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;pa=
+dding:10px 25px;" align=3D"center"> <table role=3D"presentation" style=3D"b=
+order-collapse:separate;line-height:100%;" cellspacing=3D"0" cellpadding=3D=
+"0" border=3D"0"> <tbody><tr> <td style=3D"border:none;border-radius:3px;cu=
+rsor:auto;background:darkgreen;" valign=3D"middle" bgcolor=3D"darkgreen" al=
+ign=3D"center"> <a href=3D"https://www.ilovefreegle.org/message/93763878?u=
+=3D41472629&amp;src=3Ddigest" style=3D"display:inline-block;background:dark=
+green;color:#ffffff;font-family:Trebuchet MS, Helvetica, Arial;font-size:13=
+px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-t=
+ransform:none;padding:10px 25px;border-radius:3px;" target=3D"_blank" rel=
+=3D"noreferrer noopener"> Reply </a> </td></tr></tbody></table> </td></tr><=
+/tbody> </table> </div><div style=3D"font-size:0px;text-align:left;directio=
+n:ltr;display:inline-block;vertical-align:top;width:33%;" class=3D"yiv83455=
+34283mj-column-per-33-333333333333336 yiv8345534283mj-outlook-group-fix"> <=
+table role=3D"presentation" style=3D"vertical-align:top;" width=3D"100%" ce=
+llspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"f=
+ont-size:0px;padding:10px 25px;padding-top:20px;" align=3D"center"> <div st=
+yle=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-heigh=
+t:1;text-align:center;color:#000000;"><a ymailto=3D"mailto:replyto-93763878=
+-41472629@users.ilovefreegle.org?subject=3DRe%3A%20OFFERED%3A%202%20x%20Can=
+non%20Printers%20for%20spares%20or%20repair%20%28Drayton%20NR8%29" href=3D"=
+mailto:replyto-93763878-41472629@users.ilovefreegle.org?subject=3DRe%3A%20O=
+FFERED%3A%202%20x%20Cannon%20Printers%20for%20spares%20or%20repair%20%28Dra=
+yton%20NR8%29" style=3D"color:#1d6607;text-decoration:none;font-weight:bold=
+;" target=3D"_blank" rel=3D"noreferrer noopener">Reply by email</a><br data=
+-mce-bogus=3D"1"></div></td></tr></tbody> </table> </div><div style=3D"font=
+-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align=
+:top;width:33%;" class=3D"yiv8345534283mj-column-per-33-333333333333336 yiv=
+8345534283mj-outlook-group-fix"> <table role=3D"presentation" style=3D"vert=
+ical-align:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=
+=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:10px 25px;padding-t=
+op:20px;" align=3D"center"> <div style=3D"font-family:Trebuchet MS, Helveti=
+ca, Arial;font-size:13px;line-height:1;text-align:center;color:#000000;"><a=
+ href=3D"https://mail.aol.com/webmail-std/#top" style=3D"color:#1d6607;text=
+-decoration:none;font-weight:bold;float:right;" target=3D"_blank" rel=3D"no=
+referrer noopener">Back to top</a><br data-mce-bogus=3D"1"></div></td></tr>=
+</tbody> </table> </div></div></td></tr></tbody> </table> </div><div style=
+=3D"background:#FFF8DC;background-color:#FFF8DC;margin:0px auto;max-width:6=
+00px;"> <table role=3D"presentation" style=3D"background:#FFF8DC;background=
+-color:#FFF8DC;width:100%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0=
+" align=3D"center"> <tbody> <tr> <td style=3D"direction:ltr;font-size:0px;p=
+adding:0px;text-align:center;"> <div style=3D"font-size:0px;text-align:left=
+;direction:ltr;display:inline-block;vertical-align:top;width:100%;" class=
+=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-outlook-group-fix"> <tab=
+le role=3D"presentation" style=3D"vertical-align:top;" width=3D"100%" cells=
+pacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font=
+-size:0px;padding:10px 25px;padding-top:0;padding-bottom:0px;" align=3D"lef=
+t"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px=
+;line-height:1;text-align:left;color:#000000;"><hr style=3D"border:0;border=
+-top:1px solid #aaa;"></div></td></tr></tbody> </table> </div></td></tr></t=
+body> </table> </div><div style=3D"background:#FFF8DC;background-color:#FFF=
+8DC;margin:0px auto;max-width:600px;"> <table role=3D"presentation" style=
+=3D"background:#FFF8DC;background-color:#FFF8DC;width:100%;" cellspacing=3D=
+"0" cellpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=
+=3D"direction:ltr;font-size:0px;padding:0px;text-align:center;"> <div style=
+=3D"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertic=
+al-align:top;width:100%;" class=3D"yiv8345534283mj-column-per-100 yiv834553=
+4283mj-outlook-group-fix"> <table role=3D"presentation" style=3D"vertical-a=
+lign:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0">=
+ <tbody> <tr> <td style=3D"font-size:0px;padding:0px;" align=3D"left"> <div=
+ style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-he=
+ight:1;text-align:left;color:#000000;"><a id=3D"yiv8345534283msg-93587268" =
+name=3D"msg-93587268" style=3D"color:#1d6607;text-decoration:none;font-weig=
+ht:bold;" href=3D"" target=3D"_blank" rel=3D"noreferrer noopener"></a><br d=
+ata-mce-bogus=3D"1"></div></td></tr><tr> <td style=3D"font-size:0px;padding=
+:10px 25px;padding-top:0;padding-bottom:0px;" align=3D"left"> <div style=3D=
+"font-family:Trebuchet MS, Helvetica, Arial;font-size:18px;line-height:1.25=
+;text-align:left;color:#1D6607;">REQUESTED: Wall clock (Sprowston NR7)&nbsp=
+;<span style=3D"font-size:10pt;color:grey;">First posted&nbsp;Wed, 21st Sep=
+tember 6:10pm</span></div></td></tr></tbody> </table> </div></td></tr></tbo=
+dy> </table> </div><div style=3D"background:#FFF8DC;background-color:#FFF8D=
+C;margin:0px auto;max-width:600px;"> <table role=3D"presentation" style=3D"=
+background:#FFF8DC;background-color:#FFF8DC;width:100%;" cellspacing=3D"0" =
+cellpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"=
+direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-top:0=
+;text-align:center;"> <div style=3D"font-size:0px;text-align:left;direction=
+:ltr;display:inline-block;vertical-align:top;width:100%;" class=3D"yiv83455=
+34283mj-column-per-66 yiv8345534283mj-outlook-group-fix"> <table role=3D"pr=
+esentation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" =
+cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;pad=
+ding:10px 25px;" align=3D"left"> <div style=3D"font-family:Trebuchet MS, He=
+lvetica, Arial;font-size:18px;line-height:1;text-align:left;color:#000000;"=
+>Battery operated wall clock any colour about 12" or  30cm.<br>
+<br>
+Forgot to say will pick up thankyou</div></td></tr></tbody> </table> </div>=
+<div style=3D"font-size:0px;text-align:left;direction:ltr;display:inline-bl=
+ock;vertical-align:top;width:100%;" class=3D"yiv8345534283mj-column-per-34 =
+yiv8345534283mj-outlook-group-fix"> <table role=3D"presentation" style=3D"v=
+ertical-align:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" bord=
+er=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:10px 25px;" align=
+=3D"right"> <table role=3D"presentation" style=3D"border-collapse:collapse;=
+border-spacing:0px;" class=3D"yiv8345534283mj-full-width-mobile" cellspacin=
+g=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"width:154=
+px;" class=3D"yiv8345534283mj-full-width-mobile"> <a href=3D"https://www.il=
+ovefreegle.org/message/93587268?u=3D41472629&amp;src=3Ddigest" style=3D"col=
+or:#1d6607;text-decoration:none;font-weight:bold;" target=3D"_blank" rel=3D=
+"noreferrer noopener"> <img alt=3D"Item picture" src=3D"https://cdn.ilovefr=
+eegle.org/timg_26528265.jpg" style=3D"border:0;border-radius:5px;display:bl=
+ock;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px=
+;" width=3D"154" height=3D"auto"> </a> </td></tr></tbody> </table> </td></t=
+r></tbody> </table> </div></td></tr></tbody> </table> </div><div style=3D"b=
+ackground:#FFF8DC;background-color:#FFF8DC;margin:0px auto;max-width:600px;=
+"> <table role=3D"presentation" style=3D"background:#FFF8DC;background-colo=
+r:#FFF8DC;width:100%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0" ali=
+gn=3D"center"> <tbody> <tr> <td style=3D"direction:ltr;font-size:0px;paddin=
+g:20px 0;padding-bottom:0px;padding-top:0;text-align:center;"> <div style=
+=3D"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertic=
+al-align:top;width:100%;" class=3D"yiv8345534283mj-column-per-100 yiv834553=
+4283mj-outlook-group-fix"> <table role=3D"presentation" style=3D"vertical-a=
+lign:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0">=
+ <tbody> <tr> <td style=3D"font-size:0px;padding:10px 25px;padding-top:0;pa=
+dding-bottom:0px;" align=3D"left"> <div style=3D"font-family:Trebuchet MS, =
+Helvetica, Arial;font-size:13px;line-height:1;text-align:left;color:darkgre=
+y;">Posted by&nbsp;marty&nbsp;on&nbsp;Wed, 21st September 6:10pm.</div></td=
+></tr></tbody> </table> </div></td></tr></tbody> </table> </div><div style=
+=3D"background:#FFF8DC;background-color:#FFF8DC;margin:0px auto;max-width:6=
+00px;"> <table role=3D"presentation" style=3D"background:#FFF8DC;background=
+-color:#FFF8DC;width:100%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0=
+" align=3D"center"> <tbody> <tr> <td style=3D"direction:ltr;font-size:0px;p=
+adding:0px;text-align:center;"> <div style=3D"font-size:0;line-height:0;tex=
+t-align:left;display:inline-block;width:100%;direction:ltr;" class=3D"yiv83=
+45534283mj-column-per-100 yiv8345534283mj-outlook-group-fix"> <div style=3D=
+"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-=
+align:top;width:33%;" class=3D"yiv8345534283mj-column-per-33-33333333333333=
+6 yiv8345534283mj-outlook-group-fix"> <table role=3D"presentation" style=3D=
+"vertical-align:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" bo=
+rder=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:10px 25px;" ali=
+gn=3D"center"> <table role=3D"presentation" style=3D"border-collapse:separa=
+te;line-height:100%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tb=
+ody><tr> <td style=3D"border:none;border-radius:3px;cursor:auto;background:=
+darkgreen;" valign=3D"middle" bgcolor=3D"darkgreen" align=3D"center"> <a hr=
+ef=3D"https://www.ilovefreegle.org/message/93587268?u=3D41472629&amp;src=3D=
+digest" style=3D"display:inline-block;background:darkgreen;color:#ffffff;fo=
+nt-family:Trebuchet MS, Helvetica, Arial;font-size:13px;font-weight:normal;=
+line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:=
+10px 25px;border-radius:3px;" target=3D"_blank" rel=3D"noreferrer noopener"=
+> Reply </a> </td></tr></tbody></table> </td></tr></tbody> </table> </div><=
+div style=3D"font-size:0px;text-align:left;direction:ltr;display:inline-blo=
+ck;vertical-align:top;width:33%;" class=3D"yiv8345534283mj-column-per-33-33=
+3333333333336 yiv8345534283mj-outlook-group-fix"> <table role=3D"presentati=
+on" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" cellpadd=
+ing=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:10p=
+x 25px;padding-top:20px;" align=3D"center"> <div style=3D"font-family:Trebu=
+chet MS, Helvetica, Arial;font-size:13px;line-height:1;text-align:center;co=
+lor:#000000;"><a ymailto=3D"mailto:replyto-93587268-41472629@users.ilovefre=
+egle.org?subject=3DRe%3A%20REQUESTED%3A%20Wall%20clock%20%28Sprowston%20NR7=
+%29" href=3D"mailto:replyto-93587268-41472629@users.ilovefreegle.org?subjec=
+t=3DRe%3A%20REQUESTED%3A%20Wall%20clock%20%28Sprowston%20NR7%29" style=3D"c=
+olor:#1d6607;text-decoration:none;font-weight:bold;" target=3D"_blank" rel=
+=3D"noreferrer noopener">Reply by email</a><br data-mce-bogus=3D"1"></div><=
+/td></tr></tbody> </table> </div><div style=3D"font-size:0px;text-align:lef=
+t;direction:ltr;display:inline-block;vertical-align:top;width:33%;" class=
+=3D"yiv8345534283mj-column-per-33-333333333333336 yiv8345534283mj-outlook-g=
+roup-fix"> <table role=3D"presentation" style=3D"vertical-align:top;" width=
+=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <t=
+d style=3D"font-size:0px;padding:10px 25px;padding-top:20px;" align=3D"cent=
+er"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13p=
+x;line-height:1;text-align:center;color:#000000;"><a href=3D"https://mail.a=
+ol.com/webmail-std/#top" style=3D"color:#1d6607;text-decoration:none;font-w=
+eight:bold;float:right;" target=3D"_blank" rel=3D"noreferrer noopener">Back=
+ to top</a><br data-mce-bogus=3D"1"></div></td></tr></tbody> </table> </div=
+></div></td></tr></tbody> </table> </div><div style=3D"background:#FFF8DC;b=
+ackground-color:#FFF8DC;margin:0px auto;max-width:600px;"> <table role=3D"p=
+resentation" style=3D"background:#FFF8DC;background-color:#FFF8DC;width:100=
+%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0" align=3D"center"> <tbo=
+dy> <tr> <td style=3D"direction:ltr;font-size:0px;padding:0px;text-align:ce=
+nter;"> <div style=3D"font-size:0px;text-align:left;direction:ltr;display:i=
+nline-block;vertical-align:top;width:100%;" class=3D"yiv8345534283mj-column=
+-per-100 yiv8345534283mj-outlook-group-fix"> <table role=3D"presentation" s=
+tyle=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" cellpadding=
+=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:10px 2=
+5px;padding-top:0;padding-bottom:0px;" align=3D"left"> <div style=3D"font-f=
+amily:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-alig=
+n:left;color:#000000;"><hr style=3D"border:0;border-top:1px solid #aaa;"></=
+div></td></tr></tbody> </table> </div></td></tr></tbody> </table> </div><di=
+v style=3D"background:#FFF8DC;background-color:#FFF8DC;margin:0px auto;max-=
+width:600px;"> <table role=3D"presentation" style=3D"background:#FFF8DC;bac=
+kground-color:#FFF8DC;width:100%;" cellspacing=3D"0" cellpadding=3D"0" bord=
+er=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"direction:ltr;font-siz=
+e:0px;padding:0px;text-align:center;"> <div style=3D"font-size:0px;text-ali=
+gn:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;" =
+class=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-outlook-group-fix">=
+ <table role=3D"presentation" style=3D"vertical-align:top;" width=3D"100%" =
+cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D=
+"font-size:0px;padding:0px;" align=3D"left"> <div style=3D"font-family:Treb=
+uchet MS, Helvetica, Arial;font-size:13px;line-height:1;text-align:left;col=
+or:#000000;"><a id=3D"yiv8345534283msg-92963622" name=3D"msg-92963622" styl=
+e=3D"color:#1d6607;text-decoration:none;font-weight:bold;" href=3D"" target=
+=3D"_blank" rel=3D"noreferrer noopener"></a><br data-mce-bogus=3D"1"></div>=
+</td></tr><tr> <td style=3D"font-size:0px;padding:10px 25px;padding-top:0;p=
+adding-bottom:0px;" align=3D"left"> <div style=3D"font-family:Trebuchet MS,=
+ Helvetica, Arial;font-size:18px;line-height:1.25;text-align:left;color:#1D=
+6607;">REQUESTED: Exercise bike (Hellesdon NR6)&nbsp;<span style=3D"font-si=
+ze:10pt;color:grey;">First posted&nbsp;Wed, 31st August 9:57pm</span></div>=
+</td></tr></tbody> </table> </div></td></tr></tbody> </table> </div><div st=
+yle=3D"background:#FFF8DC;background-color:#FFF8DC;margin:0px auto;max-widt=
+h:600px;"> <table role=3D"presentation" style=3D"background:#FFF8DC;backgro=
+und-color:#FFF8DC;width:100%;" cellspacing=3D"0" cellpadding=3D"0" border=
+=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"direction:ltr;font-size:=
+0px;padding:20px 0;padding-bottom:0px;padding-top:0;text-align:center;"> <d=
+iv style=3D"font-size:0px;text-align:left;direction:ltr;display:inline-bloc=
+k;vertical-align:top;width:100%;" class=3D"yiv8345534283mj-column-per-100 y=
+iv8345534283mj-outlook-group-fix"> <table role=3D"presentation" style=3D"ve=
+rtical-align:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" borde=
+r=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:10px 25px;" align=
+=3D"left"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-si=
+ze:18px;line-height:1;text-align:left;color:#000000;">Looking for a robust =
+exercise bike please</div></td></tr></tbody> </table> </div></td></tr></tbo=
+dy> </table> </div><div style=3D"background:#FFF8DC;background-color:#FFF8D=
+C;margin:0px auto;max-width:600px;"> <table role=3D"presentation" style=3D"=
+background:#FFF8DC;background-color:#FFF8DC;width:100%;" cellspacing=3D"0" =
+cellpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"=
+direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-top:0=
+;text-align:center;"> <div style=3D"font-size:0px;text-align:left;direction=
+:ltr;display:inline-block;vertical-align:top;width:100%;" class=3D"yiv83455=
+34283mj-column-per-100 yiv8345534283mj-outlook-group-fix"> <table role=3D"p=
+resentation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0"=
+ cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;pa=
+dding:10px 25px;padding-top:0;padding-bottom:0px;" align=3D"left"> <div sty=
+le=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height=
+:1;text-align:left;color:darkgrey;">Posted by&nbsp;Rosie123&nbsp;on&nbsp;We=
+d, 31st August 9:57pm.</div></td></tr></tbody> </table> </div></td></tr></t=
+body> </table> </div><div style=3D"background:#FFF8DC;background-color:#FFF=
+8DC;margin:0px auto;max-width:600px;"> <table role=3D"presentation" style=
+=3D"background:#FFF8DC;background-color:#FFF8DC;width:100%;" cellspacing=3D=
+"0" cellpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=
+=3D"direction:ltr;font-size:0px;padding:0px;text-align:center;"> <div style=
+=3D"font-size:0;line-height:0;text-align:left;display:inline-block;width:10=
+0%;direction:ltr;" class=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-=
+outlook-group-fix"> <div style=3D"font-size:0px;text-align:left;direction:l=
+tr;display:inline-block;vertical-align:top;width:33%;" class=3D"yiv83455342=
+83mj-column-per-33-333333333333336 yiv8345534283mj-outlook-group-fix"> <tab=
+le role=3D"presentation" style=3D"vertical-align:top;" width=3D"100%" cells=
+pacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font=
+-size:0px;padding:10px 25px;" align=3D"center"> <table role=3D"presentation=
+" style=3D"border-collapse:separate;line-height:100%;" cellspacing=3D"0" ce=
+llpadding=3D"0" border=3D"0"> <tbody><tr> <td style=3D"border:none;border-r=
+adius:3px;cursor:auto;background:darkgreen;" valign=3D"middle" bgcolor=3D"d=
+arkgreen" align=3D"center"> <a href=3D"https://www.ilovefreegle.org/message=
+/92963622?u=3D41472629&amp;src=3Ddigest" style=3D"display:inline-block;back=
+ground:darkgreen;color:#ffffff;font-family:Trebuchet MS, Helvetica, Arial;f=
+ont-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:=
+none;text-transform:none;padding:10px 25px;border-radius:3px;" target=3D"_b=
+lank" rel=3D"noreferrer noopener"> Reply </a> </td></tr></tbody></table> </=
+td></tr></tbody> </table> </div><div style=3D"font-size:0px;text-align:left=
+;direction:ltr;display:inline-block;vertical-align:top;width:33%;" class=3D=
+"yiv8345534283mj-column-per-33-333333333333336 yiv8345534283mj-outlook-grou=
+p-fix"> <table role=3D"presentation" style=3D"vertical-align:top;" width=3D=
+"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td s=
+tyle=3D"font-size:0px;padding:10px 25px;padding-top:20px;" align=3D"center"=
+> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;l=
+ine-height:1;text-align:center;color:#000000;"><a ymailto=3D"mailto:replyto=
+-92963622-41472629@users.ilovefreegle.org?subject=3DRe%3A%20REQUESTED%3A%20=
+Exercise%20bike%20%28Hellesdon%20NR6%29" href=3D"mailto:replyto-92963622-41=
+472629@users.ilovefreegle.org?subject=3DRe%3A%20REQUESTED%3A%20Exercise%20b=
+ike%20%28Hellesdon%20NR6%29" style=3D"color:#1d6607;text-decoration:none;fo=
+nt-weight:bold;" target=3D"_blank" rel=3D"noreferrer noopener">Reply by ema=
+il</a><br data-mce-bogus=3D"1"></div></td></tr></tbody> </table> </div><div=
+ style=3D"font-size:0px;text-align:left;direction:ltr;display:inline-block;=
+vertical-align:top;width:33%;" class=3D"yiv8345534283mj-column-per-33-33333=
+3333333336 yiv8345534283mj-outlook-group-fix"> <table role=3D"presentation"=
+ style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" cellpadding=
+=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:10px 2=
+5px;padding-top:20px;" align=3D"center"> <div style=3D"font-family:Trebuche=
+t MS, Helvetica, Arial;font-size:13px;line-height:1;text-align:center;color=
+:#000000;"><a href=3D"https://mail.aol.com/webmail-std/#top" style=3D"color=
+:#1d6607;text-decoration:none;font-weight:bold;float:right;" target=3D"_bla=
+nk" rel=3D"noreferrer noopener">Back to top</a><br data-mce-bogus=3D"1"></d=
+iv></td></tr></tbody> </table> </div></div></td></tr></tbody> </table> </di=
+v><div style=3D"background:#FFF8DC;background-color:#FFF8DC;margin:0px auto=
+;max-width:600px;"> <table role=3D"presentation" style=3D"background:#FFF8D=
+C;background-color:#FFF8DC;width:100%;" cellspacing=3D"0" cellpadding=3D"0"=
+ border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"direction:ltr;fon=
+t-size:0px;padding:0px;text-align:center;"> <div style=3D"font-size:0px;tex=
+t-align:left;direction:ltr;display:inline-block;vertical-align:top;width:10=
+0%;" class=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-outlook-group-=
+fix"> <table role=3D"presentation" style=3D"vertical-align:top;" width=3D"1=
+00%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td sty=
+le=3D"font-size:0px;padding:10px 25px;padding-top:0;padding-bottom:0px;" al=
+ign=3D"left"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial;font=
+-size:13px;line-height:1;text-align:left;color:#000000;"><hr style=3D"borde=
+r:0;border-top:1px solid #aaa;"></div></td></tr></tbody> </table> </div></t=
+d></tr></tbody> </table> </div><div style=3D"background:#FFF8DC;background-=
+color:#FFF8DC;margin:0px auto;max-width:600px;"> <table role=3D"presentatio=
+n" style=3D"background:#FFF8DC;background-color:#FFF8DC;width:100%;" cellsp=
+acing=3D"0" cellpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <=
+td style=3D"direction:ltr;font-size:0px;padding:0px;text-align:center;"> <d=
+iv style=3D"font-size:0px;text-align:left;direction:ltr;display:inline-bloc=
+k;vertical-align:top;width:100%;" class=3D"yiv8345534283mj-column-per-100 y=
+iv8345534283mj-outlook-group-fix"> <table role=3D"presentation" style=3D"ve=
+rtical-align:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" borde=
+r=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:0px;" align=3D"lef=
+t"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px=
+;line-height:1;text-align:left;color:#000000;"><a id=3D"yiv8345534283msg-92=
+983230" name=3D"msg-92983230" style=3D"color:#1d6607;text-decoration:none;f=
+ont-weight:bold;" href=3D"" target=3D"_blank" rel=3D"noreferrer noopener"><=
+/a><br data-mce-bogus=3D"1"></div></td></tr><tr> <td style=3D"font-size:0px=
+;padding:10px 25px;padding-top:0;padding-bottom:0px;" align=3D"left"> <div =
+style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:18px;line-hei=
+ght:1.25;text-align:left;color:#1D6607;">OFFERED: 2 Cannon Printers (Drayto=
+n NR8)&nbsp;<span style=3D"font-size:10pt;color:grey;">First posted&nbsp;Th=
+u, 1st September 3:30pm</span></div></td></tr></tbody> </table> </div></td>=
+</tr></tbody> </table> </div><div style=3D"background:#FFF8DC;background-co=
+lor:#FFF8DC;margin:0px auto;max-width:600px;"> <table role=3D"presentation"=
+ style=3D"background:#FFF8DC;background-color:#FFF8DC;width:100%;" cellspac=
+ing=3D"0" cellpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td=
+ style=3D"direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;pad=
+ding-top:0;text-align:center;"> <div style=3D"font-size:0px;text-align:left=
+;direction:ltr;display:inline-block;vertical-align:top;width:100%;" class=
+=3D"yiv8345534283mj-column-per-66 yiv8345534283mj-outlook-group-fix"> <tabl=
+e role=3D"presentation" style=3D"vertical-align:top;" width=3D"100%" cellsp=
+acing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-=
+size:0px;padding:10px 25px;" align=3D"left"> <div style=3D"font-family:Treb=
+uchet MS, Helvetica, Arial;font-size:18px;line-height:1;text-align:left;col=
+or:#000000;">Neither of these two printers are working. One of them , when =
+I plug it in there is no power. The other one comes up with an error code. =
+Maybe someone can get them working?</div></td></tr></tbody> </table> </div>=
+<div style=3D"font-size:0px;text-align:left;direction:ltr;display:inline-bl=
+ock;vertical-align:top;width:100%;" class=3D"yiv8345534283mj-column-per-34 =
+yiv8345534283mj-outlook-group-fix"> <table role=3D"presentation" style=3D"v=
+ertical-align:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" bord=
+er=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:10px 25px;" align=
+=3D"right"> <table role=3D"presentation" style=3D"border-collapse:collapse;=
+border-spacing:0px;" class=3D"yiv8345534283mj-full-width-mobile" cellspacin=
+g=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"width:154=
+px;" class=3D"yiv8345534283mj-full-width-mobile"> <a href=3D"https://www.il=
+ovefreegle.org/message/92983230?u=3D41472629&amp;src=3Ddigest" style=3D"col=
+or:#1d6607;text-decoration:none;font-weight:bold;" target=3D"_blank" rel=3D=
+"noreferrer noopener"> <img alt=3D"Item picture" src=3D"https://cdn.ilovefr=
+eegle.org/timg_26164071.jpg" style=3D"border:0;border-radius:5px;display:bl=
+ock;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px=
+;" width=3D"154" height=3D"auto"> </a> </td></tr></tbody> </table> </td></t=
+r></tbody> </table> </div></td></tr></tbody> </table> </div><div style=3D"b=
+ackground:#FFF8DC;background-color:#FFF8DC;margin:0px auto;max-width:600px;=
+"> <table role=3D"presentation" style=3D"background:#FFF8DC;background-colo=
+r:#FFF8DC;width:100%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0" ali=
+gn=3D"center"> <tbody> <tr> <td style=3D"direction:ltr;font-size:0px;paddin=
+g:20px 0;padding-bottom:0px;padding-top:0;text-align:center;"> <div style=
+=3D"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertic=
+al-align:top;width:100%;" class=3D"yiv8345534283mj-column-per-100 yiv834553=
+4283mj-outlook-group-fix"> <table role=3D"presentation" style=3D"vertical-a=
+lign:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0">=
+ <tbody> <tr> <td style=3D"font-size:0px;padding:10px 25px;padding-top:0;pa=
+dding-bottom:0px;" align=3D"left"> <div style=3D"font-family:Trebuchet MS, =
+Helvetica, Arial;font-size:13px;line-height:1;text-align:left;color:darkgre=
+y;">Posted by&nbsp;regina&nbsp;on&nbsp;Thu, 1st September 3:30pm.</div></td=
+></tr></tbody> </table> </div></td></tr></tbody> </table> </div><div style=
+=3D"background:#FFF8DC;background-color:#FFF8DC;margin:0px auto;max-width:6=
+00px;"> <table role=3D"presentation" style=3D"background:#FFF8DC;background=
+-color:#FFF8DC;width:100%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0=
+" align=3D"center"> <tbody> <tr> <td style=3D"direction:ltr;font-size:0px;p=
+adding:0px;text-align:center;"> <div style=3D"font-size:0;line-height:0;tex=
+t-align:left;display:inline-block;width:100%;direction:ltr;" class=3D"yiv83=
+45534283mj-column-per-100 yiv8345534283mj-outlook-group-fix"> <div style=3D=
+"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-=
+align:top;width:33%;" class=3D"yiv8345534283mj-column-per-33-33333333333333=
+6 yiv8345534283mj-outlook-group-fix"> <table role=3D"presentation" style=3D=
+"vertical-align:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" bo=
+rder=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:10px 25px;" ali=
+gn=3D"center"> <table role=3D"presentation" style=3D"border-collapse:separa=
+te;line-height:100%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tb=
+ody><tr> <td style=3D"border:none;border-radius:3px;cursor:auto;background:=
+darkgreen;" valign=3D"middle" bgcolor=3D"darkgreen" align=3D"center"> <a hr=
+ef=3D"https://www.ilovefreegle.org/message/92983230?u=3D41472629&amp;src=3D=
+digest" style=3D"display:inline-block;background:darkgreen;color:#ffffff;fo=
+nt-family:Trebuchet MS, Helvetica, Arial;font-size:13px;font-weight:normal;=
+line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:=
+10px 25px;border-radius:3px;" target=3D"_blank" rel=3D"noreferrer noopener"=
+> Reply </a> </td></tr></tbody></table> </td></tr></tbody> </table> </div><=
+div style=3D"font-size:0px;text-align:left;direction:ltr;display:inline-blo=
+ck;vertical-align:top;width:33%;" class=3D"yiv8345534283mj-column-per-33-33=
+3333333333336 yiv8345534283mj-outlook-group-fix"> <table role=3D"presentati=
+on" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" cellpadd=
+ing=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:10p=
+x 25px;padding-top:20px;" align=3D"center"> <div style=3D"font-family:Trebu=
+chet MS, Helvetica, Arial;font-size:13px;line-height:1;text-align:center;co=
+lor:#000000;"><a ymailto=3D"mailto:replyto-92983230-41472629@users.ilovefre=
+egle.org?subject=3DRe%3A%20OFFERED%3A%202%20Cannon%20Printers%20%28Drayton%=
+20NR8%29" href=3D"mailto:replyto-92983230-41472629@users.ilovefreegle.org?s=
+ubject=3DRe%3A%20OFFERED%3A%202%20Cannon%20Printers%20%28Drayton%20NR8%29" =
+style=3D"color:#1d6607;text-decoration:none;font-weight:bold;" target=3D"_b=
+lank" rel=3D"noreferrer noopener">Reply by email</a><br data-mce-bogus=3D"1=
+"></div></td></tr></tbody> </table> </div><div style=3D"font-size:0px;text-=
+align:left;direction:ltr;display:inline-block;vertical-align:top;width:33%;=
+" class=3D"yiv8345534283mj-column-per-33-333333333333336 yiv8345534283mj-ou=
+tlook-group-fix"> <table role=3D"presentation" style=3D"vertical-align:top;=
+" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> =
+<tr> <td style=3D"font-size:0px;padding:10px 25px;padding-top:20px;" align=
+=3D"center"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-=
+size:13px;line-height:1;text-align:center;color:#000000;"><a href=3D"https:=
+//mail.aol.com/webmail-std/#top" style=3D"color:#1d6607;text-decoration:non=
+e;font-weight:bold;float:right;" target=3D"_blank" rel=3D"noreferrer noopen=
+er">Back to top</a><br data-mce-bogus=3D"1"></div></td></tr></tbody> </tabl=
+e> </div></div></td></tr></tbody> </table> </div><div style=3D"background:#=
+FFF8DC;background-color:#FFF8DC;margin:0px auto;max-width:600px;"> <table r=
+ole=3D"presentation" style=3D"background:#FFF8DC;background-color:#FFF8DC;w=
+idth:100%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0" align=3D"cente=
+r"> <tbody> <tr> <td style=3D"direction:ltr;font-size:0px;padding:0px;text-=
+align:center;"> <div style=3D"font-size:0px;text-align:left;direction:ltr;d=
+isplay:inline-block;vertical-align:top;width:100%;" class=3D"yiv8345534283m=
+j-column-per-100 yiv8345534283mj-outlook-group-fix"> <table role=3D"present=
+ation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" cellp=
+adding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padding:=
+10px 25px;padding-top:0;padding-bottom:0px;" align=3D"left"> <div style=3D"=
+font-family:Trebuchet MS, Helvetica, Arial;font-size:13px;line-height:1;tex=
+t-align:left;color:#000000;"><hr style=3D"border:0;border-top:1px solid #aa=
+a;"></div></td></tr></tbody> </table> </div></td></tr></tbody> </table> </d=
+iv><div style=3D""> <table role=3D"presentation" style=3D"background:#D8D8D=
+8;background-color:#D8D8D8;width:100%;" cellspacing=3D"0" cellpadding=3D"0"=
+ border=3D"0" align=3D"center"> <tbody> <tr> <td> <div style=3D"margin:0px =
+auto;max-width:600px;"> <table role=3D"presentation" style=3D"width:100%;" =
+cellspacing=3D"0" cellpadding=3D"0" border=3D"0" align=3D"center"> <tbody> =
+<tr> <td style=3D"direction:ltr;font-size:0px;padding:20px 0;text-align:cen=
+ter;"> <div style=3D"background:#D8D8D8;background-color:#D8D8D8;margin:0px=
+ auto;max-width:600px;"> <table role=3D"presentation" style=3D"background:#=
+D8D8D8;background-color:#D8D8D8;width:100%;" cellspacing=3D"0" cellpadding=
+=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"direction:l=
+tr;font-size:0px;padding:0px;text-align:center;"> <div style=3D"font-size:0=
+px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;wi=
+dth:100%;" class=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-outlook-=
+group-fix"> <table role=3D"presentation" style=3D"vertical-align:top;" widt=
+h=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody><tr> <t=
+d style=3D"font-size:0px;padding:10px 25px;padding-bottom:0px;" align=3D"le=
+ft"> <div style=3D"font-family:Ubuntu, Helvetica, Arial, sans-serif;font-si=
+ze:20px;line-height:1.25;text-align:left;color:#1D6607;">Other Nearby Posts=
+</div></td></tr><tr> <td style=3D"font-size:0px;padding:10px 25px;" align=
+=3D"left"> <div style=3D"font-family:Ubuntu, Helvetica, Arial, sans-serif;f=
+ont-size:13px;line-height:1.25;text-align:left;color:#1D6607;"><br> These p=
+osts are near you from other communities. <br> <br> <hr style=3D"border:0;b=
+order-top:1px solid #AAA;"> </div></td></tr></tbody></table> </div> </td></=
+tr></tbody> </table> </div> <div style=3D"background:#D8D8D8;background-col=
+or:#D8D8D8;margin:0px auto;max-width:600px;"> <table role=3D"presentation" =
+style=3D"background:#D8D8D8;background-color:#D8D8D8;width:100%;" cellspaci=
+ng=3D"0" cellpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td =
+style=3D"direction:ltr;font-size:0px;padding:0px;text-align:center;"> <div =
+style=3D"font-size:0px;text-align:left;direction:ltr;display:inline-block;v=
+ertical-align:top;width:100%;" class=3D"yiv8345534283mj-column-per-100 yiv8=
+345534283mj-outlook-group-fix"> <table role=3D"presentation" style=3D"verti=
+cal-align:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=
+=3D"0"><tbody><tr> <td style=3D"font-size:0px;padding:10px 25px;padding-top=
+:0;padding-bottom:0px;" align=3D"left"> <div style=3D"font-family:Ubuntu, H=
+elvetica, Arial, sans-serif;font-size:18px;line-height:1.25;text-align:left=
+;color:#1D6607;"><a href=3D"https://www.ilovefreegle.org/message/92878305?d=
+estinedfor=3D41472629&amp;timestamp=3D1664439007.7994" target=3D"_blank" re=
+l=3D"noreferrer noopener">REQUESTED: Word search books (Kings Lynn)</a><br =
+data-mce-bogus=3D"1"></div></td></tr><tr> <td style=3D"font-size:0px;paddin=
+g:10px 25px;padding-top:0;padding-bottom:0px;" align=3D"left"> <div style=
+=3D"font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:18px;line-he=
+ight:1.25;text-align:left;color:#1D6607;"><a href=3D"https://www.ilovefreeg=
+le.org/message/92878569?destinedfor=3D41472629&amp;timestamp=3D1664439007.8=
+086" target=3D"_blank" rel=3D"noreferrer noopener">REQUESTED: Garden storag=
+e box (Kings Lynn)</a><br data-mce-bogus=3D"1"></div></td></tr><tr> <td sty=
+le=3D"font-size:0px;padding:10px 25px;padding-top:0;padding-bottom:0px;" al=
+ign=3D"left"> <div style=3D"font-family:Ubuntu, Helvetica, Arial, sans-seri=
+f;font-size:18px;line-height:1.25;text-align:left;color:#1D6607;"><a href=
+=3D"https://www.ilovefreegle.org/message/92878575?destinedfor=3D41472629&am=
+p;timestamp=3D1664439007.8166" target=3D"_blank" rel=3D"noreferrer noopener=
+">REQUESTED: LED light bulbs (Kings Lynn)</a><br data-mce-bogus=3D"1"></div=
+></td></tr><tr> <td style=3D"font-size:0px;padding:10px 25px;padding-top:0;=
+padding-bottom:0px;" align=3D"left"> <div style=3D"font-family:Ubuntu, Helv=
+etica, Arial, sans-serif;font-size:18px;line-height:1.25;text-align:left;co=
+lor:#1D6607;"><a href=3D"https://www.ilovefreegle.org/message/92878590?dest=
+inedfor=3D41472629&amp;timestamp=3D1664439007.8201" target=3D"_blank" rel=
+=3D"noreferrer noopener">REQUESTED: Solar items (Kings Lynn)</a><br data-mc=
+e-bogus=3D"1"></div></td></tr><tr> <td style=3D"font-size:0px;padding:10px =
+25px;padding-top:0;padding-bottom:0px;" align=3D"left"> <div style=3D"font-=
+family:Ubuntu, Helvetica, Arial, sans-serif;font-size:18px;line-height:1.25=
+;text-align:left;color:#1D6607;"><a href=3D"https://www.ilovefreegle.org/me=
+ssage/92878599?destinedfor=3D41472629&amp;timestamp=3D1664439007.8272" targ=
+et=3D"_blank" rel=3D"noreferrer noopener">REQUESTED: Sunlounger (Kings Lynn=
+)</a><br data-mce-bogus=3D"1"></div></td></tr></tbody></table> </div> </td>=
+</tr></tbody> </table> </div> </td></tr></tbody> </table> </div> </td></tr>=
+</tbody> </table> </div><div style=3D"background:#D8D8D8;background-color:#=
+D8D8D8;margin:0px auto;max-width:600px;"> <table role=3D"presentation" styl=
+e=3D"background:#D8D8D8;background-color:#D8D8D8;width:100%;" cellspacing=
+=3D"0" cellpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td st=
+yle=3D"direction:ltr;font-size:0px;padding:0px;text-align:center;"> <div st=
+yle=3D"font-size:0px;text-align:left;direction:ltr;display:inline-block;ver=
+tical-align:top;width:100%;" class=3D"yiv8345534283mj-column-per-100 yiv834=
+5534283mj-outlook-group-fix"> <table role=3D"presentation" style=3D"vertica=
+l-align:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"=
+0"> <tbody> <tr> <td style=3D"font-size:0px;padding:10px 25px;padding-botto=
+m:0px;" align=3D"left"> <div style=3D"font-family:Trebuchet MS, Helvetica, =
+Arial;font-size:20px;line-height:1.25;text-align:left;color:#1D6607;">Compl=
+eted Posts</div></td></tr><tr> <td style=3D"font-size:0px;padding:10px 25px=
+;" align=3D"left"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial=
+;font-size:13px;line-height:1.25;text-align:left;color:#1D6607;"><br>These =
+posts are new since your last mail but have already been completed. If you =
+missed something, try changing how frequently we send you email in <a href=
+=3D"https://www.ilovefreegle.org/settings?u=3D41472629&amp;src=3Ddigest" st=
+yle=3D"color:#1d6607;text-decoration:none;font-weight:bold;" target=3D"_bla=
+nk" rel=3D"noreferrer noopener">Settings</a>. <hr style=3D"border:0;border-=
+top:1px solid #AAA;"></div></td></tr></tbody> </table> </div></td></tr></tb=
+ody> </table> </div><div style=3D"background:#D8D8D8;background-color:#D8D8=
+D8;margin:0px auto;max-width:600px;"> <table role=3D"presentation" style=3D=
+"background:#D8D8D8;background-color:#D8D8D8;width:100%;" cellspacing=3D"0"=
+ cellpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D=
+"direction:ltr;font-size:0px;padding:0px;text-align:center;"> <div style=3D=
+"font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-=
+align:top;width:100%;" class=3D"yiv8345534283mj-column-per-100 yiv834553428=
+3mj-outlook-group-fix"> <table role=3D"presentation" style=3D"vertical-alig=
+n:top;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <t=
+body> <tr> <td style=3D"font-size:0px;padding:10px 25px;padding-top:0;paddi=
+ng-bottom:0px;" align=3D"left"> <div style=3D"font-family:Trebuchet MS, Hel=
+vetica, Arial;font-size:18px;line-height:1.25;text-align:left;color:#1D6607=
+;">OFFERED: King size summer quilt (North City NR3)</div></td></tr></tbody>=
+ </table> </div></td></tr></tbody> </table> </div><div style=3D"background:=
+#D8D8D8;background-color:#D8D8D8;margin:0px auto;max-width:600px;"> <table =
+role=3D"presentation" style=3D"background:#D8D8D8;background-color:#D8D8D8;=
+width:100%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0" align=3D"cent=
+er"> <tbody> <tr> <td style=3D"direction:ltr;font-size:0px;padding:20px 0;p=
+adding-bottom:0px;padding-top:0;text-align:center;"> <div style=3D"font-siz=
+e:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top=
+;width:100%;" class=3D"yiv8345534283mj-column-per-66 yiv8345534283mj-outloo=
+k-group-fix"> <table role=3D"presentation" style=3D"vertical-align:top;" wi=
+dth=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr>=
+ <td style=3D"font-size:0px;padding:10px 25px;" align=3D"left"> <div style=
+=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:18px;line-height:1=
+;text-align:left;color:#000000;">Could deliver within 5 mile radius of Norw=
+ich</div></td></tr></tbody> </table> </div><div style=3D"font-size:0px;text=
+-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100=
+%;" class=3D"yiv8345534283mj-column-per-34 yiv8345534283mj-outlook-group-fi=
+x"> <table role=3D"presentation" style=3D"vertical-align:top;" width=3D"100=
+%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=
+=3D"font-size:0px;padding:10px 25px;" align=3D"right"> <table role=3D"prese=
+ntation" style=3D"border-collapse:collapse;border-spacing:0px;" class=3D"yi=
+v8345534283mj-full-width-mobile" cellspacing=3D"0" cellpadding=3D"0" border=
+=3D"0"> <tbody> <tr> <td style=3D"width:154px;" class=3D"yiv8345534283mj-fu=
+ll-width-mobile"> <a style=3D"color:#1d6607;text-decoration:none;font-weigh=
+t:bold;" href=3D"" target=3D"_blank" rel=3D"noreferrer noopener"> <img alt=
+=3D"Item picture" src=3D"https://cdn.ilovefreegle.org/timg_26653500.jpg" st=
+yle=3D"border:0;border-radius:5px;display:block;outline:none;text-decoratio=
+n:none;height:auto;width:100%;font-size:13px;" width=3D"154" height=3D"auto=
+"> </a> </td></tr></tbody> </table> </td></tr></tbody> </table> </div></td>=
+</tr></tbody> </table> </div><div style=3D"background:#D8D8D8;background-co=
+lor:#D8D8D8;margin:0px auto;max-width:600px;"> <table role=3D"presentation"=
+ style=3D"background:#D8D8D8;background-color:#D8D8D8;width:100%;" cellspac=
+ing=3D"0" cellpadding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td=
+ style=3D"direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;pad=
+ding-top:0;text-align:center;"> <div style=3D"font-size:0px;text-align:left=
+;direction:ltr;display:inline-block;vertical-align:top;width:100%;" class=
+=3D"yiv8345534283mj-column-per-100 yiv8345534283mj-outlook-group-fix"> <tab=
+le role=3D"presentation" style=3D"vertical-align:top;" width=3D"100%" cells=
+pacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font=
+-size:0px;padding:10px 25px;padding-top:0;padding-bottom:0px;" align=3D"lef=
+t"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13px=
+;line-height:1;text-align:left;color:darkgrey;">Posted by&nbsp;Kate Platt&n=
+bsp;on&nbsp;Wed, 28th September 2:25pm.</div></td></tr><tr> <td style=3D"fo=
+nt-size:0px;padding:10px 25px;padding-top:0;padding-bottom:0px;" align=3D"l=
+eft"> <div style=3D"font-family:Trebuchet MS, Helvetica, Arial;font-size:13=
+px;line-height:1;text-align:left;color:#000000;"><hr style=3D"border:0;bord=
+er-top:1px solid #aaa;"></div></td></tr></tbody> </table> </div></td></tr><=
+/tbody> </table> </div><div style=3D"background:white;background-color:whit=
+e;margin:0px auto;max-width:600px;"> <table role=3D"presentation" style=3D"=
+background:white;background-color:white;width:100%;" cellspacing=3D"0" cell=
+padding=3D"0" border=3D"0" align=3D"center"> <tbody> <tr> <td style=3D"dire=
+ction:ltr;font-size:0px;padding:20px 0;text-align:center;"> <div style=3D"f=
+ont-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-al=
+ign:top;width:100%;" class=3D"yiv8345534283mj-column-px-150 yiv8345534283mj=
+-outlook-group-fix"> <table role=3D"presentation" style=3D"vertical-align:t=
+op;" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbod=
+y> <tr> <td style=3D"font-size:0px;padding:10px 25px;" align=3D"left"> <tab=
+le role=3D"presentation" style=3D"border-collapse:collapse;border-spacing:0=
+px;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td sty=
+le=3D"width:80px;"> <a href=3D"https://www.norfolkrecycles.com/" style=3D"c=
+olor:#1d6607;text-decoration:none;font-weight:bold;" target=3D"_blank" rel=
+=3D"noreferrer noopener"> <img alt=3D"Sponsor logo" src=3D"https://www.ilov=
+efreegle.org/sponsors/NWP.jpg" style=3D"border:0;border-radius:5px;display:=
+block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13=
+px;" width=3D"80" height=3D"auto"> </a> </td></tr></tbody> </table> </td></=
+tr></tbody> </table> </div><div style=3D"font-size:0px;text-align:left;dire=
+ction:ltr;display:inline-block;vertical-align:top;width:100%;" class=3D"yiv=
+8345534283mj-column-per-50 yiv8345534283mj-outlook-group-fix"> <table role=
+=3D"presentation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=
+=3D"0" cellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:=
+0px;padding:10px 25px;" align=3D"left"> <div style=3D"font-family:Trebuchet=
+ MS, Helvetica, Arial;font-size:13px;line-height:1;text-align:left;color:#0=
+00000;"><p>This community is kindly sponsored by:</p><a href=3D"https://www=
+.norfolkrecycles.com/" style=3D"color:#1d6607;text-decoration:none;font-wei=
+ght:bold;" target=3D"_blank" rel=3D"noreferrer noopener">Norfolk Recycles</=
+a><br data-mce-bogus=3D"1"></div></td></tr><tr> <td style=3D"font-size:0px;=
+padding:10px 25px;" align=3D"left"> <div style=3D"font-family:Trebuchet MS,=
+ Helvetica, Arial;font-size:13px;line-height:1;text-align:left;color:#00000=
+0;"><b>All your local councils working together</b></div></td></tr></tbody>=
+ </table> </div></td></tr></tbody> </table> </div><div style=3D"background:=
+#E0E0E0;background-color:#E0E0E0;margin:0px auto;max-width:600px;"> <table =
+role=3D"presentation" style=3D"background:#E0E0E0;background-color:#E0E0E0;=
+width:100%;" cellspacing=3D"0" cellpadding=3D"0" border=3D"0" align=3D"cent=
+er"> <tbody> <tr> <td style=3D"direction:ltr;font-size:0px;padding:20px 0;t=
+ext-align:center;"> <div style=3D"font-size:0px;text-align:left;direction:l=
+tr;display:inline-block;vertical-align:top;width:100%;" class=3D"yiv8345534=
+283mj-column-per-100 yiv8345534283mj-outlook-group-fix"> <table role=3D"pre=
+sentation" style=3D"vertical-align:top;" width=3D"100%" cellspacing=3D"0" c=
+ellpadding=3D"0" border=3D"0"> <tbody> <tr> <td style=3D"font-size:0px;padd=
+ing:10px 25px;" align=3D"left"> <div style=3D"font-family:Trebuchet MS, Hel=
+vetica, Arial;font-size:9px;line-height:1;text-align:left;color:#707070;">Y=
+ou've received this automated mail because you're a member of <a href=3D"ht=
+tps://www.ilovefreegle.org/mygroups?u=3D41472629&amp;src=3Ddigest" style=3D=
+"color:#1d6607;text-decoration:none;font-weight:bold;" target=3D"_blank" re=
+l=3D"noreferrer noopener">Norwich Freegle</a>. You are set to receive updat=
+es for&nbsp;Norwich Freegle&nbsp;daily.<br><br>You can change your settings=
+ by clicking <a href=3D"https://www.ilovefreegle.org/settings?u=3D41472629&=
+amp;src=3Ddigest" style=3D"color:#1d6607;text-decoration:none;font-weight:b=
+old;" target=3D"_blank" rel=3D"noreferrer noopener">here</a>, or turn these=
+ OFFER/WANTED mails off for this group by emailing <a ymailto=3D"mailto:dig=
+estoff-41472629-515540@users.ilovefreegle.org" href=3D"mailto:digestoff-414=
+72629-515540@users.ilovefreegle.org" style=3D"color:#1d6607;text-decoration=
+:none;font-weight:bold;" target=3D"_blank" rel=3D"noreferrer noopener">dige=
+stoff-41472629-515540@users.ilovefreegle.org</a> <br><br>This mail was sent=
+ to&nbsp;test@test.com. <br><hr style=3D"border:0;border-top:1px so=
+lid #AAA;"> Freegle is registered as a charity with HMRC (ref. XT32865) and=
+ is run by volunteers. Which is nice.</div></td></tr></tbody> </table> </di=
+v></td></tr></tbody> </table> </div></a><br data-mce-bogus=3D"1"></td></tr>=
+</tbody> </table> </div></td></tr></tbody> </table> </div></div> </div></di=
+v>
+------=_Part_1766051_703223162.1664452078796--
+
+
