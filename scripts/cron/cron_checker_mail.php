@@ -38,10 +38,8 @@ function grep($path, $find, $andnot){ // Has "crontab" but not "(root) LIST (roo
   $rv = "";
 
   foreach (get_all_lines($fh) as $line) {
-    if( strpos($line,$find)!==false){
-      if( strpos($line,$andnot)===false){
-        $rv .= $path.": ".$line; // Has \r\n
-      }
+    if ((strpos($line, $find)!==false) && (strpos($line, $andnot)===false)) {
+      $rv .= $path.": ".$line; // Has \r\n
     }
   }
   fclose($fh);
@@ -131,7 +129,7 @@ $statusfile = fopen("/var/lib/cron-check-required", "w"); // Overwrite
 if( strlen($report)===0) {
   $report = "No cron changes to report on ".gethostname()."\r\nMail not sent\r\n";
   if( $statusfile!==false){
-    fwrite($statusfile, "No changes required\r\n");
+    fwrite($statusfile, "cron check OK\r\n");
     fclose($statusfile);
   }
 } else {
