@@ -36,14 +36,14 @@ function get_all_lines($file_handle) {
   }
 }
 
-function grep($path, $find){
+function grep($path, $find, $andnot){ // Has "crontab" but not "(root) LIST (root)"
   $fh = fopen($path, 'r');
   if( $fh===false) return $path." not found";
 
   $rv = "";
 
   foreach (get_all_lines($fh) as $line) {
-    if( strpos($line,$find)!==false){
+    if ((strpos($line, $find)!==false) && (strpos($line, $andnot)===false)) {
       $rv .= $path.": ".$line; // Has \r\n
     }
   }
@@ -103,10 +103,10 @@ try{
   $cronlastCronWeekly = $cronlast."cron.weekly/";
 
   // grep "crontab" /var/log/syslog
-  $report .= grep('/var/log/syslog', "crontab");
+  $report .= grep('/var/log/syslog', "crontab", "(root) LIST (root)");
 
   // grep "crontab" /var/log/syslog.1
-  $report .= grep('/var/log/syslog.1', "crontab");
+  $report .= grep('/var/log/syslog.1', "crontab", "(root) LIST (root)");
 
   // Check actual crontab files in /var/spool/cron/crontabs/
   $report .= checkCronFileContents('/var/spool/cron/crontabs/',$cronlast);
@@ -129,11 +129,20 @@ try{
 
 $subject = "cron checker ".gethostname().": ".(strlen($report)===0?"OK":"FAIL");
 
+$statusfile = fopen("/var/lib/cron-check-required", "w"); // Overwrite
+
 if( strlen($report)===0) {
   $report = "No cron changes to report on ".gethostname()."\r\nMail not sent\r\n";
-}
-else {
+  if( $statusfile!==false){
+    fwrite($statusfile, "cron check OK\r\n");
+    fclose($statusfile);
+  }
+} else {
   $report .= "\r\n Previous cron files at ".$cronlast."\r\n";
+  if( $statusfile!==false){
+    fwrite($statusfile, "cron check required\r\n");
+    fclose($statusfile);
+  }
 
   $message = \Swift_Message::newInstance()
       ->setSubject($subject)
