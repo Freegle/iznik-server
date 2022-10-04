@@ -129,16 +129,21 @@ try{
 
 $subject = "cron checker ".gethostname().": ".(strlen($report)===0?"OK":"FAIL");
 
-if( strlen($report)===0) $report = "No cron changes to report on ".gethostname()."\r\n";
-else $report .= "\r\n Previous cron files at ".$cronlast."\r\n";
+if( strlen($report)===0) {
+  $report = "No cron changes to report on ".gethostname()."\r\nMail not sent\r\n";
+}
+else {
+  $report .= "\r\n Previous cron files at ".$cronlast."\r\n";
+
+  $message = \Swift_Message::newInstance()
+      ->setSubject($subject)
+      ->setFrom([FROM_ADDR => 'Geeks'])
+      ->setTo([GEEKSALERTS_ADDR => 'Geeks Alerts'])
+      ->setBody($report);
+  list ($transport, $mailer) = Mail::getMailer();
+  $numSent = $mailer->send($message);
+  echo "Mail sent to geeks: ".$numSent."\r\n";
+}
 
 echo "RESULTS:\r\n".$report;
 
-$message = \Swift_Message::newInstance()
-    ->setSubject($subject)
-    ->setFrom([FROM_ADDR => 'Geeks'])
-    ->setTo([GEEKSALERTS_ADDR => 'Geeks Alerts'])
-    ->setBody($report);
-list ($transport, $mailer) = Mail::getMailer();
-$numSent = $mailer->send($message);
-echo "Mail sent to geeks: ".$numSent."\r\n";

@@ -124,17 +124,21 @@ try{
 
 $subject = "cron checker ".gethostname().": ".(strlen($report)===0?"OK":"FAIL");
 
-if( strlen($report)===0) $report = "No cron changes to report on ".gethostname()."\r\n";
-else $report .= "\r\n Previous cron files at ".$cronlast."\r\n";
+if( strlen($report)===0) {
+  $report = "No cron changes to report on ".gethostname()."\r\nMail not sent\r\n";
+}
+else {
+  $report .= "\r\n Previous cron files at ".$cronlast."\r\n";
+
+  $headers = "From:" . FROM_ADDR;
+  $sent = mail(GEEKSALERTS_ADDR,$subject,$report,$headers) ;
+
+  if( $sent==false){
+    echo "Mail FAILED to send to geeks\r\n";
+  } else{
+    echo "Mail sent to geeks\r\n";
+  }
+}
 
 echo "RESULTS:\r\n".$report;
-
-$headers = "From:" . FROM_ADDR;
-$sent = mail(GEEKSALERTS_ADDR,$subject,$report,$headers) ;
-
-if( $sent==false){
-  echo "Mail FAILED to send to geeks\r\n";
-} else{
-  echo "Mail sent to geeks\r\n";
-}
 
