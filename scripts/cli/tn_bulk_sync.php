@@ -265,7 +265,7 @@ foreach ($tnusers as $tnname => $details) {
         // Current name.
         $tnid = $details['id'];
 
-        $fdusers = $dbhr->preQuery("SELECT DISTINCT(userid) FROM users_emails WHERE email LIKE '$tnesc-g%@user.trashnothing.com' AND email REGEXP '$tnname-g[0-9]*@user.trashnothing.com';");
+        $fdusers = $dbhr->preQuery("SELECT DISTINCT(userid) FROM users_emails WHERE email LIKE '$tnesc-g%@user.trashnothing.com' AND email REGEXP '^$tnname-g[0-9]*@user.trashnothing.com';");
 
         if (count($fdusers) > 1) {
             error_log("ERROR: Multiple FD users found for $tnname = $tnesc; should not happen");
