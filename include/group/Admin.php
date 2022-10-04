@@ -62,6 +62,8 @@ class Admin extends Entity
 
         $text = str_replace('$groupname', $groupname, $text);
         $text = str_replace('$owneremail', $modsmail, $text);
+        $text = str_replace('$membername', $toname, $text);
+        $text = str_replace('$memberid', $toname, $text);
 
         if ($ctatext) {
             $text .= "\r\n\r\n" . $ctatext . ":\r\n\r\n" . $ctalink;
