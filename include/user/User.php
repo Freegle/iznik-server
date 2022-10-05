@@ -3329,8 +3329,10 @@ class User extends Entity
         $groupids = $me->getModeratorships();
 
         if (count($groupids)) {
-            $sql = "SELECT * FROM users_comments WHERE $groupq $ctxq groupid IN (" . implode(',', $groupids) . ") ORDER BY reviewed ASC LIMIT 10;";
-            $comments = $this->dbhr->preQuery($sql);
+            $sql = "SELECT * FROM users_comments WHERE $groupq $ctxq (groupid IN (" . implode(',', $groupids) . ") OR users_comments.byuserid = ?) ORDER BY reviewed desc LIMIT 10;";
+            $comments = $this->dbhr->preQuery($sql, [
+                $me->getId()
+            ]);
 
             $uids = array_unique(array_merge(array_column($comments, 'byuserid'), array_column($comments, 'userid')));
             $u = new User($this->dbhr, $this->dbhm);
