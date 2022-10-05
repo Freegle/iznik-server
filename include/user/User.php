@@ -3320,7 +3320,7 @@ class User extends Entity
         $ctxq = '';
 
         if ($ctx) {
-            $ctxq = "users_comments.id > " . intval(Utils::presdef('id', $ctx, NULL)) . " AND ";
+            $ctxq = "users_comments.id < " . intval(Utils::presdef('id', $ctx, NULL)) . " AND ";
         }
 
         $groupq = $groupid ? " groupid = $groupid AND " : '';
