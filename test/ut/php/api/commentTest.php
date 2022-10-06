@@ -44,7 +44,7 @@ class commentAPITest extends IznikAPITestCase {
         $this->user2 = User::get($this->dbhr, $this->dbhm, $this->uid2);
     }
 
-    public function testBase() {
+    public function testBasic() {
         $ret = $this->call('comment', 'POST', [
             'userid' => $this->uid2,
             'groupid' => $this->groupid,
@@ -82,7 +82,7 @@ class commentAPITest extends IznikAPITestCase {
 
         $ret = $this->call('comment', 'GET', [
             'context' => [
-                'id' => PHP_INT_MAX
+                'reviewed' => '2040-09-11'
             ]
         ]);
         assertEquals(0, $ret['ret']);
@@ -90,9 +90,10 @@ class commentAPITest extends IznikAPITestCase {
 
         $ret = $this->call('comment', 'GET', [
             'context' => [
-                'id' => 0
+                'reviewed' => '1970-09-11'
             ]
         ]);
+        error_log(var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($ret['comments']));
 

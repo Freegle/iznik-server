@@ -3330,7 +3330,7 @@ class User extends Entity
 
         if (count($groupids)) {
             $byq = $groupid ? '' : (' OR users_comments.byuserid = ' . $me->getId());
-            $sql = "SELECT * FROM users_comments WHERE $groupq $ctxq (groupid IN (" . implode(',', $groupids) . ")) $byq ORDER BY reviewed desc LIMIT 10;";
+            $sql = "SELECT * FROM users_comments WHERE $groupq $ctxq (groupid IN (" . implode(',', $groupids) . ") $byq) ORDER BY reviewed desc LIMIT 10;";
             $comments = $this->dbhr->preQuery($sql);
 
             $uids = array_unique(array_merge(array_column($comments, 'byuserid'), array_column($comments, 'userid')));
