@@ -3319,8 +3319,8 @@ class User extends Entity
         $comments = [];
         $ctxq = '';
 
-        if ($ctx) {
-            $ctxq = "users_comments.id < " . intval(Utils::presdef('id', $ctx, NULL)) . " AND ";
+        if ($ctx && Utils::pres('reviewed', $ctx)) {
+            $ctxq = "users_comments.reviewed < " . $this->dbhr->quote($ctx['reviewed']) . " AND ";
         }
 
         $groupq = $groupid ? " groupid = $groupid AND " : '';
@@ -3329,10 +3329,9 @@ class User extends Entity
         $groupids = $me->getModeratorships();
 
         if (count($groupids)) {
-            $sql = "SELECT * FROM users_comments WHERE $groupq $ctxq (groupid IN (" . implode(',', $groupids) . ") OR users_comments.byuserid = ?) ORDER BY reviewed desc LIMIT 10;";
-            $comments = $this->dbhr->preQuery($sql, [
-                $me->getId()
-            ]);
+            $byq = $groupid ? '' : (' OR users_comments.byuserid = ' . $me->getId());
+            $sql = "SELECT * FROM users_comments WHERE $groupq $ctxq (groupid IN (" . implode(',', $groupids) . ")) $byq ORDER BY reviewed desc LIMIT 10;";
+            $comments = $this->dbhr->preQuery($sql);
 
             $uids = array_unique(array_merge(array_column($comments, 'byuserid'), array_column($comments, 'userid')));
             $u = new User($this->dbhr, $this->dbhm);
@@ -3352,7 +3351,7 @@ class User extends Entity
                     unset($comment['byuserid']);
                 }
 
-                $ctx['id'] = $comment['id'];
+                $ctx['reviewed'] = $comment['reviewed'];
             }
         }
 
@@ -3447,7 +3446,7 @@ class User extends Entity
 
         foreach ($comments as $comment) {
             if ($me && ($me->isAdminOrSupport() || $me->isModOrOwner($comment['groupid']))) {
-                $sql = "UPDATE users_comments SET byuserid = ?, user1 = ?, user2 = ?, user3 = ?, user4 = ?, user5 = ?, user6 = ?, user7 = ?, user8 = ?, user9 = ?, user10 = ?, user11 = ? WHERE id = ?;";
+                $sql = "UPDATE users_comments SET byuserid = ?, user1 = ?, user2 = ?, user3 = ?, user4 = ?, user5 = ?, user6 = ?, user7 = ?, user8 = ?, user9 = ?, user10 = ?, user11 = ?, reviewed = NOW() WHERE id = ?;";
                 $rc = $this->dbhm->preExec($sql, [
                     $byuserid,
                     $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $user11,
