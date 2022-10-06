@@ -52,6 +52,15 @@ function status()
             $warningtext = "Server reboot required";
         }
 
+        # Check for cron check failed
+        $cmd = 'ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@' . $host . ' cat /var/lib/cron-check-required';
+        $op = shell_exec($cmd);
+
+        if (strpos($op, 'required') !== FALSE) {
+            $warning = TRUE;
+            $warningtext = "cron changed";
+        }
+
         # Get beanstalk queue length.
         $cmd = 'ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@' . $host . ' "echo -e \"stats\\\\\\\\r\\\\\\\\nquit\\\\\\\\r\\\\\\\\n\" | nc localhost 11300 | grep current-jobs-ready 2>&1"';
         $op = shell_exec($cmd);

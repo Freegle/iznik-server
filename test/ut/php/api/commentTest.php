@@ -15,6 +15,10 @@ require_once(UT_DIR . '/../../include/db.php');
 class commentAPITest extends IznikAPITestCase {
     public $dbhr, $dbhm;
 
+    protected function tearDown(): void
+    {
+    }
+
     protected function setUp() : void {
         parent::setUp ();
 
@@ -79,6 +83,14 @@ class commentAPITest extends IznikAPITestCase {
         $ret = $this->call('comment', 'GET', [
             'context' => [
                 'id' => PHP_INT_MAX
+            ]
+        ]);
+        assertEquals(0, $ret['ret']);
+        assertEquals(1, count($ret['comments']));
+
+        $ret = $this->call('comment', 'GET', [
+            'context' => [
+                'id' => 0
             ]
         ]);
         assertEquals(0, $ret['ret']);

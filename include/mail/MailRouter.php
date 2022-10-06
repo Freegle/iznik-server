@@ -627,6 +627,11 @@ class MailRouter
                                             $textbody .= "\r\n\r\n(Replied to digest)";
                                         }
 
+                                        if (preg_match('/(.*)^\s*-----Original Message-----(\s*)/ms', $textbody, $matches)) {
+                                            $textbody = $matches[1];
+                                            $textbody .= "\r\n\r\n(Replied to digest)";
+                                        }
+
                                         if (strlen($textbody)) {
                                             $m = new ChatMessage($this->dbhr, $this->dbhm);
 
@@ -664,8 +669,6 @@ class MailRouter
                                         $this->addPhotosToChat($chatid);
 
                                         $ret = MailRouter::TO_VOLUNTEERS;
-
-
                                     }
                                 }
                             }

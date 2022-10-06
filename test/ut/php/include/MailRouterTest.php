@@ -1885,6 +1885,27 @@ class MailRouterTest extends IznikTestCase {
         }
     }
 
+    public function testReplyToAuto() {
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytoauto'));
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-auto@' . GROUP_DOMAIN, $msg);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $rc = $r->route($m);
+        assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
+
+        $chatmessages = $this->dbhr->preQuery("SELECT * FROM chat_messages_byemail WHERE msgid = ?;", [
+            $id
+        ]);
+
+        assertEquals(1, count($chatmessages));
+
+        foreach ($chatmessages as $chatmessage) {
+            $cm = new ChatMessage($this->dbhr, $this->dbhm, $chatmessage['chatmsgid']);
+            assertGreaterThan(0, strpos($cm->getPrivate('message'), '(Replied to digest)'));
+        }
+    }
+
     //    public function testSpecial() {
 //        //
 //        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/special'));
