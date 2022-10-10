@@ -19,7 +19,7 @@
     "html2text/html2text": "^3.0",
     "minishlink/web-push": "2.0.1",
     "kreait/firebase-php": "^4.0",
-    "google/apiclient": "^1.1",
+    "google/apiclient": "^2.12",
     "jenssegers/imagehash": "^0.4.0",
     "facebook/webdriver": "^1.1",
     "swiftmailer/swiftmailer": "5.4.12",

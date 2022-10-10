@@ -389,6 +389,7 @@ function session() {
             $fbaccesstoken = Utils::presdef('fbaccesstoken', $_REQUEST, NULL);
             $googlelogin = array_key_exists('googlelogin', $_REQUEST) ? filter_var($_REQUEST['googlelogin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $googleauthcode = array_key_exists('googleauthcode', $_REQUEST) ? $_REQUEST['googleauthcode'] : NULL;
+            $googlejwt = array_key_exists('googlejwt', $_REQUEST) ? $_REQUEST['googlejwt'] : NULL;
             $yahoologin = array_key_exists('yahoologin', $_REQUEST) ? filter_var($_REQUEST['yahoologin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $yahoocodelogin = Utils::presdef('yahoocodelogin', $_REQUEST, NULL);
             $applelogin = array_key_exists('applelogin', $_REQUEST) ? filter_var($_REQUEST['applelogin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
@@ -438,7 +439,12 @@ function session() {
             } else if ($googlelogin) {
                 # Google
                 $g = new Google($dbhr, $dbhm, $mobile);
-                list ($session, $ret) = $g->login($googleauthcode);
+
+                if ($googleauthcode) {
+                    list ($session, $ret) = $g->login($googleauthcode);
+                } else if ($googlejwt) {
+                    list ($session, $ret) = $g->loginWithJWT($googlejwt);
+                }
                 /** @var Session $session */
                 $id = $session ? $session->getUserId() : NULL;
             } else if ($applelogin) {
