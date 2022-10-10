@@ -126,7 +126,7 @@ class sessionTest extends IznikAPITestCase
         $ret = $this->call('session', 'POST', [
             'googlelogin' => 1
         ]);
-        assertEquals(2, $ret['ret']);
+        assertEquals(1, $ret['ret']);
 
         # Rest of testing done in include test.
 
