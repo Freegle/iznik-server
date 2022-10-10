@@ -34,17 +34,11 @@ class Google
             'https://www.googleapis.com/auth/email',
             'https://www.googleapis.com/auth/profile'));
 
-        $this->plus = new \Google_Service_Plus($this->client);
-
         return ($this);
     }
 
     public function getClient() {
         return($this->client);
-    }
-
-    public function getPlus() {
-        return($this->plus);
     }
 
     public function getUserDetails($url) {
