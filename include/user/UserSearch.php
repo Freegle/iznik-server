@@ -54,7 +54,7 @@ class UserSearch extends Entity
     }
 
     public function markDeleted() {
-        $rc = $this->dbhm->preExec("UPDATE users_searches SET deleted = 1 WHERE id = ?;", [ $this->id ]);
+        $rc = $this->dbhm->preExec("UPDATE users_searches SET deleted = 1 WHERE userid = ? AND term LIKE ?;", [ $this->userid, $this->term ]);
         return($rc);
     }
 
