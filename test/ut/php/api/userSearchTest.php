@@ -56,7 +56,6 @@ class userSearchAPITest extends IznikAPITestCase {
         assertTrue($this->user->login('testpw'));
 
         $ret = $this->call('usersearch', 'GET', []);
-        $this->log(var_export($ret, TRUE));
         assertEquals(0, $ret['ret']);
         assertEquals(1, count($ret['usersearches']));
         assertEquals($id, $ret['usersearches'][0]['id']);
@@ -77,7 +76,6 @@ class userSearchAPITest extends IznikAPITestCase {
         assertEquals(0, count($ret['usersearches']));
 
         $s->delete();
-
-        }
+    }
 }
 
