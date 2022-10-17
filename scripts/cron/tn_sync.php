@@ -61,46 +61,48 @@ do {
     foreach ($changes as $change) {
         if ($change['fd_user_id']) {
             try {
-                $dbhm->preExec(
-                    "REPLACE INTO users_replytime (userid, replytime, timestamp) VALUES (?, ?, ?);",
-                    [
-                        $change['fd_user_id'],
-                        $change['reply_time'],
-                        $change['date']
-                    ]
-                );
-
-                if ($change['about_me']) {
-                    try {
-                        $dbhm->preExec(
-                            "REPLACE INTO users_aboutme (userid, timestamp, text) VALUES (?, ?, ?);",
-                            [
-                                $change['fd_user_id'],
-                                $change['date'],
-                                $change['about_me']
-                            ]
-                        );
-                    } catch (\Exception $e) {
-                        \Sentry\captureException($e);
-                    }
-                }
-
-                # Spot name changes.
                 $u = User::get($dbhr, $dbhm, $change['fd_user_id']);
 
-                $oldname = User::removeTNGroup($u->getName());
+                if ($u->isTN()) {
+                    $dbhm->preExec(
+                        "REPLACE INTO users_replytime (userid, replytime, timestamp) VALUES (?, ?, ?);",
+                        [
+                            $change['fd_user_id'],
+                            $change['reply_time'],
+                            $change['date']
+                        ]
+                    );
 
-                if ($oldname != $change['username']) {
-                    error_log("Name change for {$change['fd_user_id']} $oldname => {$change['username']}");
-                    $u->setPrivate('fullname', $change['username']);
+                    if ($change['about_me']) {
+                        try {
+                            $dbhm->preExec(
+                                "REPLACE INTO users_aboutme (userid, timestamp, text) VALUES (?, ?, ?);",
+                                [
+                                    $change['fd_user_id'],
+                                    $change['date'],
+                                    $change['about_me']
+                                ]
+                            );
+                        } catch (\Exception $e) {
+                            \Sentry\captureException($e);
+                        }
+                    }
 
-                    $emails = $u->getEmails();
+                    # Spot name changes.
+                    $oldname = User::removeTNGroup($u->getName());
 
-                    foreach ($emails as $email) {
-                        if (strpos($email['email'], "$oldname-") !== FALSE) {
-                            $u->removeEmail($email['email']);
-                            error_log("...{$email['email']} => " . str_replace("$oldname-", "{$change['username']}-", $email['email']));
-                            $u->addEmail(str_replace("$oldname-", "{$change['username']}-", $email['email']));
+                    if ($oldname != $change['username']) {
+                        error_log("Name change for {$change['fd_user_id']} $oldname => {$change['username']}");
+                        $u->setPrivate('fullname', $change['username']);
+
+                        $emails = $u->getEmails();
+
+                        foreach ($emails as $email) {
+                            if (strpos($email['email'], "$oldname-") !== FALSE) {
+                                $u->removeEmail($email['email']);
+                                error_log("...{$email['email']} => " . str_replace("$oldname-", "{$change['username']}-", $email['email']));
+                                $u->addEmail(str_replace("$oldname-", "{$change['username']}-", $email['email']));
+                            }
                         }
                     }
                 }
