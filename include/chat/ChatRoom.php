@@ -2366,6 +2366,18 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                             # ModTools users should never get notified.
                             if ($to && strpos($to, MOD_SITE) === FALSE) {
                                 error_log("Notify chat #{$chat['chatid']} $to for {$member['userid']} $subject last mailed will be $lastmsgemailed lastmax $lastmaxmailed");
+
+                                # Firewall against a case we have seen during cluster issues, which we don't understand
+                                # but which led to us sending chats to the wrong user.
+                                if ($chattype == ChatRoom::TYPE_USER2USER &&
+                                    ($r->getPrivate('id') != $chat['chatid'] ||
+                                    ($member['userid'] != $r->getPrivate('user1') && $member['userid'] != $r->getPrivate('user2')))) {
+                                    $errormsg = "Chat inconsistency - cluster issue? Chat {$r->getPrivate('id')} vs {$chat['chatid']} user {$member['memberid']} vs {$r->getPrivate('user1')} and {$r->getPrivate('user2')}";
+                                    error_log($errormsg);
+                                    \Sentry\captureMessage($errormsg);
+                                    exit(1);
+                                }
+
                                 try {
                                     #error_log("Our email " . $sendingto->getOurEmail() . " for " . $sendingto->getEmailPreferred());
                                     # Make the text summary longer, because this helps with spam detection according
