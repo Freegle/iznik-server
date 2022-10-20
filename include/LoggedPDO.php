@@ -318,6 +318,11 @@ class LoggedPDO {
 
                 $try++;
             } catch (\Exception $e) {
+                # Whatever the reason for the exception, reusing prepared statements after this point is
+                # a bit scary.  For example, we might try to reuse a prepared statement against a different server
+                # after reconnecting.  So clear the cache.
+                $this->preparedStatements = [];
+
                 if (stripos($e->getMessage(), 'deadlock') !== FALSE) {
                     # It's a Percona deadlock.
                     #
