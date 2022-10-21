@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "dfdb7337a35810e7df56c4b858045144",
+    "content-hash": "3b12271f92a71f6228e43e7463265dc4",
     "packages": [
         {
             "name": "abraham/twitteroauth",
@@ -2010,6 +2010,76 @@
             "time": "2021-07-21T13:50:14+00:00"
         },
         {
+            "name": "intervention/image",
+            "version": "2.7.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Intervention/image.git",
+                "reference": "04be355f8d6734c826045d02a1079ad658322dad"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Intervention/image/zipball/04be355f8d6734c826045d02a1079ad658322dad",
+                "reference": "04be355f8d6734c826045d02a1079ad658322dad",
+                "shasum": ""
+            },
+            "require": {
+                "ext-fileinfo": "*",
+                "guzzlehttp/psr7": "~1.1 || ^2.0",
+                "php": ">=5.4.0"
+            },
+            "require-dev": {
+                "mockery/mockery": "~0.9.2",
+                "phpunit/phpunit": "^4.8 || ^5.7 || ^7.5.15"
+            },
+            "suggest": {
+                "ext-gd": "to use GD library based image processing.",
+                "ext-imagick": "to use Imagick based image processing.",
+                "intervention/imagecache": "Caching extension for the Intervention Image library"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.4-dev"
+                },
+                "laravel": {
+                    "providers": [
+                        "Intervention\\Image\\ImageServiceProvider"
+                    ],
+                    "aliases": {
+                        "Image": "Intervention\\Image\\Facades\\Image"
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Intervention\\Image\\": "src/Intervention/Image"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Oliver Vogel",
+                    "email": "oliver@intervention.io",
+                    "homepage": "https://intervention.io/"
+                }
+            ],
+            "description": "Image handling and manipulation library with support for Laravel integration",
+            "homepage": "http://image.intervention.io/",
+            "keywords": [
+                "gd",
+                "image",
+                "imagick",
+                "laravel",
+                "thumbnail",
+                "watermark"
+            ],
+            "time": "2022-05-21T17:30:32+00:00"
+        },
+        {
             "name": "jean85/pretty-package-versions",
             "version": "1.6.0",
             "source": {
@@ -2062,25 +2132,31 @@
         },
         {
             "name": "jenssegers/imagehash",
-            "version": "v0.4.2",
+            "version": "v0.8.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jenssegers/imagehash.git",
-                "reference": "005c906420c21f7e48480a3c9d26e63028828ae7"
+                "reference": "dfe3cdc0a0828f046f20103288a76f9554fe2265"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jenssegers/imagehash/zipball/005c906420c21f7e48480a3c9d26e63028828ae7",
-                "reference": "005c906420c21f7e48480a3c9d26e63028828ae7",
+                "url": "https://api.github.com/repos/jenssegers/imagehash/zipball/dfe3cdc0a0828f046f20103288a76f9554fe2265",
+                "reference": "dfe3cdc0a0828f046f20103288a76f9554fe2265",
                 "shasum": ""
             },
             "require": {
-                "ext-gd": "*",
-                "php": ">=5.4.0"
+                "intervention/image": "^2.4",
+                "php": "^7.1|^8.0",
+                "phpseclib/phpseclib": "^3.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "^4.0|^5.0",
-                "satooshi/php-coveralls": "^0.6"
+                "php-coveralls/php-coveralls": "^2.0",
+                "phpunit/phpunit": "^7|^8|^9"
+            },
+            "suggest": {
+                "ext-gd": "GD or ImageMagick is required",
+                "ext-gmp": "GMP results in faster comparisons",
+                "ext-imagick": "GD or ImageMagick is required"
             },
             "type": "library",
             "autoload": {
@@ -2094,11 +2170,11 @@
             ],
             "authors": [
                 {
-                    "name": "Kenneth Rapp"
-                },
-                {
                     "name": "Jens Segers",
                     "homepage": "https://jenssegers.com"
+                },
+                {
+                    "name": "Kenneth Rapp"
                 }
             ],
             "description": "Perceptual image hashing for PHP",
@@ -2112,7 +2188,7 @@
                 "perceptual",
                 "phash"
             ],
-            "time": "2017-04-21T10:05:59+00:00"
+            "time": "2021-11-29T08:52:27+00:00"
         },
         {
             "name": "kartik-v/bootstrap-fileinput",

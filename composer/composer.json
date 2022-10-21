@@ -20,7 +20,7 @@
     "minishlink/web-push": "2.0.1",
     "kreait/firebase-php": "^4.0",
     "google/apiclient": "^2.12",
-    "jenssegers/imagehash": "^0.4.0",
+    "jenssegers/imagehash": "0.8",
     "facebook/webdriver": "^1.1",
     "swiftmailer/swiftmailer": "5.4.12",
     "abraham/twitteroauth": "^0.6.4",
