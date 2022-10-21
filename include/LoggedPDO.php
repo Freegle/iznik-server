@@ -532,7 +532,7 @@ class LoggedPDO {
         $this->inTransaction = FALSE;
 
         $time = microtime(true);
-        if ($this->_db->inConnection()) {
+        if ($this->_db->inTransaction()) {
             $rc = $this->_db->rollBack();
         }
 
