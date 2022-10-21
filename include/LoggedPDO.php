@@ -528,10 +528,14 @@ class LoggedPDO {
 
     public function rollBack() {
         $this->doConnect();
+
         $this->inTransaction = FALSE;
 
         $time = microtime(true);
-        $rc = $this->_db->rollBack();
+        if ($this->_db->inConnection()) {
+            $rc = $this->_db->rollBack();
+        }
+
         $duration = microtime(true) - $time;
         $mysqltime = date("Y-m-d H:i:s", time());
 
@@ -573,12 +577,16 @@ class LoggedPDO {
     function commit() {
         $this->doConnect();
         $time = microtime(true);
-        # PDO's commit() isn't reliable - it can return true
-        $this->_db->query('COMMIT;');
-        $rc = $this->_db->errorCode() == '0000';
 
-        # ...but issue it anyway to get the states in sync
-        $this->_db->commit();
+        if ($this->_db->inTransaction()) {
+            # PDO's commit() isn't reliable - it can return true
+            $this->_db->query('COMMIT;');
+            $rc = $this->_db->errorCode() == '0000';
+
+            # ...but issue it anyway to get the states in sync
+            $this->_db->commit();
+        }
+
         $duration = microtime(true) - $time;
 
         $this->dbwaittime += $duration;

@@ -222,6 +222,8 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
             $addr .= ', Orkney';
         } else if ($addr == 'City of York') {
             $addr = 'York';
+        } else if ($addr == 'Sutton Central') {
+            $addr = 'Sutton, London';
         }
 
         $url = "https://" . GEOCODER . "/api?q=" . urlencode($addr) . "&bbox=$bbswlng%2C$bbswlat%2C$bbnelng%2C$bbnelat";
