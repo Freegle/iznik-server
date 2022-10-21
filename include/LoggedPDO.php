@@ -579,12 +579,15 @@ class LoggedPDO {
         $time = microtime(true);
 
         if ($this->_db->inTransaction()) {
-            # PDO's commit() isn't reliable - it can return true
+            # PDO's commit() isn't reliable, at least in some versions - it can return true.
             $this->_db->query('COMMIT;');
             $rc = $this->_db->errorCode() == '0000';
 
-            # ...but issue it anyway to get the states in sync
-            $this->_db->commit();
+            # ...but issue it anyway to get the states in sync.  In PHP8 this may throw an exception, so catch it.
+            try {
+                $this->_db->commit();
+            } catch (\Exception $e) {
+            }
         }
 
         $duration = microtime(true) - $time;
