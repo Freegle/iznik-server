@@ -136,9 +136,6 @@ class Yahoo
 
                         $u = User::get($this->dbhr, $this->dbhm, $id);
 
-                        # We have publish permissions for users who login via our platform.
-                        $u->setPrivate('publishconsent', 1);
-
                         $this->dbhm->preExec("UPDATE users_logins SET lastaccess = NOW() WHERE userid = ? AND type = 'Yahoo';",
                             [
                                 $id
@@ -239,9 +236,6 @@ class Yahoo
                 }
 
                 $u = User::get($this->dbhr, $this->dbhm, $id);
-
-                # We have publish permissions for users who login via our platform.
-                $u->setPrivate('publishconsent', 1);
 
                 # Make sure we record the most active yahooid for this user, rather than one we happened to pick
                 # up on a group sync.

@@ -165,9 +165,6 @@ class Google
                                          $id
                                      ]);
 
-                # We have publish permissions for users who login via our platform.
-                $u->setPrivate('publishconsent', 1);
-
                 # We might have syncd the membership without a good name.
                 if (!$u->getPrivate('fullname')) {
                     $u->setPrivate('firstname', $firstname);
@@ -297,9 +294,6 @@ class Google
                                                  (string)$this->access_token,
                                                  $id
                                              ]);
-
-                        # We have publish permissions for users who login via our platform.
-                        $u->setPrivate('publishconsent', 1);
 
                         # We might have syncd the membership without a good name.
                         if (!$u->getPrivate('fullname')) {

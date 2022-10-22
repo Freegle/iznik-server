@@ -37,7 +37,6 @@ class activityAPITest extends IznikAPITestCase
 
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $u->setPrivate('publishconsent', 1);
         $u->addEmail($email);
         assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         assertTrue($u->login('testpw'));

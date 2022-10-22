@@ -125,7 +125,6 @@ class groupFacebookTest extends IznikTestCase {
         $a = new Message($this->dbhr, $this->dbhm, $id);
         $this->log("From user " . $a->getFromuser());
         $sender = User::get($this->dbhr, $this->dbhm, $a->getFromuser());
-        $sender->setPrivate('publishconsent', 1);
 
         $mock = $this->getMockBuilder('Freegle\Iznik\GroupFacebook')
             ->setConstructorArgs([$this->dbhr, $this->dbhm, $gid])

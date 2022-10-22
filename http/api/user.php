@@ -131,9 +131,6 @@ function user() {
                     ];
 
                     if ($id) {
-                        # We have publish permissions for users we created.
-                        $u->setPrivate('publishconsent', 1);
-
                         # We created the user.  Add their email and log in.
                         $rc = $u->addEmail($email);
 

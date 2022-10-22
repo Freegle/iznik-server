@@ -208,9 +208,6 @@ class Facebook
                     $id
                 ]);
 
-            # We have publish permissions for users who login via our platform.
-            $u->setPrivate('publishconsent', 1);
-
             # We might have have them without a good name.
             if (!$u->getPrivate('fullname')) {
                 $u->setPrivate('firstname', $firstname);

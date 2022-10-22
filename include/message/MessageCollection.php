@@ -211,7 +211,6 @@ class MessageCollection
 
                 if ($summary) {
                     $summjoin = ", messages_groups.msgtype AS type, messages.source, messages.fromuser, messages.subject, messages.textbody,
-                (SELECT publishconsent FROM users WHERE users.id = messages.fromuser) AS publishconsent, 
                 (SELECT groupid FROM messages_groups WHERE msgid = messages.id) AS groupid,
                 (SELECT COALESCE(namefull, nameshort) FROM `groups` WHERE groups.id = messages_groups.groupid) AS namedisplay,
                 (SELECT COUNT(DISTINCT userid) FROM chat_messages WHERE refmsgid = messages.id AND reviewrejected = 0 AND reviewrequired = 0 AND chat_messages.userid != messages.fromuser AND chat_messages.type = 'Interested') AS replycount,                  
@@ -319,7 +318,7 @@ class MessageCollection
             $msgids = array_filter(array_column($msglist, 'id'));
 
             if (count($msgids)) {
-                $sql = "SELECT messages.*, messages_deadlines.FOP, users.publishconsent, CASE WHEN messages_drafts.msgid IS NOT NULL AND messages_groups.msgid IS NULL THEN 1 ELSE 0 END AS isdraft, messages_items.itemid AS itemid, items.name AS itemname FROM messages LEFT JOIN messages_groups ON messages_groups.msgid = messages.id LEFT JOIN messages_deadlines ON messages_deadlines.msgid = messages.id LEFT JOIN users ON users.id = messages.fromuser LEFT JOIN messages_drafts ON messages_drafts.msgid = messages.id LEFT JOIN messages_items ON messages_items.msgid = messages.id LEFT JOIN items ON items.id = messages_items.itemid WHERE messages.id IN (" . implode(',', $msgids) . ");";
+                $sql = "SELECT messages.*, messages_deadlines.FOP, CASE WHEN messages_drafts.msgid IS NOT NULL AND messages_groups.msgid IS NULL THEN 1 ELSE 0 END AS isdraft, messages_items.itemid AS itemid, items.name AS itemname FROM messages LEFT JOIN messages_groups ON messages_groups.msgid = messages.id LEFT JOIN messages_deadlines ON messages_deadlines.msgid = messages.id LEFT JOIN users ON users.id = messages.fromuser LEFT JOIN messages_drafts ON messages_drafts.msgid = messages.id LEFT JOIN messages_items ON messages_items.msgid = messages.id LEFT JOIN items ON items.id = messages_items.itemid WHERE messages.id IN (" . implode(',', $msgids) . ");";
                 $vals = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
                 foreach ($vals as $val) {
                     foreach ($msglist as &$msg) {
@@ -437,7 +436,7 @@ class MessageCollection
     {
         $groupq = $type ? " AND groups.type = '$type' " : "";
         $mysqltime = date("Y-m-d H:i:s", strtotime('30 minutes ago'));
-        $messages = $this->dbhr->preQuery("SELECT messages.id, messages_groups.arrival, messages_groups.groupid, messages.subject FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid INNER JOIN `groups` ON messages_groups.groupid = groups.id INNER JOIN users ON messages.fromuser = users.id WHERE messages_groups.arrival > ? AND collection = ? AND publishconsent = 1 $groupq ORDER BY messages_groups.arrival ASC;", [
+        $messages = $this->dbhr->preQuery("SELECT messages.id, messages_groups.arrival, messages_groups.groupid, messages.subject FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid INNER JOIN `groups` ON messages_groups.groupid = groups.id INNER JOIN users ON messages.fromuser = users.id WHERE messages_groups.arrival > ? AND collection = ? $groupq ORDER BY messages_groups.arrival ASC;", [
             $mysqltime,
             MessageCollection::APPROVED
         ]);

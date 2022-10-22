@@ -396,10 +396,8 @@ class messagesTest extends IznikAPITestCase {
         $m->setPrivate('lng', 179.15);
         $m->addToSpatialIndex();
 
-        # Ensure we have consent to see this message
         $a = new Message($this->dbhr, $this->dbhm, $id);
         $sender = User::get($this->dbhr, $this->dbhm, $a->getFromuser());
-        $sender->setPrivate('publishconsent', 1);
 
         $l = new Location($this->dbhr, $this->dbhm);
         $lid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
@@ -447,9 +445,6 @@ class messagesTest extends IznikAPITestCase {
         $a->setPrivate('lng', 179.15);
         $a->setPrivate('lat', 8.35);
         $sender = User::get($this->dbhr, $this->dbhm, $a->getFromuser());
-
-        # Ensure we have consent to see the message.
-        $sender->setPrivate('publishconsent', 1);
 
         # Look for it - should find it.
         $ret = $this->call('messages', 'GET', [
@@ -581,9 +576,6 @@ class messagesTest extends IznikAPITestCase {
         $a->setPrivate('lng', 179.15);
         $a->setPrivate('lat', 8.35);
         $sender = User::get($this->dbhr, $this->dbhm, $a->getFromuser());
-
-        # Ensure we have consent to see the message.
-        $sender->setPrivate('publishconsent', 1);
 
         # Log in as a user on the group.
         assertTrue($this->user->login('testpw'));

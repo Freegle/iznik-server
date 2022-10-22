@@ -100,7 +100,6 @@ class yahooTest extends IznikTestCase {
 
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        $u->setPrivate('publishconsent', 1);
         $u->addEmail('test@test.com');
 
         $u->addEmail('test@test.com');

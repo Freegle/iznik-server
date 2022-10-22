@@ -114,9 +114,6 @@ class Apple
                     }
                 }
 
-                # We have publish permissions for users who login via our platform.
-                $u->setPrivate('publishconsent', 1);
-
                 if ($id) {
                     # We are logged in.
                     $s = new Session($this->dbhr, $this->dbhm);

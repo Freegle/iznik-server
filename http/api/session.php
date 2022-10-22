@@ -538,9 +538,6 @@ function session() {
                     if ($u->login($password, $force)) {
                         $ret = array('ret' => 0, 'status' => 'Success');
                         $id = $possid;
-
-                        # We have publish permissions for users who login via our platform.
-                        $u->setPrivate('publishconsent', 1);
                     }
                 }
             }

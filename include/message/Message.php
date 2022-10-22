@@ -502,7 +502,7 @@ class Message
         $replyto, $envelopefrom, $envelopeto, $messageid, $tnpostid, $fromip, $date,
         $fromhost, $type, $attach_dir, $attach_files,
         $parser, $arrival, $spamreason, $spamtype, $fromuser, $fromcountry, $deleted, $heldby, $lat = NULL, $lng = NULL, $locationid = NULL,
-        $s, $editedby, $editedat, $modmail, $FOP, $publishconsent, $isdraft, $itemid, $itemname, $availableinitially, $availablenow;
+        $s, $editedby, $editedat, $modmail, $FOP, $isdraft, $itemid, $itemname, $availableinitially, $availablenow;
 
     # These are used in the summary case only where a minimal message is constructed from MessageCollaction.
 
@@ -566,7 +566,7 @@ class Message
     ];
 
     public $internalAtts = [
-        'publishconsent', 'itemid', 'itemname', 'lat', 'lng'
+        'itemid', 'itemname', 'lat', 'lng'
     ];
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $atts = NULL)
@@ -585,7 +585,7 @@ class Message
                 # This saves queries later, which is a round trip to the DB server.
                 #
                 # Don't try to cache message info - too many of them.
-                $msgs = $dbhr->preQuery("SELECT messages.*, messages_deadlines.FOP, users.publishconsent, CASE WHEN messages_drafts.msgid IS NOT NULL THEN 1 ELSE 0 END AS isdraft, messages_items.itemid AS itemid, items.name AS itemname FROM messages LEFT JOIN messages_deadlines ON messages_deadlines.msgid = messages.id LEFT JOIN users ON users.id = messages.fromuser LEFT JOIN messages_drafts ON messages_drafts.msgid = messages.id LEFT JOIN messages_items ON messages_items.msgid = messages.id LEFT JOIN items ON items.id = messages_items.itemid WHERE messages.id = ?;", [$id]);
+                $msgs = $dbhr->preQuery("SELECT messages.*, messages_deadlines.FOP, CASE WHEN messages_drafts.msgid IS NOT NULL THEN 1 ELSE 0 END AS isdraft, messages_items.itemid AS itemid, items.name AS itemname FROM messages LEFT JOIN messages_deadlines ON messages_deadlines.msgid = messages.id LEFT JOIN users ON users.id = messages.fromuser LEFT JOIN messages_drafts ON messages_drafts.msgid = messages.id LEFT JOIN messages_items ON messages_items.msgid = messages.id LEFT JOIN items ON items.id = messages_items.itemid WHERE messages.id = ?;", [$id]);
                 foreach ($msgs as $msg) {
                     $this->id = $id;
 
@@ -793,7 +793,6 @@ class Message
                     $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
                     #error_log("Consider show " . $this->getID());
                     #error_log("...plat or TN " . ($this->getSourceheader() == Message::PLATFORM || strpos($this->getFromaddr(), '@user.trashnothing.com') !== FALSE));
-                    #error_log("...consent || member " . ($atts['publishconsent'] || $role == User::ROLE_MEMBER));
                     #error_log("...coll == APPROVED " . ($group['collection'] == MessageCollection::APPROVED));
                     #error_log("...type == FREEGLE " . ($g->getPrivate('type') == Group::GROUP_FREEGLE));
                     #error_log("...onhere " . $g->getPrivate('onhere'));
@@ -974,9 +973,6 @@ class Message
             if (Utils::pres('fromcountry', $ret)) {
                 $ret['fromcountry'] = Utils::code_to_country($ret['fromcountry']);
             }
-
-            # TODO Is this still relevant?
-            $ret['publishconsent'] = Utils::pres('publishconsent', $msg) ? TRUE : FALSE;
 
             if (!$summary) {
                 if ($role == User::ROLE_NONMEMBER) {
