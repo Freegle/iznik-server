@@ -318,7 +318,7 @@ class MessageCollection
             $msgids = array_filter(array_column($msglist, 'id'));
 
             if (count($msgids)) {
-                $sql = "SELECT messages.*, messages_deadlines.FOP, CASE WHEN messages_drafts.msgid IS NOT NULL AND messages_groups.msgid IS NULL THEN 1 ELSE 0 END AS isdraft, messages_items.itemid AS itemid, items.name AS itemname FROM messages LEFT JOIN messages_groups ON messages_groups.msgid = messages.id LEFT JOIN messages_deadlines ON messages_deadlines.msgid = messages.id LEFT JOIN users ON users.id = messages.fromuser LEFT JOIN messages_drafts ON messages_drafts.msgid = messages.id LEFT JOIN messages_items ON messages_items.msgid = messages.id LEFT JOIN items ON items.id = messages_items.itemid WHERE messages.id IN (" . implode(',', $msgids) . ");";
+                $sql = "SELECT messages.*, messages_deadlines.FOP, CASE WHEN messages_drafts.msgid IS NOT NULL AND messages_groups.msgid IS NULL THEN 1 ELSE 0 END AS isdraft, messages_items.itemid AS itemid, items.name AS itemname, items.weight AS itemweight FROM messages LEFT JOIN messages_groups ON messages_groups.msgid = messages.id LEFT JOIN messages_deadlines ON messages_deadlines.msgid = messages.id LEFT JOIN users ON users.id = messages.fromuser LEFT JOIN messages_drafts ON messages_drafts.msgid = messages.id LEFT JOIN messages_items ON messages_items.msgid = messages.id LEFT JOIN items ON items.id = messages_items.itemid WHERE messages.id IN (" . implode(',', $msgids) . ");";
                 $vals = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
                 foreach ($vals as $val) {
                     foreach ($msglist as &$msg) {

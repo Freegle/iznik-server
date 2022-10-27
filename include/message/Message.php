@@ -566,7 +566,7 @@ class Message
     ];
 
     public $internalAtts = [
-        'itemid', 'itemname', 'lat', 'lng'
+        'itemid', 'itemname', 'itemweight', 'lat', 'lng'
     ];
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $atts = NULL)
@@ -585,7 +585,7 @@ class Message
                 # This saves queries later, which is a round trip to the DB server.
                 #
                 # Don't try to cache message info - too many of them.
-                $msgs = $dbhr->preQuery("SELECT messages.*, messages_deadlines.FOP, CASE WHEN messages_drafts.msgid IS NOT NULL THEN 1 ELSE 0 END AS isdraft, messages_items.itemid AS itemid, items.name AS itemname FROM messages LEFT JOIN messages_deadlines ON messages_deadlines.msgid = messages.id LEFT JOIN users ON users.id = messages.fromuser LEFT JOIN messages_drafts ON messages_drafts.msgid = messages.id LEFT JOIN messages_items ON messages_items.msgid = messages.id LEFT JOIN items ON items.id = messages_items.itemid WHERE messages.id = ?;", [$id]);
+                $msgs = $dbhr->preQuery("SELECT messages.*, messages_deadlines.FOP, CASE WHEN messages_drafts.msgid IS NOT NULL THEN 1 ELSE 0 END AS isdraft, messages_items.itemid AS itemid, items.name AS itemname, items.weight AS itemweight FROM messages LEFT JOIN messages_deadlines ON messages_deadlines.msgid = messages.id LEFT JOIN users ON users.id = messages.fromuser LEFT JOIN messages_drafts ON messages_drafts.msgid = messages.id LEFT JOIN messages_items ON messages_items.msgid = messages.id LEFT JOIN items ON items.id = messages_items.itemid WHERE messages.id = ?;", [$id]);
                 foreach ($msgs as $msg) {
                     $this->id = $id;
 
@@ -1214,7 +1214,8 @@ class Message
             if (Utils::pres('itemid', $msg)) {
                 $rets[$msg['id']]['item'] = [
                     'id' => $msg['itemid'],
-                    'name' => $msg['itemname']
+                    'name' => $msg['itemname'],
+                    'approxweight' => Utils::presdef('itemweight', $msg, NULL)
                 ];
             } else {
                 list ($type, $item, $location) = Message::parseSubject($rets[$msg['id']]['subject']);
