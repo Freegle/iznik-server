@@ -97,10 +97,15 @@ class Isochrone extends Entity
             $wkt = $this->fetchFromMapbox($transport, $lng, $lat, $minutes);
 
             if ($wkt) {
-                $rc = $this->dbhm->preExec("INSERT INTO isochrones (locationid, transport, minutes, polygon) VALUES (?, ?, ?, ST_SIMPLIFY(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?))", [
+                $rc = $this->dbhm->preExec("INSERT INTO isochrones (locationid, transport, minutes, polygon) VALUES (?, ?, ?, 
+                 CASE WHEN ST_SIMPLIFY(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?) IS NULL THEN ST_GeomFromText(?, {$this->dbhr->SRID()}) ELSE ST_SIMPLIFY(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?) END
+                                                                         )", [
                     $locationid,
                     $transport,
                     $minutes,
+                    $wkt,
+                    self::SIMPLIFY,
+                    $wkt,
                     $wkt,
                     self::SIMPLIFY
                 ]);
