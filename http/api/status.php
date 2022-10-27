@@ -11,6 +11,7 @@ function status() {
 
         if ($status) {
             $ret = json_decode($status, TRUE);
+            break;
         } else {
             sleep(1);
             $tries++;
