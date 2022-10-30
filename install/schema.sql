@@ -3696,7 +3696,6 @@ CREATE TABLE `users` (
   `relevantallowed` tinyint NOT NULL DEFAULT '1',
   `onholidaytill` date DEFAULT NULL,
   `ripaconsent` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Whether we have consent for humans to vet their messages',
-  `publishconsent` tinyint NOT NULL DEFAULT '0' COMMENT 'Can we republish posts to non-members?',
   `lastlocation` bigint unsigned DEFAULT NULL,
   `lastrelevantcheck` timestamp NULL DEFAULT NULL,
   `lastidlechaseup` timestamp NULL DEFAULT NULL,
