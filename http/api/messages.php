@@ -139,10 +139,12 @@ function messages() {
                             $search = Utils::presdef('search', $_REQUEST, NULL);
                             $search = $search ? trim($search) : NULL;
                             $ctx = Utils::presdef('context', $_REQUEST, NULL);
-                            $limit = Utils::presint('limit', $_REQUEST, Search::Limit);
                             $messagetype = Utils::presdef('messagetype', $_REQUEST, NULL);
                             $nearlocation = Utils::presdef('nearlocation', $_REQUEST, NULL);
                             $nearlocation = $nearlocation ? intval($nearlocation) : NULL;
+
+                            # On MT, search for more messages - slower but acceptable.
+                            $limit = Session::modtools() ? 100 : Utils::presint('limit', $_REQUEST, Search::Limit);
 
                             if (is_numeric($search)) {
                                 $m = new Message($dbhr, $dbhm, $search);
