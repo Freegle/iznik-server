@@ -122,12 +122,12 @@ class Tryst extends Entity
         return [ $op, $id, $title ];
     }
 
-    public function sendCalendar($userid) {
+    public function sendCalendar($userid, $emailOverride = NULL) {
         $ret = NULL;
         $u1 = User::get($this->dbhr, $this->dbhm, $userid);
 
         if ($u1->notifsOn(User::NOTIFS_EMAIL)) {
-            $email = $u1->getEmailPreferred();
+            $email = $emailOverride ? $emailOverride : $u1->getEmailPreferred();
 
             $u2 = User::get($this->dbhr, $this->dbhm, $userid == $this->getPrivate('user1') ? $this->getPrivate('user2') : $this->getPrivate('user1'));
 
@@ -141,7 +141,7 @@ class Tryst extends Entity
                     ->setFrom([NOREPLY_ADDR => SITE_NAME])
                     ->setTo($email)
                     ->setBody('You\'ve arranged a Freegle handover.  Please add this to your calendar to help things go smoothly.')
-                    ->addPart($ics, 'text/calendar');
+                    ->addPart($ics, 'text/calendar; name=handover.ics');
 
                 $this->sendIt($mailer, $message);
             } catch (\Exception $e) {
