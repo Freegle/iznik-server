@@ -27,11 +27,11 @@ foreach ($res as $r) {
 
 foreach ($stats as $date => $s) {
     $pc = ($s['Unhappy'] / ($s['Happy'] + $s['Unhappy'] + $s['Fine'])) * 100;
-    echo ("$date, $pc\n");
+    echo ("$date-01, $pc\n");
 }
 
 
 foreach ($stats as $date => $s) {
     $pc = ($s['Happy'] / ($s['Happy'] + $s['Unhappy'] + $s['Fine'])) * 100;
-    echo ("$date, $pc\n");
+    echo ("$date-01, $pc\n");
 }
