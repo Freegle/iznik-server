@@ -2293,7 +2293,11 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                             try {
                                 switch ($chattype) {
                                     case ChatRoom::TYPE_USER2USER:
-                                        $aboutme = $sendingfrom->getAboutMe();
+                                        # We might be sending a copy of the user's own message
+                                        $aboutme = $unmailedmsg['userid'] == $sendingto->getId() ?
+                                            $sendingto->getAboutMe() :
+                                            $sendingfrom->getAboutMe();
+
                                         $html = $twig->render('chat_notify.html', [
                                             'unsubscribe' => $sendingto->getUnsubLink($site, $member['userid'], User::SRC_CHATNOTIF),
                                             'fromname' => $fromname ? $fromname : $sendingfrom->getName(),
