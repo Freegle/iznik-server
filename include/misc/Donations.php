@@ -9,6 +9,7 @@ class Donations
     const PERIOD_SINCE = 'Since';
     const PERIOD_FUTURE = 'Future';
     const PERIOD_DECLINED = 'Declined';
+    const PERIOD_PAST_4_YEARS_AND_FUTURE = 'Past4YearsAndFuture';
 
     const TYPE_PAYPAL = 'PayPal';
     const TYPE_EXTERNAL = 'External';
@@ -221,6 +222,15 @@ class Donations
 
         foreach ($giftaids as $giftaid) {
             switch ($giftaid['period']) {
+                case Donations::PERIOD_PAST_4_YEARS_AND_FUTURE:
+                    $mysqltime = date("Y-m-d", strtotime("4 years ago"));
+                    $this->dbhm->preExec("UPDATE users_donations SET giftaidconsent = 1 WHERE userid = ? AND giftaidconsent = 0 AND timestamp >= ?;", [
+                        $giftaid['userid'],
+                        $mysqltime
+                    ]);
+
+                    $found += $this->dbhm->rowsAffected();
+                    break;
                 case Donations::PERIOD_SINCE: {
                     # Earliest we can claim is 6th April 2016.
                     $this->dbhm->preExec("UPDATE users_donations SET giftaidconsent = 1 WHERE userid = ? AND giftaidconsent = 0 AND timestamp >= '2016-04-06';", [
