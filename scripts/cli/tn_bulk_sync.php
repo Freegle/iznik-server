@@ -48,7 +48,8 @@ while (!feof($fh))
     $tnusers[$tncurrent] = [
         'id' => $tnid,
         'name' => $tncurrent,
-        'old' => FALSE
+        'old' => FALSE,
+        'tnfdid' => $tnfdid
     ];
 }
 
@@ -96,7 +97,7 @@ foreach ($tnemails as $tnemail)
             if (strlen($tnname2))
             {
                 error_log(
-                    "...{$tnemail['email']} invalid format but found valid {$tnname2} for {$otheremail['email']}"
+                    "WARNING: ...{$tnemail['email']} invalid format but found valid {$tnname2} for {$otheremail['email']}"
                 );
                 $gotvalid = true;
                 break;
@@ -112,7 +113,7 @@ foreach ($tnemails as $tnemail)
 
                 if (array_key_exists($tnname2, $tnusers))
                 {
-                    error_log("...{$tnemail['email']} uses old +g format, convert");
+                    error_log("WARNING: ...{$tnemail['email']} uses old +g format, convert");
                     $u = User::get($dbhr, $dbhm, $uid);
                     $u->removeEmail($tnemail['email']);
                     $email = str_replace('+g', '-g', $tnemail['email']);
@@ -125,7 +126,7 @@ foreach ($tnemails as $tnemail)
 
                 if (array_key_exists($tnname2, $tnusers))
                 {
-                    error_log("...{$tnemail['email']} uses old -x format, convert");
+                    error_log("WARNING: ...{$tnemail['email']} uses old -x format, convert");
                     $u = User::get($dbhr, $dbhm, $uid);
                     $u->removeEmail($tnemail['email']);
                     $email = str_replace('-x', '-g1', $tnemail['email']);
@@ -152,14 +153,13 @@ foreach ($tnemails as $tnemail)
             }
         } else {
             # Found a valid email.  Delete the invalid one.
-            error_log("...TN user has invalid format email $tnname ({$tnemail['email']}) but others exist");
+            error_log("ERROR: ...TN user has invalid format email $tnname ({$tnemail['email']}) but others exist");
             $dbhm->preExec("DELETE FROM users_emails WHERE id = ?;", [
                 $tnemail['id']
             ]);
         }
     } else {
-        if (!array_key_exists($tnname, $tnusers))
-        {
+        if (!array_key_exists($tnname, $tnusers)) {
             error_log("...TN user $tnname ({$tnemail['email']}) no longer exists on TN");
             $dbhm->preExec("DELETE FROM users_emails WHERE id = ?;", [
                 $tnemail['id']
@@ -194,8 +194,8 @@ foreach ($tnemails as $tnemail)
 
             if (count($thistnnames) > 1) {
                 # There are various ways that this could have happened, and some of them are not ones we can identify.
-                #  So we keep the most recently added TN name, and delete the others.
-                error_log("FD #$uid $tnname has multiple TN names.  Latest is $latestname, delete old.");
+                # So we keep the most recently added TN name, and delete the others.
+                error_log("WARNING: FD #$uid $tnname has multiple TN names.  Latest is $latestname, delete old.");
                 $multiples++;
                 $tnesc = str_replace('_', '\_', $latestname);
                 $dbhm->preExec("DELETE FROM users_emails WHERE userid = ? AND email LIKE '%@user.trashnothing.com' AND email NOT LIKE '$tnesc-g%@user.trashnothing.com';", [
@@ -238,6 +238,7 @@ while (!feof($fh))
 
         if (count($current) > 1) {
             $u->merge($current[0]['userid'], $current[1]['userid'], 'Separate FD users which TN knows are the same.');
+            $merge++;
         }
     } while (count($current) > 1);
 
@@ -246,16 +247,18 @@ while (!feof($fh))
 
         if (count($old) > 1) {
             $u->merge($old[0]['userid'], $old[1]['userid'], 'Separate FD users which TN knows are the same.');
+            $merge++;
         }
     } while (count($old) > 1);
 
     if (count($current) == 1 && count($old) == 1 && $current[0]['userid'] != $old[0]['userid']) {
         // We found two separate users which should be the same.  Merge them and delete the old email addresses.
-        error_log("Merge $tnold into $tncurrent");
+        #error_log("Merge $tnold into $tncurrent");
         if ($u->merge($current[0]['userid'], $old[0]['userid'], 'Separate FD users which TN knows are renamed.')) {
             $dbhm->preExec("DELETE FROM users_emails WHERE userid = ? AND email LIKE '$tnoldesc-g%@user.trashnothing.com';", [
                 $old[0]['userid']
             ]);
+            $merge++;
         }
     }
 }
@@ -281,29 +284,27 @@ foreach ($tnusers as $tnname => $details) {
             error_log("ERROR: Multiple FD users found for $tnname = $tnesc; should not happen");
             exit(1);
         } else if (!count($fdusers)) {
-            error_log("WARNING: TN user $tnname (TN id {$details['id']}) has no FD user.  This is OK if they have never joined a group.");
-            $tnresub++;
+            #error_log("WARNING: TN user $tnname (TN id {$details['id']}) has no FD user.  This is OK if they have never joined a group.");
+            #$tnresub++;
         } else {
             $uid = $fdusers[0]['userid'];
             $u = User::get($dbhr, $dbhm, $uid);
 
-            if (!$u->getPrivate('tnuserid')) {
-                // Check if the TN userid is in user by another FD user.  If so, then that other user is wrong.
-                $other = $dbhr->preQuery("SELECT id FROM users WHERE tnuserid = ?;", [
-                    $tnid
-                ]);
+            // Check if the TN userid is in user by another FD user.  If so, then that other user is wrong.
+            $other = $dbhr->preQuery("SELECT id FROM users WHERE tnuserid = ? AND id != ?;", [
+                $tnid,
+                $uid
+            ]);
 
-                if (count($other)) {
-                    error_log("TN user $tnname has FD user {$other[0]['id']} which has same TN userid $tnid, move to $uid");
-                    $u2 = User::get($dbhr, $dbhm, $other[0]['id']);
-//                    $u2->setPrivate('tnuserid', NULL);
-                    $tnidmoved++;
-                }
-
-                //                    $u->setPrivate('tnuserid', $tnid);
+            if (count($other)) {
+                error_log("WARNING: TN user $tnname has FD user {$other[0]['id']} which has same TN userid $tnid, move TN userid to FD user $uid");
+                $u2 = User::get($dbhr, $dbhm, $other[0]['id']);
+                $u2->setPrivate('tnuserid', NULL);
+                $u->setPrivate('tnuserid', $tnid);
+                $tnidmoved++;
             } else if ($u->getPrivate('tnuserid') != $tnid) {
-                error_log("TN user $tnname is FD user $uid which has different TN userid {$u->getPrivate('tnuserid')} != $tnid");
-//                $u->setPrivate('tnuserid', $tnid)
+                error_log("WARNING: TN user $tnname is FD user $uid which has different TN userid {$u->getPrivate('tnuserid')} != $tnid, correct TN userid to $tnid");
+                $u->setPrivate('tnuserid', $tnid);
                 $tniddiffers++;
             }
         }
@@ -313,3 +314,24 @@ foreach ($tnusers as $tnname => $details) {
 error_log("$tnresub TN resubsubscribes required\n");
 error_log("Moved $tnidmoved TN userids\n");
 error_log("Corrected $tniddiffers TN userids\n");
+
+# Now check TN users for FD ids which don't match
+foreach ($tnusers as $tnname => $details) {
+    $tnid = $details['id'];
+    $tnname = $details['name'];
+    $tnfdid = $details['tnfdid'];
+    $tnesc = str_replace('_', '\_', $tnname);
+
+    if ($tnfdid) {
+        $fdusers = $dbhr->preQuery("SELECT DISTINCT(userid) FROM users_emails WHERE email LIKE '$tnesc-g%@user.trashnothing.com' AND email REGEXP '^$tnname-g[0-9]*@user.trashnothing.com';");
+
+        if (count($fdusers) > 1) {
+            error_log("ERROR: Multiple FD users found for $tnname = $tnesc; should not happen");
+            exit(1);
+        } else if (count($fdusers)) {
+            if ($fdusers[0]['userid'] != $tnfdid) {
+                error_log("ERROR TN user $tnname has FD user $tnfdid but should be {$fdusers[0]['userid']}");
+            }
+        }
+    }
+}
