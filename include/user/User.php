@@ -4517,7 +4517,7 @@ class User extends Entity
                     }
                 }
 
-                if ($lid) {
+                if (!$lid) {
                     # Find the group of which we are a member which is closest to our location.  We do this because generally
                     # the number of groups we're in is small and therefore this will be quick, whereas the groupsNear call is
                     # fairly slow.
