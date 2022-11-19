@@ -53,7 +53,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals('testgroup1', $this->user->getPublicLocation()['display']);
         $this->user->setPrivate('lastlocation', $this->fullpcid);
         $this->user->setSetting('mylocation', $pcatts);
-        assertEquals('Tuvalu Central, testgroup1', $this->user->getPublicLocation()['display']);
+        assertEquals('Tuvalu Central', $this->user->getPublicLocation()['display']);
 
         $this->user2 = User::get($this->dbhr, $this->dbhm);
         $this->uid2 = $this->user2->create(NULL, NULL, 'Test User');
