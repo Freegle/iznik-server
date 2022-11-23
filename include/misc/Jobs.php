@@ -562,7 +562,7 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
         $data = file_get_contents("$outputFile.tmp");
         $data = str_replace('"\N"', '\N', $data);
         file_put_contents($outputFile, $data);
-        error_log(date("Y-m-d H:i:s", time()) . "...written file");
+        error_log(date("Y-m-d H:i:s", time()) . "...written file $outputFile");
     }
 
     public function prepareForLoadCSV() {
