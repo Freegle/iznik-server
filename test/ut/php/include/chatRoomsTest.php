@@ -406,6 +406,7 @@ class chatRoomsTest extends IznikTestCase {
 
         $text = $this->msgsSent[0]['body'];
         assertTrue(strpos($text, 'Test u1 -> u2 1') !== FALSE);
+        assertTrue(strpos($text, 'Test u1 -> u2 2') !== FALSE);
     }
 
     public function testNotifyUser2UserOwn() {
@@ -1247,6 +1248,59 @@ class chatRoomsTest extends IznikTestCase {
         $this->msgsSent = [];
         assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
         assertEquals('test2@user.trashnothing.com', array_keys($this->msgsSent[0]['to'])[0]);
+    }
+
+    public function testNotifyTNWhenOtherUserNotifyOff() {
+        $this->log(__METHOD__ );
+
+        # Set up a chatroom
+        $ua = User::get($this->dbhr, $this->dbhm);
+        $u1 = $ua->create(NULL, NULL, "Test User 1");
+        $ua->addMembership($this->groupid);
+        assertNotNull($ua->addEmail('test1@test.com'));
+
+        $ua->setPrivate('settings', json_encode([
+            'notifications' => [
+                                    'email' => FALSE,
+                                    'emailmine' => TRUE,
+                               ]
+        ]));
+
+        $ub = User::get($this->dbhr, $this->dbhm);
+        $u2 = $ub->create(NULL, NULL, "Test User 2");
+        $ub->addMembership($this->groupid);
+        assertNotNull($ub->addEmail('test2@user.trashnothing.com'));
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
+        assertNotNull($id);
+
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cm, $banned) = $m->create($id, $u1, "test from u1", ChatMessage::TYPE_DEFAULT, NULL, TRUE);
+        assertNotNull($cm);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
+        $mr = new MailRouter($this->dbhm, $this->dbhm);
+//        $this->dbhm->errorLog = true;
+        list ($mid, $failok) = $mr->received(Message::EMAIL, 'from2@test.com', "notify-$id-$u2@" . USER_DOMAIN, $msg);
+        $rc = $mr->route();
+        assertEquals(MailRouter::TO_USER, $rc);
+
+        $r = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
+            ->setMethods(array('mailer'))
+            ->getMock();
+
+        $r->method('mailer')->will($this->returnCallback(function($message) {
+            return($this->mailer($message));
+        }));
+
+        # Notify - nothing should get sent.
+        $this->msgsSent = [];
+        $sent = $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0);
+        assertEquals(1, $sent);
+        $text = $this->msgsSent[0]['body'];
+        assertTrue(strpos($text, 'test from u1') !== FALSE);
     }
 }
 

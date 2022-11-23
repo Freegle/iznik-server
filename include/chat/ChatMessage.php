@@ -282,17 +282,28 @@ class ChatMessage extends Entity
             }
 
             if (!$platform) {
-                # Reply by email.  We have obviously seen the message ourselves, but there might be earlier messages
-                # in the chat from other users which we have not seen because they have not yet been notified.
+                # Reply by email.  We have obviously seen this message ourselves, but there might be earlier messages
+                # in the chat from other users which we have not seen because they have not yet been notified to us.
                 #
                 # In this case we leave the message unseen.  That means we may notify and include this message itself,
                 # but that will look OK in context.
-                $earliers = $this->dbhr->preQuery("SELECT id FROM chat_messages WHERE chatid = ? AND userid != ? AND seenbyall = 0 AND mailedtoall = 0 ORDER BY id DESC LIMIT 1;", [
+                $earliers = $this->dbhr->preQuery("SELECT chat_messages.id, chat_messages.userid, lastmsgseen, lastmsgemailed FROM chat_messages 
+    LEFT JOIN chat_roster ON chat_roster.id = chat_messages.id AND chat_roster.userid = ? 
+    WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 AND mailedtoall = 0 ORDER BY id DESC LIMIT 1;", [
+                    $userid,
                     $chatid,
                     $userid
                 ]);
 
-                if (!count($earliers)) {
+                $count = 0;
+
+                foreach ($earliers as $earlier) {
+                    if ($earlier['lastmsgseen'] < $earlier['id'] && $earlier['lastmsgemailed'] < $earlier['id']) {
+                        $count++;
+                    }
+                }
+
+                if (!$count) {
                     $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ? WHERE chatid = ? AND userid = ? AND (lastmsgseen IS NULL OR lastmsgseen < ?);",
                         [
                             $id,
