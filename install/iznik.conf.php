@@ -73,7 +73,7 @@ define('TWILIO_TEST_FROM_INVALID', '+15005550001');
 define('PAYPAL_USERNAME', 'zzzz');
 define('PAYPAL_PASSWORD', 'zzzz');
 define('PAYPAL_SIGNATURE', 'zzzz');
-define('PAYPAL_THANKS_FROM', 'treasurer@ilovefreegle.org');
+define('PAYPAL_THANKS_FROM', 'info@ilovefreegle.org');
 
 # We use Mapbox to get isochrones for users.
 define('MAPBOX_TOKEN', 'zzzz');
