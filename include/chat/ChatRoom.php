@@ -2090,8 +2090,19 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                     $fromname = NULL;
                     $firstmsg = NULL;
                     $refmsgs = [];
+                    $sendingown  = $sendingto->notifsOn(User::NOTIFS_EMAIL_MINE);
 
                     foreach ($unmailedmsgs as $unmailedmsg) {
+                        if (!$sendingown && $unmailedmsg['userid'] == $sendingto->getId()) {
+                            # This can happen due to a window in chat message creation where the message exists but
+                            # we have not yet updated the roster.  We could close that with a transaction but those are
+                            # bad for cluster scalability.
+                            if ($sendingtoTN) {
+                                error_log("Skip own {$unmailedmsg['id']} for TN user {$sendingto->getId()} - fix probably working.");
+                            }
+                            continue;
+                        }
+
                         if (Utils::pres('refmsgid', $unmailedmsg)) {
                             $refmsgs[] = $unmailedmsg['refmsgid'];
                         }
@@ -2195,7 +2206,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
                     #error_log("Consider justmine $justmine TN $sendingtoTN vs " . $sendingto->notifsOn(User::NOTIFS_EMAIL_MINE) . " for " . $sendingto->getId());
 
-                    if (!$justmine || $sendingtoTN || $sendingto->notifsOn(User::NOTIFS_EMAIL_MINE)) {
+                    if (!$justmine || $sendingtoTN || $sendingown) {
                         if (count($twigmessages)) {
                             # As a subject, we should use the last "interested in" message in this chat - this is the
                             # most likely thing they are talking about.
