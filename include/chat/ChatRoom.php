@@ -2387,7 +2387,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                 if ($chattype == ChatRoom::TYPE_USER2USER &&
                                     ($r->getPrivate('id') != $chat['chatid'] ||
                                     ($member['userid'] != $r->getPrivate('user1') && $member['userid'] != $r->getPrivate('user2')))) {
-                                    $errormsg = "Chat inconsistency - cluster issue? Chat {$r->getPrivate('id')} vs {$chat['chatid']} user {$member['memberid']} vs {$r->getPrivate('user1')} and {$r->getPrivate('user2')}";
+                                    $errormsg = "Chat inconsistency - cluster issue? Chat {$r->getPrivate('id')} vs {$chat['chatid']} user {$member['userid']} vs {$r->getPrivate('user1')} and {$r->getPrivate('user2')}";
                                     error_log($errormsg);
                                     \Sentry\captureMessage($errormsg);
                                     exit(1);
