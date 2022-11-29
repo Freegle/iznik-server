@@ -1223,6 +1223,18 @@ WHERE chat_rooms.id IN $idlist;";
                 $userid,
                 ChatRoom::STATUS_BLOCKED
             ], FALSE);
+
+            if ($status == ChatRoom::STATUS_BLOCKED) {
+                $other = $this->getPrivate('user1') == $userid ? $this->getPrivate('user2') : $this->getPrivate('user1');
+                $promises = $this->dbhr->preQuery("SELECT messages_promises.msgid FROM messages 
+         INNER JOIN messages_promises ON messages_promises.msgid = messages.id 
+         WHERE fromuser = ? AND messages_promises.userid = ?", [ $userid, $other ]);
+
+                foreach ($promises as $promise) {
+                    $m = new Message($this->dbhr, $this->dbhm, $promise['msgid']);
+                    $m->renege($other);
+                }
+            }
         }
 
         if ($lastmsgseen === 0) {

@@ -273,6 +273,43 @@ class chatRoomsTest extends IznikTestCase {
 
     }
 
+    public function testBlockingUnpromises() {
+        $this->log(__METHOD__ );
+
+        # Set up a chatroom
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test1@test.com');
+        $u->addEmail('test1@' . USER_DOMAIN);
+
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
+        assertNotNull($id);
+
+        # u1 promises to u2.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
+
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'test1@test.com', 'to@test.com', $msg);
+        list ($msgid, $failok) = $m->save();
+        $m->setPrivate('fromuser', $u1);
+        $m->promise($u2);
+        assertTrue($m->promiseCount() == 1);
+
+        # Make the first user block the second.
+        $r->updateRoster($u1, NULL, ChatRoom::STATUS_BLOCKED);
+
+        # Should have unpromised.
+        assertTrue($m->promiseCount() == 0);
+    }
+
     public function testEmailReplyWhenBlocked() {
         $this->log(__METHOD__ );
 
