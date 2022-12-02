@@ -23,12 +23,6 @@ function notification() {
                         'status' => 'Success',
                         'count' => $n->countUnseen($myid)
                     ];
-
-                    if (!Session::modtools()) {
-                        # This request occurs every 30 seconds, so we can piggyback on it to spot when users are active.
-                        $me = Session::whoAmI($dbhr, $dbhm);
-                        $me->recordActive();
-                    }
                 } else {
                     $ctx = Utils::presdef('context', $_REQUEST, NULL);
                     $notifs = $n->get($myid, $ctx);
@@ -40,6 +34,12 @@ function notification() {
                         'status' => 'Success',
                         'notifications' => $notifs
                     ];
+                }
+
+                if (!Session::modtools()) {
+                    # This request occurs every 30 seconds, so we can piggyback on it to spot when users are active.
+                    $me = Session::whoAmI($dbhr, $dbhm);
+                    $me->recordActive();
                 }
 
                 break;
