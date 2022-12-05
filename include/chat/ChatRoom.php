@@ -2065,6 +2065,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                 $forcemailfrommod = ($chat['chattype'] === ChatRoom::TYPE_USER2MOD && $chat['user1'] === $member['userid']);
                 $mailson = $emailnotifson || $forcemailfrommod || $sendingtoTN;
                 #error_log("Consider mail user {$member['userid']}, mails on " . $sendingto->notifsOn(User::NOTIFS_EMAIL) . ", memberships " . count($sendingto->getMemberships()));
+                $sendingown  = $sendingto->notifsOn(User::NOTIFS_EMAIL_MINE);
 
                 # Now collect a summary of what they've missed.  Don't include anything stupid old, in case they
                 # have changed settings.
@@ -2077,9 +2078,10 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                 $limitq = $sendingtoTN ? " LIMIT 1 " : "";
                 $mysqltime = date("Y-m-d", strtotime("Midnight 90 days ago"));
                 $readyq = $forceall ? '' : "AND chat_messages.id > ? $reviewq AND reviewrejected = 0 AND chat_messages.date >= ?";
+                $ownq = $sendingown ? '' : (" AND chat_messages.userid != " . $sendingto->getId() . " ");
                 $sql = "SELECT chat_messages.*, messages.type AS msgtype, messages.subject FROM chat_messages 
     LEFT JOIN messages ON chat_messages.refmsgid = messages.id 
-    WHERE chatid = ? $readyq 
+    WHERE chatid = ? $readyq $ownq 
     ORDER BY id ASC $limitq;";
                 #error_log("Query $sql");
                 $unmailedmsgs = $this->dbhr->preQuery($sql,
@@ -2102,19 +2104,8 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                     $fromname = NULL;
                     $firstmsg = NULL;
                     $refmsgs = [];
-                    $sendingown  = $sendingto->notifsOn(User::NOTIFS_EMAIL_MINE);
 
                     foreach ($unmailedmsgs as $unmailedmsg) {
-                        if (!$sendingown && $unmailedmsg['userid'] == $sendingto->getId()) {
-                            # This can happen due to a window in chat message creation where the message exists but
-                            # we have not yet updated the roster.  We could close that with a transaction but those are
-                            # bad for cluster scalability.
-                            if ($sendingtoTN) {
-                                error_log("Skip own {$unmailedmsg['id']} for TN user {$sendingto->getId()} - fix probably working.");
-                            }
-                            continue;
-                        }
-
                         if (Utils::pres('refmsgid', $unmailedmsg)) {
                             $refmsgs[] = $unmailedmsg['refmsgid'];
                         }
@@ -2693,7 +2684,8 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
                 # Background these because we've seen occasions where we're in the context of a transaction
                 # and this causes a deadlock.
-                $this->dbhm->background("REPLACE INTO users_replytime (userid, replytime) VALUES ($userid, '$time');");
+                $timestr = $time ? "'$time'" : 'NULL';
+                $this->dbhm->background("REPLACE INTO users_replytime (userid, replytime) VALUES ($userid, $timestr);");
                 $this->dbhm->background("UPDATE users SET lastupdated = NOW() WHERE id = $userid;");
 
                 $ret[$userid] = $time;
