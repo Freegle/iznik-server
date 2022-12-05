@@ -194,8 +194,8 @@ class chatRoomsTest extends IznikTestCase {
         $this->log("Created chat message $cm");
 
         $this->waitBackground();
-        assertNotNull($r->replyTime($u1));
-        assertNotNull($r->replyTime($u2));
+        assertNull($r->replyTime($u1));
+        assertNull($r->replyTime($u2));
 
         # Check notification payload - the 2 chat messages and the "please introduce yourself" one.
         list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route) = $u->getNotificationPayload(FALSE);
@@ -268,7 +268,7 @@ class chatRoomsTest extends IznikTestCase {
         assertEquals('from2@test.com', $u2emails[1]['email']);
 
         $this->waitBackground();
-        assertNotNull($r->replyTime($u1));
+        assertNull($r->replyTime($u1));
         assertNotNull($r->replyTime($u2));
 
     }
