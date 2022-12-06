@@ -84,18 +84,8 @@ class statsTest extends IznikTestCase {
                 'count' => 1
             ]
         ], $multistats['ApprovedMemberCount']);
-        assertEquals([
-            [
-                'date' => $date,
-                'count' => 0
-            ]
-        ], $multistats['SpamMemberCount']);
-        assertEquals([
-            [
-                'date' => $date,
-                'count' => 0
-            ]
-        ], $multistats['SpamMessageCount']);
+        assertEquals([], $multistats['SpamMemberCount']);
+        assertEquals([], $multistats['SpamMessageCount']);
 
         # Now yesterday - shouldn't be any
         $s = new Stats($this->dbhr, $this->dbhm, $gid);

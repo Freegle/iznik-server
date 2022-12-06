@@ -44,13 +44,15 @@ class Stats
 
     public function setCount($date, $type, $val)
     {
-        $this->dbhm->preExec("REPLACE INTO stats (date, groupid, type, count) VALUES (?, ?, ?, ?);",
-            [
-                $date,
-                $this->groupid,
-                $type,
-                $val
-            ]);
+        if ($val) {
+            $this->dbhm->preExec("REPLACE INTO stats (date, groupid, type, count) VALUES (?, ?, ?, ?);",
+                                 [
+                                     $date,
+                                     $this->groupid,
+                                     $type,
+                                     $val
+                                 ]);
+        }
     }
 
     private function setBreakdown($date, $type, $val)
@@ -407,6 +409,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
 
         foreach ($types as $type) {
             $ret[$type] = [];
+
             #error_log("Check type $type " . "SELECT SUM(count) AS count, date FROM stats WHERE date >= '$start' AND date < '$end' AND groupid IN (" . implode(',', $groupids) . ") AND type = '$type' GROUP BY date;");
 
             # For many group values it's more efficient to use an index on date and type, so order the query accordingly.

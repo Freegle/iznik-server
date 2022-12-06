@@ -188,9 +188,11 @@ $stats = $dbhr->preQuery("SELECT groupid, SUM(count) AS count, CONCAT(YEAR(date)
 ]);
 
 foreach ($stats as $stat) {
-    $dbhm->preExec("REPLACE INTO stats_outcomes (groupid, count, date) VALUES (?, ?, ?);", [
-        $stat['groupid'],
-        $stat['count'],
-        $stat['date']
-    ]);
+    if ($stat['count']) {
+        $dbhm->preExec("REPLACE INTO stats_outcomes (groupid, count, date) VALUES (?, ?, ?);", [
+            $stat['groupid'],
+            $stat['count'],
+            $stat['date']
+        ]);
+    }
 }
