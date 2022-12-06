@@ -165,6 +165,7 @@ class dashboardTest extends IznikAPITestCase {
         $m = new Message($this->dbhr, $this->dbhm, $mid);
         assertEquals(Message::TYPE_OFFER, $m->getType());
         $m->like($uid, Message::LIKE_VIEW);
+        $this->waitBackground();
 
         $ret = $this->call('dashboard', 'GET', [
             'components' => [
@@ -322,7 +323,9 @@ class dashboardTest extends IznikAPITestCase {
         ]);
 
         assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['components'][Dashboard::COMPONENTS_WEIGHT]));
+
+        # Zero weight so no value returned.
+        assertEquals(0, count($ret['components'][Dashboard::COMPONENTS_WEIGHT]));
 
         $ret = $this->call('dashboard', 'GET', [
             'components' => [
@@ -334,7 +337,7 @@ class dashboardTest extends IznikAPITestCase {
         ]);
 
         assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['components'][Dashboard::COMPONENTS_OUTCOMES]));
+        assertEquals(0, count($ret['components'][Dashboard::COMPONENTS_OUTCOMES]));
 
         $ret = $this->call('dashboard', 'GET', [
             'components' => [
