@@ -188,12 +188,15 @@ class chatRoomsTest extends IznikTestCase {
         $attid = $a->create(NULL, $data);
         assertNotNull($attid);
 
+        # Messages from u1 -> u2.
         $m = new ChatMessage($this->dbhr, $this->dbhm);
         list ($cm, $banned) = $m->create($id, $u1, "Testing", ChatMessage::TYPE_IMAGE, $msgid, TRUE, NULL, NULL, NULL, $attid);
         list ($cm, $banned) = $m->create($id, $u1, "Testing", ChatMessage::TYPE_INTERESTED, $msgid, TRUE, NULL, NULL, NULL, $attid);
         $this->log("Created chat message $cm");
 
         $this->waitBackground();
+
+        # No reply times yet - all messages are just one-way.
         assertNull($r->replyTime($u1));
         assertNull($r->replyTime($u2));
 
@@ -245,7 +248,7 @@ class chatRoomsTest extends IznikTestCase {
         assertEquals(0, $r->notifyByEmail($id,  ChatRoom::TYPE_USER2USER, NULL, 0));
         
         # Now send an email reply to this notification, but from a different email.  That email should
-        # get attached to the correct user.
+        # get attached to the correct user (u2).
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
         $mr = new MailRouter($this->dbhm, $this->dbhm);
         list ($mid, $failok) = $mr->received(Message::EMAIL, 'from2@test.com', "notify-$id-$u2@" . USER_DOMAIN, $msg);
@@ -268,6 +271,8 @@ class chatRoomsTest extends IznikTestCase {
         assertEquals('from2@test.com', $u2emails[1]['email']);
 
         $this->waitBackground();
+
+        # There has now been a reply from u2 -> u1, so that should have a reply time.
         assertNull($r->replyTime($u1));
         assertNotNull($r->replyTime($u2));
 

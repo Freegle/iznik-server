@@ -2684,7 +2684,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
                 # Background these because we've seen occasions where we're in the context of a transaction
                 # and this causes a deadlock.
-                $timestr = $time ? "'$time'" : 'NULL';
+                $timestr = $time !== NULL ? "'$time'" : 'NULL';
                 $this->dbhm->background("REPLACE INTO users_replytime (userid, replytime) VALUES ($userid, $timestr);");
                 $this->dbhm->background("UPDATE users SET lastupdated = NOW() WHERE id = $userid;");
 
