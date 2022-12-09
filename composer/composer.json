@@ -42,7 +42,7 @@
     "violet/streaming-json-encoder": "^1.1",
     "janu-software/facebook-php-sdk": "^0.1.8",
     "griffinledingham/php-apple-signin": "^1.1",
-    "phpoffice/phpspreadsheet": "^1.14",
+    "phpoffice/phpspreadsheet": "^1.25.2",
     "eluceo/ical": "^0.16.1",
     "prewk/xml-string-streamer": "^1.2",
     "sentry/sdk": "^3.1"
@@ -59,5 +59,10 @@
   ],
   "require-dev": {
     "phpunit/phpunit": "^8.1"
+  },
+  "config": {
+    "allow-plugins": {
+      "composer/installers": true
+    }
   }
 }
