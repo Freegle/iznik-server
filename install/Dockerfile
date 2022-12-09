@@ -1,9 +1,9 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 MAINTAINER "Edward Hibbert" <edward@ehibbert.org.uk>
 
 ENV MYSQL_USER=mysql \
-    MYSQL_VERSION=5.7.22 \
+    MYSQL_VERSION=8.0.31 \
     MYSQL_DATA_DIR=/var/lib/mysql \
     MYSQL_RUN_DIR=/run/mysqld \
     MYSQL_LOG_DIR=/var/log/mysql \
@@ -38,17 +38,24 @@ RUN apt-get install -y spamassassin spamc psmisc \
     && sed -i 's/home-dir/home-dir -4/g' /etc/default/spamassassin 
 
 # More packages
-RUN apt-get install -y autoconf automake libtool re2c flex make libxml2-dev libssl-dev libbz2-dev libcurl4-openssl-dev \
-	libdb5.3-dev libjpeg-dev libpng-dev libxpm4 libfreetype6-dev libgmp3-dev libc-client2007e-dev libldap2-dev libmcrypt-dev \
-	libmhash-dev freetds-dev zlib1g-dev libmysqlclient-dev libncurses5-dev libpcre3-dev unixodbc-dev libsqlite0-dev libaspell-dev \
-	libreadline6-dev librecode-dev libsnmp-dev libtidy-dev libxslt1-dev libssl-dev libxml2 libxml2-dev libpspell-dev libicu-dev \
-	sysstat libwww-perl nasm php-zip unzip mysql-client php-mysql php-xdebug pflogsumm mailutils nginx psmisc \
-	build-essential chrpath libssl-dev libxft-dev libfreetype6-dev libfreetype6 libfontconfig1-dev libfontconfig1  \
-	monit iotop openssh-client php-dev php-gd gsutil php-redis php-gmp xfsprogs php-soap php-mbstring php-curl \
-	php-xml php-mailparse php-mysql php-zip vim net-tools telnet git rsyslog php-pgsql
+RUN apt-get install -y dnsutils openssl zip unzip git libxml2-dev libzip-dev zlib1g-dev libcurl4-openssl-dev iputils-ping default-mysql-client vim libpng-dev libgmp-dev libjpeg-turbo8-dev
+RUN apt-get install -y php-xmlrpc php8.1-intl php8.1-xdebug php8.1-mbstring php8.1-simplexml php8.1-curl php8.1-zip postgresql-client php8.1-gd php8.1-xmlrpc php8.1-redis php8.1-pgsql
+RUN apt-get install -y curl
+
+# We now need Node 14 for Playwright.
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
+RUN apt update
+RUN apt -y install nodejs
+
+RUN apt-get install -y libpq-dev
+
 RUN apt-get remove -y apache2* sendmail* mlocate php-ssh2
 
 # Postgres
+RUN apt -y install gnupg2
+RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" | tee  /etc/apt/sources.list.d/pgdg.list
+RUN apt update
 RUN apt-get install -y postgresql postgis postgresql-12-postgis-3
 RUN sed -i  '/^local.*all.*all.*peer/ s/peer/md5/' /etc/postgresql/12/main/pg_hba.conf
 RUN ls -l /etc/postgresql
@@ -58,7 +65,7 @@ RUN ls -l /etc/postgresql
 RUN	apt-get install -y php-pear \
 # Can no longer install GeoLite2-Country.mmdb as not exposed without account/key.
     && apt-get install -y php-dev libgeoip-dev libcurl4-openssl-dev wget golang-go \
-    && pecl install geoip-1.1.1
+    && apt-get install -y geoip-bin geoip-database
 
 # Mailparse
 RUN apt-get install -y php-mbstring php-mailparse 
@@ -91,10 +98,9 @@ RUN cp install/iznik.conf.php /etc/iznik.conf \
 
 # Install composer dependencies
 RUN apt-get install wget \
-    && wget https://getcomposer.org/composer-1.phar \
-    && mv composer-1.phar composer.phar \
+    && wget https://getcomposer.org/composer-2.phar -O composer.phar \
     && cd composer \
-    && php ../composer.phar install \
+    && echo Y | php ../composer.phar install \
     && cd ..
 
 # Redis.  Won't start listening on ::1.
@@ -155,11 +161,11 @@ CMD rm -rf /var/lib/mysql/* \
     && php install/testenv.php \
     # Keep the container alive
 	&& bash
-	
+
 #
 #--------------------------------------------------------------------------
 # Init
 #--------------------------------------------------------------------------
 #
 
-EXPOSE 22 80 443 
+EXPOSE 22 80 443
