@@ -52,33 +52,33 @@ class userTest extends IznikTestCase {
         $u = User::get($this->dbhr, $this->dbhm, $id);
 
         $atts = $u->getPublic();
-        assertEquals('Test', $atts['firstname']);
-        assertEquals('User', $atts['lastname']);
-        assertNull($atts['fullname']);
-        assertEquals('Test User', $u->getName());
-        assertEquals($id, $u->getPrivate('id'));
-        assertNull($u->getPrivate('invalidid'));
+        $this->assertEquals('Test', $atts['firstname']);
+        $this->assertEquals('User', $atts['lastname']);
+        $this->assertNull($atts['fullname']);
+        $this->assertEquals('Test User', $u->getName());
+        $this->assertEquals($id, $u->getPrivate('id'));
+        $this->assertNull($u->getPrivate('invalidid'));
 
         $u->setPrivate('yahooid', 'testyahootest');
-        assertEquals($id, $u->findByYahooId('testyahootest'));
+        $this->assertEquals($id, $u->findByYahooId('testyahootest'));
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
         $u->addMembership($group1);
         $_SESSION['id'] = $u->getId();
-        assertEquals('testgroup1', $u->getInfo()['publiclocation']['display']);
+        $this->assertEquals('testgroup1', $u->getInfo()['publiclocation']['display']);
         $_SESSION['id'] = NULL;
-        assertGreaterThan(0, $u->delete());
+        $this->assertGreaterThan(0, $u->delete());
 
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');
         $atts = $u->getPublic();
-        assertNull($atts['firstname']);
-        assertNull($atts['lastname']);
-        assertEquals('Test User', $atts['fullname']);
-        assertEquals('Test User', $u->getName());
-        assertEquals($id, $u->getPrivate('id'));
-        assertGreaterThan(0, $u->delete());
+        $this->assertNull($atts['firstname']);
+        $this->assertNull($atts['lastname']);
+        $this->assertEquals('Test User', $atts['fullname']);
+        $this->assertEquals('Test User', $u->getName());
+        $this->assertEquals($id, $u->getPrivate('id'));
+        $this->assertGreaterThan(0, $u->delete());
     }
 
     public function testInfos()
@@ -87,8 +87,8 @@ class userTest extends IznikTestCase {
         $id = $u->create('Test', 'User', null);
         $this->log("Created $id");
 
-        assertNotNull($u->setAboutMe('UT'));
-        assertNotNull($u->getAboutMe());
+        $this->assertNotNull($u->setAboutMe('UT'));
+        $this->assertNotNull($u->getAboutMe());
 
         $users = [
             $id => [
@@ -97,7 +97,7 @@ class userTest extends IznikTestCase {
         ];
 
         $u->getInfos($users);
-        assertEquals(0, $users[$id]['info']['offers']);
+        $this->assertEquals(0, $users[$id]['info']['offers']);
     }
 
     public function testLinkLogin() {
@@ -117,66 +117,66 @@ class userTest extends IznikTestCase {
 
         # Should not see the login link.
         $atts = $u->getPublic();
-        assertFalse(Utils::pres('loginlink', $atts));
+        $this->assertFalse(Utils::pres('loginlink', $atts));
     }
 
     public function testEmails() {
         $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
-        assertEquals(0, count($u->getEmails()));
+        $this->assertEquals(0, count($u->getEmails()));
 
         # Add an email - should work.
-        assertNull($u->findByEmailHash(md5('test@test.com')));
+        $this->assertNull($u->findByEmailHash(md5('test@test.com')));
         $eid = $u->addEmail('test@test.com');
-        assertGreaterThan(0, $eid);
-        assertEquals(0, $u->getEmailAge('test@test.com'));
-        assertEquals('test@test.com', $u->getEmailById($eid));
-        assertEquals($id, $u->findByEmailHash(md5('test@test.com')));
+        $this->assertGreaterThan(0, $eid);
+        $this->assertEquals(0, $u->getEmailAge('test@test.com'));
+        $this->assertEquals('test@test.com', $u->getEmailById($eid));
+        $this->assertEquals($id, $u->findByEmailHash(md5('test@test.com')));
 
         # Check it's there
         $emails = $u->getEmails();
-        assertEquals(1, count($emails));
-        assertEquals('test@test.com', $emails[0]['email']);
+        $this->assertEquals(1, count($emails));
+        $this->assertEquals('test@test.com', $emails[0]['email']);
 
         # Add it again - should work
-        assertGreaterThan(0, $u->addEmail('test@test.com'));
+        $this->assertGreaterThan(0, $u->addEmail('test@test.com'));
 
         # Add a second
-        assertGreaterThan(0, $u->addEmail('test2@test.com', 0));
+        $this->assertGreaterThan(0, $u->addEmail('test2@test.com', 0));
         $emails = $u->getEmails();
-        assertEquals(2, count($emails));
-        assertEquals(0, $emails[1]['preferred']);
-        assertEquals($id, $u->findByEmail('test2@test.com'));
-        assertEquals($id, $u->findByEmail("wibble-$id@" . USER_DOMAIN)); // Should parse the UID out of it.
-        assertGreaterThan(0, $u->removeEmail('test2@test.com'));
-        assertNull($u->findByEmail('test2@test.com'));
+        $this->assertEquals(2, count($emails));
+        $this->assertEquals(0, $emails[1]['preferred']);
+        $this->assertEquals($id, $u->findByEmail('test2@test.com'));
+        $this->assertEquals($id, $u->findByEmail("wibble-$id@" . USER_DOMAIN)); // Should parse the UID out of it.
+        $this->assertGreaterThan(0, $u->removeEmail('test2@test.com'));
+        $this->assertNull($u->findByEmail('test2@test.com'));
 
-        assertEquals($id, $u->findByEmail('test@test.com'));
-        assertNull($u->findByEmail('testinvalid@test.com'));
+        $this->assertEquals($id, $u->findByEmail('test@test.com'));
+        $this->assertNull($u->findByEmail('testinvalid@test.com'));
 
         # Add a new preferred
-        assertGreaterThan(0, $u->addEmail('test3@test.com', 1));
+        $this->assertGreaterThan(0, $u->addEmail('test3@test.com', 1));
         $emails = $u->getEmails();
-        assertEquals(2, count($emails));
-        assertEquals(1, $emails[0]['preferred']);
-        assertEquals('test3@test.com', $emails[0]['email']);
+        $this->assertEquals(2, count($emails));
+        $this->assertEquals(1, $emails[0]['preferred']);
+        $this->assertEquals('test3@test.com', $emails[0]['email']);
 
         # Change to non-preferred.
-        assertGreaterThan(0, $u->addEmail('test3@test.com', 0));
+        $this->assertGreaterThan(0, $u->addEmail('test3@test.com', 0));
         $emails = $u->getEmails();
         $this->log("Non-preferred " . var_export($emails, TRUE));
-        assertEquals(2, count($emails));
-        assertEquals(0, $emails[0]['preferred']);
-        assertEquals(0, $emails[1]['preferred']);
-        assertEquals('test@test.com', $emails[0]['email']);
-        assertEquals('test3@test.com', $emails[1]['email']);
+        $this->assertEquals(2, count($emails));
+        $this->assertEquals(0, $emails[0]['preferred']);
+        $this->assertEquals(0, $emails[1]['preferred']);
+        $this->assertEquals('test@test.com', $emails[0]['email']);
+        $this->assertEquals('test3@test.com', $emails[1]['email']);
 
         # Change to preferred.
-        assertGreaterThan(0, $u->addEmail('test3@test.com', 1));
+        $this->assertGreaterThan(0, $u->addEmail('test3@test.com', 1));
         $emails = $u->getEmails();
-        assertEquals(2, count($emails));
-        assertEquals(1, $emails[0]['preferred']);
-        assertEquals('test3@test.com', $emails[0]['email']);
+        $this->assertEquals(2, count($emails));
+        $this->assertEquals(1, $emails[0]['preferred']);
+        $this->assertEquals('test3@test.com', $emails[0]['email']);
 
         # Add them as memberships and check we get the right ones.
         $g = Group::get($this->dbhr, $this->dbhm);
@@ -188,47 +188,47 @@ class userTest extends IznikTestCase {
         $u->removeMembership($group1);
         $u->addMembership($group1, User::ROLE_MEMBER, $emailid3);
         $u->addMembership($group1, User::ROLE_MEMBER, $emailid3);
-        assertNull($u->getIdForEmail('wibble@test.com'));
+        $this->assertNull($u->getIdForEmail('wibble@test.com'));
     }
 
     public function testLogins() {
         $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
-        assertEquals(0, count($u->getEmails()));
+        $this->assertEquals(0, count($u->getEmails()));
 
         # Add a login - should work.
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_YAHOO, 'testid'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_YAHOO, 'testid'));
 
         # Check it's there
         $logins = $u->getLogins();
-        assertEquals(1, count($logins));
-        assertEquals('testid', $logins[0]['uid']);
+        $this->assertEquals(1, count($logins));
+        $this->assertEquals('testid', $logins[0]['uid']);
 
         # Add it again - should work
-        assertEquals(1, $u->addLogin(User::LOGIN_YAHOO, 'testid'));
+        $this->assertEquals(1, $u->addLogin(User::LOGIN_YAHOO, 'testid'));
 
         # Add a second
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_FACEBOOK, '1234'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_FACEBOOK, '1234'));
         $logins = $u->getLogins();
-        assertEquals(2, count($logins));
-        assertEquals($id, $u->findByLogin(User::LOGIN_FACEBOOK, '1234'));
-        assertNull($u->findByLogin(User::LOGIN_YAHOO, '1234'));
-        assertNull($u->findByLogin(User::LOGIN_FACEBOOK, 'testid'));
-        assertGreaterThan(0, $u->removeLogin(User::LOGIN_FACEBOOK, '1234'));
-        assertNull($u->findByLogin(User::LOGIN_FACEBOOK, '1234'));
+        $this->assertEquals(2, count($logins));
+        $this->assertEquals($id, $u->findByLogin(User::LOGIN_FACEBOOK, '1234'));
+        $this->assertNull($u->findByLogin(User::LOGIN_YAHOO, '1234'));
+        $this->assertNull($u->findByLogin(User::LOGIN_FACEBOOK, 'testid'));
+        $this->assertGreaterThan(0, $u->removeLogin(User::LOGIN_FACEBOOK, '1234'));
+        $this->assertNull($u->findByLogin(User::LOGIN_FACEBOOK, '1234'));
 
-        assertEquals($id, $u->findByLogin(User::LOGIN_YAHOO, 'testid'));
-        assertNull($u->findByLogin(User::LOGIN_YAHOO, 'testinvalid'));
+        $this->assertEquals($id, $u->findByLogin(User::LOGIN_YAHOO, 'testid'));
+        $this->assertNull($u->findByLogin(User::LOGIN_YAHOO, 'testinvalid'));
 
         # Test native
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
-        assertFalse($u->login('testpwbad'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+        $this->assertFalse($u->login('testpwbad'));
     }
 
     public function testErrors() {
         $u = User::get($this->dbhr, $this->dbhm);
-        assertEquals(0, $u->addEmail('test-owner@yahoogroups.com'));
+        $this->assertEquals(0, $u->addEmail('test-owner@yahoogroups.com'));
 
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
             ->disableOriginalConstructor()
@@ -237,7 +237,7 @@ class userTest extends IznikTestCase {
         $mock->method('preExec')->willThrowException(new \Exception());
         $u->setDbhm($mock);
         $id = $u->create(NULL, NULL, 'Test User');
-        assertNull($id);
+        $this->assertNull($id);
     }
 
     public function testMemberships() {
@@ -249,44 +249,44 @@ class userTest extends IznikTestCase {
         $id = $u->create(NULL, NULL, 'Test User');
         User::clearCache($id);
         $eid = $u->addEmail('test@test.com');
-        assertGreaterThan(0, $eid);
+        $this->assertGreaterThan(0, $eid);
         $u = User::get($this->dbhm, $this->dbhm, $id);
-        assertGreaterThan(0, $u->addEmail('test@test.com'));
-        assertEquals($u->getRoleForGroup($group1), User::ROLE_NONMEMBER);
-        assertFalse($u->isModOrOwner($group1));
+        $this->assertGreaterThan(0, $u->addEmail('test@test.com'));
+        $this->assertEquals($u->getRoleForGroup($group1), User::ROLE_NONMEMBER);
+        $this->assertFalse($u->isModOrOwner($group1));
 
         // Again for coverage.
-        assertFalse($u->isModOrOwner($group1));
+        $this->assertFalse($u->isModOrOwner($group1));
 
         $u->addMembership($group1, User::ROLE_MEMBER, $eid);
-        assertEquals($u->getRoleForGroup($group1), User::ROLE_MEMBER);
-        assertFalse($u->isModOrOwner($group1));
+        $this->assertEquals($u->getRoleForGroup($group1), User::ROLE_MEMBER);
+        $this->assertFalse($u->isModOrOwner($group1));
         $u->setGroupSettings($group1, [
             'testsetting' => 'test'
         ]);
-        assertEquals('test', $u->getGroupSettings($group1)['testsetting']);
+        $this->assertEquals('test', $u->getGroupSettings($group1)['testsetting']);
         $atts = $u->getPublic();
-        assertFalse(array_key_exists('applied', $atts));
+        $this->assertFalse(array_key_exists('applied', $atts));
 
         $this->log("Set owner");
         $u->setRole(User::ROLE_OWNER, $group1);
-        assertEquals($u->getRoleForGroup($group1), User::ROLE_OWNER);
-        assertTrue($u->isModOrOwner($group1));
-        assertTrue($u->isModOrOwner($group1));
-        assertTrue(array_key_exists('work', $u->getMemberships(FALSE, NULL, TRUE)[0]));
+        $this->assertEquals($u->getRoleForGroup($group1), User::ROLE_OWNER);
+        $this->assertTrue($u->isModOrOwner($group1));
+        $this->assertTrue($u->isModOrOwner($group1));
+        $this->assertTrue(array_key_exists('work', $u->getMemberships(FALSE, NULL, TRUE)[0]));
         $settings = $u->getGroupSettings($group1);
         $this->log("Settings " . var_export($settings, TRUE));
-        assertEquals('test', $settings['testsetting']);
-        assertTrue(array_key_exists('configid', $settings));
+        $this->assertEquals('test', $settings['testsetting']);
+        $this->assertTrue(array_key_exists('configid', $settings));
         $modships = $u->getModeratorships();
-        assertEquals(1, count($modships));
+        $this->assertEquals(1, count($modships));
 
         # Should be able to see the applied history.
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
         $atts = $u->getPublic();
         $this->log("Applied " . var_export($atts['applied'], TRUE));
-        assertEquals(1, count($atts['applied']));
+        $this->assertEquals(1, count($atts['applied']));
 
         # Get again for coverage.
         $users = [
@@ -296,33 +296,33 @@ class userTest extends IznikTestCase {
         ];
 
         $rets = $u->getPublics($users);
-        assertEquals(1, count($rets[$u->getId()]['applied']));
+        $this->assertEquals(1, count($rets[$u->getId()]['applied']));
         $rets2 = $u->getPublics($rets);
-        assertEquals(1, count($rets2[$u->getId()]['applied']));
+        $this->assertEquals(1, count($rets2[$u->getId()]['applied']));
 
         $u->setRole(User::ROLE_MODERATOR, $group1);
         # We had a problem preserving the emails off setting - test here.
         $u->setMembershipAtt($group1, 'emailfrequency', 0);
-        assertEquals($u->getRoleForGroup($group1), User::ROLE_MODERATOR);
-        assertTrue($u->isModOrOwner($group1));
+        $this->assertEquals($u->getRoleForGroup($group1), User::ROLE_MODERATOR);
+        $this->assertTrue($u->isModOrOwner($group1));
         $membs = $u->getMemberships(FALSE, NULL, TRUE, TRUE);
-        assertEquals(0, $membs[0]['mysettings']['emailfrequency']);
-        assertTrue(array_key_exists('work', $membs[0]));
+        $this->assertEquals(0, $membs[0]['mysettings']['emailfrequency']);
+        $this->assertTrue(array_key_exists('work', $membs[0]));
         $modships = $u->getModeratorships();
-        assertEquals(1, count($modships));
+        $this->assertEquals(1, count($modships));
 
         $u->addMembership($group2, User::ROLE_MEMBER, $eid);
         $membs = $u->getMemberships();
-        assertEquals(2, count($membs));
+        $this->assertEquals(2, count($membs));
 
         // Check history.
         $this->waitBackground();
         $hist = $u->getMembershipHistory();
-        assertEquals($group2, $hist[0]['group']['id']);
+        $this->assertEquals($group2, $hist[0]['group']['id']);
 
         // Support and admin users have a mod role on the group even if not a member
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test item (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
@@ -335,16 +335,16 @@ class userTest extends IznikTestCase {
         $m->setPrivate('fromuser', NULL);
 
         $u->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
-        assertEquals($u->getRoleForGroup($group1), User::ROLE_MODERATOR);
-        assertEquals(User::ROLE_MODERATOR, $m->getRoleForMessage()[0]);
+        $this->assertEquals($u->getRoleForGroup($group1), User::ROLE_MODERATOR);
+        $this->assertEquals(User::ROLE_MODERATOR, $m->getRoleForMessage()[0]);
         $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
         $this->log("Check role for group");
-        assertEquals($u->getRoleForGroup($group1), User::ROLE_OWNER);
+        $this->assertEquals($u->getRoleForGroup($group1), User::ROLE_OWNER);
         $this->log("Check role for message");
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $me->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
-        assertEquals(User::SYSTEMROLE_ADMIN, $me->getPrivate('systemrole'));
-        assertEquals(User::ROLE_OWNER, $m->getRoleForMessage()[0]);
+        $this->assertEquals(User::SYSTEMROLE_ADMIN, $me->getPrivate('systemrole'));
+        $this->assertEquals(User::ROLE_OWNER, $m->getRoleForMessage()[0]);
 
         # Ban ourselves; can't rejoin
         $this->log("Ban " . $u->getId() . " from $group2");
@@ -353,8 +353,8 @@ class userTest extends IznikTestCase {
         $this->log("Memberships after ban " . var_export($membs, TRUE));
 
         # Should have the membership of group1.
-        assertEquals(1, count($membs));
-        assertFalse($u->addMembership($group2));
+        $this->assertEquals(1, count($membs));
+        $this->assertFalse($u->addMembership($group2));
 
         $g = Group::get($this->dbhr, $this->dbhm, $group1);
         $g->delete();
@@ -362,7 +362,7 @@ class userTest extends IznikTestCase {
         $g->delete();
 
         $membs = $u->getMemberships();
-        assertEquals(0, count($membs));
+        $this->assertEquals(0, count($membs));
     }
 
     public function testMerge() {
@@ -377,8 +377,8 @@ class userTest extends IznikTestCase {
         $id3 = $u->create(NULL, NULL, 'Test User');
         $u1 = User::get($this->dbhr, $this->dbhm, $id1);
         $u2 = User::get($this->dbhr, $this->dbhm, $id2);
-        assertGreaterThan(0, $u1->addEmail('test1@test.com'));
-        assertGreaterThan(0, $u1->addEmail('test2@test.com', 0));
+        $this->assertGreaterThan(0, $u1->addEmail('test1@test.com'));
+        $this->assertGreaterThan(0, $u1->addEmail('test2@test.com', 0));
 
         # Set up various memberships
         $u1->addMembership($group1, User::ROLE_MODERATOR);
@@ -391,7 +391,7 @@ class userTest extends IznikTestCase {
         $u2->setGroupSettings($group2, $settings);
         error_log("Set setting for {$u2->getId()} on $group2");
         $u1->clearMembershipCache();
-        assertEquals([ 'active' => 1, 'pushnotify' => 1, 'showchat' => 1, 'eventsallowed' => 1, 'volunteeringallowed' => 1], $u1->getGroupSettings($group2));
+        $this->assertEquals([ 'active' => 1, 'pushnotify' => 1, 'showchat' => 1, 'eventsallowed' => 1, 'volunteeringallowed' => 1], $u1->getGroupSettings($group2));
 
         # Set up some chats
         $c = new ChatRoom($this->dbhr, $this->dbhm);
@@ -414,43 +414,43 @@ class userTest extends IznikTestCase {
 
         # We should get the group back and a default config.
         $this->log("Check settings for $id2 on $group2");
-        assertEquals(1, $u2->getGroupSettings($group1)['test'] );
-        assertEquals(1, $u2->getGroupSettings($group2)['test'] );
-        assertNotNull($u2->getGroupSettings($group2)['configid']);
+        $this->assertEquals(1, $u2->getGroupSettings($group1)['test'] );
+        $this->assertEquals(1, $u2->getGroupSettings($group2)['test'] );
+        $this->assertNotNull($u2->getGroupSettings($group2)['configid']);
 
         # Merge u2 into u1
-        assertTrue($u1->merge($id1, $id2, "UT"));
+        $this->assertTrue($u1->merge($id1, $id2, "UT"));
 
         # Pick up new settings.
         $u1 = new User($this->dbhm, $this->dbhm, $id1, FALSE);
         $u2 = new User($this->dbhm, $this->dbhm, $id2, FALSE);
 
         $this->log("Check post merge $id1 on $group2");
-        assertEquals(1, $u1->getGroupSettings($group2)['test'] );
-        assertNotNull($u1->getGroupSettings($group2)['configid']);
+        $this->assertEquals(1, $u1->getGroupSettings($group2)['test'] );
+        $this->assertNotNull($u1->getGroupSettings($group2)['configid']);
 
         # u2 doesn't exist
-        assertNull($u2->getId());
+        $this->assertNull($u2->getId());
 
         # Now u1 is a member of all three
         $membs = $u1->getMemberships();
-        assertEquals(3, count($membs));
-        assertEquals($group1, $membs[0]['id']);
-        assertEquals($group2, $membs[1]['id']);
-        assertEquals($group3, $membs[2]['id']);
+        $this->assertEquals(3, count($membs));
+        $this->assertEquals($group1, $membs[0]['id']);
+        $this->assertEquals($group2, $membs[1]['id']);
+        $this->assertEquals($group3, $membs[2]['id']);
 
         # The merge should have preserved the highest setting.
-        assertEquals(User::ROLE_MODERATOR, $membs[0]['role']);
-        assertEquals(User::ROLE_OWNER, $membs[1]['role']);
-        assertEquals(User::ROLE_MODERATOR, $membs[2]['role']);
+        $this->assertEquals(User::ROLE_MODERATOR, $membs[0]['role']);
+        $this->assertEquals(User::ROLE_OWNER, $membs[1]['role']);
+        $this->assertEquals(User::ROLE_MODERATOR, $membs[2]['role']);
 
         $emails = $u1->getEmails();
         $this->log("Emails " . var_export($emails, true));
-        assertEquals(2, count($emails));
-        assertEquals('test1@test.com', $emails[0]['email']);
-        assertEquals(1, $emails[0]['preferred']);
-        assertEquals('test2@test.com', $emails[1]['email']);
-        assertEquals(0, $emails[1]['preferred']);
+        $this->assertEquals(2, count($emails));
+        $this->assertEquals('test1@test.com', $emails[0]['email']);
+        $this->assertEquals(1, $emails[0]['preferred']);
+        $this->assertEquals('test2@test.com', $emails[1]['email']);
+        $this->assertEquals(0, $emails[1]['preferred']);
 
         # Check chats
         list ($cid1a, $blocked) = $c->createConversation($id1, $id3);
@@ -458,7 +458,7 @@ class userTest extends IznikTestCase {
         $c = new ChatRoom($this->dbhr, $this->dbhm, $cid1);
         list ($msgs, $users) = $c->getMessages();
         $this->log("Messages " . var_export($msgs, TRUE));
-        assertEquals(2, count($msgs));
+        $this->assertEquals(2, count($msgs));
 
         $cid3a = $c->createUser2Mod($id1, $group1);
         self::assertEquals($cid3a, $cid3);
@@ -470,9 +470,9 @@ class userTest extends IznikTestCase {
         $u = new User($this->dbhr, $this->dbhm);
         $u->getPublicLogs($u, $logs, TRUE, $ctx);
 
-        assertEquals(1, count($logs[$id1]['merges']));
-        assertEquals($id2, $logs[$id1]['merges'][0]['from']);
-        assertEquals($id1, $logs[$id1]['merges'][0]['to']);
+        $this->assertEquals(1, count($logs[$id1]['merges']));
+        $this->assertEquals($id2, $logs[$id1]['merges'][0]['from']);
+        $this->assertEquals($id1, $logs[$id1]['merges'][0]['to']);
 
         $mc->delete();
     }
@@ -495,7 +495,7 @@ class userTest extends IznikTestCase {
         $u2->addMembership($group, User::ROLE_MEMBER, $eid2);
 
         # Merge u2 into u1
-        assertTrue($u1->merge($id1, $id2, "UT"));
+        $this->assertTrue($u1->merge($id1, $id2, "UT"));
 
         # Pick up new settings.
         $u1 = User::get($this->dbhm, $this->dbhm, $id1);
@@ -516,8 +516,8 @@ class userTest extends IznikTestCase {
         $id2 = $u->create(NULL, NULL, 'Test User');
         $u1 = User::get($this->dbhr, $this->dbhm, $id1);
         $u2 = User::get($this->dbhr, $this->dbhm, $id2);
-        assertGreaterThan(0, $u1->addEmail('test1@test.com'));
-        assertGreaterThan(0, $u1->addEmail('test2@test.com', 1));
+        $this->assertGreaterThan(0, $u1->addEmail('test1@test.com'));
+        $this->assertGreaterThan(0, $u1->addEmail('test2@test.com', 1));
 
         # Set up various memberships
         $u1->addMembership($group1, User::ROLE_MODERATOR);
@@ -536,15 +536,15 @@ class userTest extends IznikTestCase {
         $u1->setDbhm($mock);
 
         # Merge u2 into u1
-        assertFalse($u1->merge($id1, $id2, "UT"));
+        $this->assertFalse($u1->merge($id1, $id2, "UT"));
 
         # Pick up new settings.
         $u1 = User::get($this->dbhr, $this->dbhm, $id1);
         $u2 = User::get($this->dbhr, $this->dbhm, $id2);
 
         # Both exist
-        assertNotNull($u1->getId());
-        assertNotNull($u2->getId());
+        $this->assertNotNull($u1->getId());
+        $this->assertNotNull($u2->getId());
 
         }
 
@@ -560,27 +560,27 @@ class userTest extends IznikTestCase {
         $settings = $u1->getPublic()['settings'];
         $settings['canmerge'] = FALSE;
         $u1->setPrivate('settings', json_encode($settings));
-        assertFalse($u1->merge($id1, $id2, "Should fail"));
+        $this->assertFalse($u1->merge($id1, $id2, "Should fail"));
         $u1 = User::get($this->dbhr, $this->dbhm, $id1);
         $u2 = User::get($this->dbhr, $this->dbhm, $id2);
-        assertEquals($id1, $u1->getId());
-        assertEquals($id2, $u2->getId());
+        $this->assertEquals($id1, $u1->getId());
+        $this->assertEquals($id2, $u2->getId());
     }
 
     public function testSystemRoleMax() {
 
         $u = User::get($this->dbhr, $this->dbhm);
 
-        assertEquals(User::SYSTEMROLE_ADMIN, $u->systemRoleMax(User::SYSTEMROLE_MODERATOR, User::SYSTEMROLE_ADMIN));
-        assertEquals(User::SYSTEMROLE_ADMIN, $u->systemRoleMax(User::SYSTEMROLE_ADMIN, User::SYSTEMROLE_SUPPORT));
+        $this->assertEquals(User::SYSTEMROLE_ADMIN, $u->systemRoleMax(User::SYSTEMROLE_MODERATOR, User::SYSTEMROLE_ADMIN));
+        $this->assertEquals(User::SYSTEMROLE_ADMIN, $u->systemRoleMax(User::SYSTEMROLE_ADMIN, User::SYSTEMROLE_SUPPORT));
 
-        assertEquals(User::SYSTEMROLE_SUPPORT, $u->systemRoleMax(User::SYSTEMROLE_MODERATOR, User::SYSTEMROLE_SUPPORT));
-        assertEquals(User::SYSTEMROLE_SUPPORT, $u->systemRoleMax(User::SYSTEMROLE_SUPPORT, User::SYSTEMROLE_USER));
+        $this->assertEquals(User::SYSTEMROLE_SUPPORT, $u->systemRoleMax(User::SYSTEMROLE_MODERATOR, User::SYSTEMROLE_SUPPORT));
+        $this->assertEquals(User::SYSTEMROLE_SUPPORT, $u->systemRoleMax(User::SYSTEMROLE_SUPPORT, User::SYSTEMROLE_USER));
 
-        assertEquals(User::SYSTEMROLE_MODERATOR, $u->systemRoleMax(User::SYSTEMROLE_MODERATOR, User::SYSTEMROLE_MODERATOR));
-        assertEquals(User::SYSTEMROLE_MODERATOR, $u->systemRoleMax(User::SYSTEMROLE_MODERATOR, User::SYSTEMROLE_USER));
+        $this->assertEquals(User::SYSTEMROLE_MODERATOR, $u->systemRoleMax(User::SYSTEMROLE_MODERATOR, User::SYSTEMROLE_MODERATOR));
+        $this->assertEquals(User::SYSTEMROLE_MODERATOR, $u->systemRoleMax(User::SYSTEMROLE_MODERATOR, User::SYSTEMROLE_USER));
 
-        assertEquals(User::SYSTEMROLE_USER, $u->systemRoleMax(User::SYSTEMROLE_USER, User::SYSTEMROLE_USER));
+        $this->assertEquals(User::SYSTEMROLE_USER, $u->systemRoleMax(User::SYSTEMROLE_USER, User::SYSTEMROLE_USER));
 
         }
 
@@ -588,16 +588,16 @@ class userTest extends IznikTestCase {
 
         $u = User::get($this->dbhr, $this->dbhm);
 
-        assertEquals(User::ROLE_OWNER, $u->roleMax(User::ROLE_MEMBER, User::ROLE_OWNER));
-        assertEquals(User::ROLE_OWNER, $u->roleMax(User::ROLE_OWNER, User::ROLE_MODERATOR));
+        $this->assertEquals(User::ROLE_OWNER, $u->roleMax(User::ROLE_MEMBER, User::ROLE_OWNER));
+        $this->assertEquals(User::ROLE_OWNER, $u->roleMax(User::ROLE_OWNER, User::ROLE_MODERATOR));
 
-        assertEquals(User::ROLE_MODERATOR, $u->roleMax(User::ROLE_MEMBER, User::ROLE_MODERATOR));
-        assertEquals(User::ROLE_MODERATOR, $u->roleMax(User::ROLE_MODERATOR, User::ROLE_NONMEMBER));
+        $this->assertEquals(User::ROLE_MODERATOR, $u->roleMax(User::ROLE_MEMBER, User::ROLE_MODERATOR));
+        $this->assertEquals(User::ROLE_MODERATOR, $u->roleMax(User::ROLE_MODERATOR, User::ROLE_NONMEMBER));
 
-        assertEquals(User::ROLE_MEMBER, $u->roleMax(User::ROLE_MEMBER, User::ROLE_MEMBER));
-        assertEquals(User::ROLE_MEMBER, $u->roleMax(User::ROLE_MEMBER, User::ROLE_NONMEMBER));
+        $this->assertEquals(User::ROLE_MEMBER, $u->roleMax(User::ROLE_MEMBER, User::ROLE_MEMBER));
+        $this->assertEquals(User::ROLE_MEMBER, $u->roleMax(User::ROLE_MEMBER, User::ROLE_NONMEMBER));
 
-        assertEquals(User::ROLE_NONMEMBER, $u->roleMax(User::ROLE_NONMEMBER, User::ROLE_NONMEMBER));
+        $this->assertEquals(User::ROLE_NONMEMBER, $u->roleMax(User::ROLE_NONMEMBER, User::ROLE_NONMEMBER));
 
         }
 
@@ -605,16 +605,16 @@ class userTest extends IznikTestCase {
 
         $u = User::get($this->dbhr, $this->dbhm);
 
-        assertEquals(User::ROLE_MEMBER, $u->roleMin(User::ROLE_MEMBER, User::ROLE_OWNER));
-        assertEquals(User::ROLE_MODERATOR, $u->roleMin(User::ROLE_OWNER, User::ROLE_MODERATOR));
+        $this->assertEquals(User::ROLE_MEMBER, $u->roleMin(User::ROLE_MEMBER, User::ROLE_OWNER));
+        $this->assertEquals(User::ROLE_MODERATOR, $u->roleMin(User::ROLE_OWNER, User::ROLE_MODERATOR));
 
-        assertEquals(User::ROLE_MEMBER, $u->roleMin(User::ROLE_MEMBER, User::ROLE_MODERATOR));
-        assertEquals(User::ROLE_NONMEMBER, $u->roleMin(User::ROLE_MODERATOR, User::ROLE_NONMEMBER));
+        $this->assertEquals(User::ROLE_MEMBER, $u->roleMin(User::ROLE_MEMBER, User::ROLE_MODERATOR));
+        $this->assertEquals(User::ROLE_NONMEMBER, $u->roleMin(User::ROLE_MODERATOR, User::ROLE_NONMEMBER));
 
-        assertEquals(User::ROLE_MEMBER, $u->roleMin(User::ROLE_MEMBER, User::ROLE_MEMBER));
-        assertEquals(User::ROLE_NONMEMBER, $u->roleMin(User::ROLE_MEMBER, User::ROLE_NONMEMBER));
+        $this->assertEquals(User::ROLE_MEMBER, $u->roleMin(User::ROLE_MEMBER, User::ROLE_MEMBER));
+        $this->assertEquals(User::ROLE_NONMEMBER, $u->roleMin(User::ROLE_MEMBER, User::ROLE_NONMEMBER));
 
-        assertEquals(User::ROLE_NONMEMBER, $u->roleMax(User::ROLE_NONMEMBER, User::ROLE_NONMEMBER));
+        $this->assertEquals(User::ROLE_NONMEMBER, $u->roleMax(User::ROLE_NONMEMBER, User::ROLE_NONMEMBER));
 
         }
 
@@ -632,9 +632,9 @@ class userTest extends IznikTestCase {
         ->setMethods(array('mailer'))
         ->getMock();
         $u->method('mailer')->willReturn(false);
-        assertGreaterThan(0, $u->addEmail('test@test.com'));
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addEmail('test@test.com'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $c = new ModConfig($this->dbhr, $this->dbhm);
         $cid = $c->create('Test');
@@ -666,8 +666,8 @@ class userTest extends IznikTestCase {
         $id1 = $u1->create('Test', 'User', NULL);
         $u2 = User::get($this->dbhr, $this->dbhm);
         $id2 = $u2->create('Test', 'User', NULL);
-        assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u1->login('testpw'));
+        $this->assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u1->login('testpw'));
 
         # Reset u1 to match what Session::whoAmI will give so that when we change the role in u1, the role
         # returned by Session::whoAmI will have changed.
@@ -677,55 +677,55 @@ class userTest extends IznikTestCase {
         $gid = $g->create('testgroup1', Group::GROUP_REUSE);
 
         # Try to add a comment when not a mod.
-        assertNull($u2->addComment($gid, "Test comment"));
+        $this->assertNull($u2->addComment($gid, "Test comment"));
         $u1->addMembership($gid);
-        assertNull($u2->addComment($gid, "Test comment"));
+        $this->assertNull($u2->addComment($gid, "Test comment"));
         $this->log("Set role mod");
         $u1->setRole(User::ROLE_MODERATOR, $gid);
         $cid = $u2->addComment($gid, "Test comment");
-        assertNotNull($cid);
+        $this->assertNotNull($cid);
         $atts = $u2->getPublic();
-        assertEquals(1, count($atts['comments']));
-        assertEquals($cid, $atts['comments'][0]['id']);
-        assertEquals("Test comment", $atts['comments'][0]['user1']);
-        assertEquals($id1, $atts['comments'][0]['byuserid']);
-        assertNull($atts['comments'][0]['user2']);
+        $this->assertEquals(1, count($atts['comments']));
+        $this->assertEquals($cid, $atts['comments'][0]['id']);
+        $this->assertEquals("Test comment", $atts['comments'][0]['user1']);
+        $this->assertEquals($id1, $atts['comments'][0]['byuserid']);
+        $this->assertNull($atts['comments'][0]['user2']);
 
         # Get it
         $atts = $u2->getComment($cid);
-        assertEquals("Test comment", $atts['user1']);
-        assertEquals($id1, $atts['byuserid']);
-        assertNull($atts['user2']);
-        assertNull($u2->getComment(-1));
+        $this->assertEquals("Test comment", $atts['user1']);
+        $this->assertEquals($id1, $atts['byuserid']);
+        $this->assertNull($atts['user2']);
+        $this->assertNull($u2->getComment(-1));
 
         # Edit it
-        assertTrue($u2->editComment($cid, "Test comment2"));
+        $this->assertTrue($u2->editComment($cid, "Test comment2"));
         $atts = $u2->getPublic();
-        assertEquals(1, count($atts['comments']));
-        assertEquals($cid, $atts['comments'][0]['id']);
-        assertEquals("Test comment2", $atts['comments'][0]['user1']);
+        $this->assertEquals(1, count($atts['comments']));
+        $this->assertEquals($cid, $atts['comments'][0]['id']);
+        $this->assertEquals("Test comment2", $atts['comments'][0]['user1']);
 
         # Can't see comments when a user
         $u1->setRole(User::ROLE_MEMBER, $gid);
         $atts = $u2->getPublic();
-        assertFalse(array_key_exists('comments', $atts));
+        $this->assertFalse(array_key_exists('comments', $atts));
 
         # Try to delete a comment when not a mod
         $u1->removeMembership($gid);
-        assertFalse($u2->deleteComment($cid));
+        $this->assertFalse($u2->deleteComment($cid));
         $u1->addMembership($gid);
-        assertFalse($u2->deleteComment($cid));
+        $this->assertFalse($u2->deleteComment($cid));
         $u1->addMembership($gid, User::ROLE_MODERATOR);
-        assertTrue($u2->deleteComment($cid));
+        $this->assertTrue($u2->deleteComment($cid));
         $atts = $u2->getPublic();
-        assertEquals(0, count($atts['comments']));
+        $this->assertEquals(0, count($atts['comments']));
 
         # Delete all
         $cid = $u2->addComment($gid, "Test comment");
-        assertNotNull($cid);
-        assertTrue($u2->deleteComments());
+        $this->assertNotNull($cid);
+        $this->assertTrue($u2->deleteComments());
         $atts = $u2->getPublic();
-        assertEquals(0, count($atts['comments']));
+        $this->assertEquals(0, count($atts['comments']));
 
         }
 
@@ -735,8 +735,8 @@ class userTest extends IznikTestCase {
     public function testCheck($mod) {
         $u1 = User::get($this->dbhr, $this->dbhm);
         $id1 = $u1->create('Test', 'User', NULL);
-        assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u1->login('testpw'));
+        $this->assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u1->login('testpw'));
         $u2 = User::get($this->dbhr, $this->dbhm);
         $id2 = $u2->create('Test', 'User', NULL);
 
@@ -759,21 +759,21 @@ class userTest extends IznikTestCase {
 
             # Should not show for review until we exceed the threshold.
             if ($i < Spam::SEEN_THRESHOLD || $mod) {
-                assertNull($u2->getMembershipAtt($gid, 'reviewrequestedat'), "Shouldn't be flagged as not exceeded threshold");
+                $this->assertNull($u2->getMembershipAtt($gid, 'reviewrequestedat'), "Shouldn't be flagged as not exceeded threshold");
             } else {
                 # Should now show for review on this group, but only the member, not the mod.
-                assertNotNull($u2->getMembershipAtt($gid, 'reviewrequestedat'));
+                $this->assertNotNull($u2->getMembershipAtt($gid, 'reviewrequestedat'));
                 $ctx = NULL;
                 $membs = $g->getMembers(10, NULL, $ctx, NULL, MembershipCollection::SPAM, [ $gid ]);
-                assertEquals(1, count($membs), "Should be flagged on $gid");
+                $this->assertEquals(1, count($membs), "Should be flagged on $gid");
 
                 # ...but not any previous groups because we flagged as reviewed on those.
                 foreach ($groupids as $checkgid) {
                     if ($checkgid != $gid) {
-                        assertNotNull($u2->getMembershipAtt($checkgid, 'reviewrequestedat'));
+                        $this->assertNotNull($u2->getMembershipAtt($checkgid, 'reviewrequestedat'));
                         $ctx = NULL;
                         $membs = $g->getMembers(10, NULL, $ctx, NULL, MembershipCollection::SPAM, [ $checkgid ]);
-                        assertEquals(0, count($membs), "Shouldn't be flagged on $checkgid");
+                        $this->assertEquals(0, count($membs), "Shouldn't be flagged on $checkgid");
                     }
                 }
             }
@@ -798,33 +798,33 @@ class userTest extends IznikTestCase {
         $u1 = User::get($this->dbhr, $this->dbhm);
         $id1 = $u1->create('Test', 'User', NULL);
         $u1 = User::get($this->dbhr, $this->dbhm, $id1);
-        assertFalse($u1->verifyEmail('bit-bucket@test.smtp.org'));
+        $this->assertFalse($u1->verifyEmail('bit-bucket@test.smtp.org'));
 
         # Confirm it
         $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email = 'bit-bucket@test.smtp.org';");
-        assertEquals(1, count($emails));
+        $this->assertEquals(1, count($emails));
         foreach ($emails as $email) {
-            assertTrue($u1->confirmEmail($email['validatekey']));
+            $this->assertTrue($u1->confirmEmail($email['validatekey']));
         }
 
         # Test add when it's in use for another user
         $u2 = User::get($this->dbhr, $this->dbhm);
         $id2 = $u2->create('Test', 'User', NULL);
         $u2 = User::get($this->dbhr, $this->dbhm, $id2);
-        assertFalse($u2->verifyEmail('bit-bucket@test.smtp.org'));
+        $this->assertFalse($u2->verifyEmail('bit-bucket@test.smtp.org'));
 
         # Now confirm that- should trigger a merge.
-        assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u2->login('testpw'));
+        $this->assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u2->login('testpw'));
         $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email = 'bit-bucket@test.smtp.org';");
-        assertEquals(1, count($emails));
+        $this->assertEquals(1, count($emails));
         foreach ($emails as $email) {
-            assertTrue($u2->confirmEmail($email['validatekey']));
+            $this->assertTrue($u2->confirmEmail($email['validatekey']));
         }
 
         # Test add when it's already one of ours.
-        assertNotNull($u2->addEmail('test@test.com'));
-        assertTrue($u2->verifyEmail('test@test.com'));
+        $this->assertNotNull($u2->addEmail('test@test.com'));
+        $this->assertTrue($u2->verifyEmail('test@test.com'));
 
     }
 
@@ -844,21 +844,21 @@ class userTest extends IznikTestCase {
         }));
 
         $s->confirmUnsubscribe();
-        assertEquals(1, count($this->msgsSent));
-        assertTrue(strpos($this->msgsSent[0], '&k=') !== FALSE);
-        assertTrue(strpos($this->msgsSent[0], '&confirm') !== FALSE);
+        $this->assertEquals(1, count($this->msgsSent));
+        $this->assertTrue(strpos($this->msgsSent[0], '&k=') !== FALSE);
+        $this->assertTrue(strpos($this->msgsSent[0], '&confirm') !== FALSE);
     }
 
     public function testCanon() {
-        assertEquals('test@testcom', User::canonMail('test@test.com'));
-        assertEquals('test@testcom', User::canonMail('test+fake@test.com'));
-        assertEquals('firstlast@gmailcom', User::canonMail('first.last@gmail.com'));
-        assertEquals('first.last@othercom', User::canonMail('first.last@other.com'));
-        assertEquals('test@usertrashnothingcom', User::canonMail('test-g1@user.trashnothing.com'));
-        assertEquals('test@usertrashnothingcom', User::canonMail('test-x1@user.trashnothing.com'));
-        assertEquals('test-x1@usertrashnothingcom', User::canonMail('test-x1-x2@user.trashnothing.com'));
-        assertEquals('app+test@proxymailfacebookcom', User::canonMail('app+test@proxymail.facebook.com'));
-        assertEquals('+123@testcom', User::canonMail('+123@testcom'));
+        $this->assertEquals('test@testcom', User::canonMail('test@test.com'));
+        $this->assertEquals('test@testcom', User::canonMail('test+fake@test.com'));
+        $this->assertEquals('firstlast@gmailcom', User::canonMail('first.last@gmail.com'));
+        $this->assertEquals('first.last@othercom', User::canonMail('first.last@other.com'));
+        $this->assertEquals('test@usertrashnothingcom', User::canonMail('test-g1@user.trashnothing.com'));
+        $this->assertEquals('test@usertrashnothingcom', User::canonMail('test-x1@user.trashnothing.com'));
+        $this->assertEquals('test-x1@usertrashnothingcom', User::canonMail('test-x1-x2@user.trashnothing.com'));
+        $this->assertEquals('app+test@proxymailfacebookcom', User::canonMail('app+test@proxymail.facebook.com'));
+        $this->assertEquals('+123@testcom', User::canonMail('+123@testcom'));
     }
 
     public function testInvent() {
@@ -867,40 +867,40 @@ class userTest extends IznikTestCase {
         $id = $u->create('Test', 'User', NULL);
         $email = $u->inventEmail();
         $this->log("No emails, invented $email");
-        assertFalse(strpos($email, 'test'));
+        $this->assertFalse(strpos($email, 'test'));
 
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $u->addEmail('tes2t');
         $email = $u->inventEmail();
         $this->log("Invalid, invented $email");
-        assertFalse(strpos($email, 'test'));
+        $this->assertFalse(strpos($email, 'test'));
 
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $u->addEmail('test@test.com');
         $email = $u->inventEmail();
         $this->log("Unusable email, invented $email");
-        assertFalse(strpos($email, 'test'));
+        $this->assertFalse(strpos($email, 'test'));
 
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $u->setPrivate('yahooid', '-wibble');
         $email = $u->inventEmail();
         $this->log("Yahoo ID, invented $email");
-        assertNotFalse(strpos($email, 'wibble'));
+        $this->assertNotFalse(strpos($email, 'wibble'));
 
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $u->addEmail('wobble@wobble.com');
         $email = $u->inventEmail();
         $this->log("Other email, invented $email");
-        assertNotFalse(strpos($email, 'wobble'));
+        $this->assertNotFalse(strpos($email, 'wobble'));
 
         # Call again now we have one.
         $email2 = $u->inventEmail();
         $this->log("Other email again, invented $email2");
-        assertEquals($email, $email2);
+        $this->assertEquals($email, $email2);
 
         $id = $u->create(NULL, NULL, "Test - User");
         $email = $u->inventEmail();
@@ -913,7 +913,7 @@ class userTest extends IznikTestCase {
         $email = $u->inventEmail();
         $this->log("Other email, invented $email");
         error_log("Invented $email");
-        assertFalse(strpos($email, 'test'));
+        $this->assertFalse(strpos($email, 'test'));
     }
 
     public function testThank() {
@@ -925,7 +925,7 @@ class userTest extends IznikTestCase {
 
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $u->addEmail('test@test.com');
         $u->thankDonation();
 
@@ -953,7 +953,7 @@ class userTest extends IznikTestCase {
 
         # Welcome mail sent on application.
         $s->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED);
-        assertEquals(1, count($this->msgsSent));
+        $this->assertEquals(1, count($this->msgsSent));
     }
 
     public function testInvite() {
@@ -969,11 +969,11 @@ class userTest extends IznikTestCase {
 
         # Invite - should work
         $invited = $u->invite('test2@test.com');
-        assertTrue($invited);
+        $this->assertTrue($invited);
 
         # Invite again - should fail
         $invited = $u->invite('test2@test.com');
-        assertFalse($invited);
+        $this->assertFalse($invited);
 
         }
 
@@ -987,7 +987,7 @@ class userTest extends IznikTestCase {
         $atts = $u->getPublic();
         $u->ensureAvatar($atts);
         $this->log("gravatar@ehibbert.org.uk " . var_export($atts['profile'], TRUE));
-        assertTrue($atts['profile']['gravatar']);
+        $this->assertTrue($atts['profile']['gravatar']);
 
         $uid = $u->create("Test", "User", "Test User");
         $u->addEmail('atrusty-gxxxx@user.trashnothing.com');
@@ -995,7 +995,7 @@ class userTest extends IznikTestCase {
         $atts = $u->getPublic();
         $u->ensureAvatar($atts);
         $this->log("atrusty " . var_export($atts['profile'], TRUE));
-        assertTrue($atts['profile']['TN']);
+        $this->assertTrue($atts['profile']['TN']);
 
         $uid = $u->create("Test", "User", "Test User");
         $this->log("Created user $uid");
@@ -1003,7 +1003,7 @@ class userTest extends IznikTestCase {
         $this->log("Email $eid");
         $atts = $u->getPublic();
         $u->ensureAvatar($atts);
-        assertTrue($atts['profile']['gravatar']);
+        $this->assertTrue($atts['profile']['gravatar']);
 
         $uid = $u->create("Test", "User", "Test User");
         $this->log("Created user $uid");
@@ -1015,7 +1015,7 @@ class userTest extends IznikTestCase {
         $u = new User($this->dbhr, $this->dbhm, $uid);
         $atts = $u->getPublic();
         $u->ensureAvatar($atts);
-        assertTrue($atts['profile']['default']);
+        $this->assertTrue($atts['profile']['default']);
     }
 
     public function testBadYahooId() {
@@ -1039,19 +1039,19 @@ class userTest extends IznikTestCase {
     public function testSetting() {
         $u = User::get($this->dbhm, $this->dbhm);
         $u->create('Test', 'User', 'A freegler');
-        assertTrue($u->getSetting('notificationmails', TRUE));
+        $this->assertTrue($u->getSetting('notificationmails', TRUE));
 
         $settings = json_decode($u->getPrivate('settings'), TRUE);
         $settings['notificationmails'] = FALSE;
         $u->setPrivate('settings', json_encode($settings));
-        assertFalse($u->getSetting('notificationmails', TRUE));
+        $this->assertFalse($u->getSetting('notificationmails', TRUE));
 
         }
 
     public function testFreegleMembership() {
         $u1 = User::get($this->dbhr, $this->dbhm);
         $uid1 = $u1->create('Test', 'User', 'A freegler');
-        assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         $u2 = User::get($this->dbhr, $this->dbhm);
         $uid2 = $u2->create('Test', 'User', 'A freegler');
@@ -1069,7 +1069,7 @@ class userTest extends IznikTestCase {
         # Make the membership look old otherwise it will show up anyway.
         $u2->setMembershipAtt($gid2, 'added', '2001-01-01');
 
-        assertTrue($u1->login('testpw'));
+        $this->assertTrue($u1->login('testpw'));
 
         $atts = $u2->getPublic(NULL, FALSE, FALSE, TRUE);
         self::assertEquals(1, count($atts['memberof']));
@@ -1080,7 +1080,7 @@ class userTest extends IznikTestCase {
     public function testNonFreegleMembership() {
         $u1 = User::get($this->dbhr, $this->dbhm);
         $uid1 = $u1->create('Test', 'User', 'A freegler');
-        assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         $u2 = User::get($this->dbhr, $this->dbhm);
         $uid2 = $u2->create('Test', 'User', 'A freegler');
@@ -1098,7 +1098,7 @@ class userTest extends IznikTestCase {
         # Make the membership look old otherwise it will show up anyway.
         $u2->setMembershipAtt($gid2, 'added', '2001-01-01');
 
-        assertTrue($u1->login('testpw'));
+        $this->assertTrue($u1->login('testpw'));
 
         $atts = $u2->getPublic(NULL, FALSE, FALSE, TRUE);
         self::assertEquals(0, count($atts['memberof']));
@@ -1131,8 +1131,8 @@ class userTest extends IznikTestCase {
         # Set up some things to ensure we have coverage.
         $atts = $u->getPublic();
         $u->ensureAvatar($atts);
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, 'testid', 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, 'testid', 'testpw'));
+        $this->assertTrue($u->login('testpw'));
         $n = new Newsfeed($this->dbhr, $this->dbhm);
 
         $r = new ChatRoom($this->dbhr, $this->dbhm);
@@ -1157,9 +1157,9 @@ class userTest extends IznikTestCase {
         $u->addPhone('1234');
 
         $u->setPrivate('settings', json_encode($settings));
-        assertEquals(8.51111, $u->getPublic()['settings']['mylocation']['lat']);
-        assertEquals(179.11111, $u->getPublic()['settings']['mylocation']['lng']);
-        assertEquals('Somewhere', $u->getPublic()['settings']['mylocation']['area']['name']);
+        $this->assertEquals(8.51111, $u->getPublic()['settings']['mylocation']['lat']);
+        $this->assertEquals(179.11111, $u->getPublic()['settings']['mylocation']['lng']);
+        $this->assertEquals('Somewhere', $u->getPublic()['settings']['mylocation']['area']['name']);
 
         # Get blurred location.
         $g = Group::get($this->dbhr, $this->dbhm);
@@ -1167,9 +1167,9 @@ class userTest extends IznikTestCase {
         $u->addMembership($gid);
         $atts = $u->getPublic();
         $latlngs = $u->getLatLngs([ $atts ], TRUE, TRUE, TRUE, NULL, Utils::BLUR_1K);
-        assertEquals(8.5153, $latlngs[$u->getId()]['lat']);
-        assertEquals(179.1191, $latlngs[$u->getId()]['lng']);
-        assertEquals('testgroup', $latlngs[$u->getId()]['group']);
+        $this->assertEquals(8.5153, $latlngs[$u->getId()]['lat']);
+        $this->assertEquals(179.1191, $latlngs[$u->getId()]['lng']);
+        $this->assertEquals('testgroup', $latlngs[$u->getId()]['group']);
 
         $nid = $n->create(Newsfeed::TYPE_MESSAGE, $uid, 'Test');
 
@@ -1193,7 +1193,7 @@ class userTest extends IznikTestCase {
             $ret = $u->export($id, $tag);
         }
 
-        assertEquals($uid, $ret['Our_internal_ID_for_you']);
+        $this->assertEquals($uid, $ret['Our_internal_ID_for_you']);
 
         $n = new Newsfeed($this->dbhr, $this->dbhm, $nid);
         $n->delete();
@@ -1212,7 +1212,7 @@ class userTest extends IznikTestCase {
         $u->addEmail($email);
         $u->addEmail('test@test.com');
         $u->setPrivate('yahooid', 'test');
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         # Log in to generate log.
         $u->login('testpw');
@@ -1245,7 +1245,7 @@ class userTest extends IznikTestCase {
         $logs = [ $u->getId() => [ 'id' => $u->getId() ] ];
         $u->getPublicLogs($u, $logs, FALSE, $ctx);
         $log = $this->findLog(Log::TYPE_USER, Log::SUBTYPE_DELETED, $logs[$u->getId()]['logs']);
-        assertNotNull($log);
+        $this->assertNotNull($log);
 
         # Get logs for coverage.
         $u = User::get($this->dbhm, $this->dbhm, $uid);
@@ -1253,7 +1253,7 @@ class userTest extends IznikTestCase {
         $ctx = NULL;
         $logs = [ $u->getId() => [ 'id' => $u->getId() ] ];
         $u->getPublicLogs($u, $logs, FALSE, $ctx);
-        assertEquals(0, strpos($logs[$u->getId()]['logs'][0]['user']['fullname'], 'Deleted User'));
+        $this->assertEquals(0, strpos($logs[$u->getId()]['logs'][0]['user']['fullname'], 'Deleted User'));
 
         # Check we zapped things
         $emails = $u->getEmails();
@@ -1265,7 +1265,7 @@ class userTest extends IznikTestCase {
         self::assertEquals(NULL, $u->getPrivate('yahooid'));
         self::assertEquals(0, count($u->getLogins()));
         self::assertEquals(0, count($u->getMemberships()));
-        assertNotNull($m->hasOutcome());
+        $this->assertNotNull($m->hasOutcome());
     }
 
     public function testRetention() {
@@ -1280,14 +1280,14 @@ class userTest extends IznikTestCase {
         self::assertEquals(1, $u->userRetention($uid2));
 
         $u = User::get($this->dbhm, $this->dbhm, $uid2);
-        assertNull($u->getPrivate('yahooid'));
+        $this->assertNull($u->getPrivate('yahooid'));
     }
 
     public function testPhone() {
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create('Test', 'User', 'Test User');
 
-        assertEquals('+441234567890', $u->formatPhone('01234 567890'));
+        $this->assertEquals('+441234567890', $u->formatPhone('01234 567890'));
 
         $u->addPhone('01234 567890');
         $u->sms('Test message', 'https://' . USER_SITE, TWILIO_TEST_FROM, TWILIO_TEST_SID, TWILIO_TEST_AUTHTOKEN);
@@ -1297,7 +1297,7 @@ class userTest extends IznikTestCase {
 
         # Test with error.
         $u->removePhone();
-        assertNotNull($u->addPhone('+15005550001'));
+        $this->assertNotNull($u->addPhone('+15005550001'));
         $u->sms('Test message', 'https://' . USER_SITE, TWILIO_TEST_FROM, TWILIO_TEST_SID, TWILIO_TEST_AUTHTOKEN);
     }
 
@@ -1310,9 +1310,9 @@ class userTest extends IznikTestCase {
 
         $l = new Location($this->dbhr, $this->dbhm);
         $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))');
-        assertNotNull($areaid);
+        $this->assertNotNull($areaid);
         $areaatts = $l->getPublic();
-        assertNull($areaatts['areaid']);
+        $this->assertNull($areaatts['areaid']);
         $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
         $fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)');
         $locid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
@@ -1322,8 +1322,8 @@ class userTest extends IznikTestCase {
         $u->addEmail('test@test.com');
         $this->log("Created $uid, add membership of $gid");
         $rc = $u->addMembership($gid);
-        assertNotNull($u->isApprovedMember($gid));
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_FACEBOOK, $uid, 'testpw'));
+        $this->assertNotNull($u->isApprovedMember($gid));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_FACEBOOK, $uid, 'testpw'));
         $u->setPrivate('lastlocation', $fullpcid);
         $u->setSetting('mylocation', $areaatts);
 
@@ -1339,14 +1339,14 @@ class userTest extends IznikTestCase {
 
         $u->updateKudos($uid, TRUE);
         $kudos = $u->getKudos($uid);
-        assertEquals(0, $kudos['kudos']);
+        $this->assertEquals(0, $kudos['kudos']);
         $top = $u->topKudos($gid);
-        assertEquals($uid, $top[0]['user']['id']);
+        $this->assertEquals($uid, $top[0]['user']['id']);
 
         # No mods as not got Facebook login
         $mods = $u->possibleMods($gid);
-        assertEquals(1, count($mods));
-        assertEquals($uid, $mods[0]['user']['id']);
+        $this->assertEquals(1, count($mods));
+        $this->assertEquals($uid, $mods[0]['user']['id']);
 
         }
 
@@ -1358,11 +1358,11 @@ class userTest extends IznikTestCase {
         ]);
 
         $ids = $u->getActiveSince('5 minutes ago', 'tomorrow');
-        assertTrue(in_array($uid, $ids));
+        $this->assertTrue(in_array($uid, $ids));
     }
 
     public function testEncodeId() {
-        assertEquals(123, User::decodeId(User::encodeId(123)));
+        $this->assertEquals(123, User::decodeId(User::encodeId(123)));
 
         # Test we can search on UID.
         $u = User::get($this->dbhm, $this->dbhm);
@@ -1373,17 +1373,17 @@ class userTest extends IznikTestCase {
         $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
         $_SESSION['id'] = $uid2;
         $enc = User::encodeId($uid1);
-        assertEquals($uid1, User::decodeId($enc));
+        $this->assertEquals($uid1, User::decodeId($enc));
         $ctx = NULL;
         $search = $u->search($enc, $ctx);
-        assertEquals(1, count($search));
-        assertEquals($uid1, $search[0]['id']);
+        $this->assertEquals(1, count($search));
+        $this->assertEquals($uid1, $search[0]['id']);
 
         # Should see the login link.
-        assertNotNull(Utils::presdef('loginlink', $search[0], NULL));
+        $this->assertNotNull(Utils::presdef('loginlink', $search[0], NULL));
 
         # Should see the chat rooms.
-        assertEquals(1, count(Utils::pres('chatrooms', $search[0], NULL)));
+        $this->assertEquals(1, count(Utils::pres('chatrooms', $search[0], NULL)));
     }
 
     public function testActiveCounts() {
@@ -1391,12 +1391,12 @@ class userTest extends IznikTestCase {
         $this->uid = $u->create('Test', 'User', 'Test User');
         $u->addEmail('test@test.com');
         $u->addEmail('sender@example.net');
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->user = $u;
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
-        assertEquals(1, $u->addMembership($group1));
+        $this->assertEquals(1, $u->addMembership($group1));
         $u->setMembershipAtt($group1, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -1433,12 +1433,12 @@ class userTest extends IznikTestCase {
         $r->route($m);
 
         $info = $u->getInfo();
-        assertEquals(2, $info['offers']);
-        assertEquals(1, $info['wanteds']);
-        assertEquals(2, $info['openoffers']);
-        assertEquals(1, $info['openwanteds']);
+        $this->assertEquals(2, $info['offers']);
+        $this->assertEquals(1, $info['wanteds']);
+        $this->assertEquals(2, $info['openoffers']);
+        $this->assertEquals(1, $info['openwanteds']);
 
-        assertEquals([
+        $this->assertEquals([
             'offers' => 2,
             'wanteds' => 1
         ], $u->getActiveCounts());
@@ -1449,38 +1449,38 @@ class userTest extends IznikTestCase {
         $uid = $u->create("Test", "User", "A freegler");
         $u = new User($this->dbhm, $this->dbhm, $uid);
         $atts = $u->getPublic();
-        assertNotEquals('A freegler', $atts['fullname']);
+        $this->assertNotEquals('A freegler', $atts['fullname']);
         $u = new User($this->dbhm, $this->dbhm, $uid);
-        assertEquals(1, $u->getPrivate('inventedname'));
+        $this->assertEquals(1, $u->getPrivate('inventedname'));
     }
 
     public function testResurrect() {
         $u = new User($this->dbhm, $this->dbhm);
         $uid = $u->create(NULL, NULL, "Deleted User #1");
         $name = $u->getName();
-        assertNotFalse(strpos($name, 'Deleted User'));
+        $this->assertNotFalse(strpos($name, 'Deleted User'));
 
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
         $name = $u->getName();
-        assertFalse(strpos($name, 'Deleted User'));
+        $this->assertFalse(strpos($name, 'Deleted User'));
     }
 
     public function testSplit() {
         $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $u->setPrivate('yahooid', '-testyahooid');
-        assertNotNull($u->addEmail('test@test.com'));
+        $this->assertNotNull($u->addEmail('test@test.com'));
         $u->split('test@test.com');
-        assertNotNull($u->findByEmail('test@test.com'));
-        assertNotNull($u->findByYahooId('-testyahooid'));
+        $this->assertNotNull($u->findByEmail('test@test.com'));
+        $this->assertNotNull($u->findByYahooId('-testyahooid'));
     }
 
     public function testSplitWithChats() {
         $u = User::get($this->dbhm, $this->dbhm);
         $id1 = $u->create('Test', 'User', NULL);
         $u->setPrivate('yahooid', '-testyahooid');
-        assertNotNull($u->addEmail('test@test.com'));
+        $this->assertNotNull($u->addEmail('test@test.com'));
 
         $this->group = Group::get($this->dbhr, $this->dbhm);
         $this->gid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
@@ -1494,7 +1494,7 @@ class userTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::PENDING, $rc);
+        $this->assertEquals(MailRouter::PENDING, $rc);
 
         $id2 = $u->create('Test', 'User', NULL);
         $id3 = $u->create('Test', 'User', NULL);
@@ -1510,11 +1510,11 @@ class userTest extends IznikTestCase {
         $u = User::get($this->dbhm, $this->dbhm, $id1);
         $newid = $u->split('test@test.com');
 
-        assertNotNull($u->findByEmail('test@test.com'));
-        assertNotNull($u->findByYahooId('-testyahooid'));
+        $this->assertNotNull($u->findByEmail('test@test.com'));
+        $this->assertNotNull($u->findByYahooId('-testyahooid'));
 
         $chats = $r->listForUser(Session::modtools(), $newid);
-        assertEquals(2, count($chats));
+        $this->assertEquals(2, count($chats));
     }
 
     public function testEmailHistory() {
@@ -1531,21 +1531,21 @@ class userTest extends IznikTestCase {
         ], FALSE);
 
         $atts = $u->getPublic(NULL, TRUE, TRUE, TRUE, TRUE, FALSE, TRUE, [ MessageCollection::APPROVED ], FALSE);
-        assertEquals(1, count($atts['emailhistory']));
+        $this->assertEquals(1, count($atts['emailhistory']));
     }
 
     public function testDeletedUserLogs() {
         $u = User::get($this->dbhr, $this->dbhm);
         $id1 = $u->create('Test', 'User', NULL);
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
         $u->forget("UT");
         $this->waitBackground();
         $ctx = NULL;
         $logs = [ $u->getId() => [ 'id' => $u->getId() ] ];
         $u->getPublicLogs($u, $logs, FALSE, $ctx);
-        assertEquals(0, strpos($logs[$u->getId()]['logs'][0]['user']['fullname'], 'Deleted User'));
-        assertEquals(0, strpos($logs[$u->getId()]['logs'][1]['byuser']['fullname'], 'Deleted User'));
+        $this->assertEquals(0, strpos($logs[$u->getId()]['logs'][0]['user']['fullname'], 'Deleted User'));
+        $this->assertEquals(0, strpos($logs[$u->getId()]['logs'][1]['byuser']['fullname'], 'Deleted User'));
     }
 
     public function testMailer() {
@@ -1561,7 +1561,7 @@ class userTest extends IznikTestCase {
             return($this->sendMock($mailer, $message));
         }));
         $mock->mailer($u, NULL, "Test", "test@test.com", "test@test.com", "Test", "test@test.com", "Test", "Test");
-        assertEquals(1, count($this->msgsSent));
+        $this->assertEquals(1, count($this->msgsSent));
 
         $mock = $this->getMockBuilder('Freegle\Iznik\User')
             ->disableOriginalConstructor()
@@ -1569,7 +1569,7 @@ class userTest extends IznikTestCase {
             ->getMock();
         $mock->method('sendIt')->willThrowException(new \Exception());
         $mock->mailer($u, NULL, "Test", "test@test.com", "test@test.com", "Test", "test@test.com", "Test", "Test");
-        assertEquals(1, count($this->msgsSent));
+        $this->assertEquals(1, count($this->msgsSent));
     }
 
     public function testChatCounts() {
@@ -1601,21 +1601,21 @@ class userTest extends IznikTestCase {
 
         $u = User::get($this->dbhr, $this->dbhm, $id1);
         list ($total, $chatcount, $notifcount, $title, $message, $chatids, $route) = $u->getNotificationPayload(FALSE);
-        assertEquals(1, $chatcount);
+        $this->assertEquals(1, $chatcount);
         list ($total, $chatcount, $notifcount, $title, $message, $chatids, $route) = $u->getNotificationPayload(TRUE);
-        assertEquals(2, $chatcount);
+        $this->assertEquals(2, $chatcount);
     }
 
     public function testFormatPhone() {
         $u = new User($this->dbhr, $this->dbhm);
-        assertEquals('+447888888888' ,$u->formatPhone('+44447888888888'));
-        assertEquals('+447888888888' ,$u->formatPhone('+4444447888888888'));
-        assertEquals('+447888888888' ,$u->formatPhone('4444447888888888'));
-        assertEquals('+447888888888' ,$u->formatPhone('447888888888'));
-        assertEquals('+447888888888' ,$u->formatPhone('4407888888888'));
-        assertEquals('+447888888888' ,$u->formatPhone('+4407888888888'));
-        assertEquals('+447888888888' ,$u->formatPhone('07888888888'));
-        assertEquals('+447888888888' ,$u->formatPhone('+440447888888888'));
+        $this->assertEquals('+447888888888' ,$u->formatPhone('+44447888888888'));
+        $this->assertEquals('+447888888888' ,$u->formatPhone('+4444447888888888'));
+        $this->assertEquals('+447888888888' ,$u->formatPhone('4444447888888888'));
+        $this->assertEquals('+447888888888' ,$u->formatPhone('447888888888'));
+        $this->assertEquals('+447888888888' ,$u->formatPhone('4407888888888'));
+        $this->assertEquals('+447888888888' ,$u->formatPhone('+4407888888888'));
+        $this->assertEquals('+447888888888' ,$u->formatPhone('07888888888'));
+        $this->assertEquals('+447888888888' ,$u->formatPhone('+440447888888888'));
     }
 
     public function testJobAds() {
@@ -1631,7 +1631,7 @@ class userTest extends IznikTestCase {
 
         $u->setPrivate('settings', json_encode($settings));
         $jobs = $u->getJobAds();
-        assertGreaterThan(0, strlen($jobs['jobs']));
+        $this->assertGreaterThan(0, strlen($jobs['jobs']));
     }
 
     public function testSetPostcode() {
@@ -1657,19 +1657,19 @@ class userTest extends IznikTestCase {
         $u = new User($this->dbhr, $this->dbhm);
         $u->getPublicLogs($u, $logs, FALSE, $ctx, FALSE, TRUE);
         $log = $this->findLog(Log::TYPE_USER, Log::SUBTYPE_POSTCODECHANGE, $logs[$uid]['logs']);
-        assertNotNull($log);
+        $this->assertNotNull($log);
     }
 
     public function testObfuscate() {
         $u = new User($this->dbhr, $this->dbhm);
-        assertEquals('t***@test.com', $u->obfuscateEmail('t@test.com'));
-        assertEquals('t***@test.com', $u->obfuscateEmail('te@test.com'));
-        assertEquals('t***@test.com', $u->obfuscateEmail('tes@test.com'));
-        assertEquals('t***t@test.com', $u->obfuscateEmail('test@test.com'));
-        assertEquals('t***1@test.com', $u->obfuscateEmail('test1@test.com'));
-        assertEquals('t***2@test.com', $u->obfuscateEmail('test12@test.com'));
-        assertEquals('tes***890@test.com', $u->obfuscateEmail('test1234567890@test.com'));
-        assertEquals('Your Apple ID', $u->obfuscateEmail('1234@privaterelay.appleid.com'));
+        $this->assertEquals('t***@test.com', $u->obfuscateEmail('t@test.com'));
+        $this->assertEquals('t***@test.com', $u->obfuscateEmail('te@test.com'));
+        $this->assertEquals('t***@test.com', $u->obfuscateEmail('tes@test.com'));
+        $this->assertEquals('t***t@test.com', $u->obfuscateEmail('test@test.com'));
+        $this->assertEquals('t***1@test.com', $u->obfuscateEmail('test1@test.com'));
+        $this->assertEquals('t***2@test.com', $u->obfuscateEmail('test12@test.com'));
+        $this->assertEquals('tes***890@test.com', $u->obfuscateEmail('test1234567890@test.com'));
+        $this->assertEquals('Your Apple ID', $u->obfuscateEmail('1234@privaterelay.appleid.com'));
     }
 
     public function testGetCity() {
@@ -1689,22 +1689,22 @@ class userTest extends IznikTestCase {
 
         $u->setPrivate('settings', json_encode($settings));
         list ($city, $lat, $lng) = $u->getCity();
-        assertEquals(55.9, $lat);
-        assertEquals(-3.15, $lng);
-        assertEquals('Edinburgh', $city);
+        $this->assertEquals(55.9, $lat);
+        $this->assertEquals(-3.15, $lng);
+        $this->assertEquals('Edinburgh', $city);
     }
 
     public function testBadEmail() {
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
-        assertNull($u->addEmail('notify-2023105-3506086@users.ilovefreegle.org'));
-        assertNull($u->addEmail('replyto-2023105@users.ilovefreegle.org'));
+        $this->assertNull($u->addEmail('notify-2023105-3506086@users.ilovefreegle.org'));
+        $this->assertNull($u->addEmail('replyto-2023105@users.ilovefreegle.org'));
     }
 
     public function testTNName() {
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create(NULL, NULL, 'wibble-g123');
-        assertEquals('wibble', $u->getName(TRUE, NULL, TRUE));
+        $this->assertEquals('wibble', $u->getName(TRUE, NULL, TRUE));
     }
 }
 

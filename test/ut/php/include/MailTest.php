@@ -38,7 +38,7 @@ class MailTest extends IznikTestCase {
             }
         }
 
-        assertTrue($found);
+        $this->assertTrue($found);
     }
 }
 

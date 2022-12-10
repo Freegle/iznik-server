@@ -28,8 +28,8 @@ class pushNotificationsTest extends IznikTestCase {
     public function testBasic() {
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
         $this->log("Created $id");
 
         $mock = $this->getMockBuilder('Freegle\Iznik\PushNotifications')
@@ -41,22 +41,22 @@ class pushNotificationsTest extends IznikTestCase {
         $n = new PushNotifications($this->dbhr, $this->dbhm);
         $this->log("Send Google");
         $n->add($id, PushNotifications::PUSH_GOOGLE, 'test');
-        assertEquals(1, count($n->get($id)));
-        assertEquals(1, $mock->notify($id, TRUE));
+        $this->assertEquals(1, count($n->get($id)));
+        $this->assertEquals(1, $mock->notify($id, TRUE));
         $this->log("Send Firefox");
         $n->add($id, PushNotifications::PUSH_FIREFOX, 'test2');
-        assertEquals(2, count($n->get($id)));
-        assertEquals(2, $n->notify($id, TRUE));
+        $this->assertEquals(2, count($n->get($id)));
+        $this->assertEquals(2, $n->notify($id, TRUE));
         $this->log("Send Android");
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
         $this->log("Notify group mods");
         $u->addMembership($this->groupid, User::ROLE_MODERATOR);
-        assertEquals(2, $mock->notifyGroupMods($this->groupid));
+        $this->assertEquals(2, $mock->notifyGroupMods($this->groupid));
 
         $n->remove($id);
-        assertEquals([], $n->get($id));
+        $this->assertEquals([], $n->get($id));
 
         }
 
@@ -79,13 +79,13 @@ class pushNotificationsTest extends IznikTestCase {
         $mock->method('uthook')->willThrowException(new \Exception('UT'));
 
         $rc = $mock->executeSend(0, PushNotifications::PUSH_GOOGLE, [], 'test', NULL);
-        assertNotNull($rc['exception']);
+        $this->assertNotNull($rc['exception']);
 
         $mock->executeSend(0, PushNotifications::PUSH_GOOGLE, [], 'test', [
             'count' => 1,
             'title' => 'UT'
         ]);
-        assertNotNull($rc['exception']);
+        $this->assertNotNull($rc['exception']);
     }
 
     public function testExecuteFCM() {
@@ -112,7 +112,7 @@ class pushNotificationsTest extends IznikTestCase {
             'message' => 'UT',
             'chatids' => [ 1 ]
         ]);
-        assertNotNull($rc['exception']);
+        $this->assertNotNull($rc['exception']);
 
         $rc = $mock->executeSend(0, PushNotifications::PUSH_FCM_IOS, [], 'test', [
             'count' => 1,
@@ -120,7 +120,7 @@ class pushNotificationsTest extends IznikTestCase {
             'message' => 'UT',
             'chatids' => [ 1 ]
         ]);
-        assertNotNull($rc['exception']);
+        $this->assertNotNull($rc['exception']);
 
         $rc = $mock->executeSend(0, PushNotifications::PUSH_FCM_IOS, [], 'test', [
             'count' => 1,
@@ -128,7 +128,7 @@ class pushNotificationsTest extends IznikTestCase {
             'message' => '',
             'chatids' => [ 1 ]
         ]);
-        assertNotNull($rc['exception']);
+        $this->assertNotNull($rc['exception']);
     }
 
     public function testPoke() {
@@ -139,7 +139,7 @@ class pushNotificationsTest extends IznikTestCase {
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->enableProxyingToOriginalMethods()
             ->getMock();
-        assertEquals(TRUE, $mock->poke($id, [ 'ut' => 1 ], FALSE));
+        $this->assertEquals(TRUE, $mock->poke($id, [ 'ut' => 1 ], FALSE));
 
         $mock = $this->getMockBuilder('Freegle\Iznik\PushNotifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
@@ -147,7 +147,7 @@ class pushNotificationsTest extends IznikTestCase {
             ->setMethods(array('uthook'))
             ->getMock();
         $mock->method('uthook')->willThrowException(new \Exception());
-        assertEquals(FALSE, $mock->poke($id, [ 'ut' => 1 ], FALSE));
+        $this->assertEquals(FALSE, $mock->poke($id, [ 'ut' => 1 ], FALSE));
 
         }
 
@@ -184,7 +184,7 @@ class pushNotificationsTest extends IznikTestCase {
         $mock->method('puts')->willReturn(NULL);
         $mock->executePoke($id, [ 'ut' => 1 ], FALSE);
 
-        assertTrue(TRUE);
+        $this->assertTrue(TRUE);
     }
 }
 

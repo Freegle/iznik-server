@@ -32,8 +32,8 @@ class userSearchAPITest extends IznikAPITestCase {
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
-        assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($this->user->login('testpw'));
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($this->user->login('testpw'));
         $ret = $this->call('user', 'GET', [
             'search' => 'hellsauntie@uwclub.net'
         ]);
@@ -45,35 +45,35 @@ class userSearchAPITest extends IznikAPITestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
-        assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         $s = new UserSearch($this->dbhr, $this->dbhm);
         $id = $s->create($this->uid, NULL, 'testsearch');
         
         $ret = $this->call('usersearch', 'GET', []);
-        assertEquals(1, $ret['ret']);
+        $this->assertEquals(1, $ret['ret']);
 
-        assertTrue($this->user->login('testpw'));
+        $this->assertTrue($this->user->login('testpw'));
 
         $ret = $this->call('usersearch', 'GET', []);
-        assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['usersearches']));
-        assertEquals($id, $ret['usersearches'][0]['id']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, count($ret['usersearches']));
+        $this->assertEquals($id, $ret['usersearches'][0]['id']);
 
         $ret = $this->call('usersearch', 'GET', [
             'id' => $id
         ]);
-        assertEquals(0, $ret['ret']);
-        assertEquals($id, $ret['usersearch']['id']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals($id, $ret['usersearch']['id']);
 
         $ret = $this->call('usersearch', 'DELETE', [
             'id' => $id
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         $ret = $this->call('usersearch', 'GET', []);
-        assertEquals(0, $ret['ret']);
-        assertEquals(0, count($ret['usersearches']));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, count($ret['usersearches']));
 
         $s->delete();
     }

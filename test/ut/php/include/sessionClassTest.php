@@ -29,7 +29,7 @@ class sessionClassTest extends IznikTestCase {
     public function testBasic() {
         # Logged out
         $me = Session::whoAmI($this->dbhm, $this->dbhm);
-        assertNull($me);
+        $this->assertNull($me);
 
         $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
@@ -39,19 +39,19 @@ class sessionClassTest extends IznikTestCase {
 
         # Verify it
         $ver = $s->verify($ret['id'], $ret['series'], $ret['token']);
-        assertEquals($id, $ver);
+        $this->assertEquals($id, $ver);
 
         $_SESSION['id'] = NULL;
 
-        assertNull($s->verify($id, $ret['series'] . 'z', $ret['token']));
+        $this->assertNull($s->verify($id, $ret['series'] . 'z', $ret['token']));
 
         $me = Session::whoAmI($this->dbhm, $this->dbhm);
-        assertNull($me);
+        $this->assertNull($me);
 
         # Now fake the login
         $_SESSION['id'] = $id;
         $me = Session::whoAmI($this->dbhm, $this->dbhm);
-        assertEquals($id, $me->getPrivate('id'));
+        $this->assertEquals($id, $me->getPrivate('id'));
 
         }
 
@@ -59,7 +59,7 @@ class sessionClassTest extends IznikTestCase {
         # Can call this twice
         Session::prepareSession($this->dbhm, $this->dbhm);
         Session::prepareSession($this->dbhm, $this->dbhm);
-        assertTrue(TRUE);
+        $this->assertTrue(TRUE);
 
         }
 
@@ -76,8 +76,8 @@ class sessionClassTest extends IznikTestCase {
         global $sessionPrepared;
         $sessionPrepared = FALSE;
         Session::prepareSession($this->dbhm, $this->dbhm);
-        assertTrue($_SESSION['logged_in']);
-        assertEquals($id, $_SESSION['id']);
+        $this->assertTrue($_SESSION['logged_in']);
+        $this->assertEquals($id, $_SESSION['id']);
 
         # ...repeatedly
         $_SESSION['id'] = NULL;
@@ -85,14 +85,14 @@ class sessionClassTest extends IznikTestCase {
         global $sessionPrepared;
         $sessionPrepared = FALSE;
         Session::prepareSession($this->dbhm, $this->dbhm);
-        assertTrue($_SESSION['logged_in']);
-        assertEquals($id, $_SESSION['id']);
+        $this->assertTrue($_SESSION['logged_in']);
+        $this->assertEquals($id, $_SESSION['id']);
 
         # But not if the session has gone.
         $s->destroy($id, NULL);
         $_SESSION['logged_in'] = FALSE;
         Session::prepareSession($this->dbhm, $this->dbhm);
-        assertFalse($_SESSION['logged_in']);
+        $this->assertFalse($_SESSION['logged_in']);
     }
 
     public function testRequestHeader() {
@@ -110,8 +110,8 @@ class sessionClassTest extends IznikTestCase {
         global $sessionPrepared;
         $sessionPrepared = FALSE;
         Session::prepareSession($this->dbhm, $this->dbhm);
-        assertTrue($_SESSION['logged_in']);
-        assertEquals($id, $_SESSION['id']);
+        $this->assertTrue($_SESSION['logged_in']);
+        $this->assertEquals($id, $_SESSION['id']);
     }
 }
 

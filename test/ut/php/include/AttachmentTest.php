@@ -28,16 +28,16 @@ class AttachmentTest extends IznikTestCase {
             $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
             $a = new Attachment($this->dbhr, $this->dbhm);
             $attid = $a->create(null, $data);
-            assertNotNull($attid);
+            $this->assertNotNull($attid);
 
             $a = new Attachment($this->dbhr, $this->dbhm, $attid);
 
             $idents = $a->identify();
             $this->log("Identify returned " . var_export($idents, true));
-            assertEquals('chair', trim(strtolower($idents[0]['name'])));
+            $this->assertEquals('chair', trim(strtolower($idents[0]['name'])));
         }
 
-        assertTrue(TRUE);
+        $this->assertTrue(TRUE);
     }
 
     private $blobCount = 0;
@@ -73,7 +73,7 @@ class AttachmentTest extends IznikTestCase {
             ->getMock();
 
         $originalPath = $a->getPath();
-        assertNotNull($originalPath);
+        $this->assertNotNull($originalPath);
 
         $a->method('scp')->will($this->returnCallback(function ($host, $data, $fn, &$failed) {
             $this->blobCount++;
@@ -84,14 +84,14 @@ class AttachmentTest extends IznikTestCase {
         });
 
         $attid = $a->create(NULL, $data);
-        assertNotNull($attid);
+        $this->assertNotNull($attid);
 
         $ret = $a->archive();
-        assertEquals($blobCount * 2, $this->blobCount);
-        assertEquals($blobCount > 0, $ret);
+        $this->assertEquals($blobCount * 2, $this->blobCount);
+        $this->assertEquals($blobCount > 0, $ret);
 
         $dat2 = $a->getData();
-        assertTrue($data == $dat2 || $dat2 == 'UT');
+        $this->assertTrue($data == $dat2 || $dat2 == 'UT');
 
         $a->delete();
     }
@@ -100,16 +100,16 @@ class AttachmentTest extends IznikTestCase {
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
         $attid1 = $a->create(NULL,$data);
-        assertNotNull($attid1);
+        $this->assertNotNull($attid1);
 
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
         $attid2 = $a->create(NULL, $data);
-        assertNotNull($attid1);
+        $this->assertNotNull($attid1);
 
         $a1 = new Attachment($this->dbhr, $this->dbhm, $attid1, Attachment::TYPE_GROUP);
         $a2 = new Attachment($this->dbhr, $this->dbhm, $attid2, Attachment::TYPE_GROUP);
-        assertEquals($a1->getHash(), $a2->getHash());
+        $this->assertEquals($a1->getHash(), $a2->getHash());
     }
 
     public function testUrl() {
@@ -123,17 +123,17 @@ class AttachmentTest extends IznikTestCase {
 
         $data = file_get_contents($url);
         $a = new Attachment($this->dbhr, $this->dbhm, $id, Attachment::TYPE_USER);
-        assertEquals($data, $a->getData());
+        $this->assertEquals($data, $a->getData());
     }
 
     public function testGetByImageIds() {
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
         $attid1 = $a->create(NULL,$data);
-        assertNotNull($attid1);
+        $this->assertNotNull($attid1);
 
         $atts = $a->getByImageIds([ $attid1 ]);
-        assertEquals($attid1, $atts[0]->getId());
+        $this->assertEquals($attid1, $atts[0]->getId());
     }
 
     public function testSCP() {
@@ -141,14 +141,14 @@ class AttachmentTest extends IznikTestCase {
             $failed = FALSE;
             $a = new Attachment($this->dbhr, $this->dbhm);
             $a->scp('localhost', 'testdata', 'unittest', $failed);
-            assertEquals(1, $failed);
+            $this->assertEquals(1, $failed);
 
             # Invalid host, fails.
             $a->scp('localhost2', 'testdata', 'unittest', $failed);
-            assertEquals(1, $failed);
+            $this->assertEquals(1, $failed);
         }
 
-        assertTrue(TRUE);
+        $this->assertTrue(TRUE);
     }
 }
 

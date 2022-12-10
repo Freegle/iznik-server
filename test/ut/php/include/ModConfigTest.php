@@ -27,7 +27,7 @@ class ModConfigTest extends IznikTestCase {
 
         $this->user = User::get($this->dbhm, $this->dbhm);
         $this->uid = $this->user->create('Test', 'User', NULL);
-        assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
     }
 
     public function testBasic() {
@@ -35,10 +35,10 @@ class ModConfigTest extends IznikTestCase {
         $this->log("Create");
         $c = new ModConfig($this->dbhr, $this->dbhm);
         $id = $c->create('TestConfig');
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $c = new ModConfig($this->dbhr, $this->dbhm, $id);
         $c->setPrivate('default', TRUE);
-        assertNotNull($c);
+        $this->assertNotNull($c);
 
         # Use on a group
         $this->log("Use on group");
@@ -49,10 +49,10 @@ class ModConfigTest extends IznikTestCase {
         $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($group1, User::ROLE_MODERATOR);
         $c->useOnGroup($uid, $group1);
-        assertEquals($id, $c->getForGroup($uid, $group1));
+        $this->assertEquals($id, $c->getForGroup($uid, $group1));
 
         $this->log("Login and get");
-        assertTrue($this->user->login('testpw'));
+        $this->assertTrue($this->user->login('testpw'));
         $configs = $this->user->getConfigs(TRUE);
         unset($_SESSION['id']);
 
@@ -61,16 +61,16 @@ class ModConfigTest extends IznikTestCase {
         $c->setPrivate('default', FALSE);
         $uid2 = $u->create(NULL, NULL, 'Test User');
         $u2 = User::get($this->dbhr, $this->dbhm, $uid2);
-        assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $u2->addMembership($group1, User::ROLE_OWNER);
-        assertEquals($id, $c->getForGroup($uid, $group1));
-        assertEquals($id, $c->getForGroup($uid2, $group1));
-        assertTrue($u2->login('testpw'));
+        $this->assertEquals($id, $c->getForGroup($uid, $group1));
+        $this->assertEquals($id, $c->getForGroup($uid2, $group1));
+        $this->assertTrue($u2->login('testpw'));
 
         # Check the "cansee" shows shared.
         $atts = $c->getPublic(TRUE, TRUE);
-        assertEquals(ModConfig::CANSEE_SHARED, $atts['cansee']);
-        assertEquals('Test User', $atts['sharedby']['displayname']);
+        $this->assertEquals(ModConfig::CANSEE_SHARED, $atts['cansee']);
+        $this->assertEquals('Test User', $atts['sharedby']['displayname']);
 
         # Check the username is right in different cases.
         $u->setPrivate('fullname', NULL);
@@ -78,8 +78,8 @@ class ModConfigTest extends IznikTestCase {
         $u->setPrivate('lastname', 'User');
         User::clearCache();
         $atts = $c->getPublic(TRUE, TRUE);
-        assertEquals(ModConfig::CANSEE_SHARED, $atts['cansee']);
-        assertEquals('Test User', $atts['sharedby']['displayname']);
+        $this->assertEquals(ModConfig::CANSEE_SHARED, $atts['cansee']);
+        $this->assertEquals('Test User', $atts['sharedby']['displayname']);
 
         # Sleep for redis cache to expire
         $this->log("Sleep redis");
@@ -95,7 +95,7 @@ class ModConfigTest extends IznikTestCase {
                 $found = TRUE;
             }
         }
-        assertTrue($found);
+        $this->assertTrue($found);
 
         # Should also show in our active configs.
         $configs = $u2->getConfigs(FALSE);
@@ -106,21 +106,21 @@ class ModConfigTest extends IznikTestCase {
                 $found = TRUE;
             }
         }
-        assertTrue($found);
+        $this->assertTrue($found);
 
         unset($_SESSION['id']);
 
         $this->log("New StdMessage");
         $m = new StdMessage($this->dbhr, $this->dbhm);
         $mid = $m->create("TestStdMessage", $id);
-        assertNotNull($mid);
+        $this->assertNotNull($mid);
         $m = new StdMessage($this->dbhr, $this->dbhm, $mid);
         $m->setPrivate('body', 'Test');
-        assertEquals('Test', $m->getPublic()['body']);
-        assertFalse(array_key_exists('body', $m->getPublic(FALSE)));
+        $this->assertEquals('Test', $m->getPublic()['body']);
+        $this->assertFalse(array_key_exists('body', $m->getPublic(FALSE)));
 
-        assertEquals('TestConfig', $c->getPublic()['name']);
-        assertEquals('TestStdMessage', $c->getPublic()['stdmsgs'][0]['title']);
+        $this->assertEquals('TestConfig', $c->getPublic()['name']);
+        $this->assertEquals('TestStdMessage', $c->getPublic()['stdmsgs'][0]['title']);
 
         $this->log("Delete message");
         $m->delete();
@@ -129,18 +129,18 @@ class ModConfigTest extends IznikTestCase {
 
         # Create as current user
         $this->log("As current user");
-        assertTrue($this->user->login('testpw'));
+        $this->assertTrue($this->user->login('testpw'));
         $id = $c->create('TestConfig');
         $this->log("Created $id");
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $c = new ModConfig($this->dbhr, $this->dbhm, $id);
-        assertNotNull($c);
-        assertEquals($this->uid, $c->getPrivate('createdby'));
+        $this->assertNotNull($c);
+        $this->assertEquals($this->uid, $c->getPrivate('createdby'));
 
         $this->log("bulk op");
         $b = new BulkOp($this->dbhr, $this->dbhm);
         $bid = $b->create('TestBulk', $id);
-        assertNotNull($bid);
+        $this->assertNotNull($bid);
 
         $this->log("GetConfigs");
         $configs = $this->user->getConfigs(TRUE);
@@ -150,10 +150,10 @@ class ModConfigTest extends IznikTestCase {
         foreach ($configs as $config) {
             if ($id == $config['id']) {
                 $found = TRUE;
-                assertEquals($bid, $config['bulkops'][0]['id']);
+                $this->assertEquals($bid, $config['bulkops'][0]['id']);
             }
         }
-        assertTrue($found);
+        $this->assertTrue($found);
 
         # Sleep for background logging
         $this->log("Wait background");
@@ -165,7 +165,7 @@ class ModConfigTest extends IznikTestCase {
         $u = new User($this->dbhr, $this->dbhm);
         $u->getPublicLogs($u, $logs, FALSE, $ctx);
         $log = $this->findLog(Log::TYPE_CONFIG, Log::SUBTYPE_CREATED, $logs[$this->uid]['logs']);
-        assertEquals($this->uid, $log['byuser']['id']);
+        $this->assertEquals($this->uid, $log['byuser']['id']);
 
         # Copy
         $this->log("Copy");
@@ -184,10 +184,10 @@ class ModConfigTest extends IznikTestCase {
         $this->log("New " . var_export($newatts, true));
 
         # Should have created a message order during the copy.
-        assertNull($oldatts['messageorder']);
-        assertNotNull($newatts['messageorder']);
+        $this->assertNull($oldatts['messageorder']);
+        $this->assertNotNull($newatts['messageorder']);
 
-        assertEquals('TestConfig (Copy)', $newatts['name']);
+        $this->assertEquals('TestConfig (Copy)', $newatts['name']);
         unset($oldatts['id']);
         unset($oldatts['name']);
         unset($oldatts['messageorder']);
@@ -195,18 +195,18 @@ class ModConfigTest extends IznikTestCase {
         unset($oldatts['bulkops']);
 
         foreach ($oldatts as $att => $val) {
-            assertEquals($val, $newatts[$att]);
+            $this->assertEquals($val, $newatts[$att]);
         }
 
-        assertEquals('Approve', $newatts['stdmsgs'][0]['action']);
+        $this->assertEquals('Approve', $newatts['stdmsgs'][0]['action']);
 
         # As support we should be able to see the config.
         $this->log("Check can see");
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
         $c = new ModConfig($this->dbhr, $this->dbhm, $id);
         $c->setPrivate('createdby', NULL);
-        assertTrue($c->canSee());
-        assertTrue($c->canModify());
+        $this->assertTrue($c->canSee());
+        $this->assertTrue($c->canModify());
 
         # Export and import
         $exp = $c->export();
@@ -214,7 +214,7 @@ class ModConfigTest extends IznikTestCase {
         $id = $c->import($exp);
         $pub = $c->getPublic();
         $this->log(var_export($pub, TRUE));
-        assertEquals(2, count($pub['stdmsgs']));
+        $this->assertEquals(2, count($pub['stdmsgs']));
 
         $c->delete();
     }
@@ -222,11 +222,11 @@ class ModConfigTest extends IznikTestCase {
     public function testOrder() {
         $c = new ModConfig($this->dbhr, $this->dbhm);
         $id1 = $c->create('TestConfig3');
-        assertNotNull($id1);
+        $this->assertNotNull($id1);
         $id2 = $c->create('TestConfig1');
-        assertNotNull($id2);
+        $this->assertNotNull($id2);
         $id3 = $c->create('TestConfig2');
-        assertNotNull($id3);
+        $this->assertNotNull($id3);
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
@@ -242,11 +242,11 @@ class ModConfigTest extends IznikTestCase {
         $c3 = new ModConfig($this->dbhr, $this->dbhm, $id3);
         $c3->useOnGroup($this->user->getId(), $group3);
 
-        assertTrue($this->user->login('testpw'));
+        $this->assertTrue($this->user->login('testpw'));
         $configs = $this->user->getConfigs(FALSE);
-        assertEquals('TestConfig1', $configs[0]['name']);
-        assertEquals('TestConfig2', $configs[1]['name']);
-        assertEquals('TestConfig3', $configs[2]['name']);
+        $this->assertEquals('TestConfig1', $configs[0]['name']);
+        $this->assertEquals('TestConfig2', $configs[1]['name']);
+        $this->assertEquals('TestConfig3', $configs[2]['name']);
     }
 
     public function testErrors() {
@@ -259,21 +259,21 @@ class ModConfigTest extends IznikTestCase {
         $c = new ModConfig($this->dbhr, $this->dbhm);
         $c->setDbhm($mock);
         $id = $c->create('TestConfig');
-        assertNull($id);
+        $this->assertNull($id);
 
         $mock->method('preQuery')->willThrowException(new \Exception());
         $id = $c->create('TestConfig');
-        assertNull($id);
+        $this->assertNull($id);
 
         $c = new StdMessage($this->dbhr, $this->dbhm);
         $c->setDbhm($mock);
         $id = $c->create('TestStd', $id);
-        assertNull($id);
+        $this->assertNull($id);
 
         $c = new BulkOp($this->dbhr, $this->dbhm);
         $c->setDbhm($mock);
         $id = $c->create('TestStd', $id);
-        assertNull($id);
+        $this->assertNull($id);
 
         }
 
@@ -281,20 +281,20 @@ class ModConfigTest extends IznikTestCase {
     {
         $c = new ModConfig($this->dbhr, $this->dbhm);
         $id = $c->create('TestConfig');
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $m = new StdMessage($this->dbhr, $this->dbhm);
         $mid = $m->create("TestStdMessage", $id);
-        assertNotNull($mid);
+        $this->assertNotNull($mid);
 
         $c->setPrivate('ccrejectto', 'Specific');
         $c->setPrivate('ccrejectaddr', 'test-specific-reject@test.com');
         $c->setPrivate('ccfollowupto', 'Specific');
         $c->setPrivate('ccfollowupaddr', 'test-specific-follow@test.com');
-        assertEquals('test-specific-reject@test.com', $c->getBcc('Reject'));
+        $this->assertEquals('test-specific-reject@test.com', $c->getBcc('Reject'));
 
         $m->setPrivate('action', 'Delete Approved Message');
-        assertEquals('test-specific-follow@test.com', $c->getBcc('Delete Approved Message'));
-        assertEquals(NULL, $c->getBcc('Delete Approved Member'));
+        $this->assertEquals('test-specific-follow@test.com', $c->getBcc('Delete Approved Message'));
+        $this->assertEquals(NULL, $c->getBcc('Delete Approved Member'));
     }
 }
 

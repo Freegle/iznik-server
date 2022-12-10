@@ -64,20 +64,20 @@ class newsletterTest extends IznikTestCase {
         $u->addMembership($gid, User::ROLE_MEMBER, $eid2);
 
         # Now test.
-        assertEquals(1, $n->send($gid));
+        $this->assertEquals(1, $n->send($gid));
 
         $this->log("Mail sent" . var_export($this->newslettersSent, TRUE));
 
         # Turn off
         $n->off($uid2, $gid);
 
-        assertEquals(0, $n->send($gid));
+        $this->assertEquals(0, $n->send($gid));
 
         # Invalid email
         $uid3 = $u->create(NULL, NULL, "Test User");
         $u->addEmail('test.com');
         $u->addMembership($gid);
-        assertEquals(0, $n->send($gid));
+        $this->assertEquals(0, $n->send($gid));
 
         }
 }

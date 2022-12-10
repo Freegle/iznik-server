@@ -50,22 +50,22 @@ class NoticeboardTest extends IznikTestCase {
         $n->method('sendIt')->willReturn(TRUE);
 
         # Too soon to chase up.
-        assertEquals(0, $n->chaseup($id));
+        $this->assertEquals(0, $n->chaseup($id));
 
         # Make it old.
         $this->dbhm->preExec("UPDATE noticeboards SET lastcheckedat = DATE_SUB(added, INTERVAL 31 DAY) WHERE id = $id");
 
         # Chase up owner.
-        assertEquals(1, $n->chaseup($id));
+        $this->assertEquals(1, $n->chaseup($id));
 
         # Chase up again - too soon.
-        assertEquals(0, $n->chaseup($id));
+        $this->assertEquals(0, $n->chaseup($id));
 
         # Make it older.
         $this->dbhm->preExec("UPDATE noticeboards SET lastcheckedat = DATE_SUB(added, INTERVAL 41 DAY) WHERE id = $id");
 
         # Nobody else yet.
-        assertEquals(0, $n->chaseup($id));
+        $this->assertEquals(0, $n->chaseup($id));
     }
 }
 

@@ -38,7 +38,7 @@ class digestTest extends IznikTestCase {
         $this->uid = $u->create('Test', 'User', 'Test User');
         $u->addEmail('test@test.com');
         $u->addEmail('sender@example.net');
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         $this->user = $u;
@@ -66,10 +66,10 @@ class digestTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Create a user on that group who wants immediate delivery.  They need two emails; one for our membership,
         # and a real one to get the digest.
@@ -78,13 +78,13 @@ class digestTest extends IznikTestCase {
         $u->addEmail('test@blackhole.io');
         $eid = $u->addEmail('test@' . USER_DOMAIN);
         $this->log("Created user $uid email $eid");
-        assertGreaterThan(0, $eid);
+        $this->assertGreaterThan(0, $eid);
         $u->addMembership($this->gid, User::ROLE_MEMBER, $eid);
         $u->setMembershipAtt($this->gid, 'emailfrequency', Digest::IMMEDIATE);
 
         # Now test.
-        assertEquals(1, $mock->send($this->gid, Digest::IMMEDIATE));
-        assertEquals(1, count($this->msgsSent));
+        $this->assertEquals(1, $mock->send($this->gid, Digest::IMMEDIATE));
+        $this->assertEquals(1, count($this->msgsSent));
         $this->log("Immediate message " . $this->msgsSent[0]);
 
         }
@@ -101,10 +101,10 @@ class digestTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhm, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Create a user on that group who wants immediate delivery.  They need two emails; one for our membership,
         # and a real one to get the digest.
@@ -113,7 +113,7 @@ class digestTest extends IznikTestCase {
         $u->addEmail('test@blackhole.io');
         $eid = $u->addEmail('test@' . USER_DOMAIN);
         $this->log("Created user $uid email $eid");
-        assertGreaterThan(0, $eid);
+        $this->assertGreaterThan(0, $eid);
         $u->addMembership($this->gid, User::ROLE_MEMBER, $eid);
         $u->setMembershipAtt($this->gid, 'emailfrequency', Digest::IMMEDIATE);
 
@@ -126,22 +126,22 @@ class digestTest extends IznikTestCase {
         $u2->setMembershipAtt($this->gid, 'emailfrequency', Digest::IMMEDIATE);
 
         # Now test - 1 for our user and one for the sender of the mail.
-        assertEquals(2, $d->send($this->gid, Digest::IMMEDIATE));
+        $this->assertEquals(2, $d->send($this->gid, Digest::IMMEDIATE));
 
         # Again - nothing to send.
-        assertEquals(0, $d->send($this->gid, Digest::IMMEDIATE));
+        $this->assertEquals(0, $d->send($this->gid, Digest::IMMEDIATE));
 
         # Now add one of our emails to the second user.  Because we've not sync'd this group, we will decide to send
         # an email.
         $this->log("Now with our email");
         $eid2 = $u2->addEmail('test2@' . USER_DOMAIN);
         $this->log("Added eid $eid2");
-        assertGreaterThan(0, $eid2);
+        $this->assertGreaterThan(0, $eid2);
         $this->dbhm->preExec("DELETE FROM groups_digests WHERE groupid = ?;", [ $this->gid ]);
 
         # Force pick up of new email.
         User::$cache = [];
-        assertEquals(2, $d->send($this->gid, Digest::IMMEDIATE));
+        $this->assertEquals(2, $d->send($this->gid, Digest::IMMEDIATE));
 
         }
 
@@ -157,10 +157,10 @@ class digestTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhm, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Create a user on that group who wants immediate delivery, but who is a TN user and therefore
         # shouldn't get one.
@@ -168,12 +168,12 @@ class digestTest extends IznikTestCase {
         $uid = $u->create(NULL, NULL, 'Test User');
         $eid = $u->addEmail('test@user.trashnothing.com');
         $this->log("Created user $uid email $eid");
-        assertGreaterThan(0, $eid);
+        $this->assertGreaterThan(0, $eid);
         $u->addMembership($this->gid, User::ROLE_MEMBER, $eid);
         $u->setMembershipAtt($this->gid, 'emailfrequency', Digest::IMMEDIATE);
 
         # Now test.
-        assertEquals(0, $d->send($this->gid, Digest::IMMEDIATE));
+        $this->assertEquals(0, $d->send($this->gid, Digest::IMMEDIATE));
 
         }
 
@@ -186,10 +186,10 @@ class digestTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhm, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Create a user on that group who wants immediate delivery.  They need two emails; one for our membership,
         # and a real one to get the digest.
@@ -198,7 +198,7 @@ class digestTest extends IznikTestCase {
         $u->addEmail('test@blackhole.io');
         $eid = $u->addEmail('test@' . USER_DOMAIN);
         $this->log("Created user $uid email $eid");
-        assertGreaterThan(0, $eid);
+        $this->assertGreaterThan(0, $eid);
         $u->addMembership($this->gid, User::ROLE_MEMBER, $eid);
         $u->setMembershipAtt($this->gid, 'emailfrequency', Digest::IMMEDIATE);
 
@@ -236,30 +236,30 @@ class digestTest extends IznikTestCase {
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test thing (location)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'TAKEN: Test item (location)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
-        assertEquals(MailRouter::TO_SYSTEM, $rc);
+        $this->assertEquals(MailRouter::TO_SYSTEM, $rc);
 
         # Create a user on that group who wants immediate delivery.  They need two emails; one for our membership,
         # and a real one to get the digest.
@@ -268,16 +268,16 @@ class digestTest extends IznikTestCase {
         $u->addEmail('test@blackhole.io');
         $eid = $u->addEmail('test@' . USER_DOMAIN);
         $this->log("Created user $uid email $eid");
-        assertGreaterThan(0, $eid);
+        $this->assertGreaterThan(0, $eid);
         $u->addMembership($this->gid, User::ROLE_MEMBER, $eid);
         $u->setMembershipAtt($this->gid, 'emailfrequency', Digest::HOUR1);
 
         # Now test.
-        assertEquals(1, $mock->send($this->gid, Digest::HOUR1));
-        assertEquals(1, count($this->msgsSent));
+        $this->assertEquals(1, $mock->send($this->gid, Digest::HOUR1));
+        $this->assertEquals(1, count($this->msgsSent));
         
         # Again - nothing to send.
-        assertEquals(0, $mock->send($this->gid, Digest::HOUR1));
+        $this->assertEquals(0, $mock->send($this->gid, Digest::HOUR1));
     }
 
     /**
@@ -307,20 +307,20 @@ class digestTest extends IznikTestCase {
         $msg = str_replace('Basic test', 'OFFER: Test item 1 (location)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id1, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid1);
-        assertNotNull($id1);
+        $this->assertNotNull($id1);
         $this->log("Created message $id1");
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup2", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item 2 (location)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id2, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid2);
-        assertNotNull($id2);
+        $this->assertNotNull($id2);
         $this->log("Created message $id2");
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Mock the actual send
         $mock = $this->getMockBuilder('Freegle\Iznik\Digest')
@@ -337,7 +337,7 @@ class digestTest extends IznikTestCase {
         $u->addEmail('test@blackhole.io');
         $eid = $u->addEmail('test@' . USER_DOMAIN);
         $this->log("Created user $uid email $eid");
-        assertGreaterThan(0, $eid);
+        $this->assertGreaterThan(0, $eid);
         $u->addMembership($gid1, User::ROLE_MEMBER, $eid);
         $u->setMembershipAtt($gid1, 'emailfrequency', Digest::HOUR1);
 
@@ -363,15 +363,15 @@ class digestTest extends IznikTestCase {
         }
 
         # Send digest.
-        assertEquals(1, $mock->send($gid1, Digest::HOUR1, 'localhost', NULL, TRUE, TRUE));
-        assertEquals(1, count($this->msgsSent));
+        $this->assertEquals(1, $mock->send($gid1, Digest::HOUR1, 'localhost', NULL, TRUE, TRUE));
+        $this->assertEquals(1, count($this->msgsSent));
 
         if ($withdraw) {
             // Completed messages shouldn't appear.
-            assertFalse(strpos($this->msgsSent[0], 'Test item 2'));
+            $this->assertFalse(strpos($this->msgsSent[0], 'Test item 2'));
         } else {
             // Nearby message should appear.
-            assertNotFalse(strpos($this->msgsSent[0], 'Test item 2'));
+            $this->assertNotFalse(strpos($this->msgsSent[0], 'Test item 2'));
         }
     }
 
@@ -398,37 +398,37 @@ class digestTest extends IznikTestCase {
         $msg = str_replace('Basic test', 'OFFER: Test item Test item Test item Test item Test item Test item (location)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test thing  thing  thing  thing  thing  thing  thing  thing  thing  thing (location)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail('test@blackhole.io');
         $eid = $u->addEmail('test@' . USER_DOMAIN);
         $this->log("Created user $uid email $eid");
-        assertGreaterThan(0, $eid);
+        $this->assertGreaterThan(0, $eid);
         $u->addMembership($this->gid, User::ROLE_MEMBER, $eid);
 
         # Now test.
-        assertEquals(2, $mock->send($this->gid, Digest::DAILY));
-        assertEquals(2, count($this->msgsSent));
+        $this->assertEquals(2, $mock->send($this->gid, Digest::DAILY));
+        $this->assertEquals(2, count($this->msgsSent));
         error_log(var_export($this->msgsSent, TRUE));
 
         # Should include the long subject
-        assertNotFalse(strpos($this->msgsSent[0], 'Subject: [testgroup] What\'s New (2 messages) - Test item Test item Test'));
-        assertNotFalse(strpos($this->msgsSent[0], ' Test item Test item Test item...'));
+        $this->assertNotFalse(strpos($this->msgsSent[0], 'Subject: [testgroup] What\'s New (2 messages) - Test item Test item Test'));
+        $this->assertNotFalse(strpos($this->msgsSent[0], ' Test item Test item Test item...'));
     }
 }
 

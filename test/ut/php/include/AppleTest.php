@@ -44,7 +44,7 @@ class AppleTest extends IznikTestCase {
     public function testBasic() {
         $a = new Apple($this->dbhr, $this->dbhm);
         list($session, $ret) = $a->login([]);
-        assertEquals(2, $ret['ret']);
+        $this->assertEquals(2, $ret['ret']);
 
         # Basic successful login
         $this->email = 'test@test.com';
@@ -74,13 +74,13 @@ class AppleTest extends IznikTestCase {
         ];
 
         list($session, $ret) = $mock->login($credentials);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        assertEquals("Test User" , $me->getName());
+        $this->assertEquals("Test User" , $me->getName());
 
         $logins = $me->getLogins();
         $this->log("Logins " . var_export($logins, TRUE));
-        assertEquals($credentials['user'], $logins[0]['uid']);
+        $this->assertEquals($credentials['user'], $logins[0]['uid']);
 
         # Log in again with a different email, triggering a merge.
         $u = User::get($this->dbhr, $this->dbhm);
@@ -89,39 +89,39 @@ class AppleTest extends IznikTestCase {
 
         $this->email = 'test2@test.com';
         list($session, $ret) = $mock->login($credentials);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
         $this->log("Emails " . var_export($emails, TRUE));
-        assertEquals(2, count($emails));
+        $this->assertEquals(2, count($emails));
 
         # Now delete an email, and log in again - should trigger an add of the email
         $me->removeEmail('test2@test.com');
         list($session, $ret) = $mock->login($credentials);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
         $this->log("Emails " . var_export($emails, TRUE));
-        assertEquals(2, count($emails));
+        $this->assertEquals(2, count($emails));
 
         # Now delete the Apple login, and log in again - should trigger an add of the Appleid.
-        assertEquals(1, $me->removeLogin('Apple', 'UT'));
+        $this->assertEquals(1, $me->removeLogin('Apple', 'UT'));
         list($session, $ret) = $mock->login($credentials);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
         $this->log("Emails " . var_export($emails, TRUE));
-        assertEquals(2, count($emails));
+        $this->assertEquals(2, count($emails));
         $logins = $me->getLogins();
         $this->log("Logins " . var_export($logins, TRUE));
-        assertEquals(1, count($logins));
-        assertEquals('UT', $logins[0]['uid']);
+        $this->assertEquals(1, count($logins));
+        $this->assertEquals('UT', $logins[0]['uid']);
     }
 
     public function testException() {
         $a = new Apple($this->dbhr, $this->dbhm);
         list($session, $ret) = $a->login([]);
-        assertEquals(2, $ret['ret']);
+        $this->assertEquals(2, $ret['ret']);
 
         # Basic successful login
         $this->email = 'test@test.com';
@@ -151,7 +151,7 @@ class AppleTest extends IznikTestCase {
         ];
 
         list($session, $ret) = $mock->login($credentials);
-        assertEquals(2, $ret['ret']);
+        $this->assertEquals(2, $ret['ret']);
     }
 
     public function testPayload() {
@@ -159,9 +159,9 @@ class AppleTest extends IznikTestCase {
 
         try {
             $a->getPayload("invalid");
-            assertFalse(TRUE);
+            $this->assertFalse(TRUE);
         } catch (\Exception $e) {
-            assertEquals("Wrong number of segments", $e->getMessage());
+            $this->assertEquals("Wrong number of segments", $e->getMessage());
         }
     }
 }

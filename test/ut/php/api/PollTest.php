@@ -40,37 +40,37 @@ class pollAPITest extends IznikAPITestCase {
 
         $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         # Get invalid id
         $ret = $this->call('poll', 'GET', [
             'id' => -1
         ]);
-        assertEquals(2, $ret['ret']);
+        $this->assertEquals(2, $ret['ret']);
 
         # Get valid id
         $ret = $this->call('poll', 'GET', [
             'id' => $id
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertEquals($id, $ret['poll']['id']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals($id, $ret['poll']['id']);
 
         # Get for user
         $ret = $this->call('poll', 'GET', [
             'id' => $id
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertEquals($id, $ret['poll']['id']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals($id, $ret['poll']['id']);
 
         # Shown
         $ret = $this->call('poll', 'POST', [
             'id' => $id,
             'shown' => true
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         # Response
         $ret = $this->call('poll', 'POST', [
@@ -79,13 +79,13 @@ class pollAPITest extends IznikAPITestCase {
                 'test' => 'response'
             ]
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         # Get - shouldn't return this one.
         $this->log("Shouldn't return this one");
         $ret = $this->call('poll', 'GET', []);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         if (array_key_exists('poll', $ret)) {
             self::assertNotEquals($id, $ret['poll']['id']);
         }
@@ -95,11 +95,11 @@ class pollAPITest extends IznikAPITestCase {
     public function testLogin() {
         $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         # Fake FB login.
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_FACEBOOK, NULL, 'testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_FACEBOOK, NULL, 'testpw'));
         $logins = $u->getLogins();
         $this->log("Got logins " . var_export($logins, TRUE));
 
@@ -112,8 +112,8 @@ class pollAPITest extends IznikAPITestCase {
             # Get for user until we run out or find it.
             $ret = $this->call('poll', 'GET', []);
 
-            assertEquals(0, $ret['ret']);
-            assertNotNull($ret['poll']['id']);
+            $this->assertEquals(0, $ret['ret']);
+            $this->assertNotNull($ret['poll']['id']);
 
             if ($id == $ret['poll']['id']) {
                 $found = TRUE;
@@ -127,10 +127,10 @@ class pollAPITest extends IznikAPITestCase {
                     'test' => true
                 ]
             ]);
-            assertEquals(0, $ret['ret']);
+            $this->assertEquals(0, $ret['ret']);
         } while (!$found);
 
-        assertTrue($found);
+        $this->assertTrue($found);
 
         }
 }

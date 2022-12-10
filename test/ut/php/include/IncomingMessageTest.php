@@ -31,13 +31,13 @@ class IncomingMessageTest extends IznikTestCase {
         $msg = str_replace('From: "Test User" <test@test.com>', 'From: "' . $t . '" <test@test.com>', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertEquals('Basic test', $m->getSubject());
-        assertEquals($t, $m->getFromname());
-        assertEquals('test@test.com', $m->getFromaddr());
-        assertEquals('Hey.', $m->getTextbody());
-        assertEquals('from@test.com', $m->getEnvelopefrom());
-        assertEquals('to@test.com', $m->getEnvelopeto());
-        assertEquals("<HTML><HEAD>
+        $this->assertEquals('Basic test', $m->getSubject());
+        $this->assertEquals($t, $m->getFromname());
+        $this->assertEquals('test@test.com', $m->getFromaddr());
+        $this->assertEquals('Hey.', $m->getTextbody());
+        $this->assertEquals('from@test.com', $m->getEnvelopefrom());
+        $this->assertEquals('to@test.com', $m->getEnvelopeto());
+        $this->assertEquals("<HTML><HEAD>
 <STYLE id=eMClientCss>
 blockquote.cite { margin-left: 5px; margin-right: 0px; padding-left: 10px; padding-right:0px; border-left: 1px solid #cccccc }
 blockquote.cite2 {margin-left: 5px; margin-right: 0px; padding-left: 10px; padding-right:0px; border-left: 1px solid #cccccc; margin-top: 3px; padding-top: 0px; }
@@ -46,24 +46,24 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
 .plain pre, .plain tt {font-family: Tahoma;font-size: 12pt;}</STYLE>
 </HEAD>
 <BODY>Hey.</BODY></HTML>", $m->getHtmlbody());
-        assertEquals(0, count($m->getParsedAttachments()));
-        assertEquals(Message::TYPE_OTHER, $m->getType());
-        assertEquals('FDv2', $m->getSourceheader());
+        $this->assertEquals(0, count($m->getParsedAttachments()));
+        $this->assertEquals(Message::TYPE_OTHER, $m->getType());
+        $this->assertEquals('FDv2', $m->getSourceheader());
 
         # Save it
         list ($id, $failok) = $m->save();
-        assertNotNull($id);
+        $this->assertNotNull($id);
 
         # Read it back
         unset($m);
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertEquals('Basic test', $m->getSubject());
-        assertEquals('Basic test', $m->getHeader('subject'));
-        assertEquals($t, $m->getFromname());
-        assertEquals('test@test.com', $m->getFromaddr());
-        assertEquals('Hey.', $m->getTextbody());
-        assertEquals('from@test.com', $m->getEnvelopefrom());
-        assertEquals('to@test.com', $m->getEnvelopeto());
+        $this->assertEquals('Basic test', $m->getSubject());
+        $this->assertEquals('Basic test', $m->getHeader('subject'));
+        $this->assertEquals($t, $m->getFromname());
+        $this->assertEquals('test@test.com', $m->getFromaddr());
+        $this->assertEquals('Hey.', $m->getTextbody());
+        $this->assertEquals('from@test.com', $m->getEnvelopefrom());
+        $this->assertEquals('to@test.com', $m->getEnvelopeto());
         $m->delete();
 
         }
@@ -72,27 +72,27 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertEquals('MessageMaker', $m->getSourceheader());
+        $this->assertEquals('MessageMaker', $m->getSourceheader());
 
         # Check the parsed attachments
         $atts = $m->getParsedAttachments();
-        assertEquals(2, count($atts));
-        assertEquals('g4g220x194.png', $atts[0]->getFilename());
-        assertEquals('image/png', $atts[0]->getContentType());
-        assertEquals('g4g160.png', $atts[1]->getFilename());
-        assertEquals('image/png', $atts[1]->getContentType());
+        $this->assertEquals(2, count($atts));
+        $this->assertEquals('g4g220x194.png', $atts[0]->getFilename());
+        $this->assertEquals('image/png', $atts[0]->getContentType());
+        $this->assertEquals('g4g160.png', $atts[1]->getFilename());
+        $this->assertEquals('image/png', $atts[1]->getContentType());
 
         # Save it
         list ($id, $failok) = $m->save();
-        assertNotNull($id);
+        $this->assertNotNull($id);
 
         # Check the saved attachment.  Only one - other stripped for aspect ratio.
         $atts = $m->getAttachments();
-        assertEquals(7975, strlen($atts[0]->getData()));
+        $this->assertEquals(7975, strlen($atts[0]->getData()));
 
         # Check the returned attachment.  Only one - other stripped for aspect ratio.
         $atts = $m->getPublic();
-        assertEquals(1, count($atts['attachments']));
+        $this->assertEquals(1, count($atts['attachments']));
 
         $m->delete();
 
@@ -104,11 +104,11 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
 
         list ($id, $failok) = $m->save();
-        assertNotNull($id);
+        $this->assertNotNull($id);
 
         # Check the returned attachment.  Only one - other stripped for aspect ratio.
         $atts = $m->getPublic();
-        assertEquals(1, count($atts['attachments']));
+        $this->assertEquals(1, count($atts['attachments']));
 
         $m->delete();
 
@@ -121,13 +121,13 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
 
         # Check the parsed inline images.  Should only show one, as dupicate.
         $imgs = $m->getInlineimgs();
-        assertEquals(1, count($imgs));
+        $this->assertEquals(1, count($imgs));
 
         # Save it and check they show up as attachments
         list ($id, $failok) = $m->save();
         $a = new Attachment($this->dbhr, $this->dbhm);
         $atts = $a->getById($id);
-        assertEquals(1, count($atts));
+        $this->assertEquals(1, count($atts));
 
         $m->delete();
 
@@ -138,13 +138,13 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
 
         # Check the parsed inline images - should be none
         $imgs = $m->getInlineimgs();
-        assertEquals(0, count($imgs));
+        $this->assertEquals(0, count($imgs));
 
         # Save it and check they don't show up as attachments
         list ($id, $failok) = $m->save();
         $a = new Attachment($this->dbhr, $this->dbhm);
         $atts = $a->getById($id);        
-        assertEquals(0, count($atts));
+        $this->assertEquals(0, count($atts));
 
         }
 
@@ -152,27 +152,27 @@ a img { border: 0px; }body {font-family: Tahoma;font-size: 12pt;}
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tn'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertEquals('20065945', $m->getTnpostid());
+        $this->assertEquals('20065945', $m->getTnpostid());
 
         # Save it
         list ($id, $failok) = $m->save();
-        assertNotNull($id);
+        $this->assertNotNull($id);
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertEquals(55.957570, $m->getPrivate('lat'));
-        assertEquals(-3.205330, $m->getPrivate('lng'));
+        $this->assertEquals(55.957570, $m->getPrivate('lat'));
+        $this->assertEquals(-3.205330, $m->getPrivate('lng'));
 
         # The user we have created should have tnuserid set.
         $uid = $m->getFromUser();
         $u = new User($this->dbhr, $this->dbhm, $uid);
-        assertEquals(2079027, $u->getPrivate('tnuserid'));
+        $this->assertEquals(2079027, $u->getPrivate('tnuserid'));
 
         $m->delete();
     }
 
     public function testType() {
-        assertEquals(Message::TYPE_OFFER, Message::determineType('OFFER: item (location)'));
-        assertEquals(Message::TYPE_WANTED, Message::determineType('[Group]WANTED: item'));
+        $this->assertEquals(Message::TYPE_OFFER, Message::determineType('OFFER: item (location)'));
+        $this->assertEquals(Message::TYPE_WANTED, Message::determineType('[Group]WANTED: item'));
 
         }
 }

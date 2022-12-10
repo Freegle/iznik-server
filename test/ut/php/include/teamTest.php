@@ -55,7 +55,7 @@ class teamTest extends IznikTestCase {
             }
         }
 
-        assertTrue($found);
+        $this->assertTrue($found);
     }
 }
 

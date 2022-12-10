@@ -43,9 +43,9 @@ class shortlinkTest extends IznikTestCase {
         $s = new Shortlink($this->dbhr, $this->dbhm, $id);
         $atts = $s->getPublic();
         self::assertEquals('testgroup', $atts['name']);
-        assertEquals(2, $atts['clicks']);
-        assertEquals(2, $atts['clickhistory'][0]['count']);
-        assertEquals(substr(date('c'), 0, 10), substr($atts['clickhistory'][0]['date'], 0, 10));
+        $this->assertEquals(2, $atts['clicks']);
+        $this->assertEquals(2, $atts['clickhistory'][0]['count']);
+        $this->assertEquals(substr(date('c'), 0, 10), substr($atts['clickhistory'][0]['date'], 0, 10));
 
         $list = $s->listAll();
         $found = FALSE;
@@ -55,7 +55,7 @@ class shortlinkTest extends IznikTestCase {
             }
         }
 
-        assertTrue($found);
+        $this->assertTrue($found);
 
         $s->delete();
 

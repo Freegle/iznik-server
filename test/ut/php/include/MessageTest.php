@@ -67,8 +67,8 @@ class messageTest extends IznikTestCase {
         $this->uid = $u->create('Test', 'User', 'Test User');
         $u->addEmail('test@test.com');
         $u->addEmail('sender@example.net');
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertEquals(1, $u->addMembership($this->gid));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertEquals(1, $u->addMembership($this->gid));
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         User::clearCache();
         $this->user = $u;
@@ -77,7 +77,7 @@ class messageTest extends IznikTestCase {
     public function testSetFromIP() {
         $m = new Message($this->dbhr, $this->dbhm);
         $m->setFromIP('8.8.8.8');
-        assertTrue($m->getFromhost() ==  'google-public-dns-a.google.com' || $m->getFromhost() ==  'dns.google');
+        $this->assertTrue($m->getFromhost() ==  'google-public-dns-a.google.com' || $m->getFromhost() ==  'dns.google');
     }
 
     public function testRelated() {
@@ -92,9 +92,9 @@ class messageTest extends IznikTestCase {
         $msg = str_replace('OFFER: Test item', 'TAKEN: Test item', $msg);
         $msg = str_replace('22 Aug 2015', '22 Aug 2016', $msg);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertEquals(1, $m->recordRelated());
+        $this->assertEquals(1, $m->recordRelated());
         $atts = $m->getPublic();
-        assertEquals($id1, $atts['related'][0]['id']);
+        $this->assertEquals($id1, $atts['related'][0]['id']);
 
         # We don't match on messages with outcomes so hack this out out again.
         $this->dbhm->preExec("DELETE FROM messages_outcomes WHERE msgid = $id1;");
@@ -102,19 +102,19 @@ class messageTest extends IznikTestCase {
         # TAKEN before OFFER - shouldn't match
         $msg = str_replace('22 Aug 2016', '22 Aug 2014', $msg);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertEquals(0, $m->recordRelated());
+        $this->assertEquals(0, $m->recordRelated());
 
         # TAKEN after OFFER but for other item - shouldn't match
         $msg = str_replace('22 Aug 2014', '22 Aug 2016', $msg);
         $msg = str_replace('TAKEN: Test item', 'TAKEN: Something completely different', $msg);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertEquals(0, $m->recordRelated());
+        $this->assertEquals(0, $m->recordRelated());
 
         # TAKEN with similar wording - should match
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'TAKEN: Test items (location)', $msg);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertEquals(1, $m->recordRelated());
+        $this->assertEquals(1, $m->recordRelated());
      }
 
     public function testRelated2() {
@@ -133,9 +133,9 @@ class messageTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', '[hertford_freegle] TAKEN: Grey Driveway Blocks (Hoddesdon)', $msg);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertEquals(1, $m->recordRelated());
+        $this->assertEquals(1, $m->recordRelated());
         $atts = $m->getPublic();
-        assertEquals($id1, $atts['related'][0]['id']);
+        $this->assertEquals($id1, $atts['related'][0]['id']);
 
         # We don't match on messages with outcomes so hack this out out again.
         $this->dbhm->preExec("DELETE FROM messages_outcomes WHERE msgid = $id1;");
@@ -143,9 +143,9 @@ class messageTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'TAKEN: Grey Driveway Blocks (Hoddesdon)', $msg);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertEquals(1, $m->recordRelated());
+        $this->assertEquals(1, $m->recordRelated());
         $atts = $m->getPublic();
-        assertEquals($id1, $atts['related'][0]['id']);
+        $this->assertEquals($id1, $atts['related'][0]['id']);
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
         $atts1 = $m1->getPublic();
         self::assertEquals('Taken', $atts1['outcomes'][0]['outcome']);
@@ -175,8 +175,8 @@ class messageTest extends IznikTestCase {
 
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
         $m2 = new Message($this->dbhr, $this->dbhm, $id2);
-        assertEquals($gid1, $m1->getGroups(FALSE, TRUE)[0]);
-        assertEquals($gid2, $m2->getGroups(FALSE, TRUE)[0]);
+        $this->assertEquals($gid1, $m1->getGroups(FALSE, TRUE)[0]);
+        $this->assertEquals($gid2, $m2->getGroups(FALSE, TRUE)[0]);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'TAKEN: Test (Location)', $msg);
@@ -186,9 +186,9 @@ class messageTest extends IznikTestCase {
         list ($id3, $failok) = $m->save();
 
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
-        assertEquals(Message::OUTCOME_TAKEN, $m1->hasOutcome());
+        $this->assertEquals(Message::OUTCOME_TAKEN, $m1->hasOutcome());
         $m2 = new Message($this->dbhr, $this->dbhm, $id2);
-        assertEquals(FALSE, $m2->hasOutcome());
+        $this->assertEquals(FALSE, $m2->hasOutcome());
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'TAKEN: Test (Location)', $msg);
@@ -198,9 +198,9 @@ class messageTest extends IznikTestCase {
         list ($id4, $failok) = $m->save();
 
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
-        assertEquals(Message::OUTCOME_TAKEN, $m1->hasOutcome());
+        $this->assertEquals(Message::OUTCOME_TAKEN, $m1->hasOutcome());
         $m2 = new Message($this->dbhr, $this->dbhm, $id2);
-        assertEquals(Message::OUTCOME_TAKEN, $m2->hasOutcome());
+        $this->assertEquals(Message::OUTCOME_TAKEN, $m2->hasOutcome());
 
         }
 
@@ -210,7 +210,7 @@ class messageTest extends IznikTestCase {
 
         $m = new Message($this->dbhr, $this->dbhm);
         $rc = $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertFalse($rc);
+        $this->assertFalse($rc);
 
         }
 
@@ -238,22 +238,22 @@ class messageTest extends IznikTestCase {
         $this->log("Public " . var_export($atts, true));
 
         # Shouldn't be able to see actual location
-        assertFalse(array_key_exists('locationid', $atts));
-        assertFalse(array_key_exists('location', $atts));
-        assertEquals($id, $m->getPrivate('locationid'));
+        $this->assertFalse(array_key_exists('locationid', $atts));
+        $this->assertFalse(array_key_exists('location', $atts));
+        $this->assertEquals($id, $m->getPrivate('locationid'));
 
         $goodsubj = "OFFER: Test (Tuvalu High Street)";
 
         # Test variants which should all get corrected to the same value
-        assertEquals($goodsubj, $m->suggestSubject($gid, $goodsubj));
-        assertEquals($goodsubj, $m->suggestSubject($gid, "OFFER:Test (High Street)"));
-        assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR Test (High Street)"));
-        assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR - Test  - (High Street)"));
+        $this->assertEquals($goodsubj, $m->suggestSubject($gid, $goodsubj));
+        $this->assertEquals($goodsubj, $m->suggestSubject($gid, "OFFER:Test (High Street)"));
+        $this->assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR Test (High Street)"));
+        $this->assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR - Test  - (High Street)"));
         $this->log("--1");
-        assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR Test Tuvalu High Street"));
+        $this->assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR Test Tuvalu High Street"));
         $this->log("--2");
-        assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR Test Tuvalu HIGH STREET"));
-        assertEquals("OFFER: test (Tuvalu High Street)", $m->suggestSubject($gid, "OFFR TEST Tuvalu HIGH STREET"));
+        $this->assertEquals($goodsubj, $m->suggestSubject($gid, "OFFR Test Tuvalu HIGH STREET"));
+        $this->assertEquals("OFFER: test (Tuvalu High Street)", $m->suggestSubject($gid, "OFFR TEST Tuvalu HIGH STREET"));
 
         # Test per-group keywords
         $g->setSettings([
@@ -264,9 +264,9 @@ class messageTest extends IznikTestCase {
         $keywords = $g->getSetting('keywords', []);
         $this->log("After set " . var_export($keywords, TRUE));
 
-        assertEquals("Offered: Test (Tuvalu High Street)", $m->suggestSubject($gid,$goodsubj));
+        $this->assertEquals("Offered: Test (Tuvalu High Street)", $m->suggestSubject($gid,$goodsubj));
 
-        assertEquals("OFFER: Thing need (Tuvalu High Street)", "OFFER: Thing need (Tuvalu High Street)");
+        $this->assertEquals("OFFER: Thing need (Tuvalu High Street)", "OFFER: Thing need (Tuvalu High Street)");
     }
 
     public function testMerge() {
@@ -282,7 +282,7 @@ class messageTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
         # Now from a different email but the same Yahoo UID.  This shouldn't trigger a merge as we should identify
@@ -299,7 +299,7 @@ class messageTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from2@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
         # Check the merge happened.  Can't use findlog as we hide merge logs.
@@ -307,7 +307,7 @@ class messageTest extends IznikTestCase {
         $fromuser = $m->getFromuser();
         $sql = "SELECT * FROM logs WHERE user = ? AND type = 'User' AND subtype = 'Merged';";
         $logs = $this->dbhr->preQuery($sql, [ $fromuser ]);
-        assertEquals(0, count($logs));
+        $this->assertEquals(0, count($logs));
     }
 
     public function testHebrew() {
@@ -320,14 +320,14 @@ class messageTest extends IznikTestCase {
         $this->uid = $u->create('Test', 'User', 'Test User');
         $u->addEmail('test@test.com');
         $u->addEmail('sender@example.net');
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $u->addMembership($this->gid);
         $this->user = $u;
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
     }
     
     public function testPrune() {
@@ -335,11 +335,11 @@ class messageTest extends IznikTestCase {
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/prune'));
         $pruned = $m->pruneMessage($msg);
-        assertGreaterThan(0, strlen($pruned));
+        $this->assertGreaterThan(0, strlen($pruned));
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/prune'));
         $pruned = $m->pruneMessage($msg);
-        assertLessThan(20000, strlen($pruned));
+        $this->assertLessThan(20000, strlen($pruned));
     }
 
     public function testReverseSubject() {
@@ -348,14 +348,14 @@ class messageTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertEquals('TAKEN: Test item (location)', $m->reverseSubject());
+        $this->assertEquals('TAKEN: Test item (location)', $m->reverseSubject());
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $msg = str_replace('Basic test', '[StevenageFreegle] OFFER: Ninky nonk train and night garden characters St NIcks [1 Attachment]', $msg);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertEquals('TAKEN: Ninky nonk train and night garden characters St NIcks', $m->reverseSubject());
+        $this->assertEquals('TAKEN: Ninky nonk train and night garden characters St NIcks', $m->reverseSubject());
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup1', Group::GROUP_REUSE);
@@ -370,22 +370,22 @@ class messageTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
-        assertEquals('TAKEN: Test item (location)', $m->reverseSubject());
+        $this->assertEquals('TAKEN: Test item (location)', $m->reverseSubject());
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
         $msg = str_replace('Basic test', 'Bexley Freegle OFFER: compost bin (Bexley DA5)', $msg);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertEquals('TAKEN: compost bin (Bexley DA5)', $m->reverseSubject());
+        $this->assertEquals('TAKEN: compost bin (Bexley DA5)', $m->reverseSubject());
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
         $msg = str_replace('Basic test', 'OFFER/CYNNIG: Windows 95 & 98 on DVD (Criccieth LL52)', $msg);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertEquals('TAKEN: Windows 95 & 98 on DVD (Criccieth LL52)', $m->reverseSubject());
+        $this->assertEquals('TAKEN: Windows 95 & 98 on DVD (Criccieth LL52)', $m->reverseSubject());
 
         }
 
@@ -394,122 +394,122 @@ class messageTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
-        assertEquals("Ok, here's a reply.", $stripped);
+        $this->assertEquals("Ok, here's a reply.", $stripped);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text2'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
-        assertEquals("Ok, here's a reply.", $stripped);
+        $this->assertEquals("Ok, here's a reply.", $stripped);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text3'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
-        assertEquals("Ok, here's a reply.\r\n\r\nAnd something after it.", $stripped);
+        $this->assertEquals("Ok, here's a reply.\r\n\r\nAnd something after it.", $stripped);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text4'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
-        assertEquals('Replying.', $stripped);
+        $this->assertEquals('Replying.', $stripped);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text5'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
-        assertEquals("Ok, here's a reply.", $stripped);
+        $this->assertEquals("Ok, here's a reply.", $stripped);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text6'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
-        assertEquals("Ok, here's a reply.", $stripped);
+        $this->assertEquals("Ok, here's a reply.", $stripped);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text7'));
         $msg = str_replace('USER_SITE', USER_SITE, $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
-        assertEquals("Ok, here's a reply with https://" . USER_SITE ."?u=1234& an url and https://" . USER_SITE . "/sub?a=1&", $stripped);
+        $this->assertEquals("Ok, here's a reply with https://" . USER_SITE ."?u=1234& an url and https://" . USER_SITE . "/sub?a=1&", $stripped);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text8'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
-        assertEquals('Ok, here\'s a reply.', $stripped);
+        $this->assertEquals('Ok, here\'s a reply.', $stripped);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text9'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
-        assertEquals("Ok, here's a reply to:\r\n\r\nSomewhere.", $stripped);
+        $this->assertEquals("Ok, here's a reply to:\r\n\r\nSomewhere.", $stripped);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text10'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
-        assertEquals("Ok, here's a reply", $stripped);
+        $this->assertEquals("Ok, here's a reply", $stripped);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text11'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
-        assertEquals("Ok, here's a reply", $stripped);
+        $this->assertEquals("Ok, here's a reply", $stripped);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text12'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
-        assertEquals("Great thank youFriday evening around 7?Maria", $stripped);
+        $this->assertEquals("Great thank youFriday evening around 7?Maria", $stripped);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text13'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
-        assertEquals("Yes no problem, roughly how big is it. Will depends if it car or van. On 20 Jul 2018 10:39 am, gothe <notify-4703531-875040@users.ilovefreegle.org> wrote:", $stripped);
+        $this->assertEquals("Yes no problem, roughly how big is it. Will depends if it car or van. On 20 Jul 2018 10:39 am, gothe <notify-4703531-875040@users.ilovefreegle.org> wrote:", $stripped);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text14'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
-        assertEquals("Please may I be considered", $stripped);
+        $this->assertEquals("Please may I be considered", $stripped);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text15'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
-        assertEquals("Please may I be considered", $stripped);
+        $this->assertEquals("Please may I be considered", $stripped);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text16'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
-        assertEquals("Please may I be considered", $stripped);
+        $this->assertEquals("Please may I be considered", $stripped);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text16'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
-        assertEquals("Please may I be considered", $stripped);
+        $this->assertEquals("Please may I be considered", $stripped);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text17'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
-        assertEquals("Hello\r\n\r\nI would be interested in these as have a big slug problem and also the lawn feed and could collect today ?\r\n\r\nMany thanks\r\n\r\nAnn", $stripped);
+        $this->assertEquals("Hello\r\n\r\nI would be interested in these as have a big slug problem and also the lawn feed and could collect today ?\r\n\r\nMany thanks\r\n\r\nAnn", $stripped);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text18'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
-        assertEquals("Ok, here's a reply.", $stripped);
+        $this->assertEquals("Ok, here's a reply.", $stripped);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text19'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $stripped = $m->stripQuoted();
-        assertEquals("Ok, here's a reply.", $stripped);
+        $this->assertEquals("Ok, here's a reply.", $stripped);
     }
     
     public function testCensor() {
@@ -517,7 +517,7 @@ class messageTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $atts = $m->getPublic();
-        assertEquals('Hey. *** *** and ***@***.com.', $atts['textbody']);
+        $this->assertEquals('Hey. *** *** and ***@***.com.', $atts['textbody']);
 
         }
 
@@ -525,7 +525,7 @@ class messageTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/modmail'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertTrue($m->getPrivate('modmail'));
+        $this->assertTrue($m->getPrivate('modmail'));
 
         }
 
@@ -533,48 +533,48 @@ class messageTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertFalse($m->isAutoreply());;
+        $this->assertFalse($m->isAutoreply());;
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Subject: Basic test', 'Subject: Out of the office', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertTrue($m->isAutoreply());
+        $this->assertTrue($m->isAutoreply());
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Hey.', 'I aim to respond within', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertTrue($m->isAutoreply());
+        $this->assertTrue($m->isAutoreply());
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/autosubmitted'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertTrue($m->isAutoreply());
+        $this->assertTrue($m->isAutoreply());
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/weirdreceipt'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertTrue($m->isAutoreply());
+        $this->assertTrue($m->isAutoreply());
     }
 
     public function testBounce() {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertFalse($m->isBounce());;
+        $this->assertFalse($m->isBounce());;
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Subject: Basic test', 'Subject: Mail delivery failed', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertTrue($m->isBounce());
+        $this->assertTrue($m->isBounce());
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Hey.', '550 No such user', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertTrue($m->isBounce());
+        $this->assertTrue($m->isBounce());
 
         }
 
@@ -597,7 +597,7 @@ class messageTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $id1);
         $m->setPrivate('source', Message::PLATFORM);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment'));
         $msg = str_replace('test@test.com', $email, $msg);
@@ -610,7 +610,7 @@ class messageTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $id2);
         $m->setPrivate('source', Message::PLATFORM);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Create an old reply to the post.
         $u = new User($this->dbhr, $this->dbhm);
@@ -627,8 +627,8 @@ class messageTest extends IznikTestCase {
         # Should get nothing - first message is not due and too old to generate a warning.
         $this->log("Expect nothing");
         list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-03-01', $this->gid);
-        assertEquals(0, $count);
-        assertEquals(0, $warncount);
+        $this->assertEquals(0, $count);
+        $this->assertEquals(0, $warncount);
 
         # Call when warning due, but a recent reply..
         $this->log("Recent reply for $id2");
@@ -636,8 +636,8 @@ class messageTest extends IznikTestCase {
         $this->dbhm->preExec("UPDATE messages_groups SET arrival = '$mysqltime' WHERE msgid = ?;", [ $id2 ]);
 
         list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $this->gid);
-        assertEquals(0, $count);
-        assertEquals(0, $warncount);
+        $this->assertEquals(0, $count);
+        $this->assertEquals(0, $warncount);
 
         # Make reply old enough not to block autorepost.
         $cm = new ChatMessage($this->dbhr, $this->dbhm, $cmid);
@@ -646,14 +646,14 @@ class messageTest extends IznikTestCase {
         # Call when repost not due.  First one should cause a warning only.
         $this->log("Expect warning for $id2");
         list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $this->gid);
-        assertEquals(0, $count);
-        assertEquals(1, $warncount);
+        $this->assertEquals(0, $count);
+        $this->assertEquals(1, $warncount);
 
         # Again - no action.
         $this->log("Expect nothing");
         list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $this->gid);
-        assertEquals(0, $count);
-        assertEquals(0, $warncount);
+        $this->assertEquals(0, $count);
+        $this->assertEquals(0, $warncount);
 
         $m2 = new Message($this->dbhr, $this->dbhm, $id2);
         $_SESSION['id'] = $m2->getFromuser();
@@ -672,8 +672,8 @@ class messageTest extends IznikTestCase {
         self::assertEquals(TRUE, $atts['canrepost']);
 
         list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $this->gid);
-        assertEquals(1, $count);
-        assertEquals(0, $warncount);
+        $this->assertEquals(1, $count);
+        $this->assertEquals(0, $warncount);
 
         $this->waitBackground();
         $uid = $m2->getFromuser();
@@ -702,7 +702,7 @@ class messageTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $id2);
         $m->setPrivate('source', Message::PLATFORM);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Manually repost.
         $m->repost();
@@ -716,8 +716,8 @@ class messageTest extends IznikTestCase {
         # Should now get a warning.
         $this->log("Expect warning for $id2");
         list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $this->gid);
-        assertEquals(0, $count);
-        assertEquals(1, $warncount);
+        $this->assertEquals(0, $count);
+        $this->assertEquals(1, $warncount);
 
         # Make the message and warning look longer ago.  Then call - should cause a repost.
         $this->log("Expect repost");
@@ -726,8 +726,8 @@ class messageTest extends IznikTestCase {
         $this->dbhm->preExec("UPDATE messages_groups SET lastautopostwarning = '2016-01-01' WHERE msgid = ?;", [ $id2 ]);
 
         list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $this->gid);
-        assertEquals(1, $count);
-        assertEquals(0, $warncount);
+        $this->assertEquals(1, $count);
+        $this->assertEquals(0, $warncount);
     }
 
     public function testAutoRepostOff() {
@@ -747,7 +747,7 @@ class messageTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $id2);
         $m->setPrivate('source', Message::PLATFORM);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Turn autorepost off for this user.
         $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
@@ -756,8 +756,8 @@ class messageTest extends IznikTestCase {
         # Call when repost not due.  Expect no warning as off.
         $this->log("Expect no warning for $id2");
         list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $this->gid);
-        assertEquals(0, $count);
-        assertEquals(0, $warncount);
+        $this->assertEquals(0, $count);
+        $this->assertEquals(0, $warncount);
 
         # Make the message and warning look longer ago.  Then call - still no repost as off.
         $this->log("Expect no repost");
@@ -766,8 +766,8 @@ class messageTest extends IznikTestCase {
         $this->dbhm->preExec("UPDATE messages_groups SET lastautopostwarning = '2016-01-01' WHERE msgid = ?;", [ $id2 ]);
 
         list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $this->gid);
-        assertEquals(0, $count);
-        assertEquals(0, $warncount);
+        $this->assertEquals(0, $count);
+        $this->assertEquals(0, $warncount);
     }
 
     public function chaseUpProvider() {
@@ -791,9 +791,9 @@ class messageTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($mid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertNotNull($mid);
+        $this->assertNotNull($mid);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $mid);
         $m->setPrivate('source', Message::PLATFORM);
 
@@ -805,7 +805,7 @@ class messageTest extends IznikTestCase {
 
         $c = new ChatMessage($this->dbhr, $this->dbhm);
         list ($cid, $banned) = $c->create($rid, $uid, "Test reply", ChatMessage::TYPE_DEFAULT, $mid);
-        assertNotNull($cid);
+        $this->assertNotNull($cid);
 
         if ($promise) {
             $u = new User($this->dbhr, $this->dbhm);
@@ -815,7 +815,7 @@ class messageTest extends IznikTestCase {
 
         # Chaseup - expect none as too recent.
         $count = $m->chaseUp(Group::GROUP_FREEGLE, '2016-03-01', $this->gid);
-        assertEquals(0, $count);
+        $this->assertEquals(0, $count);
 
         # Make it older.
         $mysqltime = date("Y-m-d H:i:s", strtotime('121 hours ago'));
@@ -833,11 +833,11 @@ class messageTest extends IznikTestCase {
         # Chaseup again - should get one.
         error_log("Expect");
         $count = $m->chaseUp(Group::GROUP_FREEGLE, '2016-03-01', $this->gid);
-        assertEquals(1, $count);
+        $this->assertEquals(1, $count);
 
         # And again - shouldn't, as the last chaseup was too recent.
         $count = $m->chaseUp(Group::GROUP_FREEGLE, '2016-03-01', $this->gid);
-        assertEquals(0, $count);
+        $this->assertEquals(0, $count);
     }
 
     public function testLanguishing() {
@@ -851,20 +851,20 @@ class messageTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($mid, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
-        assertNotNull($mid);
+        $this->assertNotNull($mid);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $mid);
 
         # Shouldn't notify, too new.
-        assertEquals(0, $m->notifyLanguishing($mid));
+        $this->assertEquals(0, $m->notifyLanguishing($mid));
 
         # Should have no notification.
         $n = new Notifications($this->dbhr, $this->dbhm);
         $ctx = NULL;
         $notifs = $n->get($m->getFromuser(), $ctx);
-        assertEquals(1, count($notifs));
-        assertEquals(Notifications::TYPE_ABOUT_ME, $notifs[0]['type']);
+        $this->assertEquals(1, count($notifs));
+        $this->assertEquals(Notifications::TYPE_ABOUT_ME, $notifs[0]['type']);
 
         # Make it older.
         $mysqltime = date("Y-m-d H:i:s", strtotime('121 hours ago'));
@@ -874,21 +874,21 @@ class messageTest extends IznikTestCase {
         ]);
 
         # Notify languish - nothing as not reposted enough.
-        assertEquals(0, $m->notifyLanguishing($mid));
+        $this->assertEquals(0, $m->notifyLanguishing($mid));
 
         # Fake reposts
         $this->dbhm->preExec("UPDATE messages_groups SET autoreposts = 100 WHERE msgid = ?;", [
             $mid
         ]);
-        assertEquals(1, $m->notifyLanguishing($mid));
+        $this->assertEquals(1, $m->notifyLanguishing($mid));
 
         # Should have a notification.
         $n = new Notifications($this->dbhr, $this->dbhm);
         $ctx = NULL;
         $notifs = $n->get($m->getFromuser(), $ctx);
-        assertEquals(2, count($notifs));
-        assertEquals(Notifications::TYPE_ABOUT_ME, $notifs[1]['type']);
-        assertEquals(Notifications::TYPE_OPEN_POSTS, $notifs[0]['type']);
+        $this->assertEquals(2, count($notifs));
+        $this->assertEquals(Notifications::TYPE_ABOUT_ME, $notifs[1]['type']);
+        $this->assertEquals(Notifications::TYPE_OPEN_POSTS, $notifs[0]['type']);
     }
 
     public function testTN() {
@@ -897,7 +897,7 @@ class messageTest extends IznikTestCase {
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $m->save();
         $atts = $m->getAttachments();
-        assertEquals(2, count($atts));
+        $this->assertEquals(2, count($atts));
         $m->delete();
 
         }
@@ -905,15 +905,15 @@ class messageTest extends IznikTestCase {
     public function testIncludeArea() {
         $l = new Location($this->dbhr, $this->dbhm);
         $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))');
-        assertNotNull($areaid);
+        $this->assertNotNull($areaid);
         $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
         $fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)');
         $locid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
 
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
         $m = new Message($this->dbhr, $this->dbhm);
         $id = $m->createDraft();
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -921,7 +921,7 @@ class messageTest extends IznikTestCase {
         # Check the can see code for our own messages.
         $atts = $m->getPublic();
         $atts['myrole'] = User::ROLE_NONMEMBER;
-        assertTrue($m->canSee($atts));
+        $this->assertTrue($m->canSee($atts));
 
         $m->setPrivate('locationid', $fullpcid);
         $m->setPrivate('type', Message::TYPE_OFFER);
@@ -955,8 +955,8 @@ class messageTest extends IznikTestCase {
 
         # Test subject twice for location caching coverage.
         $locationlist = [];
-        assertEquals($areaid, $m->getLocation($areaid, $locationlist)->getId());
-        assertEquals($areaid, $m->getLocation($areaid, $locationlist)->getId());
+        $this->assertEquals($areaid, $m->getLocation($areaid, $locationlist)->getId());
+        $this->assertEquals($areaid, $m->getLocation($areaid, $locationlist)->getId());
     }
 
     public function testTNShow() {
@@ -967,7 +967,7 @@ class messageTest extends IznikTestCase {
         $m->parse(Message::EMAIL, 'test@user.trashnothing.com', 'to@test.com', $msg);
         list ($id1, $failok) = $m->save();
         $atts = $m->getPublic();
-        assertTrue($m->canSee($atts));
+        $this->assertTrue($m->canSee($atts));
         $m->delete();
 
         }
@@ -997,7 +997,7 @@ class messageTest extends IznikTestCase {
         $m->quickDelete($schema, $id);
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertNull($m->getID());
+        $this->assertNull($m->getID());
     }
 
     public function testAutoApprove() {
@@ -1012,12 +1012,12 @@ class messageTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::PENDING, $rc);
+        $this->assertEquals(MailRouter::PENDING, $rc);
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
         # Too soon to autoapprove.
-        assertEquals(0, $m->autoapprove($id));
+        $this->assertEquals(0, $m->autoapprove($id));
 
         # Age it.
         $this->dbhm->preExec("UPDATE messages_groups SET arrival = '2018-01-01' WHERE msgid = ?;", [
@@ -1027,7 +1027,7 @@ class messageTest extends IznikTestCase {
             $m->getFromuser()
         ]);
 
-        assertEquals(1, $m->autoapprove($id));
+        $this->assertEquals(1, $m->autoapprove($id));
 
         # Check logs.
         $this->waitBackground();
@@ -1036,33 +1036,33 @@ class messageTest extends IznikTestCase {
         $found = FALSE;
         foreach ($groups as $group) {
             if ($group['id'] == $gid) {
-                assertEquals(1, $group['recentautoapproves']);
-                assertEquals(100, $group['recentautoapprovespercent']);
-                assertEquals(0, $group['recentmanualapproves']);
+                $this->assertEquals(1, $group['recentautoapproves']);
+                $this->assertEquals(100, $group['recentautoapprovespercent']);
+                $this->assertEquals(0, $group['recentmanualapproves']);
                 $found = TRUE;
             }
         }
 
-        assertTrue($found);
+        $this->assertTrue($found);
     }
 
     public function testParseSubject() {
-        assertEquals([ NULL, NULL, NULL], Message::parseSubject('OFFER item (Place)'));
-        assertEquals([ NULL, NULL, NULL], Message::parseSubject('OFFER: item Place)'));
-        assertEquals([ NULL, NULL, NULL], Message::parseSubject('OFFER: item (Place'));
-        assertEquals([ NULL, NULL, NULL ], Message::parseSubject('OFFER: (Place)'));
+        $this->assertEquals([ NULL, NULL, NULL], Message::parseSubject('OFFER item (Place)'));
+        $this->assertEquals([ NULL, NULL, NULL], Message::parseSubject('OFFER: item Place)'));
+        $this->assertEquals([ NULL, NULL, NULL], Message::parseSubject('OFFER: item (Place'));
+        $this->assertEquals([ NULL, NULL, NULL ], Message::parseSubject('OFFER: (Place)'));
 
-        assertEquals([ 'OFFER', 'item', 'Place'], Message::parseSubject('OFFER: item (Place)'));
-        assertEquals([ 'OFFER', 'item', ''], Message::parseSubject('OFFER: item ()'));
-        assertEquals([ 'OFFER', 'item', 'a'], Message::parseSubject('OFFER: item (a)'));
+        $this->assertEquals([ 'OFFER', 'item', 'Place'], Message::parseSubject('OFFER: item (Place)'));
+        $this->assertEquals([ 'OFFER', 'item', ''], Message::parseSubject('OFFER: item ()'));
+        $this->assertEquals([ 'OFFER', 'item', 'a'], Message::parseSubject('OFFER: item (a)'));
 
-        assertEquals([ 'OFFER', 'item', 'Place (with brackets)'], Message::parseSubject('OFFER: item (Place (with brackets))'));
-        assertEquals([ 'OFFER', 'item', 'Place (with brackets)'], Message::parseSubject(' OFFER :  item  ( Place (with brackets) )'));
-        assertEquals([ 'OFFER', 'item', 'Place (with) brackets'], Message::parseSubject('OFFER: item (Place (with) brackets)'));
-        assertEquals([ 'OFFER', 'item (with) brackets', 'Place'], Message::parseSubject('OFFER: item (with) brackets (Place)'));
-        assertEquals([ 'OFFER', 'item (with brackets)', 'Place'], Message::parseSubject('OFFER: item (with brackets) (Place)'));
-        assertEquals([ 'OFFER', 'item (with brackets)', 'Place (with) brackets'], Message::parseSubject('OFFER: item (with brackets) (Place (with) brackets)'));
-        assertEquals([ 'OFFER', 'item (with brackets', 'Place (with) brackets' ], Message::parseSubject('OFFER: item (with brackets (Place (with) brackets)'));
+        $this->assertEquals([ 'OFFER', 'item', 'Place (with brackets)'], Message::parseSubject('OFFER: item (Place (with brackets))'));
+        $this->assertEquals([ 'OFFER', 'item', 'Place (with brackets)'], Message::parseSubject(' OFFER :  item  ( Place (with brackets) )'));
+        $this->assertEquals([ 'OFFER', 'item', 'Place (with) brackets'], Message::parseSubject('OFFER: item (Place (with) brackets)'));
+        $this->assertEquals([ 'OFFER', 'item (with) brackets', 'Place'], Message::parseSubject('OFFER: item (with) brackets (Place)'));
+        $this->assertEquals([ 'OFFER', 'item (with brackets)', 'Place'], Message::parseSubject('OFFER: item (with brackets) (Place)'));
+        $this->assertEquals([ 'OFFER', 'item (with brackets)', 'Place (with) brackets'], Message::parseSubject('OFFER: item (with brackets) (Place (with) brackets)'));
+        $this->assertEquals([ 'OFFER', 'item (with brackets', 'Place (with) brackets' ], Message::parseSubject('OFFER: item (with brackets (Place (with) brackets)'));
     }
 
     public function testNameChange() {
@@ -1082,11 +1082,11 @@ class messageTest extends IznikTestCase {
 
         // Test the fromname.
         $_SESSION['id'] = $m->getPrivate('fromuser');
-        assertEquals('Test User', $m->getPublic()['fromname']);
+        $this->assertEquals('Test User', $m->getPublic()['fromname']);
 
         // Change the name of the user.
         $this->user->setPrivate('fullname', 'Changed Name');
-        assertEquals('Changed Name', $m->getPublic()['fromname']);
+        $this->assertEquals('Changed Name', $m->getPublic()['fromname']);
     }
 
     // For manual testing
@@ -1096,7 +1096,7 @@ class messageTest extends IznikTestCase {
 //
 //        $m = new Message($this->dbhr, $this->dbhm);
 //        $rc = $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-//        assertTrue($rc);
+//        $this->assertTrue($rc);
 //        list ($id, $failok) = $m->save();
 //        $m = new Message($this->dbhr, $this->dbhm, $id);
 //        $this->log("IP " . $m->getFromIP());
@@ -1112,8 +1112,8 @@ class messageTest extends IznikTestCase {
 //    }
 
     public function testValidate() {
-        assertEquals(1, preg_match(Message::EMAIL_REGEXP, 'test@test.com'));
-        assertEquals(1, preg_match(Message::EMAIL_REGEXP, 'test@test.cloud'));
+        $this->assertEquals(1, preg_match(Message::EMAIL_REGEXP, 'test@test.com'));
+        $this->assertEquals(1, preg_match(Message::EMAIL_REGEXP, 'test@test.cloud'));
     }
 }
 

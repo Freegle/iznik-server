@@ -51,7 +51,7 @@ class RequestTest extends IznikTestCase {
         $u->addMembership($gid);
 
         $rid = $r->create($uid, Request::TYPE_BUSINESS_CARDS, NULL, NULL);
-        assertNotNull($rid);
+        $this->assertNotNull($rid);
         $r->completed($uid);
 
         $r->delete();
@@ -81,7 +81,7 @@ class RequestTest extends IznikTestCase {
         $u->addMembership($gid);
 
         $rid = $r->create($uid, Request::TYPE_BUSINESS_CARDS, NULL, NULL);
-        assertNotNull($rid);
+        $this->assertNotNull($rid);
         $r->completed($uid);
     }
 

@@ -18,15 +18,15 @@ class dashboardTest extends IznikAPITestCase {
         $u = \Freegle\Iznik\User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $u = User::get($this->dbhr, $this->dbhm, $id);
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
         $this->log("After login {$_SESSION['id']}");
 
         # Shouldn't get anything as a user
         $ret = $this->call('dashboard', 'GET', []);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $dash = $ret['dashboard'];
-        assertFalse(array_key_exists('messagehistory', $dash));
+        $this->assertFalse(array_key_exists('messagehistory', $dash));
 
         # But should as an admin
         $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
@@ -34,10 +34,10 @@ class dashboardTest extends IznikAPITestCase {
             'systemwide' => TRUE,
             'force' => TRUE
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $dash = $ret['dashboard'];
         #$this->log("Got dashboard " . var_export($ret, TRUE));
-        assertGreaterThan(0, $dash['ApprovedMessageCount']);
+        $this->assertGreaterThan(0, $dash['ApprovedMessageCount']);
     }
 
     public function testGroups() {
@@ -46,8 +46,8 @@ class dashboardTest extends IznikAPITestCase {
         $id2 = $u->create('Test', 'User', NULL);
         $u1 = User::get($this->dbhr, $this->dbhm, $id1);
         $u2 = User::get($this->dbhr, $this->dbhm, $id2);
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_OTHER);
@@ -60,45 +60,45 @@ class dashboardTest extends IznikAPITestCase {
         $ret = $this->call('dashboard', 'GET', [
             'group' => $group1
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $dash = $ret['dashboard'];
-        assertFalse(array_key_exists('messagehistory', $dash));
+        $this->assertFalse(array_key_exists('messagehistory', $dash));
 
         # But should as a mod
         $ret = $this->call('dashboard', 'GET', [
             'group' => $group2
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $dash = $ret['dashboard'];
-        assertGreaterThan(0, $dash['ApprovedMessageCount']);
+        $this->assertGreaterThan(0, $dash['ApprovedMessageCount']);
 
         # And also if we ask for our groups
         $ret = $this->call('dashboard', 'GET', [
             'allgroups' => TRUE,
             'grouptype' => 'Other'
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $dash = $ret['dashboard'];
-        assertGreaterThan(0, $dash['ApprovedMessageCount']);
+        $this->assertGreaterThan(0, $dash['ApprovedMessageCount']);
 
         # And again for cache code.
         $ret = $this->call('dashboard', 'GET', [
             'allgroups' => TRUE,
             'grouptype' => 'Other'
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $dash = $ret['dashboard'];
-        assertGreaterThan(0, $dash['ApprovedMessageCount']);
+        $this->assertGreaterThan(0, $dash['ApprovedMessageCount']);
 
         # ...but not if we ask for the wrong type
         $ret = $this->call('dashboard', 'GET', [
             'allgroups' => TRUE,
             'grouptype' => 'Freegle'
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $dash = $ret['dashboard'];
         $this->log(var_export($dash, TRUE));
-        assertEquals(0, count($dash['ApprovedMessageCount']));
+        $this->assertEquals(0, count($dash['ApprovedMessageCount']));
     }
 
     public function testRegion() {
@@ -110,9 +110,9 @@ class dashboardTest extends IznikAPITestCase {
             'region' => 'Scotland'
         ]);
         $this->log("Returned " . var_export($ret, TRUE));
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $dash = $ret['dashboard'];
-        assertTrue(in_array($group1, $ret['dashboard']['groupids']));
+        $this->assertTrue(in_array($group1, $ret['dashboard']['groupids']));
     }
 
     public function testComponents() {
@@ -123,11 +123,11 @@ class dashboardTest extends IznikAPITestCase {
 
         $u = new User($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        assertNotNull($uid);
-        assertTrue($u->addMembership($gid, User::ROLE_OWNER));
+        $this->assertNotNull($uid);
+        $this->assertTrue($u->addMembership($gid, User::ROLE_OWNER));
         $u->addEmail('test@test.com');
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
@@ -135,10 +135,10 @@ class dashboardTest extends IznikAPITestCase {
 
         $r = new MailRouter($this->dbhm, $this->dbhm);
        list ($mid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'testgroup@groups.ilovefreegle.org', $msg, $gid);
-        assertNotNull($mid);
+        $this->assertNotNull($mid);
         $this->log("Created message $mid");
         $rc = $r->route();
-        assertEquals(MailRouter::PENDING, $rc);
+        $this->assertEquals(MailRouter::PENDING, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $mid);
 
         $ret = $this->call('dashboard', 'GET', [
@@ -148,9 +148,9 @@ class dashboardTest extends IznikAPITestCase {
             'group' => $gid
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertEquals(1, $ret['components']['RecentCounts']['newmembers']);
-        assertEquals(1, $ret['components']['RecentCounts']['newmessages']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, $ret['components']['RecentCounts']['newmembers']);
+        $this->assertEquals(1, $ret['components']['RecentCounts']['newmessages']);
 
         $ret = $this->call('dashboard', 'GET', [
             'components' => [
@@ -159,11 +159,11 @@ class dashboardTest extends IznikAPITestCase {
             'group' => $gid
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertEquals(0, count($ret['components']['PopularPosts']));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, count($ret['components']['PopularPosts']));
 
         $m = new Message($this->dbhr, $this->dbhm, $mid);
-        assertEquals(Message::TYPE_OFFER, $m->getType());
+        $this->assertEquals(Message::TYPE_OFFER, $m->getType());
         $m->like($uid, Message::LIKE_VIEW);
         $this->waitBackground();
 
@@ -174,10 +174,10 @@ class dashboardTest extends IznikAPITestCase {
             'group' => $gid
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         # Message is still pending.
-        assertEquals(0, count($ret['components']['PopularPosts']));
+        $this->assertEquals(0, count($ret['components']['PopularPosts']));
 
         $m = new Message($this->dbhr, $this->dbhm, $mid);
         $m->approve($gid);
@@ -189,10 +189,10 @@ class dashboardTest extends IznikAPITestCase {
             'group' => $gid
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['components']['PopularPosts']));
-        assertEquals(1, $ret['components']['PopularPosts'][0]['views']);
-        assertEquals(0, $ret['components']['PopularPosts'][0]['replies']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, count($ret['components']['PopularPosts']));
+        $this->assertEquals(1, $ret['components']['PopularPosts'][0]['views']);
+        $this->assertEquals(0, $ret['components']['PopularPosts'][0]['replies']);
 
         $ret = $this->call('dashboard', 'GET', [
             'components' => [
@@ -201,22 +201,22 @@ class dashboardTest extends IznikAPITestCase {
             'group' => $gid
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['components'][Dashboard::COMPONENT_USERS_POSTING]));
-        assertEquals($uid, $ret['components'][Dashboard::COMPONENT_USERS_POSTING][0]['id']);
-        assertEquals(1, $ret['components'][Dashboard::COMPONENT_USERS_POSTING][0]['posts']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, count($ret['components'][Dashboard::COMPONENT_USERS_POSTING]));
+        $this->assertEquals($uid, $ret['components'][Dashboard::COMPONENT_USERS_POSTING][0]['id']);
+        $this->assertEquals(1, $ret['components'][Dashboard::COMPONENT_USERS_POSTING][0]['posts']);
 
         # Reply
         $u = new User($this->dbhr, $this->dbhm);
         $uid2 = $u->create(NULL, NULL, 'Test User');
-        assertNotNull($uid2);
-        assertTrue($u->addMembership($gid, User::ROLE_MEMBER));
+        $this->assertNotNull($uid2);
+        $this->assertTrue($u->addMembership($gid, User::ROLE_MEMBER));
 
         $cr = new ChatRoom($this->dbhr, $this->dbhm);
         list ($rid, $blocked) = $cr->createConversation($uid, $uid2);
         $cm = new ChatMessage($this->dbhr, $this->dbhm);
         list ($cmid, $banned) = $cm->create($rid, $uid2, "Test", ChatMessage::TYPE_INTERESTED, $mid);
-        assertNotNull($cmid);
+        $this->assertNotNull($cmid);
 
         $ret = $this->call('dashboard', 'GET', [
             'components' => [
@@ -225,10 +225,10 @@ class dashboardTest extends IznikAPITestCase {
             'group' => $gid
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['components'][Dashboard::COMPONENT_USERS_REPLYING]));
-        assertEquals($uid2, $ret['components'][Dashboard::COMPONENT_USERS_REPLYING][0]['id']);
-        assertEquals(1, $ret['components'][Dashboard::COMPONENT_USERS_REPLYING][0]['replies']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, count($ret['components'][Dashboard::COMPONENT_USERS_REPLYING]));
+        $this->assertEquals($uid2, $ret['components'][Dashboard::COMPONENT_USERS_REPLYING][0]['id']);
+        $this->assertEquals(1, $ret['components'][Dashboard::COMPONENT_USERS_REPLYING][0]['replies']);
 
         $this->waitBackground();
 
@@ -241,9 +241,9 @@ class dashboardTest extends IznikAPITestCase {
 
         sleep(1);
 
-        assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['components'][Dashboard::COMPONENT_MODERATORS_ACTIVE]));
-        assertEquals($uid, $ret['components'][Dashboard::COMPONENT_MODERATORS_ACTIVE][0]['id']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, count($ret['components'][Dashboard::COMPONENT_MODERATORS_ACTIVE]));
+        $this->assertEquals($uid, $ret['components'][Dashboard::COMPONENT_MODERATORS_ACTIVE][0]['id']);
 
         # Move message to approved for stats.
         $m->approve($gid);
@@ -269,11 +269,11 @@ class dashboardTest extends IznikAPITestCase {
             'group' => $gid
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['components'][Dashboard::COMPONENTS_APPROVED_MESSAGE_COUNT]));
-        assertEquals(1, $ret['components'][Dashboard::COMPONENTS_APPROVED_MESSAGE_COUNT][0]['count']);
-        assertEquals(1, count($ret['components'][Dashboard::COMPONENTS_ACTIVE_USERS]));
-        assertEquals(1, $ret['components'][Dashboard::COMPONENTS_ACTIVE_USERS][0]['count']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, count($ret['components'][Dashboard::COMPONENTS_APPROVED_MESSAGE_COUNT]));
+        $this->assertEquals(1, $ret['components'][Dashboard::COMPONENTS_APPROVED_MESSAGE_COUNT][0]['count']);
+        $this->assertEquals(1, count($ret['components'][Dashboard::COMPONENTS_ACTIVE_USERS]));
+        $this->assertEquals(1, $ret['components'][Dashboard::COMPONENTS_ACTIVE_USERS][0]['count']);
 
         $ret = $this->call('dashboard', 'GET', [
             'components' => [
@@ -284,9 +284,9 @@ class dashboardTest extends IznikAPITestCase {
             'group' => $gid
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['components'][Dashboard::COMPONENTS_REPLIES]));
-        assertEquals(1, $ret['components'][Dashboard::COMPONENTS_REPLIES][0]['count']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, count($ret['components'][Dashboard::COMPONENTS_REPLIES]));
+        $this->assertEquals(1, $ret['components'][Dashboard::COMPONENTS_REPLIES][0]['count']);
 
         $ret = $this->call('dashboard', 'GET', [
             'components' => [
@@ -297,9 +297,9 @@ class dashboardTest extends IznikAPITestCase {
             'group' => $gid
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['components'][Dashboard::COMPONENTS_ACTIVITY]));
-        assertEquals(2, $ret['components'][Dashboard::COMPONENTS_ACTIVITY][0]['count']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, count($ret['components'][Dashboard::COMPONENTS_ACTIVITY]));
+        $this->assertEquals(2, $ret['components'][Dashboard::COMPONENTS_ACTIVITY][0]['count']);
 
         $ret = $this->call('dashboard', 'GET', [
             'components' => [
@@ -310,8 +310,8 @@ class dashboardTest extends IznikAPITestCase {
             'group' => $gid
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertEquals(1, $ret['components'][Dashboard::COMPONENTS_MESSAGE_BREAKDOWN][Message::TYPE_OFFER]);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, $ret['components'][Dashboard::COMPONENTS_MESSAGE_BREAKDOWN][Message::TYPE_OFFER]);
 
         $ret = $this->call('dashboard', 'GET', [
             'components' => [
@@ -322,10 +322,10 @@ class dashboardTest extends IznikAPITestCase {
             'group' => $gid
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         # Zero weight so no value returned.
-        assertEquals(0, count($ret['components'][Dashboard::COMPONENTS_WEIGHT]));
+        $this->assertEquals(0, count($ret['components'][Dashboard::COMPONENTS_WEIGHT]));
 
         $ret = $this->call('dashboard', 'GET', [
             'components' => [
@@ -336,8 +336,8 @@ class dashboardTest extends IznikAPITestCase {
             'group' => $gid
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertEquals(0, count($ret['components'][Dashboard::COMPONENTS_OUTCOMES]));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, count($ret['components'][Dashboard::COMPONENTS_OUTCOMES]));
 
         $ret = $this->call('dashboard', 'GET', [
             'components' => [
@@ -347,8 +347,8 @@ class dashboardTest extends IznikAPITestCase {
             'end' => date('Y-m-d', strtotime('tomorrow'))
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertTrue(array_key_exists(Dashboard::COMPONENTS_ACTIVE_USERS, $ret['components']));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertTrue(array_key_exists(Dashboard::COMPONENTS_ACTIVE_USERS, $ret['components']));
 
         $ret = $this->call('dashboard', 'GET', [
             'components' => [
@@ -358,8 +358,8 @@ class dashboardTest extends IznikAPITestCase {
             'end' => date('Y-m-d', strtotime('tomorrow'))
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertTrue(array_key_exists(Dashboard::COMPONENTS_DONATIONS, $ret['components']));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertTrue(array_key_exists(Dashboard::COMPONENTS_DONATIONS, $ret['components']));
 
         $ret = $this->call('dashboard', 'GET', [
             'components' => [
@@ -369,8 +369,8 @@ class dashboardTest extends IznikAPITestCase {
             'end' => date('Y-m-d', strtotime('tomorrow'))
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertTrue(array_key_exists(Dashboard::COMPONENTS_DISCOURSE_TOPICS, $ret['components']));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertTrue(array_key_exists(Dashboard::COMPONENTS_DISCOURSE_TOPICS, $ret['components']));
     }
 
 //
@@ -386,7 +386,7 @@ class dashboardTest extends IznikAPITestCase {
 //        $ret = $this->call('dashboard', 'GET', [
 //            'allgroups' => TRUE
 //        ]);
-//        assertEquals(0, $ret['ret']);
+//        $this->assertEquals(0, $ret['ret']);
 //        $this->log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
 //
 //        //    }

@@ -61,9 +61,9 @@ class nearbyTest extends IznikTestCase {
         # Create a location for the message
         $l = new Location($this->dbhr, $this->dbhm);
         $lid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
-        assertNotNull($lid);
+        $this->assertNotNull($lid);
         $lid2 = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2157 8.53343)');
-        assertNotNull($lid2);
+        $this->assertNotNull($lid2);
 
         # Create a group here
         $g = new Group($this->dbhr, $this->dbhm);
@@ -75,7 +75,7 @@ class nearbyTest extends IznikTestCase {
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
         $u = new User($this->dbhr, $this->dbhm);
         $u->create('Test', 'User', 'Test User');
-        assertNotNull($u->addEmail($email));
+        $this->assertNotNull($u->addEmail($email));
         $u->addMembership($gid);
         $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
@@ -91,7 +91,7 @@ class nearbyTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $mid);
         $m->setPrivate('locationid', $lid);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
         $m->addToSpatialIndex();
 
         # Create a nearby user
@@ -104,7 +104,7 @@ class nearbyTest extends IznikTestCase {
 
         $n = new Nearby($this->dbhm, $this->dbhm);
         $n->updateLocations();
-        assertEquals(1, $n->messages($gid));
+        $this->assertEquals(1, $n->messages($gid));
     }
 }
 

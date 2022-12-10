@@ -34,15 +34,15 @@ class domainAPITest extends IznikAPITestCase {
             'domain' => 'test.com'
         ]);
         $this->log("Should be no suggestions " . var_export($ret, TRUE));
-        assertEquals(0, $ret['ret']);
-        assertFalse(array_key_exists('suggestions', $ret));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertFalse(array_key_exists('suggestions', $ret));
 
         $ret = $this->call('domains', 'GET', [
             'domain' => 'tset.com'
         ]);
         $this->log("Should be suggestions " . var_export($ret, TRUE));
-        assertEquals(0, $ret['ret']);
-        assertTrue(array_key_exists('suggestions', $ret));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertTrue(array_key_exists('suggestions', $ret));
 
         }
 }

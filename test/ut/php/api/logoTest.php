@@ -51,8 +51,8 @@ class logoTest extends IznikAPITestCase {
 
         # No logo for today.
         $ret = $this->call('logo', 'GET', []);
-        assertEquals(0, $ret['ret']);
-        assertTrue(array_key_exists('logo', $ret));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertTrue(array_key_exists('logo', $ret));
 
         }
 }

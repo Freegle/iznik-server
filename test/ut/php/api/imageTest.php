@@ -46,7 +46,7 @@ class imageAPITest extends IznikAPITestCase
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $a = new Message($this->dbhr, $this->dbhm, $id);
         $a->setPrivate('sourceheader', Message::PLATFORM);
@@ -56,11 +56,11 @@ class imageAPITest extends IznikAPITestCase
             'id' => $id,
             'collection' => 'Approved'
         ]);
-        assertEquals(0, $ret['ret']);
-        assertEquals($id, $ret['message']['id']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals($id, $ret['message']['id']);
 
         # One image stripped out due to aspect ratio.
-        assertEquals(1, count($ret['message']['attachments']));
+        $this->assertEquals(1, count($ret['message']['attachments']));
         $img1 = $ret['message']['attachments'][0]['id'];
 
         $ret = $this->call('image', 'GET', [
@@ -68,21 +68,21 @@ class imageAPITest extends IznikAPITestCase
             'w' => 100
         ], FALSE);
 
-        assertTrue(strlen($ret) == 1178 || strlen($ret) == 1179);
+        $this->assertTrue(strlen($ret) == 1178 || strlen($ret) == 1179);
 
         $ret = $this->call('image', 'GET', [
             'id' => $img1,
             'h' => 100
         ], FALSE);
 
-        assertEquals(2116, strlen($ret));
+        $this->assertEquals(2116, strlen($ret));
 
         $ret = $this->call('image', 'GET', [
             'id' => $img1,
             'h' => 100
         ], FALSE);
 
-        assertEquals(2116, strlen($ret));
+        $this->assertEquals(2116, strlen($ret));
 
         $ret = $this->call('image', 'GET', [
             'id' => $img1,
@@ -91,7 +91,7 @@ class imageAPITest extends IznikAPITestCase
         ], TRUE);
 
         $this->log("Expect 1 " . var_export($ret, TRUE));
-        assertEquals(1, $ret['ret']);
+        $this->assertEquals(1, $ret['ret']);
 
         $ret = $this->call('image', 'GET', [
             'id' => $img1,
@@ -99,7 +99,7 @@ class imageAPITest extends IznikAPITestCase
             'newsletter' => 1
         ], TRUE);
 
-        assertEquals(1, $ret['ret']);
+        $this->assertEquals(1, $ret['ret']);
 
         $a->delete();
         $g->delete();
@@ -118,8 +118,8 @@ class imageAPITest extends IznikAPITestCase
             'identify' => TRUE
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertNotNull($ret['id']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertNotNull($ret['id']);
         $id = $ret['id'];
         
         # Now rotate.
@@ -133,7 +133,7 @@ class imageAPITest extends IznikAPITestCase
             'rotate' => 90
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         $newdata = $this->call('image', 'GET', [
             'id' => $id,
@@ -141,7 +141,7 @@ class imageAPITest extends IznikAPITestCase
         ], FALSE);
 
         $this->log("Lengths " . strlen($origdata) . " vs " . strlen($newdata));
-        assertNotEquals($origdata, $newdata);
+        $this->assertNotEquals($origdata, $newdata);
 
         $ret = $this->call('image', 'POST', [
             'id' => $id,
@@ -164,13 +164,13 @@ class imageAPITest extends IznikAPITestCase
             'w' => 100,
             'circle' => TRUE
         ], FALSE);
-        assertNotEquals($origdata, $newdata);
+        $this->assertNotEquals($origdata, $newdata);
 
         $ret = $this->call('image', 'DELETE', [
             'id' => $id
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         }
 
@@ -187,10 +187,10 @@ class imageAPITest extends IznikAPITestCase
                 'ocr' => TRUE
             ]);
 
-            assertTrue(strpos($ret['ocr'], 'ANYONE CAN COME ALONG') !== FALSE);
+            $this->assertTrue(strpos($ret['ocr'], 'ANYONE CAN COME ALONG') !== FALSE);
         }
 
-        assertTrue(TRUE);
+        $this->assertTrue(TRUE);
     }
 
     public function testObjects() {
@@ -206,10 +206,10 @@ class imageAPITest extends IznikAPITestCase
             ]);
 
             error_log("Returned " . var_export($ret, TRUE));
-            assertEquals(10, count($ret['objects']['responses'][0]['localizedObjectAnnotations']));
+            $this->assertEquals(10, count($ret['objects']['responses'][0]['localizedObjectAnnotations']));
         }
 
-        assertTrue(TRUE);
+        $this->assertTrue(TRUE);
     }
 
     public function testHEIC()
@@ -225,7 +225,7 @@ class imageAPITest extends IznikAPITestCase
             'identify' => TRUE
         ]);
 
-        assertEquals(2, $ret['ret']);
+        $this->assertEquals(2, $ret['ret']);
     }
 
     /**
@@ -239,15 +239,15 @@ class imageAPITest extends IznikAPITestCase
             $type => TRUE
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertNotNull($ret['id']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertNotNull($ret['id']);
         $id = $ret['id'];
 
         $ret = $this->call('image', 'DELETE', [
             'id' => $id
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
     }
 
     public function types() {
@@ -277,15 +277,15 @@ class imageAPITest extends IznikAPITestCase
             ]
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertNotNull($ret['id']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertNotNull($ret['id']);
         $id = $ret['id'];
 
         $ret = $this->call('image', 'DELETE', [
             'id' => $id
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
     }
 
     public function exif() {

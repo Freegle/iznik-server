@@ -35,17 +35,17 @@ class IsochroneTest extends IznikTestCase {
 
         $l = new Location($this->dbhr, $this->dbhm);
         $lid = $l->findByName('EH3 6SS');
-        assertNotNull($lid);
+        $this->assertNotNull($lid);
 
         $id = $i->create($uid, Isochrone::WALK, Isochrone::DEFAULT_TIME, NULL, $lid);
-        assertEquals($id, $i->getPublic()['id']);
+        $this->assertEquals($id, $i->getPublic()['id']);
         $i = new Isochrone($this->dbhr, $this->dbhm, $id);
-        assertEquals($id, $i->getPublic()['id']);
-        assertNotNull($i->getPublic()['polygon']);
+        $this->assertEquals($id, $i->getPublic()['id']);
+        $this->assertNotNull($i->getPublic()['polygon']);
 
         $isochrones = $i->list($uid);
-        assertEquals(1, count($isochrones));
-        assertEquals($id, $isochrones[0]['id']);
+        $this->assertEquals(1, count($isochrones));
+        $this->assertEquals($id, $isochrones[0]['id']);
     }
 }
 

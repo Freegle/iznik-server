@@ -36,7 +36,7 @@ class visualiseAPITest extends IznikAPITestCase
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm);
         $attid = $a->create(NULL, $data);
-        assertNotNull($attid);
+        $this->assertNotNull($attid);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment'));
         $msg = str_replace('Test att', 'OFFER: Test (Location)', $msg);
@@ -58,13 +58,13 @@ class visualiseAPITest extends IznikAPITestCase
         list ($rid, $blocked) = $r->createConversation($uid, $m1->getFromuser());
         $cm = new ChatMessage($this->dbhr, $this->dbhm);
         $cmid = $cm->create($rid, $uid, "Hello?", ChatMessage::TYPE_INTERESTED, $id1);
-        assertNotNull($cmid);
+        $this->assertNotNull($cmid);
         error_log("Created reply to $id1 from $uid");
 
         $v = new Visualise($this->dbhr, $this->dbhm);
         $mysqltime = date ("Y-m-d H:i:s");
         $vid = $v->create($id1, $attid, $mysqltime, $m1->getFromuser(), $m1->getFromuser(), 53.1, 1.1, 53.2, 1.2);
-        assertNotNull($vid);
+        $this->assertNotNull($vid);
 
         $ret = $this->call('visualise', 'GET', [
             'nelat' => 53.3,
@@ -72,7 +72,7 @@ class visualiseAPITest extends IznikAPITestCase
             'swlat' => 53,
             'swlng' => 1
         ]);
-        assertEquals($id1, $ret['list'][0]['msgid']);
-        assertEquals(1, count($ret['list'][0]['others']));
+        $this->assertEquals($id1, $ret['list'][0]['msgid']);
+        $this->assertEquals(1, count($ret['list'][0]['others']));
     }
 }

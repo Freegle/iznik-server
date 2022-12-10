@@ -43,23 +43,23 @@ class groupCollectionTest extends IznikTestCase
         $this->log("1 group");
         $c = new GroupCollection($this->dbhr, $this->dbhm, [ $g1 ] );
         $gs = $c->get();
-        assertEquals(1, count($gs));
-        assertEquals($g1, $gs[0]->getId());
+        $this->assertEquals(1, count($gs));
+        $this->assertEquals($g1, $gs[0]->getId());
 
         $this->log("2 groups");
         $c = new GroupCollection($this->dbhr, $this->dbhm, [ $g1, $g2 ] );
         $gs = $c->get();
-        assertEquals(2, count($gs));
-        assertEquals($g1, $gs[0]->getId());
-        assertEquals($g2, $gs[1]->getId());
+        $this->assertEquals(2, count($gs));
+        $this->assertEquals($g1, $gs[0]->getId());
+        $this->assertEquals($g2, $gs[1]->getId());
 
         $this->log("3 groups");
         $c = new GroupCollection($this->dbhr, $this->dbhm, [ $g2, $g3, $g1 ] );
         $gs = $c->get();
-        assertEquals(3, count($gs));
-        assertEquals($g2, $gs[0]->getId());
-        assertEquals($g3, $gs[1]->getId());
-        assertEquals($g1, $gs[2]->getId());
+        $this->assertEquals(3, count($gs));
+        $this->assertEquals($g2, $gs[0]->getId());
+        $this->assertEquals($g3, $gs[1]->getId());
+        $this->assertEquals($g1, $gs[2]->getId());
 
         }
 

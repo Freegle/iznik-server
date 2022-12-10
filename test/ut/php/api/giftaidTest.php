@@ -40,13 +40,13 @@ class giftaidAPITest extends IznikAPITestCase
 
         # Logged out - error
         $ret = $this->call('giftaid', 'GET', []);
-        assertEquals(1, $ret['ret']);
+        $this->assertEquals(1, $ret['ret']);
 
         # Create user
         $u = User::get($this->dbhm, $this->dbhm);
         $uid = $u->create('Test', 'User', NULL);
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         # Give them an address we will recognise the postcode for
         $a = new Address($this->dbhr, $this->dbhm);
@@ -56,15 +56,15 @@ class giftaidAPITest extends IznikAPITestCase
 
         # No consent yet
         $ret = $this->call('giftaid', 'GET', []);
-        assertEquals(0, $ret['ret']);
-        assertFalse(array_key_exists('giftaid', $ret));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertFalse(array_key_exists('giftaid', $ret));
 
         # Add it with missing parameters
         $ret = $this->call('giftaid', 'POST', [
             'period' => Donations::PERIOD_THIS
         ]);
 
-        assertEquals(2, $ret['ret']);
+        $this->assertEquals(2, $ret['ret']);
 
         # Add it with valid parameters
         $ret = $this->call('giftaid', 'POST', [
@@ -73,33 +73,33 @@ class giftaidAPITest extends IznikAPITestCase
             'homeaddress' => "Somewhere $pc"
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $gid = $ret['id'];
-        assertNotNull($gid);
+        $this->assertNotNull($gid);
 
         # Get it back.
         $ret = $this->call('giftaid', 'GET', []);
-        assertEquals(0, $ret['ret']);
-        assertEquals('Test User', $ret['giftaid']['fullname']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals('Test User', $ret['giftaid']['fullname']);
 
         # Set up the postcode.
         $d = new Donations($this->dbhr, $this->dbhm);
-        assertEquals(1, $d->identifyGiftAidPostcode($gid));
+        $this->assertEquals(1, $d->identifyGiftAidPostcode($gid));
 
         # List without permission - will return ours.
         $ret = $this->call('giftaid', 'GET', [
             'all' => TRUE
         ]);
-        assertEquals(0, $ret['ret']);
-        assertEquals('Test User', $ret['giftaid']['fullname']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals('Test User', $ret['giftaid']['fullname']);
 
-        assertEquals($pc, $ret['giftaid']['postcode']);
+        $this->assertEquals($pc, $ret['giftaid']['postcode']);
 
         $u->setPrivate('permissions', User::PERM_GIFTAID);
         $ret = $this->call('giftaid', 'GET', [
             'all' => TRUE
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         $found = NULL;
         foreach ($ret['giftaids'] as $giftaid) {
@@ -108,7 +108,7 @@ class giftaidAPITest extends IznikAPITestCase
             }
         }
 
-        assertNotNull($found);
+        $this->assertNotNull($found);
 
         # Edit it
         $ret = $this->call('giftaid', 'PATCH', [
@@ -121,26 +121,26 @@ class giftaidAPITest extends IznikAPITestCase
 
         # Check it's changed.
         $ret = $this->call('giftaid', 'GET', []);
-        assertEquals(0, $ret['ret']);
-        assertEquals('Real Name', $ret['giftaid']['fullname']);
-        assertNotNull(Utils::presdef('reviewed', $ret['giftaid'], NULL));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals('Real Name', $ret['giftaid']['fullname']);
+        $this->assertNotNull(Utils::presdef('reviewed', $ret['giftaid'], NULL));
 
         # Search for it.
         $ret = $this->call('giftaid', 'GET', [
             'search' => 'Real Name'
         ]);
-        assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['giftaids']));
-        assertEquals($u->getId(), $ret['giftaids'][0]['userid']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, count($ret['giftaids']));
+        $this->assertEquals($u->getId(), $ret['giftaids'][0]['userid']);
 
         # Delete it
         $ret = $this->call('giftaid', 'DELETE', []);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         # Should be absent
         $ret = $this->call('giftaid', 'GET', []);
-        assertEquals(0, $ret['ret']);
-        assertFalse(array_key_exists('giftaid', $ret));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertFalse(array_key_exists('giftaid', $ret));
     }
 
     public function testDelete()
@@ -155,8 +155,8 @@ class giftaidAPITest extends IznikAPITestCase
         # Create user
         $u = User::get($this->dbhm, $this->dbhm);
         $uid = $u->create('Test', 'User', NULL);
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         # Give them an address we will recognise the postcode for
         $a = new Address($this->dbhr, $this->dbhm);
@@ -171,13 +171,13 @@ class giftaidAPITest extends IznikAPITestCase
             'homeaddress' => "Somewhere $pc"
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $gid = $ret['id'];
-        assertNotNull($gid);
+        $this->assertNotNull($gid);
 
         # Set up the postcode.
         $d = new Donations($this->dbhr, $this->dbhm);
-        assertEquals(1, $d->identifyGiftAidPostcode($gid));
+        $this->assertEquals(1, $d->identifyGiftAidPostcode($gid));
 
         # Delete it.
         $u->setPrivate('permissions', User::PERM_GIFTAID);
@@ -185,7 +185,7 @@ class giftaidAPITest extends IznikAPITestCase
         $ret = $this->call('giftaid', 'GET', [
             'all' => TRUE
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         $found = NULL;
         foreach ($ret['giftaids'] as $giftaid) {
@@ -199,13 +199,13 @@ class giftaidAPITest extends IznikAPITestCase
             }
         }
 
-        assertNotNull($found);
+        $this->assertNotNull($found);
 
         # Should be absent from list.
         $ret = $this->call('giftaid', 'GET', [
             'all' => TRUE
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         $found = NULL;
 
@@ -215,15 +215,15 @@ class giftaidAPITest extends IznikAPITestCase
             }
         }
 
-        assertNull($found);
+        $this->assertNull($found);
     }
 
     public function testPostcode()
     {
         $u = User::get($this->dbhm, $this->dbhm);
         $uid = $u->create('Test', 'User', NULL);
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         # Add address.  EH3 6SS is set up in testenv.
         $ret = $this->call('giftaid', 'POST', [
@@ -232,29 +232,29 @@ class giftaidAPITest extends IznikAPITestCase
             'homeaddress' => "Somewhere EH36SS"
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $gid = $ret['id'];
-        assertNotNull($gid);
+        $this->assertNotNull($gid);
 
         # Set up the postcode.
         $d = new Donations($this->dbhr, $this->dbhm);
-        assertEquals(1, $d->identifyGiftAidPostcode($gid));
+        $this->assertEquals(1, $d->identifyGiftAidPostcode($gid));
 
         # List without permission - will return ours.
         $ret = $this->call('giftaid', 'GET', [
             'all' => TRUE
         ]);
-        assertEquals(0, $ret['ret']);
-        assertEquals('Test User', $ret['giftaid']['fullname']);
-        assertEquals("EH3 6SS", $ret['giftaid']['postcode']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals('Test User', $ret['giftaid']['fullname']);
+        $this->assertEquals("EH3 6SS", $ret['giftaid']['postcode']);
     }
 
     public function testHouse()
     {
         $u = User::get($this->dbhm, $this->dbhm);
         $uid = $u->create('Test', 'User', NULL);
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         # Add address.  EH3 6SS is set up in testenv.
         $ret = $this->call('giftaid', 'POST', [
@@ -263,20 +263,20 @@ class giftaidAPITest extends IznikAPITestCase
             'homeaddress' => "13-14a Somewhere EH36SS"
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $gid = $ret['id'];
-        assertNotNull($gid);
+        $this->assertNotNull($gid);
 
         # Set up the postcode.
         $d = new Donations($this->dbhr, $this->dbhm);
-        assertEquals(1, $d->identifyGiftAidHouse($gid));
+        $this->assertEquals(1, $d->identifyGiftAidHouse($gid));
 
         # List without permission - will return ours.
         $ret = $this->call('giftaid', 'GET', [
             'all' => TRUE
         ]);
-        assertEquals(0, $ret['ret']);
-        assertEquals('Test User', $ret['giftaid']['fullname']);
-        assertEquals("13-14a", $ret['giftaid']['housenameornumber']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals('Test User', $ret['giftaid']['fullname']);
+        $this->assertEquals("13-14a", $ret['giftaid']['housenameornumber']);
     }
 }

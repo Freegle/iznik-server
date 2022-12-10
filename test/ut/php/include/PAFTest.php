@@ -28,7 +28,7 @@ class PAFTest extends IznikTestCase {
     }
 
     public function testLoad() {
-        assertTrue(TRUE);
+        $this->assertTrue(TRUE);
 
         $l = new Location($this->dbhm, $this->dbhm);
         $pcid = $l->create(NULL, 'TV10 1AA', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
@@ -75,7 +75,7 @@ class PAFTest extends IznikTestCase {
         $this->log("CSV is $csv");
 
         $this->log("Update - postcodes 3 diffs");
-        assertGreaterThanOrEqual(3, $p->update(UT_DIR . '/php/misc/pc.csv'));
+        $this->assertGreaterThanOrEqual(3, $p->update(UT_DIR . '/php/misc/pc.csv'));
 
         # Load a version where fields have changed and there's a new one.
         $t = file_get_contents(UT_DIR . '/php/misc/pc2.csv');
@@ -89,11 +89,11 @@ class PAFTest extends IznikTestCase {
         $pcids = $this->dbhr->preQuery("SELECT paf_addresses.postcodeid, name FROM paf_addresses INNER JOIN locations ON locations.id = paf_addresses.postcodeid WHERE paf_addresses.postcodeid IS NOT NULL LIMIT 1;");
         $name = $pcids[0]['name'];
         $ids = $p->listForPostcode($name);
-        assertGreaterThan(0, count($ids));
+        $this->assertGreaterThan(0, count($ids));
         $line = $p->getSingleLine($ids[0]);
         error_log($line);
         $this->log($line);
-        assertGreaterThanOrEqual(0, strpos($line, $name));
+        $this->assertGreaterThanOrEqual(0, strpos($line, $name));
     }
 }
 

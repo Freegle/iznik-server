@@ -178,7 +178,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         } while ($count < IznikTestCase::LOG_SLEEP);
 
         if ($count >= IznikTestCase::LOG_SLEEP) {
-            assertFalse(TRUE, 'Failed to complete background work');
+            $this->assertFalse(TRUE, 'Failed to complete background work');
         }
     }
 

@@ -68,26 +68,26 @@ class groupFacebookTest extends IznikTestCase {
 
         $u = new User($this->dbhr, $this->dbhm);
         $this->uid = $u->create('Test', 'User', 'Test User');
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $u->addMembership($gid, User::ROLE_MODERATOR);
         $this->user = $u;
         $u->login('testpw');
 
-        assertEquals(1, $t->getPostsToShare(1, "last week"));
+        $this->assertEquals(1, $t->getPostsToShare(1, "last week"));
 
         $this->getException = TRUE;
-        assertEquals(0, $t->getPostsToShare(1, "last week"));
+        $this->assertEquals(0, $t->getPostsToShare(1, "last week"));
 
         $t = new GroupFacebook($this->dbhr, $this->dbhm, $id);
-        assertEquals($id, $t->getPublic()['uid']);
+        $this->assertEquals($id, $t->getPublic()['uid']);
 
-        assertEquals($id, GroupFacebook::listForGroup($this->dbhr, $this->dbhm, $gid)[0]);
+        $this->assertEquals($id, GroupFacebook::listForGroup($this->dbhr, $this->dbhm, $gid)[0]);
         $l = GroupFacebook::listForGroups($this->dbhr, $this->dbhm, [ $gid ]);
-        assertEquals($id, $l[$gid][0]['uid']);
+        $this->assertEquals($id, $l[$gid][0]['uid']);
 
         $t->remove($id);
         $t = new GroupFacebook($this->dbhr, $this->dbhm, $id);
-        assertNull($t->getPublic()['id']);
+        $this->assertNull($t->getPublic()['id']);
 
         }
 
@@ -107,7 +107,7 @@ class groupFacebookTest extends IznikTestCase {
         $this->uid = $u->create('Test', 'User', 'Test User');
         $u->addEmail('test@test.com');
         $u->addEmail('sender@example.net');
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $u->addMembership($gid);
         $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         $this->user = $u;
@@ -118,7 +118,7 @@ class groupFacebookTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
         $this->log("Approved message id $id");
 
         # Ensure we have consent to see this message
@@ -137,7 +137,7 @@ class groupFacebookTest extends IznikTestCase {
     public function testGetFB() {
         $f = new GroupFacebook($this->dbhr, $this->dbhm);
         $fb = $f->getFB(TRUE, TRUE);
-        assertNotNull($fb);
+        $this->assertNotNull($fb);
     }
 }
 

@@ -55,23 +55,23 @@ class engageTest extends IznikTestCase {
 
         $e = new Engage($this->dbhm, $this->dbhm);
 
-        assertEquals(0, $e->process($uid));
+        $this->assertEquals(0, $e->process($uid));
 
         $sqltime = date("Y-m-d", strtotime("@" . (time() - Engage::USER_INACTIVE + 7 * 24 * 60 * 60)));
         $u->setPrivate('lastaccess', $sqltime);
-        assertEquals(0, $e->process($uid));
+        $this->assertEquals(0, $e->process($uid));
         $u->addMembership($this->gid);
         $this->group->setSettings([
           'engagement' => $enabled
         ]);
 
-        assertEquals($enabled ? 1 : 0, $e->process($uid));
+        $this->assertEquals($enabled ? 1 : 0, $e->process($uid));
 
         # Record success.
         $eids = $this->dbhr->preQuery("SELECT * FROM engage WHERE userid = ?;", [
             $uid
         ]);
-        assertEquals($enabled ? 1 : 0, count($eids));
+        $this->assertEquals($enabled ? 1 : 0, count($eids));
 
         if ($enabled) {
             $e->recordSuccess($eids[0]['id']);
@@ -79,7 +79,7 @@ class engageTest extends IznikTestCase {
 
         $sqltime = date("Y-m-d", strtotime("@" . (time() - Engage::USER_INACTIVE - 24 * 60 * 60)));
         $u->setPrivate('lastaccess', $sqltime);
-        assertEquals(0, $e->process($uid));
+        $this->assertEquals(0, $e->process($uid));
     }
 
     public function testEngagement() {
@@ -88,25 +88,25 @@ class engageTest extends IznikTestCase {
         $u->addEmail('test@test.com');
         $u->addMembership($this->gid);
 
-        assertEquals(NULL, $u->getPrivate('engagement'));
+        $this->assertEquals(NULL, $u->getPrivate('engagement'));
 
         # Created user - should update to null
         $e = new Engage($this->dbhm, $this->dbhm);
         $e->updateEngagement($uid);
         $u = new User($this->dbhr, $this->dbhm, $uid);
-        assertEquals(Engage::ENGAGEMENT_NEW, $u->getPrivate('engagement'));
+        $this->assertEquals(Engage::ENGAGEMENT_NEW, $u->getPrivate('engagement'));
 
         # Idle - should update to inactive
         $u->setPrivate('lastaccess', date("Y-m-d", strtotime("15 days ago")));
         $e->updateEngagement($uid);
         $u = new User($this->dbhr, $this->dbhm, $uid);
-        assertEquals(Engage::ENGAGEMENT_INACTIVE, $u->getPrivate('engagement'));
+        $this->assertEquals(Engage::ENGAGEMENT_INACTIVE, $u->getPrivate('engagement'));
 
         # Dormant
         $u->setPrivate('lastaccess', date("Y-m-d", strtotime("190 days ago")));
         $e->updateEngagement($uid);
         $u = new User($this->dbhr, $this->dbhm, $uid);
-        assertEquals(Engage::ENGAGEMENT_DORMANT, $u->getPrivate('engagement'));
+        $this->assertEquals(Engage::ENGAGEMENT_DORMANT, $u->getPrivate('engagement'));
 
         # Post, should become occasional.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -115,11 +115,11 @@ class engageTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id1, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::PENDING, $rc);
+        $this->assertEquals(MailRouter::PENDING, $rc);
 
         $e->updateEngagement($uid);
         $u = new User($this->dbhr, $this->dbhm, $uid);
-        assertEquals(Engage::ENGAGEMENT_OCCASIONAL, $u->getPrivate('engagement'));
+        $this->assertEquals(Engage::ENGAGEMENT_OCCASIONAL, $u->getPrivate('engagement'));
 
         # Post more, should become frequent.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -128,24 +128,24 @@ class engageTest extends IznikTestCase {
        list ($id2, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
 
-        assertEquals(MailRouter::PENDING, $rc);
+        $this->assertEquals(MailRouter::PENDING, $rc);
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Thing 3 (Place)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
        list ($id3, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::PENDING, $rc);
+        $this->assertEquals(MailRouter::PENDING, $rc);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Thing 4 (Place)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
        list ($id4, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::PENDING, $rc);
+        $this->assertEquals(MailRouter::PENDING, $rc);
 
         $e->updateEngagement($uid);
         $u = new User($this->dbhr, $this->dbhm, $uid);
-        assertEquals(Engage::ENGAGEMENT_OBSESSED, $u->getPrivate('engagement'));
+        $this->assertEquals(Engage::ENGAGEMENT_OBSESSED, $u->getPrivate('engagement'));
 
         # Remove posts so it looks like they've become less active.
         $this->dbhm->preExec("DELETE FROM messages WHERE id in (?, ?);", [
@@ -154,7 +154,7 @@ class engageTest extends IznikTestCase {
         ]);
         $e->updateEngagement($uid);
         $u = new User($this->dbhr, $this->dbhm, $uid);
-        assertEquals(Engage::ENGAGEMENT_FREQUENT, $u->getPrivate('engagement'));
+        $this->assertEquals(Engage::ENGAGEMENT_FREQUENT, $u->getPrivate('engagement'));
     }
 }
 

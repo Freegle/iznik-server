@@ -75,7 +75,7 @@ class volunteeringDigestTest extends IznikTestCase {
             ->setMethods(array('sendOne'))
             ->getMock();
         $mock->method('sendOne')->willThrowException(new \Exception());
-        assertEquals(0, $mock->send($gid));
+        $this->assertEquals(0, $mock->send($gid));
 
         # Mock the actual send
         $mock = $this->getMockBuilder('Freegle\Iznik\VolunteeringDigest')
@@ -85,25 +85,25 @@ class volunteeringDigestTest extends IznikTestCase {
         $mock->method('sendOne')->will($this->returnCallback(function($mailer, $message) {
             return($this->sendMock($mailer, $message));
         }));
-        assertEquals(1, $mock->send($gid));
-        assertEquals(1, count($this->volunteeringSent));
+        $this->assertEquals(1, $mock->send($gid));
+        $this->assertEquals(1, count($this->volunteeringSent));
 
         $this->log("Mail sent" . var_export($this->volunteeringSent, TRUE));
 
         # Actual send for coverage.
         $d = new VolunteeringDigest($this->dbhr, $this->dbhm);
-        assertEquals(1, $d->send($gid));
+        $this->assertEquals(1, $d->send($gid));
 
         # Turn off
         $mock->off($uid2, $gid);
 
-        assertEquals(0, $mock->send($gid));
+        $this->assertEquals(0, $mock->send($gid));
 
         # Invalid email
         $uid3 = $u->create(NULL, NULL, "Test User");
         $u->addEmail('test.com');
         $u->addMembership($gid);
-        assertEquals(0, $mock->send($gid));
+        $this->assertEquals(0, $mock->send($gid));
 
         $this->log("For coverage");
         $e = new VolunteeringDigest($this->dbhr, $this->dbhm);
@@ -113,7 +113,7 @@ class volunteeringDigestTest extends IznikTestCase {
         $mock->method('send')->willThrowException(new \Exception());
         try {
             $e->sendOne($mock, NULL);
-            assertTrue(FALSE);
+            $this->assertTrue(FALSE);
         } catch (\Exception $e){}
     }
 }

@@ -47,38 +47,38 @@ class donationsTest extends IznikTestCase {
         $d = new Donations($this->dbhr, $this->dbhm);
         $mysqltime = date("Y-m-d H:i:s", strtotime('yesterday'));
         $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 1', 0, Donations::TYPE_PAYPAL);
-        assertNotNull($did);
+        $this->assertNotNull($did);
 
         $mysqltime = date("Y-m-d H:i:s", time());
         $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 2', 0, Donations::TYPE_PAYPAL);
-        assertNotNull($did);
+        $this->assertNotNull($did);
 
         $mysqltime = date("Y-m-d H:i:s", strtotime('tomorrow'));
         $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 3', 0, Donations::TYPE_PAYPAL);
-        assertNotNull($did);
+        $this->assertNotNull($did);
 
         # Test the donations show up for Support Tools.
         $mod = new User($this->dbhr, $this->dbhm);
         $mod->create('Test', 'User', NULL);
         $mod->setPrivate('systemrole', User::ROLE_MODERATOR);
         $mod->setPrivate('permissions', User::PERM_GIFTAID);
-        assertGreaterThan(0, $mod->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($mod->login('testpw'));
+        $this->assertGreaterThan(0, $mod->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($mod->login('testpw'));
 
         $ctx = NULL;
         $searches = $u->search($id , $ctx);
-        assertEquals(1, count($searches));
-        assertEquals(3, count($searches[0]['donations']));
+        $this->assertEquals(1, count($searches));
+        $this->assertEquals(3, count($searches[0]['donations']));
 
         # Add consent.
         $gid = $d->setGiftAid($id, Donations::PERIOD_SINCE, 'Test User', 'Nowheresville');
         $d->editGiftAid($gid, NULL, NULL, NULL, NULL, NULL, TRUE, FALSE);
 
         $_SESSION['id'] = $id;
-        assertTrue($u->getPublic()['donor']);
+        $this->assertTrue($u->getPublic()['donor']);
 
         # All three have consent
-        assertEquals(3, $d->identifyGiftAidedDonations($gid));
+        $this->assertEquals(3, $d->identifyGiftAidedDonations($gid));
 
         $d->delete($did);
     }
@@ -93,38 +93,38 @@ class donationsTest extends IznikTestCase {
         $d = new Donations($this->dbhr, $this->dbhm);
         $mysqltime = date("Y-m-d H:i:s", strtotime('five years ago'));
         $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 1', 0, Donations::TYPE_PAYPAL);
-        assertNotNull($did);
+        $this->assertNotNull($did);
 
         $mysqltime = date("Y-m-d H:i:s", time());
         $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 2', 0, Donations::TYPE_PAYPAL);
-        assertNotNull($did);
+        $this->assertNotNull($did);
 
         $mysqltime = date("Y-m-d H:i:s", strtotime('tomorrow'));
         $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 3', 0, Donations::TYPE_PAYPAL);
-        assertNotNull($did);
+        $this->assertNotNull($did);
 
         # Test the donations show up for Support Tools.
         $mod = new User($this->dbhr, $this->dbhm);
         $mod->create('Test', 'User', NULL);
         $mod->setPrivate('systemrole', User::ROLE_MODERATOR);
         $mod->setPrivate('permissions', User::PERM_GIFTAID);
-        assertGreaterThan(0, $mod->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($mod->login('testpw'));
+        $this->assertGreaterThan(0, $mod->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($mod->login('testpw'));
 
         $ctx = NULL;
         $searches = $u->search($id , $ctx);
-        assertEquals(1, count($searches));
-        assertEquals(3, count($searches[0]['donations']));
+        $this->assertEquals(1, count($searches));
+        $this->assertEquals(3, count($searches[0]['donations']));
 
         # Add consent.
         $gid = $d->setGiftAid($id, Donations::PERIOD_PAST_4_YEARS_AND_FUTURE, 'Test User', 'Nowheresville');
         $d->editGiftAid($gid, NULL, NULL, NULL, NULL, NULL, TRUE, FALSE);
 
         $_SESSION['id'] = $id;
-        assertTrue($u->getPublic()['donor']);
+        $this->assertTrue($u->getPublic()['donor']);
 
         # All three have consent
-        assertEquals(2, $d->identifyGiftAidedDonations($gid));
+        $this->assertEquals(2, $d->identifyGiftAidedDonations($gid));
 
         $d->delete($did);
     }
@@ -140,21 +140,21 @@ class donationsTest extends IznikTestCase {
         $d = new Donations($this->dbhr, $this->dbhm);
         $mysqltime = date("Y-m-d H:i:s", strtotime('yesterday'));
         $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 1', 0, Donations::TYPE_PAYPAL);
-        assertNotNull($did);
+        $this->assertNotNull($did);
 
         $mysqltime = date("Y-m-d H:i:s", time());
         $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 2', 0, Donations::TYPE_PAYPAL);
-        assertNotNull($did);
+        $this->assertNotNull($did);
 
         $mysqltime = date("Y-m-d H:i:s", strtotime('tomorrow'));
         $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 3', 0, Donations::TYPE_PAYPAL);
-        assertNotNull($did);
+        $this->assertNotNull($did);
 
         # Add consent.
         $gid = $d->setGiftAid($id, Donations::PERIOD_THIS, 'Test User', 'Nowheresville');
         $d->editGiftAid($gid, NULL, NULL, NULL, NULL, NULL, TRUE, FALSE);
 
-        assertEquals(1, $d->identifyGiftAidedDonations($gid));
+        $this->assertEquals(1, $d->identifyGiftAidedDonations($gid));
 
         $d->delete($did);
     }
@@ -169,30 +169,30 @@ class donationsTest extends IznikTestCase {
         $d = new Donations($this->dbhr, $this->dbhm);
         $mysqltime = date("Y-m-d H:i:s", strtotime('yesterday'));
         $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 1', 0, Donations::TYPE_PAYPAL, 'subscr_payment');
-        assertNotNull($did);
+        $this->assertNotNull($did);
 
         # Should be flagged as a supporter.
-        assertTrue($u->getPublic()['supporter']);
+        $this->assertTrue($u->getPublic()['supporter']);
 
         $mysqltime = date("Y-m-d H:i:s", time());
         $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 2', 0, Donations::TYPE_PAYPAL);
-        assertNotNull($did);
+        $this->assertNotNull($did);
 
         $mysqltime = date("Y-m-d H:i:s", strtotime('tomorrow'));
         $did = $d->add($id, 'test@test.com', 'Test User', $mysqltime, 'UT 3', 0, Donations::TYPE_PAYPAL);
-        assertNotNull($did);
+        $this->assertNotNull($did);
 
         # Add consent.
         $gid = $d->setGiftAid($id, Donations::PERIOD_FUTURE, 'Test User', 'Nowheresville');
         $d->editGiftAid($gid, NULL, NULL, NULL, NULL, NULL, TRUE, FALSE);
 
-        assertEquals(2, $d->identifyGiftAidedDonations($gid));
+        $this->assertEquals(2, $d->identifyGiftAidedDonations($gid));
 
         # Test own donation info.
         $_SESSION['id'] = $id;
         $atts = $u->getPublic();
-        assertTrue($atts['donor']);
-        assertTrue($atts['donorrecurring']);
+        $this->assertTrue($atts['donor']);
+        $this->assertTrue($atts['donorrecurring']);
 
         $d->delete($did);
     }

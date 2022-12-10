@@ -49,7 +49,7 @@ class authorityAPITest extends IznikAPITestCase
         # Create a group with an OFFER, WANTED and a search on it.
         $l = new Location($this->dbhr, $this->dbhm);
         $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))');
-        assertNotNull($areaid);
+        $this->assertNotNull($areaid);
         $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
         $fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)');
         $locid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
@@ -83,7 +83,7 @@ class authorityAPITest extends IznikAPITestCase
 
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $m->setPrivate('locationid', $fullpcid);
 
@@ -93,15 +93,15 @@ class authorityAPITest extends IznikAPITestCase
 
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $m->setPrivate('locationid', $fullpcid);
 
         # Add a search.  Need to be logged in.
         $u = new User($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
         $m = new Message($this->dbhr, $this->dbhm);
         $ctx = NULL;
         $m->search("Test", $ctx, Search::Limit, NULL, NULL, $fullpcid, FALSE);
@@ -117,17 +117,17 @@ class authorityAPITest extends IznikAPITestCase
 
         $this->log("Get returned " . var_export($ret, TRUE));
 
-        assertEquals(0, $ret['ret']);
-        assertEquals($id, $ret['authority']['id']);
-        assertEquals('UTAuth', $ret['authority']['name']);
-        assertEquals(1, count($ret['authority']['stats']));
-        assertEquals(1, count($ret['authority']['groups']));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals($id, $ret['authority']['id']);
+        $this->assertEquals('UTAuth', $ret['authority']['name']);
+        $this->assertEquals(1, count($ret['authority']['stats']));
+        $this->assertEquals(1, count($ret['authority']['groups']));
 
         foreach ($ret['authority']['stats'] as $key => $stat) {
-            assertEquals('TV13 1', $key);
-            assertEquals(1, $stat[Message::TYPE_OFFER]);
-            assertEquals(1, $stat[Message::TYPE_WANTED]);
-            assertEquals(1, $stat[Stats::SEARCHES]);
+            $this->assertEquals('TV13 1', $key);
+            $this->assertEquals(1, $stat[Message::TYPE_OFFER]);
+            $this->assertEquals(1, $stat[Message::TYPE_WANTED]);
+            $this->assertEquals(1, $stat[Stats::SEARCHES]);
         }
 
         $ret = $this->call('authority', 'GET', [
@@ -136,16 +136,16 @@ class authorityAPITest extends IznikAPITestCase
 
         $this->log("Search returned " . var_export($ret, TRUE));
 
-        assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['authorities']));
-        assertEquals($id, $ret['authorities'][0]['id']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, count($ret['authorities']));
+        $this->assertEquals($id, $ret['authorities'][0]['id']);
 
     }
 
     public function testStory() {
         $l = new Location($this->dbhr, $this->dbhm);
         $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))');
-        assertNotNull($areaid);
+        $this->assertNotNull($areaid);
 
         $a = new Authority($this->dbhr, $this->dbhm);
         $id = $a->create("UTAuth", 'GLA', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
@@ -176,8 +176,8 @@ class authorityAPITest extends IznikAPITestCase
             'authorityid' => $id
         ]);
 
-        assertEquals(1, count($ret['stories']));
-        assertEquals($sid, $ret['stories'][0]['id']);
+        $this->assertEquals(1, count($ret['stories']));
+        $this->assertEquals($sid, $ret['stories'][0]['id']);
     }
 //
 //    public function testEH()

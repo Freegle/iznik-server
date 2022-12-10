@@ -74,7 +74,7 @@ class notificationsTest extends IznikTestCase {
     public function testEmail() {
         $l = new Location($this->dbhr, $this->dbhm);
         $lid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
-        assertNotNull($lid);
+        $this->assertNotNull($lid);
 
         $u = User::get($this->dbhr, $this->dbhm);
         $uid1 = $u->create(NULL, NULL, 'Test Original Poster');
@@ -113,7 +113,7 @@ class notificationsTest extends IznikTestCase {
         $this->log("Reply $rid2");
 
         $n->add($uid1, $uid2, Notifications::TYPE_LOVED_COMMENT, $rid);
-        assertTrue($n->haveSent($uid2, Notifications::TYPE_LOVED_COMMENT, '24 hours ago'));
+        $this->assertTrue($n->haveSent($uid2, Notifications::TYPE_LOVED_COMMENT, '24 hours ago'));
 
 //        $n->add($uid2, $uid1, Notifications::TYPE_COMMENT_ON_YOUR_POST, $nid);
 //        $n->add($uid1, $uid2, Notifications::TYPE_COMMENT_ON_COMMENT, $rid);
@@ -121,13 +121,13 @@ class notificationsTest extends IznikTestCase {
         sleep(1);
         self::assertEquals(3, $n->sendEmails($uid2, '0 seconds ago', '7 days ago'));
 
-        assertEquals(0, $n->deleteOldUserType($uid2, Notifications::TYPE_LOVED_COMMENT, "2038-01-01"));
+        $this->assertEquals(0, $n->deleteOldUserType($uid2, Notifications::TYPE_LOVED_COMMENT, "2038-01-01"));
     }
 
     public function testDeleted1() {
         $l = new Location($this->dbhr, $this->dbhm);
         $lid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
-        assertNotNull($lid);
+        $this->assertNotNull($lid);
 
         $u = User::get($this->dbhr, $this->dbhm);
         $uid1 = $u->create(NULL, NULL, 'Test Original Poster');
@@ -155,11 +155,11 @@ class notificationsTest extends IznikTestCase {
         # Check notification counts for each.
         $ctx = NULL;
         $nots = $n->get($uid1, $ctx);
-        assertEquals(2, count($nots));
+        $this->assertEquals(2, count($nots));
 
         $ctx = NULL;
         $nots = $n->get($uid2, $ctx);
-        assertEquals(2, count($nots));
+        $this->assertEquals(2, count($nots));
 
         # Delete the comment.
         $_SESSION['id'] = $uid2;
@@ -169,18 +169,18 @@ class notificationsTest extends IznikTestCase {
         # Notification for comment shouldn't appear.
         $ctx = NULL;
         $nots = $n->get($uid1, $ctx);
-        assertEquals(1, count($nots));
+        $this->assertEquals(1, count($nots));
 
         $ctx = NULL;
         $nots = $n->get($uid2, $ctx);
-        assertEquals(1, count($nots));
-        assertEquals(Notifications::TYPE_ABOUT_ME, $nots[0]['type']);
+        $this->assertEquals(1, count($nots));
+        $this->assertEquals(Notifications::TYPE_ABOUT_ME, $nots[0]['type']);
     }
 
     public function testDeleted2() {
         $l = new Location($this->dbhr, $this->dbhm);
         $lid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
-        assertNotNull($lid);
+        $this->assertNotNull($lid);
 
         $u = User::get($this->dbhr, $this->dbhm);
         $uid1 = $u->create(NULL, NULL, 'Test Original Poster');
@@ -208,11 +208,11 @@ class notificationsTest extends IznikTestCase {
         # Check notification counts for each.
         $ctx = NULL;
         $nots = $n->get($uid1, $ctx);
-        assertEquals(2, count($nots));
+        $this->assertEquals(2, count($nots));
 
         $ctx = NULL;
         $nots = $n->get($uid2, $ctx);
-        assertEquals(2, count($nots));
+        $this->assertEquals(2, count($nots));
 
         # Delete the thread.  Don't delete the notifs, so that we can test coverage.
         $_SESSION['id'] = $uid1;
@@ -222,12 +222,12 @@ class notificationsTest extends IznikTestCase {
         # Notification for comment shouldn't appear.
         $ctx = NULL;
         $nots = $n->get($uid1, $ctx);
-        assertEquals(1, count($nots));
+        $this->assertEquals(1, count($nots));
 
         $ctx = NULL;
         $nots = $n->get($uid2, $ctx);
-        assertEquals(1, count($nots));
-        assertEquals(Notifications::TYPE_ABOUT_ME, $nots[0]['type']);
+        $this->assertEquals(1, count($nots));
+        $this->assertEquals(Notifications::TYPE_ABOUT_ME, $nots[0]['type']);
     }
 
     public function testOff() {
@@ -248,7 +248,7 @@ class notificationsTest extends IznikTestCase {
         }));
 
         $n->off($uid1);
-        assertEquals(1, count($this->msgsSent));
+        $this->assertEquals(1, count($this->msgsSent));
     }
 }
 

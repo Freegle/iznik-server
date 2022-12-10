@@ -32,7 +32,7 @@ class MailRouterTest extends IznikTestCase {
 
         $this->group = Group::get($this->dbhr, $this->dbhm);
         $this->gid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
-        assertNotNull($this->gid);
+        $this->assertNotNull($this->gid);
         $this->group = Group::get($this->dbhr, $this->dbhm, $this->gid);
         $this->group->setPrivate('onhere', 1);
 
@@ -40,8 +40,8 @@ class MailRouterTest extends IznikTestCase {
         $this->uid = $u->create('Test', 'User', 'Test User');
         $u->addEmail('test@test.com');
         $u->addEmail('sender@example.net');
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertEquals(1, $u->addMembership($this->gid));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertEquals(1, $u->addMembership($this->gid));
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         $this->user = $u;
     }
@@ -74,26 +74,26 @@ class MailRouterTest extends IznikTestCase {
         $u2 = User::get($this->dbhr, $this->dbhm);
         $uid2 = $u->create(NULL, NULL, 'Test User');
         $u2 = User::get($this->dbhr, $this->dbhm, $uid2);
-        assertGreaterThan(0, $u->addEmail('test2@test.com'));
+        $this->assertGreaterThan(0, $u->addEmail('test2@test.com'));
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("X-Yahoo-Group-Post: member; u=420816297", "X-Yahoo-Group-Post: member; u=-1", $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertEquals($this->uid, $m->getFromuser());
+        $this->assertEquals($this->uid, $m->getFromuser());
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/fromyahoo'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertEquals('Yahoo-Web', $m->getSourceheader());
+        $this->assertEquals('Yahoo-Web', $m->getSourceheader());
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Test group override
         $g = Group::get($this->dbhr, $this->dbhm);
@@ -105,13 +105,13 @@ class MailRouterTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertEquals('Yahoo-Web', $m->getSourceheader());
+        $this->assertEquals('Yahoo-Web', $m->getSourceheader());
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
         $groups = $m->getGroups();
         $this->log("Groups " . var_export($groups, true));
-        assertEquals($gid, $groups[0]);
-        assertTrue($m->isApproved($gid));
+        $this->assertEquals($gid, $groups[0]);
+        $this->assertTrue($m->isApproved($gid));
     }
 
     public function testHamNoGroup() {
@@ -119,8 +119,8 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace("freegleplayground@yahoogroups.com", "nogroup@yahoogroups.com", $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertNotNull($id);
-        assertEquals(MailRouter::DROPPED, $r->route());
+        $this->assertNotNull($id);
+        $this->assertEquals(MailRouter::DROPPED, $r->route());
     }
 
     public function testSpamNoGroup() {
@@ -129,7 +129,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace("FreeglePlayground <freegleplayground@yahoogroups.com>", "Nowhere <nogroup@yahoogroups.com>", $msg);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::DROPPED, $rc);
+        $this->assertEquals(MailRouter::DROPPED, $rc);
     }
 
     public function testSpamSubject() {
@@ -154,9 +154,9 @@ class MailRouterTest extends IznikTestCase {
             $rc = $r->route();
 
             if ($i < Spam::SUBJECT_THRESHOLD - 1) {
-                assertEquals(MailRouter::APPROVED, $rc);
+                $this->assertEquals(MailRouter::APPROVED, $rc);
             } else {
-                assertEquals(MailRouter::INCOMING_SPAM, $rc);
+                $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
             }
         }
 
@@ -165,7 +165,7 @@ class MailRouterTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $msgid);
         $m->notSpam();
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         foreach ($groups as $group) {
             $group->delete();
@@ -179,29 +179,29 @@ class MailRouterTest extends IznikTestCase {
         list ($id, $failok) = $m->save();
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertEquals(Message::EMAIL, $m->getSource());
+        $this->assertEquals(Message::EMAIL, $m->getSource());
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
-        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+        $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
         $spam = new Message($this->dbhr, $this->dbhm, $id);
-        assertEquals('sender@example.net', $spam->getFromaddr());
-        assertNull($spam->getFromIP());
-        assertNull($spam->getFromhost());
-        assertEquals(1, count($spam->getGroups()));
-        assertEquals($id, $spam->getID());
-        assertEquals(0, strpos($spam->getMessageID(), 'GTUBE1.1010101@example.net'));
-        assertEquals(str_replace("\r\n", "\n", $msg), str_replace("\r\n", "\n", $spam->getMessage()));
-        assertEquals(Message::EMAIL, $spam->getSource());
-        assertEquals('from1@test.com', $spam->getEnvelopefrom());
-        assertEquals('to@test.com', $spam->getEnvelopeto());
-        assertNotNull($spam->getTextbody());
-        assertNull($spam->getHtmlbody());
-        assertEquals($spam->getSubject(), $spam->getHeader('subject'));
-        assertEquals('freegleplayground@yahoogroups.com', $spam->getTo()[0]['address']);
-        assertEquals('Sender', $spam->getFromname());
-        assertTrue(strpos($spam->getSpamreason(), 'SpamAssassin flagged this as possible spam') !== FALSE);
+        $this->assertEquals('sender@example.net', $spam->getFromaddr());
+        $this->assertNull($spam->getFromIP());
+        $this->assertNull($spam->getFromhost());
+        $this->assertEquals(1, count($spam->getGroups()));
+        $this->assertEquals($id, $spam->getID());
+        $this->assertEquals(0, strpos($spam->getMessageID(), 'GTUBE1.1010101@example.net'));
+        $this->assertEquals(str_replace("\r\n", "\n", $msg), str_replace("\r\n", "\n", $spam->getMessage()));
+        $this->assertEquals(Message::EMAIL, $spam->getSource());
+        $this->assertEquals('from1@test.com', $spam->getEnvelopefrom());
+        $this->assertEquals('to@test.com', $spam->getEnvelopeto());
+        $this->assertNotNull($spam->getTextbody());
+        $this->assertNull($spam->getHtmlbody());
+        $this->assertEquals($spam->getSubject(), $spam->getHeader('subject'));
+        $this->assertEquals('freegleplayground@yahoogroups.com', $spam->getTo()[0]['address']);
+        $this->assertEquals('Sender', $spam->getFromname());
+        $this->assertTrue(strpos($spam->getSpamreason(), 'SpamAssassin flagged this as possible spam') !== FALSE);
         $spam->delete();
 
         }
@@ -217,7 +217,7 @@ class MailRouterTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route(NULL);
-        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+        $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
         # Force some code coverage for approvedby.
         $r->markApproved();
@@ -237,17 +237,17 @@ class MailRouterTest extends IznikTestCase {
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/greetingsspam');
        list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+        $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/greetingsspam2');
        list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+        $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/greetingsspam3');
        list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+        $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
         }
 
@@ -275,7 +275,7 @@ class MailRouterTest extends IznikTestCase {
 
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+        $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
         }
 
@@ -291,11 +291,11 @@ class MailRouterTest extends IznikTestCase {
         list ($id, $failok) = $m->save();
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertEquals(Message::EMAIL, $m->getSource());
+        $this->assertEquals(Message::EMAIL, $m->getSource());
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route(NULL, TRUE);
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         }
 
@@ -308,7 +308,7 @@ class MailRouterTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
-        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+        $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
         }
 
@@ -321,7 +321,7 @@ class MailRouterTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
-        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+        $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
     }
 
     public function testPending() {
@@ -337,21 +337,21 @@ class MailRouterTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
-        assertEquals(MailRouter::PENDING, $rc);
+        $this->assertEquals(MailRouter::PENDING, $rc);
         
         $pend = new Message($this->dbhr, $this->dbhm, $id);
-        assertEquals('test@test.com', $pend->getFromaddr());
-        assertEquals('1.2.3.4', $pend->getFromIP());
-        assertNull($pend->getFromhost());
-        assertNotNull($pend->getGroups()[0]);
-        assertEquals($id, $pend->getID());
-        assertEquals(Message::EMAIL, $pend->getSource());
-        assertEquals('from@test.com', $pend->getEnvelopefrom());
-        assertEquals('to@test.com', $pend->getEnvelopeto());
-        assertNotNull($pend->getTextbody());
-        assertEquals($pend->getSubject(), $pend->getHeader('subject'));
-        assertEquals('testgroup@yahoogroups.com', $pend->getTo()[0]['address']);
-        assertEquals('Test User', $pend->getFromname());
+        $this->assertEquals('test@test.com', $pend->getFromaddr());
+        $this->assertEquals('1.2.3.4', $pend->getFromIP());
+        $this->assertNull($pend->getFromhost());
+        $this->assertNotNull($pend->getGroups()[0]);
+        $this->assertEquals($id, $pend->getID());
+        $this->assertEquals(Message::EMAIL, $pend->getSource());
+        $this->assertEquals('from@test.com', $pend->getEnvelopefrom());
+        $this->assertEquals('to@test.com', $pend->getEnvelopeto());
+        $this->assertNotNull($pend->getTextbody());
+        $this->assertEquals($pend->getSubject(), $pend->getHeader('subject'));
+        $this->assertEquals('testgroup@yahoogroups.com', $pend->getTo()[0]['address']);
+        $this->assertEquals('Test User', $pend->getFromname());
         $this->log("Delete $id from " . var_export($pend->getGroups(), true));
         $pend->delete(NULL, $pend->getGroups()[0]);
 
@@ -373,16 +373,16 @@ class MailRouterTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
-        assertEquals(MailRouter::PENDING, $rc);
-        assertNotNull(new Message($this->dbhr, $this->dbhm, $id));
+        $this->assertEquals(MailRouter::PENDING, $rc);
+        $this->assertNotNull(new Message($this->dbhr, $this->dbhm, $id));
         $this->log("Pending id $id");
 
         # Approve
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $u->addMembership($this->gid, User::ROLE_OWNER);
-        assertTrue($u->login('testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $m->approve($this->gid, NULL, NULL, NULL);
@@ -391,7 +391,7 @@ class MailRouterTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $groups = $m->getPublic()['groups'];
         $this->log("Groups " . var_export($groups, TRUE));
-        assertEquals($uid, $groups[0]['approvedby']['id']);
+        $this->assertEquals($uid, $groups[0]['approvedby']['id']);
 
         # Now the same, but with a TN post which has no messageid.
         $this->log("Now TN post");
@@ -399,8 +399,8 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('freegleplayground', 'testgroup', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertEquals('20065945', $m->getTnpostid());
-        assertEquals('TN-email', $m->getSourceheader());
+        $this->assertEquals('20065945', $m->getTnpostid());
+        $this->assertEquals('TN-email', $m->getSourceheader());
         list ($id, $failok) = $m->save();
         $this->log("Saved $id");
 
@@ -408,12 +408,12 @@ class MailRouterTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
         $l = new Location($this->dbhr, $this->dbhm, $u->getPrivate('lastlocation'));
-        assertEquals('EH3 6SS', $l->getPrivate('name'));
+        $this->assertEquals('EH3 6SS', $l->getPrivate('name'));
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
-        assertEquals(MailRouter::PENDING, $rc);
-        assertNotNull(new Message($this->dbhr, $this->dbhm, $id));
+        $this->assertEquals(MailRouter::PENDING, $rc);
+        $this->assertNotNull(new Message($this->dbhr, $this->dbhm, $id));
         $this->log("Pending id $id");
     }
 
@@ -438,8 +438,8 @@ class MailRouterTest extends IznikTestCase {
         $mock->result['SCORE'] = 100;
         $r->setSpamc($mock);
         $rc = $r->route();
-        assertEquals(MailRouter::INCOMING_SPAM, $rc);
-        assertNotNull(new Spam($this->dbhr, $this->dbhm, $id));
+        $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
+        $this->assertNotNull(new Spam($this->dbhr, $this->dbhm, $id));
         $this->log("Spam id $id");
     }
 
@@ -454,11 +454,11 @@ class MailRouterTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
-        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+        $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
         # This should have stored the IP in the message.
         $m = new Message($this->dbhm, $this->dbhm, $id);
-        assertEquals('41.205.16.153', $m->getFromIP());
+        $this->assertEquals('41.205.16.153', $m->getFromIP());
 
         }
 
@@ -479,7 +479,7 @@ class MailRouterTest extends IznikTestCase {
 
         $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::FAILURE, $rc);
+        $this->assertEquals(MailRouter::FAILURE, $rc);
 
         # Make the spamc check itself fail - should still go through.
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -494,7 +494,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
         $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Make the geo lookup throw an exception, which it does for unknown IPs
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -504,7 +504,7 @@ class MailRouterTest extends IznikTestCase {
 
         $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
     }
 
     public function testFailHam() {
@@ -528,13 +528,13 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
         $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::FAILURE, $rc);
+        $this->assertEquals(MailRouter::FAILURE, $rc);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
         $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::FAILURE, $rc);
+        $this->assertEquals(MailRouter::FAILURE, $rc);
 
         # Make the spamc check itself fail - should still go through.
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -549,7 +549,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
         $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
     }
 
     public function testMultipleUsers() {
@@ -576,9 +576,9 @@ class MailRouterTest extends IznikTestCase {
             $rc = $r->route();
 
             if ($i < Spam::USER_THRESHOLD) {
-                assertEquals(MailRouter::APPROVED, $rc);
+                $this->assertEquals(MailRouter::APPROVED, $rc);
             } else {
-                assertEquals(MailRouter::INCOMING_SPAM, $rc);
+                $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
             }
         }
     }
@@ -603,7 +603,7 @@ class MailRouterTest extends IznikTestCase {
             $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
             $rc = $r->route();
 
-            assertEquals(MailRouter::APPROVED, $rc);
+            $this->assertEquals(MailRouter::APPROVED, $rc);
         }
 
         $this->dbhm->preExec("DELETE FROM messages_history WHERE fromip LIKE ?;", ['4.3.2.%']);
@@ -621,9 +621,9 @@ class MailRouterTest extends IznikTestCase {
             $rc = $r->route();
 
             if ($i + 1 < Spam::SUBJECT_THRESHOLD) {
-                assertEquals(MailRouter::APPROVED, $rc);
+                $this->assertEquals(MailRouter::APPROVED, $rc);
             } else {
-                assertEquals(MailRouter::INCOMING_SPAM, $rc);
+                $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
             }
         }
 
@@ -665,8 +665,8 @@ class MailRouterTest extends IznikTestCase {
                     ]
                 ], [ $gid ]);
 
-                assertEquals(0, $work[$gid]['spammembers']);
-                assertEquals(0, $work[$gid]['spammembersother']);
+                $this->assertEquals(0, $work[$gid]['spammembers']);
+                $this->assertEquals(0, $work[$gid]['spammembersother']);
             } else {
                 $work = $g->getWorkCounts([
                     $gid => [
@@ -674,8 +674,8 @@ class MailRouterTest extends IznikTestCase {
                     ]
                 ], [ $gid ]);
 
-                assertEquals(1, $work[$gid]['spammembers']);
-                assertEquals(0, $work[$gid]['spammembersother']);
+                $this->assertEquals(1, $work[$gid]['spammembers']);
+                $this->assertEquals(0, $work[$gid]['spammembersother']);
 
                 $work = $g->getWorkCounts([
                     $gid => [
@@ -683,15 +683,15 @@ class MailRouterTest extends IznikTestCase {
                     ]
                 ], [ $gid ]);
 
-                assertEquals(0, $work[$gid]['spammembers']);
-                assertEquals(1, $work[$gid]['spammembersother']);
+                $this->assertEquals(0, $work[$gid]['spammembers']);
+                $this->assertEquals(1, $work[$gid]['spammembersother']);
             }
 
             # The message can get marked as spam.
             if ($i < Spam::GROUP_THRESHOLD - 1) {
-                assertEquals(MailRouter::APPROVED, $rc);
+                $this->assertEquals(MailRouter::APPROVED, $rc);
             } else {
-                assertEquals(MailRouter::INCOMING_SPAM, $rc);
+                $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
             }
 
             # Should also show in work.
@@ -715,9 +715,9 @@ class MailRouterTest extends IznikTestCase {
 
             # The message can get marked as spam.
             if ($i < Spam::GROUP_THRESHOLD - 1) {
-                assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
+                $this->assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
             } else {
-                assertEquals(MailRouter::INCOMING_SPAM, $rc);
+                $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
             }
         }
     }
@@ -739,9 +739,9 @@ class MailRouterTest extends IznikTestCase {
 
             # The message can get marked as spam.
             if ($i < Spam::GROUP_THRESHOLD - 1) {
-                assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
+                $this->assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
             } else {
-                assertEquals(MailRouter::INCOMING_SPAM, $rc);
+                $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
             }
         }
     }
@@ -751,7 +751,7 @@ class MailRouterTest extends IznikTestCase {
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertNotNull($m->getGroupId());
+        $this->assertNotNull($m->getGroupId());
         list ($id, $failok) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -783,12 +783,12 @@ class MailRouterTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list ($id, $failok) = $m->save();
-        assertNotNull($id);
+        $this->assertNotNull($id);
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $atts = $m->getAttachments();
-        assertEquals(1, count($atts));
-        assertLessThan(300000, strlen($atts[0]->getData()));
+        $this->assertEquals(1, count($atts));
+        $this->assertLessThan(300000, strlen($atts[0]->getData()));
 
         }
 
@@ -804,7 +804,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext');
        list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::DROPPED, $rc);
+        $this->assertEquals(MailRouter::DROPPED, $rc);
 
         }
 
@@ -813,7 +813,7 @@ class MailRouterTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $this->log("Fromuser " . $m->getFromuser());
-        assertNotNull($m->getFromuser());
+        $this->assertNotNull($m->getFromuser());
 
         }
 
@@ -821,7 +821,7 @@ class MailRouterTest extends IznikTestCase {
         # For coverage.
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $r->mail("test@blackhole.io", "test2@blackhole.io", "Test", "test");
-        assertTrue(TRUE);
+        $this->assertTrue(TRUE);
 
         }
 
@@ -834,9 +834,9 @@ class MailRouterTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $rc = $r->route();
-        assertEquals(MailRouter::PENDING, $rc);
+        $this->assertEquals(MailRouter::PENDING, $rc);
     }
     
     public function testReply() {
@@ -853,9 +853,9 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($origid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertNotNull($origid);
+        $this->assertNotNull($origid);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Mark the message as promised - this should suppress the email notification.
         $m = new Message($this->dbhr, $this->dbhm, $origid);
@@ -866,32 +866,32 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertNotNull($m->getFromuser());
+        $this->assertNotNull($m->getFromuser());
         $rc = $r->route();
-        assertEquals(MailRouter::TO_USER, $rc);
+        $this->assertEquals(MailRouter::TO_USER, $rc);
 
         $uid2 = $u->findByEmail('test2@test.com');
 
         # Now get the chat room that this should have been placed into.
-        assertNotNull($uid2);
-        assertNotEquals($this->uid, $uid2);
+        $this->assertNotNull($uid2);
+        $this->assertNotEquals($this->uid, $uid2);
         $c = new ChatRoom($this->dbhr, $this->dbhm);
         list ($rid, $blocked) = $c->createConversation($this->uid, $uid2);
-        assertNotNull($rid);
+        $this->assertNotNull($rid);
 
         list($msgs, $users) = $c->getMessages();
 
         $this->log("Chat messages " . var_export($msgs, TRUE));
-        assertEquals(1, count($msgs));
-        assertEquals("I'd like to have these, then I can return them to Greece where they rightfully belong.", $msgs[0]['message']);
-        assertEquals($origid, $msgs[0]['refmsg']['id']);
+        $this->assertEquals(1, count($msgs));
+        $this->assertEquals("I'd like to have these, then I can return them to Greece where they rightfully belong.", $msgs[0]['message']);
+        $this->assertEquals($origid, $msgs[0]['refmsg']['id']);
 
         $this->log("Chat users " . var_export($users, TRUE));
-        assertEquals(1, count($users));
+        $this->assertEquals(1, count($users));
         foreach ($users as $user) {
-            assertEquals('Some replying person', $user['displayname']);
+            $this->assertEquals('Some replying person', $user['displayname']);
         }
 
         # Check that the reply is flagged as having been seen by email, as it should be since the original has
@@ -907,11 +907,11 @@ class MailRouterTest extends IznikTestCase {
         # The reply should be visible in the message, but only when logged in as the recipient.
         $m = new Message($this->dbhr, $this->dbhm, $origid);
         $atts = $m->getPublic(FALSE, FALSE, FALSE);
-        assertEquals(0, count($atts['replies']));
-        assertTrue($this->user->login('testpw'));
+        $this->assertEquals(0, count($atts['replies']));
+        $this->assertTrue($this->user->login('testpw'));
         $m = new Message($this->dbhr, $this->dbhm, $origid);
         $atts = $m->getPublic(FALSE, FALSE, FALSE);
-        assertEquals(1, count($atts['replies']));
+        $this->assertEquals(1, count($atts['replies']));
 
         # Now send another reply, but in HTML with no text body.
         $this->log("Now HTML");
@@ -919,35 +919,35 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'test3@test.com', 'test@test.com', $msg);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertNotNull($m->getFromuser());
+        $this->assertNotNull($m->getFromuser());
         $rc = $r->route();
-        assertEquals(MailRouter::TO_USER, $rc);
+        $this->assertEquals(MailRouter::TO_USER, $rc);
 
         $uid2 = $u->findByEmail('test3@test.com');
 
         # Now get the chat room that this should have been placed into.
-        assertNotNull($uid2);
-        assertNotEquals($this->uid, $uid2);
+        $this->assertNotNull($uid2);
+        $this->assertNotEquals($this->uid, $uid2);
         $c = new ChatRoom($this->dbhm, $this->dbhm);
         list ($rid, $blocked) = $c->createConversation($this->uid, $uid2);
-        assertNotNull($rid);
+        $this->assertNotNull($rid);
         list($msgs, $users) = $c->getMessages();
 
         $this->log("Chat messages " . var_export($msgs, TRUE));
-        assertEquals(1, count($msgs));
+        $this->assertEquals(1, count($msgs));
         $lines = explode("\n", $msgs[0]['message']);
         $this->log(var_export($lines, TRUE));
-        assertEquals('This is a rich text reply.', trim($lines[0]));
-        assertEquals('', trim($lines[1]));
-        assertEquals('Hopefully you\'ll receive it and it\'ll get parsed ok.', $lines[2]);
-        assertEquals($origid, $msgs[0]['refmsg']['id']);
+        $this->assertEquals('This is a rich text reply.', trim($lines[0]));
+        $this->assertEquals('', trim($lines[1]));
+        $this->assertEquals('Hopefully you\'ll receive it and it\'ll get parsed ok.', $lines[2]);
+        $this->assertEquals($origid, $msgs[0]['refmsg']['id']);
 
         $this->log("Chat users " . var_export($users, TRUE));
-        assertEquals(1, count($users));
+        $this->assertEquals(1, count($users));
         foreach ($users as $user) {
-            assertEquals('Some other replying person', $user['displayname']);
+            $this->assertEquals('Some other replying person', $user['displayname']);
         }
 
         # Now mark the message as complete - should put a message in the chatroom.
@@ -973,9 +973,9 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($origid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertNotNull($origid);
+        $this->assertNotNull($origid);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Mark the group as closed.
         $this->group->setSettings([ 'closed' => TRUE ]);
@@ -993,8 +993,8 @@ class MailRouterTest extends IznikTestCase {
 
         $mock->received(Message::EMAIL, 'test2@test.com', 'replyto-' . $origid . '-' . $uid2 . '@' . USER_DOMAIN, $msg);
         $mock->route();
-        assertEquals(1, count($this->msgsSent));
-        assertEquals("This community is currently closed", $this->msgsSent[0]['subject']);
+        $this->assertEquals(1, count($this->msgsSent));
+        $this->assertEquals("This community is currently closed", $this->msgsSent[0]['subject']);
     }
 
     public function testReplyToMissing() {
@@ -1006,20 +1006,20 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'test2@test.com', "user-$uid1@" . USER_DOMAIN, $msg);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertNotNull($m->getFromuser());
+        $this->assertNotNull($m->getFromuser());
         $rc = $r->route();
-        assertEquals(MailRouter::TO_USER, $rc);
+        $this->assertEquals(MailRouter::TO_USER, $rc);
 
         # Check marked as spam
         $uid2 = $u->findByEmail('from2@test.com');
-        assertNotNull($uid2);
+        $this->assertNotNull($uid2);
         $msgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE userid = ?;", [
             $uid2
         ]);
-        assertEquals(1, count($msgs));
-        assertEquals(1, $msgs[0]['reviewrejected']);
+        $this->assertEquals(1, count($msgs));
+        $this->assertEquals(1, $msgs[0]['reviewrejected']);
     }
 
     public function testTNHeader() {
@@ -1033,9 +1033,9 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($origid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertNotNull($origid);
+        $this->assertNotNull($origid);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Send a purported reply.  This should result in the replying user being created.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytnheader'));
@@ -1043,11 +1043,11 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertNotNull($m->getFromuser());
+        $this->assertNotNull($m->getFromuser());
         $rc = $r->route();
-        assertEquals(MailRouter::TO_USER, $rc);
+        $this->assertEquals(MailRouter::TO_USER, $rc);
     }
 
     public function testTwoTexts() {
@@ -1061,9 +1061,9 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($origid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertNotNull($origid);
+        $this->assertNotNull($origid);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $this->log("Send reply with two texts");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/twotexts'));
@@ -1071,27 +1071,27 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertNotNull($m->getFromuser());
+        $this->assertNotNull($m->getFromuser());
         $rc = $r->route();
-        assertEquals(MailRouter::TO_USER, $rc);
+        $this->assertEquals(MailRouter::TO_USER, $rc);
 
         $uid2 = $u->findByEmail('testreplier@test.com');
 
         # Now get the chat room that this should have been placed into.
-        assertNotNull($uid2);
-        assertNotEquals($this->uid, $uid2);
+        $this->assertNotNull($uid2);
+        $this->assertNotEquals($this->uid, $uid2);
         $c = new ChatRoom($this->dbhr, $this->dbhm);
         list ($rid, $blocked) = $c->createConversation($this->uid, $uid2);
-        assertNotNull($rid);
+        $this->assertNotNull($rid);
 
         list($msgs, $users) = $c->getMessages();
 
         $this->log("Chat messages " . var_export($msgs, TRUE));
-        assertEquals(1, count($msgs));
-        assertEquals("Not sure how to send to a phone so hope this is OK instead. Two have been taken, currently have 6 others.Bev", str_replace("\n", "", str_replace("\r", "", $msgs[0]['message'])));
-        assertEquals($origid, $msgs[0]['refmsg']['id']);
+        $this->assertEquals(1, count($msgs));
+        $this->assertEquals("Not sure how to send to a phone so hope this is OK instead. Two have been taken, currently have 6 others.Bev", str_replace("\n", "", str_replace("\r", "", $msgs[0]['message'])));
+        $this->assertEquals($origid, $msgs[0]['refmsg']['id']);
 
         }
 
@@ -1114,9 +1114,9 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($origid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertNotNull($origid);
+        $this->assertNotNull($origid);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Mark the message as promised - this should suppress the email notification.
         $m = new Message($this->dbhr, $this->dbhm, $origid);
@@ -1127,24 +1127,24 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'test2@test.com', "replyto-$origid-$uid2@" . USER_DOMAIN, $msg);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertNotNull($m->getFromuser());
+        $this->assertNotNull($m->getFromuser());
         $rc = $r->route();
-        assertEquals(MailRouter::TO_USER, $rc);
+        $this->assertEquals(MailRouter::TO_USER, $rc);
 
         # Now get the chat room that this should have been placed into.
-        assertNotEquals($this->uid, $uid2);
+        $this->assertNotEquals($this->uid, $uid2);
         $c = new ChatRoom($this->dbhr, $this->dbhm);
         list ($rid, $blocked) = $c->createConversation($this->uid, $uid2);
-        assertNotNull($rid);
+        $this->assertNotNull($rid);
 
         list($msgs, $users) = $c->getMessages();
 
         $this->log("Chat messages " . var_export($msgs, TRUE));
-        assertEquals(1, count($msgs));
-        assertEquals($origid, $msgs[0]['refmsg']['id']);
-        assertEquals($uid2, $msgs[0]['userid']);
+        $this->assertEquals(1, count($msgs));
+        $this->assertEquals($origid, $msgs[0]['refmsg']['id']);
+        $this->assertEquals($uid2, $msgs[0]['userid']);
 
         # Check that the reply is flagged as having been seen by email, as it should be since the original has
         # been promised.
@@ -1174,9 +1174,9 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', "digestoff-$uid-$gid@" . USER_DOMAIN, $msg);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $rc = $r->route();
-        assertEquals($rc, MailRouter::TO_SYSTEM);
+        $this->assertEquals($rc, MailRouter::TO_SYSTEM);
 
         }
 
@@ -1194,9 +1194,9 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', "eventsoff-$uid-$gid@" . USER_DOMAIN, $msg);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $rc = $r->route();
-        assertEquals($rc, MailRouter::TO_SYSTEM);
+        $this->assertEquals($rc, MailRouter::TO_SYSTEM);
 
         }
 
@@ -1207,10 +1207,10 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Created user $uid");
 
         # Can only see settings logged in.
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
         $atts = $u->getPublic();
-        assertTrue($atts['settings']['notificationmails']);
+        $this->assertTrue($atts['settings']['notificationmails']);
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create("testgroup1", Group::GROUP_REUSE);
@@ -1220,13 +1220,13 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', "notificationmailsoff-$uid@" . USER_DOMAIN, $msg);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $rc = $r->route();
-        assertEquals($rc, MailRouter::TO_SYSTEM);
+        $this->assertEquals($rc, MailRouter::TO_SYSTEM);
 
         $u = User::get($this->dbhm, $this->dbhm, $uid);
         $atts = $u->getPublic();
-        assertFalse($atts['settings']['notificationmails']);
+        $this->assertFalse($atts['settings']['notificationmails']);
 
         }
 
@@ -1244,9 +1244,9 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', "relevantoff-$uid@" . USER_DOMAIN, $msg);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $rc = $r->route();
-        assertEquals($rc, MailRouter::TO_SYSTEM);
+        $this->assertEquals($rc, MailRouter::TO_SYSTEM);
     }
 
     public function testNewslettersOff() {
@@ -1263,9 +1263,9 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', "newslettersoff-$uid@" . USER_DOMAIN, $msg);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $rc = $r->route();
-        assertEquals($rc, MailRouter::TO_SYSTEM);
+        $this->assertEquals($rc, MailRouter::TO_SYSTEM);
 
         }
 
@@ -1280,7 +1280,7 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Created $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
-        assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
+        $this->assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
 
         # And again now we know them, using the auto this time.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tovols'));
@@ -1290,7 +1290,7 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Created $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
-        assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
+        $this->assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
 
         # And with spam
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply')  . "\r\nviagra\r\n");
@@ -1301,7 +1301,7 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Created $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
-        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+        $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
     }
 
     public function testVolsHtmlOnly()
@@ -1315,8 +1315,8 @@ class MailRouterTest extends IznikTestCase {
        list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-volunteers@' . GROUP_DOMAIN, $msg);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
-        assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
-        assertEquals("Hey.", $m->getTextbody());
+        $this->assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
+        $this->assertEquals("Hey.", $m->getTextbody());
     }
 
     public function testSubMailUnsub() {
@@ -1329,7 +1329,7 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Mail message $id when not a member");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
-        assertEquals(MailRouter::DROPPED, $rc);
+        $this->assertEquals(MailRouter::DROPPED, $rc);
 
         # Now subscribe.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tovols'));
@@ -1339,13 +1339,13 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Created $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
-        assertEquals(MailRouter::TO_SYSTEM, $rc);
+        $this->assertEquals(MailRouter::TO_SYSTEM, $rc);
 
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->findByEmail('test@test.com');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
         $membs = $u->getMemberships();
-        assertEquals(1, count($membs));
+        $this->assertEquals(1, count($membs));
 
         $this->waitBackground();
         $_SESSION['id'] = $uid;
@@ -1353,7 +1353,7 @@ class MailRouterTest extends IznikTestCase {
         $logs = [ $u->getId() => [ 'id' => $u->getId() ] ];
         $u->getPublicLogs($u, $logs, FALSE, $ctx);
         $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_JOINED, $logs[$u->getId()]['logs']);
-        assertEquals($this->gid, $log['group']['id']);
+        $this->assertEquals($this->gid, $log['group']['id']);
 
         # Mail - first to pending for new member, moderated by default, then to approved for group settings.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
@@ -1362,8 +1362,8 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Mail message $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
-        assertEquals(MailRouter::PENDING, $rc);
-        assertTrue($m->isPending($this->gid));
+        $this->assertEquals(MailRouter::PENDING, $rc);
+        $this->assertTrue($m->isPending($this->gid));
 
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         self::assertEquals(MessageCollection::APPROVED, $u->postToCollection($this->gid));
@@ -1373,8 +1373,8 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Mail message $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
-        assertEquals(MailRouter::APPROVED, $rc);
-        assertTrue($m->isApproved($this->gid));
+        $this->assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertTrue($m->isApproved($this->gid));
 
         # Test moderated
         $this->group->setSettings([ 'moderated' => TRUE ]);
@@ -1384,8 +1384,8 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Mail message $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
-        assertEquals(MailRouter::PENDING, $rc);
-        assertTrue($m->isPending($this->gid));
+        $this->assertEquals(MailRouter::PENDING, $rc);
+        $this->assertTrue($m->isPending($this->gid));
 
         # Unsubscribe
 
@@ -1396,13 +1396,13 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Created $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
-        assertEquals(MailRouter::TO_SYSTEM, $rc);
+        $this->assertEquals(MailRouter::TO_SYSTEM, $rc);
 
         $u = new User($this->dbhr, $this->dbhm);
         $uid = $u->findByEmail('test@test.com');
         $u = new User($this->dbhr, $this->dbhm, $uid);
         $membs = $u->getMemberships();
-        assertEquals(0, count($membs));
+        $this->assertEquals(0, count($membs));
 
         $this->waitBackground();
         $_SESSION['id'] = $uid;
@@ -1410,7 +1410,7 @@ class MailRouterTest extends IznikTestCase {
         $logs = [ $u->getId() => [ 'id' => $u->getId() ] ];
         $u->getPublicLogs($u, $logs, FALSE, $ctx);
         $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_LEFT, $logs[$u->getId()]['logs']);
-        assertEquals($this->gid, $log['group']['id']);
+        $this->assertEquals($this->gid, $log['group']['id']);
 
         }
 
@@ -1430,8 +1430,8 @@ class MailRouterTest extends IznikTestCase {
         $uid = $u->create(NULL, NULL, 'Test User');
         $this->log("Created user $uid");
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        assertGreaterThan(0, $u->addEmail($email));
-        assertEquals(1, $u->addMembership($gid));
+        $this->assertGreaterThan(0, $u->addEmail($email));
+        $this->assertEquals(1, $u->addMembership($gid));
         $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         # Send a message.
@@ -1441,9 +1441,9 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_ireplace("FreeglePlayground", "testgroup1", $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($origid, $failok) = $r->received(Message::EMAIL, $email, 'testgroup1@yahoogroups.com', $msg);
-        assertNotNull($origid);
+        $this->assertNotNull($origid);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Send a purported reply.  This should result in the replying user being created.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
@@ -1451,11 +1451,11 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace("To: test@test.com", "To: $email, testgroup1@yahoogroups.com", $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'test2@test.com', $email, $msg);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertNotNull($m->getFromuser());
+        $this->assertNotNull($m->getFromuser());
         $rc = $r->route();
-        assertEquals(MailRouter::TO_USER, $rc);
+        $this->assertEquals(MailRouter::TO_USER, $rc);
 
         # Check it didn't go to a group
         $groups = $m->getGroups();
@@ -1464,17 +1464,17 @@ class MailRouterTest extends IznikTestCase {
         $uid2 = $u->findByEmail('test2@test.com');
 
         # Now get the chat room that this should have been placed into.
-        assertNotNull($uid2);
-        assertNotEquals($uid, $uid2);
+        $this->assertNotNull($uid2);
+        $this->assertNotEquals($uid, $uid2);
         $c = new ChatRoom($this->dbhr, $this->dbhm);
         list ($rid, $blocked) = $c->createConversation($uid, $uid2);
-        assertNotNull($rid);
+        $this->assertNotNull($rid);
         list($msgs, $users) = $c->getMessages();
 
         $this->log("Chat messages " . var_export($msgs, TRUE));
-        assertEquals(1, count($msgs));
-        assertEquals("I'd like to have these, then I can return them to Greece where they rightfully belong.", $msgs[0]['message']);
-        assertEquals($origid, $msgs[0]['refmsg']['id']);
+        $this->assertEquals(1, count($msgs));
+        $this->assertEquals("I'd like to have these, then I can return them to Greece where they rightfully belong.", $msgs[0]['message']);
+        $this->assertEquals($origid, $msgs[0]['refmsg']['id']);
 
         }
 
@@ -1491,7 +1491,7 @@ class MailRouterTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($mid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $m = new Message($this->dbhr, $this->dbhm, $mid);
         $groups = $m->getPublic()['groups'];
@@ -1512,7 +1512,7 @@ class MailRouterTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($mid, $failok) = $r->received(Message::EMAIL, 'from@yahoogroups.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::DROPPED, $rc);
+        $this->assertEquals(MailRouter::DROPPED, $rc);
 
         }
 
@@ -1534,9 +1534,9 @@ class MailRouterTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'testgroup-volunteers@groups.ilovefreegle.org', MODERATOR_EMAIL, $msg);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $rc = $r->route();
-        assertEquals(MailRouter::DROPPED, $rc);
+        $this->assertEquals(MailRouter::DROPPED, $rc);
 
         }
 
@@ -1553,7 +1553,7 @@ class MailRouterTest extends IznikTestCase {
         $r->log = TRUE;
        list ($mid, $failok) = $r->received(Message::EMAIL, 'support@twitter.com', 'testgroup1-volunteers@groups.ilovefreegle.org', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::TO_SYSTEM, $rc);
+        $this->assertEquals(MailRouter::TO_SYSTEM, $rc);
     }
 
     public function testWorry() {
@@ -1573,10 +1573,10 @@ class MailRouterTest extends IznikTestCase {
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/worry');
        list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::PENDING, $rc);
+        $this->assertEquals(MailRouter::PENDING, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
-        assertNotNull($m->getPublic()['worry']);
+        $this->assertNotNull($m->getPublic()['worry']);
     }
 
     public function testBigSwitch() {
@@ -1590,13 +1590,13 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Created $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
-        assertEquals(MailRouter::TO_SYSTEM, $rc);
+        $this->assertEquals(MailRouter::TO_SYSTEM, $rc);
 
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->findByEmail('test@test.com');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
         $membs = $u->getMemberships();
-        assertEquals(1, count($membs));
+        $this->assertEquals(1, count($membs));
 
         # Mail - should be pending because of big switch.
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
@@ -1607,8 +1607,8 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Mail message $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
-        assertEquals(MailRouter::PENDING, $rc);
-        assertTrue($m->isPending($this->gid));
+        $this->assertEquals(MailRouter::PENDING, $rc);
+        $this->assertTrue($m->isPending($this->gid));
     }
 
     public function testBanned() {
@@ -1620,9 +1620,9 @@ class MailRouterTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($msgid, $failok) = $r->received(Message::EMAIL, 'test2@test.com', 'freegleplayground@' . GROUP_DOMAIN, $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $msgid);
-        assertNull($m->hasOutcome());
+        $this->assertNull($m->hasOutcome());
 
         # Now ban u1
         $this->user->removeMembership($this->gid, TRUE);
@@ -1633,11 +1633,11 @@ class MailRouterTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $msgid2 = $r->received(Message::EMAIL, 'test2@test.com', 'freegleplayground@' . GROUP_DOMAIN, $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::DROPPED, $rc);
+        $this->assertEquals(MailRouter::DROPPED, $rc);
 
         # First message should have been marked as withdrawn.
         $m = new Message($this->dbhr, $this->dbhm, $msgid);
-        assertEquals(Message::OUTCOME_WITHDRAWN, $m->hasOutcome());
+        $this->assertEquals(Message::OUTCOME_WITHDRAWN, $m->hasOutcome());
 
         # Including spam/worry words.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
@@ -1646,7 +1646,7 @@ class MailRouterTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($msgid, $failok) = $r->received(Message::EMAIL, 'test2@test.com', 'freegleplayground@' . GROUP_DOMAIN, $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::DROPPED, $rc);
+        $this->assertEquals(MailRouter::DROPPED, $rc);
 
         # Set up worry words.
         $settings = json_decode($this->group->getPrivate('settings'), TRUE);
@@ -1662,7 +1662,7 @@ class MailRouterTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
-        assertEquals(MailRouter::DROPPED, $rc);
+        $this->assertEquals(MailRouter::DROPPED, $rc);
     }
 
     public function testCantPost() {
@@ -1676,7 +1676,7 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Created $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
-        assertEquals(MailRouter::TO_SYSTEM, $rc);
+        $this->assertEquals(MailRouter::TO_SYSTEM, $rc);
 
         # Set ourselves to can't post.
         $u = User::get($this->dbhr, $this->dbhm);
@@ -1691,7 +1691,7 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Mail message $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
-        assertEquals(MailRouter::DROPPED, $rc);
+        $this->assertEquals(MailRouter::DROPPED, $rc);
     }
 
     public function testSwallowTaken() {
@@ -1708,7 +1708,7 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Mail message $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/nativebymail'));
         $msg = str_replace('Test native', 'TAKEN: thing (place)', $msg);
@@ -1717,7 +1717,7 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Mail message $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
-        assertEquals(MailRouter::TO_SYSTEM, $rc);
+        $this->assertEquals(MailRouter::TO_SYSTEM, $rc);
     }
 
     public function testTNWithdraw() {
@@ -1734,7 +1734,7 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Mail message $id");
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/TNtaken'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -1742,9 +1742,9 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Mail message $id");
         $m2 = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m2);
-        assertEquals(MailRouter::TO_SYSTEM, $rc);
+        $this->assertEquals(MailRouter::TO_SYSTEM, $rc);
 
-        assertEquals($m->hasOutcome(), Message::OUTCOME_WITHDRAWN);
+        $this->assertEquals($m->hasOutcome(), Message::OUTCOME_WITHDRAWN);
     }
 
     public function testReplyWithGravatar() {
@@ -1753,7 +1753,7 @@ class MailRouterTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertEquals(0, count($m->getAttachments()));
+        $this->assertEquals(0, count($m->getAttachments()));
     }
 
     public function testWorryWords() {
@@ -1775,10 +1775,10 @@ class MailRouterTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
-        assertEquals(MailRouter::PENDING, $rc);
+        $this->assertEquals(MailRouter::PENDING, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertEquals(MessageCollection::PENDING, $m->getPublic()['groups'][0]['collection']);
-        assertEquals(Spam::REASON_WORRY_WORD, $m->getPrivate('spamtype'));
+        $this->assertEquals(MessageCollection::PENDING, $m->getPublic()['groups'][0]['collection']);
+        $this->assertEquals(Spam::REASON_WORRY_WORD, $m->getPrivate('spamtype'));
     }
 
     public function testConfused() {
@@ -1801,11 +1801,11 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id1, $failok) = $r->received(Message::EMAIL, 'test1@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
-        assertNotNull($id1);
+        $this->assertNotNull($id1);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
-        assertEquals($uid1, $m1->getFromuser());
+        $this->assertEquals($uid1, $m1->getFromuser());
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Subject: Basic test', 'Subject: Offer: thing2 (place)', $msg);
@@ -1813,11 +1813,11 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id2, $failok) = $r->received(Message::EMAIL, 'test2@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
-        assertNotNull($id1);
+        $this->assertNotNull($id1);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
         $m2 = new Message($this->dbhr, $this->dbhm, $id2);
-        assertEquals($uid2, $m2->getFromuser());
+        $this->assertEquals($uid2, $m2->getFromuser());
 
         # First user replies interested in the second user's post.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
@@ -1826,22 +1826,22 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('test2@test.com', 'test1@test.com', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'test1@test.com', 'test2@test.com', $msg);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertNotNull($m->getFromuser());
+        $this->assertNotNull($m->getFromuser());
         $rc = $r->route();
-        assertEquals(MailRouter::TO_USER, $rc);
+        $this->assertEquals(MailRouter::TO_USER, $rc);
 
         # Chat message should exist, referencing it.
         $c = new ChatRoom($this->dbhr, $this->dbhm);
         list ($rid, $blocked) = $c->createConversation($uid1, $uid2);
-        assertNotNull($rid);
+        $this->assertNotNull($rid);
         error_log("Got chatid $rid for $uid1 to $uid2");
 
         $c = new ChatRoom($this->dbhr, $this->dbhm, $rid);
         list($msgs, $users) = $c->getMessages();
-        assertEquals(1, count($msgs));
-        assertEquals($id2, $msgs[0]['refmsg']['id']);
+        $this->assertEquals(1, count($msgs));
+        $this->assertEquals($id2, $msgs[0]['refmsg']['id']);
 
         # Now second user replies back.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
@@ -1850,17 +1850,17 @@ class MailRouterTest extends IznikTestCase {
         $msg = str_replace('test2@test.com', 'test2@test.com', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'test2@test.com', 'test1@test.com', $msg);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertNotNull($m->getFromuser());
+        $this->assertNotNull($m->getFromuser());
         $rc = $r->route();
-        assertEquals(MailRouter::TO_USER, $rc);
+        $this->assertEquals(MailRouter::TO_USER, $rc);
 
         # Chat message should exist, but not referencing anything (specifically not referencing user1's OFFER).
         list($msgs, $users) = $c->getMessages();
-        assertEquals(2, count($msgs));
+        $this->assertEquals(2, count($msgs));
         error_log ("Got messages " . var_export($msgs, TRUE));
-        assertFalse(array_key_exists('refmsg', $msgs[1]));
+        $this->assertFalse(array_key_exists('refmsg', $msgs[1]));
     }
 
 
@@ -1871,17 +1871,17 @@ class MailRouterTest extends IznikTestCase {
         list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'FreeglePlayground-volunteers@' . GROUP_DOMAIN, $msg);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
-        assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
+        $this->assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
 
         $chatmessages = $this->dbhr->preQuery("SELECT * FROM chat_messages_byemail WHERE msgid = ?;", [
             $id
         ]);
 
-        assertEquals(1, count($chatmessages));
+        $this->assertEquals(1, count($chatmessages));
 
         foreach ($chatmessages as $chatmessage) {
             $cm = new ChatMessage($this->dbhr, $this->dbhm, $chatmessage['chatmsgid']);
-            assertGreaterThan(0, strpos($cm->getPrivate('message'), '(Replied to digest)'));
+            $this->assertGreaterThan(0, strpos($cm->getPrivate('message'), '(Replied to digest)'));
         }
     }
 
@@ -1892,17 +1892,17 @@ class MailRouterTest extends IznikTestCase {
         list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup-auto@' . GROUP_DOMAIN, $msg);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $rc = $r->route($m);
-        assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
+        $this->assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
 
         $chatmessages = $this->dbhr->preQuery("SELECT * FROM chat_messages_byemail WHERE msgid = ?;", [
             $id
         ]);
 
-        assertEquals(1, count($chatmessages));
+        $this->assertEquals(1, count($chatmessages));
 
         foreach ($chatmessages as $chatmessage) {
             $cm = new ChatMessage($this->dbhr, $this->dbhm, $chatmessage['chatmsgid']);
-            assertGreaterThan(0, strpos($cm->getPrivate('message'), '(Replied to digest)'));
+            $this->assertGreaterThan(0, strpos($cm->getPrivate('message'), '(Replied to digest)'));
         }
     }
 
@@ -1913,9 +1913,9 @@ class MailRouterTest extends IznikTestCase {
 //        $m = new Message($this->dbhr, $this->dbhm, 25206247);
 //        $r->route($m);
 //       list ($id, $failok) = $r->received(Message::EMAIL, 'xxxxxxx@ntlworld.com', "hertfordfreegle-volunteers@groups.ilovefreegle.org", $msg);
-//        assertNotNull($id);
+//        $this->assertNotNull($id);
 //        $rc = $r->route();
-//        assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
+//        $this->assertEquals(MailRouter::TO_VOLUNTEERS, $rc);
 //
 //        //    }
 }

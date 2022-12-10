@@ -38,8 +38,8 @@ class activityAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail($email);
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $u->addEmail('test@test.com');
         $u->addMembership($group1);
@@ -53,11 +53,11 @@ class activityAPITest extends IznikAPITestCase
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $ret = $this->call('activity', 'GET', [ 'grouptype' => Group::GROUP_REUSE ]);
         $this->log("Activity " . var_export($ret, TRUE));
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         $found = FALSE;
 
@@ -67,7 +67,7 @@ class activityAPITest extends IznikAPITestCase
             }
         }
 
-        assertTrue($found);
+        $this->assertTrue($found);
 
         }
 }

@@ -41,14 +41,14 @@ class worryWordsTest extends IznikTestCase
         $m = new Message($this->dbhr, $this->dbhm, $mid);
         $m->setPrivate('subject', 'OFFER: fine (Somewhere)');
         $m->setPrivate('textbody', 'A body');
-        assertNull($w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody()));
+        $this->assertNull($w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody()));
 
         $m = new Message($this->dbhr, $this->dbhm);
         $mid = $m->createDraft();
         $m = new Message($this->dbhr, $this->dbhm, $mid);
         $m->setPrivate('subject', 'OFFER: UTtest1 (Somewhere)');
         $m->setPrivate('textbody', 'A body');
-        assertNotNull($w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody()));
+        $this->assertNotNull($w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody()));
 
         $this->waitBackground();
         $logs = $this->dbhr->preQuery("SELECT * FROM logs WHERE msgid = ?", [$mid]);
@@ -60,7 +60,7 @@ class worryWordsTest extends IznikTestCase
 //        $m = new Message($this->dbhr, $this->dbhm, $mid);
 //        $m->setPrivate('subject', 'OFFER: fine (Somewhere)');
 //        $m->setPrivate('textbody', "Some text uttest2\r\nMore text");
-//        assertNotNull($w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody()));
+//        $this->assertNotNull($w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody()));
 //
 //        $this->waitBackground();
 //        $logs = $this->dbhr->preQuery("SELECT * FROM logs WHERE msgid = ?", [$mid]);
@@ -89,10 +89,10 @@ class worryWordsTest extends IznikTestCase
         $m = new Message($this->dbhr, $this->dbhm, $mid);
         $m->setPrivate('subject', 'OFFER: Pound (Somewhere)');
         $m->setPrivate('textbody', 'A body');
-        assertNotNull($w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody()));
+        $this->assertNotNull($w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody()));
         $m->setPrivate('subject', 'OFFER: Pound Hill (Somewhere)');
         $m->setPrivate('textbody', 'A body');
-        assertNull($w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody()));
+        $this->assertNull($w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody()));
     }
 
     public function testSpace()
@@ -111,7 +111,7 @@ class worryWordsTest extends IznikTestCase
         $m = new Message($this->dbhr, $this->dbhm, $mid);
         $m->setPrivate('subject', 'OFFER: UTtest1 UTtest2 (Somewhere)');
         $m->setPrivate('textbody', 'A body');
-        assertNotNull($w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody()));
+        $this->assertNotNull($w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody()));
     }
 
 //

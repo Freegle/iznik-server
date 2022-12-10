@@ -22,21 +22,21 @@ class utilsTest extends IznikTestCase {
         touch("$dir/2");
         touch("$dir/3");
 
-        assertEquals(3, Utils::checkFiles($dir, 2, 1, 1, 1));
+        $this->assertEquals(3, Utils::checkFiles($dir, 2, 1, 1, 1));
     }
 
     public function testSafeDate() {
-        assertEquals('2020-07-20 12:33:00', Utils::safeDate('2020-07-20 12:33:00'));
+        $this->assertEquals('2020-07-20 12:33:00', Utils::safeDate('2020-07-20 12:33:00'));
     }
 
     public function testMedian() {
-        assertEquals(2, Utils::calculate_median([1, 2, 3]));
-        assertEquals(2, Utils::calculate_median([1, 2, 2, 3]));
+        $this->assertEquals(2, Utils::calculate_median([1, 2, 3]));
+        $this->assertEquals(2, Utils::calculate_median([1, 2, 2, 3]));
     }
 
     public function testlockScript() {
         $lockh = Utils::lockScript('ut');
-        assertNotNull($lockh);
+        $this->assertNotNull($lockh);
         Utils::unlockScript($lockh);
     }
 
@@ -53,11 +53,11 @@ class utilsTest extends IznikTestCase {
         error_log("$type => $val");
         Utils::filterResult($ret, NULL);
         $enc = json_encode($ret, JSON_PARTIAL_OUTPUT_ON_ERROR);
-        assertNotNull($enc);
+        $this->assertNotNull($enc);
         error_log("Enc $enc");
         $dec = json_decode($enc, TRUE );
-        assertNotNull($dec);
-        assertTrue(array_key_exists($type, $dec));
+        $this->assertNotNull($dec);
+        $this->assertTrue(array_key_exists($type, $dec));
     }
 
     public function UTF8provider() : \Generator {

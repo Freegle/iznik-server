@@ -28,41 +28,41 @@ class PreviewTest extends IznikTestCase {
     public function testBasic() {
         $l = new Preview($this->dbhr, $this->dbhm);
         $id = $l->create('https://google.co.uk');
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $atts = $l->getPublic();
         $this->log("Atts " . var_export($atts, TRUE));
         self::assertEquals(0, $atts['invalid']);
         self::assertGreaterThan(0, strlen($atts['title']));
 
-        assertNotFalse(strpos($atts['image'], 'http'));
+        $this->assertNotFalse(strpos($atts['image'], 'http'));
 
         $id2 = $l->get('https://google.co.uk');
         self::assertEquals($id, $id2);
 
         $id3 = $l->get('https://google.ca');
-        assertNotNull($id3);
+        $this->assertNotNull($id3);
 
         }
 
     public function testInvalid() {
         $l = new Preview($this->dbhr, $this->dbhm);
         $id = $l->create('https://googfsdfasdfdsafsdafsdafsdafsd.com');
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $atts = $l->getPublic();
         self::assertEquals(1, $atts['invalid']);
 
         $id = $l->create('https://googfsdfasdfdsafsdafsdafsdafsd');
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $atts = $l->getPublic();
         self::assertEquals(1, $atts['invalid']);
 
         $id = $l->create('https://dbltest.com', TRUE);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $atts = $l->getPublic();
         self::assertEquals(1, $atts['spam']);
 
         $id = $l->create('https://goo.gl/AqZsSV', TRUE);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $atts = $l->getPublic();
         self::assertEquals(1, $atts['spam']);
 

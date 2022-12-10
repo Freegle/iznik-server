@@ -60,19 +60,19 @@ class locationTest extends IznikTestCase {
     public function testBasic() {
         $l = new Location($this->dbhr, $this->dbhm);
         $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
-        assertNotNull($id);
-        assertEquals($id, $l->findByName('Tuvalu High Street'));
+        $this->assertNotNull($id);
+        $this->assertEquals($id, $l->findByName('Tuvalu High Street'));
         $l = new Location($this->dbhr, $this->dbhm, $id);
         $atts = $l->getPublic();
         $this->log("Created loc " . var_export($atts, true));
         $gridid = $atts['gridid'];
         $grid = $l->getGrid();
         $this->log("Grid " . var_export($grid, true));
-        assertEquals($gridid, $grid['id']);
-        assertEquals(8.5, $grid['swlat']);
-        assertEquals(179.2, $grid['swlng']);
+        $this->assertEquals($gridid, $grid['id']);
+        $this->assertEquals(8.5, $grid['swlat']);
+        $this->assertEquals(179.2, $grid['swlng']);
 
-        assertEquals(1, $l->delete());
+        $this->assertEquals(1, $l->delete());
 
         }
 
@@ -80,11 +80,11 @@ class locationTest extends IznikTestCase {
         $l = new Location($this->dbhr, $this->dbhm);
         $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
         $this->log("Postcode id $pcid");
-        assertNotNull($pcid);
+        $this->assertNotNull($pcid);
 
         $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))');
         $this->log("Area id $areaid");
-        assertNotNull($areaid);
+        $this->assertNotNull($areaid);
 
         $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
         $this->log("Loc id $id");
@@ -92,14 +92,14 @@ class locationTest extends IznikTestCase {
         $atts = $l->getPublic();
 
         # No area as not a postcode.
-        assertNull($atts['areaid']);
+        $this->assertNull($atts['areaid']);
 
         $id2 = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)');
         $this->log("Full postcode id $id");
         $l = new Location($this->dbhr, $this->dbhm, $id2);
         $atts = $l->getPublic();
-        assertEquals($areaid, $atts['areaid']);
-        assertEquals($pcid, $atts['postcodeid']);
+        $this->assertEquals($areaid, $atts['areaid']);
+        $this->assertEquals($pcid, $atts['postcodeid']);
     }
 
     public function testParentsOverlap() {
@@ -123,22 +123,22 @@ class locationTest extends IznikTestCase {
         $l = new Location($this->dbhr, $this->dbhm);
         $pcid = $l->create(NULL, 'TV13 1AA', 'Postcode', "POINT($clng $clat)");
         $this->log("Postcode id $pcid");
-        assertNotNull($pcid);
+        $this->assertNotNull($pcid);
 
         $areaid1 = $l->create(NULL, 'Tuvalu Central1', 'Polygon', $box1);
         $this->log("Area id $areaid1");
-        assertNotNull($areaid1);
+        $this->assertNotNull($areaid1);
 
         $areaid2 = $l->create(NULL, 'Tuvalu Central2', 'Polygon', $box2);
         $this->log("Area id $areaid2");
-        assertNotNull($areaid2);
+        $this->assertNotNull($areaid2);
 
         # Postcode should be in area 2, because it contains the postcode and is smaller than area 1.
         $l->copyLocationsToPostgresql();
         $l->remapPostcodes();
 
         $l = new Location($this->dbhr, $this->dbhm, $pcid);
-        assertEquals($areaid2, $l->getPrivate('areaid'));
+        $this->assertEquals($areaid2, $l->getPrivate('areaid'));
 
         # Edit area2 so that it no longer includes the postcode.
         $sw['lat'] = $clat + 0.01;
@@ -171,27 +171,27 @@ class locationTest extends IznikTestCase {
         $l = new Location($this->dbhr, $this->dbhm);
         $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POINT(179.2167 8.53333)');
         $this->log("Postcode id $pcid");
-        assertNotNull($pcid);
+        $this->assertNotNull($pcid);
 
         $id1 = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2162 8.53283)');
         $l->setPrivate('areaid', $pcid);
-        assertNotNull($id1);
+        $this->assertNotNull($id1);
         $id2 = $l->create(NULL, 'TV13 2HH', 'Postcode', 'POINT(179.2162 8.53383)');
         $l->setPrivate('areaid', $pcid);
-        assertNotNull($id2);
+        $this->assertNotNull($id2);
         $id3 = $l->create(NULL, 'TV13 3HH', 'Postcode', 'POINT(179.2172 8.53383)');
         $l->setPrivate('areaid', $pcid);
-        assertNotNull($id3);
+        $this->assertNotNull($id3);
         $id4 = $l->create(NULL, 'TV13 4HH', 'Postcode', 'POINT(179.2162 8.53283)');
         $l->setPrivate('areaid', $pcid);
-        assertNotNull($id4);
+        $this->assertNotNull($id4);
 
         # Call withinBox.  This will invent a small polygon around the point.
         $this->log("$pcid, $id1, $id2, $id3");
         $locs = $l->withinBox(8.4, 179.1, 8.7, 179.4);
         $this->log(var_export($locs, TRUE));
         $poly = 'POLYGON((179.2162 8.53283, 179.2162 8.53383, 179.2172 8.53383, 179.2172 8.53283, 179.2162 8.53283))';
-        assertEquals($poly, $locs[0]['polygon']);
+        $this->assertEquals($poly, $locs[0]['polygon']);
 
         # Change the geometry to something which isn't a point or a polygon.  We'll invent a polygon.  We need to
         # mock this as the convex hull function relies on a PHP extension which is a faff to install.
@@ -205,7 +205,7 @@ class locationTest extends IznikTestCase {
         $l->setGeometry('LINESTRING(179.2162 8.53283, 179.2162 8.53383)');
         $locs = $mock->withinBox(8.4, 179.1, 8.7, 179.4);
         $this->log(var_export($locs, TRUE));
-        assertEquals('POLYGON ((179.2162 8.53283, 179.2162 8.53383, 179.2172 8.53383, 179.2172 8.53283, 179.2162 8.53283))', $locs[0]['polygon']);
+        $this->assertEquals('POLYGON ((179.2162 8.53283, 179.2162 8.53383, 179.2172 8.53383, 179.2172 8.53283, 179.2162 8.53283))', $locs[0]['polygon']);
     }
 
     public function testError() {
@@ -228,7 +228,7 @@ class locationTest extends IznikTestCase {
         $l->setDbhm($mock);
 
         $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
-        assertNull($id);
+        $this->assertNull($id);
 
         }
 
@@ -248,35 +248,35 @@ class locationTest extends IznikTestCase {
 
         $res = $l->search("Tuvalu", $gid);
         $this->log(var_export($res, true));
-        assertEquals(1, count($res));
-        assertEquals($id, $res[0]['id']);
+        $this->assertEquals(1, count($res));
+        $this->assertEquals($id, $res[0]['id']);
 
         # Find something which matches a word.
         $res = $l->search("high", $gid);
-        assertEquals(1, count($res));
-        assertEquals($id, $res[0]['id']);
+        $this->assertEquals(1, count($res));
+        $this->assertEquals($id, $res[0]['id']);
 
         # Fail to find something which doesn't match a word.
         $res = $l->search("stre", $gid);
-        assertEquals(0, count($res));
+        $this->assertEquals(0, count($res));
 
         $res = $l->search("high street", $gid);
-        assertEquals(1, count($res));
-        assertEquals($id, $res[0]['id']);
+        $this->assertEquals(1, count($res));
+        $this->assertEquals($id, $res[0]['id']);
 
         # Make sure that exact matches trump prefix matches
         $id2 = $l->create(NULL, 'Tuvalu High', 'Road', 'POINT(179.2167 8.53333)');
 
         $res = $l->search("Tuvalu high", $gid, 1);
-        assertEquals(1, count($res));
-        assertEquals($id2, $res[0]['id']);
+        $this->assertEquals(1, count($res));
+        $this->assertEquals($id2, $res[0]['id']);
 
         # Find one where the valid location is contained within our search term
         $res = $l->search("in Tuvalu high street area", $gid, 1);
-        assertEquals(1, count($res));
-        assertEquals($id, $res[0]['id']);
+        $this->assertEquals(1, count($res));
+        $this->assertEquals($id, $res[0]['id']);
 
-        assertEquals(1, $l->delete());
+        $this->assertEquals(1, $l->delete());
 
         }
 
@@ -288,14 +288,14 @@ class locationTest extends IznikTestCase {
         }
 
         $loc = $l->closestPostcode(53.856556299999994, -2.6401651999999998);
-        assertEquals("PR3 2NE", $loc['name']);
+        $this->assertEquals("PR3 2NE", $loc['name']);
 
         if (!$l->findByName('RM9 6SR')) {
             $pcid = $l->create(NULL, 'RM9 6SR', 'Postcode', 'POINT(0.14700179589836 51.531097253523)');
         }
 
         $loc = $l->closestPostcode(51.530687199999996, 0.146932);
-        assertEquals("RM9 6SR", $loc['name']);
+        $this->assertEquals("RM9 6SR", $loc['name']);
 
         }
 
@@ -314,13 +314,13 @@ class locationTest extends IznikTestCase {
 
         $groups = $l->groupsNear(50);
         $this->log("Found groups near " . var_export($groups, TRUE));
-        assertTrue(in_array($gid, $groups));
+        $this->assertTrue(in_array($gid, $groups));
 
         # Shouldn't find unlisted groups
         $g->setPrivate('listable', 0);
         $groups = $l->groupsNear(50);
         $this->log("Shouldn't find groups near " . var_export($groups, TRUE));
-        assertFalse(in_array($gid, $groups));
+        $this->assertFalse(in_array($gid, $groups));
 
     }
 }

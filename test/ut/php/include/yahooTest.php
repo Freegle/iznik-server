@@ -28,8 +28,8 @@ class yahooTest extends IznikTestCase {
         $_SERVER['REQUEST_URI'] = '/';
         $y = Yahoo::getInstance($this->dbhr, $this->dbhm);
         $rc  = $y->login();
-        assertEquals(1, $rc[1]['ret']);
-        assertTrue(array_key_exists('redirect', $rc[1]));
+        $this->assertEquals(1, $rc[1]['ret']);
+        $this->assertTrue(array_key_exists('redirect', $rc[1]));
 
         $email = 'test' . microtime() . '@test.com';
         $mock = $this->getMockBuilder('LightOpenID')
@@ -42,7 +42,7 @@ class yahooTest extends IznikTestCase {
 
         # Login first time - should work
         list($session, $ret) = $y->login();
-        assertNull($session);
+        $this->assertNull($session);
 
         }
 
@@ -52,11 +52,11 @@ class yahooTest extends IznikTestCase {
 
         # Check singleton
         $y = Yahoo::getInstance($this->dbhr, $this->dbhm);
-        assertEquals($y, Yahoo::getInstance($this->dbhr, $this->dbhm));
+        $this->assertEquals($y, Yahoo::getInstance($this->dbhr, $this->dbhm));
 
         $rc  = $y->login();
-        assertEquals(1, $rc[1]['ret']);
-        assertTrue(array_key_exists('redirect', $rc[1]));
+        $this->assertEquals(1, $rc[1]['ret']);
+        $this->assertTrue(array_key_exists('redirect', $rc[1]));
 
         $email = 'test' . microtime() . '@test.com';
         $mock = $this->getMockBuilder('LightOpenID')
@@ -73,25 +73,25 @@ class yahooTest extends IznikTestCase {
         # Login first time - should work
         list($session, $ret) = $y->login();
         $id = $session->getUserId();
-        assertNotNull($session);
-        assertEquals(0, $ret['ret']);
+        $this->assertNotNull($session);
+        $this->assertEquals(0, $ret['ret']);
 
         # Login again - should also work
         $this->dbhm->preExec("UPDATE users SET fullname = NULL WHERE id = $id;");
         User::clearCache($id);
         list($session, $ret) = $y->login();
-        assertNotNull($session);
-        assertEquals(0, $ret['ret']);
+        $this->assertNotNull($session);
+        $this->assertEquals(0, $ret['ret']);
 
         # Create another user and move the email over to simulate a duplicate
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $this->log("Users $id and $uid");
         $rc = $this->dbhm->preExec("UPDATE users_emails SET userid = $uid WHERE userid = $id;");
-        assertEquals(1, $rc);
+        $this->assertEquals(1, $rc);
         list($session, $ret) = $y->login();
-        assertNotNull($session);
-        assertEquals(0, $ret['ret']);
+        $this->assertNotNull($session);
+        $this->assertEquals(0, $ret['ret']);
     }
 
     public function testYahooLoginWithCode() {
@@ -110,7 +110,7 @@ class yahooTest extends IznikTestCase {
           '{"sub":"1234","name":"Test User","given_name":"Test","family_name":"User","locale":"en-GB","email":"test@test.com"}'
         );
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
     }
 }
 

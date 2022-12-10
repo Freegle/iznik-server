@@ -27,7 +27,7 @@ jobs:
 
       # PHP extensions
       - run: sudo apt install dnsutils openssl zip unzip git libxml2-dev libzip-dev zlib1g-dev libcurl4-openssl-dev iputils-ping default-mysql-client vim libpng-dev libgmp-dev libjpeg-turbo8-dev
-      - run: sudo apt-get install php-xmlrpc php8.1-intl php8.1-xdebug php8.1-mbstring php8.1-simplexml php8.1-curl php8.1-zip postgresql-client php8.1-gd php8.1-xmlrpc php8.1-redis php8.1-pgsql php-mailparse redis-server redis-tools
+      - run: sudo apt-get install php-xmlrpc php8.1-intl php8.1-xdebug php8.1-mbstring php8.1-simplexml php8.1-curl php8.1-zip postgresql-client php8.1-gd php8.1-xmlrpc php8.1-redis php8.1-pgsql php-mailparse redis-server redis-tools php-xdebug
       - run: sudo pecl install xdebug
       - run: sudo pecl install mailparse
       - run: sudo pecl install igbinary
@@ -138,5 +138,5 @@ jobs:
       - run:
           name: PHPUnit Tests
           no_output_timeout: 30m
-          command: cd http/api; ../../composer/vendor/bin/phpunit -d memory_limit=512M --stderr --bootstrap ../../composer/vendor/autoload.php -dxdebug.coverage_enable=1 --coverage-clover ../../test/ut/php/clover.xml --configuration ../../test/ut/php/phpunit.xml ../../test/ut/php/
+          command: cd http/api; ../../composer/vendor/bin/phpunit -d memory_limit=512M --stderr --bootstrap ../../composer/vendor/autoload.php -dxdebug.mode=coverage --coverage-clover ../../test/ut/php/clover.xml --configuration ../../test/ut/php/phpunit.xml ../../test/ut/php/
       - run: php composer/vendor/bin/php-coveralls -v

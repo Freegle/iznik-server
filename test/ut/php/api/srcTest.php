@@ -37,6 +37,6 @@ class srcAPITest extends IznikAPITestCase
             'src' => 'UT'
         ]);
 
-        assertEquals('UT', $_SESSION['src']);
+        $this->assertEquals('UT', $_SESSION['src']);
     }
 }

@@ -35,7 +35,7 @@ class messagesTest extends IznikAPITestCase {
         $this->uid = $u->create('Test', 'User', 'Test User');
         $u->addEmail('test@test.com');
         $u->addEmail('sender@example.net');
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         $this->user = $u;
@@ -50,7 +50,7 @@ class messagesTest extends IznikAPITestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
         $this->log("Approved id $id");
 
         # Index
@@ -68,41 +68,41 @@ class messagesTest extends IznikAPITestCase {
             'groupid' => $this->gid
         ]);
         $this->log("Get when logged out with permission" . var_export($ret, true));
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(1, count($msgs));
-        assertEquals($a->getID(), $msgs[0]['id']);
-        assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
+        $this->assertEquals(1, count($msgs));
+        $this->assertEquals($a->getID(), $msgs[0]['id']);
+        $this->assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
 
         # And using the multiple groupid option
         $ret = $this->call('messages', 'GET', [
             'groupids' => [ $this->gid ]
         ]);
         $this->log("Get when logged out using groupids " . var_export($ret, true));
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(1, count($msgs));
-        assertEquals($a->getID(), $msgs[0]['id']);
-        assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
+        $this->assertEquals(1, count($msgs));
+        $this->assertEquals($a->getID(), $msgs[0]['id']);
+        $this->assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
 
         # Now join and check we can see see it.
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $id);
         $rc = $u->addMembership($this->gid, User::ROLE_MEMBER);
-        assertEquals(1, $rc);
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertEquals(1, $rc);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         # Omit groupid - should use groups for currently logged in user.
         $ret = $this->call('messages', 'GET', [
             'grouptype' => Group::GROUP_FREEGLE,
             'modtools' => FALSE
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
         #$this->log(var_export($msgs, TRUE));
-        assertEquals(1, count($msgs));
+        $this->assertEquals(1, count($msgs));
 
         # Test search by word
         $ret = $this->call('messages', 'GET', [
@@ -110,11 +110,11 @@ class messagesTest extends IznikAPITestCase {
             'groupid' => $this->gid,
             'search' => 'sofa'
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(1, count($msgs));
-        assertEquals($a->getID(), $msgs[0]['id']);
-        assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
+        $this->assertEquals(1, count($msgs));
+        $this->assertEquals($a->getID(), $msgs[0]['id']);
+        $this->assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
 
         # Test search by id
         $this->log("Test by id");
@@ -123,10 +123,10 @@ class messagesTest extends IznikAPITestCase {
             'groupid' => $this->gid,
             'search' => $a->getID()
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(1, count($msgs));
-        assertEquals($a->getID(), $msgs[0]['id']);
+        $this->assertEquals(1, count($msgs));
+        $this->assertEquals($a->getID(), $msgs[0]['id']);
 
         # Test search by member
         $ret = $this->call('messages', 'GET', [
@@ -134,22 +134,22 @@ class messagesTest extends IznikAPITestCase {
             'groupid' => $this->gid,
             'search' => 'test@test.com'
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(1, count($msgs));
-        assertEquals($a->getID(), $msgs[0]['id']);
-        assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
+        $this->assertEquals(1, count($msgs));
+        $this->assertEquals($a->getID(), $msgs[0]['id']);
+        $this->assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
 
         # Search by member on current groups
         $ret = $this->call('messages', 'GET', [
             'subaction' => 'searchmemb',
             'search' => 'test@test.com'
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(1, count($msgs));
-        assertEquals($a->getID(), $msgs[0]['id']);
-        assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
+        $this->assertEquals(1, count($msgs));
+        $this->assertEquals($a->getID(), $msgs[0]['id']);
+        $this->assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
 
         # Check the log.
         $u->setRole(User::ROLE_MODERATOR, $this->gid);
@@ -157,51 +157,51 @@ class messagesTest extends IznikAPITestCase {
         # Get messages for our logged in groups.
         $ret = $this->call('messages', 'GET', [
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(1, count($msgs));
-        assertEquals($a->getID(), $msgs[0]['id']);
-        assertTrue(array_key_exists('source', $msgs[0]));
+        $this->assertEquals(1, count($msgs));
+        $this->assertEquals($a->getID(), $msgs[0]['id']);
+        $this->assertTrue(array_key_exists('source', $msgs[0]));
 
         # Get messages for this specific user
         $ret = $this->call('messages', 'GET', [
             'fromuser' => $a->getFromuser()
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(1, count($msgs));
-        assertEquals($a->getID(), $msgs[0]['id']);
+        $this->assertEquals(1, count($msgs));
+        $this->assertEquals($a->getID(), $msgs[0]['id']);
 
         # Get messages for another user
         $ret = $this->call('messages', 'GET', [
             'fromuser' => $id
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(0, count($msgs));
+        $this->assertEquals(0, count($msgs));
 
         # Filter by type
         $ret = $this->call('messages', 'GET', [
             'types' => [ Message::TYPE_OFFER ]
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(1, count($msgs));
+        $this->assertEquals(1, count($msgs));
 
         $ret = $this->call('messages', 'GET', [
             'types' => [ Message::TYPE_OTHER ]
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(0, count($msgs));
+        $this->assertEquals(0, count($msgs));
 
         # A bad type.  This will be the same as if we didn't supply any; the key thing is the SQL injection defence.
         $ret = $this->call('messages', 'GET', [
             'types' => [ 'wibble' ]
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(1, count($msgs));
+        $this->assertEquals(1, count($msgs));
 
         # Sleep for background logging
         $this->waitBackground();
@@ -214,9 +214,9 @@ class messagesTest extends IznikAPITestCase {
         $u->getPublicLogs($u, $logs, FALSE, $ctx, FALSE, TRUE);
         $log = $this->findLog(Log::TYPE_MESSAGE, Log::SUBTYPE_RECEIVED, $logs[$a->getFromuser()]['logs']);
         $this->log("Got log " . var_export($log, TRUE));
-        assertEquals($this->gid, $log['group']['id']);
-        assertEquals($a->getFromuser(), $log['user']['id']);
-        assertEquals($a->getID(), $log['message']['id']);
+        $this->assertEquals($this->gid, $log['group']['id']);
+        $this->assertEquals($a->getFromuser(), $log['user']['id']);
+        $this->assertEquals($a->getID(), $log['message']['id']);
 
         $id = $a->getID();
         $this->log("Delete it");
@@ -225,7 +225,7 @@ class messagesTest extends IznikAPITestCase {
         # Actually delete the message to force a codepath.
         $this->log("Delete msg $id");
         $rc = $this->dbhm->preExec("DELETE FROM messages WHERE id = ?;", [ $id ]);
-        assertEquals(1, $rc);
+        $this->assertEquals(1, $rc);
         $this->waitBackground();
 
         # The delete should show in the log.
@@ -234,9 +234,9 @@ class messagesTest extends IznikAPITestCase {
         $u = new User($this->dbhr, $this->dbhm);
         $u->getPublicLogs($u, $logs, FALSE, $ctx, FALSE, TRUE);
         $log = $this->findLog(Log::TYPE_MESSAGE, Log::SUBTYPE_RECEIVED, $logs[$a->getFromuser()]['logs']);
-        assertEquals($this->gid, $log['group']['id']);
-        assertEquals($a->getFromuser(), $log['user']['id']);
-        assertEquals(1, $log['message']['deleted']);
+        $this->assertEquals($this->gid, $log['group']['id']);
+        $this->assertEquals($a->getFromuser(), $log['user']['id']);
+        $this->assertEquals(1, $log['message']['deleted']);
 
         }
 
@@ -248,7 +248,7 @@ class messagesTest extends IznikAPITestCase {
        list ($id, $failok) = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
         $this->log("Spam msgid $id");
         $rc = $r->route();
-        assertEquals(MailRouter::INCOMING_SPAM, $rc);
+        $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
         $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::PENDING);
         $a = new Message($this->dbhr, $this->dbhm, $id);
@@ -259,7 +259,7 @@ class messagesTest extends IznikAPITestCase {
             'collection' => MessageCollection::PENDING
         ]);
 
-        assertEquals(2, $ret['ret']);
+        $this->assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to see a spam message
         $u = User::get($this->dbhr, $this->dbhm);
@@ -271,24 +271,24 @@ class messagesTest extends IznikAPITestCase {
             'groupid' => $this->gid,
             'collection' => MessageCollection::PENDING
         ]);
-        assertEquals(2, $ret['ret']);
+        $this->assertEquals(2, $ret['ret']);
 
         # Promote to owner - should be able to see it.
         $u->setRole(User::ROLE_OWNER, $this->gid);
-        assertEquals(User::ROLE_OWNER, $u->getRoleForGroup($this->gid));
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertEquals(User::ROLE_OWNER, $u->getRoleForGroup($this->gid));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
         $ret = $this->call('messages', 'GET', [
             'groupid' => $this->gid,
             'collection' => MessageCollection::PENDING,
             'start' => '2100-01-01T06:00:00Z'
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(1, count($msgs));
-        assertEquals($a->getID(), $msgs[0]['id']);
+        $this->assertEquals(1, count($msgs));
+        $this->assertEquals($a->getID(), $msgs[0]['id']);
         $this->log(var_export($msgs, true));
-        assertTrue(array_key_exists('source', $msgs[0])); # An owner, should see mod att
+        $this->assertTrue(array_key_exists('source', $msgs[0])); # An owner, should see mod att
 
         $a->delete();
 
@@ -299,8 +299,8 @@ class messagesTest extends IznikAPITestCase {
             'groupid' => 0,
             'collection' => 'wibble'
         ]);
-        assertEquals(0, $ret['ret']);
-        assertEquals(0, count($ret['messages']));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, count($ret['messages']));
 
         }
 
@@ -312,7 +312,7 @@ class messagesTest extends IznikAPITestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::PENDING, $rc);
+        $this->assertEquals(MailRouter::PENDING, $rc);
 
         $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::PENDING);
         $a = new Message($this->dbhr, $this->dbhm, $id);
@@ -327,8 +327,8 @@ class messagesTest extends IznikAPITestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $id);
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         # Shouldn't be able to see pending logged in but not a member.
         $ret = $this->call('messages', 'GET', [
@@ -337,36 +337,36 @@ class messagesTest extends IznikAPITestCase {
         ]);
 
         $this->log("Shouldn't see pending " . var_export($ret, TRUE));
-        assertEquals(2, $ret['ret']);
+        $this->assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to see a pending message
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $id);
         $u->addMembership($this->gid);
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('messages', 'GET', [
             'groupid' => $this->gid,
             'collection' => 'Pending'
         ]);
-        assertEquals(2, $ret['ret']);
+        $this->assertEquals(2, $ret['ret']);
 
         # Promote to mod - should be able to see it.
         $this->log("Check as mod for " . $a->getID());
         $u->setRole(User::ROLE_MODERATOR, $this->gid);
-        assertEquals(User::ROLE_MODERATOR, $u->getRoleForGroup($this->gid));
+        $this->assertEquals(User::ROLE_MODERATOR, $u->getRoleForGroup($this->gid));
         $ret = $this->call('messages', 'GET', [
             'groupid' => $this->gid,
             'collection' => 'Pending'
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(1, count($msgs));
-        assertEquals($a->getID(), $msgs[0]['id']);
-        assertEquals($this->gid, $msgs[0]['groups'][0]['groupid']);
-        assertTrue(array_key_exists('source', $msgs[0])); # A mod, should see mod att
+        $this->assertEquals(1, count($msgs));
+        $this->assertEquals($a->getID(), $msgs[0]['id']);
+        $this->assertEquals($this->gid, $msgs[0]['groups'][0]['groupid']);
+        $this->assertTrue(array_key_exists('source', $msgs[0])); # A mod, should see mod att
 
         $a->delete();
 
@@ -387,7 +387,7 @@ class messagesTest extends IznikAPITestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
         $this->log("Approved id $id");
 
         # Index
@@ -408,10 +408,10 @@ class messagesTest extends IznikAPITestCase {
             'nearlocation' => $lid
         ]);
         $this->log("Get near " . var_export($ret, true));
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(1, count($msgs));
-        assertEquals($id, $msgs[0]['id']);
+        $this->assertEquals(1, count($msgs));
+        $this->assertEquals($id, $msgs[0]['id']);
     }
 
     public function testSearchInBounds() {
@@ -431,7 +431,7 @@ class messagesTest extends IznikAPITestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
         $this->log("Approved id $id");
 
         # Index
@@ -456,10 +456,10 @@ class messagesTest extends IznikAPITestCase {
             'nelat' => 8.4
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(1, count($msgs));
-        assertEquals($id, $msgs[0]['id']);
+        $this->assertEquals(1, count($msgs));
+        $this->assertEquals($id, $msgs[0]['id']);
 
         $ret = $this->call('messages', 'GET', [
             'search' => 'basic t',
@@ -471,10 +471,10 @@ class messagesTest extends IznikAPITestCase {
             'messagetype' => Message::TYPE_OFFER
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(1, count($msgs));
-        assertEquals($id, $msgs[0]['id']);
+        $this->assertEquals(1, count($msgs));
+        $this->assertEquals($id, $msgs[0]['id']);
 
         $ret = $this->call('messages', 'GET', [
             'search' => 'basic t',
@@ -486,10 +486,10 @@ class messagesTest extends IznikAPITestCase {
             'groupid' => $this->group->getId()
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(1, count($msgs));
-        assertEquals($id, $msgs[0]['id']);
+        $this->assertEquals(1, count($msgs));
+        $this->assertEquals($id, $msgs[0]['id']);
 
         $ret = $this->call('messages', 'GET', [
             'search' => 'basic t',
@@ -497,10 +497,10 @@ class messagesTest extends IznikAPITestCase {
             'groupids' => [ $this->group->getId() ]
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(1, count($msgs));
-        assertEquals($id, $msgs[0]['id']);
+        $this->assertEquals(1, count($msgs));
+        $this->assertEquals($id, $msgs[0]['id']);
 
         $ret = $this->call('messages', 'GET', [
             'search' => 'basic t',
@@ -512,9 +512,9 @@ class messagesTest extends IznikAPITestCase {
             'groupid' => $this->group->getId() + 1
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(0, count($msgs));
+        $this->assertEquals(0, count($msgs));
 
         $ret = $this->call('messages', 'GET', [
             'search' => 'basic t',
@@ -526,9 +526,9 @@ class messagesTest extends IznikAPITestCase {
             'messagetype' => Message::TYPE_WANTED
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(0, count($msgs));
+        $this->assertEquals(0, count($msgs));
 
         # Close but not cigar.
         $ret = $this->call('messages', 'GET', [
@@ -540,9 +540,9 @@ class messagesTest extends IznikAPITestCase {
             'nelat' => 8.4
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(0, count($msgs));
+        $this->assertEquals(0, count($msgs));
     }
 
     public function testSearchActiveInGroups() {
@@ -562,7 +562,7 @@ class messagesTest extends IznikAPITestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
         $this->log("Approved id $id");
 
         # Index
@@ -578,7 +578,7 @@ class messagesTest extends IznikAPITestCase {
         $sender = User::get($this->dbhr, $this->dbhm, $a->getFromuser());
 
         # Log in as a user on the group.
-        assertTrue($this->user->login('testpw'));
+        $this->assertTrue($this->user->login('testpw'));
 
         # Look for it - should find it.
         $ret = $this->call('messages', 'GET', [
@@ -587,15 +587,15 @@ class messagesTest extends IznikAPITestCase {
             'searchmygroups' => TRUE
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(1, count($msgs));
-        assertEquals($id, $msgs[0]['id']);
+        $this->assertEquals(1, count($msgs));
+        $this->assertEquals($id, $msgs[0]['id']);
     }
 
     public function testPendingWithdraw() {
         # Set up a pending message on a native group.
-        assertTrue($this->user->login('testpw'));
+        $this->assertTrue($this->user->login('testpw'));
 
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_MODERATED);
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -605,7 +605,7 @@ class messagesTest extends IznikAPITestCase {
         $m = new Message($this->dbhr, $this->dbhm, $mid);
         $this->log("From " . $m->getFromuser() . "," . $m->getFromaddr());
         $rc = $r->route();
-        assertEquals(MailRouter::PENDING, $rc);
+        $this->assertEquals(MailRouter::PENDING, $rc);
 
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
@@ -613,7 +613,7 @@ class messagesTest extends IznikAPITestCase {
             'outcome' => Message::OUTCOME_WITHDRAWN
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         self::assertEquals(TRUE, $ret['deleted']);
 
         }
@@ -634,10 +634,10 @@ class messagesTest extends IznikAPITestCase {
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
        list ($id, $failok) = $r->received(Message::EMAIL, $email, 'testgroup@' . GROUP_DOMAIN, $msg, $this->gid);
 
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $ret = $this->call('messages', 'GET', [
             'collection' => MessageCollection::APPROVED,
@@ -645,7 +645,7 @@ class messagesTest extends IznikAPITestCase {
             'groupid' => $this->gid
         ]);
 
-        assertEquals(1, count($ret['messages'][0]['attachments']));
+        $this->assertEquals(1, count($ret['messages'][0]['attachments']));
     }
 
     public function testInBounds() {
@@ -655,9 +655,9 @@ class messagesTest extends IznikAPITestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
         $this->log("Approved id $id");
 
         # Ensure we have consent to see this message
@@ -674,12 +674,12 @@ class messagesTest extends IznikAPITestCase {
         ]);
 
         # Nothing indexed yet.
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(0, count($msgs));
+        $this->assertEquals(0, count($msgs));
 
         # Index
-        assertEquals(1, $m->updateSpatialIndex());
+        $this->assertEquals(1, $m->updateSpatialIndex());
 
         $ret = $this->call('messages', 'GET', [
             'subaction' => 'inbounds',
@@ -690,44 +690,44 @@ class messagesTest extends IznikAPITestCase {
         ]);
         $msgs = $ret['messages'];
 
-        assertEquals(1, count($msgs));
-        assertEquals($id, $msgs[0]['id']);
+        $this->assertEquals(1, count($msgs));
+        $this->assertEquals($id, $msgs[0]['id']);
 
         # Few more spatial indexing tests
         $m->mark(Message::OUTCOME_TAKEN, "Thanks", User::HAPPY, NULL);
         $this->dbhm->preExec("DELETE FROM messages_outcomes WHERE msgid = ?;", [
             $id
         ]);
-        assertEquals(1, $m->updateSpatialIndex());
+        $this->assertEquals(1, $m->updateSpatialIndex());
 
         $m->mark(Message::OUTCOME_WITHDRAWN, "Soz", User::HAPPY, NULL);
         $this->dbhm->preExec("DELETE FROM messages_outcomes WHERE msgid = ?;", [
             $id
         ]);
-        assertEquals(1, $m->updateSpatialIndex());
+        $this->assertEquals(1, $m->updateSpatialIndex());
 
         $this->dbhm->preExec("UPDATE messages_groups SET arrival = '2001-01-01' WHERE msgid = ?", [
             $id
         ]);
-        assertEquals(1, $m->updateSpatialIndex());
+        $this->assertEquals(1, $m->updateSpatialIndex());
         $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW() WHERE msgid = ?", [
             $id
         ]);
-        assertEquals(1, $m->updateSpatialIndex());
+        $this->assertEquals(1, $m->updateSpatialIndex());
 
         $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ?", [
             MessageCollection::PENDING,
             $id
         ]);
-        assertEquals(1, $m->updateSpatialIndex());
+        $this->assertEquals(1, $m->updateSpatialIndex());
         $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ?", [
             MessageCollection::APPROVED,
             $id
         ]);
-        assertEquals(1, $m->updateSpatialIndex());
+        $this->assertEquals(1, $m->updateSpatialIndex());
 
         $m->delete();
-        assertEquals(1, $m->updateSpatialIndex());
+        $this->assertEquals(1, $m->updateSpatialIndex());
     }
 
     public function testMyGroups() {
@@ -738,7 +738,7 @@ class messagesTest extends IznikAPITestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
         $this->log("Approved id $id");
 
         # Ensure we have consent to see this message
@@ -751,9 +751,9 @@ class messagesTest extends IznikAPITestCase {
             'subaction' => 'mygroups'
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(0, count($msgs));
+        $this->assertEquals(0, count($msgs));
 
         # Index
         $m = new Message($this->dbhr, $this->dbhm);
@@ -764,21 +764,21 @@ class messagesTest extends IznikAPITestCase {
             'subaction' => 'mygroups'
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(0, count($msgs));
+        $this->assertEquals(0, count($msgs));
 
         # Logged in but no groups
-        assertTrue($this->user->login('testpw'));
+        $this->assertTrue($this->user->login('testpw'));
         $this->user->removeMembership($this->gid);
 
         $ret = $this->call('messages', 'GET', [
             'subaction' => 'mygroups'
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
-        assertEquals(0, count($msgs));
+        $this->assertEquals(0, count($msgs));
 
         # Add membership
         $this->user->addMembership($this->gid);
@@ -788,8 +788,8 @@ class messagesTest extends IznikAPITestCase {
         ]);
         $msgs = $ret['messages'];
 
-        assertEquals(1, count($msgs));
-        assertEquals($id, $msgs[0]['id']);
+        $this->assertEquals(1, count($msgs));
+        $this->assertEquals($id, $msgs[0]['id']);
     }
 
     public function testUnprettyPoly() {
@@ -802,7 +802,7 @@ class messagesTest extends IznikAPITestCase {
             'subaction' => 'inbounds'
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         $ret = $this->call('messages', 'GET', [
             'swlat' => 51.331168891035944,
@@ -813,7 +813,7 @@ class messagesTest extends IznikAPITestCase {
             'subaction' => 'inbounds'
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
     }
 
 //    public function testEH() {
@@ -838,7 +838,7 @@ class messagesTest extends IznikAPITestCase {
 //            'modtools' => TRUE
 //        ]);
 //
-//        assertEquals(0, $ret['ret']);
+//        $this->assertEquals(0, $ret['ret']);
 //        error_log("Took {$ret['duration']} DB {$ret['dbwaittime']}");
 //        error_log(var_export($ret['context'], TRUE));
 //        error_log("Got " . count($ret['messages']) . " messages");

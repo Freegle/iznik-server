@@ -53,7 +53,7 @@ class GoogleTest extends IznikTestCase {
     public function testBasic() {
         $g = new Google($this->dbhr, $this->dbhm, TRUE);
         list($session, $ret) = $g->login(1);
-        assertEquals(2, $ret['ret']);
+        $this->assertEquals(2, $ret['ret']);
 
         # Basic successful login
         $mock = $this->getMockBuilder('Freegle\Iznik\Google')
@@ -74,11 +74,11 @@ class GoogleTest extends IznikTestCase {
 
         list($session, $ret) = $mock->login(1);
         $this->log("Returned " . var_export($ret, TRUE));
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $logins = $me->getLogins();
         $this->log("Logins " . var_export($logins, TRUE));
-        assertEquals(1, $logins[0]['uid']);
+        $this->assertEquals(1, $logins[0]['uid']);
 
         # Log in again with a different email, triggering a merge.
         $u = User::get($this->dbhr, $this->dbhm);
@@ -87,33 +87,33 @@ class GoogleTest extends IznikTestCase {
 
         $this->email = 'test2@test.com';
         list($session, $ret) = $mock->login(1);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
         $this->log("Emails " . var_export($emails, TRUE));
-        assertEquals(2, count($emails));
+        $this->assertEquals(2, count($emails));
 
         # Now delete an email, and log in again - should trigger an add of the email
         $me->removeEmail('test2@test.com');
         list($session, $ret) = $mock->login(1);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
         $this->log("Emails " . var_export($emails, TRUE));
-        assertEquals(2, count($emails));
+        $this->assertEquals(2, count($emails));
 
         # Now delete the google login, and log in again - should trigger an add of the google id.
-        assertEquals(1, $me->removeLogin('Google', 1));
+        $this->assertEquals(1, $me->removeLogin('Google', 1));
         list($session, $ret) = $mock->login(1);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
         $this->log("Emails " . var_export($emails, TRUE));
-        assertEquals(2, count($emails));
+        $this->assertEquals(2, count($emails));
         $logins = $me->getLogins();
         $this->log("Logins " . var_export($logins, TRUE));
-        assertEquals(1, count($logins));
-        assertEquals(1, $logins[0]['uid']);
+        $this->assertEquals(1, count($logins));
+        $this->assertEquals(1, $logins[0]['uid']);
 
         }
 }

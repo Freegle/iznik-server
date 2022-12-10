@@ -39,7 +39,7 @@ class visualiseTest extends IznikTestCase {
         $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         $u->addMembership($gid);
 
-        assertGreaterThan(0, $u->addEmail('test@test.com'));
+        $this->assertGreaterThan(0, $u->addEmail('test@test.com'));
         $u->setPrivate('settings', json_encode([
             'mylocation' => [
                 'lat' => 8.53333,
@@ -56,9 +56,9 @@ class visualiseTest extends IznikTestCase {
        list ($origid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $this->log("Message id #$origid");
 
-        assertNotNull($origid);
+        $this->assertNotNull($origid);
         $rc = $r->route();
-        assertEquals(MailRouter::PENDING, $rc);
+        $this->assertEquals(MailRouter::PENDING, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $origid);
         $m->approve($gid);
 
@@ -95,7 +95,7 @@ class visualiseTest extends IznikTestCase {
             }
         }
 
-        assertTrue($found);
+        $this->assertTrue($found);
 
         }
 }

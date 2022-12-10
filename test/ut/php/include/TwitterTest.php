@@ -60,9 +60,9 @@ class twitterTest extends IznikTestCase {
         $t = new Twitter($this->dbhr, $this->dbhm, $gid);
         $t->set('test', 'test', 'test');
         $atts = $t->getPublic();
-        assertEquals('test', $atts['name']);
-        assertEquals('test', $atts['token']);
-        assertEquals('test', $atts['secret']);
+        $this->assertEquals('test', $atts['name']);
+        $this->assertEquals('test', $atts['token']);
+        $this->assertEquals('test', $atts['secret']);
 
         }
 
@@ -85,7 +85,7 @@ class twitterTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
         $this->log("Approved message id $id");
 
         # Ensure we have consent to see this message
@@ -113,11 +113,11 @@ class twitterTest extends IznikTestCase {
         $t->setTw($mock);
 
         $count = $t->tweetMessages();
-        assertGreaterThanOrEqual(1, $count);
+        $this->assertGreaterThanOrEqual(1, $count);
 
         # Should be none to tweet now.
         $count = $t->tweetMessages();
-        assertGreaterThanOrEqual(0, $count);
+        $this->assertGreaterThanOrEqual(0, $count);
         
         }
 
@@ -144,10 +144,10 @@ class twitterTest extends IznikTestCase {
 
         $t->setTw($mock);
 
-        assertFalse($t->tweet('test', NULL));
+        $this->assertFalse($t->tweet('test', NULL));
         $atts = $t->getPublic();
         $this->log("After fail " . var_export($atts, TRUE));
-        assertFalse($atts['valid']);
+        $this->assertFalse($atts['valid']);
 
         # Now fake a lock
         $mock = $this->getMockBuilder('TwitterOAuth')
@@ -165,10 +165,10 @@ class twitterTest extends IznikTestCase {
         ]);
         $t->setTw($mock);
 
-        assertFalse($t->tweet('test', NULL));
+        $this->assertFalse($t->tweet('test', NULL));
         $atts = $t->getPublic();
         $this->log("After lock " . var_export($atts, TRUE));
-        assertTrue($atts['locked']);
+        $this->assertTrue($atts['locked']);
 
         $this->log("Now tweet successfully and reset");
         $mock = $this->getMockBuilder('TwitterOAuth')
@@ -182,10 +182,10 @@ class twitterTest extends IznikTestCase {
         ]);
         $t->setTw($mock);
 
-        assertTrue($t->tweet('test', NULL));
+        $this->assertTrue($t->tweet('test', NULL));
         $atts = $t->getPublic();
-        assertTrue($atts['valid']);
-        assertFalse($atts['locked']);
+        $this->assertTrue($atts['valid']);
+        $this->assertFalse($atts['locked']);
 
         }
 
@@ -207,7 +207,7 @@ class twitterTest extends IznikTestCase {
         $mock->method('tweet')->willReturn(true);
 
         $count = $mock->tweetEvents();
-        assertGreaterThanOrEqual(1, $count);
+        $this->assertGreaterThanOrEqual(1, $count);
 
         }
 

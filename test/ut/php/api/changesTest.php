@@ -43,8 +43,8 @@ class changesAPITest extends IznikAPITestCase
         $u->addMembership($group1);
         $u->setMembershipAtt($group1, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
         $msg = $this->unique($origmsg);
@@ -54,7 +54,7 @@ class changesAPITest extends IznikAPITestCase
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
         # Post a message to show up.
@@ -65,7 +65,7 @@ class changesAPITest extends IznikAPITestCase
             'happiness' => User::FINE,
             'userid' => $uid
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         # Rate someone to show up.
         $uid2 = $u->create(NULL, NULL, 'Test User');
@@ -80,8 +80,8 @@ class changesAPITest extends IznikAPITestCase
         $_SESSION['partner'] = TRUE;
 
         $ret = $this->call('changes', 'GET', []);
-        assertEquals(0, $ret['ret']);
-        assertNotNull($ret['changes']['messages'][0]['id']);
-        assertEquals(1, count($ret['changes']['ratings']));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertNotNull($ret['changes']['messages'][0]['id']);
+        $this->assertEquals(1, count($ret['changes']['ratings']));
     }
 }

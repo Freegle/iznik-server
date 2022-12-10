@@ -38,8 +38,8 @@ class jobsAPITest extends IznikAPITestCase
             'lng' => -2.0355619
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertGreaterThanOrEqual(1, count($ret['jobs']));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertGreaterThanOrEqual(1, count($ret['jobs']));
 
         $id = $ret['jobs'][0]['id'];
 
@@ -47,14 +47,14 @@ class jobsAPITest extends IznikAPITestCase
             'id' => $id
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['jobs']));
-        assertEquals($id, $ret['jobs'][0]['id']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, count($ret['jobs']));
+        $this->assertEquals($id, $ret['jobs'][0]['id']);
 
         $ret = $this->call('jobs', 'POST', [
             'link' => $ret['jobs'][0]['url']
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
     }
 }

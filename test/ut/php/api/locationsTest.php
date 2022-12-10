@@ -60,8 +60,8 @@ class locationsAPITest extends IznikAPITestCase
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
         $this->user->addEmail('test@test.com');
-        assertEquals(1, $this->user->addMembership($this->groupid));
-        assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertEquals(1, $this->user->addMembership($this->groupid));
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
     }
 
     public function testPost()
@@ -83,17 +83,17 @@ class locationsAPITest extends IznikAPITestCase
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::PENDING, $rc);
+        $this->assertEquals(MailRouter::PENDING, $rc);
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertEquals('OFFER: Test (Tuvalu High Street)', $m->getSubject());
+        $this->assertEquals('OFFER: Test (Tuvalu High Street)', $m->getSubject());
         $atts = $m->getPublic(FALSE, FALSE);
-        assertEquals('OFFER: Test (Tuvalu High Street)', $atts['suggestedsubject']);
+        $this->assertEquals('OFFER: Test (Tuvalu High Street)', $atts['suggestedsubject']);
 
         # Now block that subject from this group.
 
         # Shouldn't be able to do this as a member
-        assertTrue($this->user->login('testpw'));
+        $this->assertTrue($this->user->login('testpw'));
         $ret = $this->call('locations', 'POST', [
             'id' => $lid1,
             'groupid' => $this->groupid,
@@ -101,7 +101,7 @@ class locationsAPITest extends IznikAPITestCase
             'action' => 'Exclude',
             'byname' => true
         ]);
-        assertEquals(2, $ret['ret']);
+        $this->assertEquals(2, $ret['ret']);
 
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
         $ret = $this->call('locations', 'POST', [
@@ -112,13 +112,13 @@ class locationsAPITest extends IznikAPITestCase
             'byname' => true,
             'dup' => 2
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         # Get the message back - should have suggested the other one this time.
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        assertEquals('OFFER: Test (Tuvalu High Street)', $m->getSubject());
+        $this->assertEquals('OFFER: Test (Tuvalu High Street)', $m->getSubject());
         $atts = $m->getPublic(FALSE, FALSE);
-        assertEquals('OFFER: Test (Tuvalu Hugh Street)', $atts['suggestedsubject']);
+        $this->assertEquals('OFFER: Test (Tuvalu Hugh Street)', $atts['suggestedsubject']);
 
         }
 
@@ -126,7 +126,7 @@ class locationsAPITest extends IznikAPITestCase
         $l = new Location($this->dbhr, $this->dbhm);
 
         $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))');
-        assertNotNull($areaid);
+        $this->assertNotNull($areaid);
         $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
         $fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)');
         $locid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
@@ -142,7 +142,7 @@ class locationsAPITest extends IznikAPITestCase
 
         # Set it to have a default location.
         $this->group->setPrivate('defaultlocation', $fullpcid);
-        assertEquals($fullpcid, $this->group->getPublic()['defaultlocation']['id']);
+        $this->assertEquals($fullpcid, $this->group->getPublic()['defaultlocation']['id']);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
@@ -151,7 +151,7 @@ class locationsAPITest extends IznikAPITestCase
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        assertEquals(MailRouter::PENDING, $rc);
+        $this->assertEquals(MailRouter::PENDING, $rc);
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
@@ -159,8 +159,8 @@ class locationsAPITest extends IznikAPITestCase
         $sugg = $m->suggestSubject($this->groupid, $m->getSubject());
         $atts = $m->getPublic();
         $this->log(var_export($atts, TRUE));
-        assertEquals($areaid, $atts['area']['id']);
-        assertEquals($pcid, $atts['postcode']['id']);
+        $this->assertEquals($areaid, $atts['area']['id']);
+        $this->assertEquals($pcid, $atts['postcode']['id']);
 
         }
 
@@ -168,7 +168,7 @@ class locationsAPITest extends IznikAPITestCase
     {
         $l = new Location($this->dbhr, $this->dbhm);
         $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))');
-        assertNotNull($areaid);
+        $this->assertNotNull($areaid);
         $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
         $fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POLYGON((179.225 8.525, 179.275 8.525, 179.275 8.575, 179.225 8.575, 179.225 8.525))');
 
@@ -177,21 +177,21 @@ class locationsAPITest extends IznikAPITestCase
             'lat' => 8.526
         ]);
         $this->log("testPostcode " . var_export($ret, TRUE));
-        assertEquals(0, $ret['ret']);
-        assertEquals('TV13 1HH', $ret['location']['name']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals('TV13 1HH', $ret['location']['name']);
 
         $ret = $this->call('locations', 'GET', [
             'typeahead' => 'TV13'
         ]);
-        assertEquals(0, $ret['ret']);
-        assertEquals('TV13 1HH', $ret['locations'][0]['name']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals('TV13 1HH', $ret['locations'][0]['name']);
 
         $ret = $this->call('locations', 'GET', [
             'typeahead' => 'Tuvalu Central',
             'pconly' => FALSE
         ]);
-        assertEquals(0, $ret['ret']);
-        assertEquals($areaid, $ret['locations'][0]['id']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals($areaid, $ret['locations'][0]['id']);
 
         # Test groups near.
         $this->group->setPrivate('lat', 8.5);
@@ -203,17 +203,17 @@ class locationsAPITest extends IznikAPITestCase
             'groupsnear' => TRUE,
             'groupcount' => TRUE
         ]);
-        assertEquals(0, $ret['ret']);
-        assertEquals('TV13 1HH', $ret['locations'][0]['name']);
-        assertEquals(1, count($ret['locations'][0]['groupsnear']));
-        assertEquals(0, $ret['locations'][0]['groupsnear'][0]['postcount']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals('TV13 1HH', $ret['locations'][0]['name']);
+        $this->assertEquals(1, count($ret['locations'][0]['groupsnear']));
+        $this->assertEquals(0, $ret['locations'][0]['groupsnear'][0]['postcount']);
     }
 
     public function testWithinBox()
     {
         $l = new Location($this->dbhr, $this->dbhm);
         $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))');
-        assertNotNull($areaid);
+        $this->assertNotNull($areaid);
         $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
         $fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)');
         $locid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
@@ -229,9 +229,9 @@ class locationsAPITest extends IznikAPITestCase
             'nelat' => $nelat,
             'nelng' => $nelng
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $this->log("locations " . var_export($ret, TRUE));
-        assertGreaterThan(0, count($ret['locations']));
+        $this->assertGreaterThan(0, count($ret['locations']));
 
         #$this->log(var_export($ret, TRUE));
         # Again as we'll have created a geometry.
@@ -242,8 +242,8 @@ class locationsAPITest extends IznikAPITestCase
             'nelat' => $nelat,
             'nelng' => $nelng
         ]);
-        assertEquals(0, $ret['ret']);
-        assertGreaterThan(0, count($ret['locations']));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertGreaterThan(0, count($ret['locations']));
 
         }
 
@@ -265,26 +265,26 @@ class locationsAPITest extends IznikAPITestCase
             'nelat' => 8.6
         ]);
         $this->log(var_export($ret, TRUE));
-        assertEquals(0, $ret['ret']);
-        assertEquals(179.215, $ret['locations'][0]['lng']);
-        assertEquals(8.535, $ret['locations'][0]['lat']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(179.215, $ret['locations'][0]['lng']);
+        $this->assertEquals(8.535, $ret['locations'][0]['lat']);
 
         # Not logged in
         $ret = $this->call('locations', 'PATCH', [
             'id' => $lid2,
             'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))'
         ]);
-        assertEquals(2, $ret['ret']);
+        $this->assertEquals(2, $ret['ret']);
 
         $this->user->setRole(User::ROLE_MEMBER, $this->groupid);
-        assertTrue($this->user->login('testpw'));
+        $this->assertTrue($this->user->login('testpw'));
 
         # Member only
         $ret = $this->call('locations', 'PATCH', [
             'id' => $lid2,
             'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))'
         ]);
-        assertEquals(2, $ret['ret']);
+        $this->assertEquals(2, $ret['ret']);
 
         # Mod
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
@@ -293,7 +293,7 @@ class locationsAPITest extends IznikAPITestCase
             'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))',
             'name' => 'Tuvalu Central2'
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         $ret = $this->call('locations', 'GET', [
             'swlng' => 179.2,
@@ -302,12 +302,12 @@ class locationsAPITest extends IznikAPITestCase
             'nelat' => 8.6
         ]);
         $this->log(var_export($ret, TRUE));
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         # The centre cannot hold, but things should not fall apart.
-        assertEquals(179.2125, $ret['locations'][0]['lng']);
-        assertEquals(8.535, $ret['locations'][0]['lat']);
-        assertEquals('Tuvalu Central2', $ret['locations'][0]['name']);
+        $this->assertEquals(179.2125, $ret['locations'][0]['lng']);
+        $this->assertEquals(8.535, $ret['locations'][0]['lat']);
+        $this->assertEquals('Tuvalu Central2', $ret['locations'][0]['name']);
     }
 
     public function testPut()
@@ -322,10 +322,10 @@ class locationsAPITest extends IznikAPITestCase
             'name' => 'Tuvalu Central',
             'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))'
         ]);
-        assertEquals(2, $ret['ret']);
+        $this->assertEquals(2, $ret['ret']);
 
         $this->user->setRole(User::ROLE_MEMBER, $this->groupid);
-        assertTrue($this->user->login('testpw'));
+        $this->assertTrue($this->user->login('testpw'));
 
         # Member only
         $ret = $this->call('locations', 'PUT', [
@@ -333,7 +333,7 @@ class locationsAPITest extends IznikAPITestCase
             'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))',
             'dup' => 1
         ]);
-        assertEquals(2, $ret['ret']);
+        $this->assertEquals(2, $ret['ret']);
 
         # Mod
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
@@ -342,15 +342,15 @@ class locationsAPITest extends IznikAPITestCase
             'polygon' => 'POLYGON((179.205 8.53, 179.22 8.53, 179.22 8.54, 179.205 8.54, 179.205 8.53))',
             'dup' => 2
         ]);
-        assertEquals(0, $ret['ret']);
-        assertNotNull($ret['id']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertNotNull($ret['id']);
         $areaid = $ret['id'];
 
         $l->copyLocationsToPostgresql();
         $l->remapPostcodes();
 
         $l = new Location($this->dbhr, $this->dbhm, $lid1);
-        assertEquals($areaid, $l->getPrivate('areaid'));
+        $this->assertEquals($areaid, $l->getPrivate('areaid'));
     }
 
     public function findMyStreet()
@@ -362,21 +362,21 @@ class locationsAPITest extends IznikAPITestCase
             'findmystreet' => $lid
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertGreaterThan(0, count($ret['streets']));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertGreaterThan(0, count($ret['streets']));
     }
 
     public function testCopyLocationsToPostgresql() {
         $l = new Location($this->dbhr, $this->dbhm);
 
         $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))');
-        assertNotNull($areaid);
+        $this->assertNotNull($areaid);
         $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
         $fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)');
         $locid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
 
-        assertGreaterThan(0, $l->copyLocationsToPostgresql());
-        assertGreaterThan(0, $l->remapPostcodes());
+        $this->assertGreaterThan(0, $l->copyLocationsToPostgresql());
+        $this->assertGreaterThan(0, $l->remapPostcodes());
     }
 
 //    public function testEH() {
@@ -390,6 +390,6 @@ class locationsAPITest extends IznikAPITestCase
 //            'polygon' => "POLYGON((-0.010475500000000084 51.45525100000438,-0.010719301644712688 51.454809171198306,-0.010865 51.455231,-0.019265 51.459698,-0.022577 51.461679,-0.024963 51.46376,-0.03075599495787174 51.46780389354294,-0.03192901611328126 51.47234849795365,-0.02085685729980469 51.471359416711145,-0.01452622842524676 51.472431927983514,-0.012531280517578127 51.46983565499583,-0.007553100585937501 51.47168911392899,-0.0022315979003906254 51.467590018653155,0.000593 51.459532,0.000961 51.458734,-0.006703 51.455951,-0.010086 51.455271,-0.010475500000000084 51.45525100000438))",
 //            'typeahead' => 'NP26 4AD'
 //        ]);
-//        assertEquals(0, $ret['ret']);
+//        $this->assertEquals(0, $ret['ret']);
 //    }
 }

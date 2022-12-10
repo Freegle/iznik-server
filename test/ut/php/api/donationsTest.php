@@ -32,8 +32,8 @@ class donationsAPITest extends IznikAPITestCase
     public function testBasic()
     {
         $ret = $this->call('donations', 'GET', []);
-        assertEquals(0, $ret['ret']);
-        assertTrue(array_key_exists('donations', $ret));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertTrue(array_key_exists('donations', $ret));
     }
 
 
@@ -44,22 +44,22 @@ class donationsAPITest extends IznikAPITestCase
             'date' => '2022-01-01'
         ]);
 
-        assertEquals(1, $ret['ret']);
+        $this->assertEquals(1, $ret['ret']);
 
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $u->setPrivate('permissions', User::PERM_GIFTAID);
         $u->addEmail('test@test.com');
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('donations', 'PUT', [
             'userid' => $u->getId(),
             'amount' => 25,
             'date' => '2022-01-01'
         ]);
-        assertEquals(0, $ret['ret']);
-        assertTrue(array_key_exists('id', $ret));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertTrue(array_key_exists('id', $ret));
 
     }
 }

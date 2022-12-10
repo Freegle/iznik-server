@@ -33,7 +33,7 @@ class statusTest extends IznikAPITestCase {
         }
 
         $ret = $this->call('status', 'GET', []);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         }
 }

@@ -34,8 +34,8 @@ class exportAPITest extends IznikAPITestCase {
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
         $this->user->addEmail('test@test.com');
-        assertEquals(1, $this->user->addMembership($this->groupid));
-        assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertEquals(1, $this->user->addMembership($this->groupid));
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
     }
 
     public function testExport() {
@@ -55,7 +55,7 @@ class exportAPITest extends IznikAPITestCase {
         $this->user->addMembership($gid1, User::ROLE_MODERATOR);
 
         # Add a comment.
-        assertTrue($this->user->login('testpw'));
+        $this->assertTrue($this->user->login('testpw'));
         $this->user->addComment($gid1, 'Banned');
 
         # Add a ban by us.
@@ -69,19 +69,19 @@ class exportAPITest extends IznikAPITestCase {
         $_SESSION['id'] = NULL;
 
         $ret = $this->call('export', 'POST', []);
-        assertEquals(1, $ret['ret']);
+        $this->assertEquals(1, $ret['ret']);
 
         # Now log in
-        assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($this->user->login('testpw'));
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($this->user->login('testpw'));
 
         $ret = $this->call('export', 'POST', [
             'dup' => 1
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertNotNull($ret['id']);
-        assertNotNull($ret['tag']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertNotNull($ret['id']);
+        $this->assertNotNull($ret['tag']);
 
         $id = $ret['id'];
         $tag = $ret['tag'];
@@ -102,7 +102,7 @@ class exportAPITest extends IznikAPITestCase {
 
         self::assertLessThan(600, $count);
 
-        assertEquals($this->user->getId(), $ret['export']['data']['Our_internal_ID_for_you']);
+        $this->assertEquals($this->user->getId(), $ret['export']['data']['Our_internal_ID_for_you']);
 
         # Now do it again, but sync so that we can get coverage for the export code.
         $ret = $this->call('export', 'POST', [
@@ -110,13 +110,13 @@ class exportAPITest extends IznikAPITestCase {
             'sync' => TRUE
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertNotNull($ret['id']);
-        assertNotNull($ret['tag']);
-        assertEquals(1, count($ret['export']['data']['bans']));
-        assertEquals(1, count($ret['export']['data']['spammers']));
-        assertEquals(1, count($ret['export']['data']['comments']));
-        assertEquals($this->user->getId(), $ret['export']['data']['Our_internal_ID_for_you']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertNotNull($ret['id']);
+        $this->assertNotNull($ret['tag']);
+        $this->assertEquals(1, count($ret['export']['data']['bans']));
+        $this->assertEquals(1, count($ret['export']['data']['spammers']));
+        $this->assertEquals(1, count($ret['export']['data']['comments']));
+        $this->assertEquals($this->user->getId(), $ret['export']['data']['Our_internal_ID_for_you']);
     }
 }
 

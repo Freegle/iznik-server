@@ -35,7 +35,7 @@ class socialactionsAPITest extends IznikAPITestCase
             # Log in as a mod of the Playground group, which has a Facebook page.
             $u = User::get($this->dbhr, $this->dbhm);
             $uid = $u->create('Test', 'User', 'Test User');
-            assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+            $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
             $g = Group::get($this->dbhr, $this->dbhm);
             $gid = $g->findByShortName('FreeglePlayground');
@@ -45,7 +45,7 @@ class socialactionsAPITest extends IznikAPITestCase
             $ids = GroupFacebook::listForGroup($this->dbhr, $this->dbhm, $gid);
             $fbs = GroupFacebook::listForGroups($this->dbhr, $this->dbhm, [ $gid ]);
 
-            assertEquals(1, count($fbs));
+            $this->assertEquals(1, count($fbs));
 
             foreach ($ids as $id) {
                 $found = FALSE;
@@ -56,7 +56,7 @@ class socialactionsAPITest extends IznikAPITestCase
                     }
                 }
 
-                assertTrue($found);
+                $this->assertTrue($found);
             }
 
             foreach ($ids as $uid) {
@@ -66,26 +66,26 @@ class socialactionsAPITest extends IznikAPITestCase
 
                 $u->addMembership($gid, User::ROLE_MODERATOR);
 
-                assertTrue($u->login('testpw'));
+                $this->assertTrue($u->login('testpw'));
 
                 # Now we're talking.
                 $orig = $this->call('socialactions', 'GET', []);
-                assertEquals(0, $orig['ret']);
-                assertGreaterThan(0, count($orig['socialactions']));
+                $this->assertEquals(0, $orig['ret']);
+                $this->assertGreaterThan(0, count($orig['socialactions']));
 
                 $ret = $this->call('socialactions', 'POST', [
                     'id' => $orig['socialactions'][0]['id'],
                     'uid' => $uid
                 ]);
 
-                assertEquals(0, $ret['ret']);
+                $this->assertEquals(0, $ret['ret']);
 
                 # Shouldn't show in list of groups now.
                 $ret = $this->call('socialactions', 'GET', []);
                 $this->log("Shouldn't show in " . var_export($ret, TRUE));
-                assertEquals(0, $ret['ret']);
+                $this->assertEquals(0, $ret['ret']);
 
-                assertTrue(count($ret['socialactions']) == 0 || $ret['socialactions'][0]['id'] != $orig['socialactions'][0]['id']);
+                $this->assertTrue(count($ret['socialactions']) == 0 || $ret['socialactions'][0]['id'] != $orig['socialactions'][0]['id']);
 
                 # Force a failure for coverage.
                 $tokens = $this->dbhr->preQuery("SELECT * FROM groups_facebook WHERE groupid = $gid;");
@@ -99,15 +99,15 @@ class socialactionsAPITest extends IznikAPITestCase
 
                 $this->dbhm->preExec("UPDATE groups_facebook SET token = '{$tokens[0]['token']}' WHERE groupid = $gid");
 
-                assertEquals(2, $ret['ret']);
+                $this->assertEquals(2, $ret['ret']);
 
                 # Get again for coverage.
                 $ret = $this->call('socialactions', 'GET', []);
-                assertEquals(0, $ret['ret']);
+                $this->assertEquals(0, $ret['ret']);
             }
         }
 
-        assertTrue(TRUE);
+        $this->assertTrue(TRUE);
     }
 
     private function scrapePosts() {
@@ -148,12 +148,12 @@ class socialactionsAPITest extends IznikAPITestCase
             # Log in as a mod of the Playground group, which has a Facebook page.
             $u = User::get($this->dbhr, $this->dbhm);
             $uid = $u->create('Test', 'User', 'Test User');
-            assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, null, 'testpw'));
+            $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, null, 'testpw'));
 
             $u->addMembership($gid, User::ROLE_MODERATOR);
 
             $ids = GroupFacebook::listForGroup($this->dbhr, $this->dbhm, $gid);
-            assertGreaterThan(0, count($ids));
+            $this->assertGreaterThan(0, count($ids));
 
             foreach ($ids as $uid) {
                 # Delete the last share so that there will be at least one.
@@ -164,12 +164,12 @@ class socialactionsAPITest extends IznikAPITestCase
 
                 $u->addMembership($gid, User::ROLE_MODERATOR);
 
-                assertTrue($u->login('testpw'));
+                $this->assertTrue($u->login('testpw'));
 
                 # Now we're talking.
                 $orig = $this->call('socialactions', 'GET', []);
-                assertEquals(0, $orig['ret']);
-                assertGreaterThan(0, count($orig['socialactions']));
+                $this->assertEquals(0, $orig['ret']);
+                $this->assertGreaterThan(0, count($orig['socialactions']));
 
                 $ret = $this->call(
                     'socialactions',
@@ -181,13 +181,13 @@ class socialactionsAPITest extends IznikAPITestCase
                     ]
                 );
 
-                assertEquals(0, $ret['ret']);
+                $this->assertEquals(0, $ret['ret']);
 
                 # Shouldn't show in list of groups now.
                 $ret = $this->call('socialactions', 'GET', []);
-                assertEquals(0, $ret['ret']);
+                $this->assertEquals(0, $ret['ret']);
 
-                assertTrue(
+                $this->assertTrue(
                     count(
                         $ret['socialactions']
                     ) == 0 || $ret['socialactions'][0]['id'] != $orig['socialactions'][0]['id']
@@ -195,7 +195,7 @@ class socialactionsAPITest extends IznikAPITestCase
             }
         }
 
-        assertTrue(TRUE);
+        $this->assertTrue(TRUE);
     }
 
     /**
@@ -219,12 +219,12 @@ class socialactionsAPITest extends IznikAPITestCase
 
         $r = new MailRouter($this->dbhm, $this->dbhm);
         list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
-        assertEquals(MailRouter::PENDING, $rc);
+        $this->assertEquals(MailRouter::PENDING, $rc);
 
-        assertEquals([], $g->getPopularMessages($gid));
+        $this->assertEquals([], $g->getPopularMessages($gid));
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $m->setPrivate('lat', 8.55);
@@ -236,7 +236,7 @@ class socialactionsAPITest extends IznikAPITestCase
         # No Facebook link - no popular messages.
         $g->findPopularMessages();
         error_log(var_export($g->getPopularMessages($gid), TRUE));
-        assertEquals([], $g->getPopularMessages($gid));
+        $this->assertEquals([], $g->getPopularMessages($gid));
 
         # Add a Facebook link.
         $gf = new GroupFacebook($this->dbhr, $this->dbhm);
@@ -244,17 +244,17 @@ class socialactionsAPITest extends IznikAPITestCase
 
         $g->findPopularMessages();
         $popid = $g->getPopularMessages($gid)[0]['msgid'];
-        assertEquals($id, $popid);
+        $this->assertEquals($id, $popid);
 
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         # Should show as sharable.
         $ret = $this->call('socialactions', 'GET', []);
 
-        assertEquals(0, $ret['ret']);
-        assertEquals($id, $ret['popularposts'][0]['msgid']);
-        assertEquals($gid, $ret['popularposts'][0]['groupid']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals($id, $ret['popularposts'][0]['msgid']);
+        $this->assertEquals($gid, $ret['popularposts'][0]['groupid']);
 
         if ($share) {
             $ret = $this->call('socialactions', 'POST', [
@@ -270,10 +270,10 @@ class socialactionsAPITest extends IznikAPITestCase
             ]);
         }
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         # Should no longer show as sharable.
         $ret = $this->call('socialactions', 'GET', []);
-        assertEquals([], $ret['popularposts']);
+        $this->assertEquals([], $ret['popularposts']);
     }
 }

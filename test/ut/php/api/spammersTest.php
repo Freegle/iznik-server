@@ -36,19 +36,19 @@ class spammersAPITest extends IznikAPITestCase {
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
         $this->user->addEmail('test@test.com');
         $this->user->addEmail('test2@test.com');
-        assertEquals(1, $this->user->addMembership($this->groupid));
-        assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertEquals(1, $this->user->addMembership($this->groupid));
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
     }
 
     public function testBasic() {
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail($u->inventEmail());
-        assertGreaterThan(0, $u->addEmail('test3@test.com'));
-        assertGreaterThan(0, $u->addEmail('test4@test.com'));
+        $this->assertGreaterThan(0, $u->addEmail('test3@test.com'));
+        $this->assertGreaterThan(0, $u->addEmail('test4@test.com'));
 
         # Add them to a group, so that when they get onto a list we can trigger their removal.
-        assertTrue($u->addMembership($this->groupid));
+        $this->assertTrue($u->addMembership($this->groupid));
 
         # And create a message from them, so that gets removed too.
         $this->user->setMembershipAtt($this->groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
@@ -61,14 +61,14 @@ class spammersAPITest extends IznikAPITestCase {
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
         $this->dbhm->preExec("UPDATE messages SET fromuser = ? WHERE id = ?;", [ $uid, $id ]);
         $this->dbhm->preExec("UPDATE messages_groups SET groupid = ? WHERE msgid = ?;", [ $this->groupid, $id ]);
 
         $ret = $this->call('spammers', 'GET', [
             'search' => 'Test User'
         ]);
-        assertEquals(2, $ret['ret']);
+        $this->assertEquals(2, $ret['ret']);
 
         # Things we can't do when not logged in
         $ret = $this->call('spammers', 'POST', [
@@ -76,7 +76,7 @@ class spammersAPITest extends IznikAPITestCase {
             'collection' => Spam::TYPE_SPAMMER,
             'reason' => 'Test reason'
         ]);
-        assertEquals(1, $ret['ret']);
+        $this->assertEquals(1, $ret['ret']);
 
         $ret = $this->call('spammers', 'POST', [
             'userid' => $uid,
@@ -84,7 +84,7 @@ class spammersAPITest extends IznikAPITestCase {
             'reason' => 'Test reason',
             'dup' => 1
         ]);
-        assertEquals(1, $ret['ret']);
+        $this->assertEquals(1, $ret['ret']);
 
         $ret = $this->call('spammers', 'POST', [
             'userid' => $uid,
@@ -92,7 +92,7 @@ class spammersAPITest extends IznikAPITestCase {
             'reason' => 'Test reason',
             'dup' => 2
         ]);
-        assertEquals(1, $ret['ret']);
+        $this->assertEquals(1, $ret['ret']);
 
         $ret = $this->call('spammers', 'POST', [
             'userid' => $uid,
@@ -100,18 +100,18 @@ class spammersAPITest extends IznikAPITestCase {
             'reason' => 'Test reason',
             'dup' => 3
         ]);
-        assertEquals(1, $ret['ret']);
+        $this->assertEquals(1, $ret['ret']);
 
         $ret = $this->call('spammers', 'POST', [
             'userid' => $uid,
             'collection' => 'wibble',
             'reason' => 'Test reason'
         ]);
-        assertEquals(1, $ret['ret']);
+        $this->assertEquals(1, $ret['ret']);
 
         # Anyone logged in can report
-        assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($this->user->login('testpw'));
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($this->user->login('testpw'));
 
         $ret = $this->call('spammers', 'POST', [
             'userid' => $uid,
@@ -120,22 +120,22 @@ class spammersAPITest extends IznikAPITestCase {
             'dup' => 4
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $sid = $ret['id'];
-        assertNotNull($sid);
+        $this->assertNotNull($sid);
 
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_SPAMMER,
             'search' => 'Test User'
         ]);
-        assertEquals(0, $ret['ret']);
-        assertEquals(0, count($ret['spammers']));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, count($ret['spammers']));
 
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_PENDING_ADD,
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $found = FALSE;
 
         foreach ($ret['spammers'] as $spammer) {
@@ -144,7 +144,7 @@ class spammersAPITest extends IznikAPITestCase {
             }
         }
 
-        assertTrue($found);
+        $this->assertTrue($found);
 
         $found = FALSE;
 
@@ -154,7 +154,7 @@ class spammersAPITest extends IznikAPITestCase {
             }
         }
 
-        assertTrue($found);
+        $this->assertTrue($found);
 
         # Check shows in work if we have perms.
         $ret = $this->call('session', 'GET', [
@@ -163,8 +163,8 @@ class spammersAPITest extends IznikAPITestCase {
             ]
         ]);
         $this->log("Work " . var_export($ret, TRUE));
-        assertEquals(0, $ret['ret']);
-        assertGreaterThanOrEqual(0, $ret['work']['spammerpendingadd']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertGreaterThanOrEqual(0, $ret['work']['spammerpendingadd']);
 
         $this->user->setPrivate('permissions', User::PERM_SPAM_ADMIN);
         $ret = $this->call('session', 'GET', [
@@ -173,8 +173,8 @@ class spammersAPITest extends IznikAPITestCase {
             ]
         ]);
         $this->log("Work " . var_export($ret, TRUE));
-        assertEquals(0, $ret['ret']);
-        assertGreaterThanOrEqual(1, $ret['work']['spammerpendingadd']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertGreaterThanOrEqual(1, $ret['work']['spammerpendingadd']);
         $this->user->setPrivate('permissions', NULL);
 
         $ret = $this-> call('spammers', 'POST', [
@@ -184,7 +184,7 @@ class spammersAPITest extends IznikAPITestCase {
             'dup' => 66
         ]);
 
-        assertEquals(2, $ret['ret']);
+        $this->assertEquals(2, $ret['ret']);
 
         # Look at the pending queue
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
@@ -201,7 +201,7 @@ class spammersAPITest extends IznikAPITestCase {
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_PENDING_ADD,
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         $found = FALSE;
 
@@ -211,7 +211,7 @@ class spammersAPITest extends IznikAPITestCase {
             }
         }
 
-        assertTrue($found);
+        $this->assertTrue($found);
 
         $ret = $this->call('spammers', 'PATCH', [
             'id' => $sid,
@@ -223,7 +223,7 @@ class spammersAPITest extends IznikAPITestCase {
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_PENDING_ADD,
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         $found = TRUE;
 
@@ -233,7 +233,7 @@ class spammersAPITest extends IznikAPITestCase {
             }
         }
 
-        assertTrue($found);
+        $this->assertTrue($found);
 
         $ret = $this->call('spammers', 'PATCH', [
             'id' => $sid,
@@ -247,8 +247,8 @@ class spammersAPITest extends IznikAPITestCase {
             'search' => 'Test User'
         ]);
         $this->log("Should be on list ". var_export($ret, TRUE));
-        assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['spammers']));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, count($ret['spammers']));
 
         $found = FALSE;
 
@@ -258,13 +258,13 @@ class spammersAPITest extends IznikAPITestCase {
             }
         }
 
-        assertTrue($found);
+        $this->assertTrue($found);
 
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_PENDING_ADD,
             'search' => 'Test User'
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $found = FALSE;
 
         foreach ($ret['spammers'] as $spammer) {
@@ -273,22 +273,22 @@ class spammersAPITest extends IznikAPITestCase {
             }
         }
 
-        assertFalse($found);
+        $this->assertFalse($found);
 
         # If we fetch that user, should be flagged as a spammer.
         $ret = $this->call('user', 'GET', [
             'id' => $uid,
             'info' => TRUE
         ]);
-        assertEquals(0, $ret['ret']);
-        assertTrue($ret['user']['spammer']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertTrue($ret['user']['spammer']);
 
         # Trigger removal
         $membs = $u->getMemberships();
         $this->log("Memberships " . var_export($membs, TRUE));
-        assertEquals(User::ROLE_MEMBER, $membs[0]['role']);
+        $this->assertEquals(User::ROLE_MEMBER, $membs[0]['role']);
         $s = new Spam($this->dbhr, $this->dbhm);
-        assertEquals(2, $s->removeSpamMembers($this->groupid));
+        $this->assertEquals(2, $s->removeSpamMembers($this->groupid));
 
         # Request removal
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
@@ -300,13 +300,13 @@ class spammersAPITest extends IznikAPITestCase {
             'dup' => 6
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_PENDING_REMOVE,
             'search' => 'Test User'
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $found = FALSE;
 
         foreach ($ret['spammers'] as $spammer) {
@@ -315,7 +315,7 @@ class spammersAPITest extends IznikAPITestCase {
             }
         }
 
-        assertTrue($found);
+        $this->assertTrue($found);
 
         $ret = $this->call('spammers', 'PATCH', [
             'id' => $sid,
@@ -324,13 +324,13 @@ class spammersAPITest extends IznikAPITestCase {
             'dup' => 7
         ]);
 
-        assertEquals(2, $ret['ret']);
+        $this->assertEquals(2, $ret['ret']);
 
         $ret = $this->call('spammers', 'DELETE', [
             'id' => $sid
         ]);
 
-        assertEquals(2, $ret['ret']);
+        $this->assertEquals(2, $ret['ret']);
 
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
 
@@ -341,7 +341,7 @@ class spammersAPITest extends IznikAPITestCase {
             'dup' => 77
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         $ret = $this->call('spammers', 'PATCH', [
             'id' => $sid,
@@ -349,7 +349,7 @@ class spammersAPITest extends IznikAPITestCase {
             'reason' => 'Test reason',
             'dup' => 81
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         $ret = $this->call('spammers', 'PATCH', [
             'id' => $sid,
@@ -357,7 +357,7 @@ class spammersAPITest extends IznikAPITestCase {
             'reason' => 'Test reason',
             'dup' => 81
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         $ret = $this->call('spammers', 'PATCH', [
             'id' => $sid,
@@ -365,7 +365,7 @@ class spammersAPITest extends IznikAPITestCase {
             'reason' => 'Test reason',
             'dup' => 81
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
 
@@ -373,13 +373,13 @@ class spammersAPITest extends IznikAPITestCase {
             'id' => $sid
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_SPAMMER,
             'search' => 'Test User'
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $found = FALSE;
 
         foreach ($ret['spammers'] as $spammer) {
@@ -388,7 +388,7 @@ class spammersAPITest extends IznikAPITestCase {
             }
         }
 
-        assertFalse($found);
+        $this->assertFalse($found);
 
         # Report directly to whitelist
         $ret = $this->call('spammers', 'POST', [
@@ -398,21 +398,21 @@ class spammersAPITest extends IznikAPITestCase {
             'dup' => 82
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $sid = $ret['id'];
 
         # Get the whitelist to check we can.
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_WHITELIST
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         # Search for this user.
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_WHITELIST,
             'search' => 'Test User'
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $found = FALSE;
 
         foreach ($ret['spammers'] as $spammer) {
@@ -421,7 +421,7 @@ class spammersAPITest extends IznikAPITestCase {
             }
         }
 
-        assertTrue($found);
+        $this->assertTrue($found);
 
         # Try reporting as a pending spammer - should fail as on whitelist, leaving them still on the whitelist.
         $ret = $this->call('spammers', 'POST', [
@@ -431,13 +431,13 @@ class spammersAPITest extends IznikAPITestCase {
             'dup' => 83
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_WHITELIST,
             'search' => 'Test User'
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $found = FALSE;
 
         foreach ($ret['spammers'] as $spammer) {
@@ -446,19 +446,19 @@ class spammersAPITest extends IznikAPITestCase {
             }
         }
 
-        assertTrue($found);
+        $this->assertTrue($found);
 
         $ret = $this->call('spammers', 'DELETE', [
             'id' => $sid
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
     }
 
     public function testExport() {
         $key = Utils::randstr(64);
         $id = $this->dbhm->preExec("INSERT INTO partners_keys (`partner`, `key`) VALUES ('UT', ?);", [$key]);
-        assertNotNull($id);
+        $this->assertNotNull($id);
 
         $u = new User($this->dbhr, $this->dbhm);
         $uid = $u->create("Test", "User", "Test User");
@@ -475,32 +475,32 @@ class spammersAPITest extends IznikAPITestCase {
             'partner' => $key,
             'action' => 'export'
         ]);
-        assertEquals(0, $ret['ret']);
-        assertGreaterThan(0, count($ret['spammers']));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertGreaterThan(0, count($ret['spammers']));
 
         $this->dbhm->preExec("DELETE FROM partners_keys WHERE partner = 'UT';");
     }
 
     public function testPerf() {
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
-        assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($this->user->login('testpw'));
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($this->user->login('testpw'));
 
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_PENDING_ADD,
             'modtools' => TRUE
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
     }
 
     public function testReportOwnDomain() {
         $u = User::get($this->dbhr, $this->dbhm);
         $uid1 = $u->create(NULL, NULL, 'Test User');
-        assertGreaterThan(0, $u->addEmail('test3@' . GROUP_DOMAIN));
+        $this->assertGreaterThan(0, $u->addEmail('test3@' . GROUP_DOMAIN));
 
         # Log in and report.
-        assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($this->user->login('testpw'));
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($this->user->login('testpw'));
 
         $ret = $this->call('spammers', 'POST', [
             'userid' => $uid1,
@@ -508,9 +508,9 @@ class spammersAPITest extends IznikAPITestCase {
             'reason' => 'Test reason',
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $sid = $ret['id'];
-        assertNull($sid);
+        $this->assertNull($sid);
     }
 }
 

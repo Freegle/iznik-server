@@ -33,7 +33,7 @@ class errorAPITest extends IznikAPITestCase
             'errortype' => 'Exception',
             'errortext' => 'Test Exception'
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         }
 }

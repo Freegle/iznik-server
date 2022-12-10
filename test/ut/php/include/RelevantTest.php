@@ -87,8 +87,8 @@ class RelevantTest extends IznikTestCase
         $email = 'ut-' . rand() . '@test.com';
         $u->addEmail($email, 0, FALSE);
         $u->addEmail('ut-' . rand() . '@' . USER_DOMAIN, 0, FALSE);
-        assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        assertTrue($u->login('testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
         $this->log("Emails before first " . var_export($u->getEmails(), TRUE));
 
         # Post a WANTED and an OFFER.
@@ -102,10 +102,10 @@ class RelevantTest extends IznikTestCase
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
        list ($id, $failok) = $r->received(Message::EMAIL, $email, 'testgroup@yahoogroups.com', $msg, $gid);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $this->log("User $uid $email message $id");
         $this->log("Emails after first " . var_export($u->getEmails(), TRUE));
@@ -115,10 +115,10 @@ class RelevantTest extends IznikTestCase
         $msg = str_replace('Basic test', 'WANTED: Another thing (location)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
        list ($id, $failok) = $r->received(Message::EMAIL, $email, 'testgroup@yahoogroups.com', $msg, $gid);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $this->log("User $uid $email message $id");
 
@@ -132,12 +132,12 @@ class RelevantTest extends IznikTestCase
         $rl = new Relevant($this->dbhr, $this->dbhm);
         $ints = $rl->findRelevant($uid, Group::GROUP_FREEGLE, NULL, 'tomorrow');
         $this->log("Found interested 1 " . var_export($ints, TRUE));
-        assertEquals(2, count($ints));
+        $this->assertEquals(2, count($ints));
 
         # Now search - no relevant messages at the moment.
         $msgs = $rl->getMessages($uid, $ints, $earliest);
         $this->log("Should be none " . var_export($msgs, TRUE));
-        assertEquals(0, count($msgs));
+        $this->assertEquals(0, count($msgs));
 
         # Add two relevant messages.
         $this->log("Add two relevant");
@@ -152,9 +152,9 @@ class RelevantTest extends IznikTestCase
         $this->log("Relevant $id1 from " . $m->getFromuser());
         $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
         $this->log("From user emails " . var_export($u->getEmails(), TRUE));
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', "OFFER: objets d'art (location)", $msg);
@@ -164,9 +164,9 @@ class RelevantTest extends IznikTestCase
        list ($id2, $failok) = $r->received(Message::EMAIL, 'from2@test.com', 'to2@test.com', $msg, $gid);
         $m = new Message($this->dbhr, $this->dbhm, $id2);
         $this->log("Relevant $id2 from " . $m->getFromuser());
-        assertNotNull($id2);
+        $this->assertNotNull($id2);
         $rc = $r->route();
-        assertEquals(MailRouter::APPROVED, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $this->log("Relevant messages $id1 and $id2");
 
@@ -190,7 +190,7 @@ class RelevantTest extends IznikTestCase
 
         $msgs = $this->msgsSent;
         $this->log("Should return just $id1");
-        assertEquals(1, count($msgs));
+        $this->assertEquals(1, count($msgs));
 
         # Long line might split id - hack out QP encoding.
         $msgs = preg_replace("/\=\r\n/", "", $msgs[0]);
@@ -207,7 +207,7 @@ class RelevantTest extends IznikTestCase
         # Now shouldn't find any.
         $msgs = $rl->getMessages($uid, $ints, $earliest);
         $this->log("Should be none " . var_export($msgs, TRUE));
-        assertEquals(0, count($msgs));
+        $this->assertEquals(0, count($msgs));
 
         # Now another user who has viewed $id2 and therefore should get notified about it.
         $u = User::get($this->dbhr, $this->dbhm);
@@ -223,7 +223,7 @@ class RelevantTest extends IznikTestCase
         $this->msgsSent = [];
         self::assertEquals(1, $mock->sendMessages($uid, NULL, 'tomorrow'));
         $msgs = $this->msgsSent;
-        assertEquals(1, count($msgs));
+        $this->assertEquals(1, count($msgs));
         $msgs = preg_replace("/\=\r\n/", "", $msgs[0]);
         self::assertNotFalse(strpos($msgs, $id2));
 
@@ -255,7 +255,7 @@ class RelevantTest extends IznikTestCase
         }));
 
         $mock->off($uid);
-        assertEquals(1, count($this->msgsSent));
+        $this->assertEquals(1, count($this->msgsSent));
     }
 }
 

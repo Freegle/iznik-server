@@ -23,9 +23,9 @@ class configAPITest extends IznikAPITestCase {
             'key' => 'UT'
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertEquals(1, count($ret['values']));
-        assertEquals('Testing', $ret['values'][0]['value']);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, count($ret['values']));
+        $this->assertEquals('Testing', $ret['values'][0]['value']);
     }
 }
 

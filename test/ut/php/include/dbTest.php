@@ -30,14 +30,14 @@ class dbTest extends IznikTestCase {
         $this->dbhr->suppressSentry = TRUE;
         $this->dbhm->suppressSentry = TRUE;
 
-        assertNotNull($this->dbhr);
-        assertNotNull($this->dbhm);
+        $this->assertNotNull($this->dbhr);
+        $this->assertNotNull($this->dbhm);
 
         $this->dbhm->exec('DROP TABLE IF EXISTS test;');
         $rc = $this->dbhm->exec('CREATE TABLE `test` (`id` int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=latin1;');
-        assertEquals(0, $rc);
+        $this->assertEquals(0, $rc);
         $rc = $this->dbhm->exec('ALTER TABLE  `test` ADD  `val` INT NOT NULL ;');
-        assertEquals(0, $rc);
+        $this->assertEquals(0, $rc);
 
         // Turn on logging for this test.
         $this->dbhm->setLog(TRUE);
@@ -46,18 +46,18 @@ class dbTest extends IznikTestCase {
 
     protected function tearDown() : void {
         $rc = $this->dbhm->exec('DROP TABLE IF EXISTS test;');
-        assertEquals(0, $rc);
+        $this->assertEquals(0, $rc);
         parent::tearDown ();
     }
 
     public function testBasic() {
         include (UT_DIR . '/../../include/db.php');
         $tables = $this->dbhm->retryQuery('SHOW COLUMNS FROM test;')->fetchAll();
-        assertEquals('id', $tables[0]['Field']);
-        assertGreaterThan(0, $this->dbhm->getWaitTime());
+        $this->assertEquals('id', $tables[0]['Field']);
+        $this->assertGreaterThan(0, $this->dbhm->getWaitTime());
 
         $sth = $this->dbhm->parentPrepare('SHOW COLUMNS FROM test;');
-        assertEquals([
+        $this->assertEquals([
             0 => '',
             1 => null,
             2 => null
@@ -66,51 +66,51 @@ class dbTest extends IznikTestCase {
 
     public function testInsert() {
         $rc = $this->dbhm->exec('INSERT INTO test VALUES ();');
-        assertEquals(1, $rc);
+        $this->assertEquals(1, $rc);
         $id1 = $this->dbhm->lastInsertId();
         $rc = $this->dbhm->exec('INSERT INTO test VALUES ();');
-        assertEquals(1, $rc);
+        $this->assertEquals(1, $rc);
         $id2 = $this->dbhm->lastInsertId();
-        assertGreaterThan($id1, $id2);
+        $this->assertGreaterThan($id1, $id2);
 
         }
 
     public function testTransaction() {
         $rc = $this->dbhm->beginTransaction();
-        assertTrue($this->dbhm->inTransaction());
+        $this->assertTrue($this->dbhm->inTransaction());
 
         $rc = $this->dbhm->exec('INSERT INTO test VALUES ();');
-        assertEquals(1, $rc);
-        assertGreaterThan(0, $this->dbhm->lastInsertId());
+        $this->assertEquals(1, $rc);
+        $this->assertGreaterThan(0, $this->dbhm->lastInsertId());
 
         $tables = $this->dbhm->query('SHOW COLUMNS FROM test;')->fetchAll();
-        assertEquals('id', $tables[0]['Field']);
+        $this->assertEquals('id', $tables[0]['Field']);
 
         $rc = $this->dbhm->rollBack();
-        assertTrue($rc);
-        assertFalse($this->dbhm->inTransaction());
+        $this->assertTrue($rc);
+        $this->assertFalse($this->dbhm->inTransaction());
 
         $this->dbhm->setAttribute(\PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, TRUE);
 
         $counts = $this->dbhm->preQuery("SELECT COUNT(*) AS count FROM test;");
-        assertEquals(0, $counts[0]['count']);
+        $this->assertEquals(0, $counts[0]['count']);
 
         $rc = $this->dbhm->beginTransaction();
-        assertTrue($this->dbhm->inTransaction());
+        $this->assertTrue($this->dbhm->inTransaction());
 
         $rc = $this->dbhm->exec('INSERT INTO test VALUES ();');
-        assertEquals(1, $rc);
-        assertGreaterThan(0, $this->dbhm->lastInsertId());
+        $this->assertEquals(1, $rc);
+        $this->assertGreaterThan(0, $this->dbhm->lastInsertId());
 
         $tables = $this->dbhm->query('SHOW COLUMNS FROM test;')->fetchAll();
-        assertEquals('id', $tables[0]['Field']);
+        $this->assertEquals('id', $tables[0]['Field']);
 
         $rc = $this->dbhm->commit();
-        assertTrue($rc);
-        assertFalse($this->dbhm->inTransaction());
+        $this->assertTrue($rc);
+        $this->assertFalse($this->dbhm->inTransaction());
 
         $counts = $this->dbhm->preQuery("SELECT COUNT(*) AS count FROM test;");
-        assertEquals(1, $counts[0]['count']);
+        $this->assertEquals(1, $counts[0]['count']);
 
         }
 
@@ -190,9 +190,9 @@ class dbTest extends IznikTestCase {
             $mock->retryQuery('SHOW COLUMNS FROM test;');
         } catch (DBException $e) {
             $worked = true;
-            assertStringContainsString('Non-deadlock', $e->getMessage());
+            $this->assertStringContainsString('Non-deadlock', $e->getMessage());
         }
-        assertTrue($worked);
+        $this->assertTrue($worked);
 
         # Now a deadlock that never gets resolved
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
@@ -206,9 +206,9 @@ class dbTest extends IznikTestCase {
             $mock->retryQuery('SHOW COLUMNS FROM test;');
         } catch (DBException $e) {
             $worked = true;
-            assertEquals('Unexpected database error Faked deadlock exception', $e->getMessage());
+            $this->assertEquals('Unexpected database error Faked deadlock exception', $e->getMessage());
         }
-        assertTrue($worked);
+        $this->assertTrue($worked);
 
         # Now a deadlock that gets resolved
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
@@ -242,7 +242,7 @@ class dbTest extends IznikTestCase {
             $worked = TRUE;
         }
 
-        assertTrue($worked);
+        $this->assertTrue($worked);
 
         # Now a failure in the return code
 
@@ -279,9 +279,9 @@ class dbTest extends IznikTestCase {
             $mock->retryExec('INSERT INTO test VALUES ();');
         } catch (DBException $e) {
             $worked = true;
-            assertStringContainsString('Non-deadlock', $e->getMessage());
+            $this->assertStringContainsString('Non-deadlock', $e->getMessage());
         }
-        assertTrue($worked);
+        $this->assertTrue($worked);
 
         # Now a deadlock that never gets resolved
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
@@ -295,9 +295,9 @@ class dbTest extends IznikTestCase {
             $mock->retryExec('INSERT INTO test VALUES ();');
         } catch (DBException $e) {
             $worked = true;
-            assertEquals('Unexpected database error Faked deadlock exception', $e->getMessage());
+            $this->assertEquals('Unexpected database error Faked deadlock exception', $e->getMessage());
         }
-        assertTrue($worked);
+        $this->assertTrue($worked);
 
         # Now a deadlock that gets resolved
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
@@ -348,9 +348,9 @@ class dbTest extends IznikTestCase {
 
         $dbhm->setTries(0);
         $rc = $dbhm->beginTransaction();
-        assertTrue($rc);
+        $this->assertTrue($rc);
         $rc = $dbhm->exec('INSERT INTO test VALUES ();');
-        assertEquals(1, $rc);
+        $this->assertEquals(1, $rc);
 
         $id = $dbhm->lastInsertId();
 
@@ -364,7 +364,7 @@ class dbTest extends IznikTestCase {
         try {
             $this->log("Commit first");
             $rc = $dbhm->commit();
-            assertTrue(FALSE);
+            $this->assertTrue(FALSE);
         } catch (\Exception $e) {
             # We expect an exception
             $this->log("Got exception " . $e->getMessage());
@@ -373,7 +373,7 @@ class dbTest extends IznikTestCase {
         $ids = $this->dbhr->query("SELECT * FROM test WHERE id = $id;");
         foreach ($ids as $id) {
             # Shouldn't be there.
-            assertFalse(TRUE);
+            $this->assertFalse(TRUE);
         }
 
         }
@@ -382,19 +382,19 @@ class dbTest extends IznikTestCase {
     public function testConstruct() {
         global $dbconfig;
 
-        assertNotNull($this->dbhm->__construct($dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE));
+        $this->assertNotNull($this->dbhm->__construct($dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE));
 
-        assertEquals(3, count($this->dbhm->errorInfo()));
+        $this->assertEquals(3, count($this->dbhm->errorInfo()));
 
     }
 
     public function testPrex() {
         $rc = $this->dbhm->preExec('INSERT INTO test VALUES ();');
-        assertEquals(1, $rc);
+        $this->assertEquals(1, $rc);
 
         $this->log("Select with read");
         $ids = $this->dbhr->preQuery('SELECT * FROM test WHERE id > ?;', array(0), FALSE, TRUE, TRUE);
-        assertEquals(1, count($ids));
+        $this->assertEquals(1, count($ids));
     }
 
     public function prepareUntil($msg = 'Faked deadlock exception') {
@@ -429,9 +429,9 @@ class dbTest extends IznikTestCase {
             $mock->preQuery('SHOW COLUMNS FROM test;');
         } catch (DBException $e) {
             $worked = true;
-            assertStringContainsString('Non-deadlock', $e->getMessage());
+            $this->assertStringContainsString('Non-deadlock', $e->getMessage());
         }
-        assertTrue($worked);
+        $this->assertTrue($worked);
 
         # Now a deadlock that never gets resolved
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
@@ -445,9 +445,9 @@ class dbTest extends IznikTestCase {
             $mock->preQuery('SHOW COLUMNS FROM test;');
         } catch (DBException $e) {
             $worked = true;
-            assertStringContainsString('Unexpected database error Faked deadlock exception', $e->getMessage());
+            $this->assertStringContainsString('Unexpected database error Faked deadlock exception', $e->getMessage());
         }
-        assertTrue($worked);
+        $this->assertTrue($worked);
 
         # Now a deadlock that gets resolved
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
@@ -467,9 +467,9 @@ class dbTest extends IznikTestCase {
     public function testSleep() {
         try {
             $this->dbhm->preQuery('SELECT id FROM users WHERE id = 1 OR SLEEP(5);');
-            assertFalse(TRUE);
+            $this->assertFalse(TRUE);
         } catch (\Exception $e) {
-            assertFalse(FALSE);
+            $this->assertFalse(FALSE);
         }
     }
 
@@ -478,9 +478,9 @@ class dbTest extends IznikTestCase {
         $d = new LoggedPDO('127.0.0.2:1234', $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE);
         try {
             $d->doConnect();
-            assertFalse(TRUE);
+            $this->assertFalse(TRUE);
         } catch (DBException $e) {
-            assertFalse($d->isConnected());
+            $this->assertFalse($d->isConnected());
         }
     }
 

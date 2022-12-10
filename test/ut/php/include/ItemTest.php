@@ -40,7 +40,7 @@ class itemTest extends IznikTestCase {
         $i = new Item($this->dbhr, $this->dbhm);
         $i->setDbhm($mock);
         $id = $i->create('UTTest');
-        assertNull($id);
+        $this->assertNull($id);
 
         }
 

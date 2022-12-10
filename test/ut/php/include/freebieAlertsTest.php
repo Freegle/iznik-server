@@ -26,14 +26,14 @@ class freebieAlertsTest extends IznikAPITestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $memberid = $u->create('Test','User', 'Test User');
         $member = User::get($this->dbhr, $this->dbhm, $memberid);
-        assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $member->addMembership($gid, User::ROLE_MEMBER);
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
         $member->addEmail($email);
         $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         # Submit a message from the member, who will be moderated as new members are.
-        assertTrue($member->login('testpw'));
+        $this->assertTrue($member->login('testpw'));
 
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
@@ -44,7 +44,7 @@ class freebieAlertsTest extends IznikAPITestCase {
             'textbody' => 'Text body'
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $mid = $ret['id'];
 
         $ret = $this->call('message', 'POST', [
@@ -54,7 +54,7 @@ class freebieAlertsTest extends IznikAPITestCase {
             'email' => $email
         ]);
 
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         $f = new FreebieAlerts($this->dbhr, $this->dbhm);
         $f->add($mid);
@@ -82,7 +82,7 @@ class freebieAlertsTest extends IznikAPITestCase {
 
         # Manually test calls.  Won't actually call CURL because key is NULL so will return 0.
         $f = new FreebieAlerts($this->dbhr, $this->dbhm);
-        assertEquals(0, $f->add($mid));
-        assertEquals(0, $f->remove($mid));
+        $this->assertEquals(0, $f->add($mid));
+        $this->assertEquals(0, $f->remove($mid));
     }
 }

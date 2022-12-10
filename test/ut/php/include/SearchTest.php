@@ -60,19 +60,19 @@ class searchTest extends IznikTestCase
         # Search for various terms
         $ctx = NULL;
         $ret = $m->search("Test", $ctx);
-        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+        $this->assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
             return $a['id'] == $id1;
         })));
 
         $ctx = NULL;
         $ret = $m->search("Test zzzutzzz", $ctx);
-        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+        $this->assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
             return $a['id'] == $id1;
         })));
 
         $ctx = NULL;
         $ret = $m->search("zzzutzzz", $ctx);
-        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+        $this->assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
             return $a['id'] == $id1;
         })));
 
@@ -80,20 +80,20 @@ class searchTest extends IznikTestCase
         $ctx = NULL;
         $this->log("Restrict to {$this->gid}");
         $ret = $m->search("Test", $ctx, Search::Limit, NULL, [ $this->gid ]);
-        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+        $this->assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
             return $a['id'] == $id1;
         })));
 
         $ctx = NULL;
         $ret = $m->search("Test", $ctx, Search::Limit, NULL, [ $this->gid+1 ]);
-        assertEquals(0, count($ret));
+        $this->assertEquals(0, count($ret));
 
         # Test fuzzy
         $ctx = NULL;
         $this->log("Test fuzzy");
         $ret = $m->search("tuesday", $ctx);
         $this->log("Fuzzy " . var_export($ctx, true));
-        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+        $this->assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
             return $a['id'] == $id1;
         })));
 
@@ -101,49 +101,49 @@ class searchTest extends IznikTestCase
         $ctx = NULL;
         $ret = $m->search("Tess", $ctx);
         $this->log("Typo " . var_export($ctx, true));
-        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+        $this->assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
             return $a['id'] == $id1;
         })));
 
         # Too far
         $ctx = NULL;
         $ret = $m->search("Tetx", $ctx);
-        assertEquals(0, count($ret));
+        $this->assertEquals(0, count($ret));
 
         # Test restricted search
         $ctx = NULL;
         $ret = $m->search("zzzutzzz", $ctx, Search::Limit, [ $id1 ]);
-        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+        $this->assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
             return $a['id'] == $id1;
         })));
 
         $ctx = NULL;
         $ret = $m->search("zzzutzzz", $ctx, Search::Limit, []);
-        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+        $this->assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
             return $a['id'] == $id1;
         })));
 
         # Search again using the same context - will find starts with
         $this->log("CTX " . var_export($ctx, true));
         $ret = $m->search("zzzutzzz", $ctx);
-        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+        $this->assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
             return $a['id'] == $id1;
         })));
 
         # And again - will find sounds like
         $ret = $m->search("zzzutzzz", $ctx);
-        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+        $this->assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
             return $a['id'] == $id1;
         })));
 
         # And again - will find typo
         $ret = $m->search("zzzutzzz", $ctx);
-        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+        $this->assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
             return $a['id'] == $id1;
         })));
 
         # Context no longer used so will return again.
-        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+        $this->assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
             return $a['id'] == $id1;
         })));
 
@@ -159,7 +159,7 @@ class searchTest extends IznikTestCase
 
         $ctx = NULL;
         $ret = $m->search("ppputppp", $ctx);
-        assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
+        $this->assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
             return $a['id'] == $id1;
         })));
 
@@ -169,7 +169,7 @@ class searchTest extends IznikTestCase
 
         $ctx = NULL;
         $ret = $m->search("Test", $ctx);
-        assertEquals(0, count(array_filter($ret, function($a) use ($id1) {
+        $this->assertEquals(0, count(array_filter($ret, function($a) use ($id1) {
             return $a['id'] == $id1;
         })));
     }
@@ -205,38 +205,38 @@ class searchTest extends IznikTestCase
         # Search for various terms
         $ctx = NULL;
         $ret = $m->search("Test", $ctx);
-        assertEquals(2, count(array_filter($ret, function($a) use ($id1, $id2) {
+        $this->assertEquals(2, count(array_filter($ret, function($a) use ($id1, $id2) {
             return $a['id'] == $id1 || $a['id'] == $id2;
         })));
 
         $ctx = NULL;
         $ret = $m->search("Test zzzutzzz", $ctx);
-        assertEquals(2, count(array_filter($ret, function($a) use ($id1, $id2) {
+        $this->assertEquals(2, count(array_filter($ret, function($a) use ($id1, $id2) {
             return $a['id'] == $id1 || $a['id'] == $id2;
         })));
 
         $ctx = NULL;
         $ret = $m->search("Test yyyutyyy", $ctx);
-        assertEquals(2, count(array_filter($ret, function($a) use ($id1, $id2) {
+        $this->assertEquals(2, count(array_filter($ret, function($a) use ($id1, $id2) {
             return $a['id'] == $id1 || $a['id'] == $id2;
         })));
 
         $ctx = NULL;
         $ret = $m->search("zzzutzzz", $ctx);
-        assertEquals(1, count(array_filter($ret, function($a) use ($id1, $id2) {
+        $this->assertEquals(1, count(array_filter($ret, function($a) use ($id1, $id2) {
             return $a['id'] == $id1;
         })));
 
         $ctx = NULL;
         $ret = $m->search("yyyutyyy", $ctx);
-        assertEquals(1, count(array_filter($ret, function($a) use ($id1, $id2) {
+        $this->assertEquals(1, count(array_filter($ret, function($a) use ($id1, $id2) {
             return $a['id'] == $id2;
         })));
 
         # Test restricted search
         $ctx = NULL;
         $ret = $m->search("test", $ctx, Search::Limit, [ $id1 ]);
-        assertEquals(1, count(array_filter($ret, function($a) use ($id1, $id2) {
+        $this->assertEquals(1, count(array_filter($ret, function($a) use ($id1, $id2) {
             return $a['id'] == $id1;
         })));
 

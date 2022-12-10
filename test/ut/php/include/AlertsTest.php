@@ -47,7 +47,7 @@ class AlertTest extends IznikTestCase {
         self::assertEquals(0, $a->process($id, Group::GROUP_UT));
 
         $a = new Alert($this->dbhr, $this->dbhm, $id);
-        assertNotNull($a->getPrivate('complete'));
+        $this->assertNotNull($a->getPrivate('complete'));
     }
 
     public function testErrors() {

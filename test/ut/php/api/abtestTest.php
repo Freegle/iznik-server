@@ -38,21 +38,21 @@ class abtestAPITest extends IznikAPITestCase
             'variant' => 'a',
             'shown' => TRUE
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         $ret = $this->call('abtest', 'POST', [
             'uid' => 'UT',
             'variant' => 'b',
             'shown' => TRUE
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         $ret = $this->call('abtest', 'POST', [
             'uid' => 'UT',
             'variant' => 'a',
             'action' => TRUE
         ]);
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         $this->waitBackground();
 
@@ -65,7 +65,7 @@ class abtestAPITest extends IznikAPITestCase
             $ret = $this->call('abtest', 'GET', [
                 'uid' => 'UT'
             ]);
-            assertEquals(0, $ret['ret']);
+            $this->assertEquals(0, $ret['ret']);
 
             $this->log("Returned " . var_export($ret, TRUE));
 

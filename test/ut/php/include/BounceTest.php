@@ -36,15 +36,15 @@ class BounceTest extends IznikTestCase
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/bounce');
         $b = new Bounce($this->dbhr, $this->dbhm);
         $id = $b->save("bounce-{$this->uid}-1234@" . USER_DOMAIN, $msg);
-        assertNotNull($id);
-        assertTrue($b->process($id));
+        $this->assertNotNull($id);
+        $this->assertTrue($b->process($id));
 
         $this->waitBackground();
         $ctx = NULL;
         $logs = [ $u->getId() => [ 'id' => $u->getId() ] ];
         $u->getPublicLogs($u, $logs, FALSE, $ctx);
         $log = $this->findLog(Log::TYPE_USER, Log::SUBTYPE_BOUNCE, $logs[$u->getId()]['logs']);
-        assertEquals($this->uid, $log['user']['id']);
+        $this->assertEquals($this->uid, $log['user']['id']);
 
         $b->suspendMail($this->uid, 0, 0);
         $this->waitBackground();
@@ -52,7 +52,7 @@ class BounceTest extends IznikTestCase
         $logs = [ $u->getId() => [ 'id' => $u->getId() ] ];
         $u->getPublicLogs($u, $logs, FALSE, $ctx);
         $log = $this->findLog(Log::TYPE_USER, Log::SUBTYPE_SUSPEND_MAIL, $logs[$u->getId()]['logs']);
-        assertEquals($this->uid, $log['user']['id']);
+        $this->assertEquals($this->uid, $log['user']['id']);
 
         }
 }

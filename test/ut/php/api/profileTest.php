@@ -42,8 +42,8 @@ class profileTest extends IznikAPITestCase {
             'ut' => TRUE
         ]);
 
-        assertEquals(0, $ret['ret']);
-        assertTrue(array_key_exists('url', $ret));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertTrue(array_key_exists('url', $ret));
     }
 }
 

@@ -116,19 +116,19 @@ class FacebookTest extends IznikTestCase {
         $this->facebookEmail = 'test@test.com';
 
         list($session, $ret) = $mock->login();
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        assertEquals('Test User', $me->getPrivate('fullname'));
+        $this->assertEquals('Test User', $me->getPrivate('fullname'));
         $logins = $me->getLogins();
         $this->log("Logins " . var_export($logins, TRUE));
-        assertEquals(1, $logins[0]['uid']);
+        $this->assertEquals(1, $logins[0]['uid']);
 
         # Ensure the full name is copied.
         $me->setPrivate('fullname', NULL);
         list($session, $ret) = $mock->login();
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        assertEquals('Test User', $me->getPrivate('fullname'));
+        $this->assertEquals('Test User', $me->getPrivate('fullname'));
 
         # Log in again with a different email, triggering a merge.
         $u = User::get($this->dbhr, $this->dbhm);
@@ -137,33 +137,33 @@ class FacebookTest extends IznikTestCase {
 
         $this->facebookEmail = 'test2@test.com';
         list($session, $ret) = $mock->login();
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
         $this->log("Emails " . var_export($emails, TRUE));
-        assertEquals(2, count($emails));
+        $this->assertEquals(2, count($emails));
 
         # Now delete an email, and log in again - should trigger an add of the email
         $me->removeEmail('test2@test.com');
         list($session, $ret) = $mock->login();
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
         $this->log("Emails " . var_export($emails, TRUE));
-        assertEquals(2, count($emails));
+        $this->assertEquals(2, count($emails));
 
         # Now delete the Facebook login, and log in again - should trigger an add of the facebook id.
         $me->removeLogin('Facebook', 1);
         list($session, $ret) = $mock->login();
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $emails = $me->getEmails();
         $this->log("Emails " . var_export($emails, TRUE));
-        assertEquals(2, count($emails));
+        $this->assertEquals(2, count($emails));
         $logins = $me->getLogins();
         $this->log("Logins " . var_export($logins, TRUE));
-        assertEquals(1, count($logins));
-        assertEquals(1, $logins[0]['uid']);
+        $this->assertEquals(1, count($logins));
+        $this->assertEquals(1, $logins[0]['uid']);
 
         # Now a couple of exception cases
         #
@@ -171,19 +171,19 @@ class FacebookTest extends IznikTestCase {
         $this->log("getLongLivedAccessToken exception");
         $this->getLongLivedAccessFacebookException = TRUE;
         list($session, $ret) = $mock->login();
-        assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
         $this->getLongLivedAccessFacebookException = FALSE;
 
         # But another exception will fail it
         $this->getLongLivedAccessTokenException = TRUE;
         list($session, $ret) = $mock->login();
-        assertEquals(2, $ret['ret']);
+        $this->assertEquals(2, $ret['ret']);
         $this->getLongLivedAccessTokenException = FALSE;
 
         # And so will this one.
         $this->asArrayException = TRUE;
         list($session, $ret) = $mock->login();
-        assertEquals(1, $ret['ret']);
+        $this->assertEquals(1, $ret['ret']);
         $this->asArrayException = FALSE;
 
         }
@@ -216,14 +216,14 @@ class FacebookTest extends IznikTestCase {
         $this->getCanvasHelperException = TRUE;
         list($session, $ret) = $mock->loadCanvas();
         $this->log("loaded canvas");
-        assertEquals(2, $ret['ret']);
+        $this->assertEquals(2, $ret['ret']);
         $this->asArrayException = FALSE;
     }
 
     public function testFB() {
         $f = new Facebook($this->dbhr, $this->dbhm);
         $fb = $f->getFB();
-        assertNotNull($fb);
+        $this->assertNotNull($fb);
     }
 
     public function testNotify() {
@@ -233,10 +233,10 @@ class FacebookTest extends IznikTestCase {
             ->getMock();
 
         $mock->method('pheanPut')->willReturn(42);
-        assertEquals(42, $mock->notify(NULL, NULL, NULL));
+        $this->assertEquals(42, $mock->notify(NULL, NULL, NULL));
 
         $mock->method('pheanPut')->willThrowException(new \Exception());
-        assertNull($mock->notify(NULL, NULL, NULL));
+        $this->assertNull($mock->notify(NULL, NULL, NULL));
     }
 
     public function testNotify2() {
@@ -246,10 +246,10 @@ class FacebookTest extends IznikTestCase {
             ->getMock();
 
         $mock->method('fbpost')->willReturn(42);
-        assertEquals(42, $mock->executeNotify(NULL, NULL, NULL));
+        $this->assertEquals(42, $mock->executeNotify(NULL, NULL, NULL));
 
         $mock->method('fbpost')->willThrowException(new \Exception("(#803) Some of the aliases you requested do not exist:"));
-        assertNull($mock->executeNotify(0, NULL, NULL));
+        $this->assertNull($mock->executeNotify(0, NULL, NULL));
 
     }
 }

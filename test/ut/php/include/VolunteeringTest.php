@@ -40,7 +40,7 @@ class volunteeringTest extends IznikTestCase {
         # Create an opportunity and check we can read it back.
         $c = new Volunteering($this->dbhm, $this->dbhm);
         $id = $c->create(NULL, 'Test vacancy', FALSE, 'Test location', NULL, NULL, NULL, NULL, NULL, NULL);
-        assertNotNull($id);
+        $this->assertNotNull($id);
 
         $c->addGroup($this->groupid);
         $start = Utils::ISODate('@' . (time()+600));
@@ -48,13 +48,13 @@ class volunteeringTest extends IznikTestCase {
         $c->addDate($start, $end, NULL);
 
         $atts = $c->getPublic();
-        assertEquals('Test vacancy', $atts['title']);
-        assertEquals('Test location', $atts['location']);
-        assertEquals(1, count($atts['groups']));
-        assertEquals($this->groupid, $atts['groups'][0]['id']);
-        assertEquals(1, count($atts['dates']));
-        assertEquals($start, $atts['dates'][0]['start']);
-        assertEquals($start, $atts['dates'][0]['end']);
+        $this->assertEquals('Test vacancy', $atts['title']);
+        $this->assertEquals('Test location', $atts['location']);
+        $this->assertEquals(1, count($atts['groups']));
+        $this->assertEquals($this->groupid, $atts['groups'][0]['id']);
+        $this->assertEquals(1, count($atts['dates']));
+        $this->assertEquals($start, $atts['dates'][0]['start']);
+        $this->assertEquals($start, $atts['dates'][0]['end']);
 
         # Check that a user sees what we want them to see.
         $u = User::get($this->dbhm, $this->dbhm);
@@ -63,21 +63,21 @@ class volunteeringTest extends IznikTestCase {
         # Not in the right group - shouldn't see.
         $ctx = NULL;
         $volunteerings = $c->listForUser($uid, TRUE, FALSE, $ctx);
-        assertEquals(0, count($volunteerings));
+        $this->assertEquals(0, count($volunteerings));
 
         # Right group - shouldn't see pending.
         $u->addMembership($this->groupid);
         $ctx = NULL;
         $volunteerings = $c->listForUser($uid, TRUE, FALSE, $ctx);
-        assertEquals(0, count($volunteerings));
+        $this->assertEquals(0, count($volunteerings));
 
         # Mark not pending - should see.
         $c->setPrivate('pending', 0);
         $ctx = NULL;
         $volunteerings = $c->listForUser($uid, FALSE, FALSE, $ctx);
         $this->log("Got when not pending " . var_export($volunteerings, TRUE));
-        assertEquals(1, count($volunteerings));
-        assertEquals($id, $volunteerings[0]['id']);
+        $this->assertEquals(1, count($volunteerings));
+        $this->assertEquals($id, $volunteerings[0]['id']);
 
         # Remove things.
         $c->removeDate($atts['dates'][0]['id']);
@@ -85,15 +85,15 @@ class volunteeringTest extends IznikTestCase {
 
         $c = new Volunteering($this->dbhm, $this->dbhm, $id);
         $atts = $c->getPublic();
-        assertEquals(0, count($atts['groups']));
-        assertEquals(0, count($atts['dates']));
+        $this->assertEquals(0, count($atts['groups']));
+        $this->assertEquals(0, count($atts['dates']));
 
         # Delete event - shouldn't see it.
         $c->addGroup($this->groupid);
         $c->delete();
         $ctx = NULL;
         $volunteerings = $c->listForUser($uid, TRUE, FALSE, $ctx);
-        assertEquals(0, count($volunteerings));
+        $this->assertEquals(0, count($volunteerings));
 
         }
 
@@ -107,7 +107,7 @@ class volunteeringTest extends IznikTestCase {
         $this->user->addEmail('test@test.com');
 
         $id = $c->create($this->uid, 'Test vacancy', FALSE, 'Test location', NULL, NULL, NULL, NULL, NULL, NULL);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $c->addGroup($this->groupid);
 
         $start = Utils::ISODate('@' . (time()-600));
@@ -124,22 +124,22 @@ class volunteeringTest extends IznikTestCase {
         $u->addMembership($this->groupid);
         $ctx = NULL;
         $volunteerings = $c->listForUser($uid, FALSE, FALSE, $ctx);
-        assertEquals(1, count($volunteerings));
+        $this->assertEquals(1, count($volunteerings));
 
         $ctx = NULL;
         $volunteerings = $c->listForGroup(FALSE, $this->groupid, $ctx);
-        assertEquals(1, count($volunteerings));
+        $this->assertEquals(1, count($volunteerings));
 
         $this->dbhm->preExec("DELETE FROM volunteering_dates WHERE id = $did;");
 
         # Should now expire
         $c->expire($id);
         $volunteerings = $c->listForUser($uid, FALSE, FALSE, $ctx);
-        assertEquals(0, count($volunteerings));
+        $this->assertEquals(0, count($volunteerings));
 
         # Now test one with no date.
         $id = $c->create($this->uid, 'Test vacancy', FALSE, 'Test location', NULL, NULL, NULL, NULL, NULL, NULL);
-        assertNotNull($id);
+        $this->assertNotNull($id);
         $c->addGroup($this->groupid);
         $c->setPrivate('pending', 0);
 
@@ -149,7 +149,7 @@ class volunteeringTest extends IznikTestCase {
         $u->addMembership($this->groupid);
         $ctx = NULL;
         $volunteerings = $c->listForUser($uid, FALSE, FALSE, $ctx);
-        assertEquals(1, count($volunteerings));
+        $this->assertEquals(1, count($volunteerings));
         self::assertEquals($id, $volunteerings[0]['id']);
 
         # Now make it old enough to expire.
@@ -159,7 +159,7 @@ class volunteeringTest extends IznikTestCase {
         self::assertEquals(1, $c->askRenew($id));
         $c->expire($id);
         $volunteerings = $c->listForUser($uid, FALSE, FALSE, $ctx);
-        assertEquals(0, count($volunteerings));
+        $this->assertEquals(0, count($volunteerings));
 
         }
 
@@ -172,7 +172,7 @@ class volunteeringTest extends IznikTestCase {
         $this->user->addEmail('test@test.com');
 
         $id = $c->create($this->uid, 'Test vacancy', FALSE, 'Test location', NULL, NULL, NULL, NULL, NULL, NULL);
-        assertNotNull($id);
+        $this->assertNotNull($id);
 
         self::assertGreaterThan(0, $c->systemWideCount());
 
@@ -183,7 +183,7 @@ class volunteeringTest extends IznikTestCase {
         $uid = $u->create('Test', 'User', 'Test User');
         $ctx = NULL;
         $volunteerings = $c->listForUser($uid, FALSE, TRUE, $ctx);
-        assertEquals(1, count($volunteerings));
+        $this->assertEquals(1, count($volunteerings));
         self::assertEquals($id, $volunteerings[0]['id']);
 
         }
