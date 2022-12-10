@@ -31,7 +31,7 @@ jobs:
       - run: sudo pecl install xdebug
       - run: sudo pecl install mailparse
       - run: sudo pecl install igbinary
-      - run: sudo echo Y | pecl install redis
+      - run: sudo sh -c "echo Y | pecl install redis"
 
       # We now need Node 14 for Playwright.
       - run: sudo curl -sL https://deb.nodesource.com/setup_14.x | sudo bash -
