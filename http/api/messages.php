@@ -97,7 +97,7 @@ function messages() {
                     switch ($subaction) {
                         case NULL:
                             # Just a normal fetch.
-                            if ($collection === MessageCollection::ALLUSER) {
+                            if ($collection ==  MessageCollection::ALLUSER) {
                                 $age = MessageCollection::OWNPOSTS;
 
                                 # Always want all data for own posts no matter what the client says.
@@ -153,7 +153,7 @@ function messages() {
                                     # Found by message id.
                                     list($groups, $msgs) = $c->fillIn([['id' => $search]], $limit, null, $summary);
                                 }
-                            } else if ($swlat !== NULL && $swlng !== NULL && $nelat !== NULL && $nelng !== NULL) {
+                            } else if (!is_null($swlat) && !is_null($swlng) && !is_null($nelat) && !is_null($nelng)) {
                                 $m = new Message($dbhr, $dbhm);
                                 $msgs = $m->searchActiveInBounds($search, $messagetype, $swlat, $swlng, $nelat, $nelng, $groupid, $exactonly);
                             } else if ($searchmygroups) {

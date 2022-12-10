@@ -287,11 +287,11 @@ function message() {
                             'status' => 'Success'
                         ];
 
-                        if ($availablenow !== NULL) {
+                        if (!is_null($availablenow)) {
                             $m->setPrivate('availablenow', $availablenow);
                         }
 
-                        if ($availableinitially !== NULL) {
+                        if (!is_null($availableinitially)) {
                             $m->setPrivate('availableinitially', $availableinitially);
                         }
 
@@ -300,7 +300,7 @@ function message() {
                             $locationid = $l->findByName($location);
                         }
 
-                        if ($subject || $textbody || $msgtype || $item || $locationid || $attachments !== NULL || $lat || $lng) {
+                        if ($subject || $textbody || $msgtype || $item || $locationid || !is_null($attachments) || $lat || $lng) {
                             $partner = Utils::pres('partner', $_SESSION);
 
                             if ($partner) {
@@ -337,7 +337,7 @@ function message() {
                             }
                         }
 
-                        if ($fop !== NULL) {
+                        if (!is_null($fop)) {
                             $m->setFOP($fop);
                         }
 
@@ -579,7 +579,7 @@ function message() {
                                             # case the message goes to pending, otherwise approved.
                                             #
                                             # Worrying messages always go to Pending.
-                                            if ($worry || $g->getPrivate('overridemoderation') === Group::OVERRIDE_MODERATION_ALL) {
+                                            if ($worry || $g->getPrivate('overridemoderation') ==  Group::OVERRIDE_MODERATION_ALL) {
                                                 $postcoll = MessageCollection::PENDING;
                                             } else {
                                                 $postcoll = ($g->getSetting('moderated', 0) || $g->getSetting('close', 0)) ? MessageCollection::PENDING : $u->postToCollection($groupid);
@@ -671,7 +671,7 @@ function message() {
                             $editid = (Utils::presint('editid', $_REQUEST, 0));
                             $role = $m->getRoleForMessage()[0];
 
-                            if ($role === User::ROLE_OWNER || $role === User::ROLE_MODERATOR) {
+                            if ($role ==  User::ROLE_OWNER || $role ==  User::ROLE_MODERATOR) {
                                 $m->revertEdit($editid);
                                 $ret = ['ret' => 0, 'status' => 'Success' ];
                             }
@@ -680,7 +680,7 @@ function message() {
                             $editid = (Utils::presint('editid', $_REQUEST, 0));
                             $role = $m->getRoleForMessage()[0];
 
-                            if ($role === User::ROLE_OWNER || $role === User::ROLE_MODERATOR) {
+                            if ($role ==  User::ROLE_OWNER || $role ==  User::ROLE_MODERATOR) {
                                 $m->approveEdit($editid);
                                 $ret = ['ret' => 0, 'status' => 'Success' ];
                             }
@@ -691,7 +691,7 @@ function message() {
 
                             $role = $m->getRoleForMessage()[0];
 
-                            if ($partner && ($role === User::ROLE_OWNER || $role === User::ROLE_MODERATOR)) {
+                            if ($partner && ($role ==  User::ROLE_OWNER || $role ==  User::ROLE_MODERATOR)) {
                                 if ($m->partnerConsent($partner)) {
                                     $ret = ['ret' => 0, 'status' => 'Success' ];
                                 }
@@ -758,7 +758,7 @@ function message() {
                             case 'AddBy':
                                 $count = Utils::presint('count', $_REQUEST, NULL);
 
-                                if ($count !== NULL) {
+                                if (!is_null($count)) {
                                     $m->addBy($userid, $count);
                                     $ret = ['ret' => 0, 'status' => 'Success'];
                                 }

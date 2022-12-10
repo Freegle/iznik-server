@@ -51,12 +51,12 @@ function abtest() {
             # Ignore the app.  This is because we can be tweaking experiments and have results which are contaminated
             # by old code on the app which hasn't updated.
             if (!Utils::pres('app', $_REQUEST) && $uid && $variant) {
-                if ($shown !== NULL) {
+                if (!is_null($shown)) {
                     $sql = "INSERT INTO abtest (uid, variant, shown) VALUES (" . $dbhm->quote($uid) . ", " . $dbhm->quote($variant) . ", 1) ON DUPLICATE KEY UPDATE shown = shown + 1, rate = COALESCE(100 * action / shown, 0);";
                     $dbhm->background($sql);
                 }
 
-                if ($action !== NULL) {
+                if (!is_null($action)) {
                     $sql = "INSERT INTO abtest (uid, variant, action, rate) VALUES (" . $dbhm->quote($uid) . ", " . $dbhm->quote($variant) . ", $score,0) ON DUPLICATE KEY UPDATE action = action + $score, rate = COALESCE(100 * action / shown, 0);";
                     $dbhm->background($sql);
                 }

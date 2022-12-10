@@ -161,7 +161,7 @@ class Attachment
      */
     public function getContent()
     {
-        if ($this->content === null) {
+        if (is_null($this->content)) {
             fseek($this->stream, 0);
             while (($buf = $this->read()) !== false) {
                 $this->content .= $buf;

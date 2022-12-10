@@ -38,7 +38,7 @@ class WorryWords {
 
         foreach ([ $subject, $textbody ] as $scan) {
             foreach ($this->words as $worryword) {
-                if ($worryword['type'] === WorryWords::TYPE_ALLOWED) {
+                if ($worryword['type'] ==  WorryWords::TYPE_ALLOWED) {
                     $scan = str_ireplace($worryword['keyword'], '', $scan);
                 }
             }
@@ -64,7 +64,7 @@ class WorryWords {
                         );
                     }
 
-                    if ($ret === null) {
+                    if (is_null($ret)) {
                         $ret = [];
                     }
 
@@ -104,7 +104,7 @@ class WorryWords {
                                 ]);
                             }
 
-                            if ($ret === NULL) {
+                            if (is_null($ret)) {
                                 $ret = [];
                             }
 

@@ -231,7 +231,7 @@ dev.initDeviceReady = function() {
     // TODO: might want to double-check for Cordova deviceready, shouldn't be required...
     // "if" logic (below) needs further investigation in Cordova, legacy and debug containers
     // 0 = Non-sticky, 1 = Sticky non-fired, 2 = Sticky fired.
-    // if( window.channel && channel.onCordovaReady && (channel.onCordovaReady.state === 2) )
+    // if( window.channel && channel.onCordovaReady && (channel.onCordovaReady.state ==  2) )
     //     dev.onDeviceReadyCordova() ;
 
     dev.consoleLog(fName, "navigator.vendor:", navigator.vendor) ;
@@ -257,7 +257,7 @@ if( document.readyState ) {
     dev.consoleLog("document.readyState:", document.readyState) ;
     document.onreadystatechange = function () {
         dev.consoleLog("document.readyState:", document.readyState) ;
-        if( (document.readyState === "complete") || (document.readyState === "loaded") ) {
+        if( (document.readyState ==  "complete") || (document.readyState ==  "loaded") ) {
             dev.initDeviceReady() ;
         }
     } ;

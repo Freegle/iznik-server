@@ -284,7 +284,7 @@ class Search
         }
 
         $filtfilt = ($this->sortlim) ? "$filtfilt AND {$this->sortatt} <= -{$this->sortlim}" : $filtfilt;
-        $minpopq = $minpop !== NULL ? " AND {$this->table}.popularity <= -$minpop " : '';
+        $minpopq = !is_null($minpop) ? " AND {$this->table}.popularity <= -$minpop " : '';
 
         # We get search results from different ways of searching.  That means we need to return a context that
         # tracks where we got to on the different sources of info.

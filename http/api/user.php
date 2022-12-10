@@ -69,7 +69,7 @@ function user() {
                         $ret['user']['info'] = $u->getInfo();
 
                         $s = new Spam($dbhr, $dbhm);
-                        $ret['user']['spammer'] = ($s->getSpammerByUserid($id) !== NULL);
+                        $ret['user']['spammer'] = !is_null($s->getSpammerByUserid($id));
                     }
                 }
             }
@@ -214,7 +214,7 @@ function user() {
             }
 
             if ($u && $me && ($me->isModOrOwner($groupid) || $me->isAdminOrSupport())) {
-                if ($suspectcount !== NULL && $groupid) {
+                if (!is_null($suspectcount) && $groupid) {
                     $u->memberReview($groupid, $suspectcount, $suspectreason);
                 }
 
@@ -258,7 +258,7 @@ function user() {
                     $u->setPrivate('onholidaytill', Utils::presdef('onholidaytill', $_REQUEST, NULL));
                 }
 
-                if ($chatmodstatus !== NULL) {
+                if (!is_null($chatmodstatus)) {
                     $u->setPrivate('chatmodstatus', $chatmodstatus);
                 }
 
@@ -363,7 +363,7 @@ function user() {
                         $reason = Utils::presdef('reason', $_REQUEST, NULL);
                         $text = Utils::presdef('text', $_REQUEST, NULL);
 
-                        if ($ratee && ($rating == User::RATING_UP || $rating == User::RATING_DOWN || $rating === NULL)) {
+                        if ($ratee && ($rating == User::RATING_UP || $rating == User::RATING_DOWN || is_null($rating))) {
                             $me->rate($me->getId(), $ratee, $rating, $reason, $text);
                             $ret = [ 'ret' => 0, 'status' => 'Success' ];
                         }

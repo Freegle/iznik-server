@@ -98,7 +98,7 @@ class GeoHash extends GeoAdapter{
   public function write(Geometry $geometry, $precision = NULL){
     if ($geometry->isEmpty()) return '';
 
-    if($geometry->geometryType() === 'Point'){
+    if($geometry->geometryType() ==  'Point'){
       return $this->encodePoint($geometry, $precision);
     }
     else {
@@ -131,7 +131,7 @@ class GeoHash extends GeoAdapter{
    * @see https://github.com/asonge/php-geohash/issues/1
    */
   private function encodePoint($point, $precision = NULL){
-    if ($precision === NULL) {
+    if (is_null($precision)) {
       $lap = strlen($point->y())-strpos($point->y(),".");
       $lop = strlen($point->x())-strpos($point->x(),".");
       $precision = pow(10,-max($lap-1,$lop-1,0))/2;

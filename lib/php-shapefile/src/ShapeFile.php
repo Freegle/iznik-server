@@ -816,7 +816,7 @@ class ShapeFile implements \Iterator
     {
         $wkt = array();
         foreach ($points as $point) {
-            $wkt[] = $point['x'].' '.$point['y'].($flagZ ? ' '.$point['z'] : '').($flagM ? ' '.($point['m'] === false ? '0' : $point['m']) : '');
+            $wkt[] = $point['x'].' '.$point['y'].($flagZ ? ' '.$point['z'] : '').($flagM ? ' '.($point['m'] === FALSE ? '0' : $point['m']) : '');
         }
         return '('.implode(', ', $wkt).')';
     }

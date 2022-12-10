@@ -129,7 +129,7 @@ class ModConfig extends Entity
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         # If the creating mod has been deleted, then we need to ensure that the config is no longer protected.
-        $ret['protected'] = $ret['createdby'] == NULL ? 0 : $ret['protected'];
+        $ret['protected'] = is_null($ret['createdby']) ? 0 : $ret['protected'];
 
         $ret['stdmsgs'] = [];
 
@@ -233,7 +233,7 @@ class ModConfig extends Entity
         }
 
         $save = FALSE;
-        if ($configid == NULL) {
+        if (is_null($configid)) {
             # This user has no config.  If there is another mod with one, then we use that.  This handles the case
             # of a new floundering mod who doesn't quite understand what's going on.  Well, partially.
             $sql = "SELECT configid FROM memberships WHERE groupid = ? AND role IN ('Moderator', 'Owner') AND configid IS NOT NULL;";
@@ -244,7 +244,7 @@ class ModConfig extends Entity
             }
         }
 
-        if ($configid == NULL) {
+        if (is_null($configid)) {
             # Still nothing.  Choose the first one created by us - at least that's something.
             $sql = "SELECT id FROM mod_configs WHERE createdby = ? LIMIT 1;";
             $mines = $this->dbhr->preQuery($sql, [ $modid ]);
@@ -254,7 +254,7 @@ class ModConfig extends Entity
             }
         }
 
-        if ($configid == NULL) {
+        if (is_null($configid)) {
             # Still nothing.  Choose a default
             $sql = "SELECT id FROM mod_configs WHERE `default` = 1 LIMIT 1;";
             $defs = $this->dbhr->preQuery($sql);

@@ -101,7 +101,7 @@ class XmppPrebind {
 		$this->useSsl = $useSsl;
 
 		$this->debug = $debug;
-		if ($this->debug === true) {
+		if ($this->debug ==  true) {
 			$this->firePhp = FirePHP::getInstance(true);
 			$this->firePhp->setEnabled(true);
 		}
@@ -284,11 +284,11 @@ class XmppPrebind {
 
 		$restartBody = self::getBodyFromXml($restartResponse);
 		foreach ($restartBody->childNodes as $bodyChildNodes) {
-			if ($bodyChildNodes->nodeName === 'stream:features') {
+			if ($bodyChildNodes->nodeName ==  'stream:features') {
 				foreach ($bodyChildNodes->childNodes as $streamFeatures) {
-					if ($streamFeatures->nodeName === 'bind') {
+					if ($streamFeatures->nodeName ==  'bind') {
 						$this->doBind = true;
-					} elseif ($streamFeatures->nodeName === 'session') {
+					} elseif ($streamFeatures->nodeName ==  'session') {
 						$this->doSession = true;
 					}
 				}
@@ -487,7 +487,7 @@ class XmppPrebind {
 	protected function replyToChallengeResponse($challengeResponse) {
 		$body = self::getBodyFromXml($challengeResponse);
 		$challenge = base64_decode((string)$body->firstChild->nodeValue);
-		if (strpos($challenge, 'rspauth') === false) {
+		if (strpos($challenge, 'rspauth') === FALSE) {
 			throw new XmppPrebindConnectionException('Invalid challenge response received');
 		}
 
@@ -526,7 +526,7 @@ class XmppPrebind {
 		$response = curl_exec($ch);
 
 		// Check if curl failed to get response
-		if ($response === false) {
+		if ($response === FALSE) {
 			throw new XmppPrebindConnectionException("Cannot connect to service");
 		}
 
@@ -617,7 +617,7 @@ class XmppPrebind {
 	 */
 	public static function getNodeFromJid($jid) {
 		$atPos = strpos($jid, '@');
-		if ($atPos === false) {
+		if ($atPos === FALSE) {
 			return '';
 		}
 		return substr($jid, 0, $atPos);

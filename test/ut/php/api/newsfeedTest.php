@@ -98,6 +98,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertTrue($this->user->login('testpw'));
         $ret = $this->call('newsfeed', 'GET', []);
         $this->log("Returned " . gettype($ret['newsfeed']));
+        error_log("Returned " . var_export($ret['newsfeed'], true));
         assertEquals(0, $ret['ret']);
         assertEquals(0, count($this->stripPublicity($ret['newsfeed'])));
 
@@ -146,7 +147,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         assertEquals(0, $ret['ret']);
         self::assertEquals($nid, $ret['newsfeed']['id']);
         assertEquals($attid, $ret['newsfeed']['imageid']);
-        self::assertTrue($ret['newsfeed']['preview']['title'] == 'Google' || $ret['newsfeed']['preview']['title'] == 'Before you continue to Google Search');
+        self::assertGreaterThan(0, strlen($ret['newsfeed']['preview']['title']));
         self::assertEquals('Test with url https://google.co.uk', $ret['newsfeed']['message']);
         assertEquals($this->user->getId(), $ret['newsfeed']['user']['id']);
         assertNotEquals('', Utils::pres('location', $ret['newsfeed']));
@@ -302,7 +303,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->log("Payload $title for $total");
         assertEquals('/chitchat/' . $nid, $route);
         assertEquals(2, $total);
-        assertEquals("Test User loved your post 'Test2 with url https://google.co.uk with some extra length...' +1 more...", $title);
+        assertEquals("Test User loved your post 'Test2 with url https://google....' +1 more...", $title);
 
         $ret = $this->call('notification', 'GET', []);
         $this->log("Notifications " . var_export($ret, TRUE));

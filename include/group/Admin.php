@@ -108,8 +108,11 @@ class Admin extends Entity
     public function process($id = NULL, $force = FALSE, $gently = FALSE) {
         $done = 0;
         $idq = $id ? " id = $id AND " : '';
-        $sql = "SELECT * FROM admins WHERE $idq complete IS NULL AND pending = 0 LIMIT 1;";
-        $admins = $this->dbhr->preQuery($sql);
+        $mysqltime = date("Y-m-d", strtotime("Midnight 7 days ago"));
+        $sql = "SELECT * FROM admins WHERE $idq complete IS NULL AND pending = 0 AND created >= ? LIMIT 1;";
+        $admins = $this->dbhr->preQuery($sql, [
+            $mysqltime
+        ]);
 
         foreach ($admins as $admin) {
             $g = new Group($this->dbhr, $this->dbhm, $admin['groupid']);

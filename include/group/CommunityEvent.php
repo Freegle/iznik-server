@@ -206,7 +206,7 @@ class CommunityEvent extends Entity
         if ($userid) {
             $u = User::get($this->dbhr, $this->dbhm, $userid);
             #error_log("Check user {$this->event['userid']}, $userid");
-            $canmodify = Utils::presdef('userid', $this->event, NULL) === $userid || ($u && $u->isAdminOrSupport());
+            $canmodify = Utils::presdef('userid', $this->event, NULL) == $userid || ($u && $u->isAdminOrSupport());
             #error_log("Modify $canmodify for $userid admin" . ($u && $u->isAdminOrSupport()));
 
             if (!$canmodify) {

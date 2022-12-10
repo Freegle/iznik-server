@@ -99,10 +99,10 @@ class MessageCollection
 
             # At the moment we only support ordering by arrival DESC.  Note that arrival can either be when this
             # message arrived for the very first time, or when it was reposted.
-            $date = ($ctx == NULL || !Utils::pres('Date', $ctx)) ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", intval($ctx['Date'])));
+            $date = (is_null($ctx) || !Utils::pres('Date', $ctx)) ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", intval($ctx['Date'])));
             $dateq = !$date ? ' 1=1 ' : (" (messages_groups.arrival < $date OR (messages_groups.arrival = $date AND messages_groups.msgid < " . $this->dbhr->quote($ctx['id']) . ")) ");
 
-            if ($ctx === NULL && in_array(MessageCollection::DRAFT, $this->collection)) {
+            if (is_null($ctx) && in_array(MessageCollection::DRAFT, $this->collection)) {
                 # Draft messages are handled differently, as they're not attached to any group.  Only show
                 # recent drafts - if they've not completed within a reasonable time they're probably stuck.
                 # Only return these on the first fetch of a sequence.  No point returning them multiple times.
@@ -171,7 +171,7 @@ class MessageCollection
                         $fill['collection'] = MessageCollection::EDITS;
                         $thisepoch = strtotime($fill['arrival']);
 
-                        if ($ctx['Date'] == NULL || $thisepoch < $ctx['Date']) {
+                        if (is_null($ctx['Date']) || $thisepoch < $ctx['Date']) {
                             $ctx['Date'] = $thisepoch;
                         }
 
@@ -190,7 +190,7 @@ class MessageCollection
                 $typeq = $types ? (" AND `type` IN (" . implode(',', $types) . ") ") : '';
                 $oldest = '';
 
-                if ($age !== NULL) {
+                if (!is_null($age)) {
                     $mysqltime = date("Y-m-d", strtotime("Midnight $age days ago"));
                     $oldest = " AND messages_groups.arrival >= '$mysqltime' ";
                 } else if (!Session::modtools()) {
@@ -200,9 +200,9 @@ class MessageCollection
                 }
 
                 # We might be looking for posts with no outcome.
-                $outcomeq1 = $hasoutcome !== NULL ? " LEFT JOIN messages_outcomes ON messages_outcomes.id = messages.id " : '';
-                $outcomeq2 = $hasoutcome !== NULL ? " HAVING outcomeid IS NULL " : '';
-                $outcomeq3 = $hasoutcome !== NULL ? ", messages_outcomes.id AS outcomeid" : '';
+                $outcomeq1 = !is_null($hasoutcome) ? " LEFT JOIN messages_outcomes ON messages_outcomes.id = messages.id " : '';
+                $outcomeq2 = !is_null($hasoutcome) ? " HAVING outcomeid IS NULL " : '';
+                $outcomeq3 = !is_null($hasoutcome) ? ", messages_outcomes.id AS outcomeid" : '';
 
                 # We might be getting a summary, in which case we want to get lots of information in the same query
                 # for performance reasons.
@@ -254,7 +254,7 @@ class MessageCollection
                     $tofill[] = $msg;
                     $thisepoch = strtotime($msg['arrival']);
 
-                    if ($ctx['Date'] == NULL || $thisepoch < $ctx['Date']) {
+                    if (is_null($ctx['Date']) || $thisepoch < $ctx['Date']) {
                         # The messages are returned in order of date, then id.  This logic here matches the ordering
                         # in the SQL above.
                         $ctx['Date'] = $thisepoch;
@@ -325,7 +325,7 @@ class MessageCollection
                         if ($msg['id'] == $val['id']) {
                             $msg = array_merge($msg, $val);
 
-                            if ($msg['source'] == Message::PLATFORM && $msg['type'] == Message::TYPE_OFFER && $msg['FOP'] === NULL) {
+                            if ($msg['source'] == Message::PLATFORM && $msg['type'] == Message::TYPE_OFFER && is_null($msg['FOP'])) {
                                 $msg['FOP'] = 1;
                             }
                         }
@@ -342,7 +342,7 @@ class MessageCollection
             $type = $public['type'];
 
             if (!$messagetype || $type == $messagetype) {
-                if ($cansees === NULL) {
+                if (is_null($cansees)) {
                     $cansees = $m->canSees($publics);
                 }
 
@@ -448,7 +448,7 @@ class MessageCollection
             $g = Group::get($this->dbhr, $this->dbhm, $message['groupid']);
             $namedisplay = $g->getPrivate('namefull') ? $g->getPrivate('namefull') : $g->getPrivate('nameshort');
             $arrival = strtotime($message['arrival']);
-            $delta = $last !== NULL ? ($arrival - $last) : 0;
+            $delta = !is_null($last) ? ($arrival - $last) : 0;
             $last = $arrival;
 
             $ret[] = [

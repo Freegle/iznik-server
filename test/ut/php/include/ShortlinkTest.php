@@ -50,7 +50,7 @@ class shortlinkTest extends IznikTestCase {
         $list = $s->listAll();
         $found = FALSE;
         foreach ($list as $l) {
-            if ($id === $l['id']) {
+            if ($id ==  $l['id']) {
                 $found = TRUE;
             }
         }

@@ -4,11 +4,11 @@ namespace Freegle\Iznik;
 require_once("/etc/iznik.conf");
 
 use Pheanstalk\Pheanstalk;
-use Facebook\FacebookSession;
-use Facebook\FacebookJavaScriptLoginHelper;
-use Facebook\FacebookCanvasLoginHelper;
-use Facebook\FacebookRequest;
-use Facebook\FacebookRequestException;
+use JanuSoftware\Facebook\FacebookSession;
+use JanuSoftware\Facebook\FacebookJavaScriptLoginHelper;
+use JanuSoftware\Facebook\FacebookCanvasLoginHelper;
+use JanuSoftware\Facebook\FacebookRequest;
+use JanuSoftware\Facebook\FacebookRequestException;
 
 class Facebook
 {
@@ -29,7 +29,7 @@ class Facebook
         $appid = $graffiti ? FBGRAFFITIAPP_ID : FBAPP_ID;
         $secret = $graffiti ? FBGRAFFITIAPP_SECRET : FBAPP_SECRET;
 
-        $fb = new \Facebook\Facebook([
+        $fb = new \JanuSoftware\Facebook\Facebook([
             'app_id' => $appid,
             'app_secret' => $secret,
             'default_graph_version' =>  'v13.0'
@@ -57,7 +57,7 @@ class Facebook
                 $helper = $fb->getJavaScriptHelper();
                 $accessToken = $code ? $fb->getOAuth2Client()->getAccessTokenFromCode($code, $redirectURI) : $helper->getAccessToken();
             } else {
-                $accessToken = new \Facebook\Authentication\AccessToken($accessToken);
+                $accessToken = new \JanuSoftware\Facebook\Authentication\AccessToken($accessToken);
             }
 
             if ($accessToken) {
@@ -85,7 +85,7 @@ class Facebook
         $tokenMetadata = $oAuth2Client->debugToken($accessToken);
         #error_log("Token metadata " . var_export($tokenMetadata, TRUE));
 
-        // Validation (these will throw FacebookSDKException's when they fail)
+        // Validation (these will throw SDKException's when they fail)
         $tokenMetadata->validateAppId($appid);
         $tokenMetadata->validateExpiration();
 
@@ -95,14 +95,14 @@ class Facebook
         $tokenMetadata = $oAuth2Client->debugToken($accessToken);
         #error_log("Token metadata " . var_export($tokenMetadata, TRUE));
 
-        // Validation (these will throw FacebookSDKException's when they fail)
+        // Validation (these will throw SDKException's when they fail)
         $tokenMetadata->validateAppId($appid);
         $tokenMetadata->validateExpiration();
 
         // Exchanges a short-lived access token for a long-lived one
         try {
             $accessToken = $oAuth2Client->getLongLivedAccessToken($accessToken);
-        } catch (\Facebook\Exceptions\FacebookSDKException $e) {
+        } catch (\JanuSoftware\Facebook\Exception\SDKException $e) {
             # No need to fail the login = proceed with our short one.
             error_log("Error getting long-lived access token: " . $e->getMessage());
         }
@@ -117,7 +117,7 @@ class Facebook
             // Exchanges a short-lived access token for a long-lived one
             try {
                 $accessToken = $this->getLongLivedToken($fb, $accessToken);
-            } catch (\Facebook\Exceptions\FacebookSDKException $e) {
+            } catch (\JanuSoftware\Facebook\Exception\SDKException $e) {
                 # No need to fail the login = proceed with our short one.
                 error_log("Error getting long-lived access token: " . $e->getMessage());
             }
@@ -280,7 +280,7 @@ class Facebook
     }
 
     public function fbpost($fbid, $notif) {
-        $fb = new \Facebook\Facebook([
+        $fb = new \JanuSoftware\Facebook\Facebook([
                                         'app_id' => FBAPP_ID,
                                         'app_secret' => FBAPP_SECRET,
                                          'default_graph_version' =>  'v13.0'

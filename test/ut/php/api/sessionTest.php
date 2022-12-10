@@ -182,11 +182,7 @@ class sessionTest extends IznikAPITestCase
         assertEquals(0, $ret['ret']);
 
         $this->log("Session get");
-        $this->dbhr->setErrorLog(TRUE);
-        $this->dbhm->setErrorLog(TRUE);
         $ret = $this->call('session', 'GET', []);
-        $this->dbhr->setErrorLog(FALSE);
-        $this->dbhm->setErrorLog(FALSE);
         $this->log("Session got");
         assertEquals(0, $ret['ret']);
         assertEquals($group1, $ret['groups'][0]['id']);

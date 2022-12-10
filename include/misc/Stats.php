@@ -70,7 +70,7 @@ class Stats
     {
         $activity = 0;
 
-        if ($type === NULL || in_array(Stats::OUTCOMES, $type)) {
+        if (is_null($type) || in_array(Stats::OUTCOMES, $type)) {
             $count = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(messages_outcomes.msgid)) AS count FROM messages_outcomes INNER JOIN messages_groups ON messages_outcomes.msgid = messages_groups.msgid WHERE groupid = ? AND messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ? AND messages_outcomes.outcome IN (?, ?);", [
                 $this->groupid,
                 $date,
@@ -81,7 +81,7 @@ class Stats
             $this->setCount($date, Stats::OUTCOMES, $count);
         }
 
-        if ($type === NULL || in_array(Stats::APPROVED_MESSAGE_COUNT, $type)) {
+        if (is_null($type) || in_array(Stats::APPROVED_MESSAGE_COUNT, $type)) {
             # Counts are a specific day
             $count = $this->dbhr->preQuery("SELECT COUNT(DISTINCT(messageid)) AS count FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid WHERE groupid = ? AND messages.arrival >= ? AND DATE(messages.arrival) = ? AND collection = ?;",
                 [
@@ -94,7 +94,7 @@ class Stats
             $this->setCount($date, Stats::APPROVED_MESSAGE_COUNT, $count);
         }
 
-        if ($type === NULL || in_array(Stats::APPROVED_MEMBER_COUNT, $type)) {
+        if (is_null($type) || in_array(Stats::APPROVED_MEMBER_COUNT, $type)) {
             $this->setCount($date, Stats::APPROVED_MEMBER_COUNT,
                 $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE groupid = ? AND DATE(added) <= ? AND collection = ?;",
                     [
@@ -104,7 +104,7 @@ class Stats
                     ])[0]['count']);
         }
 
-        if ($type === NULL || in_array(Stats::SPAM_MESSAGE_COUNT, $type)) {
+        if (is_null($type) || in_array(Stats::SPAM_MESSAGE_COUNT, $type)) {
             $this->setCount($date, Stats::SPAM_MESSAGE_COUNT,
                 $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM `logs` WHERE timestamp >= ? AND DATE(timestamp) = ?  AND `groupid` = ? AND logs.type = 'Message' AND subtype = 'ClassifiedSpam';",
                     [
@@ -114,7 +114,7 @@ class Stats
                     ])[0]['count']);
         }
 
-        if ($type === NULL || in_array(Stats::SPAM_MEMBER_COUNT, $type)) {
+        if (is_null($type) || in_array(Stats::SPAM_MEMBER_COUNT, $type)) {
             $this->setCount($date, Stats::SPAM_MEMBER_COUNT,
                 $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM `logs` INNER JOIN spam_users ON logs.user = spam_users.userid AND collection = 'Spammer' WHERE groupid = ? AND logs.timestamp >= ? AND date(logs.timestamp) = ? AND logs.type = 'Group' AND `subtype` = 'Left';",
                     [
@@ -124,7 +124,7 @@ class Stats
                     ])[0]['count']);
         }
 
-        if ($type === NULL || in_array(Stats::SUPPORTQUERIES_COUNT, $type)) {
+        if (is_null($type) || in_array(Stats::SUPPORTQUERIES_COUNT, $type)) {
             $this->setCount($date, Stats::SUPPORTQUERIES_COUNT,
                 $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_rooms WHERE created >= ? AND date(created) = ? AND groupid = ? AND chattype = ?;",
                     [
@@ -135,7 +135,7 @@ class Stats
                     ])[0]['count']);
         }
 
-        if ($type === NULL || in_array(Stats::FEEDBACK_HAPPY, $type)) {
+        if (is_null($type) || in_array(Stats::FEEDBACK_HAPPY, $type)) {
             $this->setCount($date, Stats::FEEDBACK_HAPPY,
                 $this->dbhr->preQuery("SELECT COUNT(DISTINCT(messages_outcomes.msgid)) AS count FROM messages_outcomes 
 INNER JOIN messages ON messages_outcomes.msgid = messages.id 
@@ -149,7 +149,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
                     ])[0]['count']);
         }
 
-        if ($type === NULL || in_array(Stats::FEEDBACK_FINE, $type)) {
+        if (is_null($type) || in_array(Stats::FEEDBACK_FINE, $type)) {
             $this->setCount($date, Stats::FEEDBACK_FINE,
                 $this->dbhr->preQuery("SELECT COUNT(DISTINCT(messages_outcomes.msgid)) AS count FROM messages_outcomes 
 INNER JOIN messages ON messages_outcomes.msgid = messages.id 
@@ -163,7 +163,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
                     ])[0]['count']);
         }
 
-        if ($type === NULL || in_array(Stats::FEEDBACK_UNHAPPY, $type)) {
+        if (is_null($type) || in_array(Stats::FEEDBACK_UNHAPPY, $type)) {
             $this->setCount($date, Stats::FEEDBACK_UNHAPPY,
                 $this->dbhr->preQuery("SELECT COUNT(DISTINCT(messages_outcomes.msgid)) AS count FROM messages_outcomes 
 INNER JOIN messages ON messages_outcomes.msgid = messages.id 
@@ -177,7 +177,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
                     ])[0]['count']);
         }
 
-        if ($type === NULL || in_array(Stats::POST_METHOD_BREAKDOWN, $type)) {
+        if (is_null($type) || in_array(Stats::POST_METHOD_BREAKDOWN, $type)) {
             # Message breakdowns take the previous 30 days
             $start = date('Y-m-d', strtotime("30 days ago", strtotime($date)));
             $end = date('Y-m-d', strtotime("tomorrow", strtotime($date)));
@@ -198,7 +198,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
             $this->setBreakdown($date, Stats::POST_METHOD_BREAKDOWN, json_encode($srcs));
         }
 
-        if ($type === NULL || in_array(Stats::MESSAGE_BREAKDOWN, $type)) {
+        if (is_null($type) || in_array(Stats::MESSAGE_BREAKDOWN, $type)) {
             $sql = "SELECT messages.type, COUNT(*) AS count FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND collection = 'Approved' WHERE messages.arrival >= ? AND messages.arrival < ? AND groupid = ? AND collection = 'Approved' AND messages.type IS NOT NULL GROUP BY messages.type;";
             $sources = $this->dbhr->preQuery($sql,
                 [
@@ -215,7 +215,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
             $this->setBreakdown($date, Stats::MESSAGE_BREAKDOWN, json_encode($srcs));
         }
 
-        if ($type === NULL || in_array(Stats::OUR_POSTING_BREAKDOWN, $type)) {
+        if (is_null($type) || in_array(Stats::OUR_POSTING_BREAKDOWN, $type)) {
             $sql = "SELECT memberships.ourPostingStatus, COUNT(*) AS count FROM memberships WHERE groupid = ? GROUP BY memberships.ourPostingStatus;";
             $sources = $this->dbhr->preQuery($sql,
                 [
@@ -230,7 +230,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
             $this->setBreakdown($date, Stats::OUR_POSTING_BREAKDOWN, json_encode($srcs));
         }
 
-        if ($type === NULL || in_array(Stats::SEARCHES, $type)) {
+        if (is_null($type) || in_array(Stats::SEARCHES, $type)) {
             # Searches need a bit more work.  We're looking for searches which hit this group.
             $searches = $this->dbhr->preQuery("SELECT * FROM search_history WHERE date >= ? AND DATE(date) = ?;", [
                 $date,
@@ -250,7 +250,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
             $this->setCount($date, Stats::SEARCHES, $count);
         }
 
-        if ($type === NULL || in_array(Stats::REPLIES, $type)) {
+        if (is_null($type) || in_array(Stats::REPLIES, $type)) {
             # Any "Interested In" messages referring to messages on this group.
             #error_log("Generate searches SELECT COUNT(*) as count FROM chat_messages INNER JOIN messages_groups ON chat_messages.refmsgid = messages_groups.msgid WHERE chat_messages.date >= '$date' AND DATE(chat_messages.date) = '$date' AND chat_messages.type = 'Interested' AND groupid = {$this->groupid};");
             $replies = $this->dbhr->preQuery("SELECT COUNT(*) as count FROM chat_messages INNER JOIN messages_groups ON chat_messages.refmsgid = messages_groups.msgid WHERE chat_messages.date >= ? AND DATE(chat_messages.date) = ? AND chat_messages.type = ? AND groupid = ?;", [
@@ -267,7 +267,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
             }
         }
 
-        if ($type === NULL || in_array(Stats::WEIGHT, $type)) {
+        if (is_null($type) || in_array(Stats::WEIGHT, $type)) {
             # Weights also require more work.
             #
             # - Get the messages from the date
@@ -294,7 +294,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
             $this->setCount($date, Stats::WEIGHT, $weight);
         }
 
-        if ($type === NULL || in_array(Stats::ACTIVE_USERS, $type)) {
+        if (is_null($type) || in_array(Stats::ACTIVE_USERS, $type)) {
             $start = date('Y-m-d', strtotime("30 days ago", strtotime($date)));
             $end = date('Y-m-d', strtotime("tomorrow", strtotime($date)));
             $sql = "SELECT COUNT(DISTINCT(users_active.userid)) AS count FROM users_active INNER JOIN memberships ON memberships.userid = users_active.userid WHERE users_active.timestamp >= ? AND users_active.timestamp < ? AND groupid = ?;";
@@ -307,7 +307,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
             $this->setCount($date, Stats::ACTIVE_USERS, $active[0]['count']);
         }
 
-        if ($type === NULL || in_array(Stats::ACTIVITY, $type)) {
+        if (is_null($type) || in_array(Stats::ACTIVITY, $type)) {
             $this->setCount($date, Stats::ACTIVITY, $activity);
         }
     }
@@ -378,7 +378,7 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
         $end = date('Y-m-d', strtotime($enddate, strtotime($date)));
         #error_log("Start at $start from $startdate to $end from $enddate");
 
-        if ($types === NULL) {
+        if (is_null($types)) {
             $types = [
                 Stats::APPROVED_MESSAGE_COUNT,
                 Stats::APPROVED_MEMBER_COUNT,

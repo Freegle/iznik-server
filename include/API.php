@@ -196,7 +196,7 @@ class API
 
                             # Some actions are ok, so we exclude those.
                             if (!in_array($call, ['session', 'correlate', 'chatrooms', 'upload']) &&
-                                $last === $req) {
+                                $last ==  $req) {
                                 # The last POST request was the same.  So this is a duplicate.
                                 $predis->del($lockkey);
                                 $ret = array(

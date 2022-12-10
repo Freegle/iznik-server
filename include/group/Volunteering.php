@@ -20,7 +20,7 @@ class Volunteering extends Entity
         $id = NULL;
 
         $rc = $this->dbhm->preExec("INSERT INTO volunteering (`userid`, `pending`, `title`, `online`, `location`, `contactname`, `contactphone`, `contactemail`, `contacturl`, `description`, `timecommitment`) VALUES (?,1,?,?,?,?,?,?,?,?,?);", [
-            $userid, $title, $online === NULL ? FALSE : $online, $location, $contactname, $contactphone, $contactemail, $contacturl, $description, $timecommitment
+            $userid, $title, is_null($online) ? FALSE : $online, $location, $contactname, $contactphone, $contactemail, $contacturl, $description, $timecommitment
         ]);
 
         if ($rc) {
@@ -102,7 +102,7 @@ class Volunteering extends Entity
         $u = User::get($this->dbhr, $this->dbhm, $userid);
 
         foreach ($volunteerings as $volunteering) {
-            if ((!$volunteering['pending'] || $volunteering['groupid'] === NULL || $u->activeModForGroup($volunteering['groupid'])) &&
+            if ((!$volunteering['pending'] || is_null($volunteering['groupid']) || $u->activeModForGroup($volunteering['groupid'])) &&
                 (!Utils::pres('applyby', $volunteering) || time() < strtotime($volunteering['applyby'])) &&
                 (!Utils::pres('end', $volunteering) || time() < strtotime($volunteering['end']))
             ) {
@@ -129,12 +129,8 @@ class Volunteering extends Entity
         $groupq = $groupid ? (" AND groupid = " . intval($groupid)) : (" AND groupid IN (SELECT groupid FROM memberships WHERE userid = " . intval($myid) . ") ");
         $ctxq = $ctx ? (" AND volunteering.id < '" . intval($ctx['id']) . "' ") : '';
 
-        $mysqltime = date("Y-m-d H:i:s", time());
         $sql = "SELECT volunteering.*, volunteering_dates.applyby, volunteering_dates.end FROM volunteering INNER JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id $groupq $roleq AND deleted = 0 AND expired = 0 LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id WHERE $pendingq $ctxq ORDER BY id DESC LIMIT 20;";
-        $volunteerings = $this->dbhr->preQuery($sql, [
-            $mysqltime,
-            $mysqltime
-        ]);
+        $volunteerings = $this->dbhr->preQuery($sql);
 
         $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 

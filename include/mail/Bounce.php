@@ -86,7 +86,7 @@ class Bounce
                                 $eid = $r ? $r['id'] : NULL;
                                 $ueid = $r ? $r['userid'] : NULL;
 
-                                if ($uid === $ueid) {
+                                if ($uid ==  $ueid) {
                                     # This email belongs to the claimed user.
                                     $this->log->log([
                                         'type' => Log::TYPE_USER,

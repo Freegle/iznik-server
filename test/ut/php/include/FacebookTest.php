@@ -60,7 +60,7 @@ class FacebookTest extends IznikTestCase {
         }
 
         if ($this->getLongLivedAccessFacebookException) {
-            throw new \Facebook\Exceptions\FacebookSDKException();
+            throw new \JanuSoftware\Facebook\Exception\SDKException();
         }
 
         return($this->accessToken);

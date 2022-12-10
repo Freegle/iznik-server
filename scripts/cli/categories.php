@@ -20,7 +20,7 @@ $lines = 0;
 
 if (($handle = fopen("../../install/categories.csv", "r")) !== FALSE) {
     while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
-        if (count($data) === 7) {
+        if (count($data) ==  7) {
             $id = $data[6];
             $pos = 0;
             while (!$data[$pos]) {
@@ -33,7 +33,7 @@ if (($handle = fopen("../../install/categories.csv", "r")) !== FALSE) {
 
             $names[$id] = strtolower($name);
 
-            if ($lastpos === NULL) {
+            if (is_null($lastpos)) {
                 # First entry.
             }
             else if ($pos > $lastpos) {

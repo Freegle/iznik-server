@@ -11,7 +11,7 @@ global $dbhr, $dbhm;
 
 $groupid = intval(Utils::presint('groupid', $_REQUEST, 0));
 
-$fb = new \Facebook\Facebook([
+$fb = new \JanuSoftware\Facebook\Facebook([
     'app_id' => FBGRAFFITIAPP_ID,
     'app_secret' => FBGRAFFITIAPP_SECRET,
     'default_graph_version' =>  'v13.0'
@@ -57,11 +57,11 @@ try {
     foreach ($totalPages as $page) {
         echo '<a href="/facebook/facebook_settoken.php?id=' . urlencode($page['id']) . '&groupid=' . $groupid . '&token=' . urlencode($page['access_token']) . '">' . $page['name'] . '</a><br />';
     }
-} catch(\Facebook\Exceptions\FacebookResponseException $e) {
+} catch(\JanuSoftware\Facebook\Exception\FacebookResponseException $e) {
     // When Graph returns an error
     echo 'Graph returned an error: ' . $e->getMessage();
     exit;
-} catch(\Facebook\Exceptions\FacebookSDKException $e) {
+} catch(\JanuSoftware\Facebook\Exception\SDKException $e) {
     // When validation fails or other local issues
     echo 'Facebook SDK returned an error: ' . $e->getMessage();
     exit;

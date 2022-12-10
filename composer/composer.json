@@ -23,7 +23,7 @@
     "jenssegers/imagehash": "0.8",
     "php-webdriver/webdriver": "^1.1",
     "swiftmailer/swiftmailer": "5.4.12",
-    "abraham/twitteroauth": "^0.6.4",
+    "abraham/twitteroauth": "4.0.1",
     "oefenweb/damerau-levenshtein": "^2.1",
     "kartik-v/bootstrap-fileinput": "dev-master",
     "graphp/graphviz": "^0.2.1",

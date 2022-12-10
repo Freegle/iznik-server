@@ -100,7 +100,7 @@ function addWeightedEdge($lastvert, $vert) {
 
 function endsWith($haystack, $needle) {
     // search forward starting from end minus needle length characters
-    return $needle === "" || (($temp = strlen($haystack) - strlen($needle)) >= 0 && strpos($haystack, $needle, $temp) !== FALSE);
+    return $needle ==  "" || (($temp = strlen($haystack) - strlen($needle)) >= 0 && strpos($haystack, $needle, $temp) !== FALSE);
 }
 
 function canonRoute($route) {
@@ -113,7 +113,7 @@ function canonRoute($route) {
     $route = preg_replace('/\/chat\/.*/', 'chat/{{id}}', $route);
     $route = preg_replace('/\/search\/.*/', '/search/{{term}}', $route);
 
-    if (substr($route, 0, 1) === '/' && strlen($route) > 1) {
+    if (substr($route, 0, 1) ==  '/' && strlen($route) > 1) {
         $route = substr($route, 1);
     }
 
@@ -170,7 +170,7 @@ if (count($opts) < 2) {
         foreach ($routes as $route) {
             $key = canonRoute($route['route']);
 
-            if ($lastkey == null || $key != $lastkey) {
+            if (is_null($lastkey) || $key != $lastkey) {
                 $lastkey = $key;
                 error_log("{$ip['ip']} {$route['timestamp']} $key");
 

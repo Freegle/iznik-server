@@ -487,7 +487,7 @@ class Location extends Entity
             $ret[] = $thisone;
         }
 
-        if (count($ret) === 1) {
+        if (count($ret) ==  1) {
             # Just one; worth recording the popularity.
             $this->dbhm->background("UPDATE locations SET popularity = popularity + 1 WHERE id = {$ret[0]['id']}");
         }
@@ -544,9 +544,7 @@ class Location extends Entity
 
                     # The centre point and max dimensions will also have changed.
                     $rc = $this->dbhm->preExec(
-                        "UPDATE locations SET maxdimension = GetMaxDimension(ourgeometry), lat = ST_Y(ST_Centroid(ourgeometry)), lng = ST_X(ST_Centroid(ourgeometry)) WHERE id = {$this->id};",
-                        [$val]
-                    );
+                        "UPDATE locations SET maxdimension = GetMaxDimension(ourgeometry), lat = ST_Y(ST_Centroid(ourgeometry)), lng = ST_X(ST_Centroid(ourgeometry)) WHERE id = {$this->id};");
 
                     if (PGSQLHOST) {
                         # Copy into Postgres.  Continue if we don't manage to connect - background cron will save us.

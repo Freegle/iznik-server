@@ -359,26 +359,26 @@ class Message
         $text .= ($locationid ? ("New location " . $l->getPrivate('name')) : '');
         $text .= "Text body changed to len " . strlen($textbody);
 
-        if ($attachments !== NULL) {
+        if (!is_null($attachments)) {
             $this->replaceAttachments($attachments);
         }
 
         $reviewrequired = FALSE;
         $notifygroups = [];
 
-        if ($me && $me->getId() === $this->getFromuser() && $checkreview) {
+        if ($me && $me->getId() == $this->getFromuser() && $checkreview) {
             # Edited by the person who posted it.
             $groups = $this->getGroups(FALSE, FALSE);
 
             foreach ($groups as $group) {
                 # Consider the posting status on this group.  The group might have a setting for moderation; failing
                 # that we use the posting status on the group.
-                #error_log("Consider group {$group['collection']} and status " . $me->getMembershipAtt($group['groupid'], 'ourPostingStatus'));
                 $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
                 $postcoll = ($g->getSetting('moderated', 0) || $g->getSetting('closed', 0)) ? MessageCollection::PENDING : $me->postToCollection($group['groupid']);
+                #error_log("Consider group {$group['collection']} and status " . $me->getMembershipAtt($group['groupid'], 'ourPostingStatus') . " postcoll $postcoll");
 
-                if ($group['collection'] === MessageCollection::APPROVED &&
-                    $postcoll === MessageCollection::PENDING) {
+                if ($group['collection'] ==  MessageCollection::APPROVED &&
+                    $postcoll ==  MessageCollection::PENDING) {
                     # This message is approved, but the member is moderated.  That means the message must previously
                     # have been approved.  So this edit also needs approval.  We can't move the message back to Pending
                     # because it might already be getting replies from people.
@@ -419,8 +419,8 @@ class Message
                 $oldtype != $type ? $type : NULL,
                 $olditems != $newitems ? $olditems : NULL,
                 $olditems != $newitems ? $newitems : NULL,
-                $newattachments !== NULL && $oldattachments != $newattachments ? $oldattachments : NULL,
-                $newattachments !== NULL && $oldattachments != $newattachments ? $newattachments : NULL,
+                !is_null($newattachments) && $oldattachments != $newattachments ? $oldattachments : NULL,
+                !is_null($newattachments) && $oldattachments != $newattachments ? $newattachments : NULL,
                 $oldlocation != $newlocation ? $oldlocation : NULL,
                 $oldlocation != $newlocation ? $newlocation : NULL,
                 $me ? $me->getId() : NULL,
@@ -429,7 +429,7 @@ class Message
 
             $changes = 0;
             foreach ($data as $d) {
-                if ($d !== NULL) {
+                if (!is_null($d)) {
                     $changes++;
                 }
             }
@@ -590,7 +590,7 @@ class Message
                     $this->id = $id;
 
                     # FOP defaults on for our messages.
-                    if ($msg['source'] == Message::PLATFORM && $msg['type'] == Message::TYPE_OFFER && $msg['FOP'] === NULL) {
+                    if ($msg['source'] == Message::PLATFORM && $msg['type'] == Message::TYPE_OFFER && is_null($msg['FOP'])) {
                         $msg['FOP'] = 1;
                     }
 
@@ -708,7 +708,7 @@ class Message
                     #error_log("$sql {$this->id}, " . $me->getId() . " " . var_export($groups, TRUE));
 
                     foreach ($groups as $group) {
-                        if ($msg['id'] === $group['msgid']) {
+                        if ($msg['id'] ==  $group['msgid']) {
                             switch ($group['role']) {
                                 case User::ROLE_OWNER:
                                     # Owner is highest.
@@ -807,7 +807,7 @@ class Message
 
             if (!$cansee) {
                 # We can see our drafts.
-                if ($drafts === NULL) {
+                if (is_null($drafts)) {
                     $drafts = [];
 
                     $me = Session::whoAmI($this->dbhr, $this->dbhm);
@@ -945,7 +945,7 @@ class Message
 
             $ret['mine'] = $myid && $msg['fromuser'] == $myid;
 
-            if ($blur && ($role === User::ROLE_NONMEMBER || $role === User::ROLE_MEMBER || $ret['mine'])) {
+            if ($blur && ($role ==  User::ROLE_NONMEMBER || $role ==  User::ROLE_MEMBER || $ret['mine'])) {
                 # Blur lat/lng slightly for privacy.  Blur our own messages otherwise it looks like other people
                 # could see our location.
                 list ($ret['lat'], $ret['lng']) = Utils::blur($ret['lat'], $ret['lng'], Utils::BLUR_USER);
@@ -1021,7 +1021,7 @@ class Message
 
             if (!$summary) {
                 # In the summary case we fetched the groups in MessageCollection.  Otherwise we won't have fetched the groups yet.
-                if ($groups === NULL) {
+                if (is_null($groups)) {
                     $groups = [];
 
                     if ($msgids) {
@@ -1054,7 +1054,7 @@ class Message
                 if ($mod || $seeall) {
                     if (Utils::pres('approvedby', $rets[$msg['id']]['groups'][$groupind])) {
                         if (!Utils::pres($rets[$msg['id']]['groups'][$groupind]['approvedby'], $approvedcache)) {
-                            if ($rets[$msg['id']]['groups'][$groupind]['approvedby'] === $myid) {
+                            if ($rets[$msg['id']]['groups'][$groupind]['approvedby'] ==  $myid) {
                                 # This saves a DB op in a common case for an active mod.
                                 $approvedcache[$rets[$msg['id']]['groups'][$groupind]['approvedby']] = [
                                     'id' => $myid,
@@ -1100,8 +1100,8 @@ class Message
                     $allowedits = $g->getSetting('allowedits', [ 'moderated' => TRUE, 'group' => TRUE ]);
                     $ourPS = $me->getMembershipAtt($rets[$msg['id']]['groups'][$groupind]['groupid'], 'ourPostingStatus');
 
-                    if (((!$ourPS || $ourPS === Group::POSTING_MODERATED) && $allowedits['moderated']) ||
-                        ($ourPS === Group::POSTING_DEFAULT && $allowedits['group'])) {
+                    if (((!$ourPS || $ourPS ==  Group::POSTING_MODERATED) && $allowedits['moderated']) ||
+                        ($ourPS ==  Group::POSTING_DEFAULT && $allowedits['group'])) {
                         # Yes, we can edit.
                         $rets[$msg['id']]['canedit'] = TRUE;
                     }
@@ -1268,7 +1268,7 @@ class Message
                 # We set this when constructing from MessageCollection.
                 $rets[$msg['id']]['replycount'] = Utils::presdef('replycount', $msg, 0);
             } else if (!$summary) {
-                if ($allreplies === NULL) {
+                if (is_null($allreplies)) {
                     # Get all the replies for these messages.
                     $msgids = array_filter(array_column($msgs, 'id'));
                     $allreplies = [];
@@ -1422,13 +1422,13 @@ ORDER BY lastdate DESC;";
                 # We set this when constructing.
                 $rets[$msg['id']]['outcomes'] = Utils::presdef('outcomes', $msg, []);
             } else {
-                if ($outcomes === NULL) {
+                if (is_null($outcomes)) {
                     $msgids = array_filter(array_column($msgs, 'id'));
                     $outcomes = [];
 
                     if (count($msgids)) {
                         $sql = "SELECT * FROM messages_outcomes WHERE msgid IN (" . implode(',', $msgids) . ") ORDER BY id DESC;";
-                        $outcomes = $this->dbhr->preQuery($sql, [ $msg['id'] ]);
+                        $outcomes = $this->dbhr->preQuery($sql);
                     }
                 }
 
@@ -1691,9 +1691,7 @@ ORDER BY lastdate DESC;";
         if (count($msgids)) {
             if ($doit) {
                 # Return any edit history, most recent first.
-                $edits = $this->dbhr->preQuery("SELECT * FROM messages_edits WHERE msgid IN (" . implode(',', $msgids) . ") ORDER BY id DESC;", [
-                    $this->id
-                ]);
+                $edits = $this->dbhr->preQuery("SELECT * FROM messages_edits WHERE msgid IN (" . implode(',', $msgids) . ") ORDER BY id DESC;");
             }
 
             # We can't use foreach because then data is copied by reference.
@@ -3291,7 +3289,7 @@ ORDER BY lastdate DESC;";
             # Check the message exists.
             $m = new Message($this->dbhr, $this->dbhm, $msgid);
 
-            if ($m->getID() === $msgid) {
+            if ($m->getID() ==  $msgid) {
                 return($msgid);
             }
         }
@@ -3932,9 +3930,9 @@ ORDER BY lastdate DESC;";
             # right type.
             $typeq = '';
 
-            if ($messagetype === Message::TYPE_OFFER) {
+            if ($messagetype ==  Message::TYPE_OFFER) {
                 $typeq = " AND messages.type = 'Offer'";
-            } else if ($messagetype === Message::TYPE_WANTED) {
+            } else if ($messagetype ==  Message::TYPE_WANTED) {
                 $typeq = " AND messages.type = 'Wanted'";
             }
 
@@ -3981,9 +3979,9 @@ ORDER BY lastdate DESC;";
                 # right type.
                 $typeq = '';
 
-                if ($messagetype === Message::TYPE_OFFER) {
+                if ($messagetype ==  Message::TYPE_OFFER) {
                     $typeq = " AND messages.type = 'Offer'";
-                } else if ($messagetype === Message::TYPE_WANTED) {
+                } else if ($messagetype ==  Message::TYPE_WANTED) {
                     $typeq = " AND messages.type = 'Wanted'";
                 }
 
@@ -4567,7 +4565,7 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                                 if ($interval > 0 && $reposts['max'] > 0 && !$u->getSetting('autorepostsdisable', FALSE)) {
                                     if ($message['hoursago'] <= $interval * 24 &&
                                         $message['hoursago'] > ($interval - 1) * 24 &&
-                                        ($lastwarnago === NULL || $lastwarnago > 24)
+                                        (is_null($lastwarnago) || $lastwarnago > 24)
                                     ) {
                                         # We will be reposting within 24 hours, and we've either not sent a warning, or the last one was
                                         # an old one (probably from the previous repost).
@@ -5048,8 +5046,8 @@ $mq", [
                     0
                 )) ? MessageCollection::PENDING : $u->postToCollection($group['groupid']);
 
-            if ($group['collection'] === MessageCollection::APPROVED &&
-                $postcoll === MessageCollection::PENDING) {
+            if ($group['collection'] ==  MessageCollection::APPROVED &&
+                $postcoll ==  MessageCollection::PENDING) {
                 # This message is approved, but the member is moderated.  That means the message must previously
                 # have been approved.  So this repost also needs approval.  Move it to Pending.
                 $this->dbhm->preExec("UPDATE messages_groups SET arrival = NOW(), collection = ? WHERE msgid = ?;", [ MessageCollection::PENDING, $this->id ]);
@@ -5220,7 +5218,7 @@ $mq", [
     }
 
     public function isEdited() {
-        return($this->editedby !== NULL);
+        return(!is_null($this->editedby));
     }
 
     public function quickDelete($schema, $id) {

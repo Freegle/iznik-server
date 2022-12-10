@@ -52,7 +52,7 @@ class Parser
      */
     public function __construct(CharsetManager $charset = null)
     {
-        if ($charset == null) {
+        if (is_null($charset)) {
             $charset = new Charset();
         }
 
@@ -201,7 +201,7 @@ class Parser
     public function getHeader($name)
     {
         $rawHeader = $this->getRawHeader($name);
-        if ($rawHeader === false) {
+        if ($rawHeader === FALSE) {
             return false;
         }
 
@@ -449,7 +449,7 @@ class Parser
                 $disposition = 'attachment';
             }
 
-            if (in_array($disposition, $dispositions) === true && isset($filename) === true) {
+            if (in_array($disposition, $dispositions) ==  true && isset($filename) ==  true) {
                 if ($filename == 'noname') {
                     $nonameIter++;
                     $filename = 'noname'.$nonameIter;

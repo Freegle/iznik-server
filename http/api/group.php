@@ -189,7 +189,7 @@ function group() {
                             if (array_key_exists($att, $_REQUEST)) {
                                 $g->setPrivate($att, $val);
 
-                                if ($att === 'affiliationconfirmed') {
+                                if ($att ==  'affiliationconfirmed') {
                                     $g->setPrivate('affiliationconfirmedby', $me->getId());
                                 }
                             }
@@ -207,7 +207,7 @@ function group() {
                             if (array_key_exists($att, $_REQUEST) && $val != "1") {
                                 $g->setPrivate($att, $val);
 
-                                if ($att === 'affiliationconfirmed') {
+                                if ($att ==  'affiliationconfirmed') {
                                     $g->setPrivate('affiliationconfirmedby', $me->getId());
                                 }
                             }

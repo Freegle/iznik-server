@@ -2,6 +2,7 @@
 namespace Freegle\Iznik;
 
 use Minishlink\WebPush\WebPush;
+use Minishlink\WebPush\Subscription;
 use Pheanstalk\Pheanstalk;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\ServiceAccount;
@@ -247,9 +248,12 @@ class PushNotifications
                 case PushNotifications::PUSH_FIREFOX:
                     $params = $params ? $params : [];
                     $webPush = new WebPush($params);
+                    $subscription = Subscription::create([
+                                                           "endpoint" => $endpoint,
+                                                       ]);
                     #error_log("Send params " . var_export($params, TRUE) . " " . ($payload['count'] > 0) . "," . (!is_null($payload['title'])));
                     if (($payload && ($payload['count'] > 0) && (!is_null($payload['title'])))) {
-                        $rc = $webPush->sendNotification($endpoint, $payload['title'], NULL, TRUE);
+                        $rc = $webPush->queueNotification($subscription, $payload['title']);
                     } else
                         $rc = TRUE;
                     break;

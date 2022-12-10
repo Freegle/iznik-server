@@ -148,11 +148,11 @@ WHERE chat_rooms.id IN $idlist;";
                 $u1settings = Utils::pres('u1settings', $room) ? json_decode($room['u1settings'], TRUE) : NULL;
                 $u2settings = Utils::pres('u2settings', $room) ? json_decode($room['u2settings'], TRUE) : NULL;
 
-                if ($u1settings !== NULL && !Utils::pres('useprofile', $u1settings)) {
+                if (!is_null($u1settings) && !Utils::pres('useprofile', $u1settings)) {
                     $room['u1defaultimage'] = TRUE;
                 }
 
-                if ($u2settings !== NULL && !Utils::pres('useprofile', $u2settings)) {
+                if (!is_null($u2settings) && !Utils::pres('useprofile', $u2settings)) {
                     $room['u2defaultimage'] = TRUE;
                 }
             }
@@ -238,7 +238,7 @@ WHERE chat_rooms.id IN $idlist;";
 
             foreach ($ids as $id) {
                 foreach ($ret as &$chat) {
-                    if ($chat['id'] === $id['chatid']) {
+                    if ($chat['id'] ==  $id['chatid']) {
                         if (Utils::pres('refmsgids', $chat)) {
                             $chat['refmsgids'][] = $id['refmsgid'];
                         } else {
@@ -266,8 +266,8 @@ WHERE chat_rooms.id IN $idlist;";
             $u->getSupporters($users, $users);
 
             for ($i = 0; $i < count($ret); $i++) {
-                if ($ret[$i]['chattype'] === ChatRoom::TYPE_USER2USER && Utils::pres('user1id', $ret[$i]) && Utils::pres('user2id', $ret[$i])) {
-                    if ($ret[$i]['user1id'] === $myid) {
+                if ($ret[$i]['chattype'] ==  ChatRoom::TYPE_USER2USER && Utils::pres('user1id', $ret[$i]) && Utils::pres('user2id', $ret[$i])) {
+                    if ($ret[$i]['user1id'] ==  $myid) {
                         $ret[$i]['supporter'] = $users[$ret[$i]['user2id']]['supporter'];
                     } else {
                         $ret[$i]['supporter'] = $users[$ret[$i]['user1id']]['supporter'];
@@ -656,11 +656,11 @@ WHERE chat_rooms.id IN $idlist;";
             $s = new Spam($this->dbhr, $this->dbhm);
 
             if ($u1id) {
-                $ret['user1']['spammer'] = $s->getSpammerByUserid($u1id) !== NULL;
+                $ret['user1']['spammer'] = !is_null($s->getSpammerByUserid($u1id));
             }
 
             if ($u2id) {
-                $ret['user2']['spammer'] = $s->getSpammerByUserid($u2id) !== NULL;
+                $ret['user2']['spammer'] = !is_null($s->getSpammerByUserid($u2id));
             }
         }
 
@@ -930,7 +930,7 @@ WHERE chat_rooms.id IN $idlist;";
 
     public function listForUser($modtools, $userid, $chattypes = NULL, $search = NULL, $chatid = NULL, $activelim = NULL)
     {
-        if ($activelim === NULL) {
+        if (is_null($activelim)) {
             $activelim = $modtools ? ChatRoom::ACTIVELIM_MT : ChatRoom::ACTIVELIM;
         }
 
@@ -1598,7 +1598,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
     {
         $limit = intval($limit);
         $ctxq = $ctx ? (" AND chat_messages.id < " . intval($ctx['id']) . " ") : '';
-        $seenfilt = $seenbyall === NULL ? '' : " AND seenbyall = $seenbyall ";
+        $seenfilt = is_null($seenbyall) ? '' : " AND seenbyall = $seenbyall ";
 
         # We do a join with the users table so that we can get the minimal information we need in a single query
         # rather than querying for each user by creating a User object.  Similarly, we fetched all message attributes
@@ -1666,10 +1666,10 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                     unset($atts['reviewrejected']);
                     $atts['date'] = Utils::ISODate($atts['date']);
 
-                    $atts['sameaslast'] = ($lastuser === $msg['userid']);
+                    $atts['sameaslast'] = ($lastuser ==  $msg['userid']);
 
                     if (count($ret) > 0) {
-                        $ret[count($ret) - 1]['sameasnext'] = ($lastuser === $msg['userid']);
+                        $ret[count($ret) - 1]['sameasnext'] = ($lastuser ==  $msg['userid']);
                         $ret[count($ret) - 1]['gap'] = (strtotime($atts['date']) - strtotime($lastdate)) / 3600 > 1;
                     }
 
@@ -1679,7 +1679,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                         $profileturl = $msg['userimageurl'] ? $msg['userimageurl'] : ('https://' . IMAGE_DOMAIN . "/tuimg_{$msg['userimageid']}.jpg");
                         $default = FALSE;
 
-                        if ($usettings !== NULL && !Utils::pres('useprofile', $usettings)) {
+                        if (!is_null($usettings) && !Utils::pres('useprofile', $usettings)) {
                             // Should hide image.
                             $profileurl = 'https://' . IMAGE_DOMAIN . '/defaultprofile.png';
                             $profileturl = 'https://' . IMAGE_DOMAIN . '/defaultprofile.png';
@@ -1848,7 +1848,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
         $profileu = NULL;
 
         if ($unmailedmsg['type'] != ChatMessage::TYPE_COMPLETED) {
-            if ($chattype === ChatRoom::TYPE_USER2USER || $chattype === ChatRoom::TYPE_MOD2MOD) {
+            if ($chattype ==  ChatRoom::TYPE_USER2USER || $chattype ==  ChatRoom::TYPE_MOD2MOD) {
                 # Only want to say someone wrote it if they did, which they didn't for system-
                 # generated messages.
                 if ($unmailedmsg['userid'] == $sendingto->getId()) {
@@ -1859,7 +1859,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                     $thistwig['mine'] = FALSE;
                     $profileu = $sendingfrom;
                 }
-            } else if ($chattype === ChatRoom::TYPE_USER2MOD && $groupid) {
+            } else if ($chattype ==  ChatRoom::TYPE_USER2MOD && $groupid) {
                 $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
                 if ($notifyingmember) {
@@ -2013,7 +2013,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
         $twig = new \Twig_Environment($loader);
 
         # We don't need to check too far back.  This keeps it quick.
-        $reviewq = $chattype === ChatRoom::TYPE_USER2MOD ? '' : " AND reviewrequired = 0";
+        $reviewq = $chattype ==  ChatRoom::TYPE_USER2MOD ? '' : " AND reviewrequired = 0";
         $allq = $forceall ? '' : "AND mailedtoall = 0 AND seenbyall = 0 AND reviewrejected = 0";
         $start = date('Y-m-d H:i:s', strtotime($since));
         $end = date('Y-m-d H:i:s', time() - $delay);
@@ -2050,7 +2050,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                 #error_log("Sending to {$sendingto->getEmailPreferred()} from {$sendingfrom->getEmailPreferred()}");
 
                 # For User2Mod chats we do different things based on whether we're notifying the member or the mods.
-                $notifyingmember = $chattype === ChatRoom::TYPE_USER2MOD && $member['role'] == User::ROLE_MEMBER;
+                $notifyingmember = $chattype ==  ChatRoom::TYPE_USER2MOD && $member['role'] == User::ROLE_MEMBER;
 
                 # We email them if they have mails turned on, and even if they don't have any current memberships.
                 # Although that runs the risk of annoying them if they've left, we also have to be able to handle
@@ -2062,7 +2062,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                 # And we always mail TN members, without batching.
                 $sendingtoTN = $sendingto->isTN();
                 $emailnotifson = $sendingto->notifsOn(User::NOTIFS_EMAIL, $r->getPrivate('groupid'));
-                $forcemailfrommod = ($chat['chattype'] === ChatRoom::TYPE_USER2MOD && $chat['user1'] === $member['userid']);
+                $forcemailfrommod = ($chat['chattype'] ==  ChatRoom::TYPE_USER2MOD && $chat['user1'] ==  $member['userid']);
                 $mailson = $emailnotifson || $forcemailfrommod || $sendingtoTN;
                 #error_log("Consider mail user {$member['userid']}, mails on " . $sendingto->notifsOn(User::NOTIFS_EMAIL) . ", memberships " . count($sendingto->getMemberships()));
                 $sendingown  = $sendingto->notifsOn(User::NOTIFS_EMAIL_MINE);
@@ -2188,7 +2188,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                     $g = Group::get($this->dbhr, $this->dbhm, $chat['groupid']);
                                     $fromname = $g->getPublic()['namedisplay'] . " volunteers";
                                 } else {
-                                    if ($unmailedmsg['userid'] === $chatatts['user1']['id']) {
+                                    if ($unmailedmsg['userid'] ==  $chatatts['user1']['id']) {
                                         # Notifying mod of message from member.
                                         $u = User::get($this->dbhr, $this->dbhm, $unmailedmsg['userid']);
                                         $fromname = $u->getName();
@@ -2684,7 +2684,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
                 # Background these because we've seen occasions where we're in the context of a transaction
                 # and this causes a deadlock.
-                $timestr = $time !== NULL ? "'$time'" : 'NULL';
+                $timestr = !is_null($time) ? "'$time'" : 'NULL';
                 $this->dbhm->background("REPLACE INTO users_replytime (userid, replytime) VALUES ($userid, $timestr);");
                 $this->dbhm->background("UPDATE users SET lastupdated = NOW() WHERE id = $userid;");
 

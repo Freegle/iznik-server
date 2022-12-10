@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-use LinkPreview\LinkPreview;
+use Dusterio\LinkPreview\Client;
 
 class Preview extends Entity
 {
@@ -28,27 +28,21 @@ class Preview extends Entity
                 #
                 # Any sites which don't support HTTPS won't get previews.  Or much traffic either, nowadays.
                 $url = str_replace('http://', 'https://', $url);
-                $linkPreview = new LinkPreview($url);
-                $parsed = $linkPreview->getParsed();
+                $linkPreview = new Client($url);
+                $previews = $linkPreview->getPreviews();
                 $rc = NULL;
 
-                if (count($parsed) == 0) {
+                if (count($previews) == 0) {
                     $rc = $this->dbhm->preExec("INSERT INTO link_previews(`url`, `invalid`) VALUES (?,1) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);", [
                         $url
                     ]);
                 } else {
-                    foreach ($parsed as $parserName => $link) {
+                    foreach ($previews as $parserName => $link) {
                         $title = $link->getTitle();
                         $title = preg_replace('/[[:^print:]]/', '', $title);
                         $desc = $link->getDescription();
                         $desc = preg_replace('/[[:^print:]]/', '', $desc);
-                        $pic = $link->getImage();
-                        $realurl = $link->getRealUrl();
-
-                        if (stripos($pic, 'http') === FALSE) {
-                            # We have a relative URL.
-                            $pic = $realurl . $pic;
-                        }
+                        $pic = $link->getCover();
 
                         $rc = $this->dbhm->preExec("INSERT INTO link_previews(`url`, `title`, `description`, `image`) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id), title = ?, description = ?, image = ?, retrieved = NOW();", [
                             $url,

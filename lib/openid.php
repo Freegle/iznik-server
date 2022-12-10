@@ -126,7 +126,7 @@ class LightOpenID
      */
     function hostExists($url)
     {
-        if (strpos($url, '/') === false) {
+        if (strpos($url, '/') === FALSE) {
             $server = $url;
         } else {
             $server = @parse_url($url, PHP_URL_HOST);
@@ -149,7 +149,7 @@ class LightOpenID
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_HTTPHEADER, array('Accept: application/xrds+xml, */*'));
 
-        if($this->verify_peer !== null) {
+        if(!is_null($this->verify_peer)) {
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, $this->verify_peer);
             if($this->capath) {
                 curl_setopt($curl, CURLOPT_CAPATH, $this->capath);
@@ -597,7 +597,7 @@ class LightOpenID
         if (!$this->server) $this->discover($this->identity);
 
         if ($this->version == 2) {
-            if ($identifier_select === null) {
+            if (is_null($identifier_select)) {
                 return $this->authUrl_v2($this->identifier_select);
             }
             return $this->authUrl_v2($identifier_select);

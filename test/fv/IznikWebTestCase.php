@@ -7,10 +7,10 @@ if (!defined('UT_DIR')) {
 require(UT_DIR . '/../../include/config.php');
 require(UT_DIR . '/../../include/db.php');
 
-use Facebook\WebDriver;
-use Facebook\WebDriver\WebDriverBy;
-use Facebook\WebDriver\Remote;
-use Facebook\WebDriver\Remote\DesiredCapabilities;
+use JanuSoftware\Facebook\WebDriver;
+use JanuSoftware\Facebook\WebDriver\WebDriverBy;
+use JanuSoftware\Facebook\WebDriver\Remote;
+use JanuSoftware\Facebook\WebDriver\Remote\DesiredCapabilities;
 
 /**
  * @backupGlobals disabled

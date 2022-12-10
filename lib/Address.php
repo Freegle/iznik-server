@@ -408,7 +408,7 @@ class Address
      */
     public function getAddressLines()
     {
-        if ($this->addressLines === null) {
+        if (is_null($this->addressLines)) {
             $this->assembleAddressLines();
         }
         return $this->addressLines;
@@ -536,7 +536,7 @@ class Address
                 || (strlen($buildingName) == 1)
             ) {
                 $this->assembleDebugFlags['exceptionBuildingName'] = true;
-                if ($nextLinePrefix !== null) {
+                if (!is_null($nextLinePrefix)) {
                     $this->assembleDebugFlags['errors'][] = 'NLP ' . __LINE__;
                     $processingError = true;
                 }
@@ -591,7 +591,7 @@ class Address
                 $this->assembleDebugFlags['exceptionSubBuildingName'] = true;
                 $exceptionSubBuildingName = true;
 
-                if ($nextLinePrefix !== null) {
+                if (!is_null($nextLinePrefix)) {
                     $this->assembleDebugFlags['errors'][] = 'NLP ' . __LINE__;
                     $processingError = true;
                 }
@@ -648,7 +648,7 @@ class Address
                 || (strlen($this->subBuildingName) == 1)
             ) {
                 $this->assembleDebugFlags['exceptionSubBuildingName'] = true;
-                if ($nextLinePrefix !== null) {
+                if (!is_null($nextLinePrefix)) {
                     $this->assembleDebugFlags['errors'][] = 'NLP ' . __LINE__;
                     $processingError = true;
                 }
@@ -710,7 +710,7 @@ class Address
 
         // Yup, apparently there's addresses in the database with no locality / thoroughfare. Just a number.
         // UDPRNs affected as of 2014-02-06: 2431986 and 328392
-        if ($nextLinePrefix !== null) {
+        if (!is_null($nextLinePrefix)) {
             $this->assembleDebugFlags['nlpAlone'] = true;
             $addressLines[] = $nextLinePrefix;
         }

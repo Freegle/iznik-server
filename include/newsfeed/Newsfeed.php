@@ -52,13 +52,13 @@ class Newsfeed extends Entity
         $s = new Spam($this->dbhr, $this->dbhm);
         $hidden = ($suppressed || $s->checkReferToSpammer($message)) ? 'NOW()' : 'NULL';
 
-        if ($lat === NULL) {
+        if (is_null($lat)) {
             # We might have been given a lat/lng separate from the user, e.g. for noticeboards.
             list($lat, $lng, $loc) = $userid ? $u->getLatLng(FALSE) : [ NULL, NULL, NULL ];
 
             # If we don't know where the user is, use the group location.
-            $lat = ($groupid && $lat === NULL) ? $g->getPrivate('lat') : $lat;
-            $lng = ($groupid && $lng === NULL) ? $g->getPrivate('lng') : $lng;
+            $lat = ($groupid && is_null($lat)) ? $g->getPrivate('lat') : $lat;
+            $lng = ($groupid && is_null($lng)) ? $g->getPrivate('lng') : $lng;
         }
 
 #        error_log("Create at $lat, $lng");

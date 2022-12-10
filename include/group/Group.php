@@ -290,8 +290,9 @@ class Group extends Entity
 
                 # And a group chat.
                 $r = new ChatRoom($this->dbhr, $this->dbhm);
-                $r->createGroupChat("$shortname Volunteers", $id, TRUE, TRUE);
-                $r->setPrivate('description', "$shortname Volunteers");
+                if ($r->createGroupChat("$shortname Volunteers", $id, TRUE, TRUE)) {
+                    $r->setPrivate('description', "$shortname Volunteers");
+                }
             }
         } catch (\Exception $e) {
             error_log("Create group exception " . $e->getMessage());
@@ -688,8 +689,8 @@ HAVING logincount > 0
         # If we're searching for a notify address, switch to the user it.
         $search = preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $search, $matches) ? $matches[2] : $search;
 
-        $date = $ctx == NULL ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", $ctx['Added']));
-        $addq = ($ctx == NULL || !Utils::pres('id', $ctx)) ? '' : (" AND (memberships.added < $date OR (memberships.added = $date AND memberships.id < " . $this->dbhr->quote($ctx['id']) . ")) ");
+        $date = is_null($ctx) ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", $ctx['Added']));
+        $addq = (is_null($ctx) || !Utils::pres('id', $ctx)) ? '' : (" AND (memberships.added < $date OR (memberships.added = $date AND memberships.id < " . $this->dbhr->quote($ctx['id']) . ")) ");
         $groupq = $groupids ? " memberships.groupid IN (" . implode(',', $groupids) . ") " : " 1=1 ";
         $opsq = $ops ? (" AND memberships.ourPostingStatus = " . $this->dbhr->quote($ydt)) : '';
         $modq = '';
@@ -748,7 +749,7 @@ HAVING logincount > 0
               $uq
               $filterq";
             $searchq = $searchid ? (" AND memberships.userid = " . $this->dbhr->quote($searchid) . " ") : '';
-            $addq = $ctx == NULL ? '' : (" AND memberships.userid < " . $this->dbhr->quote($ctx['userid']) . " ");
+            $addq = is_null($ctx) ? '' : (" AND memberships.userid < " . $this->dbhr->quote($ctx['userid']) . " ");
             $sql = "$sqlpref WHERE $groupq $collectionq $addq $searchq $opsq $modq $bounceq";
             $sql .= " ORDER BY memberships.userid DESC LIMIT $limit;";
             $members = $this->dbhr->preQuery($sql);
@@ -760,7 +761,7 @@ HAVING logincount > 0
             $q = $this->dbhr->quote("$search%");
             $bq = $this->dbhr->quote(strrev($search) . "%");
             $p = strpos($search, ' ');
-            $namesearch = $p === false ? '' : ("UNION (SELECT id FROM users WHERE firstname LIKE " . $this->dbhr->quote(
+            $namesearch = $p === FALSE ? '' : ("UNION (SELECT id FROM users WHERE firstname LIKE " . $this->dbhr->quote(
                         substr($search, 0, $p) . '%'
                     ) . " AND lastname LIKE " . $this->dbhr->quote(substr($search, $p + 1) . '%')) . ') ';
 
@@ -848,7 +849,7 @@ HAVING logincount > 0
         foreach ($members as $member) {
             $thisepoch = strtotime($member['added']);
 
-            if ($ctx['Added'] == NULL || $thisepoch < $ctx['Added']) {
+            if (is_null($ctx['Added']) || $thisepoch < $ctx['Added']) {
                 $ctx['Added'] = $thisepoch;
             }
 
@@ -921,7 +922,7 @@ HAVING logincount > 0
                     $thisone['heldby'] = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
                 }
 
-                if ($filter === Group::FILTER_MODERATORS) {
+                if ($filter ==  Group::FILTER_MODERATORS) {
                     # Also add in the time this mod was last active.  This is not the same as when they last moderated
                     # but indicates if they have been on the platform, which is what you want to find mods who have
                     # drifted off.  Getting the correct value is too timeconsuming.
@@ -950,7 +951,7 @@ HAVING logincount > 0
         if ($filter) {
             foreach ([ User::HAPPY, User::UNHAPPY, User::FINE] as $val) {
                 if ($filter == $val) {
-                    if ($val === 'Fine') {
+                    if ($val ==  'Fine') {
                         $filterq = " AND (messages_outcomes.outcome IS NULL OR messages_outcomes.happiness = '$val') ";
                     } else {
                         $filterq = " AND messages_outcomes.happiness = '$val' ";
@@ -966,7 +967,7 @@ HAVING logincount > 0
         $start = date('Y-m-d', strtotime(MessageCollection::RECENTPOSTS));
 
         # We want unreviewed first, then most recent.
-        $ctxq = $ctx == NULL ? " WHERE messages_outcomes.timestamp > '$start' " :
+        $ctxq = is_null($ctx) ? " WHERE messages_outcomes.timestamp > '$start' " :
             (" WHERE
             messages_outcomes.reviewed >= " . intval($ctx['reviewed']) . " AND   
             messages_outcomes.timestamp > '$start' AND 
@@ -1097,7 +1098,7 @@ HAVING logincount > 0
     }
 
     public function getSetting($key, $def, $settings = NULL) {
-        if ($settings === NULL && Utils::pres('settings', $this->group)) {
+        if (is_null($settings) && Utils::pres('settings', $this->group)) {
             $settings = $this->group['settings'];
         } else {
             $settings = $this->defaultSettings;
@@ -1181,13 +1182,13 @@ HAVING logincount > 0
 
                 if ($support) {
                     foreach ($autoapproves as $approve) {
-                        if ($approve['groupid'] === $group['id']) {
+                        if ($approve['groupid'] ==  $group['id']) {
                             $group['recentautoapproves'] = $approve['count'];
                         }
                     }
 
                     foreach ($manualapproves as $approve) {
-                        if ($approve['groupid'] === $group['id']) {
+                        if ($approve['groupid'] ==  $group['id']) {
                             # Exclude the autoapproves, which have an approved log as well as an autoapproved log.
                             $group['recentmanualapproves'] = $approve['count'] - Utils::presdef('recentautoapproves', $group, 0);
                         }

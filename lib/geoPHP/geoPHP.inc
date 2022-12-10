@@ -119,8 +119,8 @@ class geoPHP
 
   static function geosInstalled($force = NULL) {
     static $geos_installed = NULL;
-    if ($force !== NULL) $geos_installed = $force;
-    if ($geos_installed !== NULL) {
+    if (!is_null($force)) $geos_installed = $force;
+    if (!is_null($geos_installed)) {
       return $geos_installed;
     }
     $geos_installed = class_exists('GEOSGeometry');

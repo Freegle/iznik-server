@@ -74,7 +74,7 @@ function memberships() {
                         $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
                         $groupids = [];
-                        $proceed = $collection === MembershipCollection::RELATED;
+                        $proceed = $collection ==  MembershipCollection::RELATED;
 
                         if ($groupid && ($me->isAdminOrSupport() || $me->isModOrOwner($groupid) || ($userid && $userid == $me->getId()))) {
                             # Get just one.  We can get this if we're a mod or it's our own.
@@ -419,19 +419,19 @@ function memberships() {
                             $rc &= $u->setGroupSettings($groupid, $settings);
                         }
 
-                        if ($emailfrequency !== NULL) {
+                        if (!is_null($emailfrequency)) {
                             $rc &= $u->setMembershipAtt($groupid, 'emailfrequency', intval($emailfrequency));
                         }
 
-                        if ($eventsallowed !== NULL) {
+                        if (!is_null($eventsallowed)) {
                             $rc &= $u->setMembershipAtt($groupid, 'eventsallowed', intval($eventsallowed));
                         }
 
-                        if ($volunteeringallowed !== NULL) {
+                        if (!is_null($volunteeringallowed)) {
                             $rc &= $u->setMembershipAtt($groupid, 'volunteeringallowed', intval($volunteeringallowed));
                         }
 
-                        if ($ourpostingstatus !== NULL) {
+                        if (!is_null($ourpostingstatus)) {
                             $rc &= $u->setMembershipAtt($groupid, 'ourPostingStatus', $ourpostingstatus);
                         }
 

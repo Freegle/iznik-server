@@ -28,7 +28,7 @@ foreach ($users as $user) {
     # Get location where we have one.
     list($lat, $lng, $loc) = $u->getLatLng(false, false, Utils::BLUR_NONE);
 
-    if ($loc !== NULL) {
+    if (!is_null($loc)) {
         #error_log("User #{$user['id']} at $loc");
         $l = new Location($dbhr, $dbhm);
         $locations = $l->typeahead($loc, 1, TRUE, TRUE);

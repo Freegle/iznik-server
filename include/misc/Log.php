@@ -79,7 +79,7 @@ class Log
         # If they don't, the caller is at fault and should be taken out and shot.
         $q = [];
         foreach ($params as $key => $val) {
-            $q[] = $val !== NULL ? $this->dbhm->quote($val) : 'NULL';
+            $q[] = !is_null($val) ? $this->dbhm->quote($val) : 'NULL';
         }
 
         $atts = implode('`,`', array_keys($params));

@@ -647,7 +647,7 @@ class Spam {
         $seeall = $me && $me->isAdminOrSupport();
         $collectionq = ($collection ? " AND collection = '$collection'" : '');
         $startq = $context ? (" AND spam_users.id <  " . intval($context['id']) . " ") : '';
-        $searchq = $search == NULL ? '' : (" AND (users_emails.email LIKE " . $this->dbhr->quote("%$search%") . " OR users.fullname LIKE " . $this->dbhr->quote("%$search%") . ") ");
+        $searchq = is_null($search) ? '' : (" AND (users_emails.email LIKE " . $this->dbhr->quote("%$search%") . " OR users.fullname LIKE " . $this->dbhr->quote("%$search%") . ") ");
         $sql = "SELECT DISTINCT spam_users.* FROM spam_users INNER JOIN users ON spam_users.userid = users.id LEFT JOIN users_emails ON users_emails.userid = spam_users.userid WHERE 1=1 $startq $collectionq $searchq ORDER BY spam_users.id DESC LIMIT 10;";
         $context = [];
 
@@ -704,7 +704,7 @@ class Spam {
                 }
             }
 
-            if ($collection === Spam::TYPE_PENDING_ADD) {
+            if ($collection ==  Spam::TYPE_PENDING_ADD) {
                 if (Utils::pres('heldby', $spammer)) {
                     $spammer['user']['heldby'] = $users[$spammer['heldby']];
                     $spammer['user']['heldat'] = Utils::ISODate($spammer['heldat']);

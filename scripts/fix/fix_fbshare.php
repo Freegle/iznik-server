@@ -5,11 +5,11 @@ require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 
 
-use Facebook\FacebookSession;
-use Facebook\FacebookJavaScriptLoginHelper;
-use Facebook\FacebookCanvasLoginHelper;
-use Facebook\FacebookRequest;
-use Facebook\FacebookRequestException;
+use JanuSoftware\Facebook\FacebookSession;
+use JanuSoftware\Facebook\FacebookJavaScriptLoginHelper;
+use JanuSoftware\Facebook\FacebookCanvasLoginHelper;
+use JanuSoftware\Facebook\FacebookRequest;
+use JanuSoftware\Facebook\FacebookRequestException;
 
 $id = 73384391;
 $uid = 6945;

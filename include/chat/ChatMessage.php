@@ -202,7 +202,7 @@ class ChatMessage extends Entity
                     if ($modstatus == User::CHAT_MODSTATUS_MODERATED || $modstatus == User::CHAT_MODSTATUS_FULLY) {
                         if ($chattype != ChatRoom::TYPE_USER2MOD &&
                             !$u->isModerator() &&
-                            ($type === ChatMessage::TYPE_DEFAULT || $type === ChatMessage::TYPE_INTERESTED || $type === ChatMessage::TYPE_REPORTEDUSER || $type === ChatMessage::TYPE_ADDRESS)) {
+                            ($type ==  ChatMessage::TYPE_DEFAULT || $type ==  ChatMessage::TYPE_INTERESTED || $type ==  ChatMessage::TYPE_REPORTEDUSER || $type ==  ChatMessage::TYPE_ADDRESS)) {
                             if ($modstatus == User::CHAT_MODSTATUS_FULLY) {
                                 $reviewreason = self::REVIEW_FULLY;
                                 $review = $reviewreason ? 1 : 0;
@@ -220,7 +220,7 @@ class ChatMessage extends Entity
                             }
                         }
 
-                        if (!$review && $type === ChatMessage::TYPE_INTERESTED && $refmsgid) {
+                        if (!$review && $type ==  ChatMessage::TYPE_INTERESTED && $refmsgid) {
                             # Check if this user is suspicious, e.g. replying to many messages across a large area.
                             $msg = $this->dbhr->preQuery("SELECT lat, lng FROM messages WHERE id = ?;", [
                                 $refmsgid
@@ -239,7 +239,7 @@ class ChatMessage extends Entity
                     }
                 }
 
-                if ($review && $type === ChatMessage::TYPE_INTERESTED) {
+                if ($review && $type ==  ChatMessage::TYPE_INTERESTED) {
                     $m = new Message($this->dbhr, $this->dbhm,  $refmsgid);
 
                     if (!$refmsgid || $m->hasOutcome()) {

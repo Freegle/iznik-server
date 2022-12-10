@@ -104,7 +104,7 @@ class VolunteeringDigest
             $count = 0;
 
             foreach ($volunteerings as $volunteering) {
-                if (!$volunteering['groupid'] || $volunteering['groupid'] === $groupid) {
+                if (!$volunteering['groupid'] || $volunteering['groupid'] ==  $groupid) {
                     $count++;
                     if ($this->errorlog) { error_log("Start group $groupid"); }
 

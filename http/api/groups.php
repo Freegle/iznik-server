@@ -19,7 +19,7 @@ function groups() {
                 'status' => 'Forbidden'
             ];
 
-            if ($grouptype === Group::GROUP_FREEGLE) {
+            if ($grouptype ==  Group::GROUP_FREEGLE) {
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',

@@ -1138,7 +1138,7 @@ class User extends Entity
             # If we don't have our own email on this group we won't be sending mails.  This is what affects what
             # gets shown on the Settings page for the user, and we only want to check this here
             # for performance reasons.
-            $one['mysettings']['emailfrequency'] = ($group['type'] === Group::GROUP_FREEGLE &&
+            $one['mysettings']['emailfrequency'] = ($group['type'] ==  Group::GROUP_FREEGLE &&
                 ($pernickety || $this->sendOurMails($g, FALSE, FALSE))) ?
                 (array_key_exists('emailfrequency', $one['mysettings']) ? $one['mysettings']['emailfrequency'] :  24)
                 : 0;
@@ -1705,7 +1705,7 @@ class User extends Entity
         if ($me) {
             list ($mylat, $mylng, $myloc) = $me->getLatLng();
 
-            if ($myloc !== NULL) {
+            if (!is_null($myloc)) {
                 $latlngs = $this->getLatLngs($users, FALSE, TRUE);
 
                 foreach ($latlngs as $userid => $latlng) {
@@ -2216,7 +2216,7 @@ class User extends Entity
                 }
 
                 foreach ($groups as $group) {
-                    if ($ret['id'] === $group['userid']) {
+                    if ($ret['id'] ==  $group['userid']) {
                         $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
 
                         $ret['memberof'][] = [
@@ -2242,10 +2242,10 @@ class User extends Entity
                             $box = Utils::presdef('activearea', $ret, NULL);
 
                             $ret['activearea'] = [
-                                'swlat' => $box == NULL ? $group['lat'] : min($group['lat'], $box['swlat']),
-                                'swlng' => $box == NULL ? $group['lng'] : min($group['lng'], $box['swlng']),
-                                'nelng' => $box == NULL ? $group['lng'] : max($group['lng'], $box['nelng']),
-                                'nelat' => $box == NULL ? $group['lat'] : max($group['lat'], $box['nelat'])
+                                'swlat' => is_null($box)? $group['lat'] : min($group['lat'], $box['swlat']),
+                                'swlng' => is_null($box)? $group['lng'] : min($group['lng'], $box['swlng']),
+                                'nelng' => is_null($box)? $group['lng'] : max($group['lng'], $box['nelng']),
+                                'nelat' => is_null($box)? $group['lat'] : max($group['lat'], $box['nelat'])
                             ];
                         }
                     }
@@ -2300,10 +2300,10 @@ class User extends Entity
                                 $box = Utils::presdef('activearea', $ret, null);
 
                                 $box = [
-                                    'swlat' => $box == null ? $memb['lat'] : min($memb['lat'], $box['swlat']),
-                                    'swlng' => $box == null ? $memb['lng'] : min($memb['lng'], $box['swlng']),
-                                    'nelng' => $box == null ? $memb['lng'] : max($memb['lng'], $box['nelng']),
-                                    'nelat' => $box == null ? $memb['lat'] : max($memb['lat'], $box['nelat'])
+                                    'swlat' => is_null($box)? $memb['lat'] : min($memb['lat'], $box['swlat']),
+                                    'swlng' => is_null($box)? $memb['lng'] : min($memb['lng'], $box['swlng']),
+                                    'nelng' => is_null($box)? $memb['lng'] : max($memb['lng'], $box['nelng']),
+                                    'nelat' => is_null($box)? $memb['lat'] : max($memb['lat'], $box['nelat'])
                                 ];
 
                                 $ret['activearea'] = $box;
@@ -3276,7 +3276,7 @@ class User extends Entity
             # by groupid than it is to construct a query which includes groupid.  Likewise it's not really worth
             # optimising the calls for byuser, since there won't be any for most users.
             $sql = "SELECT * FROM users_comments WHERE userid IN (" . implode(',', $userids) . ") ORDER BY date DESC;";
-            $comments = $this->dbhr->preQuery($sql, [$this->id]);
+            $comments = $this->dbhr->preQuery($sql);
             #error_log("Got comments " . var_export($comments, TRUE));
 
             $commentuids = [];
@@ -3758,7 +3758,7 @@ class User extends Entity
                         foreach (['firstname', 'lastname', 'fullname'] as $att) {
                             $words = explode(' ', $this->user[$att]);
                             foreach ($words as $word) {
-                                if (stripos($email, $word) !== FALSE) {
+                                if (strlen($word) && stripos($email, $word) !== FALSE) {
                                     # Unfortunately not - it has some personal info in it.
                                     $email = NULL;
                                 }
@@ -3940,7 +3940,7 @@ class User extends Entity
             if ($thisone && $log['groupid']) {
                 $g = Group::get($this->dbhr, $this->dbhm, $log['groupid']);
 
-                if ($g->getId() === $log['groupid']) {
+                if ($g->getId() ==  $log['groupid']) {
                     $ret[] = [
                         'timestamp' => Utils::ISODate($log['timestamp']),
                         'type' => $thisone,
@@ -3960,7 +3960,7 @@ class User extends Entity
 
     public function search($search, $ctx)
     {
-        if (preg_replace('/\-|\~/', '', $search) === '') {
+        if (preg_replace('/\-|\~/', '', $search) ==  '') {
             # Most likely an encoded id.
             $search = User::decodeId($search);
         }
@@ -4185,7 +4185,7 @@ class User extends Entity
             $n = new Notifications($this->dbhr, $this->dbhm);
             $notifcount = $n->countUnseen($this->id);
 
-            if ($total === 1) {
+            if ($total ==  1) {
                 $r = new ChatRoom($this->dbhr, $this->dbhm, $unseen[0]['chatid']);
                 $atts = $r->getPublic($this);
                 $title = $atts['name'];
@@ -4500,7 +4500,7 @@ class User extends Entity
 
                 if (!$loc) {
                     # Get the name of the last area we used.
-                    if ($areas === NULL) {
+                    if (is_null($areas)) {
                         $areas = $this->dbhr->preQuery("SELECT l2.id, l2.name, l2.lat, l2.lng, users.id AS userid FROM locations l1 
                             INNER JOIN users ON users.lastlocation = l1.id
                             INNER JOIN locations l2 ON l2.id = l1.areaid
@@ -4508,7 +4508,7 @@ class User extends Entity
                     }
 
                     foreach ($areas as $area) {
-                        if ($att['id'] === $area['userid']) {
+                        if ($att['id'] ==  $area['userid']) {
                             $loc = $area['name'];
                             $lid = $area['id'];
                             $lat = $area['lat'];
@@ -4544,7 +4544,7 @@ class User extends Entity
                         }
                     }
 
-                    if ($closestname !== NULL) {
+                    if (!is_null($closestname)) {
                         $grp = $closestname;
 
                         # The location name might be in the group name, in which case just use the group.
@@ -4654,7 +4654,7 @@ class User extends Entity
                     }
                 }
 
-                if ($lat === NULL) {
+                if (is_null($lat)) {
                     $lid = $att['lastlocation'];
 
                     if ($lid) {
@@ -4666,7 +4666,7 @@ class User extends Entity
                     }
                 }
 
-                if ($lat !== NULL) {
+                if (!is_null($lat)) {
                     $ret[$att['id']] = [
                         'lat' => $lat,
                         'lng' => $lng,
@@ -5802,7 +5802,7 @@ class User extends Entity
         $num = str_replace(' ', '', $num);
         $num = preg_replace('/^(\+)?[04]+([^4])/', '$2', $num);
 
-        if (substr($num, 0, 1) === '0') {
+        if (substr($num, 0, 1) ==  '0') {
             $num = substr($num, 1);
         }
 

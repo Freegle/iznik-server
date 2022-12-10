@@ -17,7 +17,6 @@ RUN apt-get -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false upd
 	&& apt-get install -y mysql-server locales \
 	&& rm -rf /var/lib/mysql \
 	&& mkdir /var/lib/mysql \
-    && locale-gen es_ES.UTF-8 \
 	&& apt-get install -y redis-server \
 	&& apt-get install -y beanstalkd
 
@@ -40,7 +39,7 @@ RUN apt-get install -y spamassassin spamc psmisc \
 # More packages
 RUN apt-get install -y dnsutils openssl zip unzip git libxml2-dev libzip-dev zlib1g-dev libcurl4-openssl-dev iputils-ping default-mysql-client vim libpng-dev libgmp-dev libjpeg-turbo8-dev
 RUN apt-get install -y php-xmlrpc php8.1-intl php8.1-xdebug php8.1-mbstring php8.1-simplexml php8.1-curl php8.1-zip postgresql-client php8.1-gd php8.1-xmlrpc php8.1-redis php8.1-pgsql
-RUN apt-get install -y curl
+RUN apt-get install -y curl nginx
 
 # We now need Node 14 for Playwright.
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
@@ -68,7 +67,7 @@ RUN	apt-get install -y php-pear \
     && apt-get install -y geoip-bin geoip-database
 
 # Mailparse
-RUN apt-get install -y php-mbstring php-mailparse 
+RUN apt-get install -y php-mbstring php-mailparse
 
 #
 #--------------------------------------------------------------------------
@@ -94,7 +93,7 @@ RUN cp install/iznik.conf.php /etc/iznik.conf \
     && sed -ie "s/'PLAYGROUND_SECRET', 'zzzz'/'PLAYGROUND_SECRET', ' \PLAYGROUND_SECRET'/g" /etc/iznik.conf \
     # phpunit.xml is set up for running tests on our debug server.
     && sed -ie 's/\/var\/www\/iznik.mt.dbg\//\//g' test/ut/php/phpunit.xml \
-    && echo secret > /tmp/iznik_jwt_secret
+    && echo secret > /etc/iznik_jwt_secret
 
 # Install composer dependencies
 RUN apt-get install wget \
@@ -108,7 +107,8 @@ RUN	sed -ie 's/::1//g' /etc/redis/redis.conf \
 	&& sed -ie 's/\/var\/run\/redis\/redis.sock/127.0.0.1/g' include/config.php
 
 # Cron jobs for background scripts
-RUN cat install/crontab | crontab -u root -
+RUN apt-get install -y php8.1-pdo-mysql cron &&  \
+    cat install/crontab | crontab -u root -
 
 # Tidy image
 RUN rm -rf /var/lib/apt/lists/*
@@ -124,6 +124,7 @@ CMD rm -rf /var/lib/mysql/* \
 	&& usermod -d /var/lib/mysql/ mysql \
 	&& mkdir -p /var/lib/mysql \
 	&& chown -R mysql:mysql /var/lib/mysql \
+  && locale-gen es_ES.UTF-8 \
 	&& mysqld --initialize-insecure \
 	&& echo [server] >> /etc/mysql/my.cnf \
 	&& echo max_allowed_packet=32MB >> /etc/mysql/my.cnf \
@@ -143,6 +144,7 @@ CMD rm -rf /var/lib/mysql/* \
 	&& /etc/init.d/nginx start \
 	&& /etc/init.d/ssh start \
 	&& /etc/init.d/spamassassin start \
+	&& /user/bin/sa-update \
 	&& /etc/init.d/cron start \
   # Set up the environment we need for running our UT.  Putting this here means it gets reset each
   # time we start the container.

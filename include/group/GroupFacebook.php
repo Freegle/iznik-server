@@ -1,13 +1,11 @@
 <?php
 namespace Freegle\Iznik;
 
-
-
-use Facebook\FacebookSession;
-use Facebook\FacebookJavaScriptLoginHelper;
-use Facebook\FacebookCanvasLoginHelper;
-use Facebook\FacebookRequest;
-use Facebook\FacebookRequestException;
+use JanuSoftware\Facebook\FacebookSession;
+use JanuSoftware\Facebook\FacebookJavaScriptLoginHelper;
+use JanuSoftware\Facebook\FacebookCanvasLoginHelper;
+use JanuSoftware\Facebook\FacebookRequest;
+use JanuSoftware\Facebook\FacebookRequestException;
 
 class GroupFacebook {
     static public $publicatts = ['name', 'token', 'type', 'authdate', 'valid', 'msgid', 'msgarrival', 'eventid', 'sharefrom', 'token', 'groupid', 'id', 'lastupdated', 'uid' ];
@@ -55,7 +53,7 @@ class GroupFacebook {
 
     public function getFB($graffiti, $apptoken = FALSE) {
         #error_log("Get FB $graffiti");
-        $fb = new \Facebook\Facebook([
+        $fb = new \JanuSoftware\Facebook\Facebook([
             'app_id' => $graffiti ? FBGRAFFITIAPP_ID : FBAPP_ID,
             'app_secret' => $graffiti ? FBGRAFFITIAPP_SECRET : FBAPP_SECRET,
             'default_graph_version' =>  'v13.0'
@@ -63,7 +61,7 @@ class GroupFacebook {
 
         if ($apptoken) {
             # Use an app access token
-            $this->setToken($fb->getApp()->getAccessToken());
+            $this->setToken($fb->getApplication()->getAccessToken());
         }
 
         return($fb);

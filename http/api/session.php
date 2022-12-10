@@ -90,7 +90,7 @@ function session() {
                     }
 
                     $components = Utils::presdef('components', $_REQUEST, ['all']);
-                    if ($components === ['all']) {
+                    if ($components ==  ['all']) {
                         // Get all
                         $components = NULL;
                     }
@@ -412,7 +412,7 @@ function session() {
                 # uid and key login, used in email links and impersonation.
                 $u = new User($dbhr, $dbhm, $keyu);
 
-                if (Utils::presdef('id', $_SESSION, NULL) === $keyu || $u->linkLogin($keyk)) {
+                if (Utils::presdef('id', $_SESSION, NULL) ==  $keyu || $u->linkLogin($keyk)) {
                     $id = $keyu;
 
                     $ret = [ 'ret' => 0, 'status' => 'Success' ];

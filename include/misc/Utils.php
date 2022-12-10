@@ -66,7 +66,7 @@ class Utils {
                 unset($val);
             } else if (is_numeric($val)) {
                 #error_log("Numeric");
-                if (strpos($val, '.') === false) {
+                if (strpos($val, '.') === FALSE) {
                     # This is an integer value.  We want to return it as an int rather than a string,
                     # not least for boolean values which would otherwise require a parseInt on the client.
                     $array[$key] = intval($val);
@@ -491,7 +491,7 @@ class Utils {
         {
             for ($j = 0; $j < $count2; $j++)
             {
-                if ($words1[$i] === $words2[$j])
+                if ($words1[$i] ==  $words2[$j])
                 {
                     $ret++;
                 }

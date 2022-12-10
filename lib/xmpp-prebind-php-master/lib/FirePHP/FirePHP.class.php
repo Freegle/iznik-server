@@ -1257,7 +1257,7 @@ class FirePHP {
             }
             
             foreach ($this->objectStack as $refVal) {
-                if ($refVal === $Object) {
+                if ($refVal ==  $Object) {
                     return '** Recursion ('.get_class($Object).') **';
                 }
             }

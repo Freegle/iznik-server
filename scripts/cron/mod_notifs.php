@@ -44,7 +44,7 @@ if ($hour >= 8 && $hour <= 21)
 
             if ($minage < 0) {
                 error_log("...off for mod $email " .  $u->getName() . " last active $lastactive");
-            } else if ($lastactive === '0' || (intval($lastactive) && $lastactive <= 90)) {
+            } else if ($lastactive ==  '0' || (intval($lastactive) && $lastactive <= 90)) {
                 $c = new ChatMessage($dbhr, $dbhm);
                 $cr = $c->getReviewCount($u, $minage > 0 ? $minage : NULL)['chatreview'];
 
@@ -161,7 +161,7 @@ foreach ($mail as $id => $work) {
         $age = time() - strtotime($m['timestamp']);
     }
 
-    if (!$last || strcmp($textsumm, $last) !== 0 || ($age !== NULL && $age > 24 * 60 * 60)) {
+    if (!$last || strcmp($textsumm, $last) !== 0 || (!is_null($age) && $age > 24 * 60 * 60)) {
         # We send a notification if the info has changed, or it's the first, or it's been more than a day.
         error_log("Mail {$work['email']} $textsumm");
         $dbhm->preExec("REPLACE INTO modnotifs (userid, data) VALUES (?, ?);", [

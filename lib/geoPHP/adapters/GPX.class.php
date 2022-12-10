@@ -50,7 +50,7 @@ class GPX extends GeoAdapter
     // Load into DOMDocument
     $xmlobj = new \DOMDocument();
     @$xmlobj->loadXML($text);
-    if ($xmlobj === false) {
+    if ($xmlobj === FALSE) {
       throw new \Exception("Invalid GPX: ". $text);
     }
     

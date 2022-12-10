@@ -26,7 +26,7 @@ foreach ($recents as $recent) {
         $maxgap = 0;
 
         foreach ($logs as $log) {
-            if ($lasttime !== NULL) {
+            if (!is_null($lasttime)) {
                 $thistime = strtotime($log['arrival']);
                 $gap = $lasttime - $thistime;
                 #error_log("Consider gap $gap vs %maxgap from {$log['timestamp']}");

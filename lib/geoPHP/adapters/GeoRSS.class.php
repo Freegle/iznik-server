@@ -49,7 +49,7 @@ class GeoRSS extends GeoAdapter
     // Load into DOMDOcument
     $xmlobj = new \DOMDocument();
     @$xmlobj->loadXML($text);
-    if ($xmlobj === false) {
+    if ($xmlobj === FALSE) {
       throw new \Exception("Invalid GeoRSS: ". $text);
     }
     

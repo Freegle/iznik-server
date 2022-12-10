@@ -77,7 +77,7 @@ class messageTest extends IznikTestCase {
     public function testSetFromIP() {
         $m = new Message($this->dbhr, $this->dbhm);
         $m->setFromIP('8.8.8.8');
-        assertTrue($m->getFromhost() === 'google-public-dns-a.google.com' || $m->getFromhost() === 'dns.google');
+        assertTrue($m->getFromhost() ==  'google-public-dns-a.google.com' || $m->getFromhost() ==  'dns.google');
     }
 
     public function testRelated() {

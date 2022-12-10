@@ -88,7 +88,7 @@ class Item extends Entity
             $wic = Utils::wordsInCommon($name, $weight['name']);
 
             #error_log("$name vs {$weight['name']} = $wic");
-            if ($bestwic === NULL || $wic > $bestwic) {
+            if (is_null($bestwic) || $wic > $bestwic) {
                 $bestweight = $weight['weight'];
                 $bestwic = $wic;
                 $bestname = $weight['name'];

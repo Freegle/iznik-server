@@ -90,7 +90,7 @@ class Dashboard {
         $ret = NULL;
         list ($usecache, $groupids) = $this->getGroups($systemwide, $allgroups, $groupid, $region, $type, $start);
 
-        if ($usecache && !$force && $end === 'today') {
+        if ($usecache && !$force && $end ==  'today') {
             $cached = $this->dbhr->preQuery($usecache);
 
             if (count($cached) > 0) {
@@ -108,7 +108,7 @@ class Dashboard {
             $ret = $this->stats->getMulti(date ("Y-m-d"), $groupids, $start, $end, $systemwide);
         }
 
-        if ((($new && !$region) || $force) && ($end === 'today')) {
+        if ((($new && !$region) || $force) && ($end ==  'today')) {
             # Save for next time.  Don't save regions.
             #
             # This will be updated via dashboard.php cron script once a day.
@@ -290,7 +290,7 @@ FROM chat_messages
 INNER JOIN messages_groups ON messages_groups.msgid = chat_messages.refmsgid 
 WHERE messages_groups.arrival >= '$startq' AND messages_groups.arrival <= '$endq' AND
                 $groupq
-                AND chat_messages.type = 'Interested' 
+                AND chat_messages.type = ? 
 GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
                 $replies = $this->dbhr->preQuery($chatsql, [
                         ChatMessage::TYPE_INTERESTED
@@ -407,10 +407,7 @@ GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
                 $sql = "SELECT COUNT(*) AS count, happiness FROM messages_outcomes WHERE timestamp >= '$startq' AND timestamp <= '$endq' AND happiness IS NOT NULL GROUP BY happiness ORDER BY count DESC;";
             }
 
-            $ret[Dashboard::COMPONENTS_HAPPINESS] = $this->dbhr->preQuery($sql, [
-                $start,
-                $end
-            ]);
+            $ret[Dashboard::COMPONENTS_HAPPINESS] = $this->dbhr->preQuery($sql);
         }
 
         if (in_array(Dashboard::COMPONENTS_DISCOURSE_TOPICS, $components) && $ismod) {

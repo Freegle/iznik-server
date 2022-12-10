@@ -20,7 +20,7 @@ class Point extends Geometry
   public function __construct($x = NULL, $y = NULL, $z = NULL) {
 
     // Check if it's an empty point
-    if ($x === NULL && $y === NULL) {
+    if (is_null($x) && is_null($y)) {
       $this->coords = array(NULL, NULL);
       $this->dimension = 0;
       return;
@@ -32,7 +32,7 @@ class Point extends Geometry
     }
 
     // Check to see if this is a 3D point
-    if ($z !== NULL) {
+    if (!is_null($z)) {
       if (!is_numeric($z)) {
        throw new \Exception("Cannot construct Point. z should be numeric");
       }

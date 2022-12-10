@@ -24,7 +24,7 @@ function endsWith($haystack, $needle)
         return true;
     }
 
-    return (substr($haystack, -$length) === $needle);
+    return (substr($haystack, -$length) ==  $needle);
 }
 
 function fixMail($email) {
