@@ -119,7 +119,7 @@ jobs:
       - run: mysql --host="127.0.0.1" -u root -e "set global max_allowed_packet=33554432"
 
       # Install composer dependencies.  Use v1 as we're not compatible with v2.
-      - run: cd composer; wget https://getcomposer.org/composer-1.phar; php composer-1.phar install; cd ..
+      - run: cd composer; wget https://getcomposer.org/composer-2.phar -O composer.phar; rm -rf vendor; echo Y | php8.1 composer.phar install ; cd ..
       - run:
           name: Background job
           command: while ! nc -z localhost 11300; do sleep 1; done; php scripts/cron/background.php
