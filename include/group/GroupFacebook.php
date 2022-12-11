@@ -272,8 +272,9 @@ ORDER BY groups_facebook_toshare.id DESC;";
                         error_log("Share failed with " . $e->getMessage() . " params " . json_encode($params));
                         $msg = $e->getMessage();
 
-                        if (strpos($msg, 'The url you supplied is invalid') === FALSE) {
-                            # This error seems to happen occasionally at random, and doesn't mean the link is
+                        if (strpos($msg, 'The url you supplied is invalid') === FALSE &&
+                            strpos($msg, 'Please reduce the amount of data you\'re asking for') === FALSE) {
+                            # These errors seems to happen occasionally at random, and doesn't mean the link is
                             # invalid.
                             $this->dbhm->preExec("UPDATE groups_facebook SET valid = 0, lasterror = ?, lasterrortime = NOW() WHERE uid = ?", [
                                 $msg,
