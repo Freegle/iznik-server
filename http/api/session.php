@@ -449,7 +449,6 @@ function session() {
                 $id = $session ? $session->getUserId() : NULL;
             } else if ($applelogin) {
                 # Apple
-                file_put_contents('/tmp/tok2', var_export($_REQUEST, TRUE));
                 $a = new Apple($dbhr, $dbhm);
                 list ($session, $ret) = $a->login($applecredentials);
                 /** @var Session $session */
