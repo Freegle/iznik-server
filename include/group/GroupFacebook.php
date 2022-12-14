@@ -90,7 +90,6 @@ class GroupFacebook {
 
         $n = new PushNotifications($this->dbhr, $this->dbhm);
         $n->notifyGroupMods($groupid);
-        error_log("FAcebook notify $groupid");
 
         return($created);
     }
@@ -282,6 +281,9 @@ ORDER BY groups_facebook_toshare.id DESC;";
                             ]);
                         }
                     }
+
+                    $n = new PushNotifications($this->dbhr, $this->dbhm);
+                    $n->notifyGroupMods($action['groupid']);
                 }
             }
         }
