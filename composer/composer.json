@@ -27,7 +27,7 @@
     "oefenweb/damerau-levenshtein": "^2.1",
     "kartik-v/bootstrap-fileinput": "dev-master",
     "graphp/graphviz": "^0.2.1",
-    "paypal/merchant-sdk-php": "^3.9",
+    "protonlabs/paypal-merchant-sdk-php": "^3.13.0",
     "microsoft/azure-storage-blob": "*",
     "microsoft/azure-storage-table": "*",
     "microsoft/azure-storage-queue": "*",
