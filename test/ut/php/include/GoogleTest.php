@@ -47,7 +47,9 @@ class GoogleTest extends IznikTestCase {
     }
 
     public function getAccessToken() {
-        return($this->accessToken);
+        return([
+            'access_token' => $this->accessToken
+        ]);
     }
     
     public function testBasic() {
