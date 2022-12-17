@@ -4125,11 +4125,26 @@ class User extends Entity
                             'text' => $newloc
                         ]);
             }
+
+            // Prune the info in the settings to remove any groupsnear info, which would use space and is not needed.
+            $val = User::pruneSettings($val);
         }
 
         User::clearCache($this->id);
         parent::setPrivate($att, $val);
+    }
 
+    public static function pruneSettings($val) {
+        // Prune info from what we store in the user table to keep it smaller.
+        if (strpos($val, 'groupsnear') !== FALSE) {
+            $decoded = json_decode($val, TRUE);
+            if (Utils::pres('mylocation', $decoded) && Utils::pres('groupsnear', $decoded['mylocation'])) {
+                unset($decoded['mylocation']['groupsnear']);
+                $val = json_encode($decoded);
+            }
+        }
+
+        return $val;
     }
 
     public function canMerge()
