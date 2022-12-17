@@ -103,10 +103,10 @@ try{
   $cronlastCronWeekly = $cronlast."cron.weekly/";
 
   // grep "crontab" /var/log/syslog
-  $report .= grep('/var/log/syslog', "crontab", "(root) LIST (root)");
+  // $report .= grep('/var/log/syslog', "crontab", "(root) LIST (root)");
 
   // grep "crontab" /var/log/syslog.1
-  $report .= grep('/var/log/syslog.1', "crontab", "(root) LIST (root)");
+  // $report .= grep('/var/log/syslog.1', "crontab", "(root) LIST (root)");
 
   // Check actual crontab files in /var/spool/cron/crontabs/
   $report .= checkCronFileContents('/var/spool/cron/crontabs/',$cronlast);
