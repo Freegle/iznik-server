@@ -275,10 +275,11 @@ ORDER BY groups_facebook_toshare.id DESC;";
                             strpos($msg, 'Please reduce the amount of data you\'re asking for') === FALSE) {
                             # These errors seems to happen occasionally at random, and doesn't mean the link is
                             # invalid.
-                            $this->dbhm->preExec("UPDATE groups_facebook SET valid = 0, lasterror = ?, lasterrortime = NOW() WHERE uid = ?", [
-                                $msg,
-                                $action['uid']
-                            ]);
+                            # TODO Disabled because Facebook have suspended relevant permission.
+//                            $this->dbhm->preExec("UPDATE groups_facebook SET valid = 0, lasterror = ?, lasterrortime = NOW() WHERE uid = ?", [
+//                                $msg,
+//                                $action['uid']
+//                            ]);
                         }
                     }
 
