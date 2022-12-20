@@ -52,7 +52,11 @@ try {
         return (strcmp($a['name'], $b['name']));
     });
     ?>
-    <p>These are the Facebook pages you manage.  Click on the one you want to link to your group.</p>
+  <p>
+    Facebook have broken something.  You can't relink at the moment.  See
+    <a href="https://discourse.ilovefreegle.org/t/fb-page-linking-not-working">this Discourse thread</a> for details.
+  </p>
+<!--    <p>These are the Facebook pages you manage.  Click on the one you want to link to your group.</p>-->
     <?php
     foreach ($totalPages as $page) {
         echo '<a href="/facebook/facebook_settoken.php?id=' . urlencode($page['id']) . '&groupid=' . $groupid . '&token=' . urlencode($page['access_token']) . '">' . $page['name'] . '</a><br />';
