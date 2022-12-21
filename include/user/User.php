@@ -41,7 +41,6 @@ class User extends Entity
     const TRUST_MODERATE = 'Moderate';
     const TRUST_ADVANCED = 'Advanced';
 
-
     /** @var  $dbhm LoggedPDO */
     var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'newslettersallowed', 'relevantallowed', 'bouncing', 'added', 'invitesleft', 'onholidaytill');
 
@@ -112,6 +111,11 @@ class User extends Entity
     const NEWSFEED_UNMODERATED = 'Unmoderated';
     const NEWSFEED_MODERATED = 'Moderated';
     const NEWSFEED_SUPPRESSED = 'Suppressed';
+
+    # Simple email settings.
+    const SIMPLE_MAIL_NONE = 'None';
+    const SIMPLE_MAIL_BASIC = 'Basic';
+    const SIMPLE_MAIL_FULL = 'Full';
 
     /** @var  $log Log */
     private $log;
@@ -6646,5 +6650,80 @@ memberships.groupid IN $groupq
         }
 
         return $email;
+    }
+
+    public function setSimpleMail($simplemail) {
+        $s = $this->getPrivate('settings');
+
+        if ($s) {
+            $settings = json_decode($s, TRUE);
+        } else {
+            $settings = [];
+        }
+
+        switch ($simplemail) {
+            case User::SIMPLE_MAIL_NONE: {
+                # No digests, no events/volunteering.
+                # No relevant or newsletters.
+                # No email notifications.
+                # No enagement.
+                $this->dbhm->preExec("UPDATE memberships SET emailfrequency = -1, eventsallowed = 0, volunteeringallowed = 0 WHERE userid = ?;", [
+                    $this->id
+                ]);
+
+                $this->dbhm->preExec("UPDATE users SET relevantallowed = 0,  newslettersallowed = 0 WHERE id = ?;", [
+                    $this->id
+                ]);
+
+                $settings['notifications']['email'] = false;
+                $settings['notifications']['emailmine'] = false;
+                $settings['notificationmails']= false;
+                $settings['engagement']= false;
+                break;
+            }
+            case User::SIMPLE_MAIL_BASIC: {
+                # Daily digests, no events/volunteering.
+                # No relevant or newsletters.
+                # Chat email notifications.
+                # No enagement.
+                $this->dbhm->preExec("UPDATE memberships SET emailfrequency = 24, eventsallowed = 0, volunteeringallowed = 0 WHERE userid = ?;", [
+                    $this->id
+                ]);
+
+                $this->dbhm->preExec("UPDATE users SET relevantallowed = 0,  newslettersallowed = 0 WHERE id = ?;", [
+                    $this->id
+                ]);
+
+                $settings['notifications']['email'] = true;
+                $settings['notifications']['emailmine'] = false;
+                $settings['notificationmails']= false;
+                $settings['engagement']= false;
+                break;
+            }
+            case User::SIMPLE_MAIL_FULL: {
+                # Immediate mails, events/volunteering.
+                # Relevant and newsletters.
+                # Email notifications.
+                # Enagement.
+                $this->dbhm->preExec("UPDATE memberships SET emailfrequency = 0, eventsallowed = 1, volunteeringallowed = 1 WHERE userid = ?;", [
+                    $this->id
+                ]);
+
+                $this->dbhm->preExec("UPDATE users SET relevantallowed = 1,  newslettersallowed = 1 WHERE id = ?;", [
+                    $this->id
+                ]);
+
+                $settings['notifications']['email'] = true;
+                $settings['notifications']['emailmine'] = false;
+                $settings['notificationmails']= true;
+                $settings['engagement']= true;
+                break;
+            }
+        }
+
+        # Holiday no longer exposed so turn off.
+        $this->dbhm->preExec("UPDATE users SET onholidaytill = NULL WHERE id = ?;", [
+            $this->id
+        ]);
     }
 }

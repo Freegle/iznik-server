@@ -667,6 +667,13 @@ function session() {
                     }
                 }
 
+                $simplemail = Utils::presdef('simplemail', $_REQUEST, NULL);
+
+                if ($simplemail) {
+                    # This is a way to set a bunch of email settings at once.
+                    $me->setSimpleMail($simplemail);
+                }
+
                 Session::clearSessionCache();
             }
             break;

@@ -968,4 +968,44 @@ class sessionTest extends IznikAPITestCase
         $this->assertEquals($session, $ret['session']);
         $_SERVER['HTTP_X_IZNIK_PHP_SESSION'] = NULL;
     }
+
+    public function testSimpleEmail() {
+        $u = User::get($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $this->assertNotNull($u->addEmail('test@test.com'));
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
+        $u->addMembership($group1);
+
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+
+        $ret = $this->call('session', 'PATCH', [
+            'simplemail' => 'Full',
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+
+        $u->clearMembershipCache();
+        $this->assertEquals(0, $u->getMembershipAtt($group1, 'emailfrequency'));
+        $this->assertEquals(1, $u->getMembershipAtt($group1, 'volunteeringallowed'));
+
+        $ret = $this->call('session', 'PATCH', [
+            'simplemail' => 'Basic',
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+
+        $u->clearMembershipCache();
+        $this->assertEquals(24, $u->getMembershipAtt($group1, 'emailfrequency'));
+        $this->assertEquals(NULL, $u->getMembershipAtt($group1, 'volunteeringallowed'));
+
+        $ret = $this->call('session', 'PATCH', [
+            'simplemail' => 'None',
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+
+        $u->clearMembershipCache();
+        $this->assertEquals(-1, $u->getMembershipAtt($group1, 'emailfrequency'));
+        $this->assertEquals(NULL, $u->getMembershipAtt($group1, 'volunteeringallowed'));
+    }
 }
