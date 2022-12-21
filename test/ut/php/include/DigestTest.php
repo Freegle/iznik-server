@@ -174,8 +174,7 @@ class digestTest extends IznikTestCase {
 
         # Now test.
         $this->assertEquals(0, $d->send($this->gid, Digest::IMMEDIATE));
-
-        }
+    }
 
     public function testError() {
         # Create a group with a message on it.

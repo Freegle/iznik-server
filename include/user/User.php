@@ -855,6 +855,10 @@ class User extends Entity
         # row in the child table being deleted.
         $simplemail = $this->getSetting('simplemail', NULL);
 
+        $emailfrequency = 24;
+        $eventsallowed = 1;
+        $volunteeringallowed = 1;
+
         switch ($simplemail) {
             case User::SIMPLE_MAIL_NONE: {
                 $emailfrequency = 0;
@@ -870,7 +874,7 @@ class User extends Entity
                 break;
             }
 
-            default: {
+            case User::SIMPLE_MAIL_FULL: {
                 $emailfrequency = -1;
                 $eventsallowed = 1;
                 $volunteeringallowed = 1;
