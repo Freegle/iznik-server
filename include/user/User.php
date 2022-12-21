@@ -857,7 +857,7 @@ class User extends Entity
 
         switch ($simplemail) {
             case User::SIMPLE_MAIL_NONE: {
-                $emailfrequency = -1;
+                $emailfrequency = 0;
                 $eventsallowed = 0;
                 $volunteeringallowed = 0;
                 break;
@@ -871,7 +871,7 @@ class User extends Entity
             }
 
             default: {
-                $emailfrequency = 0;
+                $emailfrequency = -1;
                 $eventsallowed = 1;
                 $volunteeringallowed = 1;
                 break;
@@ -6698,7 +6698,7 @@ memberships.groupid IN $groupq
                 # No relevant or newsletters.
                 # No email notifications.
                 # No enagement.
-                $this->dbhm->preExec("UPDATE memberships SET emailfrequency = -1, eventsallowed = 0, volunteeringallowed = 0 WHERE userid = ?;", [
+                $this->dbhm->preExec("UPDATE memberships SET emailfrequency = 0, eventsallowed = 0, volunteeringallowed = 0 WHERE userid = ?;", [
                     $this->id
                 ]);
 
@@ -6736,7 +6736,7 @@ memberships.groupid IN $groupq
                 # Relevant and newsletters.
                 # Email notifications.
                 # Enagement.
-                $this->dbhm->preExec("UPDATE memberships SET emailfrequency = 0, eventsallowed = 1, volunteeringallowed = 1 WHERE userid = ?;", [
+                $this->dbhm->preExec("UPDATE memberships SET emailfrequency = -1, eventsallowed = 1, volunteeringallowed = 1 WHERE userid = ?;", [
                     $this->id
                 ]);
 

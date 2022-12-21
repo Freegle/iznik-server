@@ -987,7 +987,7 @@ class sessionTest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
 
         $u = new User($this->dbhr, $this->dbhm, $id);
-        $this->assertEquals(0, $u->getMembershipAtt($group1, 'emailfrequency'));
+        $this->assertEquals(-1, $u->getMembershipAtt($group1, 'emailfrequency'));
         $this->assertEquals(1, $u->getMembershipAtt($group1, 'volunteeringallowed'));
         $this->assertEquals(1, $u->getMembershipAtt($group1, 'eventsallowed'));
         $this->assertEquals(User::SIMPLE_MAIL_FULL, $u->getSetting('simplemail', NULL));
@@ -1009,7 +1009,7 @@ class sessionTest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
 
         $u = new User($this->dbhr, $this->dbhm, $id);
-        $this->assertEquals(-1, $u->getMembershipAtt($group1, 'emailfrequency'));
+        $this->assertEquals(0, $u->getMembershipAtt($group1, 'emailfrequency'));
         $this->assertEquals(NULL, $u->getMembershipAtt($group1, 'volunteeringallowed'));
         $this->assertEquals(NULL, $u->getMembershipAtt($group1, 'eventsallowed'));
         $this->assertEquals(User::SIMPLE_MAIL_NONE, $u->getSetting('simplemail', NULL));
@@ -1020,7 +1020,7 @@ class sessionTest extends IznikAPITestCase
         $u->addMembership($group2);
 
         $u = new User($this->dbhr, $this->dbhm, $id);
-        $this->assertEquals(-1, $u->getMembershipAtt($group2, 'emailfrequency'));
+        $this->assertEquals(0, $u->getMembershipAtt($group2, 'emailfrequency'));
         $this->assertEquals(NULL, $u->getMembershipAtt($group2, 'volunteeringallowed'));
         $this->assertEquals(NULL, $u->getMembershipAtt($group2, 'eventsallowed'));
     }
