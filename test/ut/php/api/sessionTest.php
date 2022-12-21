@@ -982,30 +982,46 @@ class sessionTest extends IznikAPITestCase
         $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('session', 'PATCH', [
-            'simplemail' => 'Full',
+            'simplemail' => User::SIMPLE_MAIL_FULL,
         ]);
         $this->assertEquals(0, $ret['ret']);
 
-        $u->clearMembershipCache();
+        $u = new User($this->dbhr, $this->dbhm, $id);
         $this->assertEquals(0, $u->getMembershipAtt($group1, 'emailfrequency'));
         $this->assertEquals(1, $u->getMembershipAtt($group1, 'volunteeringallowed'));
+        $this->assertEquals(1, $u->getMembershipAtt($group1, 'eventsallowed'));
+        $this->assertEquals(User::SIMPLE_MAIL_FULL, $u->getSetting('simplemail', NULL));
 
         $ret = $this->call('session', 'PATCH', [
-            'simplemail' => 'Basic',
+            'simplemail' => User::SIMPLE_MAIL_BASIC,
         ]);
         $this->assertEquals(0, $ret['ret']);
 
-        $u->clearMembershipCache();
+        $u = new User($this->dbhr, $this->dbhm, $id);
         $this->assertEquals(24, $u->getMembershipAtt($group1, 'emailfrequency'));
         $this->assertEquals(NULL, $u->getMembershipAtt($group1, 'volunteeringallowed'));
+        $this->assertEquals(NULL, $u->getMembershipAtt($group1, 'eventsallowed'));
+        $this->assertEquals(User::SIMPLE_MAIL_BASIC, $u->getSetting('simplemail', NULL));
 
         $ret = $this->call('session', 'PATCH', [
-            'simplemail' => 'None',
+            'simplemail' => User::SIMPLE_MAIL_NONE,
         ]);
         $this->assertEquals(0, $ret['ret']);
 
-        $u->clearMembershipCache();
+        $u = new User($this->dbhr, $this->dbhm, $id);
         $this->assertEquals(-1, $u->getMembershipAtt($group1, 'emailfrequency'));
         $this->assertEquals(NULL, $u->getMembershipAtt($group1, 'volunteeringallowed'));
+        $this->assertEquals(NULL, $u->getMembershipAtt($group1, 'eventsallowed'));
+        $this->assertEquals(User::SIMPLE_MAIL_NONE, $u->getSetting('simplemail', NULL));
+
+        # Joining an additional group should default to none.
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
+        $u->addMembership($group2);
+
+        $u = new User($this->dbhr, $this->dbhm, $id);
+        $this->assertEquals(-1, $u->getMembershipAtt($group2, 'emailfrequency'));
+        $this->assertEquals(NULL, $u->getMembershipAtt($group2, 'volunteeringallowed'));
+        $this->assertEquals(NULL, $u->getMembershipAtt($group2, 'eventsallowed'));
     }
 }

@@ -844,24 +844,53 @@ class User extends Entity
             return FALSE;
         }
 
-        # We don't want to use REPLACE INTO because the membershipid is a foreign key in some tables, and if the
-        # membership already exists, then this would cause us to delete and re-add it, which would result in the
-        # row in the child table being deleted.
-        #
-        #error_log("Add membership role $role for {$this->id} to $groupid with $emailid collection $collection");
         $existing = $this->dbhm->preQuery("SELECT COUNT(*) AS count FROM memberships WHERE userid = ? AND groupid = ? AND collection = ?;", [
             $this->id,
             $groupid,
             $collection
         ]);
 
-        $rc = $this->dbhm->preExec("INSERT INTO memberships (userid, groupid, role, collection) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id), role = ?, collection = ?;", [
+        # We don't want to use REPLACE INTO because the membershipid is a foreign key in some tables, and if the
+        # membership already exists, then this would cause us to delete and re-add it, which would result in the
+        # row in the child table being deleted.
+        $simplemail = $this->getSetting('simplemail', NULL);
+
+        switch ($simplemail) {
+            case User::SIMPLE_MAIL_NONE: {
+                $emailfrequency = -1;
+                $eventsallowed = 0;
+                $volunteeringallowed = 0;
+                break;
+            }
+
+            case User::SIMPLE_MAIL_BASIC: {
+                $emailfrequency = 24;
+                $eventsallowed = 0;
+                $volunteeringallowed = 0;
+                break;
+            }
+
+            default: {
+                $emailfrequency = 0;
+                $eventsallowed = 1;
+                $volunteeringallowed = 1;
+                break;
+            }
+        }
+
+        $rc = $this->dbhm->preExec("INSERT INTO memberships (userid, groupid, role, collection, emailfrequency, eventsallowed, volunteeringallowed) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id), role = ?, collection = ?, emailfrequency = ?, eventsallowed = ?, volunteeringallowed = ?;", [
             $this->id,
             $groupid,
             $role,
             $collection,
+            $emailfrequency,
+            $eventsallowed,
+            $volunteeringallowed,
             $role,
-            $collection
+            $collection,
+            $emailfrequency,
+            $eventsallowed,
+            $volunteeringallowed
         ]);
 
         $membershipid = $this->dbhm->lastInsertId();
@@ -6661,6 +6690,8 @@ memberships.groupid IN $groupq
             $settings = [];
         }
 
+        $this->dbhm->beginTransaction();
+
         switch ($simplemail) {
             case User::SIMPLE_MAIL_NONE: {
                 # No digests, no events/volunteering.
@@ -6678,7 +6709,7 @@ memberships.groupid IN $groupq
                 $settings['notifications']['email'] = false;
                 $settings['notifications']['emailmine'] = false;
                 $settings['notificationmails']= false;
-                $settings['engagement']= false;
+                $settings['engagement'] = false;
                 break;
             }
             case User::SIMPLE_MAIL_BASIC: {
@@ -6721,9 +6752,14 @@ memberships.groupid IN $groupq
             }
         }
 
+        $settings['simplemail'] = $simplemail;
+
         # Holiday no longer exposed so turn off.
-        $this->dbhm->preExec("UPDATE users SET onholidaytill = NULL WHERE id = ?;", [
+        $this->dbhm->preExec("UPDATE users SET onholidaytill = NULL, settings = ? WHERE id = ?;", [
+            json_encode($settings),
             $this->id
         ]);
+
+        $this->dbhm->commit();
     }
 }
