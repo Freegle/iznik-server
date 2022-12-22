@@ -108,8 +108,10 @@ function user() {
                     if ($rc) {
                         $ret = [
                             'ret' => 0,
-                            'status' => 'Success',
-                            'id' => $id
+                            'status' => 'Success - exists with same password',
+                            'id' => $id,
+                            'persistent' => Utils::presdef('persistent', $_SESSION, NULL),
+                            'jwt' => Session::JWT($dbhr, $dbhm)
                         ];
                     } else {
                         # Behaviour is different.  For mods we return success and the existing id - this is used
@@ -146,7 +148,9 @@ function user() {
                                         'ret' => 0,
                                         'status' => 'Success',
                                         'id' => $id,
-                                        'password' => $pwtomail
+                                        'password' => $pwtomail,
+                                        'persistent' => Utils::presdef('persistent', $_SESSION, NULL),
+                                        'jwt' => Session::JWT($dbhr, $dbhm)
                                     ];
                                 }
                             }
