@@ -57,7 +57,7 @@ function abtest() {
                 }
 
                 if (!is_null($action)) {
-                    $sql = "INSERT INTO abtest (uid, variant, action, rate) VALUES (" . $dbhm->quote($uid) . ", " . $dbhm->quote($variant) . ", $score,0) ON DUPLICATE KEY UPDATE action = action + $score, rate = COALESCE(100 * action / shown, 0);";
+                    $sql = "INSERT INTO abtest (uid, variant, action, rate, shown, action) VALUES (" . $dbhm->quote($uid) . ", " . $dbhm->quote($variant) . ", $score,0,0,0) ON DUPLICATE KEY UPDATE action = action + $score, rate = COALESCE(100 * action / shown, 0);";
                     $dbhm->background($sql);
                 }
             }

@@ -59,6 +59,7 @@ class abtestAPITest extends IznikAPITestCase
         # Now get until we've seen both.
         $seena = FALSE;
         $seenb = FALSE;
+        $try = 1000;
 
         do {
             $this->log("Try get");
@@ -76,7 +77,10 @@ class abtestAPITest extends IznikAPITestCase
             if ($ret['variant']['variant'] == 'b') {
                 $seenb = TRUE;
             }
-        } while (!$seena || !$seenb);
 
-        }
+            $try--;
+        } while ($try > 0 && (!$seena || !$seenb));
+
+        $this->assertGreaterThan(0, $try);
+    }
 }
