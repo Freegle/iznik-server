@@ -120,11 +120,11 @@ RUN rm -rf /var/lib/apt/lists/*
 # as that's extra faff for the user.  If you are reading this and know why this is obviously stupid, perhaps you
 # could fix it.
 CMD rm -rf /var/lib/mysql/* \
-  && rm -f /var/log/mysql/error.log \
+    && rm -f /var/log/mysql/error.log \
 	&& usermod -d /var/lib/mysql/ mysql \
 	&& mkdir -p /var/lib/mysql \
 	&& chown -R mysql:mysql /var/lib/mysql \
-  && locale-gen es_ES.UTF-8 \
+    && locale-gen es_ES.UTF-8 \
 	&& mysqld --initialize-insecure \
 	&& echo [server] >> /etc/mysql/my.cnf \
 	&& echo max_allowed_packet=32MB >> /etc/mysql/my.cnf \
@@ -132,22 +132,19 @@ CMD rm -rf /var/lib/mysql/* \
 	&& mysql -u root -e 'CREATE DATABASE IF NOT EXISTS iznik;' \
 	&& /etc/init.d/postgresql start \
 	# Do the next bit in a script as it can fail on re-run
-  && echo "psql -c \"CREATE USER iznik WITH PASSWORD 'iznik'\" > /dev/null 2>&1" > /tmp/pgadduser \
-  && echo "psql -c \"ALTER ROLE iznik superuser;\" > /dev/null 2>&1"  >> /tmp/pgadduser \
-  && echo "psql -c \"CREATE DATABASE iznik;\" > /dev/null 2>&1" >> /tmp/pgadduser \
-  && echo "psql -c \"CREATE EXTENSION postgis;\" > /dev/null 2>&1" >> /tmp/pgadduser \
-  && echo "psql -c \"CREATE EXTENSION btree_gist;\" > /dev/null 2>&1" >> /tmp/pgadduser \
-  && echo "return 0" >> /tmp/pgadduser \
-  && su -c ". /tmp/pgadduser" postgres \
+    && echo "psql -c \"CREATE USER iznik WITH PASSWORD 'iznik'\" > /dev/null 2>&1" > /tmp/pgadduser \
+    && echo "psql -c \"ALTER ROLE iznik superuser;\" > /dev/null 2>&1"  >> /tmp/pgadduser \
+    && echo "psql -c \"CREATE DATABASE iznik;\" > /dev/null 2>&1" >> /tmp/pgadduser \
+    && echo "psql -c \"CREATE EXTENSION postgis;\" > /dev/null 2>&1" >> /tmp/pgadduser \
+    && echo "psql -c \"CREATE EXTENSION btree_gist;\" > /dev/null 2>&1" >> /tmp/pgadduser \
+    && echo "return 0" >> /tmp/pgadduser \
+    && su -c ". /tmp/pgadduser" postgres \
 	&& /etc/init.d/redis-server start \
-	&& /etc/init.d/beanstalkd start \
 	&& /etc/init.d/nginx start \
 	&& /etc/init.d/ssh start \
-	&& /etc/init.d/spamassassin start \
-	&& /user/bin/sa-update \
 	&& /etc/init.d/cron start \
-  # Set up the environment we need for running our UT.  Putting this here means it gets reset each
-  # time we start the container.
+    # Set up the environment we need for running our UT.  Putting this here means it gets reset each
+    # time we start the container.
 	#
 	# We need to make some minor schema tweaks otherwise the schema fails to install.
     && sed -ie 's/ROW_FORMAT=DYNAMIC//g' install/schema.sql \
@@ -160,6 +157,11 @@ CMD rm -rf /var/lib/mysql/* \
     && mysql -u root iznik < install/functions.sql \
     && mysql -u root -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'" \
     && mysql -u root -e "CREATE FUNCTION damlevlim RETURNS INT SONAME 'mysqldamlevlim.so'" \
+    && echo "nameserver 8.8.8.8" > /etc/resolv.conf \
+	&& /usr/bin/sa-update \
+    && /etc/init.d/spamassassin start \
+    && apt-get update && apt-get install rsyslog net-tools -y \
+    && bash -c "/etc/init.d/beanstalkd start > /tmp/beanstalkd.out 2>&1 &" \
     && php install/testenv.php \
     # Keep the container alive
 	&& bash
