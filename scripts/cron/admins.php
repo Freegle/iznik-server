@@ -10,6 +10,14 @@ global $dbhr, $dbhm;
 $lockh = Utils::lockScript(basename(__FILE__));
 
 try {
+    # Delete old ones which haven't been approved.
+    $olds = $dbhr->preQuery("SELECT id FROM admins WHERE complete IS NULL AND pending = 1 AND DATEDIFF(NOW(), created) >= 31;");
+
+    foreach ($olds as $old) {
+        $a = new Admin($dbhr, $dbhm, $old['id']);
+        $a->delete();
+    }
+
     $a = new Admin($dbhr, $dbhm);
 
     # Generate copies of suggested ADMINs.
