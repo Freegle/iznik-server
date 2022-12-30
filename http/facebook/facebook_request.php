@@ -27,10 +27,13 @@ $fb = new \JanuSoftware\Facebook\Facebook([
 $helper = $fb->getRedirectLoginHelper();
 
 $permissions = [
-    'pages_manage_posts',
-    'pages_read_engagement'
+    // Can't ask for manage posts while Facebook doesn't recognise us as a business.
+//    'pages_manage_posts',
+    'pages_read_engagement',
+    'pages_show_list',
 ];
 
 $url = $helper->getLoginUrl('https://' . $_SERVER['HTTP_HOST'] . '/facebook/facebook_response.php?groupid=' . $groupid, $permissions);
-error_log("Redirect to $url");
+#error_log("Redirect to $url");
+#echo($url);
 header('Location: ' . $url);

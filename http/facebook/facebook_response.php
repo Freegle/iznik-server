@@ -26,6 +26,7 @@ if (isset($_GET['state'])) {
 try {
     $accessToken = $helper->getAccessToken();
     $_SESSION['fbaccesstoken'] = (string)$accessToken;
+    #echo "Access token {$_SESSION['fbaccesstoken']}";
 
     $ret = $fb->get('/me', $accessToken);
     $me = $ret->getDecodedBody();
@@ -53,7 +54,7 @@ try {
     });
     ?>
   <p>
-    Facebook have broken something.  You can't relink at the moment.  See
+    Facebook may have broken something.  If you don't see any groups here, tou can't relink at the moment.  See
     <a href="https://discourse.ilovefreegle.org/t/fb-page-linking-not-working">this Discourse thread</a> for details.
   </p>
 <!--    <p>These are the Facebook pages you manage.  Click on the one you want to link to your group.</p>-->
