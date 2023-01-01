@@ -32,6 +32,7 @@ class commentAPITest extends IznikAPITestCase {
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
+        $this->groupid2 = $g->create('testgroup2', Group::GROUP_REUSE);
         $u = User::get($this->dbhr, $this->dbhm);
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
@@ -53,6 +54,10 @@ class commentAPITest extends IznikAPITestCase {
         $this->assertEquals(0, $ret['ret']);
         $id = $ret['id'];
         $this->assertNotNull($id);
+
+        // Shouldn't flag on group2.
+        $this->assertNull($this->user2->getMembershipAtt($this->groupid, 'reviewrequestedat'));
+        $this->assertNull($this->user2->getMembershipAtt($this->groupid2, 'reviewrequestedat'));
 
         $ret = $this->call('comment', 'GET', [
             'id' => $id
@@ -93,7 +98,6 @@ class commentAPITest extends IznikAPITestCase {
                 'reviewed' => '1970-09-11'
             ]
         ]);
-        error_log(var_export($ret, TRUE));
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals(0, count($ret['comments']));
 
@@ -120,6 +124,57 @@ class commentAPITest extends IznikAPITestCase {
         $this->assertEquals(0, $ret['ret']);
         $id = $ret['id'];
         $this->assertNotNull($id);
+    }
+
+    public function testAddFlag() {
+        $this->user2->addMembership($this->groupid, User::ROLE_MEMBER);
+        $this->user2->addMembership($this->groupid2, User::ROLE_MEMBER);
+
+        $ret = $this->call('comment', 'POST', [
+            'userid' => $this->uid2,
+            'groupid' => $this->groupid,
+            'user1' => 'Test comment',
+            'flag' => TRUE
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+
+        // Should flag on group2.
+        $this->assertNull($this->user2->getMembershipAtt($this->groupid, 'reviewrequestedat'));
+        $this->assertNotNull($this->user2->getMembershipAtt($this->groupid2, 'reviewrequestedat'));
+
+        // Joining a third group should also flag.
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup3', Group::GROUP_REUSE);
+        $this->user2->addMembership($gid);
+        $this->assertNotNull($this->user2->getMembershipAtt($gid, 'reviewrequestedat'));
+    }
+
+    public function testPatchFlag() {
+        $this->user2->addMembership($this->groupid, User::ROLE_MEMBER);
+        $this->user2->addMembership($this->groupid2, User::ROLE_MEMBER);
+
+        $ret = $this->call('comment', 'POST', [
+            'userid' => $this->uid2,
+            'groupid' => $this->groupid,
+            'user1' => 'Test comment',
+            'flag' => FALSE
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+
+        $cid = $ret['id'];
+
+        $ret = $this->call('comment', 'PUT', [
+            'id' => $cid,
+            'userid' => $this->uid2,
+            'groupid' => $this->groupid,
+            'user1' => 'Test comment',
+            'flag' => TRUE
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+
+        // Should be flagged on group2.
+        $this->assertNull($this->user2->getMembershipAtt($this->groupid, 'reviewrequestedat'));
+        $this->assertNotNull($this->user2->getMembershipAtt($this->groupid2, 'reviewrequestedat'));
     }
 }
 

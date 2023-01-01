@@ -423,7 +423,6 @@ class digestTest extends IznikTestCase {
         # Now test.
         $this->assertEquals(2, $mock->send($this->gid, Digest::DAILY));
         $this->assertEquals(2, count($this->msgsSent));
-        error_log(var_export($this->msgsSent, TRUE));
 
         # Should include the long subject
         $this->assertNotFalse(strpos($this->msgsSent[0], 'Subject: [testgroup] What\'s New (2 messages) - Test item Test item Test'));

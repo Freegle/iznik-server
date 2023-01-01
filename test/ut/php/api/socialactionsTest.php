@@ -235,7 +235,6 @@ class socialactionsAPITest extends IznikAPITestCase
 
         # No Facebook link - no popular messages.
         $g->findPopularMessages();
-        error_log(var_export($g->getPopularMessages($gid), TRUE));
         $this->assertEquals([], $g->getPopularMessages($gid));
 
         # Add a Facebook link.

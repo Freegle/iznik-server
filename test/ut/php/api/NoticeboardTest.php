@@ -134,7 +134,6 @@ class noticeboardAPITest extends IznikAPITestCase {
         ]);
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals(2, count($ret['noticeboard']['checks']));
-        error_log(var_export($ret['noticeboard']['checks']));
         $this->assertEquals('Test', $ret['noticeboard']['checks'][0]['comments']);
 
         $ret = $this->call('noticeboard', 'POST', [

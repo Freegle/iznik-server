@@ -653,7 +653,6 @@ class sessionTest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
         $newsfeedid = NULL;
         foreach ($ret['newsfeed'] as $n) {
-            error_log(var_export($n, TRUE));
             if (Utils::presdef('userid', $n, 0) == $id && $n['type'] == Newsfeed::TYPE_ABOUT_ME && strcmp($n['message'], 'Something long and interesting about me') === 0) {
                 $found = TRUE;
                 $newsfeedid = $n['id'];
@@ -678,7 +677,6 @@ class sessionTest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
         $newsfeedid = NULL;
         foreach ($ret['newsfeed'] as $n) {
-            error_log(var_export($n, TRUE));
             if ($n['id'] == $newsfeedid && Utils::presdef('userid', $n, 0) == $id && $n['type'] == Newsfeed::TYPE_ABOUT_ME && strcmp($n['message'], 'Something else long and interesting about me') === 0) {
                 $found = TRUE;
             }

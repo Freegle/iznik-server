@@ -953,6 +953,15 @@ class User extends Entity
         $s = new Spam($this->dbhr, $this->dbhm);
         $s->checkUser($this->id, $groupid);
 
+        # We might have mod notes which require this member to be flagged up.
+        $comments = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_comments WHERE userid = ? AND flag = 1;", [
+            $this->id,
+        ]);
+
+        if ($comments[0]['count'] > 0) {
+            $this->memberReview($groupid, TRUE, 'Note flagged to other groups');
+        }
+
         return ($rc);
     }
 
@@ -3422,7 +3431,7 @@ class User extends Entity
 
     public function addComment($groupid, $user1 = NULL, $user2 = NULL, $user3 = NULL, $user4 = NULL, $user5 = NULL,
                                $user6 = NULL, $user7 = NULL, $user8 = NULL, $user9 = NULL, $user10 = NULL,
-                               $user11 = NULL, $byuserid = NULL, $checkperms = TRUE)
+                               $user11 = NULL, $byuserid = NULL, $checkperms = TRUE, $flag = FALSE)
     {
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
@@ -3436,12 +3445,13 @@ class User extends Entity
 
         foreach ($groups as $modgroupid) {
             if ($groupid == $modgroupid) {
-                $sql = "INSERT INTO users_comments (userid, groupid, byuserid, user1, user2, user3, user4, user5, user6, user7, user8, user9, user10, user11) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+                $sql = "INSERT INTO users_comments (userid, groupid, byuserid, user1, user2, user3, user4, user5, user6, user7, user8, user9, user10, user11, flag) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
                 $this->dbhm->preExec($sql, [
                     $this->id,
                     $groupid,
                     $byuserid,
-                    $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $user11
+                    $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $user11,
+                    $flag ? 1 : 0
                 ]);
 
                 $rc = $this->dbhm->lastInsertId();
@@ -3451,23 +3461,40 @@ class User extends Entity
         }
 
         if (!$added && $me && $me->isAdminOrSupport()) {
-            $sql = "INSERT INTO users_comments (userid, groupid, byuserid, user1, user2, user3, user4, user5, user6, user7, user8, user9, user10, user11) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            $sql = "INSERT INTO users_comments (userid, groupid, byuserid, user1, user2, user3, user4, user5, user6, user7, user8, user9, user10, user11, flag) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
             $this->dbhm->preExec($sql, [
                 $this->id,
                 NULL,
                 $byuserid,
-                $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $user11
+                $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $user11,
+                $flag ? 1 : 0
             ]);
 
             $rc = $this->dbhm->lastInsertId();
         }
 
+        if ($rc && $flag) {
+            $this->flagOthers($groupid);
+        }
+
         return ($rc);
+    }
+
+    private function flagOthers($groupid) {
+        # We want to flag this to any other groups that the member is on.
+        $membs = $this->dbhr->preQuery("SELECT groupid FROM memberships WHERE userid = ? AND groupid != ?;", [
+            $this->id,
+            $groupid
+        ]);
+
+        foreach ($membs as $memb) {
+            $this->memberReview($memb['groupid'], TRUE, 'Note flagged to other groups');
+        }
     }
 
     public function editComment($id, $user1 = NULL, $user2 = NULL, $user3 = NULL, $user4 = NULL, $user5 = NULL,
                                 $user6 = NULL, $user7 = NULL, $user8 = NULL, $user9 = NULL, $user10 = NULL,
-                                $user11 = NULL)
+                                $user11 = NULL, $flag = FALSE)
     {
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
@@ -3483,12 +3510,17 @@ class User extends Entity
 
         foreach ($comments as $comment) {
             if ($me && ($me->isAdminOrSupport() || $me->isModOrOwner($comment['groupid']))) {
-                $sql = "UPDATE users_comments SET byuserid = ?, user1 = ?, user2 = ?, user3 = ?, user4 = ?, user5 = ?, user6 = ?, user7 = ?, user8 = ?, user9 = ?, user10 = ?, user11 = ?, reviewed = NOW() WHERE id = ?;";
+                $sql = "UPDATE users_comments SET byuserid = ?, user1 = ?, user2 = ?, user3 = ?, user4 = ?, user5 = ?, user6 = ?, user7 = ?, user8 = ?, user9 = ?, user10 = ?, user11 = ?, reviewed = NOW(), flag = ? WHERE id = ?;";
                 $rc = $this->dbhm->preExec($sql, [
                     $byuserid,
                     $user1, $user2, $user3, $user4, $user5, $user6, $user7, $user8, $user9, $user10, $user11,
+                    $flag,
                     $comment['id']
                 ]);
+
+                if ($rc && $flag) {
+                    $this->flagOthers($comment['groupid']);
+                }
             }
         }
 

@@ -10,6 +10,7 @@ function comment() {
     $ctx = Utils::presdef('context', $_REQUEST, NULL);
     $userid = (Utils::presint('userid', $_REQUEST, NULL));
     $groupid = (Utils::presint('groupid', $_REQUEST, NULL));
+    $flag = (Utils::presbool('flag', $_REQUEST, NULL));
     $user1 = $user2 = $user3 = $user4 = $user5 = $user6 = $user7 = $user8 = $user9 = $user10 = $user11 = NULL;
 
     for ($i = 1; $i <= 11; $i++) {
@@ -70,7 +71,10 @@ function comment() {
                 $user8,
                 $user9,
                 $user10,
-                $user11);
+                $user11,
+                NULL,
+                TRUE,
+                $flag);
 
             if ($id) {
                 $ret = [
@@ -97,7 +101,8 @@ function comment() {
                     $user8,
                     $user9,
                     $user10,
-                    $user11);
+                    $user11,
+                    $flag);
 
                 if ($rc) {
                     $ret = ['ret' => 0, 'status' => 'Success'];

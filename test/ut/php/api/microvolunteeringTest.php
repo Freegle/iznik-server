@@ -268,7 +268,6 @@ class microvolunteeringAPITest extends IznikAPITestCase
             ]
         ]);
         $this->assertEquals(0, $ret['ret']);
-        error_log(var_export($ret, TRUE));
         $this->assertFalse(array_key_exists('microvolunteering', $ret));
 
         # Now enable.

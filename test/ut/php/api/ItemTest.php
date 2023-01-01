@@ -84,7 +84,6 @@ class itemAPITest extends IznikAPITestCase {
         $ret = $this->call('item', 'GET', [
             'typeahead' => 'UTTest'
         ]);
-        error_log(var_export($ret, TRUE));
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals(0, count($ret['items']));
 
@@ -92,7 +91,6 @@ class itemAPITest extends IznikAPITestCase {
             'typeahead' => 'UTTest',
             'minpop' => 0
         ]);
-        error_log(var_export($ret, TRUE));
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals($id, $ret['items'][0]['id']);
     }
