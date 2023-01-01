@@ -105,6 +105,27 @@ do {
                             }
                         }
                     }
+
+                    if (Utils::pres('location', $change)) {
+                        $lat = Utils::presdef('latitude', $change['location'], NULL);
+                        $lng = Utils::presdef('longitude', $change['location'], NULL);
+
+                        if ($lat !== NULL && $lng !== NULL) {
+                            #error_log("FD #{$change['fd_user_id']} TN lat/lng $lat,$lng");
+                            $l = new Location($dbhr, $dbhm);
+
+                            $loc = $l->closestPostcode($lat, $lng);
+
+                            if ($loc) {
+                                #error_log("...found postcode {$loc['id']} {$loc['name']}");
+
+                                if ($loc['id'] !== $u->getPrivate('locationid')) {
+                                    error_log("FD #{$change['fd_user_id']} TN lat/lng $lat,$lng has changed {$u->getPrivate('locationid')} => {$loc['id']} {$loc['name']}");
+                                    $u->setPrivate('lastlocation', $loc['id']);
+                                }
+                            }
+                        }
+                    }
                 }
             } catch (\Exception $e) {
                 error_log("Ratings sync failed " . $e->getMessage() . " " . var_export($rating, true));
