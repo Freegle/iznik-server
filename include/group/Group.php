@@ -315,8 +315,8 @@ class Group extends Entity
         }
     }
 
-    public function getMods() {
-        $sql = "SELECT users.id FROM users INNER JOIN memberships ON users.id = memberships.userid AND memberships.groupid = ? AND role IN ('Owner', 'Moderator');";
+    public function getMods($types = [ User::ROLE_MODERATOR, User::ROLE_OWNER ]) {
+        $sql = "SELECT users.id FROM users INNER JOIN memberships ON users.id = memberships.userid AND memberships.groupid = ? AND role IN ('" . implode("','", $types) . "');";
         $mods = $this->dbhr->preQuery($sql, [ $this->id ]);
         $ret = [];
         foreach ($mods as $mod) {
@@ -1340,5 +1340,93 @@ HAVING logincount > 0
         $this->dbhm->preExec("UPDATE messages_popular SET declined = 1 WHERE msgid = ?;", [
             $msgid
         ]);
+    }
+
+    public function getLastApproval($uid) {
+        $approvals = $this->dbhr->preQuery("SELECT COUNT(*) AS count, DATEDIFF(NOW(), MAX(arrival)) AS ago FROM messages_groups WHERE approvedby = ? AND groupid = ?", [
+            $uid,
+            $this->id
+        ]);
+
+        $ret = $approvals[0]['count'] > 0 ? $approvals[0]['ago'] : PHP_INT_MAX;
+        #error_log("Last approval for {$this->id} by $uid was $ret days ago");
+        return $ret;
+    }
+
+    public function getModsToNotify() {
+        $ret = [];
+
+        # This is to find mods to notify about things on the group which require attention, ideally from the
+        # owner.  Although we have owner/mod status, that is no guarantee that the owners are actually active.
+        # So we want to find people who are known to be active that we can notify.
+        #
+        # 1. First choice is people with owner status on the group, who are set to be active mods, who have been
+        #    actually active within the last month.
+        # 2. Next choice if there are none of them is the same, but who are set to backup mod status.
+        # 3. Next choice if there are none of them is people with mod status, who are set to be active mods, who
+        #    have been actually active.
+        # 4. Next choice is the same but who are set to backup mod status.
+        # 5. Next choice is Mentors.
+        $owners = $this->getMods([ User::ROLE_OWNER ]);
+
+        foreach ($owners as $owner) {
+            if ($this->getLastApproval($owner) <= 31) {
+                $u = User::get($this->dbhr, $this->dbhm, $owner);
+
+                if ($u->activeModForGroup($this->id)) {
+                    error_log("#$owner " . $u->getEmailPreferred() . " is active and active owner for group");
+                    $ret[] = $owner;
+                }
+            }
+        }
+
+        if (!count($ret)) {
+            foreach ($owners as $owner) {
+                if ($this->getLastApproval($owner) <= 31) {
+                    $u = User::get($this->dbhr, $this->dbhm, $owner);
+
+                    if (!$u->activeModForGroup($this->id)) {
+                        error_log("#$owner " . $u->getEmailPreferred() . " is active and backup owner for group");
+                        $ret[] = $owner;
+                    }
+                }
+            }
+        }
+
+        if (!count($ret)) {
+            $mods = $this->getMods([ User::ROLE_MODERATOR ]);
+
+            foreach ($mods as $mod) {
+                if ($this->getLastApproval($mod) <= 31) {
+                    $u = User::get($this->dbhr, $this->dbhm, $mod);
+
+                    if ($u->activeModForGroup($this->id)) {
+                        error_log("$mod " . $u->getEmailPreferred() . " is active and active mod for group");
+                        $ret[] = $mod;
+                    }
+                }
+            }
+        }
+
+        if (!count($ret)) {
+            foreach ($mods as $mod) {
+                if ($this->getLastApproval($mod) <= 31) {
+                    $u = User::get($this->dbhr, $this->dbhm, $mod);
+
+                    if (!$u->activeModForGroup($this->id)) {
+                        error_log("$mod " . $u->getEmailPreferred() . " is active and backup mod for group");
+                        $ret[] = $mod;
+                    }
+                }
+            }
+        }
+
+
+        if (!count($ret)) {
+            error_log("...fallback to Mentors");
+            $ret[]= MENTORS_ADDR;
+        }
+
+        return $ret;
     }
 }
