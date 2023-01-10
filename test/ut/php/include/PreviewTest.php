@@ -34,7 +34,8 @@ class PreviewTest extends IznikTestCase {
         self::assertEquals(0, $atts['invalid']);
         self::assertGreaterThan(0, strlen($atts['title']));
 
-        $this->assertNotFalse(strpos($atts['image'], 'http'));
+        // Could get full link or relative path.
+        $this->assertTrue(strpos($atts['image'], 'http') !== FALSE || strpos($atts['image'], '/') === 0);
 
         $id2 = $l->get('https://google.co.uk');
         self::assertEquals($id, $id2);
