@@ -1860,7 +1860,10 @@ ORDER BY lastdate DESC;";
     {
         $name = NULL;
 
-        if ($fromip) {
+        // Check that it's a real ip - might be a TN hash.
+        $realIP = strpos($fromip, '.') !== FALSE || strpos($fromip, ':') !== FALSE;
+
+        if ($fromip && $realIP) {
             # If the call returns a hostname which is the same as the IP, then it's
             # not resolvable.
             $name = gethostbyaddr($fromip);
@@ -1885,7 +1888,10 @@ ORDER BY lastdate DESC;";
      */
     public function getFromhost()
     {
-        if (!$this->fromhost && $this->fromip) {
+        // Check that it's a real ip - might be a TN hash.
+        $realIP = strpos($fromip, '.') !== FALSE || strpos($fromip, ':') !== FALSE;
+
+        if ($realIP && !$this->fromhost && $this->fromip) {
             # If the call returns a hostname which is the same as the IP, then it's
             # not resolvable.
             $name = gethostbyaddr($this->fromip);
@@ -2133,6 +2139,11 @@ ORDER BY lastdate DESC;";
         $ip = $ip ? $ip : $this->getHeader('x-trash-nothing-user-ip');
         $ip = $ip ? $ip : $this->getHeader('x-yahoo-post-ip');
         $ip = $ip ? $ip : $this->getHeader('x-originating-ip');
+
+        // This next one is not an actual IP, but a 40 character hash.  We still store it so that we can do some
+        // checks.
+        $ip = $ip ? $ip : $this->getHeader('x-trash-nothing-ip-hash');
+
         $ip = preg_replace('/[\[\]]/', '', $ip);
         $this->fromip = $ip;
 

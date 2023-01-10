@@ -77,16 +77,15 @@ class Spam {
         $ip = $msg->getFromIP();
         $host = NULL;
 
-        if ($msg->getEnvelopefrom() == 'noreply@trashnothing.com') {
-            return NULL;
-        }
+        // TN sends the IP in hashed form, so we can still do checks on use of the IP, but not look it up.
+        $fromTN = $msg->getEnvelopefrom() == 'noreply@trashnothing.com';
 
         if (stripos($msg->getFromname(), GROUP_DOMAIN) !== FALSE || stripos($msg->getFromname(), USER_DOMAIN) !== FALSE) {
             # A domain which embeds one of ours in an attempt to fool us into thinking it is legit.
             return [ TRUE, Spam::REASON_USED_OUR_DOMAIN, "Used our domain inside from name " . $msg->getFromname() ] ;
         }
 
-        if ($ip) {
+        if ($ip && !$fromTN) {
             if (strpos($ip, "10.") === 0) {
                 # We've picked up an internal IP, ignore it.
                 $ip = NULL;
@@ -110,24 +109,26 @@ class Spam {
         }
 
         if ($ip && $this->reader) {
-            # We have an IP, we reckon.  It's unlikely that someone would fake an IP which gave a spammer match, so
-            # we don't have to worry too much about false positives.
-            try {
-                $record = $this->reader->country($ip);
-                $country = $record->country->name;
-                $msg->setPrivate('fromcountry', $record->country->isoCode);
-            } catch (\Exception $e) {
-                # Failed to look it up.
-                error_log("Failed to look up $ip " . $e->getMessage());
-                $country = NULL;
-            }
+            if (!$fromTN) {
+                # We have an IP, we reckon.  It's unlikely that someone would fake an IP which gave a spammer match, so
+                # we don't have to worry too much about false positives.
+                try {
+                    $record = $this->reader->country($ip);
+                    $country = $record->country->name;
+                    $msg->setPrivate('fromcountry', $record->country->isoCode);
+                } catch (\Exception $e) {
+                    # Failed to look it up.
+                    error_log("Failed to look up $ip " . $e->getMessage());
+                    $country = NULL;
+                }
 
-            # Now see if we're blocking all mails from that country.  This is legitimate if our service is for a
-            # single country and we are vanishingly unlikely to get legitimate emails from certain others.
-            $countries = $this->dbhr->preQuery("SELECT * FROM spam_countries WHERE country = ?;", [$country]);
-            foreach ($countries as $country) {
-                # Gotcha.
-                return(array(true, Spam::REASON_COUNTRY_BLOCKED, "Blocking IP $ip as it's in {$country['country']}"));
+                # Now see if we're blocking all mails from that country.  This is legitimate if our service is for a
+                # single country and we are vanishingly unlikely to get legitimate emails from certain others.
+                $countries = $this->dbhr->preQuery("SELECT * FROM spam_countries WHERE country = ?;", [$country]);
+                foreach ($countries as $country) {
+                    # Gotcha.
+                    return(array(true, Spam::REASON_COUNTRY_BLOCKED, "Blocking IP $ip as it's in {$country['country']}"));
+                }
             }
 
             # Now see if this IP has been used for too many different users.  That is likely to
