@@ -39,7 +39,7 @@ class WorryWords {
         foreach ([ $subject, $textbody ] as $scan) {
             foreach ($this->words as $worryword) {
                 if ($worryword['type'] ==  WorryWords::TYPE_ALLOWED) {
-                    $worryreg = '/\b' . preg_quote($worryword['word']) . '\b/i';
+                    $worryreg = '/\b' . preg_quote($worryword['keyword']) . '\b/i';
                     $scan = preg_replace($worryreg, '', $scan);
                 }
             }
