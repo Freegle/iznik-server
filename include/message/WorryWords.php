@@ -39,7 +39,8 @@ class WorryWords {
         foreach ([ $subject, $textbody ] as $scan) {
             foreach ($this->words as $worryword) {
                 if ($worryword['type'] ==  WorryWords::TYPE_ALLOWED) {
-                    $scan = str_ireplace($worryword['keyword'], '', $scan);
+                    $worryreg = '/\b' . preg_quote($worryword['word']) . '\b/i';
+                    $scan = preg_replace($worryreg, '', $scan);
                 }
             }
 
@@ -93,6 +94,7 @@ class WorryWords {
                         $threshold = 1;
 
                         if (($ratio >= 0.75 && $ratio <= 1.25) && @levenshtein(strtolower($worryword['keyword']), strtolower($word)) < $threshold) {
+                            #error_log("Found approx $word in {$worryword['keyword']} with ratio $ratio distance " . levenshtein(strtolower($worryword['keyword']), strtolower($word)));
                             # Close enough to be worrying.
                             if ($log) {
                                 $this->log->log([
