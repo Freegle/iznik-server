@@ -101,24 +101,26 @@ function image() {
             $rotate = Utils::presint('rotate', $_REQUEST, NULL);
 
             if ($rotate) {
-                # We want to rotate.  Do so.
-                $a = new Attachment($dbhr, $dbhm, $id, $type);
-                $data = $a->getData();
-                $i = new Image($data);
-                $i->rotate($rotate);
-                $newdata = $i->getData(100);
-                $a->setData($newdata);
+                if ($id) {
+                    # We want to rotate.  Do so.
+                    $a = new Attachment($dbhr, $dbhm, $id, $type);
+                    $data = $a->getData();
+                    $i = new Image($data);
+                    $i->rotate($rotate);
+                    $newdata = $i->getData(100);
+                    $a->setData($newdata);
 
-                if ($type == Attachment::TYPE_MESSAGE) {
-                    # Only some kinds of attachments record whether they are rotated.
-                    $a->recordRotate();
+                    if ($type == Attachment::TYPE_MESSAGE) {
+                        # Only some kinds of attachments record whether they are rotated.
+                        $a->recordRotate();
+                    }
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
+                        'rotatedsize' => strlen($newdata)
+                    ];
                 }
-
-                $ret = [
-                    'ret' => 0,
-                    'status' => 'Success',
-                    'rotatedsize' => strlen($newdata)
-                ];
             } else {
                 $photo = Utils::presdef('photo', $_FILES, NULL) ? $_FILES['photo'] : $_REQUEST['photo'];
                 $imgtype = Utils::presdef('imgtype', $_REQUEST, Attachment::TYPE_MESSAGE);
