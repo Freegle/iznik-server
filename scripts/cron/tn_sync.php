@@ -64,64 +64,71 @@ do {
                 $u = User::get($dbhr, $dbhm, $change['fd_user_id']);
 
                 if ($u->isTN()) {
-                    $dbhm->preExec(
-                        "REPLACE INTO users_replytime (userid, replytime, timestamp) VALUES (?, ?, ?);",
-                        [
-                            $change['fd_user_id'],
-                            $change['reply_time'],
-                            $change['date']
-                        ]
-                    );
-
-                    if ($change['about_me']) {
-                        try {
+                    if (Utils::pres('account_removed', $change)) {
+                        error_log("FD #{$change['fd_user_id']} TN account removed");
+                        $u->forget('TN account removed');
+                    } else {
+                        if (Utils::pres('reply_time', $change)) {
                             $dbhm->preExec(
-                                "REPLACE INTO users_aboutme (userid, timestamp, text) VALUES (?, ?, ?);",
+                                "REPLACE INTO users_replytime (userid, replytime, timestamp) VALUES (?, ?, ?);",
                                 [
                                     $change['fd_user_id'],
-                                    $change['date'],
-                                    $change['about_me']
+                                    $change['reply_time'],
+                                    $change['date']
                                 ]
                             );
-                        } catch (\Exception $e) {
-                            \Sentry\captureException($e);
                         }
-                    }
 
-                    # Spot name changes.
-                    $oldname = User::removeTNGroup($u->getName());
-
-                    if ($oldname != $change['username']) {
-                        error_log("Name change for {$change['fd_user_id']} $oldname => {$change['username']}");
-                        $u->setPrivate('fullname', $change['username']);
-
-                        $emails = $u->getEmails();
-
-                        foreach ($emails as $email) {
-                            if (strpos($email['email'], "$oldname-") !== FALSE) {
-                                $u->removeEmail($email['email']);
-                                error_log("...{$email['email']} => " . str_replace("$oldname-", "{$change['username']}-", $email['email']));
-                                $u->addEmail(str_replace("$oldname-", "{$change['username']}-", $email['email']));
+                        if (Utils::pres('about_me', $change)) {
+                            try {
+                                $dbhm->preExec(
+                                    "REPLACE INTO users_aboutme (userid, timestamp, text) VALUES (?, ?, ?);",
+                                    [
+                                        $change['fd_user_id'],
+                                        $change['date'],
+                                        $change['about_me']
+                                    ]
+                                );
+                            } catch (\Exception $e) {
+                                \Sentry\captureException($e);
                             }
                         }
-                    }
 
-                    if (Utils::pres('location', $change)) {
-                        $lat = Utils::presdef('latitude', $change['location'], NULL);
-                        $lng = Utils::presdef('longitude', $change['location'], NULL);
+                        # Spot name changes.
+                        $oldname = User::removeTNGroup($u->getName());
 
-                        if ($lat !== NULL && $lng !== NULL) {
-                            #error_log("FD #{$change['fd_user_id']} TN lat/lng $lat,$lng");
-                            $l = new Location($dbhr, $dbhm);
+                        if (Utils::pres('username', $change) && $oldname != $change['username']) {
+                            error_log("Name change for {$change['fd_user_id']} $oldname => {$change['username']}");
+                            $u->setPrivate('fullname', $change['username']);
 
-                            $loc = $l->closestPostcode($lat, $lng);
+                            $emails = $u->getEmails();
 
-                            if ($loc) {
-                                #error_log("...found postcode {$loc['id']} {$loc['name']}");
+                            foreach ($emails as $email) {
+                                if (strpos($email['email'], "$oldname-") !== FALSE) {
+                                    $u->removeEmail($email['email']);
+                                    error_log("...{$email['email']} => " . str_replace("$oldname-", "{$change['username']}-", $email['email']));
+                                    $u->addEmail(str_replace("$oldname-", "{$change['username']}-", $email['email']));
+                                }
+                            }
+                        }
 
-                                if ($loc['id'] !== $u->getPrivate('locationid')) {
-                                    error_log("FD #{$change['fd_user_id']} TN lat/lng $lat,$lng has changed {$u->getPrivate('locationid')} => {$loc['id']} {$loc['name']}");
-                                    $u->setPrivate('lastlocation', $loc['id']);
+                        if (Utils::pres('location', $change)) {
+                            $lat = Utils::presdef('latitude', $change['location'], NULL);
+                            $lng = Utils::presdef('longitude', $change['location'], NULL);
+
+                            if ($lat !== NULL && $lng !== NULL) {
+                                #error_log("FD #{$change['fd_user_id']} TN lat/lng $lat,$lng");
+                                $l = new Location($dbhr, $dbhm);
+
+                                $loc = $l->closestPostcode($lat, $lng);
+
+                                if ($loc) {
+                                    #error_log("...found postcode {$loc['id']} {$loc['name']}");
+
+                                    if ($loc['id'] !== $u->getPrivate('locationid')) {
+                                        error_log("FD #{$change['fd_user_id']} TN lat/lng $lat,$lng has changed {$u->getPrivate('locationid')} => {$loc['id']} {$loc['name']}");
+                                        $u->setPrivate('lastlocation', $loc['id']);
+                                    }
                                 }
                             }
                         }
