@@ -75,9 +75,10 @@ foreach ($groups as $group) {
                             "We think $name ($email) has not been actively moderating on {$g->getName()} for " . ($lastactive ? "$lastactive days" : "a long time") . ".\r\n\r\n" .
                             "At this point there are several things you could do:\r\n" .
                             "1. Contact them and see if they’d like to stay active, or come back.\r\n" .
-                            "2. If you know that they are no longer a mod, or it’s a duplicate account, please manually change their status to Member, from Members->Approved.\r\n" .
-                            "3. Do nothing. Eventually the change to member status will happen automatically after about six months.\r\n" .
-                            "4. If there is some reason why you’d like them to be exempt from this check (e.g. if they are long-term ill) please mail geeks@ilovefreegle.org.\r\n\r\n" .
+                            "2. If you know that they are a backup mod, contact them and ask them to change their ModTools settings in Settings->Community->Your Settings to record them as a backup.\r\n" .
+                            "3. If you know that they are no longer a mod, or it’s a duplicate account, please manually change their status to Member, from Members->Approved.\r\n" .
+                            "4. Do nothing. Eventually the change to member status may happen automatically after about six months, but we'll be discussing how that works later.\r\n" .
+                            "5. If there is some reason why you’d like them to be exempt from this check (e.g. if they are long-term ill) please forward this mail to geeks@ilovefreegle.org.\r\n\r\n" .
                             "We will notify you about the same volunteer no more than once a month.\r\n\r\n" .
                             "Regards,\r\n\r\n" .
                             "Freegle Geeks";
