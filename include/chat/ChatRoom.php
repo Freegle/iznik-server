@@ -1574,7 +1574,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                             $thisone['reviewreason'] = "$reason $text";
                         } else
                         {
-                            $reason = $s->checkReview($thisone['message'], true);
+                            $reason = $s->checkReview($thisone['message'], TRUE);
 
                             if ($reason)
                             {
