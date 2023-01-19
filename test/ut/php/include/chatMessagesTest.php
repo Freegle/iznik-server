@@ -457,8 +457,6 @@ class chatMessagesTest extends IznikTestCase {
     public function testCheckReview() {
         $m = new ChatMessage($this->dbhr, $this->dbhm);
 
-        $this->assertEquals(ChatMessage::REVIEW_SPAM, $m->checkReview(''));
-
         # Fine
         $this->assertNull($m->checkReview('Nothing to see here'));
 

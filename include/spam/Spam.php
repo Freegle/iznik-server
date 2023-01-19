@@ -274,7 +274,7 @@ class Spam {
         # Spammer trick is to encode the dot in URLs.
         $message = str_replace('&#12290;', '.', $message);
 
-        #error_log("Check review $message len " . strlen($message) . " blankok? $blankok");
+        #error_log("Check review $message len " . strlen($message));
         if (strlen($message) == 0) {
             # Blank is odd, but not spam.
             return NULL;
