@@ -238,16 +238,15 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->assertNotNull($ret['id']);
         $this->assertEquals($mid1, $ret['id']);
 
-        # Check that the email was suppressed.
+        # Check that the email was not suppressed.
         $this->log("Check for suppress of $mid1 to {$this->uid2}");
         $ret = $this->call('chatrooms', 'POST', [
             'id' => $this->cid
         ]);
 
-        $this->log(var_export($ret, TRUE));
         foreach ($ret['roster'] as $rost) {
             if ($rost['user']['id'] == $this->uid2) {
-                self::assertEquals($mid1, $rost['lastmsgemailed']);
+                self::assertNull($rost['lastmsgemailed']);
             }
         }
 

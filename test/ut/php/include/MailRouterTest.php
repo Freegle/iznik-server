@@ -894,13 +894,12 @@ class MailRouterTest extends IznikTestCase {
             $this->assertEquals('Some replying person', $user['displayname']);
         }
 
-        # Check that the reply is flagged as having been seen by email, as it should be since the original has
-        # been promised.
+        # Check that the reply is not flagged as having been seen by email.
         $roster = $c->getRoster();
         $this->log("Roster " . var_export($roster, TRUE));
         foreach ($roster as $rost) {
             if ($rost['user']['id'] == $this->uid) {
-                self::assertEquals($msgs[0]['id'], $rost['lastmsgemailed']);
+                self::assertNull($rost['lastmsgemailed']);
             }
         }
 
@@ -1146,13 +1145,12 @@ class MailRouterTest extends IznikTestCase {
         $this->assertEquals($origid, $msgs[0]['refmsg']['id']);
         $this->assertEquals($uid2, $msgs[0]['userid']);
 
-        # Check that the reply is flagged as having been seen by email, as it should be since the original has
-        # been promised.
+        # Check that the reply is not flagged as having been seen by email.
         $roster = $c->getRoster();
         $this->log("Roster " . var_export($roster, TRUE));
         foreach ($roster as $rost) {
             if ($rost['user']['id'] == $this->uid) {
-                self::assertEquals($msgs[0]['id'], $rost['lastmsgemailed']);
+                self::assertNull($rost['lastmsgemailed']);
             }
         }
     }
