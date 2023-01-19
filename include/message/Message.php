@@ -5209,25 +5209,6 @@ $mq", [
         return(count($outcomes) > 0 ? $outcomes[0]['outcome'] : NULL);
     }
 
-    public function promisedButNotTo($userid) {
-        $sql = "SELECT * FROM messages_promises WHERE msgid = ?;";
-        $ret = FALSE;
-
-        $promises = $this->dbhr->preQuery($sql, [ $this->id ]);
-
-        if (count($promises)) {
-            $ret = TRUE;
-
-            foreach ($promises as $promise) {
-                if ($promise['userid'] == $userid) {
-                    $ret = FALSE;
-                }
-            }
-        }
-
-        return $ret;
-    }
-
     public function isEdited() {
         return(!is_null($this->editedby));
     }

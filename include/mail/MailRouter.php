@@ -1185,10 +1185,10 @@ class MailRouter
                     # Add any photos.
                     $this->addPhotosToChat($chatid);
 
-                    if ($m->hasOutcome() || $m->promisedButNotTo($this->msg->getFromuser()))
+                    if ($m->hasOutcome())
                     {
                         # We don't want to email the recipient - no point pestering them with more
-                        # emails for items which are completed or promised.  They can see them on the
+                        # emails for items which are completed.  They can see them on the
                         # site if they want.
                         if ($log)
                         {
@@ -1390,10 +1390,10 @@ class MailRouter
                 {
                     $m = new Message($this->dbhr, $this->dbhm, $original);
 
-                    if ($m->hasOutcome() || $m->promisedButNotTo($this->msg->getFromuser()))
+                    if ($m->hasOutcome())
                     {
                         # We don't want to email the recipient - no point pestering them with more
-                        # emails for items which are completed or promised.  They can see them on the
+                        # emails for items which are completed.  They can see them on the
                         # site if they want.
                         if ($log)
                         {

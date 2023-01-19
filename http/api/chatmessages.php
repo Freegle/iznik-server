@@ -168,11 +168,10 @@ function chatmessages() {
 
                             if ($id) {
                                 if ($refmsgid) {
-                                    # If the refmsg has completed or is promised to someone else, then no need to
-                                    # email notify the recipient.
+                                    # If the refmsg has completed, then no need to email notify the recipient.
                                     $refm = new Message($dbhr, $dbhm, $refmsgid);
 
-                                    if ($refm->hasOutcome() || $refm->promisedButNotTo($me->getId())) {
+                                    if ($refm->hasOutcome()) {
                                         $r->mailedLastForUser($refm->getFromuser());
                                     }
                                 }
