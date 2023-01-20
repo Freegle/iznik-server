@@ -1662,7 +1662,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                     # This message was reviewed and deemed unsuitable.  So we shouldn't see it.
                 } else {
                     # We should return this one.
-                    if (!$me->isAdminOrSupport()) {
+                    if (!$me || !$me->isAdminOrSupport()) {
                         unset($atts['reviewrequired']);
                         unset($atts['reviewedby']);
                         unset($atts['reviewrejected']);
