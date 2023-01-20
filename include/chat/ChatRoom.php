@@ -1624,7 +1624,8 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
         $lastuser = NULL;
         $lastdate = NULL;
 
-        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
+        $myid = $me ? $me->getId() : null;
 
         $modaccess = FALSE;
 
@@ -1661,9 +1662,12 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                     # This message was reviewed and deemed unsuitable.  So we shouldn't see it.
                 } else {
                     # We should return this one.
-                    unset($atts['reviewrequired']);
-                    unset($atts['reviewedby']);
-                    unset($atts['reviewrejected']);
+                    if (!$me->isAdminOrSupport()) {
+                        unset($atts['reviewrequired']);
+                        unset($atts['reviewedby']);
+                        unset($atts['reviewrejected']);
+                    }
+
                     $atts['date'] = Utils::ISODate($atts['date']);
 
                     $atts['sameaslast'] = ($lastuser ==  $msg['userid']);
