@@ -220,8 +220,9 @@ class Group extends Entity
             # Check validity of spatial data
             $ret = FALSE;
             try {
-                $valid = !$val ? [ [ 'valid' => TRUE ] ] :  $this->dbhm->preQuery($this->dbhr->isV8() ? "SELECT ST_IsValid(ST_GeomFromText(?, {$this->dbhr->SRID()})) AS valid;" : "SELECT ST_IsValid(ST_GeomFromText(?)) AS valid;", [
-                    $val
+                $valid = !$val ? [ [ 'valid' => TRUE ] ] :  $this->dbhm->preQuery($this->dbhr->isV8() ? "SELECT ST_IsValid(ST_Simplify(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?)) AS valid;" : "SELECT ST_IsValid(ST_Simplify(ST_GeomFromText(?), ?)) AS valid;", [
+                    $val,
+                    LoggedPDO::SIMPLIFY
                 ]);
 
                 foreach ($valid as $v) {
@@ -253,6 +254,7 @@ class Group extends Entity
                 }
             } catch(\Exception $e) {
                 # Drop through with ret false.
+                error_log("Failed to set $att " . $e->getMessage());
             }
         } else {
             parent::setPrivate($att, $val);
