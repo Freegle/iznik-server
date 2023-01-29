@@ -406,6 +406,11 @@ class Spam {
         # Strip out any job text, which might have spam keywords.
         $message = preg_replace('/\<https\:\/\/www\.ilovefreegle\.org\/jobs\/.*\>.*$/im', '', $message);
 
+        # Some spammers use HTML entities in text bodyparts to disguise words.
+        $message = str_replace('&#616;', 'i', $message);
+        $message = str_replace('&#537;', 's', $message);
+        $message = str_replace('&#206;', 'I', $message);
+
         # Check keywords which are known as spam.
         $this->getSpamWords();
         foreach ($this->spamwords as $word) {
