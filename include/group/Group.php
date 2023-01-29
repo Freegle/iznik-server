@@ -254,7 +254,7 @@ class Group extends Entity
                 }
             } catch(\Exception $e) {
                 # Drop through with ret false.
-                error_log("Failed to set $att " . $e->getMessage());
+                #error_log("Failed to set $att " . $e->getMessage());
             }
         } else {
             parent::setPrivate($att, $val);
