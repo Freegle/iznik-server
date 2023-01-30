@@ -3529,8 +3529,11 @@ ORDER BY lastdate DESC;";
             $textbody = substr($textbody, 0, strlen($textbody) - 1);
         }
 
-        // Left over inline image references
+        # Left over inline image references
         $textbody = preg_replace('/\[cid\:.*?\]/', '', $textbody);
+
+        # Remove autowording from TN which doesn't add much.
+        $textbody = str_replace('[Note: This is an automated response from trashnothing.com on behalf of the post author]', '', $textbody);
 
         # Strip underscores and dashes, which can arise due to quoting issues.
         return(trim($textbody, " \t\n\r\0\x0B_-"));
