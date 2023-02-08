@@ -2333,6 +2333,7 @@ class User extends Entity
                 foreach ($rets as &$ret) {
                     $ret['applied'] = [];
                     $ret['activedistance'] = null;
+                    $ret['activearea'] = null;
 
                     foreach ($membs as $memb) {
                         if ($ret['id'] == $memb['userid']) {
