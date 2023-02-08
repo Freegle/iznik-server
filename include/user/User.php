@@ -2264,13 +2264,15 @@ class User extends Entity
                 foreach ($groups as $group) {
                     if ($ret['id'] ==  $group['userid']) {
                         $name = $group['namefull'] ? $group['namefull'] : $group['nameshort'];
+                        $added = Utils::ISODate(Utils::pres('yadded', $group) ? $group['yadded'] : $group['added']);
+                        $addedago = floor((time() - strtotime($added)) / 86400);
 
                         $ret['memberof'][] = [
                             'id' => $group['groupid'],
                             'membershipid' => $group['id'],
                             'namedisplay' => $name,
                             'nameshort' => $group['nameshort'],
-                            'added' => Utils::ISODate(Utils::pres('yadded', $group) ? $group['yadded'] : $group['added']),
+                            'added' => $added,
                             'collection' => $group['coll'],
                             'role' => $group['role'],
                             'emailfrequency' => $group['emailfrequency'],
@@ -2284,7 +2286,9 @@ class User extends Entity
                             'reviewedat' => $group['reviewedat'] ? Utils::ISODate($group['reviewedat']) : NULL,
                         ];
 
-                        if ($group['lat'] && $group['lng']) {
+
+                        // Counts as active if recently joined.
+                        if ($group['lat'] && $group['lng'] && $addedago <= 31) {
                             $box = Utils::presdef('activearea', $ret, NULL);
 
                             $ret['activearea'] = [
@@ -2333,7 +2337,6 @@ class User extends Entity
                 foreach ($rets as &$ret) {
                     $ret['applied'] = [];
                     $ret['activedistance'] = null;
-                    $ret['activearea'] = null;
 
                     foreach ($membs as $memb) {
                         if ($ret['id'] == $memb['userid']) {
