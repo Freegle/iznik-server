@@ -39,14 +39,14 @@ try {
                 ]);
 
                 if (count($already)) {
-                    #error_log("Already got {$suggested['id']} for {$group['nameshort']}");
+                    error_log("Already got {$suggested['id']} for {$group['nameshort']}");
                 } else {
                     error_log("Not got {$suggested['id']} for {$group['nameshort']}, create");
                     $a = new Admin($dbhr, $dbhm, $suggested['id']);
                     $a->copyForGroup($group['id']);
                 }
             } else {
-                error_log("Disabled {$suggested['id']} for {$group['nameshort']}");
+                error_log("Auto-admins disabled {$suggested['id']} for {$group['nameshort']}");
             }
         }
 

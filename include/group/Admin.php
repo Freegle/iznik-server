@@ -249,10 +249,6 @@ class Admin extends Entity
 
         if ($id) {
             $a->setPrivate('parentid', $this->id);
-
-            # Suggested ADMINs lead to us sending a lot of mail very rapidly across the whole system.  This can trigger
-            # spam reports if the ADMINs go all users.  So we set suggested ADMINs to only send to active members.
-            $a->setPrivate('activeonly', TRUE);
         }
 
         return($id);
