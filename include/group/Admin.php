@@ -249,6 +249,10 @@ class Admin extends Entity
 
         if ($id) {
             $a->setPrivate('parentid', $this->id);
+
+            # Suggested ADMINs lead to us sending a lot of mail very rapidly across the whole system.  This can trigger
+            # spam reports if the ADMINs go all users.  So we set suggested ADMINs to only send to active members.
+            $a->setPrivate('activeonly', TRUE);
         }
 
         return($id);
@@ -267,7 +271,6 @@ class Admin extends Entity
     }
 
     public function listPending($userid) {
-        $u = User::get($this->dbhr, $this->dbhm, $userid);
         $ret = [];
 
         $admins = $this->dbhr->preQuery("SELECT admins.id, admins.groupid FROM admins INNER JOIN memberships ON memberships.groupid = admins.groupid WHERE memberships.userid = ? AND pending = 1 AND complete IS NULL AND role IN ('Moderator', 'Owner') ORDER BY created ASC;", [
