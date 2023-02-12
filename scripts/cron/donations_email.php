@@ -13,7 +13,17 @@ $summ = '<table><tbody>';
 $total = 0;
 
 foreach ($donations as $donation) {
-    $summ .= "<tr><td>{$donation['timestamp']}</td><td><b>&pound;{$donation['GrossAmount']}</b></td><td>{$donation['Payer']}</td></tr>\n";
+    $summ .= "<tr><td>{$donation['timestamp']}</td><td><b>&pound;{$donation['GrossAmount']}</b></td><td>{$donation['Payer']}</td>";
+
+    $recurring = $donation['TransactionType'] == 'recurring_payment' || $donation['TransactionType'] == 'subscr_payment';
+
+    if ($recurring) {
+        $summ .= "<td>Recurring</td>";
+    } else {
+        $summ .= "<td></td>";
+    }
+
+    $summ .= "</tr>\n";
     $total += $donation['GrossAmount'];
 }
 
