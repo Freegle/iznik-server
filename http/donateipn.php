@@ -49,6 +49,8 @@ if (Utils::pres('mc_gross', $transaction)) {
         $transaction['txn_type']
     );
 
+    $recurring = $transaction['txn_type'] == 'recurring_payment' || $transaction['txn_type'] == 'subscr_payment';
+
     $giftaid = $d->getGiftAid($u->getId());
 
     if (!$giftaid || $giftaid['period'] == Donations::PERIOD_THIS) {
@@ -58,8 +60,13 @@ if (Utils::pres('mc_gross', $transaction)) {
     }
 
     # Don't ask for thanks for the PayPal Giving Fund transactions.
-    if ($transaction['mc_gross'] >= Donations::MANUAL_THANKS && $transaction['payer_email'] != 'ppgfukpay@paypalgivingfund.org') {
+    if (($recurring || $transaction['mc_gross'] >= Donations::MANUAL_THANKS) && $transaction['payer_email'] != 'ppgfukpay@paypalgivingfund.org') {
         $text = "{$transaction['first_name']} {$transaction['last_name']} ({$transaction['payer_email']}) donated £{$transaction['mc_gross']} via PayPal Donate.  Please can you thank them?";
+
+        if ($recurring) {
+            $text .= "\r\n\r\nNB This is a monthly donation.  We now send this mails for all recurring donations (since 2023-02-12 10:00).";
+        }
+
         $message = \Swift_Message::newInstance()
             ->setSubject("{$transaction['payer_email']} donated £{$transaction['mc_gross']} - please send thanks")
             ->setFrom(NOREPLY_ADDR)
