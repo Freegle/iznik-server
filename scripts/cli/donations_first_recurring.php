@@ -8,7 +8,11 @@ require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
-$donations = $dbhr->preQuery("SELECT DATE(timestamp) AS date, userid, GrossAmount, `source`, TransactionType FROM users_donations WHERE timestamp >= '2023-02-08' ORDER BY timestamp ASC;");
+$start = '2023-02-01';
+
+$donations = $dbhr->preQuery("SELECT DATE(timestamp) AS date, userid, GrossAmount, `source`, TransactionType FROM users_donations WHERE timestamp >= ? ORDER BY timestamp ASC;", [
+    $start
+]);
 
 $dates = [];
 $users = [];
@@ -26,8 +30,19 @@ foreach ($donations as $donation) {
         $dates[$donation['date']][1] += $donation['GrossAmount'];
     }
 
-    if ($donation['source'] == 'DonateWithPayPal' && $donation['TransactionType'] == 'recurring_payment') {
-        if (!Utils::pres($donation['userid'], $users)) {
+    if ($donation['userid'] && $donation['source'] == 'DonateWithPayPal' && $donation['TransactionType'] == 'recurring_payment') {
+        $previous = $dbhr->preQuery("SELECT COUNT(*) AS count FROM users_donations WHERE userid = ? AND source = ? AND TransactionType = ? AND timestamp < ?", [
+            $donation['userid'],
+            'DonateWithPayPal',
+            'recurring_payment',
+            $start
+        ]);
+
+        if (!$previous[0]['count']) {
+            if (Utils::pres($donation['userid'], $users)) {
+                error_log("Would have missed {$donation['userid']}");
+            }
+
             $users[$donation['userid']] = TRUE;
             $dates[$donation['date']][0] += $donation['GrossAmount'];
             $dates[$donation['date']][1] -= $donation['GrossAmount'];

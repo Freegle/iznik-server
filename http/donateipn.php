@@ -37,6 +37,16 @@ foreach ($transaction as $key => $value) {
 if (Utils::pres('mc_gross', $transaction)) {
     $eid = $u->findByEmail($transaction['payer_email']);
 
+    $first = FALSE;
+
+    if ($eid) {
+        $previous = $dbhr->preQuery("SELECT COUNT(*) AS count FROM users_donations WHERE userid = ?", [
+            $eid
+        ]);
+
+        $first = $previous[0]['count'] == 0;
+    }
+
     $d = new Donations($dbhr, $dbhm);
     $d->add(
         $eid,
@@ -59,12 +69,12 @@ if (Utils::pres('mc_gross', $transaction)) {
         $n->add(NULL, $u->getId(), Notifications::TYPE_GIFTAID, NULL);
     }
 
-    # Don't ask for thanks for the PayPal Giving Fund transactions.
-    if (($recurring || $transaction['mc_gross'] >= Donations::MANUAL_THANKS) && $transaction['payer_email'] != 'ppgfukpay@paypalgivingfund.org') {
+    # Don't ask for thanks for the PayPal Giving Fund transactions.  Do ask for first recurring or larger one-off.
+    if ((($recurring && $first) || $transaction['mc_gross'] >= Donations::MANUAL_THANKS) && $transaction['payer_email'] != 'ppgfukpay@paypalgivingfund.org') {
         $text = "{$transaction['first_name']} {$transaction['last_name']} ({$transaction['payer_email']}) donated £{$transaction['mc_gross']} via PayPal Donate.  Please can you thank them?";
 
         if ($recurring) {
-            $text .= "\r\n\r\nNB This is a monthly donation.  We now send this mails for all recurring donations (since 2023-02-12 10:00).";
+            $text .= "\r\n\r\nNB This is a new monthly donation.  We now send this mail for all new recurring donations (since 2023-02-12 10:00).";
         }
 
         $message = \Swift_Message::newInstance()
