@@ -6646,14 +6646,19 @@ memberships.groupid IN $groupq
             if (count($idsleft)) {
                 $start = date('Y-m-d', strtotime("360 days ago"));
                 $info = $this->dbhr->preQuery(
-                    "SELECT DISTINCT users.id AS userid, settings, systemrole FROM users LEFT JOIN microactions ON users.id = microactions.userid WHERE users.id IN (" . implode(
+                    "SELECT DISTINCT users.id AS userid, settings, systemrole FROM users 
+    LEFT JOIN microactions ON users.id = microactions.userid
+    LEFT JOIN users_donations ON users_donations.userid = users.id 
+    WHERE users.id IN (" . implode(
                         ',',
                         $idsleft
-                    ) . ") AND (systemrole IN (?, ?, ?) OR microactions.timestamp >= ?);",
+                    ) . ") AND 
+                    (systemrole IN (?, ?, ?) OR microactions.timestamp >= ? OR users_donations.timestamp >= ?);",
                     [
                         User::SYSTEMROLE_ADMIN,
                         User::SYSTEMROLE_SUPPORT,
                         User::SYSTEMROLE_MODERATOR,
+                        $start,
                         $start
                     ]
                 );
