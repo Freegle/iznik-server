@@ -298,7 +298,7 @@ function user() {
                         $uid = $u->findByEmail($email);
 
                         if (!$uid) {
-                            $id = $u->addEmail($email);
+                            $id = $u->addEmail($email, Utils::presbool('primary', $_REQUEST));
                             $ret = $id ? [ 'ret' => 0, 'status' => 'Success', 'emailid' => $id ] : [ 'ret' => 4, 'status' => 'Email add failed for some reason' ];
                         }
                     }
