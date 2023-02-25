@@ -78,7 +78,7 @@ class Spam {
         $host = NULL;
 
         // TN sends the IP in hashed form, so we can still do checks on use of the IP, but not look it up.
-        $fromTN = $msg->getEnvelopefrom() == 'noreply@trashnothing.com';
+        $fromTN = $msg->getEnvelopefrom() == 'noreply@trashnothing.com' || strpos($msg->getEnvelopefrom(), '@user.trashnothing.com') !== FALSE;
 
         if (stripos($msg->getFromname(), GROUP_DOMAIN) !== FALSE || stripos($msg->getFromname(), USER_DOMAIN) !== FALSE) {
             # A domain which embeds one of ours in an attempt to fool us into thinking it is legit.

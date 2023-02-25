@@ -177,6 +177,11 @@ class MailRouter
         $from = $this->msg->getEnvelopefrom();
         $fromheader = $this->msg->getHeader('from');
 
+        # TN authenticates mails with a secret header which we can use to skip spam checks.
+        $tnsecret = $this->msg->getHeader('x-trash-nothing-secret');
+        $notspam = $tnsecret == TNSECRET ? TRUE : $notspam;
+        error_log("TN not spam? $tnsecret, $notspam");
+
         if ($fromheader) {
             $fromheader = mailparse_rfc822_parse_addresses($fromheader);
         }
@@ -853,8 +858,7 @@ class MailRouter
                         $spamfound = true;
                     }
                 }
-            } else
-            {
+            } else {
                 if ($contentcheck)
                 {
                     # Now check if we think this is spam according to SpamAssassin.
@@ -925,6 +929,7 @@ class MailRouter
                 }
             }
         }
+
         return [ $spamscore, $spamfound, $groups, $notspam, $ret ];
     }
 

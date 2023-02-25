@@ -22,6 +22,9 @@ define('MODLOGO', 'https://modtools.org/images/modlogo-large.jpg');
 # We can query Trash Nothing to get real email addresses for their users.
 define('TNKEY', 'zzzzz');
 
+# TN uses this to authenticate emails so that we don't need to check them for spam.
+define('TNSECRET', 'zzzz');
+
 # We push posts to Freebie Alerts
 define('FREEBIE_ALERTS_KEY', NULL);
 
