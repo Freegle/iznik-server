@@ -564,7 +564,7 @@ class MailRouter
                 if (!$rc)
                 {
                     # Don't pass on automated mails from ADMINs - there might be loads.
-                    if (!$notspam &&
+                    if ($notspam ||
                         (preg_match('/(.*)-volunteers@' . GROUP_DOMAIN . '/', $to) || !$this->msg->isBounce() && !$this->msg->isAutoreply()))
                     {
                         $ret = MailRouter::FAILURE;
@@ -610,7 +610,7 @@ class MailRouter
                                     $ret = MailRouter::DROPPED;
 
                                     # Don't want to pass on OOF etc.
-                                    if (!$this->msg->isAutoreply())
+                                    if ($notspam || !$this->msg->isAutoreply())
                                     {
                                         # Create/get a chat between the sender and the group mods.
                                         $r = new ChatRoom($this->dbhr, $this->dbhm);
