@@ -180,7 +180,6 @@ class MailRouter
         # TN authenticates mails with a secret header which we can use to skip spam checks.
         $tnsecret = $this->msg->getHeader('x-trash-nothing-secret');
         $notspam = $tnsecret == TNSECRET ? TRUE : $notspam;
-        error_log("TN not spam? $tnsecret, $notspam");
 
         if ($fromheader) {
             $fromheader = mailparse_rfc822_parse_addresses($fromheader);
@@ -213,7 +212,7 @@ class MailRouter
             $ret = $this->twitterAppeal($log, $fromheader[0]['address'], $to);
         } else if (preg_match('/(.*)-volunteers@' . GROUP_DOMAIN . '/', $to, $matches) ||
             preg_match('/(.*)-auto@' . GROUP_DOMAIN . '/', $to, $matches)) {
-            $ret = $this->toVolunteers($to, $matches[1]);
+            $ret = $this->toVolunteers($to, $matches[1], $notspam);
         } else if (preg_match('/(.*)-subscribe@' . GROUP_DOMAIN . '/', $to, $matches)) {
             $ret = $this->subscribe($matches[1]);
         } else if (preg_match('/(.*)-unsubscribe@' . GROUP_DOMAIN . '/', $to, $matches)) {
@@ -538,11 +537,10 @@ class MailRouter
         return $ret;
     }
 
-    private function toVolunteers($to, $matches)
+    private function toVolunteers($to, $matches, $notspam)
     {
         # Mail to our owner address.  First check if it's spam according to SpamAssassin.
-        if ($this->log)
-        {
+        if ($this->log) {
             error_log("To volunteers");
         }
 
@@ -550,24 +548,24 @@ class MailRouter
 
         $ret = MailRouter::INCOMING_SPAM;
 
-        if ($this->spamc->filter($this->msg->getMessage()))
+        if ($notspam || $this->spamc->filter($this->msg->getMessage()))
         {
             $spamscore = $this->spamc->result['SCORE'];
 
-            if ($spamscore < MailRouter::ASSASSIN_THRESHOLD)
+            if ($notspam || $spamscore < MailRouter::ASSASSIN_THRESHOLD)
             {
                 # Now do our own checks.
                 if ($this->log)
                 {
                     error_log("Passed SpamAssassin $spamscore");
                 }
-                list ($rc, $reason) = $this->spam->checkMessage($this->msg);
+                list ($rc, $reason) = $notspam ? [ FALSE, NULL] : $this->spam->checkMessage($this->msg);
 
                 if (!$rc)
                 {
                     # Don't pass on automated mails from ADMINs - there might be loads.
-                    if (preg_match('/(.*)-volunteers@' . GROUP_DOMAIN . '/', $to) ||
-                        !$this->msg->isBounce() && !$this->msg->isAutoreply())
+                    if (!$notspam &&
+                        (preg_match('/(.*)-volunteers@' . GROUP_DOMAIN . '/', $to) || !$this->msg->isBounce() && !$this->msg->isAutoreply()))
                     {
                         $ret = MailRouter::FAILURE;
 
