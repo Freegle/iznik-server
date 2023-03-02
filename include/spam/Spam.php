@@ -133,7 +133,7 @@ class Spam {
 
             # Now see if this IP has been used for too many different users.  That is likely to
             # be someone masquerading to fool people.
-            $sql = "SELECT fromname FROM messages_history WHERE fromip = ? GROUP BY fromname;";
+            $sql = "SELECT fromname FROM messages_history WHERE fromip = ? GROUP BY fromuser ORDER BY arrival DESC;";
             $users = $this->dbhr->preQuery($sql, [$ip]);
             $numusers = count($users);
 
