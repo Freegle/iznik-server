@@ -519,13 +519,15 @@ class Spam {
             # If we have just added a membership then it may not have been logged yet, so we might fail to count
             # it.  This happens in UT.
             $groupq = $groupJustAdded ? " AND logs.groupid != $groupJustAdded " : '';
+            $start = date('Y-m-d', strtotime("365 days ago"));
 
-            $sql = "SELECT COUNT(DISTINCT(groupid)) AS count FROM logs LEFT JOIN spam_users ON spam_users.userid = logs.user AND spam_users.collection = ? WHERE logs.user = ? AND logs.type = ? AND logs.subtype = ? AND spam_users.userid IS NULL $groupq;";
+            $sql = "SELECT COUNT(DISTINCT(groupid)) AS count FROM logs LEFT JOIN spam_users ON spam_users.userid = logs.user AND spam_users.collection = ? WHERE logs.user = ? AND logs.type = ? AND logs.subtype = ? AND spam_users.userid IS NULL $groupq AND logs.timestamp >= ?;";
             $counts = $this->dbhr->preQuery($sql, [
                 Spam::TYPE_WHITELIST,
                 $userid,
                 Log::TYPE_GROUP,
-                Log::SUBTYPE_JOINED
+                Log::SUBTYPE_JOINED,
+                $start
             ]);
 
             $count = $counts[0]['count'];
