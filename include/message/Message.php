@@ -138,7 +138,8 @@ class Message
         "We'll get back to you as soon as possible",
         'currently on leave',
         'To complete this verification',
-        'I am currently away from my computer, but will reply to your message as soon as I return'
+        'I am currently away from my computer, but will reply to your message as soon as I return',
+        "E-mails to personal mailboxes aren’t monitored"
     ];
 
     private $autoreply_text_start = [
