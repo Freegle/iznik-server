@@ -105,7 +105,8 @@ class Message
         "due to return",
         "annual leave",
         "on holiday",
-        "vacation reply"
+        "vacation reply",
+        "YOUR ORDER MANAGEMENT REQUEST"
     ];
 
     private $receipt_subjects = [
