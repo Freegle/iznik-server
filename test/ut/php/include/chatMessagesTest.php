@@ -681,6 +681,39 @@ class chatMessagesTest extends IznikTestCase {
         $this->assertNull($rid);
         $this->assertTrue($banned);
     }
+
+    public function testAttachmentSentManyTimes() {
+        # Put a valid message on a group.
+        $this->log("Put valid message on");
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        $m = new Message($this->dbhr, $this->dbhm, $refmsgid);
+        $rc = $r->route();
+        $this->assertEquals(MailRouter::APPROVED, $rc);
+
+        for ($i = 0; $i < Spam::IMAGE_THRESHOLD + 1; $i++) {
+            # Now reply to it with an attachment.
+            $msg2 = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replyimage'));
+            $r2 = new MailRouter($this->dbhr, $this->dbhm);
+            list ($replyid, $failok) = $r2->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg2);
+            $this->assertNotNull($replyid);
+            $rc = $r2->route();
+            $this->assertEquals(MailRouter::TO_USER, $rc);
+
+            $cmsgs = $this->dbhr->preQuery("SELECT * FROM chat_messages ORDER BY id DESC LIMIT 1;");
+            $this->assertNotNull($cmsgs[0]['id']);
+            $cm = new ChatMessage($this->dbhr, $this->dbhm, $cmsgs[0]['id']);
+
+            if ($i < Spam::IMAGE_THRESHOLD) {
+                $this->assertEquals(0, $cm->getPrivate('reviewrequired'));
+            } else {
+                $this->assertEquals(1, $cm->getPrivate('reviewrequired'));
+                $this->assertEquals(Spam::REASON_IMAGE_SENT_MANY_TIMES, $cm->getPrivate('reportreason'));
+            }
+        }
+    }
 }
 
 

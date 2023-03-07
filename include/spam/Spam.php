@@ -18,6 +18,8 @@ class Spam {
     const USER_THRESHOLD = 5;
     const GROUP_THRESHOLD = 20;
     const SUBJECT_THRESHOLD = 30;  // SUBJECT_THRESHOLD must be > GROUP_THRESHOLD for UT
+    const IMAGE_THRESHOLD = 5;
+    const IMAGE_THRESHOLD_TIME = 24;
 
     # For checking users as suspect.
     const SEEN_THRESHOLD = 16; // Number of groups to join or apply to before considered suspect
@@ -42,6 +44,7 @@ class Spam {
     const REASON_MONEY = 'Money';
     const REASON_EMAIL = 'Email';
     const REASON_LANGUAGE = 'Language';
+    const REASON_IMAGE_SENT_MANY_TIMES = 'SameImage';
 
     const ACTION_SPAM = 'Spam';
     const ACTION_REVIEW = 'Review';

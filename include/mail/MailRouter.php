@@ -309,6 +309,22 @@ class MailRouter
                         $a->delete();
                     } else {
                         $m->setPrivate('imageid', $aid2);
+
+                        # Check whether this hash has recently been used for lots of messages.  If so then flag
+                        # the message for review.  We currently only do this for email (which comes through here)
+                        # as spam is largely an email problem.
+                        $used = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_images 
+                         INNER JOIN chat_messages ON chat_images.id = chat_messages.imageid 
+                         WHERE hash = ? AND TIMESTAMPDIFF(HOUR, chat_messages.date, NOW()) <= ?;", [
+                            $hash,
+                            Spam::IMAGE_THRESHOLD_TIME
+                        ]);
+
+                        if ($used[0]['count'] > Spam::IMAGE_THRESHOLD) {
+                            $m->setPrivate('reviewrequired', 1);
+                            $m->setPrivate('reportreason', Spam::REASON_IMAGE_SENT_MANY_TIMES);
+                        }
+
                         $count++;
                     }
                 } catch (\Exception $e) { error_log("Create failed " . $e->getMessage()); }
