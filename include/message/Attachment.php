@@ -399,6 +399,66 @@ class Attachment
         return($items);
     }
 
+    public function findWebReferences() {
+        # Find a web page containing this imge, if any.
+        $ret = NULL;
+
+        if ($this->type == Attachment::TYPE_MESSAGE) {
+            $data = $this->getData();
+            $base64 = base64_encode($data);
+
+            $r_json ='{
+			  	"requests": [
+					{
+					  "image": {
+					    "content":"' . $base64. '"
+					  },
+					  "features": [
+					      {
+					      	"type": "WEB_DETECTION",
+							"maxResults": 1
+					      }
+					  ]
+					}
+				]
+			}';
+
+            $curl = curl_init();
+            curl_setopt($curl, CURLOPT_URL, 'https://vision.googleapis.com/v1/images:annotate?key=' . GOOGLE_VISION_KEY);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-type: application/json"));
+            curl_setopt($curl, CURLOPT_POST, true);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $r_json);
+            $json_response = curl_exec($curl);
+            $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+            if ($status) {
+                $rsp = json_decode($json_response, TRUE);
+                #error_log("Identified {$this->id} by Google $json_response for $r_json");
+                error_log("Matching " . var_export($rsp, TRUE));
+
+                if ($rsp &&
+                    array_key_exists('responses', $rsp) &&
+                    count($rsp['responses']) > 0 &&
+                    array_key_exists('webDetection', $rsp['responses'][0]) &&
+                    array_key_exists('pagesWithMatchingImages', $rsp['responses'][0]['webDetection'])) {
+                    $rsps = $rsp['responses'][0]['webDetection']['pagesWithMatchingImages'];
+
+                    foreach ($rsps as $r) {
+                        if (array_key_exists('fullMatchingImages', $r) && strpos($r['url'], USER_SITE) === FALSE) {
+                            $ret = $r['url'];
+                        }
+                    }
+                    error_log(var_export($rsps, TRUE));
+                }
+            }
+
+            curl_close($curl);
+        }
+
+        return($ret);
+    }
+
     public function ocr($data = NULL, $returnfull = FALSE, $video = FALSE) {
         # Identify text in an attachment using Google Vision API.
         $base64 = $data ? $data : base64_encode($this->getData());
