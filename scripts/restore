@@ -2,7 +2,7 @@
 EMAIL=log@ehibbert.org.uk
 #
 # Restore the last backup into MySQL.  For use on the archive server.
-/etc/init.d/mysql stop
+service mysql stop
 killall -9 mysqld
 sleep 10
 rm -rf /archive/mysql
@@ -20,13 +20,14 @@ do
  rm $bf
 done
 echo prepare
+cd /archive/mysql
 nice xtrabackup --prepare --apply-log-only --target-dir=/archive/mysql
 chown -R mysql:mysql /archive/mysql
-/etc/init.d/mysql start
+service mysql start
 sleep 300
 maxdate=`mysql -A --execute="use iznik; SELECT MAX(arrival) FROM messages;" | grep -`
 if [ $? == 0 ]; then
-    cat /tmp/restore.out | mail -s "RESTORE: DB restored on archive update $maxdate" $EMAIL
+    cat /tmp/restore.out | mail -s "RESTORE: DB restored on backup update $maxdate" $EMAIL
 else
-    cat /tmp/restore.out | mail -s "RESTORE: FAILED on hub" $EMAIL
+    cat /tmp/restore.out | mail -s "RESTORE: FAILED on backup" $EMAIL
 fi

@@ -11,6 +11,10 @@ timestamp=$(date +%Y-%m-%d-%H-%M)
 
 pgrep mysql
 if [ $? == 0 ]; then
+    # Desync from the cluster.  This stops our backup adversely affecting the rest of the cluster - we've seen
+    # cases where requests get blocked on other nodes while the backup is occurring.
+    mysql -p -u root --execute "SET wsrep_desync = ON"
+
     # ...to our archive server
     echo "$BACKUP | ssh root@archive \ \"cat - > /archive/backups/iznik-$timestamp.xbstream\""
     $BACKUP | ssh root@archive \ "cat - > /archive/backups/iznik-$timestamp.xbstream"
@@ -40,6 +44,8 @@ if [ $? == 0 ]; then
        # problem with initial backup :(
        echo "Couldn't do a mysql backup" | mail -s "BACKUP ERROR: MySQL backup failed" $EMAIL
     fi
+
+    mysql -p -u root --execute "SET wsrep_desync = OFF"
 else
     echo "MySQL not running"| mail -s "BACKUP ERROR: MySQL not running" $EMAIL
 fi
@@ -48,7 +54,7 @@ fi
 rm -r /tmp/etcback
 mkdir /tmp/etcback
 cd /tmp/etcback
-for host in app1 app4 bulk2 bulk3 bulk4 db1 db2 db3 freeglecdnsov freeglecdnhex tiles ha
+for host in app1-internal bulk2-internal bulk3-internal bulk4-internal db1-internal db2-internal db3-internal app1 app4 freeglecdnsov freeglecdnhex tiles ha
 do
     ssh $host "(cd /etc; tar -cvzf - ./)" > $host.etc.tgz
     ssh $host "(cd /var/spool/cron; tar -cvzf - ./)" > $host.crontab.tgz

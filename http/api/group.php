@@ -93,7 +93,10 @@ function group() {
 
                     if (Utils::presdef('tnkey', $_REQUEST, FALSE) && $me && $me->isModerator()) {
                         # Get the link that we could use to access TN settings.
-                        $ret['group']['tnkey'] = json_decode(file_get_contents('https://trashnothing.com/modtools/api/group-settings-url?key=' . TNKEY . '&moderator_email=' . urlencode($me->getEmailPreferred()) . '&group_id=' . urlencode($ret['group']['nameshort'])), TRUE);
+                        $tnurl = 'https://trashnothing.com/modtools/api/group-settings-url?key=' . TNKEY . '&moderator_email=' . urlencode($me->getEmailPreferred()) . '&group_id=' . urlencode($ret['group']['nameshort']);
+                        $url = file_get_contents($tnurl);
+                        $ret['group']['tnkey'] = json_decode($url, TRUE);
+                        $ret['group']['tnur'] = $tnurl;
                     }
 
                     if (Utils::presdef('sponsors', $_REQUEST, FALSE)) {
