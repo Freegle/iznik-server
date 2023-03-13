@@ -437,7 +437,9 @@ class PushNotifications
         $header .= "Content-Length: " . strlen($vars) . "\r\n";
         $header .= "Connection: close\r\n\r\n";
 
-        if (CHAT_HOST) {
+        # Currently we don't do anything with these.  We used to send them to an nchan instance,
+        # but that was no longer reliable and the clients don't use them.
+        if (CHAT_HOST && FALSE) {
             try {
                 #error_log("Connect to " . CHAT_HOST . " port " . CHAT_PORT);
                 $fp = $this->fsockopen('ssl://' . CHAT_HOST, CHAT_PORT, $errno, $errstr, 2);
