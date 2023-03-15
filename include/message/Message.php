@@ -4657,9 +4657,10 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
         return([$count, $warncount]);
     }
 
-    public function chaseUp($type, $mindate, $groupid = NULL) {
+    public function chaseUp($type, $mindate, $groupid = NULL, $msgid = NULL) {
         $count = 0;
         $groupq = $groupid ? " AND id = $groupid " : "";
+        $msgq = $msgid ? " AND messages_groups.msgid = $msgid " : "";
 
         # Randomise the order in case the script gets killed or something - gives all groups a chance.
         $groups = $this->dbhr->preQuery("SELECT id FROM `groups` WHERE type = ? $groupq ORDER BY RAND();", [ $type ]);
@@ -4680,8 +4681,8 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                 # The sending user must also still be a member of the group.
                 #
                 # Using UNION means we can be more efficiently indexed.
-                $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, lastchaseup, messages.type, messages.fromaddr FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid LEFT OUTER JOIN messages_related ON id1 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN chat_messages ON messages.id = chat_messages.refmsgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND messages.source = ? AND messages.deleted IS NULL
-                        UNION SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, lastchaseup, messages.type, messages.fromaddr FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid LEFT OUTER JOIN messages_related ON id2 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN chat_messages ON messages.id = chat_messages.refmsgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND messages.source = ? AND messages.deleted IS NULL;";
+                $sql = "SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, lastchaseup, messages.type, messages.fromaddr FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid LEFT OUTER JOIN messages_related ON id1 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN chat_messages ON messages.id = chat_messages.refmsgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND messages.source = ? AND messages.deleted IS NULL $msgq
+                        UNION SELECT messages_groups.msgid, messages_groups.groupid, TIMESTAMPDIFF(HOUR, messages_groups.arrival, NOW()) AS hoursago, lastchaseup, messages.type, messages.fromaddr FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid LEFT OUTER JOIN messages_related ON id2 = messages.id LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid INNER JOIN chat_messages ON messages.id = chat_messages.refmsgid WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' AND messages_related.id1 IS NULL AND messages_outcomes.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') AND messages.source = ? AND messages.deleted IS NULL $msgq;";
                 #error_log("$sql, $mindate, {$group['id']}");
                 $messages = $this->dbhr->preQuery(
                     $sql,
@@ -4702,7 +4703,7 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                         # Find the last reply.
                         $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
 
-                        if ($m->canChaseup()) {
+                        if ($m->canChaseup() || $msgid) {
                             $matts = $m->getPublic(FALSE, FALSE, TRUE);
 
                             $sql = "SELECT MAX(date) AS latest FROM chat_messages WHERE chatid IN (SELECT chatid FROM chat_messages WHERE refmsgid = ?);";
@@ -4712,7 +4713,7 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                             $interval = array_key_exists('chaseups', $reposts) ? $reposts['chaseups'] : 2;
                             error_log("#{$message['msgid']} Consider chaseup $age vs $interval");
 
-                            if ($interval > 0 && $age > $interval * 24) {
+                            if (($interval > 0 && $age > $interval * 24) || $msgid) {
                                 # We can chase up.
                                 $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
                                 $g = new Group($this->dbhr, $this->dbhm, $message['groupid']);
@@ -4749,7 +4750,7 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                                     $text = NULL;
                                     $html = NULL;
 
-                                    if ($m->canRepost()) {
+                                    if ($m->canRepost() || $msgid) {
                                         if ($m->promiseCount()) {
                                             # If it's promised we want to send a differently worded mail.
                                             error_log(

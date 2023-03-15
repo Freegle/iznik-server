@@ -20,6 +20,11 @@
       <mj-section background-color="#F9F7EC"></mj-section>
       <mj-all font-family="'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"></mj-all>
     </mj-attributes>
+    <mj-style>
+      .logo img {
+      width: 80px !important
+      }
+    </mj-style>
   </mj-head>
   <mj-body>
     <mj-wrapper padding="0px" full-width="full-width">
