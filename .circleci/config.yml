@@ -27,7 +27,7 @@ jobs:
 
       # PHP extensions
       - run: sudo apt install dnsutils openssl zip unzip git libxml2-dev libzip-dev zlib1g-dev libcurl4-openssl-dev iputils-ping default-mysql-client vim libpng-dev libgmp-dev libjpeg-turbo8-dev
-      - run: sudo apt-get install php-xmlrpc php8.2-intl php8.2-xdebug php8.2-mbstring php8.2-simplexml php8.2-curl php8.2-zip postgresql-client php8.2-gd php8.2-xmlrpc php8.2-redis php8.2-pgsql php-mailparse redis-server redis-tools php-xdebug
+      - run: sudo apt-get install php-xmlrpc php-intl php-xdebug php-mbstring php-simplexml php-curl php-zip postgresql-client php-gd php-xmlrpc php-redis php-pgsql php-mailparse redis-server redis-tools php-xdebug
       - run: sudo pecl install xdebug
       - run: sudo pecl install mailparse
       - run: sudo pecl install igbinary
