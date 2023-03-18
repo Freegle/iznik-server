@@ -237,54 +237,63 @@ ORDER BY groups_facebook_toshare.id DESC;";
                 $actions = $this->dbhr->preQuery($sql, [ $this->uid, $id ]);
 
                 foreach ($actions as $action) {
-                    # Whether or not this worked, remember that we've tried, so that we don't try again.
-                    #error_log("Record INSERT IGNORE INTO groups_facebook_shares (uid, groupid, postid) VALUES ({$action['uid']},{$action['groupid']},{$action['postid']});");
-                    $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_shares (uid, groupid, postid) VALUES (?,?,?);", [
+                    # Check that we've not already tried.
+                    $shares = $this->dbhr->preQuery("SELECT * FROM groups_facebook_shares WHERE uid = ? AND groupd = ? AND postid = ?;", [
                         $action['uid'],
                         $action['groupid'],
                         $action['postid']
                     ]);
 
-                    $page = $action['facebooktype'] == GroupFacebook::TYPE_PAGE;
-                    $fb = $this->getFB($page);
+                    if (!count($shares)) {
+                        # Whether or not this worked, remember that we've tried, so that we don't try again.
+                        #error_log("Record INSERT IGNORE INTO groups_facebook_shares (uid, groupid, postid) VALUES ({$action['uid']},{$action['groupid']},{$action['postid']});");
+                        $this->dbhm->preExec("INSERT IGNORE INTO groups_facebook_shares (uid, groupid, postid) VALUES (?,?,?);", [
+                            $action['uid'],
+                            $action['groupid'],
+                            $action['postid']
+                        ]);
 
-                    if ($page) {
-                        # Like the original post.
-                        try {
-                            $res = $fb->post($action['postid'] . '/likes', [], $this->token);
-                        } catch (\Exception $e) {
-                            # Some likes can fail when using the user access token because some posts are
-                            # strangely not visible.  Unclear why.  But don't mark the token as invalid just for
-                            # these.
-                            error_log("Like failed with " . $e->getMessage());
+                        $page = $action['facebooktype'] == GroupFacebook::TYPE_PAGE;
+                        $fb = $this->getFB($page);
+
+                        if ($page) {
+                            # Like the original post.
+                            try {
+                                $res = $fb->post($action['postid'] . '/likes', [], $this->token);
+                            } catch (\Exception $e) {
+                                # Some likes can fail when using the user access token because some posts are
+                                # strangely not visible.  Unclear why.  But don't mark the token as invalid just for
+                                # these.
+                                error_log("Like failed with " . $e->getMessage());
+                            }
+                            #error_log("Like returned " . var_export($res, true));
                         }
-                        #error_log("Like returned " . var_export($res, true));
-                    }
 
-                    try {
-                        $a = explode('_', $action['postid']);
-                        $params['link'] = 'https://www.facebook.com/' . $a[0] . '/posts/' . $a[1];
-                        $result = $fb->post($this->id . '/feed', $params, $this->token);
-                        #error_log("Share via " . json_encode($params) . " returned " . var_export($result, TRUE));
-                        $ret = TRUE;
-                    } catch (\Exception $e) {
-                        error_log("Share failed with " . $e->getMessage() . " params " . json_encode($params));
-                        $msg = $e->getMessage();
+                        try {
+                            $a = explode('_', $action['postid']);
+                            $params['link'] = 'https://www.facebook.com/' . $a[0] . '/posts/' . $a[1];
+                            $result = $fb->post($this->id . '/feed', $params, $this->token);
+                            #error_log("Share via " . json_encode($params) . " returned " . var_export($result, TRUE));
+                            $ret = TRUE;
+                        } catch (\Exception $e) {
+                            error_log("Share failed with " . $e->getMessage() . " params " . json_encode($params));
+                            $msg = $e->getMessage();
 
-                        if (strpos($msg, 'The url you supplied is invalid') === FALSE &&
-                            strpos($msg, 'Please reduce the amount of data you\'re asking for') === FALSE) {
-                            # These errors seems to happen occasionally at random, and doesn't mean the link is
-                            # invalid.
-                            # TODO Disabled because Facebook have suspended relevant permission.
+                            if (strpos($msg, 'The url you supplied is invalid') === FALSE &&
+                                strpos($msg, 'Please reduce the amount of data you\'re asking for') === FALSE) {
+                                # These errors seems to happen occasionally at random, and doesn't mean the link is
+                                # invalid.
+                                # TODO Disabled because Facebook have suspended relevant permission.
 //                            $this->dbhm->preExec("UPDATE groups_facebook SET valid = 0, lasterror = ?, lasterrortime = NOW() WHERE uid = ?", [
 //                                $msg,
 //                                $action['uid']
 //                            ]);
+                            }
                         }
-                    }
 
-                    $n = new PushNotifications($this->dbhr, $this->dbhm);
-                    $n->notifyGroupMods($action['groupid']);
+                        $n = new PushNotifications($this->dbhr, $this->dbhm);
+                        $n->notifyGroupMods($action['groupid']);
+                    }
                 }
             }
         }
