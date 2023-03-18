@@ -238,7 +238,7 @@ ORDER BY groups_facebook_toshare.id DESC;";
 
                 foreach ($actions as $action) {
                     # Check that we've not already tried.
-                    $shares = $this->dbhr->preQuery("SELECT * FROM groups_facebook_shares WHERE uid = ? AND groupd = ? AND postid = ?;", [
+                    $shares = $this->dbhr->preQuery("SELECT * FROM groups_facebook_shares WHERE uid = ? AND groupid = ? AND postid = ?;", [
                         $action['uid'],
                         $action['groupid'],
                         $action['postid']

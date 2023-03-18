@@ -5,7 +5,7 @@ jobs:
       - STANDALONE=TRUE
       - XDEBUG_MODE=coverage
     docker:
-      - image: cimg/php:8.1.12-node
+      - image: cimg/php::8.2.4--node
       - image: circleci/redis
       - image: schickling/beanstalkd
       - image: circleci/mysql:8.0.25
