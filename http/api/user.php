@@ -300,7 +300,7 @@ function user() {
                         # We can do this if we're an admin and the email is not already  used, or it's used for the
                         # logged in user and we're just setting the primary flag.
                         if ((!$uid && $me->isAdminOrSupport()) || $uid == $me->getId()) {
-                            $id = $u->addEmail($email, Utils::presbool('primary', $_REQUEST, TRUE));
+                            $id = $u->addEmail($email, Utils::presbool('primary', $_REQUEST, TRUE), TRUE);
                             $ret = $id ? [ 'ret' => 0, 'status' => 'Success', 'emailid' => $id ] : [ 'ret' => 4, 'status' => 'Email add failed for some reason' ];
                         }
                     }
