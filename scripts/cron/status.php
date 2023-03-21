@@ -118,20 +118,13 @@ function status()
         }
 
         # Get the postfix mail count in case it's too large
-        $queuesize = trim(shell_exec("ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@$host \"/usr/sbin/postqueue -p | /usr/bin/tail -n1 | /usr/bin/gawk '{print $5}'\" 2>&1"));
+        $queuesize = trim(shell_exec("ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@$host \"/usr/sbin/postqueue -p | /usr/bin/tail -n1\" | /usr/bin/gawk '{print $5}' 2>&1"));
         error_log("Postfix queue $queuesize");
 
-        if (strpos($queuesize, "Total") === FALSE) {
-            # That's fine - no postfix on this box.
-        } else {
-            $size = substr($queuesize, 6);
-            error_log("Size is $size");
-
-            if (intval($size) > 100000) {
-                $warning = TRUE;
-                $overallwarning = TRUE;
-                $warningtext = "postfix mail queue large on $host ($size)";
-            }
+        if (intval($queuesize) > 100000) {
+            $warning = TRUE;
+            $overallwarning = TRUE;
+            $warningtext = "postfix mail queue large on $host ($queuesize)";
         }
 
         # Get the spool folder count in case it's too large
