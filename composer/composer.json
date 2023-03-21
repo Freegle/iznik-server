@@ -45,7 +45,8 @@
     "phpoffice/phpspreadsheet": "^1.25.2",
     "eluceo/ical": "^0.16.1",
     "prewk/xml-string-streamer": "^1.2",
-    "sentry/sdk": "^3.1"
+    "sentry/sdk": "^3.1",
+    "cweagans/composer-patches": "^1.7"
   },
   "repositories": [
     {
@@ -62,7 +63,15 @@
   },
   "config": {
     "allow-plugins": {
-      "composer/installers": true
+      "composer/installers": true,
+      "cweagans/composer-patches": true
     }
-  }
+  },
+  "extra": {
+    "patches": {
+      "janu-software/facebook-php-sdk": {
+        "Hack HTTP to HTTPS for haproxy redirect": "patches/redirect_behind_haproxy.diff",
+      }
+    }
+
 }

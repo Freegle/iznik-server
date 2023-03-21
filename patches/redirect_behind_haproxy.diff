@@ -1,0 +1,19 @@
+Index: src/Helper/RedirectLoginHelper.php
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/Helper/RedirectLoginHelper.php b/src/Helper/RedirectLoginHelper.php
+--- a/src/Helper/RedirectLoginHelper.php	(revision a45b989267724fd827243b5c5d8f4cc331a1bd4b)
++++ b/src/Helper/RedirectLoginHelper.php	(revision e659a0e0fbb4bb12df489190e4610415f9222562)
+@@ -191,6 +191,10 @@
+ 		// At minimum we need to remove the state param
+ 		$redirectUrl = UrlManipulator::removeParamsFromUrl($redirectUrl, ['state']);
+
++		// Hack for Freegle - we're running behind a proxy which has SSL termination but we still want to use https
++		// on the redirect URL otherwide Facebook doesn't work.
++		$redirectUrl = str_replace('http://', 'https://', $redirectUrl);
++
+ 		return $this->oAuth2Client->getAccessTokenFromCode($code, $redirectUrl);
+ 	}
+
