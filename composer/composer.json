@@ -70,8 +70,8 @@
   "extra": {
     "patches": {
       "janu-software/facebook-php-sdk": {
-        "Hack HTTP to HTTPS for haproxy redirect": "patches/redirect_behind_haproxy.diff",
+        "Hack HTTP to HTTPS for haproxy redirect": "patches/redirect_behind_haproxy.diff"
       }
     }
-
+  }
 }
