@@ -226,6 +226,8 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
             $addr = 'Sutton, London';
         } else if ($addr == 'Hampden Park') {
             $addr = 'Hampden Park, Eastbourne';
+        } else if ($addr == 'Guernsey') {
+            return [ NULL, NULL, NULL, NULL, NULL, NULL ];
         }
 
         $url = "https://" . GEOCODER . "/api?q=" . urlencode($addr) . "&bbox=$bbswlng%2C$bbswlat%2C$bbnelng%2C$bbnelat";
