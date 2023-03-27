@@ -365,54 +365,53 @@ ORDER BY groups_facebook_toshare.id DESC;";
         }
 
         if ($msgid) {
-            $me = Session::whoAmI($this->dbhr, $this->dbhm);
+            # Check we've not shared this.
+            $msgs = $this->dbhr->preQuery("SELECT id FROM messages_popular WHERE groupid = ? AND msgid = ? AND shared = 0;", [
+                $groupid,
+                $msgid
+            ]);
 
-            if ($batch || $me && $me->isModOrOwner($groupid)) {
-                $pages = $this->dbhr->preQuery("SELECT * FROM groups_facebook WHERE groupid = ?;", [ $groupid ]);
+            if (!count($msgs)) {
+                $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
-                foreach ($pages as $page)
-                {
-                    # Whether or not this works, remember that we've tried, so that we don't try again.
-                    $this->dbhm->preExec(
-                        "UPDATE messages_popular SET shared = 1, declined = 0 WHERE msgid = ? AND groupid = ?;",
-                        [
-                            $msgid,
-                            $groupid
-                        ]
-                    );
+                if ($batch || $me && $me->isModOrOwner($groupid)) {
+                    $pages = $this->dbhr->preQuery("SELECT * FROM groups_facebook WHERE groupid = ?;", [ $groupid ]);
 
-                    $fb = $this->getFB(TRUE);
-                    $token = $page['token'];
-
-                    $g = Group::get($this->dbhr, $this->dbhm, $groupid);
-                    $s = new Shortlink($this->dbhr, $this->dbhm);
-                    $shortlinks = $s->listAll($groupid);
-
-                    try
+                    foreach ($pages as $page)
                     {
-                        # Find the location.  We're assuming that this will encourage Facebook to show it to
-                        # people nearby.
-                        $m = new Message($this->dbhr, $this->dbhm, $msgid);
-                        $atts = $m->getPublic();
+                        $fb = $this->getFB(TRUE);
+                        $token = $page['token'];
 
-                        $message = 'FREE!  Trending yesterday on ' . $g->getName() . ".";
-                        $link = 'https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort') . '/' . $msgid;
-                        $message .= "\n\n" . $m->getSubject() . "\n\nHop over to $link to see what else is being given away - or to ask for stuff you'd like.";
+                        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+                        $s = new Shortlink($this->dbhr, $this->dbhm);
+                        $shortlinks = $s->listAll($groupid);
 
-                        $picture = NULL;
+                        try
+                        {
+                            # Find the location.  We're assuming that this will encourage Facebook to show it to
+                            # people nearby.
+                            $m = new Message($this->dbhr, $this->dbhm, $msgid);
+                            $atts = $m->getPublic();
 
-                        if (Utils::pres('attachments', $atts) && count($atts['attachments'])) {
-                            $picture = $atts['attachments'][0]['path'];
+                            $message = 'FREE!  Trending yesterday on ' . $g->getName() . ".";
+                            $link = 'https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort') . '/' . $msgid;
+                            $message .= "\n\n" . $m->getSubject() . "\n\nHop over to $link to see what else is being given away - or to ask for stuff you'd like.";
+
+                            $picture = NULL;
+
+                            if (Utils::pres('attachments', $atts) && count($atts['attachments'])) {
+                                $picture = $atts['attachments'][0]['path'];
+                            }
+
+                            $fb->post($page['id'] . '/photos', [
+                                'message' => $message,
+                                'url' => $picture
+                            ], $token);
+
+                            $ret = TRUE;
+                        } catch (\Exception $e) {
+                            error_log("Share failed with " . $e->getMessage());
                         }
-
-                        $fb->post($page['id'] . '/photos', [
-                            'message' => $message,
-                            'url' => $picture
-                        ], $token);
-
-                        $ret = TRUE;
-                    } catch (\Exception $e) {
-                        error_log("Share failed with " . $e->getMessage());
                     }
                 }
             }

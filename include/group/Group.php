@@ -1333,13 +1333,13 @@ HAVING logincount > 0
     }
 
     public function sharedPopularMessage($msgid) {
-        $this->dbhm->preExec("UPDATE messages_popular SET shared = 1 WHERE msgid = ?;", [
+        $this->dbhm->preExec("UPDATE messages_popular SET shared = 1, declined = 0 WHERE msgid = ?;", [
             $msgid
         ]);
     }
 
     public function hidPopularMessage($msgid) {
-        $this->dbhm->preExec("UPDATE messages_popular SET declined = 1 WHERE msgid = ?;", [
+        $this->dbhm->preExec("UPDATE messages_popular SET declined = 1, shared = 0 WHERE msgid = ?;", [
             $msgid
         ]);
     }
