@@ -552,6 +552,11 @@ class userAPITest extends IznikAPITestCase {
         $u5->addEmail('test5@test.com', 0);
         $u5->addMembership($this->groupid);
 
+        # Add giftaids to both.
+        $d = new Donations($this->dbhr, $this->dbhm);
+        $d->setGiftAid($id3, Donations::PERIOD_SINCE, "Test User", "Test Address");
+        $d->setGiftAid($this->uid2, Donations::PERIOD_PAST_4_YEARS_AND_FUTURE, "Test User", "Test Address");
+
         # Can't merge not a mod
         $this->assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($u1->login('testpw'));
@@ -563,8 +568,6 @@ class userAPITest extends IznikAPITestCase {
             'reason' => 'UT'
         ]);
         $this->assertEquals(4, $ret['ret']);
-
-        # Invalid email.
 
         $ret = $this->call('user', 'POST', [
             'action' => 'Merge',
@@ -585,6 +588,10 @@ class userAPITest extends IznikAPITestCase {
             'reason' => 'UT'
         ]);
         $this->assertEquals(0, $ret['ret']);
+
+        # Check best gift aid chosen.
+        $giftaid = $d->getGiftAid($u3->getId());
+        $this->assertEquals(Donations::PERIOD_PAST_4_YEARS_AND_FUTURE, $giftaid['period']);
 
         # Merge again should work.
         $ret = $this->call('user', 'POST', [

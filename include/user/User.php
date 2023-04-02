@@ -3083,6 +3083,41 @@ class User extends Entity
                         $u1->setPrivate('tnuserid', $tnid2);
                     }
 
+                    # Merge any gift aid.  We currently only support one declaration per user so we want to take
+                    # the most favourable.
+                    $giftaids = $this->dbhr->preQuery("SELECT * FROM giftaid WHERE userid IN ($id1, $id2) ORDER BY id ASC;");
+
+                    if (count($giftaids)) {
+                        $weights = [
+                            Donations::PERIOD_PAST_4_YEARS_AND_FUTURE => 0,
+                            Donations::PERIOD_SINCE => 1,
+                            Donations::PERIOD_FUTURE=> 2,
+                            Donations::PERIOD_THIS => 3,
+                            Donations::PERIOD_DECLINED => 4
+                        ];
+
+                        $best = NULL;
+                        foreach ($giftaids as $giftaid) {
+                            if ($best == NULL ||
+                                $weights[$giftaid['period']] < $weights[$best['period']]) {
+                                $best = $giftaid;
+                            }
+                        }
+
+                        foreach ($giftaids as $giftaid) {
+                            if ($giftaid['id'] != $best['id']) {
+                                $this->dbhm->preExec("DELETE FROM giftaid WHERE id = ?;", [
+                                    $giftaid['id']
+                                ]);
+                            }
+                        }
+
+                        $this->dbhm->preExec("UPDATE giftaid SET userid = ? WHERE id = ?;", [
+                            $id1,
+                            $best['id']
+                        ]);
+                    }
+
                     if ($rc) {
                         # Log the merge - before the delete otherwise we will fail to log it.
                         $l->log([
