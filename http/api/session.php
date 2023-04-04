@@ -95,6 +95,10 @@ function session() {
                         $components = NULL;
                     }
 
+                    if (gettype($components) == 'string') {
+                        $components = [ $components ];
+                    }
+
                     $ret = [ 'ret' => 0, 'status' => 'Success', 'myid' => Utils::presdef('id', $_SESSION, NULL) ];
 
                     if (!$components || (gettype($components) == 'array' && in_array('me', $components))) {
