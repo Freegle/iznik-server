@@ -366,7 +366,7 @@ ORDER BY groups_facebook_toshare.id DESC;";
 
         if ($msgid) {
             # Check we've not shared this.
-            $msgs = $this->dbhr->preQuery("SELECT id FROM messages_popular WHERE groupid = ? AND msgid = ? AND shared = 0;", [
+            $msgs = $this->dbhr->preQuery("SELECT id FROM messages_popular WHERE groupid = ? AND msgid = ? AND (shared = 1 OR declined = 1);", [
                 $groupid,
                 $msgid
             ]);
