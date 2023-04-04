@@ -38,6 +38,10 @@ function microvolunteering() {
                         MicroVolunteering::CHALLENGE_PHOTO_ROTATE
                     ]);
 
+                    if (gettype($types) == 'string') {
+                        $types = [ $types ];
+                    }
+
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success',
