@@ -361,6 +361,7 @@ function user() {
                                             # this up and use it for future requests to the v2 API.  If we didn't do
                                             # this they'd have a JWT for the old user which no longer exists.
                                             $ret['jwt'] = Session::JWT($dbhr, $dbhm);
+                                            $ret['persistent'] = Utils::presdef('persistent', $_SESSION, NULL);
                                         } else {
                                             $ret = [ 'ret' => 6, 'status' => 'Merged failed'];
                                         }
