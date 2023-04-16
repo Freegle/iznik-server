@@ -430,7 +430,7 @@ function session() {
             } else if ($yahoocodelogin) {
                 $y = Yahoo::getInstance($dbhr, $dbhm, $host);
                 list ($session, $ret) = $y->loginWithCode($yahoocodelogin);
-                error_log("Yahoo code login returned " . var_export($ret, TRUE));
+                error_log("Yahoo code login with $yahoocodelogin returned " . var_export($ret, TRUE));
                 /** @var Session $session */
                 $id = $session ? $session->getUserId() : NULL;
                 error_log("User id from session $id");

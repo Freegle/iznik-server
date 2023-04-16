@@ -315,12 +315,11 @@ class Session {
         $privateKey = trim(file_get_contents('/etc/iznik_jwt_secret'));
 
         if ($privateKey) {
-            // We don't need long expiry on this token, as it is currently only used for requests to the Go API, and
-            // therefore only needs to be valid from now.  If we ever used JWT for long-lived sessions that would
-            // be different and would require a method to cancel them.
+            // Create a JWT.  This can be very long-lived because the Go API will check it against the database.  We
+            // need to do that check in order to be able to force logout.
             $ret = JWT::encode([
                 'id' => $id . "",
-                'exp' => (time() + 30 * 60)
+                'exp' => (time() + 365 * 30 * 24 * 60 * 60)
            ],
            $privateKey,
            'HS256');
