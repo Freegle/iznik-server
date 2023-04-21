@@ -319,7 +319,7 @@ class Session {
             // need to do that check in order to be able to force logout.
             $ret = JWT::encode([
                 'id' => $id . "",
-                'sessionid' => $_SESSION['persistent']['id'],
+                'sessionid' => $_SESSION['persistent']['id'] + "",
                 'exp' => (time() + 365 * 30 * 24 * 60 * 60)
            ],
            $privateKey,
