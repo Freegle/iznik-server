@@ -365,13 +365,10 @@ ORDER BY groups_facebook_toshare.id DESC;";
         }
 
         if ($msgid) {
-            # Check we've not shared this.
-            $msgs = $this->dbhr->preQuery("SELECT id FROM messages_popular WHERE groupid = ? AND msgid = ? AND (shared = 1 OR declined = 1);", [
-                $groupid,
-                $msgid
-            ]);
+            # Mark it as shared first to avoid duplicates in the window while we are sharing..
+            $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
-            if (!count($msgs)) {
+            if ($g->sharedPopularMessage($msgid)) {
                 $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
                 if ($batch || $me && $me->isModOrOwner($groupid)) {
@@ -381,10 +378,6 @@ ORDER BY groups_facebook_toshare.id DESC;";
                     {
                         $fb = $this->getFB(TRUE);
                         $token = $page['token'];
-
-                        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
-                        $s = new Shortlink($this->dbhr, $this->dbhm);
-                        $shortlinks = $s->listAll($groupid);
 
                         try
                         {
