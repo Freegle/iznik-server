@@ -37,10 +37,10 @@
           <mj-column>
             <mj-text>Dear&nbsp;{{ name }}</mj-text>
             <mj-text>
-              It looks like you’ve not been active on Freegle for a while. So that we don’t clutter your inbox, and to reduce the load on our servers, we’ll stop sending you emails soon.
+              This is just a quick check to see if we can make our service better for you.  You haven't logged in for a few months, so to make sure we aren't sending you unwanted emails, or in case you are not interested in freegling any more, we will stop our emails to you.
             </mj-text>
             <mj-text>
-If you’d still like to get them, then just come back to <a href="www.ilovefreegle.org">www.ilovefreegle.org</a> and log in to keep your account active.
+If you’d still like to get them, then just log in to <a href="www.ilovefreegle.org">www.ilovefreegle.org</a> which will confirm you wish to keep your account active.
             </mj-text>
             <mj-text>
               Maybe you’ve got something lying around that someone else could use, or perhaps there’s something someone else might have?
