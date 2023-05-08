@@ -3764,7 +3764,7 @@ class User extends Entity
                     [$email, $canon, $key, strrev($canon), $key]);
             } while (!$this->dbhm->rowsAffected());
 
-            $confirm = $this->loginLink($usersite ? USER_SITE : MOD_SITE, $this->id, ($usersite ? "/settings/confirmmail/" : "/modtools/settings/confirmmail/") . urlencode($key), 'changeemail', TRUE);
+            $confirm = $this->loginLink(USER_SITE, $this->id, "/settings/confirmmail/" . urlencode($key), 'changeemail', TRUE);
 
             list ($transport, $mailer) = Mail::getMailer();
             $html = verify_email($email, $confirm, $usersite ? USERLOGO : MODLOGO);
