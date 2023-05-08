@@ -261,7 +261,8 @@ class User extends Entity
             # We're not already logged in as this user.
             $ret = FALSE;
 
-            $sql = "SELECT * FROM users_logins WHERE userid = ? AND type = ? AND credentials = ?;";
+            $sql = "SELECT users_logins.* FROM users_logins INNER JOIN users ON users.id = users_logins.userid WHERE userid = ? AND type = ? AND credentials = ? AND users.deleted IS NULL;";
+
             $logins = $this->dbhr->preQuery($sql, [$this->id, User::LOGIN_LINK, $key]);
             foreach ($logins as $login) {
                 # We found a match - log them in.
