@@ -1205,13 +1205,12 @@ WHERE chat_rooms.id IN $idlist;";
         #error_log("updateRoster: Add $userid into {$this->id}");
         $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
-        $this->dbhm->preExec("INSERT INTO chat_roster (chatid, userid, lastip) VALUES (?,?,?) ON DUPLICATE KEY UPDATE lastip = ?, status = ?;",
+        $this->dbhm->preExec("INSERT INTO chat_roster (chatid, userid, lastip) VALUES (?,?,?) ON DUPLICATE KEY UPDATE lastip = ?;",
             [
                 $this->id,
                 $userid,
                 $userid == $myid ? Utils::presdef('REMOTE_ADDR', $_SERVER, NULL) : NULL,
                 $userid == $myid ? Utils::presdef('REMOTE_ADDR', $_SERVER, NULL) : NULL,
-                $status
             ],
             FALSE);
 
@@ -1235,6 +1234,21 @@ WHERE chat_rooms.id IN $idlist;";
                     $m = new Message($this->dbhr, $this->dbhm, $promise['msgid']);
                     $m->renege($other);
                 }
+            }
+        } else if ($status == ChatRoom::STATUS_ONLINE) {
+            # The current status might not be online; if it's not, we need to update it.  Query first to avoid an
+            # unnecessary update which is bad for the cluster.
+            $current = $this->dbhr->preQuery("SELECT status FROM chat_roster WHERE chatid = ? AND userid = ?;", [
+                $this->id,
+                $userid
+            ]);
+
+            if (count($current) && $current[0]['status'] != ChatRoom::STATUS_ONLINE) {
+                $this->dbhm->preExec("UPDATE chat_roster SET status = ? WHERE chatid = ? AND userid = ?;", [
+                    ChatRoom::STATUS_ONLINE,
+                    $this->id,
+                    $userid
+                ], FALSE);
             }
         }
 
