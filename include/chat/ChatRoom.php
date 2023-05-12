@@ -1205,12 +1205,13 @@ WHERE chat_rooms.id IN $idlist;";
         #error_log("updateRoster: Add $userid into {$this->id}");
         $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
-        $this->dbhm->preExec("INSERT INTO chat_roster (chatid, userid, lastip) VALUES (?,?,?) ON DUPLICATE KEY UPDATE lastip = ?;",
+        $this->dbhm->preExec("INSERT INTO chat_roster (chatid, userid, lastip) VALUES (?,?,?) ON DUPLICATE KEY UPDATE lastip = ?, status = ?;",
             [
                 $this->id,
                 $userid,
                 $userid == $myid ? Utils::presdef('REMOTE_ADDR', $_SERVER, NULL) : NULL,
-                $userid == $myid ? Utils::presdef('REMOTE_ADDR', $_SERVER, NULL) : NULL
+                $userid == $myid ? Utils::presdef('REMOTE_ADDR', $_SERVER, NULL) : NULL,
+                $status
             ],
             FALSE);
 
