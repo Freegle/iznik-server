@@ -479,7 +479,8 @@ WHERE chat_rooms.id IN $idlist;";
             #
             # If the sender is banned on all the groups they have in common with the recipient, then they shouldn't
             # be able to communicate.
-            $bannedonall = $this->bannedInCommon($user1, $user2);
+            $s = new Spam($this->dbhr, $this->dbhm);
+            $bannedonall = $this->bannedInCommon($user1, $user2) || $s->isSpammerUid($user1) || $s->isSpammerUid($user2);
 
             if (!$bannedonall) {
                 # All good.  Create one.  Duplicates can happen due to timing windows.
