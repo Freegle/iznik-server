@@ -13,7 +13,7 @@ pgrep mysql
 if [ $? == 0 ]; then
     # Desync from the cluster.  This stops our backup adversely affecting the rest of the cluster - we've seen
     # cases where requests get blocked on other nodes while the backup is occurring.
-    mysql -p -u root --execute "SET wsrep_desync = ON"
+    mysql --execute "SET GLOBAL wsrep_desync = ON"
 
     # ...to our archive server
     echo "$BACKUP | ssh root@archive \ \"cat - > /archive/backups/iznik-$timestamp.xbstream\""
@@ -45,7 +45,7 @@ if [ $? == 0 ]; then
        echo "Couldn't do a mysql backup" | mail -s "BACKUP ERROR: MySQL backup failed" $EMAIL
     fi
 
-    mysql -p -u root --execute "SET wsrep_desync = OFF"
+    mysql --execute "SET GLOBAL wsrep_desync = OFF"
 else
     echo "MySQL not running"| mail -s "BACKUP ERROR: MySQL not running" $EMAIL
 fi
