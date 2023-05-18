@@ -517,7 +517,7 @@ class Attachment
             error_log("Rsp $json_response");
             $rsp = json_decode($json_response, TRUE);
 
-            if (array_key_exists('responses', $rsp) && count($rsp['responses']) > 0 && array_key_exists('textAnnotations', $rsp['responses'][0])) {
+            if ($rsp && array_key_exists('responses', $rsp) && count($rsp['responses']) > 0 && array_key_exists('textAnnotations', $rsp['responses'][0])) {
                 $rsps = $rsp['responses'][0]['textAnnotations'];
 
                 foreach ($rsps as $rsp) {
