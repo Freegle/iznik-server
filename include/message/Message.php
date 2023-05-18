@@ -745,10 +745,8 @@ class Message
 
             if ($role == User::ROLE_NONMEMBER && Utils::presdef('isdraft', $msg, FALSE)) {
                 # We can potentially upgrade our role if this is one of our drafts.
-                $drafts = $this->dbhr->preQuery("SELECT * FROM messages_drafts WHERE msgid = ? AND session = ? OR (userid = ? AND userid IS NOT NULL);", [
-                    $msg['id'],
-                    session_id(),
-                    $me ? $me->getId() : NULL
+                $drafts = $this->dbhr->preQuery("SELECT * FROM messages_drafts WHERE msgid = ?;", [
+                    $msg['id']
                 ]);
 
                 foreach ($drafts as $draft) {
