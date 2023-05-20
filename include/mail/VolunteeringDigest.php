@@ -177,7 +177,7 @@ class VolunteeringDigest
                             '{{email}}' => $email,
                             '{{noemail}}' => 'volunteeringoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
                             '{{post}}' => "https://" . USER_SITE . "/volunteering",
-                            '{{visit}}' => "https://" . USER_SITE . "/mygroups/$groupid",
+                            '{{visit}}' => "https://" . USER_SITE . "/browse",
                             '{{jobads}}' => $jobads['jobs'],
                             '{{joblocation}}' => $jobads['location']
                         ];

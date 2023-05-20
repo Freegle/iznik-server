@@ -201,7 +201,7 @@ class EventDigest
                         '{{email}}' => $email,
                         '{{noemail}}' => 'eventsoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
                         '{{post}}' => "https://" . USER_SITE . "/communityevents",
-                        '{{visit}}' => "https://" . USER_SITE . "/mygroups",
+                        '{{visit}}' => "https://" . USER_SITE . "/browse",
                         '{{jobads}}' => $jobads['jobs'],
                         '{{joblocation}}' => $jobads['location']
                     ];

@@ -58,7 +58,7 @@ class Admin extends Entity
     public function constructMessage($groupname, $modsmail, $to, $toname, $from, $subject, $text, $sponsors, $ctatext, $ctalink) {
         $post = "https://" . USER_SITE;
         $unsubscribe = "https://" . USER_SITE . "/unsubscribe";
-        $visit = "https://" .  USER_SITE . "/mygroups";
+        $visit = "https://" .  USER_SITE . "/browse";
 
         $text = str_replace('$groupname', $groupname, $text);
         $text = str_replace('$owneremail', $modsmail, $text);
