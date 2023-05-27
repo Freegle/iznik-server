@@ -485,7 +485,6 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
 
     public function getHeatmap($type = Stats::HEATMAP_MESSAGES, $locname = NULL) {
         # We return counts per postcode.  Postcodes on average cover 15 properties, so there is some anonymity.
-        # TODO Would be nice to only look at messages within the last year but that's not indexed well.
         $locnameq = $locname ? " AND locations.name = '$locname' LIMIT 1" : '';
         $mysqltime = date ("Y-m-d", strtotime("Midnight 1 year ago"));
         $sql = NULL;
@@ -497,7 +496,12 @@ WHERE messages_outcomes.timestamp >= ? AND DATE(messages_outcomes.timestamp) = ?
                 $areas = $this->dbhr->preQuery($sql);
                 break;
             case Stats::HEATMAP_MESSAGES:
-                $sql = "SELECT id, name, lat, lng, count FROM locations INNER JOIN (SELECT locationid, COUNT(*) AS count FROM messages INNER JOIN locations ON locations.id = messages.locationid WHERE locationid IS NOT NULL AND locations.type = 'Postcode' AND INSTR(locations.name, ' ') GROUP BY locationid) t ON t.locationid = locations.id WHERE lat IS NOT NULL AND lng IS NOT NULL $locnameq;";
+                $start = date('Y-m-d', strtotime("365 days ago"));
+                $sql = "SELECT locationid AS id, name, locations.lat, locations.lng, COUNT(*) as count FROM locations 
+                    INNER JOIN messages ON locations.id = messages.locationid
+                    WHERE messages.arrival >= '$start' 
+                    AND locationid IS NOT NULL AND locations.type = 'Postcode' AND INSTR(locations.name, ' ') AND locations.lat IS NOT NULL AND locations.lng IS NOT NULL
+                    GROUP BY locationid $locnameq;";
                 $areas = $this->dbhr->preQuery($sql);
                 break;
             case Stats::HEATMAP_FLOW:
