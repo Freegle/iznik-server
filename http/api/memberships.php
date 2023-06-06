@@ -411,7 +411,7 @@ function memberships() {
                         }
                     }
 
-                    if ($me->isModOrOwner($groupid) || $me->getId() == $userid) {
+                    if ($me->isAdminOrSupport() || $me->isModOrOwner($groupid) || $me->getId() == $userid) {
                         # We can change settings for a user if we're a mod or they are our own
                         $rc = TRUE;
 
