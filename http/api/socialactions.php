@@ -61,14 +61,12 @@ function socialactions() {
                     ];
 
                     if ($groupid && $msgid) {
-                        $g = Group::get($dbhr, $dbhm, $groupid);
                         if ($action == GroupFacebook::ACTION_DO_POPULAR) {
-                            # Mark it as shared first to avoid duplicates.
-                            $g->sharedPopularMessage($msgid);
-
-                            # Now share it.
+                            # Share it.
                             $f->sharePopularMessage($groupid, $msgid);
                         } else {
+                            # Mark it as shared first to avoid duplicates.
+                            $g = Group::get($dbhr, $dbhm, $groupid);
                             $g->hidPopularMessage($msgid);
                         }
 

@@ -118,6 +118,15 @@ class userTest extends IznikTestCase {
         # Should not see the login link.
         $atts = $u->getPublic();
         $this->assertFalse(Utils::pres('loginlink', $atts));
+
+        # Shouldn't be able to use link login on deleted user.
+        $u->forget("UT");
+        $url2 = $u->loginLink(USER_SITE, $id, '/', NULL, TRUE);
+        $p = strpos($url2, 'k=');
+        $key = substr($url2, $p + 2);
+        $this->log("Key $key");
+        $_SESSION['id'] = NULL;
+        self::assertFalse($u->linkLogin($key));
     }
 
     public function testEmails() {

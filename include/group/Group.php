@@ -1336,12 +1336,20 @@ HAVING logincount > 0
         $this->dbhm->preExec("UPDATE messages_popular SET shared = 1, declined = 0 WHERE msgid = ?;", [
             $msgid
         ]);
+
+        // Return rows affected so that we can tell whether this was the first attempt - that gets used to avoid
+        // duplicates due to the window during the share.
+        return $this->dbhm->rowsAffected();
     }
 
     public function hidPopularMessage($msgid) {
         $this->dbhm->preExec("UPDATE messages_popular SET declined = 1, shared = 0 WHERE msgid = ?;", [
             $msgid
         ]);
+
+        // Return rows affected so that we can tell whether this was the first attempt - that gets used to avoid
+        // duplicates due to the window during the share.
+        return $this->dbhm->rowsAffected();
     }
 
     public function getLastApproval($uid) {

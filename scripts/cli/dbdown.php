@@ -13,7 +13,7 @@ $opts = getopt('h:');
 if (count($opts) < 1) {
     echo "Usage: php dbdown.php -h <1-3>\n";
 } else {
-    $host = "db{$opts['h']}";
+    $host = "db{$opts['h']}-internal";
 
     while (true) {
         touch("/tmp/iznik.dbstatus.$host:3306.down");

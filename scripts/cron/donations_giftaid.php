@@ -22,7 +22,12 @@ $d->identifyGiftAidedDonations();
 # handle gift aid), where we don't have gift aid consent and where the donation was a couple of days ago (to give
 # the initial ask time to work).
 $start = date('Y-m-d', strtotime("48 hours ago"));
-$donations = $dbhr->preQuery("SELECT users_donations.* FROM `users_donations` LEFT JOIN giftaid ON giftaid.userid = users_donations.userid WHERE users_donations.timestamp >= '2016-04-06' AND users_donations.timestamp <= '$start' AND source = 'DonateWithPaypal' AND giftaidconsent = 0 AND giftaid.userid IS NULL AND giftaidchaseup IS NULL AND users_donations.userid IS NOT NULL;");
+$end = date('Y-m-d', strtotime("30 days ago"));
+$donations = $dbhr->preQuery("SELECT users_donations.* FROM `users_donations` 
+    LEFT JOIN giftaid ON giftaid.userid = users_donations.userid 
+    WHERE users_donations.timestamp >= '2016-04-06' AND users_donations.timestamp >= '$end' AND users_donations.timestamp <= '$start' 
+    AND source = 'DonateWithPaypal' AND giftaidconsent = 0 
+    AND giftaid.userid IS NULL AND giftaidchaseup IS NULL AND users_donations.userid IS NOT NULL;");
 
 $sentto = [];
 

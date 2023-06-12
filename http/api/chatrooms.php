@@ -91,10 +91,16 @@ function chatrooms() {
                     case ChatRoom::TYPE_USER2MOD:
                         # On FD this must use the logged in user.  On MT we would be creating a chat to
                         # a different user.
-                        $id = $r->createUser2Mod(Session::modtools() ? ($userid ? $userid : $myid) : $myid, $groupid);
+                        $userid = Session::modtools() && $userid ? $userid : $myid;
 
-                        # Ensure the chat isn't blocked in case we closed it before.
-                        $r->updateRoster($myid, NULL);
+                        if ($groupid && $userid) {
+                            $id = $r->createUser2Mod(Session::modtools() ? ($userid ? $userid : $myid) : $myid, $groupid);
+
+                            if (Session::modtools()) {
+                                # Ensure the chat isn't blocked in case we (as a mod) closed it before.
+                                $r->updateRoster($myid, NULL);
+                            }
+                        }
                         break;
                 }
 

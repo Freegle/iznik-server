@@ -173,7 +173,8 @@ class ChatMessage extends Entity
                 # Check whether the sender is banned on all the groups they have in common with the recipient.  If so
                 # then they shouldn't be able to send a message.
                 $otheru = $r->getPrivate('user1') == $userid ? $r->getPrivate('user2') : $r->getPrivate('user1');
-                $banned = $r->bannedInCommon($userid, $otheru);
+                $s = new Spam($this->dbhr, $this->dbhm);
+                $banned = $r->bannedInCommon($userid, $otheru) || $s->isSpammerUid($userid);
 
                 if ($banned) {
                     return [ NULL, TRUE];

@@ -261,7 +261,8 @@ class User extends Entity
             # We're not already logged in as this user.
             $ret = FALSE;
 
-            $sql = "SELECT * FROM users_logins WHERE userid = ? AND type = ? AND credentials = ?;";
+            $sql = "SELECT users_logins.* FROM users_logins INNER JOIN users ON users.id = users_logins.userid WHERE userid = ? AND type = ? AND credentials = ? AND users.deleted IS NULL;";
+
             $logins = $this->dbhr->preQuery($sql, [$this->id, User::LOGIN_LINK, $key]);
             foreach ($logins as $login) {
                 # We found a match - log them in.
@@ -3764,7 +3765,7 @@ class User extends Entity
                     [$email, $canon, $key, strrev($canon), $key]);
             } while (!$this->dbhm->rowsAffected());
 
-            $confirm = $this->loginLink($usersite ? USER_SITE : MOD_SITE, $this->id, ($usersite ? "/settings/confirmmail/" : "/modtools/settings/confirmmail/") . urlencode($key), 'changeemail', TRUE);
+            $confirm = $this->loginLink(USER_SITE, $this->id, "/settings/confirmmail/" . urlencode($key), 'changeemail', TRUE);
 
             list ($transport, $mailer) = Mail::getMailer();
             $html = verify_email($email, $confirm, $usersite ? USERLOGO : MODLOGO);

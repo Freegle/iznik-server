@@ -479,7 +479,8 @@ WHERE chat_rooms.id IN $idlist;";
             #
             # If the sender is banned on all the groups they have in common with the recipient, then they shouldn't
             # be able to communicate.
-            $bannedonall = $this->bannedInCommon($user1, $user2);
+            $s = new Spam($this->dbhr, $this->dbhm);
+            $bannedonall = $this->bannedInCommon($user1, $user2) || $s->isSpammerUid($user1) || $s->isSpammerUid($user2);
 
             if (!$bannedonall) {
                 # All good.  Create one.  Duplicates can happen due to timing windows.
@@ -1210,7 +1211,7 @@ WHERE chat_rooms.id IN $idlist;";
                 $this->id,
                 $userid,
                 $userid == $myid ? Utils::presdef('REMOTE_ADDR', $_SERVER, NULL) : NULL,
-                $userid == $myid ? Utils::presdef('REMOTE_ADDR', $_SERVER, NULL) : NULL
+                $userid == $myid ? Utils::presdef('REMOTE_ADDR', $_SERVER, NULL) : NULL,
             ],
             FALSE);
 
@@ -1234,6 +1235,21 @@ WHERE chat_rooms.id IN $idlist;";
                     $m = new Message($this->dbhr, $this->dbhm, $promise['msgid']);
                     $m->renege($other);
                 }
+            }
+        } else if ($status == ChatRoom::STATUS_ONLINE) {
+            # The current status might not be online; if it's not, we need to update it.  Query first to avoid an
+            # unnecessary update which is bad for the cluster.
+            $current = $this->dbhr->preQuery("SELECT status FROM chat_roster WHERE chatid = ? AND userid = ?;", [
+                $this->id,
+                $userid
+            ]);
+
+            if (count($current) && $current[0]['status'] != ChatRoom::STATUS_ONLINE) {
+                $this->dbhm->preExec("UPDATE chat_roster SET status = ? WHERE chatid = ? AND userid = ?;", [
+                    ChatRoom::STATUS_ONLINE,
+                    $this->id,
+                    $userid
+                ], FALSE);
             }
         }
 

@@ -428,11 +428,9 @@ function message() {
                             # them up if need be, and then post the message.  We do this without being logged in, because
                             # that reduces friction.  If there is abuse of this, then we will find other ways to block the
                             # abuse.
-                            #
-                            # The message we have in hand should be nobody else's
                             $ret = ['ret' => 3, 'status' => 'Not our message'];
-                            $sql = "SELECT * FROM messages_drafts WHERE msgid = ? AND (session = ? OR (userid IS NOT NULL AND userid = ?));";
-                            $drafts = $dbhr->preQuery($sql, [$id, session_id(), $myid]);
+                            $sql = "SELECT * FROM messages_drafts WHERE msgid = ?;";
+                            $drafts = $dbhr->preQuery($sql, [$id]);
                             $newuser = NULL;
                             $pw = NULL;
                             $hitwindow = FALSE;

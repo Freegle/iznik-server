@@ -186,8 +186,10 @@ class chatRoomsAPITest extends IznikAPITestCase
         # Create a support room from this user to the group mods
         $this->user->addMembership($this->groupid);
 
+        error_log("Create chat {$this->groupid}");
         $ret = $this->call('chatrooms', 'PUT', [
             'groupid' => $this->groupid,
+            'userid' => $this->uid,
             'chattype' => ChatRoom::TYPE_USER2MOD
         ]);
         $this->assertEquals(0, $ret['ret']);

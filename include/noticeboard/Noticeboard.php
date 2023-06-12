@@ -20,12 +20,12 @@ class Noticeboard extends Entity
         $this->fetch($dbhr, $dbhm, $id, 'noticeboards', 'noticeboard', $this->publicatts);
     }
 
-    public function create($name, $lat, $lng, $addedby, $description) {
+    public function create($name, $lat, $lng, $addedby, $description, $active = TRUE) {
         $id = NULL;
 
         $rc = $this->dbhm->preExec("INSERT INTO noticeboards (`name`, `lat`, `lng`, `position`, `added`, `addedby`, `description`, `active`, `lastcheckedat`) VALUES 
-(?,?,?,ST_GeomFromText('POINT($lng $lat)', {$this->dbhr->SRID()}), NOW(), ?, ?, 1, NOW());", [
-            $name, $lat, $lng, $addedby, $description
+(?,?,?,ST_GeomFromText('POINT($lng $lat)', {$this->dbhr->SRID()}), NOW(), ?, ?, ?, NOW());", [
+            $name, $lat, $lng, $addedby, $description, $active
         ]);
 
         if ($rc) {
@@ -85,8 +85,10 @@ class Noticeboard extends Entity
         parent::setAttributes($settings);
 
         if ($addnews) {
-            // Now that we have some info, generate a newsfeed item.
-            $this->addNews();
+            if (Utils::presbool('active', $settings, TRUE)) {
+                // Now that we have some info, generate a newsfeed item.
+                $this->addNews();
+            }
         }
     }
 

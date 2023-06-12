@@ -35,6 +35,7 @@ mkdir iznik.recent
 cd iznik.recent
 git clone https://github.com/Freegle/iznik-nuxt3.git
 cd iznik-nuxt3
+git checkout -f production
 git log --pretty=format:'%s (%cr)' --abbrev-commit --since="7 days ago" > /tmp/git.log
 printf "This is an automated list of the changes to the next generation client code in the last 7 days.  This will be used for the next version of Freegle Direct." > /tmp/git.mail
 cat /tmp/git.log >> /tmp/git.mail

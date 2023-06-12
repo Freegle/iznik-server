@@ -512,5 +512,43 @@ class spammersAPITest extends IznikAPITestCase {
         $sid = $ret['id'];
         $this->assertNull($sid);
     }
+
+    public function testSpammerStartsChat() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail($u->inventEmail());
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+
+        $s = new Spam($this->dbhr, $this->dbhm);
+        $s->addSpammer($uid, Spam::TYPE_SPAMMER, 'Test reason');
+
+        $u2 = User::get($this->dbhr, $this->dbhm);
+        $uid2 = $u2->create(NULL, NULL, 'Test User');
+
+        $c = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($rid, $blocked) = $c->createConversation($uid, $uid2);
+        self::assertTrue($blocked);
+    }
+
+    public function testSpammerSendsChat() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail($u->inventEmail());
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+
+        $u2 = User::get($this->dbhr, $this->dbhm);
+        $uid2 = $u2->create(NULL, NULL, 'Test User');
+
+        $c = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($rid, $blocked) = $c->createConversation($uid, $uid2);
+        self::assertFalse($blocked);
+
+        $s = new Spam($this->dbhr, $this->dbhm);
+        $s->addSpammer($uid, Spam::TYPE_SPAMMER, 'Test reason');
+
+        $cm = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($mid, $banned) = $cm->create($rid, $uid,"Test from spammer");
+        self::assertTrue($banned);
+    }
 }
 

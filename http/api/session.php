@@ -430,7 +430,7 @@ function session() {
             } else if ($yahoocodelogin) {
                 $y = Yahoo::getInstance($dbhr, $dbhm, $host);
                 list ($session, $ret) = $y->loginWithCode($yahoocodelogin);
-                error_log("Yahoo code login returned " . var_export($ret, TRUE));
+                error_log("Yahoo code login with $yahoocodelogin returned " . var_export($ret, TRUE));
                 /** @var Session $session */
                 $id = $session ? $session->getUserId() : NULL;
                 error_log("User id from session $id");
@@ -528,7 +528,7 @@ function session() {
             }
             else if ($password && $email) {
                 # Native login via username and password
-                $ret = array('ret' => 2, 'status' => "We don't know that email address.  If you're new, please Sign Up.");
+                $ret = array('ret' => 2, 'status' => "We don't know that email address.  If you're new, please Register.");
                 $possid = $user->findByEmail($email);
                 if ($possid) {
                     $ret = array('ret' => 3, 'status' => "The password is wrong.  Maybe you've forgotten it?");
