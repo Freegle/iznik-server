@@ -25,6 +25,10 @@ function dashboard() {
 
             if ($components) {
                 # Newer style dashboard has multiple components which we can request some or all of.
+                if (gettype($components) == 'string') {
+                    $components = explode(',', $components);
+                }
+
                 $ret['components'] = $d->getComponents($components, $systemwide, $allgroups, $groupid, $region, $type, $start, $end, $force);
             } else {
                 # Older style dashboard for old ModTools and stats.
