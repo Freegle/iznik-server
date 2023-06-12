@@ -140,7 +140,8 @@ class Message
         'currently on leave',
         'To complete this verification',
         'I am currently away from my computer, but will reply to your message as soon as I return',
-        "E-mails to personal mailboxes aren’t monitored"
+        "E-mails to personal mailboxes aren’t monitored",
+        'I am currently unavailable'
     ];
 
     private $autoreply_text_start = [
