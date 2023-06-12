@@ -96,10 +96,8 @@ function chatrooms() {
                         if ($groupid && $userid) {
                             $id = $r->createUser2Mod(Session::modtools() ? ($userid ? $userid : $myid) : $myid, $groupid);
 
-                            if (Session::modtools()) {
-                                # Ensure the chat isn't blocked in case we (as a mod) closed it before.
-                                $r->updateRoster($myid, NULL);
-                            }
+                            # Ensure the chat isn't blocked in case we CLOSED it before.
+                            $r->updateRoster($myid, NULL);
                         }
                         break;
                 }
