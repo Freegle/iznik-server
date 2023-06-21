@@ -8,6 +8,8 @@ require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
+$lockh = Utils::lockScript(basename(__FILE__));
+
 $l = new LoveJunk($dbhr, $dbhm);
 
 $start = date("Y-m-d", strtotime("24 hours ago"));
@@ -31,3 +33,5 @@ foreach ($msgs as $msg) {
     error_log($msg['id']);
     $l->send($msg['id']);
 }
+
+Utils::unlockScript($lockh);

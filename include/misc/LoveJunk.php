@@ -70,11 +70,19 @@ class LoveJunk {
         $postcode = NULL;
         $lat = $m->getPrivate('lat');
         $lng = $m->getPrivate('lng');
+        $area = NULL;
 
         if ($locid) {
             // We have a location, so we can get the postcode name from that.
             $loc = $m->getLocation($locid, $locs);
             $postcode = $loc->getPrivate('name');
+            $areaid = $loc->getPrivate('areaid');
+
+            if ($areaid) {
+                $a = new Location($this->dbhr, $this->dbhm, $areaid);
+                $area = $a->getPrivate('name');
+            }
+
         } else if ($lat || $lng) {
             // We don't have a postcode but we can try to find one from the lat/lng.
             $l = new Location($this->dbhr, $this->dbhm);
@@ -82,13 +90,15 @@ class LoveJunk {
 
             if ($pc) {
                 $postcode = $pc['name'];
+                $area = $pc['area']['name'];
             }
         } else {
             error_log("Failed on $id");
         }
 
+        error_log("Check $id item $item postcode $postcode area $area type " . $m->getType());
+
         // We only want to send OFFERs with a location and item.
-        // TODO TN parse subject.
         if ($postcode && $item && $m->getType() == Message::TYPE_OFFER) {
             list ($lat, $lng) = Utils::blur($lat, $lng, Utils::BLUR_USER);
 
@@ -104,9 +114,12 @@ class LoveJunk {
                 'locationData' => [
                     'postcode' => $postcode,
                     'latitude' => $lat,
-                    'longitude' => $lng
+                    'longitude' => $lng,
+                    'area' => $area
                 ]
             ];
+
+            echo("Sending $id location $postcode area $area\n");
 
             if ($images) {
                 $data['images'] = $images;
