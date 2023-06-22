@@ -3744,4 +3744,60 @@ class messageAPITest extends IznikAPITestCase
         $m = new Message($this->dbhr, $this->dbhm, $mid);
         $this->assertEquals(0, $m->getPrivate('availablenow'));
     }
+
+    public function testSubmitUnvalidatedEmail()
+    {
+        $email = 'test-' . rand() . '@blackhole.io';
+
+        # This is similar to the actions on the client
+        # - find a location close to a lat/lng
+        # - upload a picture
+        # - create a draft with a location
+        # - find the closest group to that location
+        # - submit it
+        $this->group->setPrivate('lat', 8.5);
+        $this->group->setPrivate('lng', 179.3);
+        $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
+        $this->group->setPrivate('publish', 1);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $locid = $l->create(NULL, 'Tuvalu Postcode', 'Postcode', 'POINT(179.2167 8.53333)');
+
+        # Create a user with a validated and an unvalidated email
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create("Test", "User", "Test User");
+        $u->addEmail($email);
+        $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw');
+        $this->assertTrue($u->login('testpw'));
+
+        $email2 = 'test-' . rand() . '@blackhole.io';
+        $ret = $this->call('session', 'PATCH', [
+            'email' => $email2,
+        ]);
+        $this->assertEquals(10, $ret['ret']);
+
+        // Now submit using the unvalidated email.
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'groupid' => $this->gid,
+            'textbody' => 'Text body'
+        ]);
+
+        $this->assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+        $this->log("Created draft $id");
+
+        # This will get sent as for native groups we can do so immediate.
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'JoinAndPost',
+            'email' => $email2,
+            'ignoregroupoverride' => true
+        ]);
+
+        $this->assertEquals(11, $ret['ret']);
+    }
 }

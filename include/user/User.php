@@ -564,7 +564,11 @@ class User extends Entity
         return $ret;
     }
 
-    public function findByEmail($email)
+    public function findByEmail($email) {
+        return $this->findByEmailIncludingUnvalidated($email)[0];
+    }
+
+    public function findByEmailIncludingUnvalidated($email)
     {
         if (preg_match('/.*\-(.*)\@' . USER_DOMAIN . '/', $email, $matches)) {
             # Our own email addresses have the UID in there.  This will match even if the email address has
@@ -575,24 +579,29 @@ class User extends Entity
             ]);
 
             foreach ($users as $user) {
-                return ($user['id']);
+                return [ $user['id'], FALSE ];
             }
         }
 
         # Take care not to pick up empty or null else that will cause is to overmerge.
         #
         # Use canon to match - that handles variant TN addresses or % addressing.
-        $users = $this->dbhr->preQuery("SELECT userid FROM users_emails WHERE (email = ? OR canon = ?) AND canon IS NOT NULL AND LENGTH(canon) > 0;",
+        $users = $this->dbhr->preQuery("SELECT id, userid FROM users_emails WHERE (email = ? OR canon = ?) AND canon IS NOT NULL AND LENGTH(canon) > 0;",
             [
                 $email,
                 User::canonMail($email),
             ]);
 
         foreach ($users as $user) {
-            return ($user['userid']);
+            if ($user['userid']) {
+                return [ $user['userid'], FALSE ];
+            } else {
+                // This email is not yet validated.
+                return [ NULL, TRUE ];
+            }
         }
 
-        return (NULL);
+        return [ NULL, FALSE ];
     }
 
     public function findByEmailHash($hash)

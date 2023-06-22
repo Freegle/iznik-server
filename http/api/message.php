@@ -465,6 +465,9 @@ function message() {
 
                                     $u = User::get($dbhr, $dbhm);
 
+                                    $ret = ['ret' => 5, 'status' => 'Failed to create user or email'];
+                                    $unvalidated = FALSE;
+
                                     if (!$email) {
                                         # The client ought to provide one.  But if they don't and we're logged in
                                         # then we can use ours.
@@ -475,165 +478,171 @@ function message() {
                                             $email = $me->getEmailPreferred();
                                         }
                                     } else {
-                                        $uid = $u->findByEmail($email);
+                                        list ($uid, $unvalidated) = $u->findByEmailIncludingUnvalidated($email);
+
+                                        if ($unvalidated) {
+                                            // They have tried to submit with an email which has not yet been validated
+                                            // by them.
+                                            $ret = ['ret' => 11, 'status' => 'Unvalidated email'];
+                                        }
                                     }
 
-                                    $ret = ['ret' => 5, 'status' => 'Failed to create user or email'];
+                                    if (!$unvalidated) {
+                                        if (!$uid) {
+                                            # We don't yet know this user.  Create them.
+                                            $name = substr($email, 0, strpos($email, '@'));
+                                            $newuser = $u->create(null, null, $name, 'Created to allow post');
 
-                                    if (!$uid) {
-                                        # We don't yet know this user.  Create them.
-                                        $name = substr($email, 0, strpos($email, '@'));
-                                        $newuser = $u->create(null, null, $name, 'Created to allow post');
+                                            # Create a password and mail it to them.  Also log them in and return it.  This
+                                            # avoids us having to ask the user for a password, though they can change it if
+                                            # they like.  Less friction.
+                                            $pw = $u->inventPassword();
+                                            $u->addLogin(User::LOGIN_NATIVE, $newuser, $pw);
+                                            $eid = $u->addEmail($email, 1);
 
-                                        # Create a password and mail it to them.  Also log them in and return it.  This
-                                        # avoids us having to ask the user for a password, though they can change it if
-                                        # they like.  Less friction.
-                                        $pw = $u->inventPassword();
-                                        $u->addLogin(User::LOGIN_NATIVE, $newuser, $pw);
-                                        $eid = $u->addEmail($email, 1);
+                                            if (!$eid) {
+                                                # There's a timing window where a parallel request could have added this
+                                                # email.  Check.
+                                                $uid2 = $u->findByEmail($email);
 
-                                        if (!$eid) {
-                                            # There's a timing window where a parallel request could have added this
-                                            # email.  Check.
-                                            $uid2 = $u->findByEmail($email);
+                                                if ($uid2) {
+                                                    # That has happened.  Delete the user we created and use the other.
+                                                    $u->delete();
+                                                    $newuser = null;
+                                                    $pw = null;
+                                                    $hitwindow = true;
 
-                                            if ($uid2) {
-                                                # That has happened.  Delete the user we created and use the other.
-                                                $u->delete();
-                                                $newuser = null;
-                                                $pw = null;
-                                                $hitwindow = true;
+                                                    $u = User::get($dbhr, $dbhm, $uid2);
+                                                    $eid = $u->getIdForEmail($email)['id'];
 
-                                                $u = User::get($dbhr, $dbhm, $uid2);
-                                                $eid = $u->getIdForEmail($email)['id'];
+                                                    if ($u->getEmailPreferred() != $email) {
+                                                        # The email specified is the one they currently want to use - make sure it's
+                                                        $u->addEmail($email, 1, true);
+                                                    }
+                                                }
+                                            } else {
+                                                $u->login($pw);
+                                                $u->welcome($email, $pw);
+                                            }
+                                        } else if ($myid && $myid != $uid) {
+                                            # We know the user, but it's not the one we're logged in as.  It's most likely
+                                            # that the user is just confused about multiple email addresses.  We will reject
+                                            # the message - the client is supposed to detect this case earlier on.
+                                            $ret = ['ret' => 6, 'status' => 'That email address is in use for a different user.'];
+                                        } else {
+                                            $u = User::get($dbhr, $dbhm, $uid);
+                                            $eid = $u->getIdForEmail($email)['id'];
 
-                                                if ($u->getEmailPreferred() != $email) {
-                                                    # The email specified is the one they currently want to use - make sure it's
-                                                    $u->addEmail($email, 1, true);
+                                            if ($u->getEmailPreferred() != $email) {
+                                                # The email specified is the one they currently want to use - make sure it's
+                                                # in there.
+                                                $u->addEmail($email, 1, TRUE);
+                                            }
+                                        }
+
+                                        if ($u->getId() && $eid) {
+                                            # Now we have a user and an email.  We need to make sure they're a member of the
+                                            # group in question.
+                                            $g = Group::get($dbhr, $dbhm, $groupid);
+                                            $fromemail = NULL;
+                                            $cont = TRUE;
+
+                                            # Check the message for worry words.
+                                            $w = new WorryWords($dbhr, $dbhm, $groupid);
+                                            $worry = $w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody());
+
+                                            # Assume this post is moderated unless we decide otherwise below.
+                                            $me = Session::whoAmI($dbhr, $dbhm);
+
+                                            if ($u->isBanned($groupid)) {
+                                                # We're not allowed to post.
+                                                $cont = FALSE;
+                                                $ret = ['ret' => 9, 'status' => 'Banned from this group'];
+                                            } else if (!$u->isApprovedMember($groupid)) {
+                                                # We're not yet a member.  Join the group.
+                                                $addworked = $u->addMembership($groupid);
+
+                                                # This is now a member, and we always moderate posts from new members,
+                                                # so this goes to pending.
+                                                $postcoll = MessageCollection::PENDING;
+
+                                                if ($addworked === FALSE) {
+                                                    # We couldn't join - we're banned.  Suppress the message below.
+                                                    $cont = FALSE;
+
+                                                    # Pretend it worked, if we suppressed a banned message.
+                                                    $ret = ['ret' => 0, 'status' => 'Success', 'groupid' => $groupid, 'id' => $id];
+                                                }
+                                            } else if ($me && $me->getMembershipAtt($groupid, 'ourPostingStatus') == Group::POSTING_PROHIBITED) {
+                                                # We're not allowed to post.
+                                                $cont = FALSE;
+                                                $ret = ['ret' => 8, 'status' => 'Not allowed to post on this group'];
+                                            } else {
+                                                # They're already a member, so we might be able to put this straight
+                                                # to approved.
+                                                #
+                                                # The entire group might be moderated, or the member might be, in which
+                                                # case the message goes to pending, otherwise approved.
+                                                #
+                                                # Worrying messages always go to Pending.
+                                                if ($worry || $g->getPrivate('overridemoderation') ==  Group::OVERRIDE_MODERATION_ALL) {
+                                                    $postcoll = MessageCollection::PENDING;
+                                                } else {
+                                                    $postcoll = ($g->getSetting('moderated', 0) || $g->getSetting('close', 0)) ? MessageCollection::PENDING : $u->postToCollection($groupid);
                                                 }
                                             }
-                                        } else {
-                                            $u->login($pw);
-                                            $u->welcome($email, $pw);
-                                        }
-                                    } else if ($myid && $myid != $uid) {
-                                        # We know the user, but it's not the one we're logged in as.  It's most likely
-                                        # that the user is just confused about multiple email addresses.  We will reject
-                                        # the message - the client is supposed to detect this case earlier on.
-                                        $ret = ['ret' => 6, 'status' => 'That email address is in use for a different user.'];
-                                    } else {
-                                        $u = User::get($dbhr, $dbhm, $uid);
-                                        $eid = $u->getIdForEmail($email)['id'];
 
-                                        if ($u->getEmailPreferred() != $email) {
-                                            # The email specified is the one they currently want to use - make sure it's
-                                            # in there.
-                                            $u->addEmail($email, 1, TRUE);
-                                        }
-                                    }
+                                            # Check if it's spam
+                                            $s = new Spam($dbhr, $dbhm);
+                                            list ($rc, $reason) = $s->checkMessage($m);
 
-                                    if ($u->getId() && $eid) {
-                                        # Now we have a user and an email.  We need to make sure they're a member of the
-                                        # group in question.
-                                        $g = Group::get($dbhr, $dbhm, $groupid);
-                                        $fromemail = NULL;
-                                        $cont = TRUE;
-
-                                        # Check the message for worry words.
-                                        $w = new WorryWords($dbhr, $dbhm, $groupid);
-                                        $worry = $w->checkMessage($m->getID(), $m->getFromuser(), $m->getSubject(), $m->getTextbody());
-
-                                        # Assume this post is moderated unless we decide otherwise below.
-                                        $me = Session::whoAmI($dbhr, $dbhm);
-
-                                        if ($u->isBanned($groupid)) {
-                                            # We're not allowed to post.
-                                            $cont = FALSE;
-                                            $ret = ['ret' => 9, 'status' => 'Banned from this group'];
-                                        } else if (!$u->isApprovedMember($groupid)) {
-                                            # We're not yet a member.  Join the group.
-                                            $addworked = $u->addMembership($groupid);
-
-                                            # This is now a member, and we always moderate posts from new members,
-                                            # so this goes to pending.
-                                            $postcoll = MessageCollection::PENDING;
-
-                                            if ($addworked === FALSE) {
-                                                # We couldn't join - we're banned.  Suppress the message below.
-                                                $cont = FALSE;
-
-                                                # Pretend it worked, if we suppressed a banned message.
-                                                $ret = ['ret' => 0, 'status' => 'Success', 'groupid' => $groupid, 'id' => $id];
-                                            }
-                                        } else if ($me && $me->getMembershipAtt($groupid, 'ourPostingStatus') == Group::POSTING_PROHIBITED) {
-                                            # We're not allowed to post.
-                                            $cont = FALSE;
-                                            $ret = ['ret' => 8, 'status' => 'Not allowed to post on this group'];
-                                        } else {
-                                            # They're already a member, so we might be able to put this straight
-                                            # to approved.
-                                            #
-                                            # The entire group might be moderated, or the member might be, in which
-                                            # case the message goes to pending, otherwise approved.
-                                            #
-                                            # Worrying messages always go to Pending.
-                                            if ($worry || $g->getPrivate('overridemoderation') ==  Group::OVERRIDE_MODERATION_ALL) {
+                                            if ($rc) {
+                                                # It is.  Put in pending for review.
                                                 $postcoll = MessageCollection::PENDING;
-                                            } else {
-                                                $postcoll = ($g->getSetting('moderated', 0) || $g->getSetting('close', 0)) ? MessageCollection::PENDING : $u->postToCollection($groupid);
                                             }
-                                        }
 
-                                        # Check if it's spam
-                                        $s = new Spam($dbhr, $dbhm);
-                                        list ($rc, $reason) = $s->checkMessage($m);
+                                            if ($worry) {
+                                                $m->setPrivate('spamtype', Spam::REASON_WORRY_WORD);
+                                                $m->setPrivate('spamreason','Referred to worry word ' . $worry[0]['worryword']['keyword']);
+                                            }
 
-                                        if ($rc) {
-                                            # It is.  Put in pending for review.
-                                            $postcoll = MessageCollection::PENDING;
-                                        }
+                                            # We want the message to come from one of our emails rather than theirs, so
+                                            # that replies come back to us and privacy is maintained.
+                                            $fromemail = $u->inventEmail();
 
-                                        if ($worry) {
-                                            $m->setPrivate('spamtype', Spam::REASON_WORRY_WORD);
-                                            $m->setPrivate('spamreason','Referred to worry word ' . $worry[0]['worryword']['keyword']);
-                                        }
+                                            # Make sure this email is attached to the user so that we don't invent
+                                            # another next time.
+                                            $u->addEmail($fromemail, 0, FALSE);
 
-                                        # We want the message to come from one of our emails rather than theirs, so
-                                        # that replies come back to us and privacy is maintained.
-                                        $fromemail = $u->inventEmail();
+                                            $m->constructSubject($groupid);
 
-                                        # Make sure this email is attached to the user so that we don't invent
-                                        # another next time.
-                                        $u->addEmail($fromemail, 0, FALSE);
+                                            if ($cont) {
+                                                if ($fromemail) {
+                                                    $dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection,arrival, msgtype) VALUES (?,?,?,NOW(),?);", [
+                                                        $draft['msgid'],
+                                                        $groupid,
+                                                        $postcoll,
+                                                        $m->getType()
+                                                    ]);
 
-                                        $m->constructSubject($groupid);
+                                                    $ret = ['ret' => 7, 'status' => 'Failed to submit'];
 
-                                        if ($cont) {
-                                            if ($fromemail) {
-                                                $dbhm->preExec("INSERT IGNORE INTO messages_groups (msgid, groupid, collection,arrival, msgtype) VALUES (?,?,?,NOW(),?);", [
-                                                    $draft['msgid'],
-                                                    $groupid,
-                                                    $postcoll,
-                                                    $m->getType()
-                                                ]);
+                                                    if ($m->submit($u, $fromemail, $groupid)) {
+                                                        # We sent it.
+                                                        $ret = ['ret' => 0, 'status' => 'Success', 'groupid' => $groupid];
 
-                                                $ret = ['ret' => 7, 'status' => 'Failed to submit'];
-
-                                                if ($m->submit($u, $fromemail, $groupid)) {
-                                                    # We sent it.
-                                                    $ret = ['ret' => 0, 'status' => 'Success', 'groupid' => $groupid];
-
-                                                    if ($postcoll == MessageCollection::APPROVED) {
-                                                        # We index now; for pending messages we index when they are approved.
-                                                        $m->addToSpatialIndex();
-                                                        $m->index();
+                                                        if ($postcoll == MessageCollection::APPROVED) {
+                                                            # We index now; for pending messages we index when they are approved.
+                                                            $m->addToSpatialIndex();
+                                                            $m->index();
+                                                        }
                                                     }
                                                 }
                                             }
-                                        }
 
-                                        # This user has been active recently.
-                                        $dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = " . $u->getId() . ";");
+                                            # This user has been active recently.
+                                            $dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = " . $u->getId() . ";");
+                                        }
                                     }
                                 }
                             }
