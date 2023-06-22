@@ -261,9 +261,9 @@ try {
 
     error_log("Deleted $total");
 
-    # This shouldn't happen due to delete cascading...but we've seen 7 such emails exist, and one caused future
-    # problems.  So zap 'em.
-    $dbhm->preExec("DELETE FROM users_emails WHERE userid IS NULL");
+    # Delete emails where people have not validated their email address within 7 days.
+    $start = date('Y-m-d', strtotime("midnight 7 days ago"));
+    $dbhm->preExec("DELETE FROM users_emails WHERE userid IS NULL AND added < ?", $start);
 } catch (\Exception $e) {
     \Sentry\captureException($e);
     error_log("Failed with " . $e->getMessage());
