@@ -139,6 +139,7 @@ class LoveJunk {
                     $ret = TRUE;
                     $rsp = json_decode((string)$r->getBody(), TRUE);
                 } else {
+                    $ret = TRUE;
                     $rsp = [
                         'body' => 'UT'
                     ];
