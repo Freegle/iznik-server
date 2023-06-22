@@ -27,9 +27,10 @@ class LoveJunkTest extends IznikTestCase
         $this->dbhm->preExec("DELETE FROM returnpath_seedlist WHERE email LIKE 'test@test.com';");
     }
 
-    public function testSend() {
+    public function testSend()
+    {
         $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        $uid = $u->create(null, null, 'Test User');
 
         $settings = [
             'mylocation' => [
@@ -46,7 +47,7 @@ class LoveJunkTest extends IznikTestCase
 
         $email = 'test-' . rand() . '@blackhole.io';
         $u->addEmail($email);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, null, 'testpw'));
         $this->assertTrue($u->login('testpw'));
 
         $u->addEmail('test@test.com');
@@ -69,6 +70,7 @@ class LoveJunkTest extends IznikTestCase
         $m->setPrivate('lng', -3.205333);
 
         $l = new LoveJunk($this->dbhr, $this->dbhm);
+        $l->setMock(true);
         $this->assertTrue($l->send($id));
     }
 }

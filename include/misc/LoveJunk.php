@@ -9,13 +9,17 @@ class LoveJunk {
     /** @public  $dbhm LoggedPDO */
     public $dbhm;
 
-    private $jobKeywords = NULL;
+    private $mock = FALSE;
 
     const MINIMUM_CPC = 0.10;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm) {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+    }
+
+    public function setMock($mock) {
+        $this->mock = $mock;
     }
 
     public function send($id) {
@@ -128,11 +132,18 @@ class LoveJunk {
             $client = new Client();
 
             try {
-                $r = $client->request('POST', LOVE_JUNK_API, [
-                    'json'  => $data
-                ]);
-                $ret = TRUE;
-                $rsp = json_decode((string)$r->getBody(), TRUE);
+                if (!$this->mock) {
+                    $r = $client->request('POST', LOVE_JUNK_API, [
+                        'json'  => $data
+                    ]);
+                    $ret = TRUE;
+                    $rsp = json_decode((string)$r->getBody(), TRUE);
+                } else {
+                    $rsp = [
+                        'body' => 'UT'
+                    ];
+                }
+
                 $this->recordResult(TRUE, $id, json_encode($rsp['body']));
             } catch (\Exception $e) {
                 if ($e->getCode() == 410) {

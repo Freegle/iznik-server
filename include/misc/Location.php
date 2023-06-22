@@ -376,7 +376,7 @@ class Location extends Entity
             $poly = "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
             $sql = "SELECT id, name, areaid, lat, lng, ST_distance(locations_spatial.geometry, ST_GeomFromText('POINT($lng $lat)', {$this->dbhr->SRID()})) AS dist FROM locations_spatial 
     INNER JOIN locations ON locations.id = locations_spatial.locationid 
-    WHERE MBRContains(ST_Envelope(ST_GeomFromText('$poly', {$this->dbhr->SRID()})), locations_spatial.geometry) AND type = 'Postcode' 
+    WHERE MBRContains(ST_Envelope(ST_GeomFromText('$poly', {$this->dbhr->SRID()})), locations_spatial.geometry) AND type = 'Postcode' AND LOCATE(' ', locations.name) > 0
     ORDER BY dist ASC, CASE WHEN ST_Dimension(locations_spatial.geometry) < 2 THEN 0 ELSE ST_AREA(locations_spatial.geometry) END ASC LIMIT 1;";
             $locs = $this->dbhr->preQuery($sql);
 
