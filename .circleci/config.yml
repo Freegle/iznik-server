@@ -99,7 +99,7 @@ jobs:
       - run: sudo sed -ie "s/'MAPBOX_TOKEN', 'zzzz'/'MAPBOX_TOKEN', '$MAPBOX_TOKEN'/g" /etc/iznik.conf
       - run: sudo sed -ie "s/'SENTRY_DSN', 'zzzz'/'SENTRY_DSN', '$SENTRY_DSN'/g" /etc/iznik.conf
       - run: sudo sed -ie "s/'PGSQLDB', 'iznik'/'PGSQLDB', 'circle_test'/g" /etc/iznik.conf
-      - run: sudo sed -ie "s/'LOVE_JUNK_API,*$/'LOVE_JUNK_API', 'https://staging-elmer.api-lovejunk.com/elmer/v1/freegle-drafts?secret=$LOVE_JUNK_SECRET" /etc/iznik.conf
+      - run: sudo sed -ie "s/LOVE_JUNK_SECRET/$LOVE_JUNK_SECRET/g" /etc/iznik.conf
 
       - run: echo "define('SQLLOG', TRUE);" >> /etc/iznik.conf
 

@@ -189,4 +189,4 @@ define('MOD_TEST_SITE', 'https://iznik.modtools.org');
 define('PLAYGROUND_TOKEN', 'zzzz');
 define('PLAYGROUND_SECRET', 'zzzz');
 
-define('LOVE_JUNK_API', 'https://staging-elmer.api-lovejunk.com/elmer/v1/freegle-drafts?secret=zzz');
+define('LOVE_JUNK_API', 'https://staging-elmer.api-lovejunk.com/elmer/v1/freegle-drafts?secret=LOVE_JUNK_SECRET');
