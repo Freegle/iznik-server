@@ -1674,8 +1674,9 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                 #error_log("COnsider review {$atts['reviewrequired']}, {$msg['userid']}, $myid, $modaccess");
                 if ($atts['reviewrequired'] && $msg['userid'] != $myid && !$modaccess) {
                     # This message is held for review, and we didn't send it.  So we shouldn't see it.
-                } else if ($atts['reviewrejected']) {
-                    # This message was reviewed and deemed unsuitable.  So we shouldn't see it.
+                } else if ((!$me || !$me->isAdminOrSupport()) && $atts['reviewrejected']) {
+                    # This message was reviewed and deemed unsuitable.  So we shouldn't see it unless we're
+                    # an admin or support (where it will be shown struck out).
                 } else {
                     # We should return this one.
                     if (!$me || !$me->isAdminOrSupport()) {
