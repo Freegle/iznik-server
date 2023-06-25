@@ -14,6 +14,7 @@ $l = new LoveJunk($dbhr, $dbhm);
 
 $start = date("Y-m-d", strtotime("24 hours ago"));
 
+// Add new messages.
 $msgs = $dbhr->preQuery("SELECT messages.id FROM messages 
     LEFT JOIN lovejunk ON lovejunk.msgid = messages.id
     INNER JOIN messages_groups ON messages_groups.msgid = messages.id 
@@ -30,8 +31,26 @@ $msgs = $dbhr->preQuery("SELECT messages.id FROM messages
 ]);
 
 foreach ($msgs as $msg) {
-    error_log($msg['id']);
+    error_log("Send " . $msg['id']);
     $l->send($msg['id']);
+}
+
+// Mark any messages which we have sent to LoveJunk and which now have outcomes as deleted.
+$msgs = $dbhr->preQuery("SELECT messages.id FROM messages_outcomes
+    INNER JOIN messages ON messages.id = messages_outcomes.msgid
+    INNER JOIN lovejunk ON lovejunk.msgid = messages_outcomes.msgid
+    WHERE messages_outcomes.timestamp >= ? AND
+      messages.type = ? AND   
+      lovejunk.success = 1 AND lovejunk.deleted IS NULL AND lovejunk.status LIKE '{%' 
+      ORDER BY messages.arrival ASC;
+", [
+    $start,
+    Message::TYPE_OFFER,
+]);
+
+foreach ($msgs as $msg) {
+    error_log("Delete " . $msg['id']);
+    $l->delete($msg['id']);
 }
 
 Utils::unlockScript($lockh);

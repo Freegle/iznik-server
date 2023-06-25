@@ -100,8 +100,6 @@ class LoveJunk {
             error_log("Failed on $id");
         }
 
-        error_log("Check $id item $item postcode $postcode area $area type " . $m->getType());
-
         // We only want to send OFFERs with a location and item.
         if ($postcode && $item && $m->getType() == Message::TYPE_OFFER) {
             list ($lat, $lng) = Utils::blur($lat, $lng, Utils::BLUR_USER);
@@ -133,7 +131,7 @@ class LoveJunk {
 
             try {
                 if (!$this->mock) {
-                    $r = $client->request('POST', LOVE_JUNK_API, [
+                    $r = $client->request('POST', LOVE_JUNK_API . '?secret=' . LOVE_JUNK_SECRET, [
                         'json'  => $data
                     ]);
                     $ret = TRUE;
@@ -141,7 +139,10 @@ class LoveJunk {
                 } else {
                     $ret = TRUE;
                     $rsp = [
-                        'body' => 'UT'
+                        'body' => [
+                            'draftId' => '1',
+                            'response' => 'UT'
+                        ]
                     ];
                 }
 
@@ -161,7 +162,53 @@ class LoveJunk {
         return $ret;
     }
 
+    public function delete($id) {
+        $ret = FALSE;
+
+        $ljs = $this->dbhr->preQuery("SELECT * FROM lovejunk WHERE msgid = ? AND success = 1", [ $id ]);
+
+        foreach ($ljs as $lj) {
+            $ret = json_decode($lj['status'], TRUE);
+
+            if (array_key_exists('draftId', $ret)) {
+                $client = new Client();
+
+                try {
+                    if (!$this->mock) {
+                        $r = $client->request('DELETE', LOVE_JUNK_API . '/' . $ret['draftId'] . '?secret=' . LOVE_JUNK_SECRET);
+                        $ret = TRUE;
+                        $rsp = 200 . " " . $r->getReasonPhrase();
+                    } else {
+                        $ret = TRUE;
+                        $rsp = 500 . " UT";
+                    }
+
+                    $this->recordResultDelete(TRUE, $id, json_encode($rsp));
+                } catch (\Exception $e) {
+                    error_log("Exception {$e->getMessage()}");
+                    $this->recordResultDelete(TRUE, $id, $e->getCode() . " " . $e->getMessage());
+                }
+            }
+        }
+
+        return $ret;
+    }
+
     private function recordResult($success, $msgid, $status) {
-        $this->dbhr->preExec("INSERT INTO lovejunk (msgid, success, status) VALUES (?, ?, ?) ON DUPLICATE KEY update success = ?, status = ?;", [$msgid, $success, $status, $success, $status]);
+        $this->dbhm->preExec("INSERT INTO lovejunk (msgid, success, status) VALUES (?, ?, ?) ON DUPLICATE KEY update success = ?, status = ?;", [$msgid, $success, $status, $success, $status]);
+    }
+
+    private function recordResultDelete($success, $msgid, $status) {
+        if ($success) {
+            $this->dbhm->preExec("UPDATE lovejunk SET deleted = NOW(), deletestatus = ? WHERE msgid = ?", [
+                $status,
+                $msgid,
+            ]);
+        } else {
+            $this->dbhm->preExec("UPDATE lovejunk SET deleted = NULL, deletestatus = ? WHERE msgid = ?", [
+                $status,
+                $msgid,
+            ]);
+        }
     }
 }
