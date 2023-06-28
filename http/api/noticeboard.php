@@ -44,7 +44,6 @@ function noticeboard() {
             $lng = Utils::presfloat('lng', $_REQUEST, NULL);
             $description = Utils::presdef('description', $_REQUEST, NULL);
             $action = Utils::presdef('action', $_REQUEST, NULL);
-            $active = Utils::presbool('active', $_REQUEST, TRUE);
 
             $ret = [
                 'ret' => 2,
