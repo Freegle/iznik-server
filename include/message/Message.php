@@ -4369,15 +4369,6 @@ ORDER BY lastdate DESC;";
     }
 
     public function backgroundMark($byuser, $outcome, $intcomment, $happiness, $userid, $messageForOthers = NULL) {
-        if (($outcome == Message::OUTCOME_TAKEN || $outcome == Message::OUTCOME_RECEIVED) && $userid) {
-            # Record that this item was taken/received by this user.  Assume they took any remaining (usually 1).
-            $this->dbhm->preExec("INSERT INTO messages_by (msgid, userid, count) VALUES (?, ?, ?);", [
-                $this->id,
-                $userid,
-                $this->availablenow
-            ]);
-        }
-
         # You might think that if we are passed a $userid then we could log a renege for any other users to whom
         # this was promised - but we can promise to multiple users, whereas we can only mark a single user in the
         # TAKEN (which is probably a bug).  And if we are withdrawing it, then we don't really know why - it could
@@ -4429,10 +4420,19 @@ WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND message
             $intcomment
         ]);
 
+        if (($outcome == Message::OUTCOME_TAKEN || $outcome == Message::OUTCOME_RECEIVED) && $userid) {
+            # Record that this item was taken/received by this user.  Assume they took any remaining (usually 1).
+            $this->dbhm->preExec("INSERT INTO messages_by (msgid, userid, count) VALUES (?, ?, ?);", [
+                $this->id,
+                $userid,
+                $this->availablenow
+            ]);
+        }
+
         # Update in spatial index so that the count of our posts changes.
         $this->markSuccessfulInSpatial($this->id);
 
-        # There is more processing to do, but it's slow.  Background it.
+        # There is more processing to do to let other people know, but it's slow, and non-critical.  Background it.
         $this->getPheanstalk();
 
         $this->pheanstalk->put(json_encode([
