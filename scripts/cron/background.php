@@ -136,6 +136,18 @@ try {
                             break;
                         }
 
+                        case 'mark': {
+                            $m = new Message($dbhr, $dbhm, $data['id']);
+                            $m->backgroundMark(
+                                $data['byuser'],
+                                $data['outcome'],
+                                $data['intcomment'],
+                                $data['happiness'],
+                                $data['userid'],
+                                $data['messageForOthers']);
+                            break;
+                        }
+
                         default: {
                             error_log("Unknown job type {$data['type']} " . var_export($data, TRUE));
                         }

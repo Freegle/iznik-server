@@ -232,6 +232,7 @@ class storiesAPITest extends IznikAPITestCase {
         $this->log("Mark $origid as TAKEN");
         $m = new Message($this->dbhr, $this->dbhm, $origid);
         $m->mark(Message::OUTCOME_TAKEN, "Thanks", User::HAPPY, $uid);
+        $this->waitBackground();
 
         # Now should ask.
         self::assertEquals(1, $s->askForStories('2017-01-01', $uid, 0, 0, NULL));

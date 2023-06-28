@@ -953,6 +953,7 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Mark $origid as TAKEN");
         $m = new Message($this->dbhm, $this->dbhm, $origid);
         $m->mark(Message::OUTCOME_TAKEN, "Thanks", User::HAPPY, NULL);
+        $this->waitBackground();
         list($msgs, $users) = $c->getMessages();
         $this->log("Chat messages " . var_export($msgs, TRUE));
         self::assertEquals(ChatMessage::TYPE_COMPLETED, $msgs[1]['type']);

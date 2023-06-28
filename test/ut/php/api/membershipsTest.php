@@ -604,6 +604,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $this->log("Mark $origid as TAKEN");
         $m = new Message($this->dbhr, $this->dbhm, $origid);
         $m->mark(Message::OUTCOME_TAKEN, "Thanks", User::HAPPY, $uid);
+        $this->waitBackground();
 
         # Should show as unreviewed, but can't get as member.
         $ret = $this->call('memberships', 'GET', [

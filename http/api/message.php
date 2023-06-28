@@ -790,13 +790,14 @@ function message() {
                                     }
 
                                     $comment = Utils::presdef('comment', $_REQUEST, NULL);
+                                    $messageForOthers = Utils::presdef('message', $_REQUEST, NULL);
 
                                     $ret = ['ret' => 1, 'status' => 'Odd action'];
 
                                     switch ($outcome) {
                                         case Message::OUTCOME_TAKEN: {
                                             if ($m->getType() == Message::TYPE_OFFER) {
-                                                $m->mark($outcome, $comment, $happiness, $userid);
+                                                $m->mark($outcome, $comment, $happiness, $userid, $messageForOthers);
                                                 $ret = ['ret' => 0, 'status' => 'Success'];
                                             };
                                             break;

@@ -76,6 +76,7 @@ class visualiseTest extends IznikTestCase {
         $this->log("Mark $origid as TAKEN");
         $m = new Message($this->dbhm, $this->dbhm, $origid);
         $m->mark(Message::OUTCOME_TAKEN, "Thanks", User::HAPPY, $uid2);
+        $this->waitBackground();
 
         # Now scan the messages
         $v = new Visualise($this->dbhr, $this->dbhm);

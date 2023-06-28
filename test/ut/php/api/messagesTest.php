@@ -695,12 +695,14 @@ class messagesTest extends IznikAPITestCase {
 
         # Few more spatial indexing tests
         $m->mark(Message::OUTCOME_TAKEN, "Thanks", User::HAPPY, NULL);
+        $this->waitBackground();
         $this->dbhm->preExec("DELETE FROM messages_outcomes WHERE msgid = ?;", [
             $id
         ]);
         $this->assertEquals(1, $m->updateSpatialIndex());
 
         $m->mark(Message::OUTCOME_WITHDRAWN, "Soz", User::HAPPY, NULL);
+        $this->waitBackground();
         $this->dbhm->preExec("DELETE FROM messages_outcomes WHERE msgid = ?;", [
             $id
         ]);

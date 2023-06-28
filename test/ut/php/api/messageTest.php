@@ -2276,7 +2276,8 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'action' => 'OutcomeIntended',
-            'outcome' => Message::OUTCOME_TAKEN
+            'outcome' => Message::OUTCOME_TAKEN,
+            'message' => 'Message for others'
         ]);
 
         $ret = $this->call('message', 'POST', [
@@ -3799,5 +3800,83 @@ class messageAPITest extends IznikAPITestCase
         ]);
 
         $this->assertEquals(11, $ret['ret']);
+    }
+
+    public function testMessageToOthersOnTaken() {
+        # Create a message.
+        $l = new Location($this->dbhr, $this->dbhm);
+        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)');
+        $locid2 = $l->create(NULL, 'TV1 1AB', 'Postcode', 'POINT(179.3 8.6)');
+
+        $u = User::get($this->dbhr, $this->dbhm);
+
+        $memberid = $u->create('Test','User', 'Test User');
+        $member = User::get($this->dbhr, $this->dbhm, $memberid);
+        $this->assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $member->addMembership($this->gid, User::ROLE_MEMBER);
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $member->addEmail($email);
+
+        $modid = $u->create('Test','User', 'Test User');
+        $mod = User::get($this->dbhr, $this->dbhm, $modid);
+        $this->assertGreaterThan(0, $mod->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $mod->addMembership($this->gid, User::ROLE_MODERATOR);
+
+        $this->log("Created member $memberid and mod $modid");
+
+        $this->assertTrue($member->login('testpw'));
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'groupid' => $this->gid,
+            'textbody' => 'Text body'
+        ]);
+
+        $this->assertEquals(0, $ret['ret']);
+        $mid = $ret['id'];
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'JoinAndPost',
+            'ignoregroupoverride' => true,
+            'email' => $email
+        ]);
+
+        $this->assertEquals(0, $ret['ret']);
+
+        # Reply to it from two other users.
+        $u1id = $u->create('Test','User', 'Test User');
+        $u2id = $u->create('Test','User', 'Test User');
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($rid1, $blocked) = $r->createConversation($u1id, $memberid);
+        list ($rid2, $blocked) = $r->createConversation($u2id, $memberid);
+
+        $cm = new ChatMessage($this->dbhr, $this->dbhm);
+        $mid1 = $cm->create($rid1, $u1id, 'Test', ChatMessage::TYPE_INTERESTED, $mid);
+        $mid2 = $cm->create($rid2, $u2id, 'Test', ChatMessage::TYPE_INTERESTED, $mid);
+
+        # Now mark as TAKEN.
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'Outcome',
+            'outcome' => Message::OUTCOME_TAKEN,
+            'happiness' => User::FINE,
+            'comment' => "I'm happy",
+            'userid' => $u1id,
+            'message' => "Message for others"
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+        $this->waitBackground();
+
+        # We should now have a completed message for u2.
+        $r = new ChatRoom($this->dbhr, $this->dbhm, $rid2);
+        list ($msgs, $users) = $r->getMessages();
+        $this->assertEquals(2, count($msgs));
+        $this->assertEquals(ChatMessage::TYPE_INTERESTED, $msgs[0]['type']);
+        $this->assertEquals(ChatMessage::TYPE_COMPLETED, $msgs[1]['type']);
+        $this->assertEquals("Message for others", $msgs[1]['message']);
     }
 }

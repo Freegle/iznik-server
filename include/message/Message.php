@@ -4368,18 +4368,7 @@ ORDER BY lastdate DESC;";
         ]);
     }
 
-    public function mark($outcome, $comment, $happiness, $userid) {
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $intcomment = $this->interestingComment($comment);
-
-        $this->dbhm->preExec("DELETE FROM messages_outcomes_intended WHERE msgid = ?;", [ $this->id ]);
-        $this->dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, comments) VALUES (?,?,?,?);", [
-            $this->id,
-            $outcome,
-            $happiness,
-            $intcomment
-        ]);
-
+    public function backgroundMark($byuser, $outcome, $intcomment, $happiness, $userid, $messageForOthers = NULL) {
         if (($outcome == Message::OUTCOME_TAKEN || $outcome == Message::OUTCOME_RECEIVED) && $userid) {
             # Record that this item was taken/received by this user.  Assume they took any remaining (usually 1).
             $this->dbhm->preExec("INSERT INTO messages_by (msgid, userid, count) VALUES (?, ?, ?);", [
@@ -4393,7 +4382,6 @@ ORDER BY lastdate DESC;";
         # this was promised - but we can promise to multiple users, whereas we can only mark a single user in the
         # TAKEN (which is probably a bug).  And if we are withdrawing it, then we don't really know why - it could
         # be that we changed our minds, which isn't the fault of the person we promised it to.
-
         $groups = $this->getGroups();
 
         foreach ($groups as $groupid) {
@@ -4403,7 +4391,7 @@ ORDER BY lastdate DESC;";
                                 'subtype' => Log::SUBTYPE_OUTCOME,
                                 'msgid' => $this->id,
                                 'user' => $this->getFromuser(),
-                                'byuser' => ($me && $me->getId()) != $this->getFromuser() ? $this->getFromuser() : NULL,
+                                'byuser' => $byuser,
                                 'groupid' => $groupid,
                                 'text' => "$outcome $intcomment"
                             ]);
@@ -4420,15 +4408,45 @@ WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND message
         $cm = new ChatMessage($this->dbhr, $this->dbhm);
 
         foreach ($replies as $reply) {
-            list ($mid, $banned) = $cm->create($reply['chatid'], $this->getFromuser(), NULL, ChatMessage::TYPE_COMPLETED, $this->id);
+            list ($mid, $banned) = $cm->create($reply['chatid'], $this->getFromuser(), $messageForOthers, ChatMessage::TYPE_COMPLETED, $this->id);
 
             # Make sure this message is highlighted in chat/email.
             $r = new ChatRoom($this->dbhr, $this->dbhm, $reply['chatid']);
             $r->upToDate($this->getFromuser());
         }
+    }
+
+    public function mark($outcome, $comment, $happiness, $userid, $messageForOthers = NULL) {
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
+
+        $intcomment = $this->interestingComment($comment);
+
+        $this->dbhm->preExec("DELETE FROM messages_outcomes_intended WHERE msgid = ?;", [ $this->id ]);
+        $this->dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, comments) VALUES (?,?,?,?);", [
+            $this->id,
+            $outcome,
+            $happiness,
+            $intcomment
+        ]);
 
         # Update in spatial index so that the count of our posts changes.
         $this->markSuccessfulInSpatial($this->id);
+
+        # There is more processing to do, but it's slow.  Background it.
+        $this->getPheanstalk();
+
+        $this->pheanstalk->put(json_encode([
+                               'type' => 'mark',
+                               'id' => $this->id,
+                               'outcome' => $outcome,
+                               'intcomment' => $intcomment,
+                               'happiness' => $happiness,
+                               'userid' => $userid,
+                               'byuser' => ($me && $me->getId()) != $this->getFromuser() ? $this->getFromuser() : NULL,
+                               'messageForOthers' => $messageForOthers,
+                               'queued' => microtime(TRUE),
+                               'ttr' => Utils::PHEANSTALK_TTR
+        ]));
     }
 
     public function withdraw($comment, $happiness) {

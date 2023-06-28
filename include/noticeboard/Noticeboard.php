@@ -79,10 +79,15 @@ class Noticeboard extends Entity
         return($atts);
     }
 
-    public function addNews()
+    public function addNews($photoid)
     {
         $n = new Newsfeed($this->dbhr, $this->dbhm);
         $toenc = $this->noticeboard;
+
+        if ($photoid) {
+            $toenc['photo'] = $photoid;
+        }
+
         unset($toenc['position']);
         $n->create(Newsfeed::TYPE_NOTICEBOARD, $this->noticeboard['addedby'], json_encode($toenc), NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, $this->noticeboard['lat'], $this->noticeboard['lng']);
         return($n);
@@ -98,7 +103,7 @@ class Noticeboard extends Entity
         if ($addnews) {
             if (Utils::presbool('active', $settings, TRUE)) {
                 // Now that we have some info, generate a newsfeed item.
-                $this->addNews();
+                $this->addNews(Utils::presdef('photoid', $settings, NULL));
             }
         }
     }
