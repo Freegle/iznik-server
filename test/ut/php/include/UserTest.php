@@ -1713,5 +1713,12 @@ class userTest extends IznikTestCase {
         $id = $u->create(NULL, NULL, 'wibble-g123');
         $this->assertEquals('wibble', $u->getName(TRUE, NULL, TRUE));
     }
+
+    public function testGmailVariants() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test.user@gmail.com');
+        $this->assertTrue($u->verifyEmail('testuser@gmail.com'));
+    }
 }
 

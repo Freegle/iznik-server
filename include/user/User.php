@@ -3751,7 +3751,7 @@ class User extends Entity
 
         if (!$force) {
             foreach ($emails as $anemail) {
-                if ($anemail['email'] == $email) {
+                if (User::canonMail($anemail['email']) == User::canonMail($email)) {
                     # It's one of ours already; make sure it's flagged as primary.
                     $this->addEmail($email, 1);
                     $handled = TRUE;
