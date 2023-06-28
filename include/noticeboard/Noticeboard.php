@@ -155,7 +155,7 @@ class Noticeboard extends Entity
         return($this->dbhr->preQuery("SELECT id, name, lat, lng FROM noticeboards WHERE name IS NOT NULL AND active = 1"));
     }
 
-    public function action($id, $userid, $action, $comments = NULL, $active) {
+    public function action($id, $userid, $action, $comments = NULL) {
         switch ($action) {
             case self::ACTION_REFRESHED: {
                 $this->dbhm->preExec("INSERT INTO noticeboards_checks (noticeboardid, userid, checkedat, refreshed) VALUES (?, ?, NOW(), 1);", [
