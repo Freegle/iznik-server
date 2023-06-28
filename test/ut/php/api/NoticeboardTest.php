@@ -88,6 +88,18 @@ class noticeboardAPITest extends IznikAPITestCase {
 
         $this->assertEquals(0, $ret['ret']);
 
+        # Add a photo
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
+        $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_NOTICEBOARD);
+        $photoid = $a->create(NULL, $data);
+
+        $ret = $this->call('noticeboard', 'PATCH', [
+            'id' => $id,
+            'photoid' => $photoid,
+            'action' => 'SetPhoto'
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+
         $ret = $this->call('noticeboard', 'GET', [
             'id' => $id
         ]);

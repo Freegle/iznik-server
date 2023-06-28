@@ -18,6 +18,7 @@ function image() {
     $user = Utils::presdef('user', $_REQUEST, NULL);
     $newsfeed = Utils::presdef('newsfeed', $_REQUEST, NULL);
     $story = Utils::presdef('story', $_REQUEST, NULL);
+    $noticeboard = Utils::presdef('noticeboard', $_REQUEST, NULL);
     $circle = Utils::presdef('circle', $_REQUEST, NULL);
 
     $sizelimit = 800;
@@ -38,6 +39,8 @@ function image() {
         $type = Attachment::TYPE_NEWSFEED;
     } else if ($story) {
         $type = Attachment::TYPE_STORY;
+    } else if ($noticeboard) {
+        $type = Attachment::TYPE_NOTICEBOARD;
     } else {
         $type = Attachment::TYPE_MESSAGE;
     }

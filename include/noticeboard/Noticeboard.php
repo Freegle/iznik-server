@@ -48,6 +48,17 @@ class Noticeboard extends Entity
         $atts['added'] = Utils::ISODate($atts['added']);
         $atts['lastcheckedat'] = Utils::ISODate($atts['lastcheckedat']);
 
+        $photos = $this->dbhr->preQuery("SELECT id FROM noticeboards_images WHERE noticeboardid = ?;", [ $this->id ]);
+        foreach ($photos as $photo) {
+            $a = new Attachment($this->dbhr, $this->dbhm, $photo['id'], Attachment::TYPE_NOTICEBOARD);
+
+            $atts['photo'] = [
+                'id' => $photo['id'],
+                'path' => $a->getPath(FALSE),
+                'paththumb' => $a->getPath(TRUE)
+            ];
+        }
+
         # Get any info.
         $atts['checks'] = $this->dbhr->preQuery("SELECT * FROM noticeboards_checks WHERE noticeboardid = ? ORDER BY id DESC;", [
             $this->id
@@ -90,6 +101,10 @@ class Noticeboard extends Entity
                 $this->addNews();
             }
         }
+    }
+
+    public function setPhoto($photoid) {
+        $this->dbhm->preExec("UPDATE noticeboards_images SET noticeboardid = ? WHERE id = ?;", [ $this->id, $photoid ]);
     }
 
     public function thank($userid, $noticeboardid) {

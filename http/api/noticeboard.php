@@ -74,6 +74,10 @@ function noticeboard() {
         case 'PATCH': {
             $id = $n->setAttributes($_REQUEST);
 
+            switch (Utils::presdef('action', $_REQUEST, NULL)) {
+                case 'SetPhoto': $n->setPhoto((Utils::presint('photoid', $_REQUEST, NULL))); break;
+            }
+
             $ret = [
                 'ret' => 0,
                 'status' => 'Success',

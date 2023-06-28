@@ -33,6 +33,7 @@ class Attachment
     const TYPE_NEWSFEED = 'Newsfeed';
     const TYPE_VOLUNTEERING = 'Volunteering';
     const TYPE_STORY = 'Story';
+    const TYPE_NOTICEBOARD = 'Noticeboard';
 
     /**
      * @return mixed
@@ -57,6 +58,7 @@ class Attachment
             case Attachment::TYPE_USER: $name = 'uimg'; break;
             case Attachment::TYPE_NEWSFEED: $name = 'fimg'; break;
             case Attachment::TYPE_STORY: $name = 'simg'; break;
+            case Attachment::TYPE_NOTICEBOARD: $name = 'bimg'; break;
         }
 
         $name = $thumb ? "t$name" : $name;
@@ -97,6 +99,7 @@ class Attachment
             case Attachment::TYPE_USER: $this->table = 'users_images'; $this->idatt = 'userid'; $url = ', url'; break;
             case Attachment::TYPE_NEWSFEED: $this->table = 'newsfeed_images'; $this->idatt = 'newsfeedid'; break;
             case Attachment::TYPE_STORY: $this->table = 'users_stories_images'; $this->idatt = 'storyid'; break;
+            case Attachment::TYPE_NOTICEBOARD: $this->table = 'noticeboards_images'; $this->idatt = 'noticeboardid'; break;
         }
 
         if ($id) {
@@ -228,6 +231,7 @@ class Attachment
                     case Attachment::TYPE_CHAT_MESSAGE: $tname = 'tmimg'; $name = 'mimg'; break;
                     case Attachment::TYPE_NEWSFEED: $tname = 'tfimg'; $name = 'fimg'; break;
                     case Attachment::TYPE_COMMUNITY_EVENT: $tname = 'tcimg'; $name = 'cimg'; break;
+                    case Attachment::TYPE_NOTICEBOARD: $tname = 'tbimg'; $name = 'bimg'; break;
                 }
 
                 if ($name) {
@@ -285,6 +289,7 @@ class Attachment
                 case Attachment::TYPE_CHAT_MESSAGE: $tname = 'tmimg'; $name = 'mimg'; break;
                 case Attachment::TYPE_NEWSFEED: $tname = 'tfimg'; $name = 'fimg'; break;
                 case Attachment::TYPE_COMMUNITY_EVENT: $tname = 'tcimg'; $name = 'cimg'; break;
+                case Attachment::TYPE_NOTICEBOARD: $tname = 'tbimg'; $name = 'bimg'; break;
             }
 
             return 'https://' . IMAGE_ARCHIVED_DOMAIN . "/{$name}_{$this->id}.jpg";

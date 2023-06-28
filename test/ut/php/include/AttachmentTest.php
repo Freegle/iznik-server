@@ -57,7 +57,8 @@ class AttachmentTest extends IznikTestCase {
             [ Attachment::TYPE_CHAT_MESSAGE, 2 ],
             [ Attachment::TYPE_USER, 0 ],
             [ Attachment::TYPE_NEWSFEED, 2 ],
-            [ Attachment::TYPE_STORY, 0 ]
+            [ Attachment::TYPE_STORY, 0 ],
+            [ Attachment::TYPE_NOTICEBOARD, 2 ]
         ]);
     }
 
