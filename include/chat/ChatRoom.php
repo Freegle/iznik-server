@@ -774,7 +774,21 @@ WHERE chat_rooms.id IN $idlist;";
         switch ($msgtype) {
             case ChatMessage::TYPE_ADDRESS: $ret = 'Address sent...'; break;
             case ChatMessage::TYPE_NUDGE: $ret = 'Nudged'; break;
-            case ChatMessage::TYPE_COMPLETED: $ret = $refmsgtype == Message::TYPE_OFFER ? 'Item marked as TAKEN' : 'Item marked as RECEIVED...'; break;
+            case ChatMessage::TYPE_COMPLETED: {
+                if ($refmsgtype == Message::TYPE_OFFER) {
+                    if ($chatmsg) {
+                        $msg = $chatmsg;
+                        $msg = $this->splitEmoji($msg);
+
+                        $ret = substr($msg, 0, 30);
+                    } else {
+                        $ret = 'Item marked as TAKEN';
+                    }
+                } else {
+                    $ret = 'Item marked as RECEIVED...';
+                }
+                break;
+            }
             case ChatMessage::TYPE_PROMISED: $ret = 'Item promised...'; break;
             case ChatMessage::TYPE_RENEGED: $ret = 'Promise cancelled...'; break;
             case ChatMessage::TYPE_IMAGE: $ret = 'Image...'; break;
