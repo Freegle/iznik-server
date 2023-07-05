@@ -69,7 +69,7 @@ foreach ($groups as $group) {
                         $m = User::get($dbhr, $dbhm, $n);
                         error_log($g->getPrivate('nameshort') . ": Mail {$m->getEmailPreferred()} about inactive mod $name ($email) last active $lastactive days ago");
 
-                        $mail = "This is a new kind of automated mail. Please see https://discourse.ilovefreegle.org/t/safeguarding-volunteers for the background, and post any questions/issues on there.\r\n\r\n" .
+                        $mail = "Please see https://discourse.ilovefreegle.org/t/safeguarding-volunteers for the background, and post any questions/issues on there.\r\n\r\n" .
                             "We are identifying volunteers on who have not actively moderated for some time, and contacting you about them because we believe you are responsible for the group.\r\n\r\n" .
                             "Initially, some of these may have been inactive for a long time. We will gradually decrease the timescale so that it will find volunteers who are usually active, but have stopped, so that you can check that they are OK.\r\n\r\n" .
                             "We think $name ($email) has not been actively moderating on {$g->getName()} for " . ($lastactive ? "$lastactive days" : "a long time") . ".\r\n\r\n" .
