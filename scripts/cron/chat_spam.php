@@ -130,7 +130,7 @@ foreach ($users as $user) {
             if ($reviews[0]['count'] > 0) {
                 error_log("...{$user['userid']} spam count {$user['count']} marked as spam, auto-mark {$reviews[0]['count']} pending review");
                 $count += $reviews[0]['count'];
-                $dbhm->preExec("UPDATE chat_messages SET reviewrequired = 0, reviewrejected = 1, reviewedby = NULL WHERE userid = ? AND reviewrequired = 1 AND reviewedby IS NULL;", [
+                $dbhm->preExec("UPDATE chat_messages SET reviewrequired = 0, processingrequired = 0, processingsuccessful = 0, reviewrejected = 1, reviewedby = NULL WHERE userid = ? AND reviewrequired = 1 AND reviewedby IS NULL;", [
                     $user['userid']
                 ]);
             }

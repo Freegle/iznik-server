@@ -45,6 +45,8 @@ function chatmessages() {
                         unset($ret['chatmessage']['reviewrequired']);
                         unset($ret['chatmessage']['reviewedby']);
                         unset($ret['chatmessage']['reviewrejected']);
+                        unset($ret['chatmessage']['processingrequired']);
+                        unset($ret['chatmessage']['processingsuccessful']);
 
                         $u = User::get($dbhr, $dbhm, $ret['chatmessage']['userid']);
                         $ret['chatmessage']['user'] = $u->getPublic(NULL, FALSE);

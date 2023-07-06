@@ -81,7 +81,7 @@ class ChatRoom extends Entity
         # We do this because chat rooms are performance critical, especially for people with many chats.
         $oldest = date("Y-m-d", strtotime("Midnight 31 days ago"));
         $idlist = "(" . implode(',', $ids) . ")";
-        $modq = Session::modtools() ? "" : " AND reviewrequired = 0 AND reviewrejected = 0 ";
+        $modq = Session::modtools() ? "" : " AND reviewrequired = 0 AND reviewrejected = 0 AND (processingsuccessful = 1 OR processingrequired = 0) ";
         $sql = "
 SELECT chat_rooms.*, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS groupname, 
 CASE WHEN u1.fullname IS NOT NULL THEN u1.fullname ELSE CONCAT(u1.firstname, ' ', u1.lastname) END AS u1name,
@@ -863,7 +863,7 @@ WHERE chat_rooms.id IN $idlist;";
     {
         # Find if we have any unseen messages.  Exclude any pending review.
         $checkq = $check ? (" AND status != '" . ChatRoom::STATUS_CLOSED . "' AND status != '" . ChatRoom::STATUS_BLOCKED . "' ") : '';
-        $sql = "SELECT COUNT(*) AS count FROM chat_messages WHERE id > COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ? $checkq), 0) AND chatid = ? AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0;";
+        $sql = "SELECT COUNT(*) AS count FROM chat_messages WHERE id > COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ? $checkq), 0) AND chatid = ? AND userid != ? AND reviewrequired = 0 AND reviewrejected = 0 AND (processingsuccessful = 1 OR processingrequired = 0);";
         $counts = $this->dbhm->preQuery($sql, [
             $this->id,
             $userid,
@@ -883,7 +883,7 @@ WHERE chat_rooms.id IN $idlist;";
 
         if ($chatids) {
             $idq = implode(',', $chatids);
-            $sql = "SELECT chat_messages.* FROM chat_messages LEFT JOIN chat_roster ON chat_roster.chatid = chat_messages.chatid AND chat_roster.userid = ? WHERE chat_messages.chatid IN ($idq) AND chat_messages.userid != ? AND reviewrequired = 0 AND reviewrejected = 0 AND chat_messages.id > COALESCE(chat_roster.lastmsgseen, 0);";
+            $sql = "SELECT chat_messages.* FROM chat_messages LEFT JOIN chat_roster ON chat_roster.chatid = chat_messages.chatid AND chat_roster.userid = ? WHERE chat_messages.chatid IN ($idq) AND chat_messages.userid != ? AND reviewrequired = 0 AND reviewrejected = 0 AND (processingsuccessful = 1 OR processingrequired = 0) AND chat_messages.id > COALESCE(chat_roster.lastmsgseen, 0);";
             $ret = $this->dbhr->preQuery($sql, [ $userid, $userid]);
         }
 
@@ -899,7 +899,7 @@ WHERE chat_rooms.id IN $idlist;";
         if ($chatids) {
             $activesince = date("Y-m-d", strtotime(ChatRoom::ACTIVELIM));
             $idq = implode(',', $chatids);
-            $sql = "SELECT COUNT(chat_messages.id) AS count FROM chat_messages LEFT JOIN chat_roster ON chat_roster.chatid = chat_messages.chatid AND chat_roster.userid = ? WHERE chat_messages.chatid IN ($idq) AND chat_messages.userid != ? AND reviewrequired = 0 AND reviewrejected = 0 AND chat_messages.id > COALESCE(chat_roster.lastmsgseen, 0) AND chat_messages.date >= '$activesince';";
+            $sql = "SELECT COUNT(chat_messages.id) AS count FROM chat_messages LEFT JOIN chat_roster ON chat_roster.chatid = chat_messages.chatid AND chat_roster.userid = ? WHERE chat_messages.chatid IN ($idq) AND chat_messages.userid != ? AND reviewrequired = 0 AND reviewrejected = 0 AND (processingsuccessful = 1 OR processingrequired = 0) AND chat_messages.id > COALESCE(chat_roster.lastmsgseen, 0) AND chat_messages.date >= '$activesince';";
             $ret = $this->dbhr->preQuery($sql, [ $userid, $userid ])[0]['count'];
         }
 
@@ -910,7 +910,7 @@ WHERE chat_rooms.id IN $idlist;";
         # We store some information about the messages in the room itself.  We try to avoid duplicating information
         # like this, because it's asking for it to get out of step, but it means we can efficiently find the chat
         # rooms for a user in listForUser.
-        $unheld = $this->dbhr->preQuery("SELECT CASE WHEN reviewrequired = 0 AND reviewrejected = 0 THEN 1 ELSE 0 END AS valid, COUNT(*) AS count FROM chat_messages WHERE chatid = ? GROUP BY (reviewrequired = 0 AND reviewrejected = 0) ORDER BY valid ASC;", [
+        $unheld = $this->dbhr->preQuery("SELECT CASE WHEN reviewrequired = 0 AND reviewrejected = 0 AND (processingsuccessful = 1 OR processingrequired = 0) THEN 1 ELSE 0 END AS valid, COUNT(*) AS count FROM chat_messages WHERE chatid = ? GROUP BY (reviewrequired = 0 AND reviewrejected = 0) ORDER BY valid ASC;", [
             $this->id
         ]);
 
@@ -1686,7 +1686,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                 $lastref = $refmsgid;
 
                 #error_log("COnsider review {$atts['reviewrequired']}, {$msg['userid']}, $myid, $modaccess");
-                if ($atts['reviewrequired'] && $msg['userid'] != $myid && !$modaccess) {
+                if (($atts['reviewrequired'] || !$atts['processingsuccessful']) && $msg['userid'] != $myid && !$modaccess) {
                     # This message is held for review, and we didn't send it.  So we shouldn't see it.
                 } else if ((!$me || !$me->isAdminOrSupport()) && $atts['reviewrejected']) {
                     # This message was reviewed and deemed unsuitable.  So we shouldn't see it unless we're
@@ -1697,6 +1697,8 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                         unset($atts['reviewrequired']);
                         unset($atts['reviewedby']);
                         unset($atts['reviewrejected']);
+                        unset($atts['processingrequired']);
+                        unset($atts['processingsuccessful']);
                     }
 
                     $atts['date'] = Utils::ISODate($atts['date']);
@@ -2055,7 +2057,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
         $twig = new \Twig_Environment($loader);
 
         # We don't need to check too far back.  This keeps it quick.
-        $reviewq = $chattype ==  ChatRoom::TYPE_USER2MOD ? '' : " AND reviewrequired = 0";
+        $reviewq = $chattype ==  ChatRoom::TYPE_USER2MOD ? '' : " AND reviewrequired = 0 AND (processingsuccessful = 1 OR processingrequired = 0) ";
         $allq = $forceall ? '' : "AND mailedtoall = 0 AND seenbyall = 0 AND reviewrejected = 0";
         $start = date('Y-m-d H:i:s', strtotime($since));
         $end = date('Y-m-d H:i:s', time() - $delay);

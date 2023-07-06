@@ -6,7 +6,7 @@ namespace Freegle\Iznik;
 class ChatMessage extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'chatid', 'userid', 'date', 'message', 'system', 'refmsgid', 'type', 'seenbyall', 'mailedtoall', 'reviewrequired', 'reviewedby', 'reviewrejected', 'spamscore', 'reportreason', 'refchatid', 'imageid', 'replyexpected', 'replyreceived');
+    var $publicatts = array('id', 'chatid', 'userid', 'date', 'message', 'system', 'refmsgid', 'type', 'seenbyall', 'mailedtoall', 'reviewrequired', 'processingrequired', 'processingsuccessful', 'reviewedby', 'reviewrejected', 'spamscore', 'reportreason', 'refchatid', 'imageid', 'replyexpected', 'replyreceived');
     var $settableatts = array('name');
 
     const TYPE_DEFAULT = 'Default';
@@ -255,7 +255,9 @@ class ChatMessage extends Entity
 
             # Even if it's spam, we still create the message, so that if we later decide that it wasn't spam after all
             # it's still around to unblock.
-            $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, reviewrejected, spamscore, reportreason, refchatid, imageid, facebookid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);", [
+            #
+            # Here we set (processingsuccessful = 1 OR processingrequired = 0) because we're doing the full-blown creation with all the checks.
+            $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, reviewrejected, spamscore, reportreason, refchatid, imageid, facebookid, processingsuccessful) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,1);", [
                 $chatid,
                 $userid,
                 $message,
