@@ -144,247 +144,276 @@ class ChatMessage extends Entity
         return($dup);
     }
 
-    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL, $facebookid = NULL, $forcereview = FALSE, $suppressmodnotif = FALSE) {
-        try {
-            if ($refmsgid) {
-                # If $userid is banned on the group that $refmsgid is on, then we shouldn't create a message.
-                $banned = $this->dbhr->preQuery("SELECT users_banned.* FROM messages_groups INNER JOIN users_banned ON messages_groups.msgid = ? AND messages_groups.groupid = users_banned.groupid AND users_banned.userid = ?", [
-                    $refmsgid,
-                    $userid
-                ]);
+    private function processFailed() {
+        $this->dbhm->preExec("UPDATE chat_messages SET processingrequired = 0, processingsuccessful = 0 WHERE id = ?", [
+            $this->id
+        ]);
+    }
 
-                if (count($banned) > 0) {
-                    return [ NULL, TRUE];
-                }
-            }
+    public function process($forcereview = FALSE, $suppressmodnotif = FALSE) {
+        # Process a chat message which was created with processingrequired = 1.  By doing this stuff
+        # in the background we can keep chat message creation fast.
+        $id = $this->id;
+        $chatid = $this->chatmessage['chatid'];
+        $userid = $this->chatmessage['userid'];
+        $message = $this->chatmessage['message'];
+        $type = $this->chatmessage['type'];
+        $refmsgid = $this->chatmessage['refmsgid'];
+        $platform = $this->chatmessage['platform'];
 
-            # We might have been asked to force this to go to review.
-            $review = 0;
-            $reviewreason = NULL;
-            $spam = 0;
-            $blocked = FALSE;
-
-            $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
-            $chattype = $r->getPrivate('chattype');
-
-            $u = User::get($this->dbhr, $this->dbhm, $userid);
-
-            if ($chattype == ChatRoom::TYPE_USER2USER) {
-                # Check whether the sender is banned on all the groups they have in common with the recipient.  If so
-                # then they shouldn't be able to send a message.
-                $otheru = $r->getPrivate('user1') == $userid ? $r->getPrivate('user2') : $r->getPrivate('user1');
-                $s = new Spam($this->dbhr, $this->dbhm);
-                $banned = $r->bannedInCommon($userid, $otheru) || $s->isSpammerUid($userid);
-
-                if ($banned) {
-                    return [ NULL, TRUE];
-                }
-
-                # If the last message in this chat is held for review, then hold this one too.
-                $last = $this->dbhr->preQuery("SELECT reviewrequired FROM chat_messages WHERE chatid = ? AND userid = ? ORDER BY id DESC LIMIT 1;", [
-                    $chatid,
-                    $userid
-                ]);
-
-                $modstatus = $u->getPrivate('chatmodstatus');
-
-                if (count($last) && $last[0]['reviewrequired']) {
-                    $reviewreason = self::REVIEW_LAST;
-                    $review = 1;
-                } else if ($forcereview && $modstatus !== User::CHAT_MODSTATUS_UNMODERATED) {
-                    $reviewreason = self::REVIEW_FORCE;
-                    $review = 1;
-                } else {
-                    # Mods may need to refer to spam keywords in replies.  We should only check chat messages of types which
-                    # include user text.
-                    #
-                    # We also don't want to check for spam in chats between users and mods.
-
-                    if ($modstatus == User::CHAT_MODSTATUS_MODERATED || $modstatus == User::CHAT_MODSTATUS_FULLY) {
-                        if ($chattype != ChatRoom::TYPE_USER2MOD &&
-                            !$u->isModerator() &&
-                            ($type ==  ChatMessage::TYPE_DEFAULT || $type ==  ChatMessage::TYPE_INTERESTED || $type ==  ChatMessage::TYPE_REPORTEDUSER || $type ==  ChatMessage::TYPE_ADDRESS)) {
-                            if ($modstatus == User::CHAT_MODSTATUS_FULLY) {
-                                $reviewreason = self::REVIEW_FULLY;
-                                $review = $reviewreason ? 1 : 0;
-                            } else {
-                                $reviewreason = $this->checkReview($message, TRUE, $userid);
-                                $review = $reviewreason ? 1 : 0;
-                            }
-
-                            $spam = $this->checkSpam($message) || $this->checkSpam($u->getName());
-
-                            # If we decided it was spam then it doesn't need reviewing.
-                            if ($spam) {
-                                $review = 0;
-                                $reviewreason = NULL;
-                            }
-                        }
-
-                        if (!$review && $type ==  ChatMessage::TYPE_INTERESTED && $refmsgid) {
-                            # Check if this user is suspicious, e.g. replying to many messages across a large area.
-                            $msg = $this->dbhr->preQuery("SELECT lat, lng FROM messages WHERE id = ?;", [
-                                $refmsgid
-                            ]);
-
-                            foreach ($msg as $m) {
-                                $s = new Spam($this->dbhr, $this->dbhm);
-
-                                # Don't check memberships otherwise they might show up repeatedly.
-                                if ($s->checkUser($userid, NULL, $m['lat'], $m['lng'], FALSE)) {
-                                    $reviewreason = self::REVIEW_USER;
-                                    $review = TRUE;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if ($review && $type ==  ChatMessage::TYPE_INTERESTED) {
-                    $m = new Message($this->dbhr, $this->dbhm,  $refmsgid);
-
-                    if (!$refmsgid || $m->hasOutcome()) {
-                        # This looks like spam, and it claims to be a reply - but not to a message we can identify,
-                        # or to one already complete.  We get periodic floods of these in spam attacks.
-                        $spam = 1;
-                        $review = 0;
-                        $reviewreason = self::REVIEW_UNKNOWN_MESSAGE;
-                    }
-                }
-            }
-
-            # Even if it's spam, we still create the message, so that if we later decide that it wasn't spam after all
-            # it's still around to unblock.
-            #
-            # Here we set (processingsuccessful = 1 OR processingrequired = 0) because we're doing the full-blown creation with all the checks.
-            $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, reviewrejected, spamscore, reportreason, refchatid, imageid, facebookid, processingsuccessful) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,1);", [
-                $chatid,
-                $userid,
-                $message,
-                $type,
+        if ($refmsgid) {
+            # If $userid is banned on the group that $refmsgid is on, then we shouldn't create a message.
+            $banned = $this->dbhr->preQuery("SELECT users_banned.* FROM messages_groups INNER JOIN users_banned ON messages_groups.msgid = ? AND messages_groups.groupid = users_banned.groupid AND users_banned.userid = ?", [
                 $refmsgid,
-                $platform,
-                $review,
-                $spam ? 1 : 0,
-                $spamscore,
-                $reportreason ? $reportreason : $reviewreason,
-                $refchatid,
-                $imageid,
-                $facebookid
+                $userid
             ]);
 
-            $id = $this->dbhm->lastInsertId();
+            if (count($banned) > 0) {
+                $this->processFailed();
+                return FALSE;
+            }
+        }
 
-            if ($id && $imageid) {
-                # Update the chat image to link it to this chat message.  This also stops it being purged in
-                # purge_chats.
-                $this->dbhm->preExec("UPDATE chat_images SET chatmsgid = ? WHERE id = ?;", [
-                    $id,
-                    $imageid
-                ]);
+        # We might have been asked to force this to go to review.
+        $review = 0;
+        $reviewreason = NULL;
+        $spam = 0;
+        $blocked = FALSE;
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
+        $chattype = $r->getPrivate('chattype');
+
+        $u = User::get($this->dbhr, $this->dbhm, $userid);
+
+        if ($chattype == ChatRoom::TYPE_USER2USER) {
+            # Check whether the sender is banned on all the groups they have in common with the recipient.  If so
+            # then they shouldn't be able to send a message.
+            $otheru = $r->getPrivate('user1') == $userid ? $r->getPrivate('user2') : $r->getPrivate('user1');
+            $s = new Spam($this->dbhr, $this->dbhm);
+            $banned = $r->bannedInCommon($userid, $otheru) || $s->isSpammerUid($userid);
+
+            if ($banned) {
+                $this->processFailed();
+                return FALSE;
             }
 
-            if (!$platform) {
-                # Reply by email.  We have obviously seen this message ourselves, but there might be earlier messages
-                # in the chat from other users which we have not seen because they have not yet been notified to us.
-                #
-                # In this case we leave the message unseen.  That means we may notify and include this message itself,
-                # but that will look OK in context.
-                $earliers = $this->dbhr->preQuery("SELECT chat_messages.id, chat_messages.userid, lastmsgseen, lastmsgemailed FROM chat_messages 
-    LEFT JOIN chat_roster ON chat_roster.id = chat_messages.id AND chat_roster.userid = ? 
-    WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 AND mailedtoall = 0 ORDER BY id DESC LIMIT 1;", [
-                    $userid,
-                    $chatid,
-                    $userid
-                ]);
+            # If the last message in this chat is held for review, then hold this one too.
+            $last = $this->dbhr->preQuery("SELECT reviewrequired FROM chat_messages WHERE chatid = ? AND userid = ? ORDER BY id DESC LIMIT 1;", [
+                $chatid,
+                $userid
+            ]);
 
-                $count = 0;
+            $modstatus = $u->getPrivate('chatmodstatus');
 
-                foreach ($earliers as $earlier) {
-                    if ($earlier['lastmsgseen'] < $earlier['id'] && $earlier['lastmsgemailed'] < $earlier['id']) {
-                        $count++;
-                    }
-                }
-
-                if (!$count) {
-                    $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ? WHERE chatid = ? AND userid = ? AND (lastmsgseen IS NULL OR lastmsgseen < ?);",
-                        [
-                            $id,
-                            $id,
-                            $chatid,
-                            $userid,
-                            $id
-                        ]);
-                }
+            if (count($last) && $last[0]['reviewrequired']) {
+                $reviewreason = self::REVIEW_LAST;
+                $review = 1;
+            } else if ($forcereview && $modstatus !== User::CHAT_MODSTATUS_UNMODERATED) {
+                $reviewreason = self::REVIEW_FORCE;
+                $review = 1;
             } else {
-                # We have ourselves seen this message, and because we sent it from the platform we have had a chance
-                # to see any others.
+                # Mods may need to refer to spam keywords in replies.  We should only check chat messages of types which
+                # include user text.
                 #
-                # If we're configured to email our own messages, we want to leave it unseen for the chat digest.
-                if (!$u->notifsOn(User::NOTIFS_EMAIL_MINE)) {
-                    $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ? WHERE chatid = ? AND userid = ? AND (lastmsgseen IS NULL OR lastmsgseen < ?);",
-                        [
-                            $id,
-                            $id,
-                            $chatid,
-                            $userid,
-                            $id
+                # We also don't want to check for spam in chats between users and mods.
+
+                if ($modstatus == User::CHAT_MODSTATUS_MODERATED || $modstatus == User::CHAT_MODSTATUS_FULLY) {
+                    if ($chattype != ChatRoom::TYPE_USER2MOD &&
+                        !$u->isModerator() &&
+                        ($type ==  ChatMessage::TYPE_DEFAULT || $type ==  ChatMessage::TYPE_INTERESTED || $type ==  ChatMessage::TYPE_REPORTEDUSER || $type ==  ChatMessage::TYPE_ADDRESS)) {
+                        if ($modstatus == User::CHAT_MODSTATUS_FULLY) {
+                            $reviewreason = self::REVIEW_FULLY;
+                            $review = $reviewreason ? 1 : 0;
+                        } else {
+                            $reviewreason = $this->checkReview($message, TRUE, $userid);
+                            $review = $reviewreason ? 1 : 0;
+                        }
+
+                        $spam = $this->checkSpam($message) || $this->checkSpam($u->getName());
+
+                        # If we decided it was spam then it doesn't need reviewing.
+                        if ($spam) {
+                            $review = 0;
+                            $reviewreason = NULL;
+                        }
+                    }
+
+                    if (!$review && $type ==  ChatMessage::TYPE_INTERESTED && $refmsgid) {
+                        # Check if this user is suspicious, e.g. replying to many messages across a large area.
+                        $msg = $this->dbhr->preQuery("SELECT lat, lng FROM messages WHERE id = ?;", [
+                            $refmsgid
                         ]);
-                }
-            }
 
-            $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
-            $r->updateMessageCounts();
+                        foreach ($msg as $m) {
+                            $s = new Spam($this->dbhr, $this->dbhm);
 
-            # Update the reply time now we've replied.
-            $r->replyTime($userid, TRUE);
-
-            if ($chattype == ChatRoom::TYPE_USER2USER || $chattype == ChatRoom::TYPE_USER2MOD) {
-                # If anyone has closed this chat so that it no longer appears in their list, we want to open it again.
-                # If they have blocked it, we don't want to notify them.
-                #
-                # This is rare, so rather than do an UPDATE which would always be a bit expensive even if we have
-                # nothing to do, we do a SELECT to see if there are any.
-                $closeds = $this->dbhr->preQuery("SELECT id, status FROM chat_roster WHERE chatid = ? AND status IN (?, ?);", [
-                    $chatid,
-                    ChatRoom::STATUS_CLOSED,
-                    ChatRoom::STATUS_BLOCKED
-                ]);
-
-                foreach ($closeds as $closed) {
-                    if ($closed['status'] == ChatRoom::STATUS_CLOSED) {
-                        $this->dbhm->preExec("UPDATE chat_roster SET status = ? WHERE id = ?;", [
-                            ChatRoom::STATUS_OFFLINE,
-                            $closed['id']
-                        ]);
-                    } else if ($closed['status'] == ChatRoom::STATUS_BLOCKED) {
-                        $blocked = TRUE;
+                            # Don't check memberships otherwise they might show up repeatedly.
+                            if ($s->checkUser($userid, NULL, $m['lat'], $m['lng'], FALSE)) {
+                                $reviewreason = self::REVIEW_USER;
+                                $review = TRUE;
+                            }
+                        }
                     }
                 }
             }
 
-            if ($chattype == ChatRoom::TYPE_USER2USER) {
-                # If we have created a message, then any outstanding nudge to us has now been dealt with.
-                $other = $r->getPrivate('user1') == $userid ? $r->getPrivate('user2') : $r->getPrivate('user1');
-                $this->dbhm->background("UPDATE users_nudges SET responded = NOW() WHERE fromuser = $other AND touser = $userid AND responded IS NULL;");
+            if ($review && $type ==  ChatMessage::TYPE_INTERESTED) {
+                $m = new Message($this->dbhr, $this->dbhm,  $refmsgid);
+
+                if (!$refmsgid || $m->hasOutcome()) {
+                    # This looks like spam, and it claims to be a reply - but not to a message we can identify,
+                    # or to one already complete.  We get periodic floods of these in spam attacks.
+                    $spam = 1;
+                    $review = 0;
+                    $reviewreason = self::REVIEW_UNKNOWN_MESSAGE;
+                }
+            }
+        }
+
+        # We have now done the processing, so update the message with the results and make it visible to
+        # either the recipient or mods, depending on reviewerequired.
+        $this->dbhm->preExec("UPDATE chat_messages SET reviewrequired = ?, reportreason = ?, reviewrejected = ?, processingrequired = 0, processingsuccessful = 1 WHERE id = ?;", [
+            $review,
+            $reviewreason,
+            $spam ? 1 : 0,
+            $this->id
+        ]);
+
+        if (!$platform) {
+            # Reply by email.  We have obviously seen this message ourselves, but there might be earlier messages
+            # in the chat from other users which we have not seen because they have not yet been notified to us.
+            #
+            # In this case we leave the message unseen.  That means we may notify and include this message itself,
+            # but that will look OK in context.
+            $earliers = $this->dbhr->preQuery("SELECT chat_messages.id, chat_messages.userid, lastmsgseen, lastmsgemailed FROM chat_messages 
+LEFT JOIN chat_roster ON chat_roster.id = chat_messages.id AND chat_roster.userid = ? 
+WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 AND mailedtoall = 0 ORDER BY id DESC LIMIT 1;", [
+                $userid,
+                $chatid,
+                $userid
+            ]);
+
+            $count = 0;
+
+            foreach ($earliers as $earlier) {
+                if ($earlier['lastmsgseen'] < $earlier['id'] && $earlier['lastmsgemailed'] < $earlier['id']) {
+                    $count++;
+                }
             }
 
-            if (!$spam && !$review && !$blocked) {
-                $r->pokeMembers();
-
-                # Notify mods if we have flagged this for review and we've not been asked to suppress it.
-                $modstoo = $review && !$suppressmodnotif;
-                $r->notifyMembers($u->getName(), $message, $userid, $modstoo);
+            if (!$count) {
+                $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ? WHERE chatid = ? AND userid = ? AND (lastmsgseen IS NULL OR lastmsgseen < ?);",
+                                     [
+                                         $id,
+                                         $id,
+                                         $chatid,
+                                         $userid,
+                                         $id
+                                     ]);
             }
-        } catch (\Exception $e) {
-            error_log("Failed to create chat " . $e->getMessage() . " at " . $e->getFile() . " line " . $e->getLine());
-            $id = NULL;
-            $rc = 0;
+        } else {
+            # We have ourselves seen this message, and because we sent it from the platform we have had a chance
+            # to see any others.
+            #
+            # If we're configured to email our own messages, we want to leave it unseen for the chat digest.
+            if (!$u->notifsOn(User::NOTIFS_EMAIL_MINE)) {
+                $this->dbhm->preExec("UPDATE chat_roster SET lastmsgseen = ?, lastmsgemailed = ? WHERE chatid = ? AND userid = ? AND (lastmsgseen IS NULL OR lastmsgseen < ?);",
+                                     [
+                                         $id,
+                                         $id,
+                                         $chatid,
+                                         $userid,
+                                         $id
+                                     ]);
+            }
+        }
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
+        $r->updateMessageCounts();
+
+        # Update the reply time now we've replied.
+        $r->replyTime($userid, TRUE);
+
+        if ($chattype == ChatRoom::TYPE_USER2USER || $chattype == ChatRoom::TYPE_USER2MOD) {
+            # If anyone has closed this chat so that it no longer appears in their list, we want to open it again.
+            # If they have blocked it, we don't want to notify them.
+            #
+            # This is rare, so rather than do an UPDATE which would always be a bit expensive even if we have
+            # nothing to do, we do a SELECT to see if there are any.
+            $closeds = $this->dbhr->preQuery("SELECT id, status FROM chat_roster WHERE chatid = ? AND status IN (?, ?);", [
+                $chatid,
+                ChatRoom::STATUS_CLOSED,
+                ChatRoom::STATUS_BLOCKED
+            ]);
+
+            foreach ($closeds as $closed) {
+                if ($closed['status'] == ChatRoom::STATUS_CLOSED) {
+                    $this->dbhm->preExec("UPDATE chat_roster SET status = ? WHERE id = ?;", [
+                        ChatRoom::STATUS_OFFLINE,
+                        $closed['id']
+                    ]);
+                } else if ($closed['status'] == ChatRoom::STATUS_BLOCKED) {
+                    $blocked = TRUE;
+                }
+            }
+        }
+
+        if ($chattype == ChatRoom::TYPE_USER2USER) {
+            # If we have created a message, then any outstanding nudge to us has now been dealt with.
+            $other = $r->getPrivate('user1') == $userid ? $r->getPrivate('user2') : $r->getPrivate('user1');
+            $this->dbhm->background("UPDATE users_nudges SET responded = NOW() WHERE fromuser = $other AND touser = $userid AND responded IS NULL;");
+        }
+
+        if (!$spam && !$review && !$blocked) {
+            $r->pokeMembers();
+
+            # Notify mods if we have flagged this for review and we've not been asked to suppress it.
+            $modstoo = $review && !$suppressmodnotif;
+            $r->notifyMembers($u->getName(), $message, $userid, $modstoo);
+        }
+
+        return TRUE;
+    }
+
+    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL, $facebookid = NULL, $forcereview = FALSE, $suppressmodnotif = FALSE) {
+        // Create the message, requiring processing.
+        $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, spamscore, reportreason, refchatid, imageid, facebookid, processingrequired) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,1);", [
+            $chatid,
+            $userid,
+            $message,
+            $type,
+            $refmsgid,
+            $platform,
+            $forcereview,
+            $spamscore,
+            $reportreason,
+            $refchatid,
+            $imageid,
+            $facebookid
+        ]);
+
+        $id = $this->dbhm->lastInsertId();
+
+        if ($id && $imageid) {
+            # Update the chat image to link it to this chat message.  This also stops it being purged in
+            # purge_chats.
+            $this->dbhm->preExec("UPDATE chat_images SET chatmsgid = ? WHERE id = ?;", [
+                $id,
+                $imageid
+            ]);
         }
 
         if ($rc && $id) {
             $this->fetch($this->dbhm, $this->dbhm, $id, 'chat_messages', 'chatmessage', $this->publicatts);
-            return([ $id, FALSE ]);
+
+            // Process this inline for now.  In future we might allow the backgrounding, but that has a risk of
+            // bugs and we only really need that perf improvement for the faster Go API.
+            $ret = $this->process($forcereview, $suppressmodnotif);
+            if (!$ret) {
+                $this->processFailed();
+            }
+
+            return([ $id, !$ret ]);
         } else {
             return([ NULL, FALSE ]);
         }

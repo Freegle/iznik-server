@@ -57,6 +57,9 @@ class chatMessagesTest extends IznikTestCase {
 
         list ($mid2, $banned) = $m->create($id, $this->uid, 'Test2');
         $this->assertNotNull($mid2);
+        $m = new ChatMessage($this->dbhr, $this->dbhm, $mid2);
+        $this->assertEquals(0, $m->getPrivate('processingrequired'));
+        $this->assertEquals(1, $m->getPrivate('processingsuccessful'));
         list($msgs, $users) = $r->getMessages();
         $this->assertEquals(2, count($msgs));
         $this->log("Msgs " . var_export($msgs, TRUE));
@@ -431,29 +434,6 @@ class chatMessagesTest extends IznikTestCase {
         $this->assertEquals(0, count($atts['replies']));
     }
 
-    public function testError() {
-        $dbconfig = array (
-            'host' => SQLHOST,
-            'user' => SQLUSER,
-            'pass' => SQLPASSWORD,
-            'database' => SQLDB
-        );
-
-        $m = new ChatMessage($this->dbhr, $this->dbhm);
-        $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
-            ->setConstructorArgs([
-                "mysql:host={$dbconfig['host']};dbname={$dbconfig['database']};charset=utf8",
-                $dbconfig['user'], $dbconfig['pass'], array(), TRUE
-            ])
-            ->setMethods(array('preExec'))
-            ->getMock();
-        $mock->method('preExec')->willThrowException(new \Exception());
-        $m->setDbhm($mock);
-
-        list ($mid, $banned) = $m->create(NULL, $this->uid, 'Test');
-        $this->assertNull($mid);
-    }
-
     public function testCheckReview() {
         $m = new ChatMessage($this->dbhr, $this->dbhm);
 
@@ -673,7 +653,10 @@ class chatMessagesTest extends IznikTestCase {
         # Shouldn't be able to message.
         list ($mid, $banned) = $m->create($rid, $this->uid, 'Test');
         $this->assertTrue($banned);
-        $this->assertNull($mid);
+        $this->assertNotNull($mid);
+        $m = new ChatMessage($this->dbhr, $this->dbhm, $mid);
+        $this->assertEquals(0, $m->getPrivate('processingrequired'));
+        $this->assertEquals(0, $m->getPrivate('processingsuccessful'));
 
         # ...or even start the conversation.
         $r->delete();
