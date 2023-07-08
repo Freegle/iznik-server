@@ -198,9 +198,10 @@ class ChatMessage extends Entity
             }
 
             # If the last message in this chat is held for review, then hold this one too.
-            $last = $this->dbhr->preQuery("SELECT reviewrequired FROM chat_messages WHERE chatid = ? AND userid = ? ORDER BY id DESC LIMIT 1;", [
+            $last = $this->dbhr->preQuery("SELECT reviewrequired FROM chat_messages WHERE chatid = ? AND userid = ? AND id != ? ORDER BY id DESC LIMIT 1;", [
                 $chatid,
-                $userid
+                $userid,
+                $id
             ]);
 
             $modstatus = $u->getPrivate('chatmodstatus');
