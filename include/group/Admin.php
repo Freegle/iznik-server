@@ -8,8 +8,8 @@ class Admin extends Entity
     const SPOOLNAME = '/spool_admin_';
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'groupid', 'created', 'complete', 'subject', 'text', 'ctatext', 'ctalink', 'createdby', 'pending', 'parentid', 'heldby', 'heldat', 'activeonly');
-    var $settableatts = [ 'subject', 'text', 'pending', 'ctatext', 'ctalink' ];
+    var $publicatts = array('id', 'groupid', 'created', 'complete', 'subject', 'text', 'ctatext', 'ctalink', 'createdby', 'pending', 'parentid', 'heldby', 'heldat', 'activeonly', 'startafter');
+    var $settableatts = [ 'subject', 'text', 'pending', 'ctatext', 'ctalink', 'startafter' ];
 
     /** @var  $log Log */
     private $log;
@@ -50,6 +50,10 @@ class Admin extends Entity
             }
 
             $atts['created'] = Utils::ISODate($atts['created']);
+
+            if (Utils::pres('sendafter', $atts)) {
+                $atts['sendafter'] = Utils::ISODate($atts['sendafter']);
+            }
         }
 
         return($atts);
@@ -109,7 +113,7 @@ class Admin extends Entity
         $done = 0;
         $idq = $id ? " id = $id AND " : '';
         $mysqltime = date("Y-m-d", strtotime("Midnight 7 days ago"));
-        $sql = "SELECT * FROM admins WHERE $idq complete IS NULL AND pending = 0 AND created >= ? LIMIT 1;";
+        $sql = "SELECT * FROM admins WHERE $idq complete IS NULL AND pending = 0 AND created >= ? AND (sendafter IS NULL OR NOW() > sendafter) LIMIT 1;";
         $admins = $this->dbhr->preQuery($sql, [
             $mysqltime
         ]);
