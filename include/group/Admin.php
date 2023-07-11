@@ -8,8 +8,8 @@ class Admin extends Entity
     const SPOOLNAME = '/spool_admin_';
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'groupid', 'created', 'complete', 'subject', 'text', 'ctatext', 'ctalink', 'createdby', 'pending', 'parentid', 'heldby', 'heldat', 'activeonly', 'startafter');
-    var $settableatts = [ 'subject', 'text', 'pending', 'ctatext', 'ctalink', 'startafter' ];
+    var $publicatts = array('id', 'groupid', 'created', 'complete', 'subject', 'text', 'ctatext', 'ctalink', 'createdby', 'pending', 'parentid', 'heldby', 'heldat', 'activeonly', 'sendafter');
+    var $settableatts = [ 'subject', 'text', 'pending', 'ctatext', 'ctalink', 'sendafter' ];
 
     /** @var  $log Log */
     private $log;
@@ -20,11 +20,11 @@ class Admin extends Entity
         $this->log = new Log($dbhr, $dbhm);
     }
 
-    public function create($groupid, $createdby, $subject, $text, $ctatext = NULL, $ctalink = NULL, $startafter = NULL) {
+    public function create($groupid, $createdby, $subject, $text, $ctatext = NULL, $ctalink = NULL, $sendafter = NULL) {
         $id = NULL;
 
-        $rc = $this->dbhm->preExec("INSERT INTO admins (`groupid`, `createdby`, `subject`, `text`, `ctatext`, `ctalink`, `startafter`) VALUES (?,?,?,?,?,?,?);", [
-            $groupid, $createdby, $subject, $text, $ctatext, $ctalink, $startafter
+        $rc = $this->dbhm->preExec("INSERT INTO admins (`groupid`, `createdby`, `subject`, `text`, `ctatext`, `ctalink`, `sendafter`) VALUES (?,?,?,?,?,?,?);", [
+            $groupid, $createdby, $subject, $text, $ctatext, $ctalink, $sendafter
         ]);
 
         if ($rc) {
@@ -249,7 +249,7 @@ class Admin extends Entity
         # We have a suggested admin, and we want to create a per-group copy.  This allows local groups to
         # edit/approve/reject as they see fit.
         $a = new Admin($this->dbhr, $this->dbhm);
-        $id = $a->create($groupid, NULL, $this->admin['subject'], $this->admin['text'], $this->admin['ctatext'], $this->admin['ctalink'], $this->admin['startafter']);
+        $id = $a->create($groupid, NULL, $this->admin['subject'], $this->admin['text'], $this->admin['ctatext'], $this->admin['ctalink'], $this->admin['sendafter']);
 
         if ($id) {
             $a->setPrivate('parentid', $this->id);
