@@ -24,10 +24,84 @@ class LoveJunk {
 
     public function send($id) {
         $ret = FALSE;
+        $data = $this->getData($id);
 
+        $client = new Client();
+
+        try {
+            if (!$this->mock) {
+                $r = $client->request('POST', LOVE_JUNK_API . '?secret=' . LOVE_JUNK_SECRET, [
+                    'json'  => $data
+                ]);
+                $ret = TRUE;
+                $rsp = json_decode((string)$r->getBody(), TRUE);
+            } else {
+                $ret = TRUE;
+                $rsp = [
+                    'body' => [
+                        'draftId' => '1',
+                        'response' => 'UT'
+                    ]
+                ];
+            }
+
+            $this->recordResult(TRUE, $id, json_encode($rsp['body']));
+        } catch (\Exception $e) {
+            if ($e->getCode() == 410) {
+                // This is a valid error - import disabled.
+                $ret = TRUE;
+                $this->recordResult(TRUE, $id, $e->getCode() . " " . $e->getMessage());
+            } else {
+                \Sentry\captureException($e);
+                $this->recordResult(FALSE, $id, $e->getCode() . " " . $e->getMessage());
+            }
+        }
+
+        return $ret;
+    }
+
+    public function edit($id, $ljdraftId) {
+        $ret = FALSE;
+        $data = $this->getData($id);
+
+        $client = new Client();
+
+        try {
+            if (!$this->mock) {
+                $r = $client->request('PUT', LOVE_JUNK_API . '/' . $ljdraftId . '?secret=' . LOVE_JUNK_SECRET, [
+                    'json'  => $data
+                ]);
+                $ret = TRUE;
+            } else {
+                $ret = TRUE;
+                $rsp = [
+                    'body' => [
+                        'draftId' => '1',
+                        'response' => 'UT'
+                    ]
+                ];
+            }
+
+            $this->dbhm->preExec("UPDATE lovejunk SET timestamp = NOW() WHERE msgid = ?", [
+                $id
+            ]);
+        } catch (\Exception $e) {
+            if ($e->getCode() == 410) {
+                // This is a valid error - import disabled.
+                $ret = TRUE;
+            } else {
+                \Sentry\captureException($e);
+            }
+        }
+
+        return $ret;
+    }
+
+    private function getData($id) {
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $items = $m->getItems();
         $item = NULL;
+        $data = NULL;
 
         if (count($items)) {
             $item = $items[0]['name'];
@@ -45,6 +119,7 @@ class LoveJunk {
         $msgs = [
             [ 'id' => $id ]
         ];
+
         $atts = $m->getPublicAttachments($rets, $msgs, FALSE);
 
         if (count($rets[$id]['attachments'])) {
@@ -110,6 +185,7 @@ class LoveJunk {
                 'description' => $m->getTextbody(),
                 'source' => $source,
                 'userData' => [
+                    'id' => $m->getFromuser(),
                     'firstName' => $firstName,
                     'lastName' => $lastName
                 ],
@@ -121,45 +197,12 @@ class LoveJunk {
                 ]
             ];
 
-            echo("Sending $id location $postcode area $area\n");
-
             if ($images) {
                 $data['images'] = $images;
             }
-
-            $client = new Client();
-
-            try {
-                if (!$this->mock) {
-                    $r = $client->request('POST', LOVE_JUNK_API . '?secret=' . LOVE_JUNK_SECRET, [
-                        'json'  => $data
-                    ]);
-                    $ret = TRUE;
-                    $rsp = json_decode((string)$r->getBody(), TRUE);
-                } else {
-                    $ret = TRUE;
-                    $rsp = [
-                        'body' => [
-                            'draftId' => '1',
-                            'response' => 'UT'
-                        ]
-                    ];
-                }
-
-                $this->recordResult(TRUE, $id, json_encode($rsp['body']));
-            } catch (\Exception $e) {
-                if ($e->getCode() == 410) {
-                    // This is a valid error - import disabled.
-                    $ret = TRUE;
-                    $this->recordResult(TRUE, $id, $e->getCode() . " " . $e->getMessage());
-                } else {
-                    \Sentry\captureException($e);
-                    $this->recordResult(FALSE, $id, $e->getCode() . " " . $e->getMessage());
-                }
-            }
         }
 
-        return $ret;
+        return $data;
     }
 
     public function delete($id) {

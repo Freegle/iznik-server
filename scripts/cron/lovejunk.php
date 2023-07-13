@@ -14,6 +14,32 @@ $l = new LoveJunk($dbhr, $dbhm);
 
 $start = date("Y-m-d", strtotime("24 hours ago"));
 
+// Edit any messages.
+$msgs = $dbhr->preQuery("SELECT DISTINCT messages.id, lovejunk.status FROM messages 
+    INNER JOIN lovejunk ON lovejunk.msgid = messages.id
+    INNER JOIN messages_groups ON messages_groups.msgid = messages.id
+    INNER JOIN messages_edits ON messages_edits.msgid = messages.id
+    WHERE messages.arrival >= ? AND
+          messages.arrival >= '2023-07-11 16:00' AND
+          messages_edits.timestamp >= lovejunk.timestamp AND
+      messages.type = ? AND   
+      messages_groups.collection = ?
+      ORDER BY messages.arrival ASC;
+", [
+    $start,
+    Message::TYPE_OFFER,
+    MessageCollection::APPROVED
+]);
+
+foreach ($msgs as $msg) {
+    $lj = json_decode($msg['status'], TRUE);
+
+    if (array_key_exists('draftId', $lj)) {
+        error_log("Edit " . $msg['id']);
+        $l->edit($msg['id'], $lj['draftId']);
+    }
+}
+
 // Add new messages.
 $msgs = $dbhr->preQuery("SELECT messages.id FROM messages 
     LEFT JOIN lovejunk ON lovejunk.msgid = messages.id

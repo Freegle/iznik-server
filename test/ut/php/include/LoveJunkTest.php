@@ -73,6 +73,9 @@ class LoveJunkTest extends IznikTestCase
         $l->setMock(true);
         $this->assertTrue($l->send($id));
 
+        // Edit
+        $l->edit($id, 1);
+
         // Now delete.
         $this->assertTrue($l->delete($id));
     }
