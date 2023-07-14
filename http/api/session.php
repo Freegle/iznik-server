@@ -1,7 +1,6 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
 require_once(IZNIK_BASE . '/lib/geoPHP/geoPHP.inc');
 
 function session() {

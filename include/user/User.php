@@ -1,7 +1,6 @@
 <?php
 namespace Freegle\Iznik;
 
-require_once(IZNIK_BASE . '/mailtemplates/verifymail.php');
 require_once(IZNIK_BASE . '/mailtemplates/invite.php');
 require_once(IZNIK_BASE . '/lib/wordle/functions.php');
 require_once(IZNIK_BASE . '/lib/GreatCircle.php');
@@ -3778,7 +3777,13 @@ class User extends Entity
             $confirm = $this->loginLink(USER_SITE, $this->id, "/settings/confirmmail/" . urlencode($key), 'changeemail', TRUE);
 
             list ($transport, $mailer) = Mail::getMailer();
-            $html = verify_email($email, $confirm, $usersite ? USERLOGO : MODLOGO);
+            $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+            $twig = new \Twig_Environment($loader);
+
+            $html = $twig->render('verifymail.html', [
+                'email' => $email,
+                'confirm' => $config
+            ]);
 
             $message = \Swift_Message::newInstance()
                 ->setSubject("Please verify your email")
