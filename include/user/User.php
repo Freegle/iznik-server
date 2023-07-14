@@ -3007,7 +3007,7 @@ class User extends Entity
                                 $this->dbhm->preExec("UPDATE chat_messages SET chatid = {$alreadys[0]['id']} WHERE chatid = {$room['id']}");
 
                                 # Make sure latestmessage is set correctly.
-                                $this->dbhm->preExec("UPDATE chat_rooms SET latestmessage = MAX(latestmessage, ?) WHERE id = ?", [
+                                $this->dbhm->preExec("UPDATE chat_rooms SET latestmessage = GREATEST(latestmessage, ?) WHERE id = ?", [
                                     $room['latestmessage'],
                                     $alreadys[0]['id']
                                 ]);
