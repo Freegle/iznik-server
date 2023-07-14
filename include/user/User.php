@@ -3005,6 +3005,12 @@ class User extends Entity
                             if (count($alreadys) > 0) {
                                 # Yes, there already is one.
                                 $this->dbhm->preExec("UPDATE chat_messages SET chatid = {$alreadys[0]['id']} WHERE chatid = {$room['id']}");
+
+                                # Make sure latestmessage is set correctly.
+                                $this->dbhm->preExec("UPDATE chat_rooms SET latestmessage = MAX(latestmessage, ?) WHERE id = ?", [
+                                    $room['latestmessage'],
+                                    $alreadys[0]['id']
+                                ]);
                             } else {
                                 # No, there isn't, so we can update our old one.
                                 $sql = $room['user1'] == $id2 ? "UPDATE chat_rooms SET user1 = $id1 WHERE id = {$room['id']};" : "UPDATE chat_rooms SET user2 = $id1 WHERE id = {$room['id']};";
