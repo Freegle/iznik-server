@@ -1047,14 +1047,16 @@ class MailRouter
                                         $ps = Group::POSTING_MODERATED;
                                     } else
                                     {
-                                        $ps = ($u->isModOrOwner($group['groupid']) || $g->getSetting(
-                                                'moderated',
-                                                0
-                                            )) ? Group::POSTING_MODERATED : $ourPS;
+                                        $groupModerated = $g->getSetting(
+                                            'moderated',
+                                            0
+                                        );
+
+                                        $ps = ($u->isModOrOwner($group['groupid']) || $groupModerated) ? Group::POSTING_MODERATED : $ourPS;
                                         $ps = $ps ? $ps : Group::POSTING_MODERATED;
                                         if ($log)
                                         {
-                                            error_log("Member of {$group['groupid']}, Our PS is $ps");
+                                            error_log("Member of {$group['groupid']}, Our PS is $ps, group moderated? " . ($groupModerated ? 'yes': 'no'));
                                         }
                                     }
 
