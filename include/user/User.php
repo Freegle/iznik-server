@@ -3782,7 +3782,7 @@ class User extends Entity
 
             $html = $twig->render('verifymail.html', [
                 'email' => $email,
-                'confirm' => $config
+                'confirm' => $confirm
             ]);
 
             $message = \Swift_Message::newInstance()
