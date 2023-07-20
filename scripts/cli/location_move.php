@@ -36,7 +36,6 @@ if (count($opts) != 4) {
 
         if ($lid) {
             error_log("Location $name is $lid");
-            $dbhm->errorLog = true;
             $l->setGeometry('POINT(' . $lng . ' ' . $lat . ')');
             $l->setPrivate('lat', $lat);
             $l->setPrivate('lng', $lng);
