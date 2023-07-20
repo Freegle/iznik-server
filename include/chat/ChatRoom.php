@@ -1952,7 +1952,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
         return $thistwig;
     }
 
-    private function getTextSummary($unmailedmsg, $thisu, $otheru, $multiple, &$intsubj) {
+    public function getTextSummary($unmailedmsg, $thisu, $otheru, $multiple, &$intsubj) {
         $thisone = NULL;
 
         switch ($unmailedmsg['type']) {
