@@ -817,6 +817,7 @@ class Spam {
         # Find any chat messages from spammers.
         $chats = $this->dbhr->preQuery("SELECT id, chatid FROM chat_messages WHERE userid IN (SELECT userid FROM spam_users WHERE collection = 'Spammer');");
         foreach ($chats as $chat) {
+            error_log("Found spam chat message {$chat['id']}");
             $sql = "UPDATE chat_messages SET reviewrejected = 1, reviewrequired = 0 WHERE id = ?";
             $this->dbhm->preExec($sql, [ $chat['id'] ]);
         }
@@ -824,6 +825,7 @@ class Spam {
         # Delete any newsfeed items from spammers.
         $newsfeeds = $this->dbhr->preQuery("SELECT id FROM newsfeed WHERE userid IN (SELECT userid FROM spam_users WHERE collection = 'Spammer');");
         foreach ($newsfeeds as $newsfeed) {
+            error_log("Delete newsfeed item {$newsfeed['id']}");
             $sql = "DELETE FROM newsfeed WHERE id = ?;";
             $this->dbhm->preExec($sql, [ $newsfeed['id'] ]);
         }
@@ -831,6 +833,7 @@ class Spam {
         # Delete any notifications from spammers
         $notifs = $this->dbhr->preQuery("SELECT id FROM users_notifications WHERE fromuser IN (SELECT userid FROM spam_users WHERE collection = 'Spammer');");
         foreach ($notifs as $notif) {
+            error_log("Delete notification {$notif['id']}");
             $sql = "DELETE FROM users_notifications WHERE id = ?;";
             $this->dbhm->preExec($sql, [ $notif['id'] ]);
         }
@@ -839,6 +842,7 @@ class Spam {
         # bad.
         $expecteds = $this->dbhr->preQuery("SELECT users_expected.id FROM `users_expected` INNER JOIN spam_users ON expecter = spam_users.userid AND collection = 'Spammer';");
         foreach ($expecteds as $expected) {
+            error_log("Delete expected {$expected['id']}");
             $this->dbhm->preExec("DELETE FROM users_expected WHERE id = ?;", [
                 $expected['id']
             ]);
