@@ -47,9 +47,9 @@ class Newsfeed extends Entity
 
         # Check the newsfeed mod status of the poster.  If it is suppressed, then we insert it as hidden (so
         # they can see it) but don't alert.
-        $suppressed = $u->getPrivate('newsfeedmodstatus') == User::NEWSFEED_SUPPRESSED;
-
         $s = new Spam($this->dbhr, $this->dbhm);
+        $suppressed = $u->getPrivate('newsfeedmodstatus') == User::NEWSFEED_SUPPRESSED || $s->isSpammerUid($userid);
+
         $hidden = ($suppressed || $s->checkReferToSpammer($message)) ? 'NOW()' : 'NULL';
 
         if (is_null($lat)) {
