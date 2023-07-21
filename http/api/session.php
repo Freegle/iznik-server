@@ -517,7 +517,30 @@ function session() {
                             $userlist = Utils::presdef('userlist', $_REQUEST, NULL);
 
                             if (gettype($userlist) == 'array') {
-                                $me->related($userlist);
+                                # Check whether the userlist contains at least one userid that has recently been
+                                # active using the same IP address.  We'd expect this to be the case, and we have
+                                # seen examples where we get related reports from googlebot.com, which suggests
+                                # there are extensions out there which are exfiltrating session data from user's
+                                # browsers - perhaps during link preview.  If that happens to two users at the same
+                                # time on the same crawler, then we would get a report of related users.  This IP
+                                # check prevents that.
+                                $foundip = FALSE;
+                                $ip = $_SERVER['REMOTE_ADDR'];
+
+                                foreach ($userlist as $userid) {
+                                    $logs = $dbhr->preQuery("SELECT * FROM logs_api WHERE userid = ? AND ip = ?", [
+                                        $userid,
+                                        $ip
+                                    ]);
+
+                                    if (count($logs)) {
+                                        $foundip = TRUE;
+                                    }
+                                }
+
+                                if ($foundip) {
+                                    $me->related($userlist);
+                                }
                             }
 
                             $ret = [ 'ret' => 0, 'status' => "Success" ];

@@ -707,6 +707,13 @@ class sessionTest extends IznikAPITestCase
         $id2 = $u1->create('Test', 'User', NULL);
         $this->assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
+        # Need to ensure that there is a log from the IP that we're about to check.
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+        $this->dbhm->preExec("INSERT INTO logs_api (`userid`, `ip`, `session`, `request`, `response`) VALUES (?, ?, '123', '', '');", [
+            $id1,
+            '127.0.0.1'
+        ]);
+
         $ret = $this->call('session', 'POST', [
             'action' => 'Related',
             'userlist' => [ $id1, $id2 ]
