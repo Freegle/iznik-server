@@ -248,7 +248,8 @@ function memberships() {
                         }
 
                         if (!$userid || $role != User::ROLE_NONMEMBER) {
-                            $u->addMembership($groupid, $role, $emailid, $addtocoll, $message);
+                            $manual = Utils::presBool('manual', $_REQUEST, NULL);
+                            $u->addMembership($groupid, $role, $emailid, $addtocoll, $message, NULL, TRUE, $manual);
 
                             $ret = [
                                 'ret' => 0,

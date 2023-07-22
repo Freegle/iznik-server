@@ -324,13 +324,54 @@ class membershipsAPITest extends IznikAPITestCase {
         $ret = $this->call('memberships', 'PUT', [
             'groupid' => $this->groupid,
             'userid' => $this->uid,
-            'role' => 'Member'
+            'role' => 'Member',
+            'manual' => true
         ]);
         $this->assertEquals(0, $ret['ret']);
 
         $this->assertEquals(User::ROLE_MODERATOR, $this->user->getRoleForGroup($this->groupid));
+    }
 
+    public function reasonProvider() {
+        return [
+            [ TRUE ],
+            [ FALSE ],
+        ];
+    }
+    /**
+     * @dataProvider reasonProvider
+     */
+    public function testJoinReason($reason) {
+        $this->assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
+
+        # Join ourselves - should work
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+
+        $ret = $this->call('memberships', 'PUT', [
+            'groupid' => $this->groupid,
+            'userid' => $uid,
+            'role' => 'Member',
+            'manual' => $reason
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+
+        # Sleep for background logging
+        $this->waitBackground();
+
+        $ctx = NULL;
+        $logs = [ $uid => [ 'id' => $uid ] ];
+        $this->user->getPublicLogs($u, $logs, FALSE, $ctx, FALSE, TRUE);
+        $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_JOINED, $logs[$uid]['logs']);
+
+        $reasons = NULL;
+
+        if ($reason !== NULL) {
+            $reasons = $reason ? 'Manual' : 'Auto';
         }
+
+        $this->assertEquals($reasons, $log['text']);
+    }
 
     public function testSettings() {
         # Shouldn't be able to set as a different member.

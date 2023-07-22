@@ -840,7 +840,7 @@ class User extends Entity
         return FALSE;
     }
 
-    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED, $message = NULL, $byemail = NULL, $addedhere = TRUE)
+    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED, $message = NULL, $byemail = NULL, $addedhere = TRUE, $manual = NULL)
     {
         $this->memberships = NULL;
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
@@ -949,12 +949,19 @@ class User extends Entity
             }
 
             $l = new Log($this->dbhr, $this->dbhm);
+            $text = NULL;
+
+            if ($manual !== NULL) {
+                $text = $manual ? 'Manual' : 'Auto';
+            }
+
             $l->log([
                 'type' => Log::TYPE_GROUP,
                 'subtype' => Log::SUBTYPE_JOINED,
                 'user' => $this->id,
                 'byuser' => $me ? $me->getId() : NULL,
-                'groupid' => $groupid
+                'groupid' => $groupid,
+                'text' => $text
             ]);
         }
 
