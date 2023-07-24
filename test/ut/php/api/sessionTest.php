@@ -709,7 +709,7 @@ class sessionTest extends IznikAPITestCase
 
         # Need to ensure that there is a log from the IP that we're about to check.
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $this->dbhm->preExec("INSERT INTO logs_api (`userid`, `ip`, `session`, `request`, `response`) VALUES (?, ?, '123', '', '');", [
+        $this->dbhm->preExec("INSERT INTO logs_api (`userid`, `ip`, `session`, `request`, `response`) VALUES (?, ?, '123', '', 'Success');", [
             $id1,
             '127.0.0.1'
         ]);
@@ -802,7 +802,7 @@ class sessionTest extends IznikAPITestCase
 
         # Need to ensure that there is a log from the IP that we're about to check.
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $this->dbhm->preExec("INSERT INTO logs_api (`userid`, `ip`, `session`, `request`, `response`) VALUES (?, ?, '123', '', '');", [
+        $this->dbhm->preExec("INSERT INTO logs_api (`userid`, `ip`, `session`, `request`, `response`) VALUES (?, ?, '123', '', 'Success');", [
             $id1,
             '127.0.0.1'
         ]);
