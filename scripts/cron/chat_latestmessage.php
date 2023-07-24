@@ -38,7 +38,7 @@ $chats = $dbhr->preQuery("SELECT DISTINCT chat_rooms.id, chat_roster.status, cha
     WHERE chat_rooms.user1 = chat_roster.userid 
         AND chat_roster.status = ?
         AND chattype = ?
-        AND chat_rooms.latestmessage >= chat_roster.date 
+        AND chat_rooms.latestmessage > chat_roster.date 
         AND chat_rooms.latestmessage >= ?;", [ ChatRoom::STATUS_CLOSED, ChatRoom::TYPE_USER2MOD, $mysqltime ]);
 
 error_log("Found chats which need reopening " . count($chats));
