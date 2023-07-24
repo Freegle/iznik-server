@@ -1232,7 +1232,7 @@ WHERE chat_rooms.id IN $idlist;";
         if ($status == ChatRoom::STATUS_CLOSED || $status == ChatRoom::STATUS_BLOCKED) {
             # The Closed and Blocked statuses are special - they're per-room.  So we need to set it.  Take care
             # not to overwrite Blocked with Closed.
-            $this->dbhm->preExec("UPDATE chat_roster SET status = ? WHERE chatid = ? AND userid = ? AND (status IS NULL OR status != ?);", [
+            $this->dbhm->preExec("UPDATE chat_roster SET status = ?, date = NOW() WHERE chatid = ? AND userid = ? AND (status IS NULL OR status != ?);", [
                 $status,
                 $this->id,
                 $userid,

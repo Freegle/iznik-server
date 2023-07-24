@@ -32,7 +32,7 @@ foreach ($chatids as $chatid) {
 # If there are any User2Mod chats which have been closed by the user but which have unseen messages, then we
 # need to reopen them.  This shouldn't arise very often as we hide the close button if there are unseen messages,
 # and reopen them when we create a message.  But we want to make very sure that messages from mods are seen.
-$chats = $dbhr->preQuery("SELECT DISTINCT chat_rooms.id, chat_roster.status, chat_roster.lastmsgseen, chat_rooms.user1 
+$chats = $dbhr->preQuery("SELECT DISTINCT chat_rooms.id, chat_roster.status, chat_rooms.latestmessage, chat_roster.date, chat_roster.lastmsgseen, chat_rooms.user1 
     FROM `chat_rooms` 
     INNER JOIN chat_roster ON chat_roster.chatid = chat_rooms.id 
     WHERE chat_rooms.user1 = chat_roster.userid 
@@ -44,6 +44,7 @@ $chats = $dbhr->preQuery("SELECT DISTINCT chat_rooms.id, chat_roster.status, cha
 error_log("Found chats which need reopening " . count($chats));
 
 foreach ($chats as $chat) {
+    error_log("...reopen {$chat['id']} for {$chat['user1']} because {$chat['latestmessage']} > {$chat['date']} ");
     $dbhm->preExec("UPDATE chat_roster SET status = ? WHERE chatid = ? AND userid = ?;", [
         ChatRoom::STATUS_AWAY,
         $chat['id'],
