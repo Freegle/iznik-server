@@ -516,6 +516,8 @@ function session() {
                         if ($me) {
                             $userlist = Utils::presdef('userlist', $_REQUEST, NULL);
 
+                            $ret = [ 'ret' => 0, 'status' => "Success" ];
+
                             if (gettype($userlist) == 'array') {
                                 # Check whether the userlist contains at least one userid that has recently been
                                 # active using the same IP address.  We'd expect this to be the case, and we have
@@ -528,13 +530,15 @@ function session() {
                                 $ip = $_SERVER['REMOTE_ADDR'];
 
                                 foreach ($userlist as $userid) {
-                                    $logs = $dbhr->preQuery("SELECT * FROM logs_api WHERE userid = ? AND ip = ?", [
+                                    $logs = $dbhr->preQuery("SELECT * FROM logs_api WHERE userid = ? AND ip = ?  AND response LIKE '%Success%' AND request NOT LIKE '%View%' AND request NOT LIKE '%Related%'", [
                                         $userid,
                                         $ip
                                     ]);
 
                                     if (count($logs)) {
                                         $foundip = TRUE;
+                                    } else {
+                                        $ret = array('ret' => 2, 'status' => 'Not from recently active IP');
                                     }
                                 }
 
@@ -542,8 +546,6 @@ function session() {
                                     $me->related($userlist);
                                 }
                             }
-
-                            $ret = [ 'ret' => 0, 'status' => "Success" ];
                         }
                     }
                 }
