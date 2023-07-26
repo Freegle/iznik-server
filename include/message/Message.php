@@ -340,16 +340,22 @@ class Message
         }
 
         # It's possible (for TN) that we are editing a message that has been rejected.  This is how
-        # rejected messages are resubmitted.  Move it back to Pending.  Bump the arrival time to avoid auto-approval.
+        # rejected messages are resubmitted.  Move it back to Pending as long as they are
+        # still a group member.  Bump the arrival time to avoid auto-approval.
         $groups = $this->getGroups(FALSE, FALSE);
 
         foreach ($groups as $group) {
             if ($group['collection'] == MessageCollection::REJECTED) {
-                $this->dbhm->preExec("UPDATE messages_groups SET collection = ?, arrival = NOW() WHERE msgid = ? AND groupid = ?", [
-                    MessageCollection::PENDING,
-                    $this->id,
-                    $group['groupid']
-                ]);
+                # Check if they're still a member.  If not, then it can stay rejected.
+                $u = new User($this->dbhr, $this->dbhm, $this->getFromuser());
+
+                if ($u->isApprovedMember($group['groupid'])) {
+                    $this->dbhm->preExec("UPDATE messages_groups SET collection = ?, arrival = NOW() WHERE msgid = ? AND groupid = ?", [
+                        MessageCollection::PENDING,
+                        $this->id,
+                        $group['groupid']
+                    ]);
+                }
             }
         }
 
