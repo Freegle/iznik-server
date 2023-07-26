@@ -960,7 +960,45 @@ class chatRoomsTest extends IznikTestCase {
         # Chat still shouldn't show in the list for this user.
         $this->assertNull($r->listForUser(FALSE, $u1, NULL, NULL, FALSE));
         self::assertEquals(1, count($r->listForUser(FALSE, $u2, NULL, NULL, FALSE)));
-     }
+ }
+
+    public function testBlockAndView() {
+        $this->log(__METHOD__ );
+
+        # Pretend to be FD.
+        $_REQUEST['modtools'] = FALSE;
+
+        # Set up a chatroom
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test1@test.com');
+        $u->addEmail('test1@' . USER_DOMAIN);
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
+        $this->log("Chat room $id for $u1 <-> $u2");
+        $this->assertNotNull($id);
+
+        $this->waitBackground();
+        $this->assertNull($r->replyTime($u1));
+        $this->assertNull($r->replyTime($u2));
+
+        # Make the first user block the second.
+        $r->updateRoster($u1, NULL, ChatRoom::STATUS_BLOCKED);
+
+        # Now create the chat again.  We used to have bug where this unblocked the user.
+        list ($id2, $blocked) = $r->createConversation($u1, $u2);
+        $this->assertEquals($id2, $id);
+
+        # Chat still shouldn't show in the list for this user.
+        $this->assertNull($r->listForUser(FALSE, $u1, NULL, NULL, FALSE));
+        self::assertEquals(1, count($r->listForUser(FALSE, $u2, NULL, NULL, FALSE)));
+    }
 
     public function testReadReceipt() {
         $this->log(__METHOD__ );

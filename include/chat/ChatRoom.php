@@ -444,6 +444,7 @@ WHERE chat_rooms.id IN $idlist;";
     {
         $id = NULL;
         $bannedonall = FALSE;
+        $created = FALSE;
 
         # We use a transaction to close timing windows.
         $this->dbhm->beginTransaction();
@@ -494,6 +495,7 @@ WHERE chat_rooms.id IN $idlist;";
                     # We created one.  We'll commit below.
                     $id = $this->dbhm->lastInsertId();
                     $rollback = FALSE;
+                    $created = TRUE;
                 }
             }
         }
@@ -512,9 +514,11 @@ WHERE chat_rooms.id IN $idlist;";
 
             $this->ourFetch($id, $myid);
 
-            # Ensure the two members are in the roster.
-            $this->updateRoster($user1, NULL);
-            $this->updateRoster($user2, NULL);
+            if ($created) {
+                # Ensure the two members are in the roster.
+                $this->updateRoster($user1, NULL);
+                $this->updateRoster($user2, NULL);
+            }
 
             # Poke the (other) member(s) to let them know to pick up the new chat
             $n = new PushNotifications($this->dbhr, $this->dbhm);
