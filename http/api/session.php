@@ -544,6 +544,7 @@ function session() {
 
                                 if ($foundip) {
                                     $me->related($userlist);
+                                    $ret = [ 'ret' => 0, 'status' => "Success" ];
                                 }
                             }
                         }
