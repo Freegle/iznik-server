@@ -77,7 +77,6 @@ CMD /etc/init.d/nginx start \
   && sed -ie 's/timestamp(6)/timestamp/g' install/schema.sql \
   && sed -ie 's/CURRENT_TIMESTAMP(3)/CURRENT_TIMESTAMP/g' install/schema.sql \
   && sed -ie 's/CURRENT_TIMESTAMP(6)/CURRENT_TIMESTAMP/g' install/schema.sql \
-  && sleep infinity \
 	&& mysql -u root -e 'CREATE DATABASE IF NOT EXISTS iznik;' \
   && mysql -u root iznik < install/schema.sql \
   && mysql -u root iznik < install/functions.sql \
