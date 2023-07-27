@@ -3,7 +3,10 @@
 error_reporting(E_ALL & ~E_WARNING & ~E_DEPRECATED & ~E_NOTICE);
 
 if (!defined('REDIS_CONNECT')) {
-    if (file_exists('/var/run/redis/redis.sock')) {
+    if (file_exists('/etc/iznikredis')) {
+        $val = trim(file_get_contents('/etc/iznikredis'));
+        define('REDIS_CONNECT', $val);
+    } else if (file_exists('/var/run/redis/redis.sock')) {
         define('REDIS_CONNECT', '/var/run/redis/redis.sock');
     } else {
         define('REDIS_CONNECT', '127.0.0.1');

@@ -54,7 +54,8 @@ RUN cp install/iznik.conf.php /etc/iznik.conf \
     && echo "[mysql]" > ~/.my.cnf \
     && echo "host=$SQLHOST" >> ~/.my.cnf \
     && echo "user=$SQLUSER" >> ~/.my.cnf \
-    && echo "password=$SQLPASSWORD" >> ~/.my.cnf
+    && echo "password=$SQLPASSWORD" >> ~/.my.cnf \
+    && echo "redis" > /etc/iznikredis
 
 # Install composer dependencies
 RUN wget https://getcomposer.org/composer-2.phar -O composer.phar \
