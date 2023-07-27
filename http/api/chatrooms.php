@@ -15,6 +15,7 @@ function chatrooms() {
     $groupid = (Utils::presint('groupid', $_REQUEST, NULL));
     $search = Utils::presdef('search', $_REQUEST, NULL);
     $summary = array_key_exists('summary', $_REQUEST) ? filter_var($_REQUEST['summary'], FILTER_VALIDATE_BOOLEAN) : FALSE;
+    $updateRoster = array_key_exists('updateRoster', $_REQUEST) ? filter_var($_REQUEST['updateRoster'], FILTER_VALIDATE_BOOLEAN) : TRUE;
     $count = array_key_exists('count', $_REQUEST) ? filter_var($_REQUEST['count'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $age = Utils::presint('age', $_REQUEST, NULL);
     $allowback = Utils::presbool('allowback', $_REQUEST, FALSE);
@@ -79,10 +80,12 @@ function chatrooms() {
                                 if ($id) {
                                     $r = new ChatRoom($dbhr, $dbhm, $id);
 
-                                    # Ensure the chat isn't blocked.  Check the user to make sure we don't insert a mod into
-                                    # the chat.
-                                    if ($myid == $r->getPrivate('user1') || $myid == $r->getPrivate('user2')) {
-                                        $r->updateRoster($myid, NULL);
+                                    if ($updateRoster) {
+                                        # Ensure the chat isn't blocked.  Check the user to make sure we don't insert a mod into
+                                        # the chat.
+                                        if ($myid == $r->getPrivate('user1') || $myid == $r->getPrivate('user2')) {
+                                            $r->updateRoster($myid, NULL);
+                                        }
                                     }
                                 }
                             }
