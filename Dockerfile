@@ -42,7 +42,11 @@ RUN cp install/iznik.conf.php /etc/iznik.conf \
     && sed -ie "s/'PGSQLHOST', '.*'/'PGSQLHOST', '$PGSQLHOST'/" /etc/iznik.conf \
     && sed -ie "s/'PGSQLUSER', '.*'/'PGSQLUSER', '$PGSQLUSER'/" /etc/iznik.conf \
     && sed -ie "s/'PGSQLPASSWORD', '.*'/'PGSQLPASSWORD', '$PGSQLPASSWORD'/" /etc/iznik.conf \
-    && sed -ie "s/'PGSQLDB', '.*'/'PGSQLDB', '$PGSQLDB'/" /etc/iznik.conf
+    && sed -ie "s/'PGSQLDB', '.*'/'PGSQLDB', '$PGSQLDB'/" /etc/iznik.conf \
+    && echo "[mysql]" > ~/.my.cnf \
+    && echo "host=$SQLHOST" >> ~/.my.cnf \
+    && echo "user=$SQLUSER" >> ~/.my.cnf \
+    && echo "password=$SQLPASSWORD" >> ~/.my.cnf
 
 # Install composer dependencies
 RUN wget https://getcomposer.org/composer-2.phar -O composer.phar \
