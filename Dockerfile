@@ -88,7 +88,7 @@ CMD /etc/init.d/nginx start \
   && cd composer \
   && echo Y | php ../composer.phar install \
   && cd .. \
-	&& sleep infinity
+	&& sleep infinity \
   && php install/testenv.php \
 
   # Keep the container alive
