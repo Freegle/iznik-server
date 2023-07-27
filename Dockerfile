@@ -82,6 +82,10 @@ CMD /etc/init.d/nginx start \
   && mysql -u root iznik < install/functions.sql \
   && mysql -u root iznik < install/damlevlim.sql \
   && mysql -u root -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'" \
+  && git pull \
+  && cd composer \
+  && echo Y | php ../composer.phar install \
+  && cd .. \
   && php install/testenv.php \
 
   # Keep the container alive
