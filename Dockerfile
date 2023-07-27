@@ -5,13 +5,16 @@ ENV DEBIAN_FRONTEND=noninteractive \
 	  NOTVISIBLE="in users profile" \
 	  STANDALONE=TRUE \
 	  SQLHOST=percona \
+	  SQLPORT=33060 \
 	  SQLUSER=root \
 	  SQLPASSWORD=iznik \
 	  SQLDB=iznik \
 	  PGSQLHOST=postgres \
 	  PGSQLUSER=root \
 	  PGSQLPASSWORD=iznik \
-	  PGSQLDB=iznik
+	  PGSQLDB=iznik \
+	  LOVE_JUNK_API=https://staging-elmer.api-lovejunk.com/elmer/v1/freegle-drafts \
+	  LOVE_JUNK_SECRET=secret \
 
 # Packages
 RUN apt-get update && apt-get install -y dnsutils openssl zip unzip git libxml2-dev libzip-dev zlib1g-dev libcurl4-openssl-dev \
@@ -33,9 +36,9 @@ WORKDIR /var/www/iznik
 # /etc/iznik.conf is where our config goes.
 RUN cp install/iznik.conf.php /etc/iznik.conf \
     && echo secret > /etc/iznik_jwt_secret \
-    && sed -ie "s/'SQLHOST', '.*'/'SQLHOST', '$SQLHOST'/" /etc/iznik.conf \
-    && sed -ie "s/'SQLHOSTS_READ', '.*'/'SQLHOST', '$SQLHOST'/" /etc/iznik.conf \
-    && sed -ie "s/'SQLHOSTS_MOD', '.*'/'SQLHOST', '$SQLHOST'/" /etc/iznik.conf \
+    && sed -ie "s/'SQLHOST', '.*'/'SQLHOST', '$SQLHOST:$SQLPORT'/" /etc/iznik.conf \
+    && sed -ie "s/'SQLHOSTS_READ', '.*'/'SQLHOST', '$SQLHOST:$SQLPORT'/" /etc/iznik.conf \
+    && sed -ie "s/'SQLHOSTS_MOD', '.*'/'SQLHOST', '$SQLHOST:$SQLPORT'/" /etc/iznik.conf \
     && sed -ie "s/'SQLUSER', '.*'/'SQLUSER', '$SQLUSER'/" /etc/iznik.conf \
     && sed -ie "s/'SQLPASSWORD', '.*'/'SQLPASSWORD', '$SQLPASSWORD'/" /etc/iznik.conf \
     && sed -ie "s/'SQLDB', '.*'/'PGSQLDB', '$PGSQLDB'/" /etc/iznik.conf \
@@ -43,6 +46,8 @@ RUN cp install/iznik.conf.php /etc/iznik.conf \
     && sed -ie "s/'PGSQLUSER', '.*'/'PGSQLUSER', '$PGSQLUSER'/" /etc/iznik.conf \
     && sed -ie "s/'PGSQLPASSWORD', '.*'/'PGSQLPASSWORD', '$PGSQLPASSWORD'/" /etc/iznik.conf \
     && sed -ie "s/'PGSQLDB', '.*'/'PGSQLDB', '$PGSQLDB'/" /etc/iznik.conf \
+    && sed -ie "s/'LOVE_JUNK_API', '.*'/'LOVE_JUNK_API', '$LOVE_JUNK_API'/" /etc/iznik.conf \
+    && sed -ie "s/'LOVE_JUNK_SECRET', '.*'/'LOVE_JUNK_SECRET', '$LOVE_JUNK_SECRET'/" /etc/iznik.conf \
     && echo "[mysql]" > ~/.my.cnf \
     && echo "host=$SQLHOST" >> ~/.my.cnf \
     && echo "user=$SQLUSER" >> ~/.my.cnf \
@@ -60,8 +65,7 @@ RUN cat install/crontab | crontab -u root -
 # Tidy image
 RUN rm -rf /var/lib/apt/lists/*
 
-CMD echo "nameserver 8.8.8.8" > /etc/resolv.conf \
-  && /etc/init.d/nginx start \
+CMD /etc/init.d/nginx start \
 	&& /etc/init.d/cron start \
 
   # Set up the environment we need. Putting this here means it gets reset each time we start the container.
@@ -72,14 +76,15 @@ CMD echo "nameserver 8.8.8.8" > /etc/resolv.conf \
   && sed -ie 's/timestamp(6)/timestamp/g' install/schema.sql \
   && sed -ie 's/CURRENT_TIMESTAMP(3)/CURRENT_TIMESTAMP/g' install/schema.sql \
   && sed -ie 's/CURRENT_TIMESTAMP(6)/CURRENT_TIMESTAMP/g' install/schema.sql \
+  && sleep infinity \
 	&& mysql -u root -e 'CREATE DATABASE IF NOT EXISTS iznik;' \
   && mysql -u root iznik < install/schema.sql \
   && mysql -u root iznik < install/functions.sql \
   && mysql -u root iznik < install/damlevlim.sql \
   && mysql -u root -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'" \
-#  && php install/testenv.php \
+  && php install/testenv.php \
 
   # Keep the container alive
-	&& bash
+	&& sleep infinity
 
 EXPOSE 80
