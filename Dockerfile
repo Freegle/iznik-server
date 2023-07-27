@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y dnsutils openssl zip unzip git libxml2-
     iputils-ping default-mysql-client vim libpng-dev libgmp-dev libjpeg-turbo8-dev php-xmlrpc php8.1-intl \
     php8.1-xdebug php8.1-mbstring php8.1-simplexml php8.1-curl php8.1-zip postgresql-client php8.1-gd  \
     php8.1-xmlrpc php8.1-redis php8.1-pgsql curl libpq-dev php-pear php-dev libgeoip-dev libcurl4-openssl-dev wget \
-    php-mbstring php-mailparse geoip-bin geoip-database php8.1-pdo-mysql cron rsyslog net-tools
+    php-mbstring php-mailparse geoip-bin geoip-database php8.1-pdo-mysql cron rsyslog net-tools php8.1-fpm nginx
 
 RUN apt-get remove -y apache2* sendmail* mlocate php-ssh2
 
