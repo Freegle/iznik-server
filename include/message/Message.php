@@ -5414,13 +5414,17 @@ $mq", [
             ]);
 
             if (!Utils::pres('existing', $msg)) {
-                $this->getPheanstalk();
-                $this->pheanstalk->put(json_encode(array(
-                                                       'type' => 'freebiealertsadd',
-                                                       'queued' => microtime(TRUE),
-                                                       'msgid' => $msg['id'],
-                                                       'ttr' => Utils::PHEANSTALK_TTR
-                                                   )));
+                try {
+                    $this->getPheanstalk();
+                    $this->pheanstalk->put(json_encode(array(
+                                                           'type' => 'freebiealertsadd',
+                                                           'queued' => microtime(TRUE),
+                                                           'msgid' => $msg['id'],
+                                                           'ttr' => Utils::PHEANSTALK_TTR
+                                                       )));
+                } catch (Exception $e) {
+                    error_log("Failed to add freebie alert for {$msg['id']}: " . $e->getMessage());
+                }
             }
 
             $count++;
