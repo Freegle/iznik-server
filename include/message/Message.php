@@ -5422,7 +5422,7 @@ $mq", [
                                                            'msgid' => $msg['id'],
                                                            'ttr' => Utils::PHEANSTALK_TTR
                                                        )));
-                } catch (Exception $e) {
+                } catch (\Exception $e) {
                     error_log("Failed to add freebie alert for {$msg['id']}: " . $e->getMessage());
                 }
             }
