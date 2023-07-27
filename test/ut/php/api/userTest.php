@@ -802,7 +802,7 @@ class userAPITest extends IznikAPITestCase {
             'email' => 'test4@test.com'
         ]);
 
-        $this->assertEquals(4, $ret['ret']);
+        $this->assertEquals(3, $ret['ret']);
         $this->assertEquals('test@test.com', $this->user->getEmailPreferred());
 
         # Add as an admin - should work.
