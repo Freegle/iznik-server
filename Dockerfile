@@ -15,7 +15,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
 	  PGSQLDB=iznik \
 	  PGSQLPORT=5432 \
 	  LOVE_JUNK_API="https://staging-elmer.api-lovejunk.com/elmer/v1/freegle-drafts" \
-	  LOVE_JUNK_SECRET=secret
+	  LOVE_JUNK_SECRET=secret \
+	  PHEANSTALK_SERVER=127.0.0.1
 
 # Packages
 RUN apt-get update && apt-get install -y dnsutils openssl zip unzip git libxml2-dev libzip-dev zlib1g-dev libcurl4-openssl-dev \
@@ -49,6 +50,7 @@ RUN cp install/iznik.conf.php /etc/iznik.conf \
     && sed -ie "s/'PGSQLDB', '.*'/'PGSQLDB', '$PGSQLDB'/" /etc/iznik.conf \
     && sed -ie "s@'LOVE_JUNK_API', '.*'@'LOVE_JUNK_API', '$LOVE_JUNK_API'@" /etc/iznik.conf \
     && sed -ie "s/'LOVE_JUNK_SECRET', '.*'/'LOVE_JUNK_SECRET', '$LOVE_JUNK_SECRET'/" /etc/iznik.conf \
+    && sed -ie "s/'PHEANSTALK_SERVER', '.*'/'PHEANSTALK_SERVER', '$PHEANSTALK_SERVER'/" /etc/iznik.conf \
     && echo "[mysql]" > ~/.my.cnf \
     && echo "host=$SQLHOST" >> ~/.my.cnf \
     && echo "user=$SQLUSER" >> ~/.my.cnf \
