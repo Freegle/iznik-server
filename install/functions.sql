@@ -1,6 +1,6 @@
 DELIMITER $$
-DELIMITER $$
-CREATE DEFINER=`root`@`localhost` FUNCTION IF NOT EXISTS `GetMaxDimension`(`g` GEOMETRY) RETURNS double
+DROP FUNCTION IF EXISTS GetMaxDimension;
+CREATE DEFINER=`root`@`localhost` FUNCTION `GetMaxDimension`(`g` GEOMETRY) RETURNS double
 NO SQL
 DETERMINISTIC
   BEGIN
@@ -18,7 +18,8 @@ DETERMINISTIC
 DELIMITER ;
 
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` FUNCTION IF NOT EXISTS `GetMaxDimensionT`(`g` GEOMETRY) RETURNS double
+DROP FUNCTION IF EXISTS GetMaxDimensionT;
+CREATE DEFINER=`root`@`localhost` FUNCTION `GetMaxDimensionT`(`g` GEOMETRY) RETURNS double
 NO SQL
   BEGIN
     DECLARE area, radius, diag DOUBLE;
@@ -35,7 +36,8 @@ NO SQL
 DELIMITER ;
 
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` FUNCTION IF NOT EXISTS `haversine`(
+DROP FUNCTION IF EXISTS haversine;
+CREATE DEFINER=`root`@`localhost` FUNCTION `haversine`(
   lat1 FLOAT, lon1 FLOAT,
   lat2 FLOAT, lon2 FLOAT
 ) RETURNS float
