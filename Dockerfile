@@ -14,7 +14,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 	  PGSQLPASSWORD=iznik \
 	  PGSQLDB=iznik \
 	  LOVE_JUNK_API=https://staging-elmer.api-lovejunk.com/elmer/v1/freegle-drafts \
-	  LOVE_JUNK_SECRET=secret \
+	  LOVE_JUNK_SECRET=secret
 
 # Packages
 RUN apt-get update && apt-get install -y dnsutils openssl zip unzip git libxml2-dev libzip-dev zlib1g-dev libcurl4-openssl-dev \
