@@ -13,7 +13,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 	  PGSQLUSER=root \
 	  PGSQLPASSWORD=iznik \
 	  PGSQLDB=iznik \
-	  LOVE_JUNK_API="https://staging-elmer.api-lovejunk.com\/elmer\/v1\/freegle-drafts" \
+	  LOVE_JUNK_API="https://staging-elmer.api-lovejunk.com/elmer/v1/freegle-drafts" \
 	  LOVE_JUNK_SECRET=secret
 
 # Packages
@@ -46,7 +46,7 @@ RUN cp install/iznik.conf.php /etc/iznik.conf \
     && sed -ie "s/'PGSQLUSER', '.*'/'PGSQLUSER', '$PGSQLUSER'/" /etc/iznik.conf \
     && sed -ie "s/'PGSQLPASSWORD', '.*'/'PGSQLPASSWORD', '$PGSQLPASSWORD'/" /etc/iznik.conf \
     && sed -ie "s/'PGSQLDB', '.*'/'PGSQLDB', '$PGSQLDB'/" /etc/iznik.conf \
-    && sed -ie "s/'LOVE_JUNK_API', '.*'/'LOVE_JUNK_API', '$LOVE_JUNK_API'/" /etc/iznik.conf \
+    && sed -ie "s@'LOVE_JUNK_API', '.*'@'LOVE_JUNK_API', '$LOVE_JUNK_API'@" /etc/iznik.conf \
     && sed -ie "s/'LOVE_JUNK_SECRET', '.*'/'LOVE_JUNK_SECRET', '$LOVE_JUNK_SECRET'/" /etc/iznik.conf \
     && echo "[mysql]" > ~/.my.cnf \
     && echo "host=$SQLHOST" >> ~/.my.cnf \
