@@ -13,7 +13,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 	  PGSQLUSER=root \
 	  PGSQLPASSWORD=iznik \
 	  PGSQLDB=iznik \
-	  LOVE_JUNK_API=https://staging-elmer.api-lovejunk.com/elmer/v1/freegle-drafts \
+	  LOVE_JUNK_API="https://staging-elmer.api-lovejunk.com\/elmer\/v1\/freegle-drafts" \
 	  LOVE_JUNK_SECRET=secret
 
 # Packages
