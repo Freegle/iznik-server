@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 	  NOTVISIBLE="in users profile" \
 	  STANDALONE=TRUE \
 	  SQLHOST=percona \
-	  SQLPORT=33060 \
+	  SQLPORT=3306 \
 	  SQLUSER=root \
 	  SQLPASSWORD=iznik \
 	  SQLDB=iznik \
@@ -13,6 +13,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 	  PGSQLUSER=root \
 	  PGSQLPASSWORD=iznik \
 	  PGSQLDB=iznik \
+	  PGSQLPORT=5432 \
 	  LOVE_JUNK_API="https://staging-elmer.api-lovejunk.com/elmer/v1/freegle-drafts" \
 	  LOVE_JUNK_SECRET=secret
 
@@ -37,12 +38,12 @@ WORKDIR /var/www/iznik
 RUN cp install/iznik.conf.php /etc/iznik.conf \
     && echo secret > /etc/iznik_jwt_secret \
     && sed -ie "s/'SQLHOST', '.*'/'SQLHOST', '$SQLHOST:$SQLPORT'/" /etc/iznik.conf \
-    && sed -ie "s/'SQLHOSTS_READ', '.*'/'SQLHOST', '$SQLHOST:$SQLPORT'/" /etc/iznik.conf \
-    && sed -ie "s/'SQLHOSTS_MOD', '.*'/'SQLHOST', '$SQLHOST:$SQLPORT'/" /etc/iznik.conf \
+    && sed -ie "s/'SQLHOSTS_READ', '.*'/'SQLHOSTS_READ', '$SQLHOST:$SQLPORT'/" /etc/iznik.conf \
+    && sed -ie "s/'SQLHOSTS_MOD', '.*'/'SQLHOSTS_MOD', '$SQLHOST:$SQLPORT'/" /etc/iznik.conf \
     && sed -ie "s/'SQLUSER', '.*'/'SQLUSER', '$SQLUSER'/" /etc/iznik.conf \
     && sed -ie "s/'SQLPASSWORD', '.*'/'SQLPASSWORD', '$SQLPASSWORD'/" /etc/iznik.conf \
-    && sed -ie "s/'SQLDB', '.*'/'PGSQLDB', '$PGSQLDB'/" /etc/iznik.conf \
-    && sed -ie "s/'PGSQLHOST', '.*'/'PGSQLHOST', '$PGSQLHOST'/" /etc/iznik.conf \
+    && sed -ie "s/'SQLDB', '.*'/'SQLDB', '$PGSQLDB'/" /etc/iznik.conf \
+    && sed -ie "s/'PGSQLHOST', '.*'/'PGSQLHOST', '$PGSQLHOST:$PGSQLPORT'/" /etc/iznik.conf \
     && sed -ie "s/'PGSQLUSER', '.*'/'PGSQLUSER', '$PGSQLUSER'/" /etc/iznik.conf \
     && sed -ie "s/'PGSQLPASSWORD', '.*'/'PGSQLPASSWORD', '$PGSQLPASSWORD'/" /etc/iznik.conf \
     && sed -ie "s/'PGSQLDB', '.*'/'PGSQLDB', '$PGSQLDB'/" /etc/iznik.conf \
