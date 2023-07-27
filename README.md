@@ -14,6 +14,14 @@ but it is an open source platform which can be used or adapted by others.
 
 We welcome potential developers with open arms.  Have  a look at the wiki section.
 
+## Docker
+
+There's a basic Dockerfile, aimed for use in larger Docker Compose environments.  You can build:
+
+`docker build -t iznik-go ./`
+
+...then
+
 License
 =======
 
