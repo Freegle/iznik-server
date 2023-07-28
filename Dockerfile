@@ -72,13 +72,13 @@ RUN cat install/crontab | crontab -u root -
 # Tidy image
 RUN rm -rf /var/lib/apt/lists/*
 
+# Set up the environment we need. Putting this here means it gets reset each time we start the container.
 CMD cp install/nginx.conf /etc/nginx/sites-available/default \
+  && openssl req -x509 -nodes -days 365 -subj "/C=CA/ST=QC/O=Company, Inc./CN=apiv1" -addext "subjectAltName=DNS:apiv1" -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt \
   && /etc/init.d/nginx start \
 	&& /etc/init.d/cron start \
 	&& /etc/init.d/php8.1-fpm start \
 
-  # Set up the environment we need. Putting this here means it gets reset each time we start the container.
-	#
 	# We need to make some minor schema tweaks otherwise the schema fails to install.
   && sed -ie 's/ROW_FORMAT=DYNAMIC//g' install/schema.sql \
   && sed -ie 's/timestamp(3)/timestamp/g' install/schema.sql \
