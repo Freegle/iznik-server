@@ -16,7 +16,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
 	  PGSQLPORT=5432 \
 	  LOVE_JUNK_API="https://staging-elmer.api-lovejunk.com/elmer/v1/freegle-drafts" \
 	  LOVE_JUNK_SECRET=secret \
-	  PHEANSTALK_SERVER=beanstalkd
+	  PHEANSTALK_SERVER=beanstalkd \
+	  IMAGE_DOMAIN=apiv1.localhost
 
 # Packages
 RUN apt-get update && apt-get install -y dnsutils openssl zip unzip git libxml2-dev libzip-dev zlib1g-dev libcurl4-openssl-dev \
@@ -53,6 +54,7 @@ RUN cp install/iznik.conf.php /etc/iznik.conf \
     && sed -ie "s@'LOVE_JUNK_API', '.*'@'LOVE_JUNK_API', '$LOVE_JUNK_API'@" /etc/iznik.conf \
     && sed -ie "s/'LOVE_JUNK_SECRET', '.*'/'LOVE_JUNK_SECRET', '$LOVE_JUNK_SECRET'/" /etc/iznik.conf \
     && sed -ie "s/'PHEANSTALK_SERVER', '.*'/'PHEANSTALK_SERVER', '$PHEANSTALK_SERVER'/" /etc/iznik.conf \
+    && sed -ie "s/'IMAGE_DOMAIN', '.*'/'apiv1', '$IMAGE_DOMAIN'/" /etc/iznik.conf \
     && sed -ie "s/case 'iznik.ilovefreegle.org'/default/" /etc/iznik.conf \
     && echo "[mysql]" > ~/.my.cnf \
     && echo "host=$SQLHOST" >> ~/.my.cnf \
@@ -74,7 +76,6 @@ RUN rm -rf /var/lib/apt/lists/*
 
 # Set up the environment we need. Putting this here means it gets reset each time we start the container.
 CMD cp install/nginx.conf /etc/nginx/sites-available/default \
-  && openssl req -x509 -nodes -days 365 -subj "/C=CA/ST=QC/O=Company, Inc./CN=apiv1" -addext "subjectAltName=DNS:apiv1" -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt \
   && /etc/init.d/nginx start \
 	&& /etc/init.d/cron start \
 	&& /etc/init.d/php8.1-fpm start \
