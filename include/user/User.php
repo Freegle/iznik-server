@@ -3932,7 +3932,7 @@ class User extends Entity
                                 $word = trim($word);
                                 if (strlen($word)) {
                                     $p = stripos($email, $word);
-                                    $q = strpos($email, '@');
+                                    $q = strpos($email, '-');
 
                                     if ($word !== '-') {
                                         # Dash is always present, which is fine.
