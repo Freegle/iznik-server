@@ -445,7 +445,7 @@ class Digest
                                 '{{frequency}}' => $this->freqText[$frequency],
                                 '{{noemail}}' => 'digestoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
                                 '{{post}}' => $u->loginLink(USER_SITE, $u->getId(), '/', User::SRC_DIGEST),
-                                '{{visit}}' => $u->loginLink(USER_SITE, $u->getId(), '/mygroups', User::SRC_DIGEST),
+                                '{{visit}}' => $u->loginLink(USER_SITE, $u->getId(), '/browse', User::SRC_DIGEST),
                                 '{{creds}}' => $creds,
                                 '{{replyto}}' => $u->getId(),
                                 '{{jobads}}' => $jobads['jobs'],
