@@ -95,6 +95,22 @@ class sessionClassTest extends IznikTestCase {
         $this->assertFalse($_SESSION['logged_in']);
     }
 
+    public function testBadCookie() {
+        # Cookie which doesn't match the logged in user id shouldn't log us in.
+        $u = User::get($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $id2 = $u->create('Test', 'User', NULL);
+
+        $s = new Session($this->dbhm, $this->dbhm);
+        $ret = $s->create($id);
+        $_SESSION['id'] = $id2;
+        $_REQUEST['persistent'] = $ret;
+        global $sessionPrepared;
+        $sessionPrepared = FALSE;
+        Session::prepareSession($this->dbhm, $this->dbhm);
+        $this->assertEquals($id, $_SESSION['id']);
+    }
+
     public function testRequestHeader() {
         $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);

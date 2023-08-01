@@ -95,7 +95,16 @@ class Session {
                     $sesscook = Utils::presdef('persistent', $_SESSION, NULL);
                     #error_log("Check vs " . var_export($sesscook, TRUE));
 
-                    if (!Utils::presdef('id', $_SESSION, NULL) || $sesscook != $cookie) {
+                    if (Utils::pres('id', $_SESSION) && Utils::presdef('userid', $cookie, NULL) != $_SESSION['id']) {
+                        # The cookie we have been passed doesn't match the one we are logged in as.  That's a bit
+                        # worrying.  Log it, and don't switch.
+                        \Sentry\captureMessage("Persistent session cookie doesn't match logged in user", [
+                            'extra' => [
+                                'cookie' => $cookie,
+                                'session' => $_SESSION
+                            ]
+                        ]);
+                    } else if (!Utils::presdef('id', $_SESSION, NULL) || $sesscook != $cookie) {
                         # We are not logged in as the correct user (or at all).  Try to switch to the persistent one.
                         #error_log("Logged in wrongly as " . var_export($sesscook, TRUE) . " when should be " . var_export($cookie, TRUE));
                         $_SESSION['id'] = NULL;
@@ -231,7 +240,8 @@ class Session {
         $_SESSION['persistent'] = [
             'id' => $id,
             'series' => $series,
-            'token' => $thash
+            'token' => $thash,
+            'userid' => $userid
         ];
         
         return ($_SESSION['persistent']);
@@ -262,7 +272,8 @@ class Session {
             $_SESSION['persistent'] = [
                 'id' => $id,
                 'series' => $series,
-                'token' => $token
+                'token' => $token,
+                'userid' => $userid
             ];
 
             # Update the last access time, unless we have done so recently.
