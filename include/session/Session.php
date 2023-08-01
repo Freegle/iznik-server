@@ -98,12 +98,9 @@ class Session {
                     if (Utils::pres('id', $_SESSION) && Utils::presdef('userid', $cookie, NULL) != $_SESSION['id']) {
                         # The cookie we have been passed doesn't match the one we are logged in as.  That's a bit
                         # worrying.  Log it, and don't switch.
-                        \Sentry\captureMessage("Persistent session cookie doesn't match logged in user", [
-                            'extra' => [
-                                'cookie' => $cookie,
-                                'session' => $_SESSION
-                            ]
-                        ]);
+                        $msg = "Persistent session cookie doesn't match logged in user; logged in as {$_SESSION['id']} passed " . json_encode($cookie);
+                        \Sentry\captureMessage($msg);
+                        error_log($msg);
                     } else if (!Utils::presdef('id', $_SESSION, NULL) || $sesscook != $cookie) {
                         # We are not logged in as the correct user (or at all).  Try to switch to the persistent one.
                         #error_log("Logged in wrongly as " . var_export($sesscook, TRUE) . " when should be " . var_export($cookie, TRUE));
