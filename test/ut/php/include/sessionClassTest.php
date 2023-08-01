@@ -108,7 +108,7 @@ class sessionClassTest extends IznikTestCase {
         global $sessionPrepared;
         $sessionPrepared = FALSE;
         Session::prepareSession($this->dbhm, $this->dbhm);
-        $this->assertEquals($id, $_SESSION['id']);
+        $this->assertEquals($id2, $_SESSION['id']);
     }
 
     public function testRequestHeader() {
