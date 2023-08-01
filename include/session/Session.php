@@ -55,6 +55,7 @@ class Session {
                 # Don't return PHP session cookie.  There is a risk of conflict between different servers, and our
                 # persistent/JWT code means we don't need it.
                 ini_set('session.use_cookies', '0');
+                @setcookie('PHPSESSID', '', -1, '/');
                 @session_start();
             }
 
