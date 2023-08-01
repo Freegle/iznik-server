@@ -529,7 +529,10 @@ class API
                 #
                 # Beanstalk has a limit on the size of job that it accepts; no point trying to log absurdly large
                 # API requests.
-                $req = json_encode($_REQUEST);
+                $r = $_REQUEST;
+                $headers = Session::getallheaders();
+                $r['headers'] = $headers;
+                $req = json_encode($r);
                 $rsp = $encoded_ret;
 
                 if (strlen($req) + strlen($rsp) > 180000) {
