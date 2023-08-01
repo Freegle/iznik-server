@@ -185,7 +185,7 @@ class LoveJunk {
                 'description' => $m->getTextbody(),
                 'source' => $source,
                 'userData' => [
-                    'id' => $m->getFromuser(),
+                    'userId' => $m->getFromuser(),
                     'firstName' => $firstName,
                     'lastName' => $lastName
                 ],

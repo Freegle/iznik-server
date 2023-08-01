@@ -34,7 +34,7 @@ $msgs = $dbhr->preQuery("SELECT DISTINCT messages.id, lovejunk.status FROM messa
 foreach ($msgs as $msg) {
     $lj = json_decode($msg['status'], TRUE);
 
-    if (array_key_exists('draftId', $lj)) {
+    if ($lj && array_key_exists('draftId', $lj)) {
         error_log("Edit " . $msg['id']);
         $l->edit($msg['id'], $lj['draftId']);
     }
