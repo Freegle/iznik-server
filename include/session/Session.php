@@ -52,6 +52,9 @@ class Session {
             # it.
             #error_log("prepare " . isset($_SESSION) . " id " . session_id());
             if (session_status() == PHP_SESSION_NONE) {
+                # Don't return PHP session cookie.  There is a risk of conflict between different servers, and our
+                # persistent/JWT code means we don't need it.
+                ini_set('session.use_cookies', '0');
                 @session_start();
             }
 
