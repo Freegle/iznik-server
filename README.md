@@ -18,9 +18,11 @@ We welcome potential developers with open arms.  Have  a look at the wiki sectio
 
 There's a basic Dockerfile, aimed for use in larger Docker Compose environments.  You can build:
 
-`docker build -t iznik-go ./`
+`docker build -t iznik-server ./`
 
 ...then
+
+`docker build -t iznik-server ./`
 
 License
 =======
