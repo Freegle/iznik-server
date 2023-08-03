@@ -82,8 +82,9 @@ RUN cat install/crontab | crontab -u root -
 # Tidy image
 RUN rm -rf /var/lib/apt/lists/*
 
-# Set up the environment we need. Putting this here means it gets reset each time we start the container.
-CMD cp install/nginx.conf /etc/nginx/sites-available/default \
+CMD /etc/init.d/ssh start \
+  # Set up the environment we need. Putting this here means it gets reset each time we start the container.
+  cp install/nginx.conf /etc/nginx/sites-available/default \
   && /etc/init.d/nginx start \
 	&& /etc/init.d/cron start \
 	&& /etc/init.d/php8.1-fpm start \
