@@ -54,7 +54,7 @@ RUN cp install/iznik.conf.php /etc/iznik.conf \
     && sed -ie "s@'LOVE_JUNK_API', '.*'@'LOVE_JUNK_API', '$LOVE_JUNK_API'@" /etc/iznik.conf \
     && sed -ie "s/'LOVE_JUNK_SECRET', '.*'/'LOVE_JUNK_SECRET', '$LOVE_JUNK_SECRET'/" /etc/iznik.conf \
     && sed -ie "s/'PHEANSTALK_SERVER', '.*'/'PHEANSTALK_SERVER', '$PHEANSTALK_SERVER'/" /etc/iznik.conf \
-    && sed -ie "s/'IMAGE_DOMAIN', '.*'/'apiv1', '$IMAGE_DOMAIN'/" /etc/iznik.conf \
+    && sed -ie "s/'IMAGE_DOMAIN', '.*'/'IMAGE_DOMAIN', '$IMAGE_DOMAIN'/" /etc/iznik.conf \
     && sed -ie "s/case 'iznik.ilovefreegle.org'/default/" /etc/iznik.conf \
     && echo "[mysql]" > ~/.my.cnf \
     && echo "host=$SQLHOST" >> ~/.my.cnf \
