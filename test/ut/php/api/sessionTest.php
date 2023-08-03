@@ -146,6 +146,11 @@ class sessionTest extends IznikAPITestCase
 
     public function testNative()
     {
+        # Create a user so that the confirm will trigger a merge.
+        $u = User::get($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $this->assertNotNull($u->addEmail('test2@test.com'));
+
         $u = User::get($this->dbhm, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
         $this->assertNotNull($u->addEmail('test@test.com'));
@@ -241,8 +246,9 @@ class sessionTest extends IznikAPITestCase
                 'key' => $email['validatekey']
             ]);
             $this->assertEquals(0, $ret['ret']);
-            $this->assertEquals($email['userid'], $_SESSION['id']);
-            $this->assertEquals($email['userid'], $ret['persistent']['userid']);
+            error_log("SEssion no4 {$_SESSION['id']}" . var_export($ret, TRUE));
+            $this->assertEquals($id, $_SESSION['id']);
+            $this->assertEquals($id, $ret['persistent']['userid']);
         }
 
         $ret = $this->call('session', 'GET', []);

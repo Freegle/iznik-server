@@ -668,6 +668,7 @@ function session() {
                             # We need to return new session info for the merged user.  The client will pick
                             # this up and use it for future requests to the v2 API.  If we didn't do
                             # this they'd have a JWT/persistent for the old user/session which no longer exists.
+                            $_SESSION['id'] = $confirmid;
                             $_SESSION['persistent'] = [
                                 'id' => $session['id'],
                                 'series' => $session['series'],

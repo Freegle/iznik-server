@@ -814,7 +814,7 @@ class userTest extends IznikTestCase {
         $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email = 'bit-bucket@test.smtp.org';");
         $this->assertEquals(1, count($emails));
         foreach ($emails as $email) {
-            $this->assertTrue($u1->confirmEmail($email['validatekey']));
+            $this->assertNotFalse($u1->confirmEmail($email['validatekey']));
         }
 
         # Test add when it's in use for another user
@@ -829,7 +829,7 @@ class userTest extends IznikTestCase {
         $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email = 'bit-bucket@test.smtp.org';");
         $this->assertEquals(1, count($emails));
         foreach ($emails as $email) {
-            $this->assertTrue($u2->confirmEmail($email['validatekey']));
+            $this->assertNotFalse($u2->confirmEmail($email['validatekey']));
         }
 
         # Test add when it's already one of ours.

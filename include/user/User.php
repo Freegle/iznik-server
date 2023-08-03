@@ -3831,17 +3831,16 @@ class User extends Entity
         $mails = $this->dbhr->preQuery($sql, [$key]);
 
         foreach ($mails as $mail) {
-            $rc = $this->id;
-
             if ($mail['userid'] && $mail['userid'] != $me->getId()) {
                 # This email belongs to another user.  But we've confirmed that it is ours.  So merge.
                 $this->merge($this->id, $mail['userid'], "Verified ownership of email {$mail['email']}");
-                $rc = $mail['userid'];
             }
 
             $this->dbhm->preExec("UPDATE users_emails SET preferred = 0 WHERE userid = ?;", [$this->id]);
             $this->dbhm->preExec("UPDATE users_emails SET userid = ?, preferred = 1, validated = NOW(), validatekey = NULL WHERE id = ?;", [$this->id, $mail['id']]);
             $this->addEmail($mail['email'], 1);
+
+            $rc = $this->id;
         }
 
         return ($rc);
