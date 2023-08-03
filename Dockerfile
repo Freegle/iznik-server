@@ -36,6 +36,14 @@ RUN mkdir -p /var/www \
   && mkdir /var/www/iznik/spool \
   && chown www-data:www-data /var/www/iznik/spool
 
+# SSHD
+RUN apt-get -y install openssh-server \
+	&& mkdir /var/run/sshd \
+	&& echo 'root:password' | chpasswd \
+	&& sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config \
+	&& sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd \
+	&& echo "export VISIBLE=now" >> /etc/profile
+
 WORKDIR /var/www/iznik
 
 # /etc/iznik.conf is where our config goes.

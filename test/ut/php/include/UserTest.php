@@ -807,6 +807,7 @@ class userTest extends IznikTestCase {
         $u1 = User::get($this->dbhr, $this->dbhm);
         $id1 = $u1->create('Test', 'User', NULL);
         $u1 = User::get($this->dbhr, $this->dbhm, $id1);
+        $_SESSION['id'] = $id1;
         $this->assertFalse($u1->verifyEmail('bit-bucket@test.smtp.org'));
 
         # Confirm it
