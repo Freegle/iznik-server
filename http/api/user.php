@@ -356,12 +356,6 @@ function user() {
                                             $u = new User($dbhr, $dbhm, $uid2);
                                             $u->addEmail($email2, 1, TRUE);
                                             $ret = [ 'ret' => 0, 'status' => 'Success' ];
-
-                                            # We need to return a new JWT for the merged user.  The client will pick
-                                            # this up and use it for future requests to the v2 API.  If we didn't do
-                                            # this they'd have a JWT for the old user which no longer exists.
-                                            $ret['jwt'] = Session::JWT($dbhr, $dbhm);
-                                            $ret['persistent'] = Utils::presdef('persistent', $_SESSION, NULL);
                                         } else {
                                             $ret = [ 'ret' => 6, 'status' => 'Merged failed'];
                                         }

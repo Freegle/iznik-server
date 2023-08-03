@@ -3825,20 +3825,23 @@ class User extends Entity
     public function confirmEmail($key)
     {
         $rc = FALSE;
-        $sql = "SELECT * FROM users_emails WHERE validatekey = ?;";
-        $mails = $this->dbhr->preQuery($sql, [$key]);
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
+        $sql = "SELECT * FROM users_emails WHERE validatekey = ? AND (user1 = ? OR user2 = ?);";
+        $mails = $this->dbhr->preQuery($sql, [$key, $me->getId(), $me->getId()]);
+
         foreach ($mails as $mail) {
+            $rc = $this->id;
+
             if ($mail['userid'] && $mail['userid'] != $me->getId()) {
                 # This email belongs to another user.  But we've confirmed that it is ours.  So merge.
                 $this->merge($this->id, $mail['userid'], "Verified ownership of email {$mail['email']}");
+                $rc = $mail['userid'];
             }
 
             $this->dbhm->preExec("UPDATE users_emails SET preferred = 0 WHERE id = ?;", [$this->id]);
             $this->dbhm->preExec("UPDATE users_emails SET userid = ?, preferred = 1, validated = NOW(), validatekey = NULL WHERE id = ?;", [$this->id, $mail['id']]);
             $this->addEmail($mail['email'], 1);
-            $rc = TRUE;
         }
 
         return ($rc);

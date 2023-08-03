@@ -79,6 +79,25 @@ function merge() {
                             $u = new User($dbhr, $dbhm);
                             $rc = $u->merge($user1, $user2, 'User requested');
 
+                            $sessions = $dbhr->preQuery("SELECT * FROM sessions WHERE userid = ?;", [
+                                $user1
+                            ]);
+
+                            foreach ($sessions as $session) {
+                                # We need to return new session info for the merged user.  The client will pick
+                                # this up and use it for future requests to the v2 API.  If we didn't do
+                                # this they'd have a JWT/persistent for the old user/session which no longer exists.
+                                $_SESSION['persistent'] = [
+                                    'id' => $session['id'],
+                                    'series' => $session['series'],
+                                    'token' => $session['token'],
+                                    'userid' => $user1
+                                ];
+
+                                $ret['jwt'] = Session::JWT($dbhr, $dbhm);
+                                $ret['persistent'] = Utils::presdef('persistent', $_SESSION, NULL);
+                            }
+
                             $ret = $rc ? [ 'ret' => 0, 'status' => 'Success'] :
                                 [ 'ret' => 3, 'status' => 'Merge failed'];
                         } else if ($action == 'Reject') {

@@ -241,6 +241,8 @@ class sessionTest extends IznikAPITestCase
                 'key' => $email['validatekey']
             ]);
             $this->assertEquals(0, $ret['ret']);
+            $this->assertEquals($email['userid'], $_SESSION['id']);
+            $this->assertEquals($email['userid'], $ret['persistent']['userid']);
         }
 
         $ret = $this->call('session', 'GET', []);

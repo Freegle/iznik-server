@@ -654,8 +654,30 @@ function session() {
                 }
 
                 if ($key) {
-                    if (!$me->confirmEmail($key)) {
+                    $confirmid = $me->confirmEmail($key);
+
+                    if (!$confirmid) {
                         $ret = ['ret' => 11, 'status' => 'Confirmation failed'];
+                    } else {
+                        # That might have merged.
+                        $sessions = $dbhr->preQuery("SELECT * FROM sessions WHERE userid = ?;", [
+                            $confirmid
+                        ]);
+
+                        foreach ($sessions as $session) {
+                            # We need to return new session info for the merged user.  The client will pick
+                            # this up and use it for future requests to the v2 API.  If we didn't do
+                            # this they'd have a JWT/persistent for the old user/session which no longer exists.
+                            $_SESSION['persistent'] = [
+                                'id' => $session['id'],
+                                'series' => $session['series'],
+                                'token' => $session['token'],
+                                'userid' => $confirmid
+                            ];
+
+                            $ret['jwt'] = Session::JWT($dbhr, $dbhm);
+                            $ret['persistent'] = Utils::presdef('persistent', $_SESSION, NULL);
+                        }
                     }
                 }
 
