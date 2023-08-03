@@ -124,7 +124,7 @@ class Google
                     # one would fail.  Bigger fish to fry.
                     #
                     # We don't have the firstname/lastname split, only a single name.  Way two go.
-                    $id = $u->create($firstname, $lastname, $fullname, "Google login from $gid");
+                    $id = $u->create($firstname, $lastname, $fullname, "Google login from $googleuid, $eid, $gid");
 
                     if ($id)
                     {
@@ -264,7 +264,7 @@ class Google
                         # one would fail.  Bigger fish to fry.
                         #
                         # We don't have the firstname/lastname split, only a single name.  Way two go.
-                        $id = $u->create($firstname, $lastname, $fullname, "Google login from $gid");
+                        $id = $u->create($firstname, $lastname, $fullname, "Google JWT login from $googleuid, $eid, $gid");
 
                         if ($id)
                         {
