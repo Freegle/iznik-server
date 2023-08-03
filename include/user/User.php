@@ -3827,8 +3827,8 @@ class User extends Entity
         $rc = FALSE;
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
-        $sql = "SELECT * FROM users_emails WHERE validatekey = ? AND (user1 = ? OR user2 = ?);";
-        $mails = $this->dbhr->preQuery($sql, [$key, $me->getId(), $me->getId()]);
+        $sql = "SELECT * FROM users_emails WHERE validatekey = ?;";
+        $mails = $this->dbhr->preQuery($sql, [$key]);
 
         foreach ($mails as $mail) {
             $rc = $this->id;
@@ -3839,7 +3839,7 @@ class User extends Entity
                 $rc = $mail['userid'];
             }
 
-            $this->dbhm->preExec("UPDATE users_emails SET preferred = 0 WHERE id = ?;", [$this->id]);
+            $this->dbhm->preExec("UPDATE users_emails SET preferred = 0 WHERE userid = ?;", [$this->id]);
             $this->dbhm->preExec("UPDATE users_emails SET userid = ?, preferred = 1, validated = NOW(), validatekey = NULL WHERE id = ?;", [$this->id, $mail['id']]);
             $this->addEmail($mail['email'], 1);
         }
