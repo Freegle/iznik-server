@@ -95,7 +95,7 @@ class Session {
                     $sesscook = Utils::presdef('persistent', $_SESSION, NULL);
                     #error_log("Check vs " . var_export($sesscook, TRUE));
 
-                    if (Utils::pres('id', $_SESSION) && Utils::presdef('userid', $cookie, NULL) != $_SESSION['id']) {
+                    if (Utils::pres('id', $_SESSION) && Utils::pres('userid', $cookie) && Utils::pres('userid', $cookie) != $_SESSION['id']) {
                         # The cookie we have been passed doesn't match the one we are logged in as.  That's a bit
                         # worrying.  Log it, and don't switch.
                         $msg = "Persistent session cookie doesn't match logged in user; logged in as {$_SESSION['id']} passed " . json_encode($cookie);
