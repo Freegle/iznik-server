@@ -25,7 +25,7 @@ foreach ($msgs as $msg) {
             if ($outcome['outcome'] == Message::OUTCOME_EXPIRED) {
                 error_log("#{$msg['msgid']} " . $m->getPrivate('arrival') . " " . $m->getSubject() . " expired");
                 $m->deleteFromSpatialIndex();
-                $m->mark(Message::OUTCOME_WITHDRAWN, "Expired", NULL, NULL);
+                $m->mark(Message::OUTCOME_WITHDRAWN, "Auto-expired", NULL, NULL);
             }
         }
     }
