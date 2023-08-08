@@ -59,14 +59,15 @@ class Twitter {
 
     public function tweet($status, $media) {
         $this->tw->setTimeouts(120, 120);
-        $content = $this->tw->get("account/verify_credentials");
+        #$content = $this->tw->get("account/verify_credentials");
+        $content = TRUE;
         $ret = NULL;
         $rc = FALSE;
         $valid = TRUE;
         $locked = FALSE;
 
         if ($content) {
-            if ($media) {
+            if ($media && FALSE) {
                 # The API uploads from file, unfortunately.
                 $fname = tempnam('/tmp', 'twitter_');
                 file_put_contents($fname, $media);
@@ -77,17 +78,19 @@ class Twitter {
 
                     if (!Utils::pres('errors', $ret) && Utils::pres('media_id_string', $ret)) {
                         $ret = $this->tw->post('statuses/update', [
-                            'status' => $status,
+                            'text' => $status,
                             'media_ids' => implode(',', [$ret['media_id_string']])
-                        ]);
+                        ],  true);
                     }
-                } catch (\Exception $e) {}
+                } catch (\Exception $e) {
+                    error_log("Tweet failed " . $e->getMessage());
+                }
 
                 unlink($fname);
             } else {
-                $ret = $this->tw->post('statuses/update', [
-                    'status' => $status
-                ]);
+                $ret = $this->tw->post('tweets', [
+                    'text' => $status
+                ], true);
             }
 
             $ret = json_decode(json_encode($ret), TRUE);
@@ -117,6 +120,8 @@ class Twitter {
                     $this->valid = TRUE;
                 }
             }
+        } else {
+            error_log("Failed to get credentials");
         }
 
         if (!$valid) {
@@ -245,6 +250,10 @@ class Twitter {
         # We want to tweet any messages since the last one, with a max of 24 hours ago to avoid flooding things.
         $mysqltime = date ("Y-m-d H:i:s.u", strtotime($this->msgarrival ? $this->msgarrival : "1 hour ago"));
         $msgq = $this->msgid ? " AND messages_groups.msgid > {$this->msgid} " : "";
+
+        $mysqltime = date ("Y-m-d H:i:s.u", strtotime("24 hours ago"));
+        $msgq = '';
+
         $sql = "SELECT messages_groups.msgid, messages_groups.arrival FROM messages_groups 
     INNER JOIN `groups` ON groups.id = messages_groups.groupid 
     INNER JOIN messages ON messages_groups.msgid = messages.id 
@@ -260,6 +269,7 @@ class Twitter {
         #error_log("$sql, {$this->groupid}, $mysqltime");
 
         $msgs = $this->dbhr->preQuery($sql, [ $this->groupid, $mysqltime, $mysqltime, MessageCollection::APPROVED, Message::TYPE_OFFER, Message::TYPE_WANTED ]);
+        error_log("Found " . count($msgs));
         $msgid = NULL;
         $msgarrival = NULL;
         $worked = 0;
