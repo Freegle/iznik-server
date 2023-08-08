@@ -77,7 +77,7 @@ class Twitter {
                     $ret = json_decode(json_encode($ret), TRUE);
 
                     if (!Utils::pres('errors', $ret) && Utils::pres('media_id_string', $ret)) {
-                        $ret = $this->tw->post('statuses/update', [
+                        $ret = $this->tw->post('tweets', [
                             'text' => $status,
                             'media_ids' => implode(',', [$ret['media_id_string']])
                         ],  true);
@@ -97,7 +97,7 @@ class Twitter {
 
             if (Utils::pres('errors', $ret)) {
                 # Something failed.
-                #error_log("Tweet failed " . var_export($ret, TRUE));
+                error_log("Tweet failed " . var_export($ret, TRUE));
                 $this->dbhm->preExec("UPDATE groups_twitter SET lasterror = ?, lasterrortime = NOW() WHERE groupid = ?;", [ var_export($ret['errors'], TRUE), $this->groupid ]);
 
                 if ($ret['errors'][0]['code'] == 220 || $ret['errors'][0]['code'] == 89) {
@@ -111,6 +111,7 @@ class Twitter {
                     $locked = TRUE;
                 }
             } else {
+                error_log("Tweet returned " . json_encode($ret));
                 $rc = TRUE;
 
                 if ($this->locked || !$this->valid) {
