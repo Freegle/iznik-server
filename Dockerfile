@@ -14,8 +14,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
 	  PGSQLPASSWORD=iznik \
 	  PGSQLDB=iznik \
 	  PGSQLPORT=5432 \
-	  LOVE_JUNK_API="https://staging-elmer.api-lovejunk.com/elmer/v1/freegle-drafts" \
-	  LOVE_JUNK_SECRET=secret \
 	  PHEANSTALK_SERVER=beanstalkd \
 	  IMAGE_DOMAIN=apiv1.localhost
 
@@ -49,6 +47,8 @@ WORKDIR /var/www/iznik
 # /etc/iznik.conf is where our config goes.
 RUN cp install/iznik.conf.php /etc/iznik.conf \
     && echo secret > /etc/iznik_jwt_secret \
+    && export LOVE_JUNK_API=`cat /run/secrets/lovejunk-api` \
+    && export LOVE_JUNK_SECRET=`cat /run/secrets/lovejunk-secret` \
     && sed -ie "s/'SQLHOST', '.*'/'SQLHOST', '$SQLHOST:$SQLPORT'/" /etc/iznik.conf \
     && sed -ie "s/'SQLHOSTS_READ', '.*'/'SQLHOSTS_READ', '$SQLHOST:$SQLPORT'/" /etc/iznik.conf \
     && sed -ie "s/'SQLHOSTS_MOD', '.*'/'SQLHOSTS_MOD', '$SQLHOST:$SQLPORT'/" /etc/iznik.conf \
