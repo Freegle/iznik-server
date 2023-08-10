@@ -52,11 +52,25 @@ if (count($opts) < 2) {
         # Hide the old group.
         $dbhm->preExec("UPDATE `groups` SET publish = 0, listable = 0, onmap = 0 WHERE id = $srcid;");
 
+        error_log("Moved $moved, already member $alreadys");
+        $dbhm->preExec("DELETE FROM memberships WHERE groupid = ?;", [ $srcid ]);
+
+        $sql = "SELECT COUNT(*) AS count FROM memberships WHERE groupid = ?;";
+        $counts = $dbhr->preQuery($sql, [ $dstid ]);
+        foreach ($counts as $count) {
+            $sql = "UPDATE `groups` SET membercount = ? WHERE id = ?;";
+            $dbhr->preExec($sql, [
+                $count['count'],
+                $dstid
+            ]);
+        }
+
         # Regenerate the stats on the group.
+        error_log("Regenerate stats...");
         $i = 0;
         do {
             $date = date('Y-m-d', strtotime("$i days ago"));
-            error_log("Gen stats for $date");
+            error_log("...$date");
             $s = new Stats($dbhr, $dbhm, $dstid);
             $s->generate($date);
             $i++;
@@ -64,7 +78,4 @@ if (count($opts) < 2) {
     } else {
         error_log("Groups not found");
     }
-
-    error_log("Moved $moved, already member $alreadys");
-    $dbhm->preExec("DELETE FROM memberships WHERE groupid = ?;", [ $srcid ]);
 }
