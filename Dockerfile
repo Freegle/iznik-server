@@ -47,8 +47,8 @@ WORKDIR /var/www/iznik
 # /etc/iznik.conf is where our config goes.
 RUN cp install/iznik.conf.php /etc/iznik.conf \
     && echo secret > /etc/iznik_jwt_secret \
-    && export LOVE_JUNK_API=`cat /run/secrets/lovejunk-api` \
-    && export LOVE_JUNK_SECRET=`cat /run/secrets/lovejunk-secret` \
+    && export LOVE_JUNK_API=`cat /run/secrets/LOVE_JUNK_API` \
+    && export LOVE_JUNK_SECRET=`cat /run/secrets/LOVE_JUNK_SECRET` \
     && sed -ie "s/'SQLHOST', '.*'/'SQLHOST', '$SQLHOST:$SQLPORT'/" /etc/iznik.conf \
     && sed -ie "s/'SQLHOSTS_READ', '.*'/'SQLHOSTS_READ', '$SQLHOST:$SQLPORT'/" /etc/iznik.conf \
     && sed -ie "s/'SQLHOSTS_MOD', '.*'/'SQLHOSTS_MOD', '$SQLHOST:$SQLPORT'/" /etc/iznik.conf \
