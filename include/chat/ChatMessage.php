@@ -27,6 +27,7 @@ class ChatMessage extends Entity
     const ACTION_HOLD = 'Hold';
     const ACTION_RELEASE = 'Release';
     const ACTION_REDACT = 'Redact';
+    const ACTION_DELETE = 'Delete';
 
     const TOO_MANY_RECENT = 40;
 

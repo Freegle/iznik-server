@@ -819,6 +819,48 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['count']);
     }
 
+    public function testDelete() {
+        $this->assertTrue($this->user->login('testpw'));
+
+        $this->user->addEmail('test@test.com');
+        $this->user2->addEmail('test2@test.com');
+
+        # Create a chat to the second user with a referenced message from the second user.
+        $ret = $this->call('chatrooms', 'PUT', [
+            'userid' => $this->uid2
+        ]);
+
+        $this->assertEquals(0, $ret['ret']);
+        $rid = $ret['id'];
+        $this->assertNotNull($rid);
+
+        $r = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $rid))
+            ->setMethods(array('mailer'))
+            ->getMock();
+
+        $r->method('mailer')->willReturn(TRUE);
+
+        # Send a message.
+        $ret = $this->call('chatmessages', 'POST', [
+            'roomid' => $rid,
+            'message' => 'Test'
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertNotNull($ret['id']);
+        $cmid = $ret['id'];
+
+        # Delete it
+        $ret = $this->call("chatmessages", 'DELETE', [
+            'id' => $cmid
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('chatmessages', 'GET', [ 'roomid' => $rid ]);
+        $this->assertEquals(1, count($ret['chatmessages']));
+        $this->assertEquals('(Message deleted)', $ret['chatmessages'][0]['message']);
+    }
+
 //
 //    public function testEH2()
 //    {

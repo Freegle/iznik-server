@@ -211,6 +211,27 @@ function chatmessages() {
                 }
             }
             break;
+
+        case 'DELETE': {
+            {
+                $ret = ['ret' => 1, 'status' => 'Not logged in'];
+
+                if ($me) {
+                    $ret = ['ret' => 2, 'status' => "$roomid Not visible to you"];
+
+                    if ($id && $m->getPrivate('userid') == $me->getId()) {
+                        $m->setPrivate('type', ChatMessage::TYPE_DEFAULT);
+                        $m->setPrivate('message', '(Message deleted)');
+
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success'
+                        ];
+                    }
+                }
+            }
+            break;
+        }
     }
 
     return($ret);
