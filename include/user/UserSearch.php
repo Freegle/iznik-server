@@ -39,12 +39,13 @@ class UserSearch extends Entity
     }
     
     public function listSearches($userid) {
-        # Show the last few.
-        $searches = $this->dbhr->preQuery("SELECT *
+        # Show the last few.  Slightly hacky search to make sure we show the most recent searches.
+        $searches = $this->dbhr->preQuery("SELECT * FROM
+          (SELECT *
             FROM users_searches 
             WHERE 
             userid = ? AND deleted = 0
-            GROUP BY users_searches.term ORDER BY id desc LIMIT 10", [ $userid ]);
+             ORDER BY id desc LIMIT 100) t GROUP BY t.term ORDER BY t.id DESC limit 10;", [ $userid ]);
         $ret = [];
         foreach ($searches as $search) {
             $s = new UserSearch($this->dbhr, $this->dbhm, $search['id']);
