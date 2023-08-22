@@ -171,7 +171,9 @@ class API
                     # no session locking, and therefore two requests in quick succession could be allowed.  So instead
                     # we use Redis directly with a roll-your-own mutex.  We use the IP address as a key - if there are
                     # multiple sessions from the same IP then we might get false positives/negatives.
-                    $req = $_SERVER['REQUEST_URI'] . serialize($_REQUEST);
+                    $reqData = $_REQUEST;
+                    unset($reqData['requestid']);
+                    $req = $_SERVER['REQUEST_URI'] . serialize($reqData);
                     $ip = Utils::presdef('REMOTE_ADDR', $_SERVER, NULL);
                     $lockkey = "POST_LOCK_$ip";
                     $datakey = "POST_DATA_$ip";

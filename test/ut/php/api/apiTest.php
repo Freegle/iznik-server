@@ -22,16 +22,16 @@ class apiTest extends IznikAPITestCase {
     public function testDuplicatePOST() {
         # We prevent duplicate posts within a short time.
         $this->log("POST - should work");
-        $ret = $this->call('test', 'POST', []);
+        $ret = $this->call('test?requestid=1', 'POST', []);
         $this->assertEquals(1000, $ret['ret']);
 
         $this->log("POST - should fail");
-        $ret = $this->call('test', 'POST', []);
+        $ret = $this->call('test?requestid=2', 'POST', []);
         $this->assertEquals(999, $ret['ret']);
 
         sleep(DUPLICATE_POST_PROTECTION + 1);
         $this->log("POST - should work");
-        $ret = $this->call('test', 'POST', []);
+        $ret = $this->call('test?requestid=3', 'POST', []);
         $this->assertEquals(1000, $ret['ret']);
 
         }
