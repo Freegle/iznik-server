@@ -173,7 +173,9 @@ class API
                     # multiple sessions from the same IP then we might get false positives/negatives.
                     $reqData = $_REQUEST;
                     unset($reqData['requestid']);
-                    $req = $_SERVER['REQUEST_URI'] . serialize($reqData);
+                    $reqData['call'] = preg_replace('/(\?|&)requestid=[0-9]+?/', '', $reqData['call']);
+                    $url = preg_replace('/(\?|&)requestid=[0-9]+?/', '', $_SERVER['REQUEST_URI']);
+                    $req = $url . serialize($reqData);
                     $ip = Utils::presdef('REMOTE_ADDR', $_SERVER, NULL);
                     $lockkey = "POST_LOCK_$ip";
                     $datakey = "POST_DATA_$ip";

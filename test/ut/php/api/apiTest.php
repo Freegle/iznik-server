@@ -33,8 +33,8 @@ class apiTest extends IznikAPITestCase {
         $this->log("POST - should work");
         $ret = $this->call('test?requestid=3', 'POST', []);
         $this->assertEquals(1000, $ret['ret']);
-
-        }
+        $this->log("POST - should work");
+    }
 
     public function testException() {
         $ret = $this->call('exception', 'POST', []);
