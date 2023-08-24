@@ -613,7 +613,7 @@ HAVING logincount > 0
               AND messages_outcomes.comments != 'Thanks, these have now been taken.'
               AND messages_outcomes.comments != 'Thanks, this has now been received.'
               AND messages_outcomes.comments != 'Withdrawn on user unsubscribe'
-              AND messages_outcomes.comments != 'Expired'";
+              AND messages_outcomes.comments != 'Auto-Expired'";
     }
 
     public function getPublic($summary = FALSE) {
