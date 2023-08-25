@@ -56,7 +56,9 @@ class WorryWords {
 
                 $ret[] = [
                     'word' => $scan,
-                    'worryword' => '£',
+                    'worryword' => [
+                        'keyword' => '£'
+                    ],
                 ];
             }
 
