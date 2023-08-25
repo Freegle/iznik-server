@@ -1020,7 +1020,7 @@ class MailRouter
                                 $ret = MailRouter::DROPPED;
                             } else if (!$notspam && $appmemb && $worry)
                             {
-                                if ($log) { error_log("Worrying => spam"); }
+                                if ($log) { error_log("Worrying => pending"); }
                                 if ($this->markPending($notspam))
                                 {
                                     $ret = MailRouter::PENDING;

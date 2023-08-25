@@ -37,6 +37,29 @@ class WorryWords {
         $foundword = [];
 
         foreach ([ $subject, $textbody ] as $scan) {
+            if (strpos($scan, '£') !== FALSE) {
+                if ($log) {
+                    $this->log->log(
+                        [
+                            'type' => Log::TYPE_MESSAGE,
+                            'subtype' => Log::SUBTYPE_WORRYWORDS,
+                            'user' => $fromuser,
+                            'msgid' => $id,
+                            'text' => "Found '£'"
+                        ]
+                    );
+                }
+
+                if (is_null($ret)) {
+                    $ret = [];
+                }
+
+                $ret[] = [
+                    'word' => $scan,
+                    'worryword' => '£',
+                ];
+            }
+
             foreach ($this->words as $worryword) {
                 if ($worryword['type'] ==  WorryWords::TYPE_ALLOWED) {
                     $worryreg = '/\b' . preg_quote($worryword['keyword']) . '\b/i';

@@ -826,14 +826,14 @@ class MailRouterTest extends IznikTestCase {
         }
 
     public function testPound() {
-        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_MODERATED);
+        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_UNMODERATED);
         User::clearCache();
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/poundsign'));
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $this->assertNotNull($id);
         $rc = $r->route();
         $this->assertEquals(MailRouter::PENDING, $rc);

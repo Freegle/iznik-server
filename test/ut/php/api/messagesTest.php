@@ -827,7 +827,7 @@ class messagesTest extends IznikAPITestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
         list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
+        $this->assertEquals(MailRouter::PENDING, $rc);
     }
 
 //    public function testEH() {

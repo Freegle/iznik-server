@@ -420,10 +420,6 @@ class Spam {
         $message = str_replace('&#206;', 'I', $message);
         $message = str_replace('=C2', '£', $message);
 
-        if (strpos($message, '£') !== FALSE) {
-            $ret = array(true, Spam::REASON_KNOWN_KEYWORD, "Refers to money");
-        }
-
         # Check keywords which are known as spam.
         $this->getSpamWords();
         foreach ($this->spamwords as $word) {
