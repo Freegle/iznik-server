@@ -818,6 +818,18 @@ class messagesTest extends IznikAPITestCase {
         $this->assertEquals(0, $ret['ret']);
     }
 
+    public function testPound()
+    {
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Subject: Basic test', 'Subject: OFFER: sofa £20 (Place)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
+    }
+
 //    public function testEH() {
 //        $u = new User($this->dbhr, $this->dbhm);
 //        $this->dbhr->errorLog = TRUE;

@@ -263,6 +263,11 @@ class Spam {
             return ($r);
         }
 
+        $r = $this->checkSpam($subj, [ Spam::ACTION_REVIEW, Spam::ACTION_SPAM ]);
+        if ($r) {
+            return ($r);
+        }
+
         # It's fine.  So far as we know.
         return(NULL);
     }
@@ -413,6 +418,11 @@ class Spam {
         $message = str_replace('&#616;', 'i', $message);
         $message = str_replace('&#537;', 's', $message);
         $message = str_replace('&#206;', 'I', $message);
+        $message = str_replace('=C2', '£', $message);
+
+        if (strpos($message, '£') !== FALSE) {
+            $ret = array(true, Spam::REASON_KNOWN_KEYWORD, "Refers to money");
+        }
 
         # Check keywords which are known as spam.
         $this->getSpamWords();
