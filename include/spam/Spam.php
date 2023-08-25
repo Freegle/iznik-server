@@ -380,7 +380,7 @@ class Spam {
             # We check that English is the most likely, or fairly likely compared to the one chosen.
             #
             # This is a fairly lax test but spots text which is very probably in another language.
-            $message = strtolower(trim($message));
+            $message = str_ireplace('xxx', '', strtolower(trim($message)));
 
             if (strlen($message) > 50) {
                 $ld = new Language;
