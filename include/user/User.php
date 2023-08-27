@@ -1119,7 +1119,9 @@ class User extends Entity
 
             foreach ($msgs as $msg) {
                 $m = new Message($this->dbhr, $this->dbhm, $msg['msgid']);
-                $m->mark(Message::OUTCOME_WITHDRAWN, "Marked as withdrawn by ban", NULL, NULL);
+                if (!$m->hasOutcome()) {
+                    $m->mark(Message::OUTCOME_WITHDRAWN, "Marked as withdrawn by ban", NULL, NULL);
+                }
             }
         }
 
