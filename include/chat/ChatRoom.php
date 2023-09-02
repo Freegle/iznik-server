@@ -1498,7 +1498,9 @@ WHERE chat_rooms.id IN $idlist;";
     public function getMessagesForReview(User $user, $groupid, &$ctx)
     {
         # We want the messages for review for any group where we are a mod and the recipient of the chat message is
-        # a member.  The order here matches that in ChatMessage::getReviewCountByGroup.
+        # a member, or where the recipient is on no groups and the sender is on one of ours.
+        #
+        # The order here matches that in ChatMessage::getReviewCountByGroup.
         $userid = $user->getId();
         $msgid = $ctx ? intval($ctx['msgid']) : 0;
         if ($groupid) {
@@ -1515,7 +1517,7 @@ WHERE chat_rooms.id IN $idlist;";
         }
         $groupq = implode(',', $groupids);
 
-        $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages.reportreason, chat_messages_byemail.msgid, m1.settings AS m1settings, m1.groupid, m2.groupid AS groupidfrom, chat_messages_held.userid AS heldby, chat_messages_held.timestamp, chat_rooms.user1, chat_rooms.user2
+        $sql = "SELECT DISTINCT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages.reportreason, chat_messages_byemail.msgid, m1.settings AS m1settings, m1.groupid, m2.groupid AS groupidfrom, chat_messages_held.userid AS heldby, chat_messages_held.timestamp, chat_rooms.user1, chat_rooms.user2, m1.added
 FROM chat_messages
 LEFT JOIN chat_messages_held ON chat_messages.id = chat_messages_held.msgid
 LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messages.id
@@ -1524,8 +1526,17 @@ INNER JOIN memberships m1 ON m1.userid = (CASE WHEN chat_messages.userid = chat_
 LEFT JOIN memberships m2 ON m2.userid = chat_messages.userid AND m2.groupid IN ($groupq)
 INNER JOIN `groups` ON m1.groupid = groups.id AND groups.type = ?
 WHERE chat_messages.id > ?
-ORDER BY chat_messages.id, m1.added, groupid ASC;";
-        $msgs = $this->dbhr->preQuery($sql, [Group::GROUP_FREEGLE, $msgid]);
+UNION
+SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages.reportreason, chat_messages_byemail.msgid, m1.settings AS m1settings, m1.groupid, m2.groupid AS groupidfrom, chat_messages_held.userid AS heldby, chat_messages_held.timestamp, chat_rooms.user1, chat_rooms.user2, m1.added
+FROM chat_messages
+LEFT JOIN chat_messages_held ON chat_messages.id = chat_messages_held.msgid
+LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messages.id
+INNER JOIN chat_rooms ON reviewrequired = 1 AND reviewrejected = 0 AND chat_rooms.id = chat_messages.chatid
+LEFT JOIN memberships m1 ON m1.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END)
+INNER JOIN memberships m2 ON m2.userid = chat_messages.userid AND m2.groupid IN ($groupq)
+WHERE chat_messages.id > ? AND m1.id IS NULL
+ORDER BY id, added, groupid ASC;";
+        $msgs = $this->dbhr->preQuery($sql, [Group::GROUP_FREEGLE, $msgid, $msgid]);
         $ret = [];
 
         $ctx = $ctx ? $ctx : [];

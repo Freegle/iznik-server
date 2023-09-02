@@ -655,9 +655,16 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
                 $sql = "SELECT chat_messages.id, memberships.groupid FROM chat_messages 
     LEFT JOIN chat_messages_held ON chat_messages_held.msgid = chat_messages.id 
     INNER JOIN chat_rooms ON reviewrequired = 1 AND reviewrejected = 0 AND chat_rooms.id = chat_messages.chatid 
-    INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN ($showq) $holdq 
-    INNER JOIN `groups` ON memberships.groupid = groups.id AND groups.type = 'Freegle' WHERE chat_messages.date > '$mysqltime' $minageq ORDER BY groupid;";
-                #error_log("Show SQL $sql");
+    INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) AND memberships.groupid IN ($showq) 
+    INNER JOIN `groups` ON memberships.groupid = groups.id AND groups.type = 'Freegle' WHERE chat_messages.date > '$mysqltime' $minageq $holdq
+    UNION
+    SELECT chat_messages.id, m2.groupid FROM chat_messages 
+    LEFT JOIN chat_messages_held ON chat_messages_held.msgid = chat_messages.id 
+    INNER JOIN chat_rooms ON reviewrequired = 1 AND reviewrejected = 0 AND chat_rooms.id = chat_messages.chatid 
+    LEFT JOIN memberships m1 ON m1.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END)                                      
+    INNER JOIN memberships m2 ON m2.userid = chat_messages.userid AND m2.groupid IN ($showq)
+    WHERE chat_messages.date > '$mysqltime' AND m1.id IS NULL $minageq $holdq    
+    ORDER BY groupid;";
                 $counts = $this->dbhr->preQuery($sql);
 
                 # The same message might appear in the query results multiple times if the recipient is on multiple
