@@ -472,22 +472,22 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $this->user2->removeMembership($this->groupid);
 
-        # We're a mod, but not on any of the groups that these users are on (because they're not on any).  So we
-        # shouldn't see this chat message to review.
+        # user2 is not on any groups, so the messages should show up for review as we are a mod on the sender's group.
         $ret = $this->call('session', 'GET', []);
         $this->assertEquals(0, $ret['ret']);
-        $this->assertEquals(0, $ret['work']['chatreview']);
+        $this->assertEquals(3, $ret['work']['chatreview']);
 
-        $this->user->addMembership($this->groupid, User::ROLE_MODERATOR);
+        $this->user3->removeMembership($this->groupid);
 
-        # Shouldn't see this as the recipient is still not on a group we mod.
+        # Shouldn't see this as the sender is not on a group we mod.
         $ret = $this->call('session', 'GET', []);
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals(0, $ret['work']['chatreview']);
 
         $this->user2->addMembership($this->groupid, User::ROLE_MODERATOR);
+        $this->user3->addMembership($this->groupid, User::ROLE_MODERATOR);
 
-        # Should see this now.
+        # Should see this now - normal review case of being a mod on the recipient's group.
         $this->log("Check can see for mod on {$this->groupid}");
         $ret = $this->call('session', 'GET', []);
         $this->assertEquals(0, $ret['ret']);
