@@ -263,7 +263,7 @@ try {
 
     # Delete emails where people have not validated their email address within 7 days.
     $start = date('Y-m-d', strtotime("midnight 7 days ago"));
-    $dbhm->preExec("DELETE FROM users_emails WHERE userid IS NULL AND added < ?", $start);
+    $dbhm->preExec("DELETE FROM users_emails WHERE userid IS NULL AND added < ?", [ $start ]);
 } catch (\Exception $e) {
     \Sentry\captureException($e);
     error_log("Failed with " . $e->getMessage());
