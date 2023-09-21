@@ -35,7 +35,7 @@ class Search
         'of', 'to', 'in', 'it', 'is', 'be', 'as', 'at', 'so', 'we', 'he', 'by', 'or', 'on', 'do', 'if', 'me', 'my', 'up', 'an', 'go', 'no', 'us', 'am',
         'working', 'broken', 'black', 'white', 'grey', 'blue', 'green', 'red', 'yellow', 'brown', 'orange', 'pink', 'machine', 'size', 'set',
         'various', 'assorted', 'different', 'bits', 'ladies', 'gents', 'kids', 'nice', 'brand', 'pack', 'soft', 'single', 'double',
-        'top', 'plastic', 'electric'
+        'top', 'plastic', 'electric', 'unopened'
     );
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $table, $idatt, $sortatt, $wordtab, $filtatt, $sortlim = NULL, $cachetab = NULL)
