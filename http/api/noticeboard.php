@@ -29,10 +29,12 @@ function noticeboard() {
                     unset($ret['noticeboard']['position']);
                 }
             } else {
+                $authorityid = Utils::presint('authorityid', $_REQUEST, NULL);
+
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
-                    'noticeboards' => $n->listAll()
+                    'noticeboards' => $n->listAll($authorityid)
                 ];
             }
             break;
