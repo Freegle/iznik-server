@@ -3879,4 +3879,49 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(ChatMessage::TYPE_COMPLETED, $msgs[1]['type']);
         $this->assertEquals("Message for others", $msgs[1]['message']);
     }
+
+    public function testSubmitLoggedInDifferentEmail() {
+        $l = new Location($this->dbhr, $this->dbhm);
+        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)');
+
+        # Create member and mod.
+        $u = User::get($this->dbhr, $this->dbhm);
+        $memberid = $u->create('Test','User', 'Test User');
+        $member = User::get($this->dbhr, $this->dbhm, $memberid);
+        $this->assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $member->addMembership($this->gid, User::ROLE_MEMBER);
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $member->addEmail($email);
+
+        $modid = $u->create('Test','User', 'Test User');
+        $mod = User::get($this->dbhr, $this->dbhm, $modid);
+        $this->assertGreaterThan(0, $mod->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $mod->addMembership($this->gid, User::ROLE_MODERATOR);
+
+        $this->log("Created member $memberid and mod $modid");
+
+        $this->assertTrue($member->login('testpw'));
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'groupid' => $this->gid,
+            'textbody' => 'Text body'
+        ]);
+
+        $this->assertEquals(0, $ret['ret']);
+        $mid = $ret['id'];
+
+        // Submit from a different email than the one we're logged in as.
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'JoinAndPost',
+            'ignoregroupoverride' => true,
+            'email' => $email . "2"
+        ]);
+
+        $this->assertEquals(12, $ret['ret']);
+    }
 }
