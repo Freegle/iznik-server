@@ -913,6 +913,7 @@ HAVING logincount > 0
                 $thisone['emailfrequency'] = $member['emailfrequency'];
                 $thisone['eventsallowed'] = $member['eventsallowed'];
                 $thisone['volunteeringallowed'] = $member['volunteeringallowed'];
+                $thisone['autorepostsdisable'] = $u->getSetting('autorepostsdisable', FALSE);
 
                 # Our posting status only applies for groups we host.  In that case, the default is moderated.
                 $thisone['ourpostingstatus'] = Utils::presdef('ourPostingStatus', $member, Group::POSTING_MODERATED);
