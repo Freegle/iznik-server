@@ -480,7 +480,7 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
     public function approve($id) {
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
-        if ($me->isModerator()) {
+        if ($me && $me->isModerator()) {
             $myid = $me->getId();
 
             $sql = "SELECT DISTINCT chat_messages.*, chat_messages_held.userid AS heldbyuser FROM chat_messages 
@@ -523,7 +523,7 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
     public function reject($id) {
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
-        if ($me->isModerator()) {
+        if ($me && $me->isModerator()) {
             $myid = $me->getId();
 
             $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.message FROM chat_messages 
@@ -711,7 +711,7 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
     public function hold($id) {
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
-        if ($me->isModerator()) {
+        if ($me && $me->isModerator()) {
             $myid = $me->getId();
 
             $this->dbhm->preExec("REPLACE INTO chat_messages_held (msgid, userid) VALUES (?, ?);", [
@@ -724,7 +724,7 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
     public function release($id) {
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
-        if ($me->isModerator()) {
+        if ($me && $me->isModerator()) {
             $myid = $me->getId();
 
             $sql = "SELECT chat_messages.*, chat_messages_held.userid AS heldbyuser FROM chat_messages 
@@ -749,7 +749,7 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
     public function redact($id) {
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
-        if ($me->isModerator()) {
+        if ($me && $me->isModerator()) {
             $myid = $me->getId();
 
             $sql = "SELECT chat_messages.*, chat_messages_held.userid AS heldbyuser FROM chat_messages 
@@ -777,11 +777,7 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
     }
 
     public function delete() {
-        $me = Session::whoAmI($this->dbhr, $this->dbhm);
-
-        if ($me->isModerator()) {
-            $rc = $this->dbhm->preExec("DELETE FROM chat_messages WHERE id = ?;", [$this->id]);
-            return ($rc);
-        }
+        $rc = $this->dbhm->preExec("DELETE FROM chat_messages WHERE id = ?;", [$this->id]);
+        return ($rc);
     }
 }
