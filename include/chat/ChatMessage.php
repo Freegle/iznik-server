@@ -478,7 +478,7 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
     }
 
     public function approve($id) {
-        $me = Session::whoAm($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         if ($me->isModerator()) {
             $myid = $me->getId();
@@ -521,7 +521,7 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
     }
 
     public function reject($id) {
-        $me = Session::whoAm($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         if ($me->isModerator()) {
             $myid = $me->getId();
@@ -709,7 +709,7 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
     }
 
     public function hold($id) {
-        $me = Session::whoAm($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         if ($me->isModerator()) {
             $myid = $me->getId();
@@ -722,7 +722,7 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
     }
 
     public function release($id) {
-        $me = Session::whoAm($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         if ($me->isModerator()) {
             $myid = $me->getId();
@@ -747,7 +747,7 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
     }
 
     public function redact($id) {
-        $me = Session::whoAm($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         if ($me->isModerator()) {
             $myid = $me->getId();
@@ -777,7 +777,7 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
     }
 
     public function delete() {
-        $me = Session::whoAm($this->dbhr, $this->dbhm);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
         if ($me->isModerator()) {
             $rc = $this->dbhm->preExec("DELETE FROM chat_messages WHERE id = ?;", [$this->id]);
