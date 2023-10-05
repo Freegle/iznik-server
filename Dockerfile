@@ -89,8 +89,10 @@ CMD /etc/init.d/ssh start \
   && export LOVE_JUNK_API=`cat /run/secrets/LOVE_JUNK_API` \
   && export LOVE_JUNK_SECRET=`cat /run/secrets/LOVE_JUNK_SECRET` \
   && export PARTNER_KEY=`cat /run/secrets/PARTNER_KEY` \
+  && export IMAGE_DOMAIN=`cat /run/secrets/IMAGE_DOMAIN` \
   && sed -ie "s@'LOVE_JUNK_API', '.*'@'LOVE_JUNK_API', '$LOVE_JUNK_API'@" /etc/iznik.conf \
   && sed -ie "s/'LOVE_JUNK_SECRET', '.*'/'LOVE_JUNK_SECRET', '$LOVE_JUNK_SECRET'/" /etc/iznik.conf \
+  && sed -ie "s/'IMAGE_DOMAIN', '.*'/'IMAGE_DOMAIN', '$IMAGE_DOMAIN'/" /etc/iznik.conf \
 
 	# We need to make some minor schema tweaks otherwise the schema fails to install.
   && sed -ie 's/ROW_FORMAT=DYNAMIC//g' install/schema.sql \
