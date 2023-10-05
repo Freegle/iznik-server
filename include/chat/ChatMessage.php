@@ -393,7 +393,7 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
             $type,
             $refmsgid,
             $platform,
-            $forcereview,
+            $forcereview ? 1 : 0,
             $spamscore,
             $reportreason,
             $refchatid,
