@@ -86,10 +86,10 @@ CMD /etc/init.d/ssh start \
 	&& /etc/init.d/cron start \
 	&& /etc/init.d/php8.1-fpm start \
 
-  && export LOVE_JUNK_API=`cat /run/secrets/LOVE_JUNK_API` \
-  && export LOVE_JUNK_SECRET=`cat /run/secrets/LOVE_JUNK_SECRET` \
-  && export PARTNER_KEY=`cat /run/secrets/PARTNER_KEY` \
-  && export IMAGE_DOMAIN=`cat /run/secrets/IMAGE_DOMAIN` \
+  && export LOVE_JUNK_API=`cat /run/secrets/lovejunk-api` \
+  && export LOVE_JUNK_SECRET=`cat /run/secrets/lovejunk-secret` \
+  && export PARTNER_KEY=`cat /run/secrets/partner-key` \
+  && export IMAGE_DOMAIN=`cat /run/secrets/image-domain` \
   && sed -ie "s@'LOVE_JUNK_API', '.*'@'LOVE_JUNK_API', '$LOVE_JUNK_API'@" /etc/iznik.conf \
   && sed -ie "s/'LOVE_JUNK_SECRET', '.*'/'LOVE_JUNK_SECRET', '$LOVE_JUNK_SECRET'/" /etc/iznik.conf \
   && sed -ie "s/'IMAGE_DOMAIN', '.*'/'IMAGE_DOMAIN', '$IMAGE_DOMAIN'/" /etc/iznik.conf \
