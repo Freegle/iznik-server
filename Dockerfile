@@ -89,6 +89,7 @@ CMD /etc/init.d/ssh start \
   && export LOVE_JUNK_API=`cat /run/secrets/LOVE_JUNK_API` \
   && export LOVE_JUNK_SECRET=`cat /run/secrets/LOVE_JUNK_SECRET` \
   && export PARTNER_KEY=`cat /run/secrets/PARTNER_KEY` \
+  && export PARTNER_NAME=`cat /run/secrets/PARTNER_NAME` \
   && export IMAGE_DOMAIN=`cat /run/secrets/IMAGE_DOMAIN` \
   && sed -ie "s@'LOVE_JUNK_API', '.*'@'LOVE_JUNK_API', '$LOVE_JUNK_API'@" /etc/iznik.conf \
   && sed -ie "s@'LOVE_JUNK_SECRET', '.*'@'LOVE_JUNK_SECRET', '$LOVE_JUNK_SECRET'@" /etc/iznik.conf \
@@ -105,7 +106,7 @@ CMD /etc/init.d/ssh start \
   && mysql -u root iznik < install/functions.sql \
   && mysql -u root iznik < install/damlevlim.sql \
   && mysql -u root -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'" \
-  && mysql -u root -e "use iznik;REPLACE INTO partners_keys (partner, \`key\`) VALUES ('Partner', '$PARTNER_KEY');" \
+  && mysql -u root -e "use iznik;REPLACE INTO partners_keys (partner, \`key\`) VALUES ('$PARTNER_NAME', '$PARTNER_KEY');" \
   && mysql -u root -e "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));" \
   && git pull \
   && cd composer \
