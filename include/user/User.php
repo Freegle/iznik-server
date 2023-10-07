@@ -41,7 +41,7 @@ class User extends Entity
     const TRUST_ADVANCED = 'Advanced';
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'newslettersallowed', 'relevantallowed', 'bouncing', 'added', 'invitesleft', 'onholidaytill');
+    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'newslettersallowed', 'relevantallowed', 'bouncing', 'added', 'invitesleft', 'onholidaytill', 'tnuserid', 'ljuserid');
 
     # Roles on specific groups
     const ROLE_NONMEMBER = 'Non-member';
