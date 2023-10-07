@@ -2,4 +2,5 @@
 */1 * * * * cd /var/www/iznik/scripts/cron; php ./background.php >> /tmp/iznik.background.out 2>&1
 */1 * * * * cd /var/www/iznik/scripts/cron; php ./exports.php >> /tmp/iznik.exports.out 2>&1
 */1 * * * * cd /var/www/iznik/scripts/cron; php ./chat_process.php >> /tmp/iznik.chat_process.out 2>&1
+*/1 * * * * cd /var/www/iznik/scripts/cron; php ./chat_notifyemail_user2user.php >> /tmp/iznik.chat_notifyemail_user2user.out 2>&1
 */1 * * * * cd /var/www/iznik/scripts/cron; php ./lovejunk.php >> /tmp/iznik.lovejunk.out 2>&1

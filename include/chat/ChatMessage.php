@@ -280,7 +280,7 @@ class ChatMessage extends Entity
         }
 
         # We have now done the processing, so update the message with the results and make it visible to
-        # either the recipient or mods, depending on reviewerequired.
+        # either the recipient or mods, depending on reviewrequired.
         $this->dbhm->preExec("UPDATE chat_messages SET reviewrequired = ?, reportreason = ?, reviewrejected = ?, processingrequired = 0, processingsuccessful = 1 WHERE id = ?;", [
             $review,
             $reviewreason,
