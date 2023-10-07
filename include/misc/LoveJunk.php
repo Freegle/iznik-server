@@ -9,17 +9,13 @@ class LoveJunk {
     /** @public  $dbhm LoggedPDO */
     public $dbhm;
 
-    private $mock = FALSE;
+    public static $mock = FALSE;
 
     const MINIMUM_CPC = 0.10;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm) {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
-    }
-
-    public function setMock($mock) {
-        $this->mock = $mock;
     }
 
     public function send($id) {
@@ -29,8 +25,8 @@ class LoveJunk {
         $client = new Client();
 
         try {
-            if (!$this->mock) {
-                $r = $client->request('POST', LOVE_JUNK_API . '?secret=' . LOVE_JUNK_SECRET, [
+            if (!LoveJunk::$mock) {
+                $r = $client->request('POST', LOVE_JUNK_API . 'freegle-drafts?secret=' . LOVE_JUNK_SECRET, [
                     'json'  => $data
                 ]);
                 $ret = TRUE;
@@ -67,8 +63,8 @@ class LoveJunk {
         $client = new Client();
 
         try {
-            if (!$this->mock) {
-                $r = $client->request('PUT', LOVE_JUNK_API . '/' . $ljdraftId . '?secret=' . LOVE_JUNK_SECRET, [
+            if (!LoveJunk::$mock) {
+                $r = $client->request('PUT', LOVE_JUNK_API . '/freegle-drafts/' . $ljdraftId . '?secret=' . LOVE_JUNK_SECRET, [
                     'json'  => $data
                 ]);
                 $ret = TRUE;
@@ -217,8 +213,8 @@ class LoveJunk {
                 $client = new Client();
 
                 try {
-                    if (!$this->mock) {
-                        $r = $client->request('DELETE', LOVE_JUNK_API . '/' . $ret['draftId'] . '?secret=' . LOVE_JUNK_SECRET);
+                    if (!LoveJunk::$mock) {
+                        $r = $client->request('DELETE', LOVE_JUNK_API . '/freegle-drafts' . $ret['draftId'] . '?secret=' . LOVE_JUNK_SECRET);
                         $ret = TRUE;
                         $rsp = 200 . " " . $r->getReasonPhrase();
                     } else {
@@ -253,5 +249,53 @@ class LoveJunk {
                 $msgid,
             ]);
         }
+    }
+
+    public function sendChatMessage($chatid, $message) {
+        $msgs = $this->dbhr->preQuery("SELECT ljofferid FROM chat_rooms WHERE id = ?", [
+            $chatid
+        ]);
+
+        foreach ($msgs as $msg) {
+            $ljofferid = $msg['ljofferid'];
+            $ret = 0;
+
+            $client = new Client();
+
+            // Split $message into chunks of no more than 350 characters, using a regular expression which splits on word boundaries.
+            // We don't try that hard to split nicely.  Most messages will be shorter than this.
+            $chunks = preg_split('/\b(.{1,350})\b/', $message, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
+
+            foreach ($chunks as $chunk) {
+                $chunk = trim($chunk);
+
+                if ($chunk) {
+                    try {
+                        if (!LoveJunk::$mock) {
+                            $r = $client->request('POST', LOVE_JUNK_API . "/freegle/chats/$ljofferid?secret=" . LOVE_JUNK_SECRET, [
+                                'json'  => [
+                                    'message' => "$chunk\n"
+                                ]
+                            ]);
+
+                            $statusCode = $r->getStatusCode();
+                            $message = $r->getReasonPhrase();
+                            echo "Chat $chatid offerid $ljofferid status $statusCode message $message\n";
+
+                            if ($statusCode == 204) {
+                                $ret++;
+                            }
+                        } else {
+                            $ret++;
+                        }
+                    } catch (\Exception $e) {
+                        error_log("Exception {$e->getMessage()}");
+                        \Sentry\captureException($e);
+                    }
+                }
+            }
+        }
+
+        return $ret;
     }
 }

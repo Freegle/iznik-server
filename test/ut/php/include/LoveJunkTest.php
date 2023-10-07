@@ -70,7 +70,7 @@ class LoveJunkTest extends IznikTestCase
         $m->setPrivate('lng', -3.205333);
 
         $l = new LoveJunk($this->dbhr, $this->dbhm);
-        $l->setMock(true);
+        LoveJunk::$mock = TRUE;
         $this->assertTrue($l->send($id));
 
         // Edit
@@ -78,5 +78,42 @@ class LoveJunkTest extends IznikTestCase
 
         // Now delete.
         $this->assertTrue($l->delete($id));
+    }
+
+    public function testChatMessage() {
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid1 = $u->create(null, null, 'Test User');
+        $u1 = new User($this->dbhr, $this->dbhm, $uid1);
+        $uid2 = $u->create(null, null, 'Test User');
+        $u2 = new User($this->dbhr, $this->dbhm, $uid2);
+        $u2->setPrivate('ljuserid', 456);
+
+        // u1 is FD user who created a message.
+        // u2 is LJ user who replied to a message.
+        // Create a chat between them and set an ljofferid on the room.  That setting is done in live by the Go API.
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($rid, $blocked) = $r->createConversation($uid1, $uid2);
+        $r->setPrivate('ljofferid', 1234);
+
+        $cm = new ChatMessage($this->dbhr, $this->dbhm);
+        $cm->create($rid, $uid1, 'Reply from FD to LJ');
+
+        // Now send the digest.  This will send the message to the LJ API.
+        $l = new LoveJunk($this->dbhr, $this->dbhm);
+        LoveJunk::$mock = TRUE;
+
+        $count = $r->notifyByEmail($rid, ChatRoom::TYPE_USER2USER, NULL, 0, "4 hours ago");
+        $this->assertEquals(1, $count);
+
+        // String that will be split.
+        $str = '';
+
+        while (strlen($str) < 350) {
+            $str .= 'This is a sentence.';
+        }
+
+        $cm->create($rid, $uid1, $str);
+        $count = $r->notifyByEmail($rid, ChatRoom::TYPE_USER2USER, NULL, 0, "4 hours ago");
+        $this->assertEquals(3, $count);
     }
 }

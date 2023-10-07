@@ -2493,6 +2493,10 @@ class User extends Entity
         return strpos($this->getEmailPreferred(), '@user.trashnothing.com') !== FALSE;
     }
 
+    public function isLJ() {
+        return $this->user['ljuserid'] !== NULL;
+    }
+
     public function getPublicEmails(&$rets) {
         $userids = array_keys($rets);
         $emails = $this->getEmailsById($userids);
