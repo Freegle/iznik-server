@@ -113,7 +113,7 @@ CMD /etc/init.d/ssh start \
   && echo Y | php ../composer.phar install \
   && cd .. \
   && php install/testenv.php \
-  && php cli/table_autoinc.php \
+  && php scripts/cli/table_autoinc.php \
 
   # Keep the container alive
 	&& sleep infinity
