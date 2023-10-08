@@ -36,6 +36,26 @@ function noticeboard() {
                     'status' => 'Success',
                     'noticeboards' => $n->listAll($authorityid)
                 ];
+
+                // TODO Remove after 2024-06-01
+                if ($authorityid == 72950) {
+                    // Return locations of members for Wandsworth.
+                    $locs = [];
+                    $members = $dbhr->preQuery("SELECT userid FROM memberships WHERE groupid = 126719 AND added >= '2023-07-11' AND added < '2023-12-31';");
+                    foreach ($members as $member) {
+                        $u = new User($dbhr, $dbhm, $member['userid']);
+                        list ($lat, $lng) = $u->getLatLng(FALSE, FALSE, Utils::BLUR_NONE);
+                        if ($lat && $lng) {
+                            $locs[] = [
+                                'lat' => $lat,
+                                'lng' => $lng
+                            ];
+                        }
+                    }
+
+                    $ret['members'] = $locs;
+                }
+
             }
             break;
         }
