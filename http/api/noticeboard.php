@@ -46,10 +46,15 @@ function noticeboard() {
                         $u = new User($dbhr, $dbhm, $member['userid']);
                         list ($lat, $lng) = $u->getLatLng(FALSE, FALSE, Utils::BLUR_NONE);
                         if ($lat && $lng) {
-                            $locs[] = [
-                                'lat' => $lat,
-                                'lng' => $lng
-                            ];
+                            $contained = $dbhr->preQuery("SELECT ST_Contains(polygon, ST_SRID(POINT($lng, $lat), {$dbhr->SRID()})) AS contained FROM authorities WHERE id = 72950;");
+
+                            if ($contained[0]['contained']) {
+                                // Only include users who are in the authority.
+                                $locs[] = [
+                                    'lat' => $lat,
+                                    'lng' => $lng
+                                ];
+                            }
                         }
                     }
 
