@@ -26,7 +26,7 @@ class LoveJunk {
 
         try {
             if (!LoveJunk::$mock) {
-                $r = $client->request('POST', LOVE_JUNK_API . 'freegle-drafts?secret=' . LOVE_JUNK_SECRET, [
+                $r = $client->request('POST', LOVE_JUNK_API . '/freegle/drafts?secret=' . LOVE_JUNK_SECRET, [
                     'json'  => $data
                 ]);
                 $ret = TRUE;
@@ -64,7 +64,7 @@ class LoveJunk {
 
         try {
             if (!LoveJunk::$mock) {
-                $r = $client->request('PUT', LOVE_JUNK_API . '/freegle-drafts/' . $ljdraftId . '?secret=' . LOVE_JUNK_SECRET, [
+                $r = $client->request('PUT', LOVE_JUNK_API . '/freegle/drafts/' . $ljdraftId . '?secret=' . LOVE_JUNK_SECRET, [
                     'json'  => $data
                 ]);
                 $ret = TRUE;
@@ -214,7 +214,7 @@ class LoveJunk {
 
                 try {
                     if (!LoveJunk::$mock) {
-                        $r = $client->request('DELETE', LOVE_JUNK_API . '/freegle-drafts' . $ret['draftId'] . '?secret=' . LOVE_JUNK_SECRET);
+                        $r = $client->request('DELETE', LOVE_JUNK_API . '/freegle/drafts' . $ret['draftId'] . '?secret=' . LOVE_JUNK_SECRET);
                         $ret = TRUE;
                         $rsp = 200 . " " . $r->getReasonPhrase();
                     } else {
