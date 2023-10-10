@@ -465,7 +465,7 @@ WHERE chat_rooms.id IN $idlist;";
             # We have an existing chat.  That'll do nicely.
             if ($checkonly) {
                 # Check if we have any messages.
-                $msgs = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = ?;", [
+                $msgs = $this->dbhm->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = ?;", [
                     $chats[0]['id']
                 ]);
 
