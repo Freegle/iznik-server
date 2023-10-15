@@ -963,19 +963,19 @@ class User extends Entity
                 'groupid' => $groupid,
                 'text' => $text
             ]);
-        }
 
-        # Check whether this user now counts as a possible spammer.
-        $s = new Spam($this->dbhr, $this->dbhm);
-        $s->checkUser($this->id, $groupid);
+            # Check whether this user now counts as a possible spammer.
+            $s = new Spam($this->dbhr, $this->dbhm);
+            $s->checkUser($this->id, $groupid);
 
-        # We might have mod notes which require this member to be flagged up.
-        $comments = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_comments WHERE userid = ? AND flag = 1;", [
-            $this->id,
-        ]);
+            # We might have mod notes which require this member to be flagged up.
+            $comments = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_comments WHERE userid = ? AND flag = 1;", [
+                $this->id,
+            ]);
 
-        if ($comments[0]['count'] > 0) {
-            $this->memberReview($groupid, TRUE, 'Note flagged to other groups');
+            if ($comments[0]['count'] > 0) {
+                $this->memberReview($groupid, TRUE, 'Note flagged to other groups');
+            }
         }
 
         return ($rc);
