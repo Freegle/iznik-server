@@ -155,22 +155,20 @@ class sessionTest extends IznikAPITestCase
         $id = $u->create('Test', 'User', NULL);
         $this->assertNotNull($u->addEmail('test@test.com'));
 
-        # Mock the user ("your hair looks terrible") to check the welcome mail is sent.
-        $u = $this->getMockBuilder('Freegle\Iznik\User')
+        # Mock the group ("your hair looks terrible") to check the welcome mail is sent.
+        $g = $this->getMockBuilder('Freegle\Iznik\Group')
             ->setConstructorArgs([$this->dbhm, $this->dbhm, $id])
             ->setMethods(array('sendIt'))
             ->getMock();
-        $u->method('sendIt')->will($this->returnCallback(function ($mailer, $message) {
+        $g->method('sendIt')->will($this->returnCallback(function ($mailer, $message) {
             return ($this->sendMock($mailer, $message));
         }));
 
-        $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
-        $g = Group::get($this->dbhr, $this->dbhm, $group1);
         $g->setPrivate('welcomemail', 'Test - please ignore');
         $g->setPrivate('onhere', TRUE);
         $this->log("Add first time");
-        $u->addMembership($group1);
+        $u->addMembership($group1, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED, NULL, NULL, TRUE, NULL, $g);
 
         self::assertEquals(1, count($this->msgsSent));
 

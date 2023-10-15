@@ -1460,8 +1460,7 @@ HAVING logincount > 0
                 'groupname' => $name
             ]);
 
-            if ($to)
-            {
+            if ($to) {
                 list ($transport, $mailer) = Mail::getMailer();
                 $message = \Swift_Message::newInstance()
                     ->setSubject(($review ? "Please review: " : "") . "Welcome to $name")

@@ -944,9 +944,17 @@ class userTest extends IznikTestCase {
     public function testNativeWelcome() {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
-        $g = Group::get($this->dbhr, $this->dbhm, $gid);
-        $g->setPrivate('onhere', TRUE);
 
+        # Mock the group ("your hair looks terrible") to check the welcome mail is sent.
+        $g = $this->getMockBuilder('Freegle\Iznik\Group')
+            ->setConstructorArgs([$this->dbhm, $this->dbhm, $gid])
+            ->setMethods(array('sendIt'))
+            ->getMock();
+        $g->method('sendIt')->will($this->returnCallback(function ($mailer, $message) {
+            return ($this->sendMock($mailer, $message));
+        }));
+
+        $g->setPrivate('onhere', TRUE);
         $g->setPrivate('welcomemail', "Test welcome");
 
         $u = User::get($this->dbhr, $this->dbhm);
@@ -962,7 +970,7 @@ class userTest extends IznikTestCase {
         }));
 
         # Welcome mail sent on application.
-        $s->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED);
+        $s->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED, NULL, NULL, TRUE, NULL, $g);
         $this->assertEquals(1, count($this->msgsSent));
     }
 

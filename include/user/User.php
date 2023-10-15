@@ -840,11 +840,11 @@ class User extends Entity
         return FALSE;
     }
 
-    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED, $message = NULL, $byemail = NULL, $addedhere = TRUE, $manual = NULL)
+    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED, $message = NULL, $byemail = NULL, $addedhere = TRUE, $manual = NULL, $g = NULL)
     {
         $this->memberships = NULL;
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+        $g = $g ? $g : Group::get($this->dbhr, $this->dbhm, $groupid);
 
         Session::clearSessionCache();
 
