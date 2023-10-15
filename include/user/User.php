@@ -941,11 +941,11 @@ class User extends Entity
 
         if ($added) {
             # The membership didn't already exist.  We might want to send a welcome mail.
-            $atts = $g->getPublic();
-
-            if (($addedhere) && ($atts['welcomemail'] || $message) && $collection == MembershipCollection::APPROVED && $g->getPrivate('onhere')) {
+            if (($addedhere) && ($g->getPrivate('welcomemail') || $message) && $collection == MembershipCollection::APPROVED && $g->getPrivate(
+                    'onhere'
+                )) {
                 # They are now approved.  We need to send a per-group welcome mail.
-                $this->sendWelcome($message ? $message : $atts['welcomemail'], $groupid, $g, $atts);
+                $g->sendWelcome($this->id, $message, FALSE);
             }
 
             $l = new Log($this->dbhr, $this->dbhm);
@@ -979,47 +979,6 @@ class User extends Entity
         }
 
         return ($rc);
-    }
-
-    public function sendWelcome($welcome, $gid, $g = NULL, $atts = NULL, $review = FALSE) {
-        $g = $g ? $g : Group::get($this->dbhr, $this->dbhm, $gid);
-        $atts = $atts ? $atts : $g->getPublic();
-
-        $to = $this->getEmailPreferred();
-
-        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/welcome');
-        $twig = new \Twig_Environment($loader);
-
-        $html = $twig->render('group.html', [
-            'email' => $to,
-            'message' => nl2br($welcome),
-            'review' => $review,
-            'groupname' => $g->getName()
-        ]);
-
-        if ($to) {
-            list ($transport, $mailer) = Mail::getMailer();
-            $message = \Swift_Message::newInstance()
-                ->setSubject(($review ? "Please review: " : "") . "Welcome to " . $atts['namedisplay'])
-                ->setFrom([$g->getAutoEmail() => $atts['namedisplay'] . ' Volunteers'])
-                ->setReplyTo([$g->getModsEmail() => $atts['namedisplay'] . ' Volunteers'])
-                ->setTo($to)
-                ->setDate(time())
-                ->setBody($welcome);
-
-            # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-            # Outlook.
-            $htmlPart = \Swift_MimePart::newInstance();
-            $htmlPart->setCharset('utf-8');
-            $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
-            $htmlPart->setContentType('text/html');
-            $htmlPart->setBody($html);
-            $message->attach($htmlPart);
-
-            Mail::addHeaders($message, Mail::WELCOME, $this->getId());
-
-            $this->sendIt($mailer, $message);
-        }
     }
 
     public function cacheMemberships($id = NULL)

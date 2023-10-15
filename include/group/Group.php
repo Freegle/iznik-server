@@ -1232,7 +1232,7 @@ HAVING logincount > 0
                 $u = new User($this->dbhr, $this->dbhm, $mod);
                 if ($u->sendOurMails() && $u->getEmailPreferred()) {
                     error_log("..." . $u->getEmailPreferred());
-                    $u->sendWelcome($g->getPrivate('welcomemail'), $group['id'], NULL, NULL, TRUE);
+                    $g->sendWelcome($mod, NULL, TRUE);
                     $count++;
 
                     $this->dbhm->preExec("UPDATE `groups` SET welcomereview = NOW() WHERE id = ?;", [
@@ -1439,5 +1439,56 @@ HAVING logincount > 0
         }
 
         return $ret;
+    }
+
+    public function sendWelcome($userid, $welcome, $review) {
+        $u = User::get($this->dbhr, $this->dbhm, $userid);
+
+        if ($u->sendOurMails() && $u->getEmailPreferred()) {
+            $welcome = $welcome ? $welcome : $this->getPrivate('welcomemail');
+            $to = $this->getEmailPreferred();
+
+            $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/welcome');
+            $twig = new \Twig_Environment($loader);
+
+            $name = $this->getName();
+
+            $html = $twig->render('group.html', [
+                'email' => $to,
+                'message' => nl2br($welcome),
+                'review' => $review,
+                'groupname' => $name
+            ]);
+
+            if ($to)
+            {
+                list ($transport, $mailer) = Mail::getMailer();
+                $message = \Swift_Message::newInstance()
+                    ->setSubject(($review ? "Please review: " : "") . "Welcome to $name")
+                    ->setFrom([$this->getAutoEmail() => "$name Volunteers"])
+                    ->setReplyTo([$this->getModsEmail() => "$name Volunteers"])
+                    ->setTo($to)
+                    ->setDate(time())
+                    ->setBody($welcome);
+
+                # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                # Outlook.
+                $htmlPart = \Swift_MimePart::newInstance();
+                $htmlPart->setCharset('utf-8');
+                $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                $htmlPart->setContentType('text/html');
+                $htmlPart->setBody($html);
+                $message->attach($htmlPart);
+
+                Mail::addHeaders($message, Mail::WELCOME, $userid);
+
+                $this->sendIt($mailer, $message);
+            }
+        }
+    }
+
+    public function sendIt($mailer, $message)
+    {
+        $mailer->send($message);
     }
 }
