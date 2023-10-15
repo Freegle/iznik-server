@@ -1446,7 +1446,7 @@ HAVING logincount > 0
 
         if ($u->sendOurMails() && $u->getEmailPreferred()) {
             $welcome = $welcome ? $welcome : $this->getPrivate('welcomemail');
-            $to = $this->getEmailPreferred();
+            $to = $u->getEmailPreferred();
 
             $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/welcome');
             $twig = new \Twig_Environment($loader);
