@@ -970,7 +970,7 @@ class userTest extends IznikTestCase {
         }));
 
         # Welcome mail sent on application.
-        $s->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED, NULL, NULL, TRUE, NULL, $g);
+        $s->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED, NULL, NULL, TRUE, $g);
         $this->assertEquals(1, count($this->msgsSent));
     }
 

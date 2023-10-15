@@ -840,7 +840,7 @@ class User extends Entity
         return FALSE;
     }
 
-    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED, $message = NULL, $byemail = NULL, $addedhere = TRUE, $manual = NULL, $g = NULL)
+    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED, $byemail = NULL, $addedhere = TRUE, $manual = NULL, $g = NULL)
     {
         $this->memberships = NULL;
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
@@ -918,6 +918,8 @@ class User extends Entity
             $collection
         ]);
 
+        $historyid = $this->dbhm->lastInsertId();
+
         # We might need to update the systemrole.
         #
         # Not the end of the world if this fails.
@@ -940,14 +942,6 @@ class User extends Entity
         // @codeCoverageIgnoreEnd
 
         if ($added) {
-            # The membership didn't already exist.  We might want to send a welcome mail.
-            if (($addedhere) && ($g->getPrivate('welcomemail') || $message) && $collection == MembershipCollection::APPROVED && $g->getPrivate(
-                    'onhere'
-                )) {
-                # They are now approved.  We need to send a per-group welcome mail.
-                $g->sendWelcome($this->id, $message, FALSE);
-            }
-
             $l = new Log($this->dbhr, $this->dbhm);
             $text = NULL;
 
@@ -964,18 +958,7 @@ class User extends Entity
                 'text' => $text
             ]);
 
-            # Check whether this user now counts as a possible spammer.
-            $s = new Spam($this->dbhr, $this->dbhm);
-            $s->checkUser($this->id, $groupid);
-
-            # We might have mod notes which require this member to be flagged up.
-            $comments = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_comments WHERE userid = ? AND flag = 1;", [
-                $this->id,
-            ]);
-
-            if ($comments[0]['count'] > 0) {
-                $this->memberReview($groupid, TRUE, 'Note flagged to other groups');
-            }
+            $this->processMembership($historyid, $g);
         }
 
         return ($rc);
@@ -6837,5 +6820,40 @@ memberships.groupid IN $groupq
         ]);
 
         $this->dbhm->commit();
+    }
+
+    public function processMembership($id, $g) {
+        $memberships = $this->dbhr->preQuery("SELECT * FROM memberships_history WHERE id = ?;",[
+            $id
+        ]);
+
+        foreach ($memberships as $membership) {
+            $groupid = $membership['groupid'];
+            $userid = $membership['userid'];
+            $collection = $membership['collection'];
+
+            $g = $g ? $g : Group::get($this->dbhr, $this->dbhm, $groupid);
+
+            # The membership didn't already exist.  We might want to send a welcome mail.
+            if ($g->getPrivate('welcomemail') && $collection == MembershipCollection::APPROVED && $g->getPrivate('onhere')){
+                # They are now approved.  We need to send a per-group welcome mail.
+                $g->sendWelcome($userid, false);
+            }
+
+            # Check whether this user now counts as a possible spammer.
+            $s = new Spam($this->dbhr, $this->dbhm);
+            $s->checkUser($userid, $groupid);
+
+            # We might have mod notes which require this member to be flagged up.
+            $comments = $this->dbhr->preQuery(
+                "SELECT COUNT(*) AS count FROM users_comments WHERE userid = ? AND flag = 1;", [
+                    $userid,
+                ]
+            );
+
+            if ($comments[0]['count'] > 0) {
+                $this->memberReview($groupid, true, 'Note flagged to other groups');
+            }
+        }
     }
 }

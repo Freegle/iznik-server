@@ -1232,7 +1232,7 @@ HAVING logincount > 0
                 $u = new User($this->dbhr, $this->dbhm, $mod);
                 if ($u->sendOurMails() && $u->getEmailPreferred()) {
                     error_log("..." . $u->getEmailPreferred());
-                    $g->sendWelcome($mod, NULL, TRUE);
+                    $g->sendWelcome($mod, TRUE);
                     $count++;
 
                     $this->dbhm->preExec("UPDATE `groups` SET welcomereview = NOW() WHERE id = ?;", [
@@ -1441,11 +1441,11 @@ HAVING logincount > 0
         return $ret;
     }
 
-    public function sendWelcome($userid, $welcome, $review) {
+    public function sendWelcome($userid, $review) {
         $u = User::get($this->dbhr, $this->dbhm, $userid);
 
         if ($u->sendOurMails() && $u->getEmailPreferred()) {
-            $welcome = $welcome ? $welcome : $this->getPrivate('welcomemail');
+            $welcome = $this->getPrivate('welcomemail');
             $to = $u->getEmailPreferred();
 
             $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/welcome');

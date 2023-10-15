@@ -745,7 +745,7 @@ class MailRouter
             # We should always find them as Message::parse should create them
             if ($u->getId())
             {
-                $u->addMembership($gid, User::ROLE_MEMBER, null, MembershipCollection::APPROVED, null, $envfrom);
+                $u->addMembership($gid, User::ROLE_MEMBER, null, MembershipCollection::APPROVED, $envfrom);
 
                 # Remove any email logs for this message - no point wasting space on keeping those.
                 $this->log->deleteLogsForMessage($this->msg->getID());
