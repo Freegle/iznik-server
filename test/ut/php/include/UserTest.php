@@ -1729,5 +1729,41 @@ class userTest extends IznikTestCase {
         $u->addEmail('test.user@gmail.com');
         $this->assertTrue($u->verifyEmail('testuser@gmail.com'));
     }
+
+    public function testMergeBanned() {
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
+        $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
+        $group3 = $g->create('testgroup3', Group::GROUP_REUSE);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id1 = $u->create(NULL, NULL, 'Test User');
+        $id2 = $u->create(NULL, NULL, 'Test User');
+        $id3 = $u->create(NULL, NULL, 'Test User');
+        $u1 = User::get($this->dbhr, $this->dbhm, $id1);
+        $u2 = User::get($this->dbhr, $this->dbhm, $id2);
+        $this->assertGreaterThan(0, $u1->addEmail('test1@test.com'));
+        $this->assertGreaterThan(0, $u1->addEmail('test2@test.com', 0));
+
+        # Set up various memberships
+        $u1->addMembership($group1, User::ROLE_MODERATOR);
+        $u2->addMembership($group1, User::ROLE_MEMBER);
+        $u2->addMembership($group2, User::ROLE_OWNER);
+        $u1->addMembership($group3, User::ROLE_MEMBER);
+        $u2->addMembership($group3, User::ROLE_MODERATOR);
+
+        # Ban u1 on group2.
+        $u1->removeMembership($group2, TRUE);
+
+        # Merge u2 into u1
+        $this->assertTrue($u1->merge($id1, $id2, "UT"));
+
+        # Now u1 should be banned on group2
+        $this->assertTrue($u1->isBanned($group2));
+        $membs = $u1->getMemberships();
+        $this->assertEquals(2, count($membs));
+        $this->assertEquals($group1, $membs[0]['id']);
+        $this->assertEquals($group3, $membs[1]['id']);
+    }
 }
 

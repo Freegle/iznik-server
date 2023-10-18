@@ -2894,8 +2894,6 @@ class User extends Entity
                         $this->dbhm->preExec("UPDATE IGNORE spam_users SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE spam_users SET byuserid = $id1 WHERE byuserid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_addresses SET userid = $id1 WHERE userid = $id2;");
-                        $this->dbhm->preExec("UPDATE IGNORE users_banned SET userid = $id1 WHERE userid = $id2;");
-                        $this->dbhm->preExec("UPDATE IGNORE users_banned SET byuser = $id1 WHERE byuser = $id2;");
                         $this->dbhm->preExec("UPDATE users_comments SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE users_comments SET byuserid = $id1 WHERE byuserid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_donations SET userid = $id1 WHERE userid = $id2;");
@@ -2933,6 +2931,21 @@ class User extends Entity
                         $this->dbhm->preExec("UPDATE IGNORE trysts SET user2 = $id1 WHERE user2 = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE isochrones_users SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE microactions SET userid = $id1 WHERE userid = $id2;");
+
+                        # Handle the bans.
+                        $this->dbhm->preExec("UPDATE IGNORE users_banned SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_banned SET byuser = $id1 WHERE byuser = $id2;");
+
+
+                        $bans = $this->dbhm->preQuery("SELECT * FROM users_banned WHERE userid = $id1");
+                        foreach ($bans as $ban) {
+                            # Make sure we are not a member; this could happen if one of the users is banned and
+                            # the other is not.
+                            $this->dbhm->preExec("DELETE FROM memberships WHERE userid = ? AND groupid = ?", [
+                                $id1,
+                                $ban['groupid']
+                            ]);
+                        }
 
                         # Merge chat rooms.  There might have be two separate rooms already, which means that we need
                         # to make sure that messages from both end up in the same one.
