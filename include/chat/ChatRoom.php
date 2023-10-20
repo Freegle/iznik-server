@@ -1963,6 +1963,7 @@ ORDER BY id, added, groupid ASC;";
 
         $thistwig['date'] = date("Y-m-d H:i:s", strtotime($unmailedmsg['date']));
         $thistwig['replyexpected'] = Utils::presdef('replyexpected', $unmailedmsg, FALSE);
+        $thistwig['type'] = $unmailedmsg['type'];
 
         return $thistwig;
     }
@@ -2398,14 +2399,28 @@ ORDER BY id, added, groupid ASC;";
                                             $msg = "";
 
                                             foreach ($twigmessages as $t) {
-                                                $tt = trim($t['message']);
+                                                if ($t['type'] == ChatMessage::TYPE_PROMISED) {
+                                                    # This is a separate API call.  It's possible that there are
+                                                    # chat messages too, and therefore we might promise slightly out
+                                                    # of sequence.  But that is kind of OK, as the user might have done
+                                                    # that.
+                                                    $notified += $l->promise($chat['chatid']);
+                                                } else if ($t['type'] == ChatMessage::TYPE_RENEGED) {
+                                                    # Ditto.
+                                                    $notified += $l->renege($chat['chatid']);
+                                                } else {
+                                                    # Use the text summary.
+                                                    $tt = trim($t['message']);
 
-                                                if ($tt) {
-                                                    $msg .=  "$tt\n";
+                                                    if ($tt) {
+                                                        $msg .=  "$tt\n";
+                                                    }
                                                 }
                                             }
 
-                                            $notified += $l->sendChatMessage($chat['chatid'], $msg);
+                                            if (strlen($msg)) {
+                                                $notified += $l->sendChatMessage($chat['chatid'], $msg);
+                                            }
 
                                             // Don't try to send by email below.
                                             $this->recordSend($lastmsgemailed, $member['userid'], $chat['chatid']);

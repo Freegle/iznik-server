@@ -301,4 +301,74 @@ class LoveJunk {
 
         return $ret;
     }
+
+    public function promise($chatid) {
+        $ret = 0;
+
+        $msgs = $this->dbhr->preQuery("SELECT ljofferid FROM chat_rooms WHERE id = ?", [
+            $chatid
+        ]);
+
+        foreach ($msgs as $msg) {
+            $ljofferid = $msg['ljofferid'];
+
+            $client = new Client();
+
+            try {
+                if (!LoveJunk::$mock) {
+                    $r = $client->request('POST', LOVE_JUNK_API . "/freegle/offers/$ljofferid/accept?secret=" . LOVE_JUNK_SECRET, []);
+
+                    $statusCode = $r->getStatusCode();
+                    $message = $r->getReasonPhrase();
+                    echo "Chat $chatid offerid $ljofferid promised status $statusCode message $message\n";
+
+                    if ($statusCode == 200) {
+                        $ret++;
+                    }
+                } else {
+                    $ret++;
+                }
+            } catch (\Exception $e) {
+                error_log("Exception {$e->getMessage()}");
+                \Sentry\captureException($e);
+            }
+        }
+
+        return $ret;
+    }
+
+    public function renege($chatid) {
+        $ret = 0;
+
+        $msgs = $this->dbhr->preQuery("SELECT ljofferid FROM chat_rooms WHERE id = ?", [
+            $chatid
+        ]);
+
+        foreach ($msgs as $msg) {
+            $ljofferid = $msg['ljofferid'];
+
+            $client = new Client();
+
+            try {
+                if (!LoveJunk::$mock) {
+                    $r = $client->request('POST', LOVE_JUNK_API . "/freegle/offers/$ljofferid/relist?secret=" . LOVE_JUNK_SECRET, []);
+
+                    $statusCode = $r->getStatusCode();
+                    $message = $r->getReasonPhrase();
+                    echo "Chat $chatid offerid $ljofferid reneged status $statusCode message $message\n";
+
+                    if ($statusCode == 200) {
+                        $ret++;
+                    }
+                } else {
+                    $ret++;
+                }
+            } catch (\Exception $e) {
+                error_log("Exception {$e->getMessage()}");
+                \Sentry\captureException($e);
+            }
+        }
+
+        return $ret;
+    }
 }
