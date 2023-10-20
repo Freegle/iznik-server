@@ -759,6 +759,7 @@ class userTest extends IznikTestCase {
 
             $u1->addMembership($gid, User::ROLE_MODERATOR);
             $u2->addMembership($gid, $mod ? User::ROLE_MODERATOR : User::ROLE_MEMBER);
+            $u1->processMemberships();
 
             $u2 = User::get($this->dbhr, $this->dbhm, $id2, FALSE);
             $this->waitBackground();
@@ -971,6 +972,7 @@ class userTest extends IznikTestCase {
 
         # Welcome mail sent on application.
         $s->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED, NULL, NULL, TRUE, $g);
+        $s->processMemberships();
         $this->assertEquals(1, count($this->msgsSent));
     }
 

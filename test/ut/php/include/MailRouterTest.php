@@ -644,6 +644,7 @@ class MailRouterTest extends IznikTestCase {
             $this->waitBackground();
 
             $this->user->addMembership($gid);
+            $this->user->processMemberships();
             $this->user->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
             User::clearCache();
 

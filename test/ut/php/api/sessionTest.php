@@ -169,6 +169,7 @@ class sessionTest extends IznikAPITestCase
         $g->setPrivate('onhere', TRUE);
         $this->log("Add first time");
         $u->addMembership($group1, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED, NULL, NULL, TRUE, $g);
+        $u->processMemberships($g);
 
         self::assertEquals(1, count($this->msgsSent));
 

@@ -6835,6 +6835,14 @@ memberships.groupid IN $groupq
         $this->dbhm->commit();
     }
 
+    public function processMemberships($g = NULL) {
+        $memberships = $this->dbhr->preQuery("SELECT id FROM `memberships_history` WHERE processingrequired = 1 ORDER BY id ASC;");
+
+        foreach ($memberships as $membership) {
+            $this->processMembership($membership['id'], $g);
+        }
+    }
+
     public function processMembership($id, $g) {
         $memberships = $this->dbhr->preQuery("SELECT * FROM memberships_history WHERE id = ?;",[
             $id
