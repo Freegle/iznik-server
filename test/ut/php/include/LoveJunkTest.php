@@ -115,5 +115,11 @@ class LoveJunkTest extends IznikTestCase
         $cm->create($rid, $uid1, $str);
         $count = $r->notifyByEmail($rid, ChatRoom::TYPE_USER2USER, NULL, 0, "4 hours ago");
         $this->assertEquals(3, $count);
+
+        // String that should not be split.
+        $str = 'A question?';
+        $cm->create($rid, $uid1, $str);
+        $count = $r->notifyByEmail($rid, ChatRoom::TYPE_USER2USER, NULL, 0, "4 hours ago");
+        $this->assertEquals(1, $count);
     }
 }

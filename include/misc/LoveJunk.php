@@ -214,7 +214,7 @@ class LoveJunk {
 
                 try {
                     if (!LoveJunk::$mock) {
-                        $r = $client->request('DELETE', LOVE_JUNK_API . '/freegle/drafts' . $ret['draftId'] . '?secret=' . LOVE_JUNK_SECRET);
+                        $r = $client->request('DELETE', LOVE_JUNK_API . '/freegle/drafts/' . $ret['draftId'] . '?secret=' . LOVE_JUNK_SECRET);
                         $ret = TRUE;
                         $rsp = 200 . " " . $r->getReasonPhrase();
                     } else {
@@ -262,9 +262,12 @@ class LoveJunk {
 
             $client = new Client();
 
-            // Split $message into chunks of no more than 350 characters, using a regular expression which splits on word boundaries.
-            // We don't try that hard to split nicely.  Most messages will be shorter than this.
-            $chunks = preg_split('/\b(.{1,350})\b/', $message, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
+            $chunks = [ $message ];
+            if (strlen($message) > 350) {
+                // Split $message into chunks of no more than 350 characters, using a regular expression which splits on word boundaries.
+                // We don't try that hard to split nicely.  Most messages will be shorter than this.
+                $chunks = preg_split('/\b(.{1,350})\b/', $message, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
+            }
 
             foreach ($chunks as $chunk) {
                 $chunk = trim($chunk);
