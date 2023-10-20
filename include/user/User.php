@@ -3946,7 +3946,7 @@ class User extends Entity
     public function listUnsubscribe($domain, $id, $type = NULL)
     {
         # Generates the value for the List-Unsubscribe header field.
-        $ret = "<mailto:unsubscribe-$id@" . USER_SITE . ">, <" . $this->getUnsubLink($domain, $id, $type) . ">";
+        $ret = "<" . $this->getUnsubLink($domain, $id, $type) . ">";
         return ($ret);
     }
 
