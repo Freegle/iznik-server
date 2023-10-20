@@ -46,11 +46,11 @@ try {
         try {
             // Pheanstalk doesn't recovery well after an error, so recreate each time.
             error_reporting(0);
-            $pheanstalk = Pheanstalk::create('127.0.0.1');
+            $pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
             $job = $pheanstalk->reserve();
             error_reporting(E_ALL & ~E_WARNING & ~E_DEPRECATED & ~E_NOTICE);
         } catch (\Exception $e) {
-            error_log("Failed to reserve, sleeping");
+            error_log("Failed to reserve, sleeping " . $e->getMessage());
             sleep(1);
         }
 

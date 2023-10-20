@@ -967,12 +967,13 @@ class userTest extends IznikTestCase {
             ->setMethods(array('sendIt'))
             ->getMock();
         $s->method('sendIt')->will($this->returnCallback(function($mailer, $message) {
+            error_log("Mock");
             return($this->sendMock($mailer, $message));
         }));
 
         # Welcome mail sent on application.
         $s->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED, NULL, NULL, TRUE, $g);
-        $s->processMemberships();
+        $s->processMemberships($g);
         $this->assertEquals(1, count($this->msgsSent));
     }
 
