@@ -911,11 +911,13 @@ class User extends Entity
         # We added it if it wasn't there before and the INSERT worked.
         $added = $this->dbhm->rowsAffected() && $existing[0]['count'] == 0;
 
-        # Record the operation for abuse detection.
-        $this->dbhm->preExec("INSERT INTO memberships_history (userid, groupid, collection) VALUES (?,?,?);", [
+        # Record the operation for abuse detection.  Setting processingrequired will cause background code to do
+        # work.
+        $this->dbhm->preExec("INSERT INTO memberships_history (userid, groupid, collection, processingrequired) VALUES (?,?,?,?);", [
             $this->id,
             $groupid,
-            $collection
+            $collection,
+            $added
         ]);
 
         $historyid = $this->dbhm->lastInsertId();
@@ -957,8 +959,6 @@ class User extends Entity
                 'groupid' => $groupid,
                 'text' => $text
             ]);
-
-            $this->processMembership($historyid, $g);
         }
 
         return ($rc);
@@ -6867,6 +6867,10 @@ memberships.groupid IN $groupq
             if ($comments[0]['count'] > 0) {
                 $this->memberReview($groupid, true, 'Note flagged to other groups');
             }
+
+            $this->dbhm->preExec("UPDATE memberships_history SET processingrequired = 0 WHERE id = ?", [
+                $id
+            ]);
         }
     }
 }
