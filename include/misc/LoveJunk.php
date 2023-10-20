@@ -316,7 +316,7 @@ class LoveJunk {
 
             try {
                 if (!LoveJunk::$mock) {
-                    $r = $client->request('POST', LOVE_JUNK_API . "/freegle/offers/$ljofferid/accept?secret=" . LOVE_JUNK_SECRET, []);
+                    $r = $client->request('PUT', LOVE_JUNK_API . "/freegle/offers/$ljofferid/accept?secret=" . LOVE_JUNK_SECRET, []);
 
                     $statusCode = $r->getStatusCode();
                     $message = $r->getReasonPhrase();
@@ -351,13 +351,13 @@ class LoveJunk {
 
             try {
                 if (!LoveJunk::$mock) {
-                    $r = $client->request('POST', LOVE_JUNK_API . "/freegle/offers/$ljofferid/relist?secret=" . LOVE_JUNK_SECRET, []);
+                    $r = $client->request('PUT', LOVE_JUNK_API . "/freegle/offers/$ljofferid/relist?secret=" . LOVE_JUNK_SECRET, []);
 
                     $statusCode = $r->getStatusCode();
                     $message = $r->getReasonPhrase();
                     echo "Chat $chatid offerid $ljofferid reneged status $statusCode message $message\n";
 
-                    if ($statusCode == 200) {
+                    if ($statusCode == 204) {
                         $ret++;
                     }
                 } else {
