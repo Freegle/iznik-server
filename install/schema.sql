@@ -894,6 +894,7 @@ CREATE TABLE `groups` (
   `microvolunteeringoptions` json DEFAULT NULL,
   `autofunctionoverride` tinyint(1) NOT NULL DEFAULT '0',
   `postvisibility` polygon DEFAULT NULL,
+  `onlovejunk` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `nameshort` (`nameshort`),

@@ -19,11 +19,13 @@ $msgs = $dbhr->preQuery("SELECT DISTINCT messages.id, lovejunk.status, messages.
     INNER JOIN lovejunk ON lovejunk.msgid = messages.id
     INNER JOIN messages_groups ON messages_groups.msgid = messages.id
     INNER JOIN messages_edits ON messages_edits.msgid = messages.id
+    INNER JOIN `groups` ON groups.id = messages_groups.groupid
     WHERE messages.arrival >= ? AND
           messages.arrival >= '2023-07-11 16:00' AND
           messages_edits.timestamp >= lovejunk.timestamp AND
       messages.type = ? AND   
-      messages_groups.collection = ?
+      messages_groups.collection = ? AND
+      groups.onlovejunk = 1
       ORDER BY messages.arrival ASC;
 ", [
     $start,
@@ -44,11 +46,13 @@ foreach ($msgs as $msg) {
 $msgs = $dbhr->preQuery("SELECT messages.id FROM messages 
     LEFT JOIN lovejunk ON lovejunk.msgid = messages.id
     INNER JOIN messages_groups ON messages_groups.msgid = messages.id 
+    INNER JOIN `groups` ON groups.id = messages_groups.groupid
     WHERE messages.arrival >= ? AND
           messages.arrival >= '2023-06-13 14:50' AND
       messages.type = ? AND   
       lovejunk.msgid IS NULL AND
-      messages_groups.collection = ?
+      messages_groups.collection = ? AND
+      groups.onlovejunk = 1
       ORDER BY messages.arrival ASC;
 ", [
     $start,
@@ -65,9 +69,11 @@ foreach ($msgs as $msg) {
 $msgs = $dbhr->preQuery("SELECT messages.id FROM messages_outcomes
     INNER JOIN messages ON messages.id = messages_outcomes.msgid
     INNER JOIN lovejunk ON lovejunk.msgid = messages_outcomes.msgid
+    INNER JOIN `groups` ON groups.id = messages_groups.groupid
     WHERE messages_outcomes.timestamp >= ? AND
       messages.type = ? AND   
-      lovejunk.success = 1 AND lovejunk.deleted IS NULL AND lovejunk.status LIKE '{%' 
+      lovejunk.success = 1 AND lovejunk.deleted IS NULL AND lovejunk.status LIKE '{%' AND 
+      groups.onlovejunk = 1
       ORDER BY messages.arrival ASC;
 ", [
     $start,
