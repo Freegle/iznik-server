@@ -187,7 +187,7 @@ function group() {
                         }
 
                         # Other settable attributes
-                        foreach (['onhere', 'publish', 'microvolunteering', 'mentored'] as $att) {
+                        foreach (['onhere', 'publish', 'microvolunteering', 'mentored', 'ontn', 'onlovejunk'] as $att) {
                             $val = Utils::presdef($att, $_REQUEST, NULL);
                             if (array_key_exists($att, $_REQUEST)) {
                                 $g->setPrivate($att, $val);
