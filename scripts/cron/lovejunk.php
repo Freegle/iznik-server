@@ -65,9 +65,10 @@ foreach ($msgs as $msg) {
     $l->send($msg['id']);
 }
 
-// Mark any messages which we have sent to LoveJunk and which now have outcomes as deleted.
+// Mark any messages which we have sent to LoveJunk and which now have outcomes as deleted or (if promised) completed.
 $msgs = $dbhr->preQuery("SELECT messages.id FROM messages_outcomes
     INNER JOIN messages ON messages.id = messages_outcomes.msgid
+    INNER JOIN messages_groups ON messages_groups.msgid = messages.id
     INNER JOIN lovejunk ON lovejunk.msgid = messages_outcomes.msgid
     INNER JOIN `groups` ON groups.id = messages_groups.groupid
     WHERE messages_outcomes.timestamp >= ? AND
@@ -81,8 +82,7 @@ $msgs = $dbhr->preQuery("SELECT messages.id FROM messages_outcomes
 ]);
 
 foreach ($msgs as $msg) {
-    error_log("Delete " . $msg['id']);
-    $l->delete($msg['id']);
+    $l->completeOrDelete($msg['id']);
 }
 
 Utils::unlockScript($lockh);

@@ -27,7 +27,18 @@ class LoveJunkTest extends IznikTestCase
         $this->dbhm->preExec("DELETE FROM returnpath_seedlist WHERE email LIKE 'test@test.com';");
     }
 
-    public function testSend()
+
+    public function trueFalseProvider() {
+        return [
+            [ TRUE ],
+            [ FALSE ]
+        ];
+    }
+
+    /**
+     * @dataProvider trueFalseProvider
+     */
+    public function testSend($promise)
     {
         $u = new User($this->dbhr, $this->dbhm);
         $uid = $u->create(null, null, 'Test User');
@@ -76,8 +87,29 @@ class LoveJunkTest extends IznikTestCase
         // Edit
         $l->edit($id, 1);
 
-        // Now delete.
-        $this->assertTrue($l->delete($id));
+        if ($promise) {
+            # Promise this to a LoveJunk user.
+            $u2 = new User($this->dbhr, $this->dbhm);
+            $uid2 = $u2->create(null, null, 'Test User');
+            $u2->setPrivate('ljuserid', 1);
+            $m->promise($uid2);
+
+            $r = new ChatRoom($this->dbhr, $this->dbhm);
+            list ($rid, $banned) = $r->createConversation($m->getFromuser(), $uid2);
+            $r = new ChatRoom($this->dbhr, $this->dbhm, $rid);
+            $r->setPrivate('ljofferid', 1);
+            $this->assertNotNull($rid);
+            $cm = new ChatMessage($this->dbhr, $this->dbhm);
+            list ($mid, $banned) = $cm->create($rid, $uid2, NULL, ChatMessage::TYPE_PROMISED, $m->getID());
+            $this->assertNotNull($mid);
+            error_log("Created conversation $rid between $uid2 and " . $m->getFromuser() . " with message $mid");
+
+            # Promise to a LJ user so we expect this to return completed.
+            $this->assertTrue($l->completeOrDelete($id));
+        } else {
+            # Not promised so we expect this to return not completed.
+            $this->assertFalse($l->completeOrDelete($id));
+        }
     }
 
     public function testChatMessage() {

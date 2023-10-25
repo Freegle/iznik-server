@@ -337,6 +337,43 @@ class LoveJunk {
         return $ret;
     }
 
+    public function complete($chatid, $msgid) {
+        $ret = 0;
+
+        $msgs = $this->dbhr->preQuery("SELECT ljofferid FROM chat_rooms WHERE id = ?", [
+            $chatid
+        ]);
+
+        foreach ($msgs as $msg) {
+            $ljofferid = $msg['ljofferid'];
+
+            $client = new Client();
+
+            try {
+                if (!LoveJunk::$mock) {
+                    $r = $client->request('POST', LOVE_JUNK_API . "/freegle/offers/$ljofferid/complete?secret=" . LOVE_JUNK_SECRET, []);
+
+                    $statusCode = $r->getStatusCode();
+                    $message = $r->getReasonPhrase();
+                    echo "Chat $chatid offerid $ljofferid completed status $statusCode message $message\n";
+
+                    if ($statusCode == 204) {
+                        $rsp = 200 . " " . $r->getReasonPhrase();
+                        $this->recordResultDelete(TRUE, $msgid, json_encode($rsp));
+                        $ret++;
+                    }
+                } else {
+                    $ret++;
+                }
+            } catch (\Exception $e) {
+                error_log("Exception {$e->getMessage()}");
+                \Sentry\captureException($e);
+            }
+        }
+
+        return $ret;
+    }
+
     public function renege($chatid) {
         $ret = 0;
 
@@ -370,5 +407,43 @@ class LoveJunk {
         }
 
         return $ret;
+    }
+
+    public function completeOrDelete($msgid) {
+        $m = new Message($this->dbhr, $this->dbhm, $msgid);
+
+        $promises = $m->getPromises();
+        $completed = FALSE;
+
+        // Check each promise to see if it is to a LoveJunk user; if so then complete the promise.
+        error_log("Found promise " . var_export($promises, TRUE));
+        foreach ($promises as $promise) {
+            $u = new User($this->dbhr, $this->dbhm, $promise['userid']);
+            $r = new ChatRoom($this->dbhr, $this->dbhm);
+
+            if ($u->getPrivate('ljuserid')) {
+                error_log("Got a user; check conversation between {$promise['userid']} and " . $m->getFromuser());
+                list ($cid, $banned) = $r->createConversation($m->getFromuser(), $promise['userid'], TRUE);
+                error_log("Got conversation?". $cid);
+
+                if ($cid) {
+                    $r = new ChatRoom($this->dbhr, $this->dbhm, $cid);
+
+                    if ($r->getPrivate('ljofferid')) {
+                        // This message is promised to this LoveJunk user.  Complete the promise.
+                        $this->complete($cid, $msgid);
+                        $completed = TRUE;
+                    }
+                }
+            }
+        }
+
+        if (!$completed) {
+            // Gone elsewhere or some other outcome.
+            error_log("Delete " . $msgid);
+            $this->delete($msgid);
+        }
+
+        return $completed;
     }
 }

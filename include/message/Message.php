@@ -895,6 +895,11 @@ class Message
         return($locationlist[$locationid]);
     }
 
+    public function getPromises() {
+        $sql = "SELECT * FROM messages_promises WHERE msgid = ?;";
+        return $this->dbhr->preQuery($sql, [$this->id]);
+    }
+
     public function promiseCount() {
         $sql = "SELECT COUNT(*) AS count FROM messages_promises WHERE msgid = ?;";
         $promises = $this->dbhr->preQuery($sql, [$this->id]);
