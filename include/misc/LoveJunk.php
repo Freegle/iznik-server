@@ -416,15 +416,12 @@ class LoveJunk {
         $completed = FALSE;
 
         // Check each promise to see if it is to a LoveJunk user; if so then complete the promise.
-        error_log("Found promise " . var_export($promises, TRUE));
         foreach ($promises as $promise) {
             $u = new User($this->dbhr, $this->dbhm, $promise['userid']);
             $r = new ChatRoom($this->dbhr, $this->dbhm);
 
             if ($u->getPrivate('ljuserid')) {
-                error_log("Got a user; check conversation between {$promise['userid']} and " . $m->getFromuser());
                 list ($cid, $banned) = $r->createConversation($m->getFromuser(), $promise['userid'], TRUE);
-                error_log("Got conversation?". $cid);
 
                 if ($cid) {
                     $r = new ChatRoom($this->dbhr, $this->dbhm, $cid);
@@ -440,7 +437,6 @@ class LoveJunk {
 
         if (!$completed) {
             // Gone elsewhere or some other outcome.
-            error_log("Delete " . $msgid);
             $this->delete($msgid);
         }
 
