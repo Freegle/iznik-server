@@ -468,11 +468,11 @@ function message() {
                                     $ret = ['ret' => 5, 'status' => 'Failed to create user or email'];
                                     $unvalidated = FALSE;
 
+                                    $me = Session::whoAmI($dbhr, $dbhm);
+
                                     if (!$email) {
                                         # The client ought to provide one.  But if they don't and we're logged in
                                         # then we can use ours.
-                                        $me = Session::whoAmI($dbhr, $dbhm);
-
                                         if ($me) {
                                             $uid = $me->getId();
                                             $email = $me->getEmailPreferred();
@@ -482,47 +482,56 @@ function message() {
 
                                         if ($unvalidated) {
                                             // They have tried to submit with an email which has not yet been validated
-                                            // by them.
+                                            // by them.  They are prompted to validate when they change email, so
+                                            // they are expected to have validated it by now.
                                             $ret = ['ret' => 11, 'status' => 'Unvalidated email'];
                                         }
                                     }
 
                                     if (!$unvalidated) {
                                         if (!$uid) {
-                                            # We don't yet know this user.  Create them.
-                                            $name = substr($email, 0, strpos($email, '@'));
-                                            $newuser = $u->create(null, null, $name, 'Created to allow post');
-
-                                            # Create a password and mail it to them.  Also log them in and return it.  This
-                                            # avoids us having to ask the user for a password, though they can change it if
-                                            # they like.  Less friction.
-                                            $pw = $u->inventPassword();
-                                            $u->addLogin(User::LOGIN_NATIVE, $newuser, $pw);
-                                            $eid = $u->addEmail($email, 1);
-
-                                            if (!$eid) {
-                                                # There's a timing window where a parallel request could have added this
-                                                # email.  Check.
-                                                $uid2 = $u->findByEmail($email);
-
-                                                if ($uid2) {
-                                                    # That has happened.  Delete the user we created and use the other.
-                                                    $u->delete();
-                                                    $newuser = null;
-                                                    $pw = null;
-                                                    $hitwindow = true;
-
-                                                    $u = User::get($dbhr, $dbhm, $uid2);
-                                                    $eid = $u->getIdForEmail($email)['id'];
-
-                                                    if ($u->getEmailPreferred() != $email) {
-                                                        # The email specified is the one they currently want to use - make sure it's
-                                                        $u->addEmail($email, 1, true);
-                                                    }
-                                                }
+                                            if ($me) {
+                                                // They've given us an email which is not on the system, but they're
+                                                // logged in.  We don't expect this to happen - because the client
+                                                // isn't supposed to offer the option to change email during posting
+                                                // if they're logged in.
+                                                $ret = ['ret' => 12, 'status' => 'Unvalidated email'];
                                             } else {
-                                                $u->login($pw);
-                                                $u->welcome($email, $pw);
+                                                # We don't yet know this user.  Create them.
+                                                $name = substr($email, 0, strpos($email, '@'));
+                                                $newuser = $u->create(null, null, $name, 'Created to allow post');
+
+                                                # Create a password and mail it to them.  Also log them in and return it.  This
+                                                # avoids us having to ask the user for a password, though they can change it if
+                                                # they like.  Less friction.
+                                                $pw = $u->inventPassword();
+                                                $u->addLogin(User::LOGIN_NATIVE, $newuser, $pw);
+                                                $eid = $u->addEmail($email, 1);
+
+                                                if (!$eid) {
+                                                    # There's a timing window where a parallel request could have added this
+                                                    # email.  Check.
+                                                    $uid2 = $u->findByEmail($email);
+
+                                                    if ($uid2) {
+                                                        # That has happened.  Delete the user we created and use the other.
+                                                        $u->delete();
+                                                        $newuser = null;
+                                                        $pw = null;
+                                                        $hitwindow = true;
+
+                                                        $u = User::get($dbhr, $dbhm, $uid2);
+                                                        $eid = $u->getIdForEmail($email)['id'];
+
+                                                        if ($u->getEmailPreferred() != $email) {
+                                                            # The email specified is the one they currently want to use - make sure it's
+                                                            $u->addEmail($email, 1, true);
+                                                        }
+                                                    }
+                                                } else {
+                                                    $u->login($pw);
+                                                    $u->welcome($email, $pw);
+                                                }
                                             }
                                         } else if ($myid && $myid != $uid) {
                                             # We know the user, but it's not the one we're logged in as.  It's most likely

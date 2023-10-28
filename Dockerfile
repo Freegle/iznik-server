@@ -47,6 +47,7 @@ WORKDIR /var/www/iznik
 # /etc/iznik.conf is where our config goes.
 RUN cp install/iznik.conf.php /etc/iznik.conf \
     && echo secret > /etc/iznik_jwt_secret \
+    && sed -ie "s/upload_max_filesize = 2M/upload_max_filesize = 8M/" /etc/php/8.1/fpm/php.ini \
     && sed -ie "s/'SQLHOST', '.*'/'SQLHOST', '$SQLHOST:$SQLPORT'/" /etc/iznik.conf \
     && sed -ie "s/'SQLHOSTS_READ', '.*'/'SQLHOSTS_READ', '$SQLHOST:$SQLPORT'/" /etc/iznik.conf \
     && sed -ie "s/'SQLHOSTS_MOD', '.*'/'SQLHOSTS_MOD', '$SQLHOST:$SQLPORT'/" /etc/iznik.conf \
@@ -87,8 +88,12 @@ CMD /etc/init.d/ssh start \
 
   && export LOVE_JUNK_API=`cat /run/secrets/LOVE_JUNK_API` \
   && export LOVE_JUNK_SECRET=`cat /run/secrets/LOVE_JUNK_SECRET` \
+  && export PARTNER_KEY=`cat /run/secrets/PARTNER_KEY` \
+  && export PARTNER_NAME=`cat /run/secrets/PARTNER_NAME` \
+  && export IMAGE_DOMAIN=`cat /run/secrets/IMAGE_DOMAIN` \
   && sed -ie "s@'LOVE_JUNK_API', '.*'@'LOVE_JUNK_API', '$LOVE_JUNK_API'@" /etc/iznik.conf \
-  && sed -ie "s/'LOVE_JUNK_SECRET', '.*'/'LOVE_JUNK_SECRET', '$LOVE_JUNK_SECRET'/" /etc/iznik.conf \
+  && sed -ie "s@'LOVE_JUNK_SECRET', '.*'@'LOVE_JUNK_SECRET', '$LOVE_JUNK_SECRET'@" /etc/iznik.conf \
+  && sed -ie "s@'IMAGE_DOMAIN', '.*'@'IMAGE_DOMAIN', '$IMAGE_DOMAIN'@" /etc/iznik.conf \
 
 	# We need to make some minor schema tweaks otherwise the schema fails to install.
   && sed -ie 's/ROW_FORMAT=DYNAMIC//g' install/schema.sql \
@@ -101,11 +106,14 @@ CMD /etc/init.d/ssh start \
   && mysql -u root iznik < install/functions.sql \
   && mysql -u root iznik < install/damlevlim.sql \
   && mysql -u root -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'" \
+  && mysql -u root -e "use iznik;REPLACE INTO partners_keys (partner, \`key\`) VALUES ('$PARTNER_NAME', '$PARTNER_KEY');" \
+  && mysql -u root -e "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));" \
   && git pull \
   && cd composer \
   && echo Y | php ../composer.phar install \
   && cd .. \
   && php install/testenv.php \
+  && php scripts/cli/table_autoinc.php \
 
   # Keep the container alive
 	&& sleep infinity

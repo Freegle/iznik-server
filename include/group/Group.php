@@ -14,7 +14,7 @@ class Group extends Entity
         'onhere', 'ontn', 'membercount', 'modcount', 'lat', 'lng',
         'profile', 'cover', 'onmap', 'tagline', 'legacyid', 'external', 'welcomemail', 'description',
         'contactmail', 'fundingtarget', 'affiliationconfirmed', 'affiliationconfirmedby', 'mentored', 'privategroup', 'defaultlocation',
-        'moderationstatus', 'maxagetoshow', 'nearbygroups', 'microvolunteering', 'microvolunteeringoptions', 'autofunctionoverride', 'overridemoderation', 'precovidmoderated');
+        'moderationstatus', 'maxagetoshow', 'nearbygroups', 'microvolunteering', 'microvolunteeringoptions', 'autofunctionoverride', 'overridemoderation', 'precovidmoderated', 'onlovejunk');
 
     const GROUP_REUSE = 'Reuse';
     const GROUP_FREEGLE = 'Freegle';
@@ -913,6 +913,7 @@ HAVING logincount > 0
                 $thisone['emailfrequency'] = $member['emailfrequency'];
                 $thisone['eventsallowed'] = $member['eventsallowed'];
                 $thisone['volunteeringallowed'] = $member['volunteeringallowed'];
+                $thisone['autorepostsdisable'] = $u->getSetting('autorepostsdisable', FALSE);
 
                 # Our posting status only applies for groups we host.  In that case, the default is moderated.
                 $thisone['ourpostingstatus'] = Utils::presdef('ourPostingStatus', $member, Group::POSTING_MODERATED);
@@ -1147,7 +1148,7 @@ HAVING logincount > 0
         $suppfields = $support ? ", founded, lastmoderated, lastmodactive, lastautoapprove, activemodcount, backupmodsactive, backupownersactive, onmap, affiliationconfirmed, affiliationconfirmedby": '';
         $polyfields = $polys ? ", CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial" : '';
 
-        $sql = "SELECT groups.id, groups.settings, groups_images.id AS attid, nameshort, region, namefull, lat, lng, altlat, altlng, publish $suppfields $polyfields, mentored, onhere, ontn, onmap, external, profile, tagline, contactmail FROM `groups` LEFT JOIN groups_images ON groups_images.groupid = groups.id WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END, groups_images.id DESC;";
+        $sql = "SELECT groups.id, groups.settings, groups_images.id AS attid, nameshort, region, namefull, lat, lng, altlat, altlng, publish $suppfields $polyfields, mentored, onhere, ontn, onmap, external, profile, tagline, contactmail, onlovejunk FROM `groups` LEFT JOIN groups_images ON groups_images.groupid = groups.id WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END, groups_images.id DESC;";
         $groups = $this->dbhr->preQuery($sql, [ $type ]);
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
 
@@ -1231,7 +1232,7 @@ HAVING logincount > 0
                 $u = new User($this->dbhr, $this->dbhm, $mod);
                 if ($u->sendOurMails() && $u->getEmailPreferred()) {
                     error_log("..." . $u->getEmailPreferred());
-                    $u->sendWelcome($g->getPrivate('welcomemail'), $group['id'], NULL, NULL, TRUE);
+                    $g->sendWelcome($mod, TRUE);
                     $count++;
 
                     $this->dbhm->preExec("UPDATE `groups` SET welcomereview = NOW() WHERE id = ?;", [
@@ -1438,5 +1439,55 @@ HAVING logincount > 0
         }
 
         return $ret;
+    }
+
+    public function sendWelcome($userid, $review) {
+        $u = User::get($this->dbhr, $this->dbhm, $userid);
+
+        if ($u->sendOurMails() && $u->getEmailPreferred()) {
+            $welcome = $this->getPrivate('welcomemail');
+            $to = $u->getEmailPreferred();
+
+            $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/welcome');
+            $twig = new \Twig_Environment($loader);
+
+            $name = $this->getName();
+
+            $html = $twig->render('group.html', [
+                'email' => $to,
+                'message' => nl2br($welcome),
+                'review' => $review,
+                'groupname' => $name
+            ]);
+
+            if ($to) {
+                list ($transport, $mailer) = Mail::getMailer();
+                $message = \Swift_Message::newInstance()
+                    ->setSubject(($review ? "Please review: " : "") . "Welcome to $name")
+                    ->setFrom([$this->getAutoEmail() => "$name Volunteers"])
+                    ->setReplyTo([$this->getModsEmail() => "$name Volunteers"])
+                    ->setTo($to)
+                    ->setDate(time())
+                    ->setBody($welcome);
+
+                # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                # Outlook.
+                $htmlPart = \Swift_MimePart::newInstance();
+                $htmlPart->setCharset('utf-8');
+                $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                $htmlPart->setContentType('text/html');
+                $htmlPart->setBody($html);
+                $message->attach($htmlPart);
+
+                Mail::addHeaders($message, Mail::WELCOME, $userid);
+
+                $this->sendIt($mailer, $message);
+            }
+        }
+    }
+
+    public function sendIt($mailer, $message)
+    {
+        $mailer->send($message);
     }
 }

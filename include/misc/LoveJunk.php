@@ -9,17 +9,13 @@ class LoveJunk {
     /** @public  $dbhm LoggedPDO */
     public $dbhm;
 
-    private $mock = FALSE;
+    public static $mock = FALSE;
 
     const MINIMUM_CPC = 0.10;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm) {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
-    }
-
-    public function setMock($mock) {
-        $this->mock = $mock;
     }
 
     public function send($id) {
@@ -29,8 +25,8 @@ class LoveJunk {
         $client = new Client();
 
         try {
-            if (!$this->mock) {
-                $r = $client->request('POST', LOVE_JUNK_API . '?secret=' . LOVE_JUNK_SECRET, [
+            if (!LoveJunk::$mock) {
+                $r = $client->request('POST', LOVE_JUNK_API . '/freegle/drafts?secret=' . LOVE_JUNK_SECRET, [
                     'json'  => $data
                 ]);
                 $ret = TRUE;
@@ -67,8 +63,8 @@ class LoveJunk {
         $client = new Client();
 
         try {
-            if (!$this->mock) {
-                $r = $client->request('PUT', LOVE_JUNK_API . '/' . $ljdraftId . '?secret=' . LOVE_JUNK_SECRET, [
+            if (!LoveJunk::$mock) {
+                $r = $client->request('PUT', LOVE_JUNK_API . '/freegle/drafts/' . $ljdraftId . '?secret=' . LOVE_JUNK_SECRET, [
                     'json'  => $data
                 ]);
                 $ret = TRUE;
@@ -217,8 +213,8 @@ class LoveJunk {
                 $client = new Client();
 
                 try {
-                    if (!$this->mock) {
-                        $r = $client->request('DELETE', LOVE_JUNK_API . '/' . $ret['draftId'] . '?secret=' . LOVE_JUNK_SECRET);
+                    if (!LoveJunk::$mock) {
+                        $r = $client->request('DELETE', LOVE_JUNK_API . '/freegle/drafts/' . $ret['draftId'] . '?secret=' . LOVE_JUNK_SECRET);
                         $ret = TRUE;
                         $rsp = 200 . " " . $r->getReasonPhrase();
                     } else {
@@ -253,5 +249,201 @@ class LoveJunk {
                 $msgid,
             ]);
         }
+    }
+
+    public function sendChatMessage($chatid, $message) {
+        $msgs = $this->dbhr->preQuery("SELECT ljofferid FROM chat_rooms WHERE id = ?", [
+            $chatid
+        ]);
+
+        foreach ($msgs as $msg) {
+            $ljofferid = $msg['ljofferid'];
+            $ret = 0;
+
+            $client = new Client();
+
+            $chunks = [ $message ];
+            if (strlen($message) > 350) {
+                // Split $message into chunks of no more than 350 characters, using a regular expression which splits on word boundaries.
+                // We don't try that hard to split nicely.  Most messages will be shorter than this.
+                $chunks = preg_split('/\b(.{1,350})\b/', $message, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
+            }
+
+            foreach ($chunks as $chunk) {
+                $chunk = trim($chunk);
+
+                if ($chunk) {
+                    try {
+                        if (!LoveJunk::$mock) {
+                            $r = $client->request('POST', LOVE_JUNK_API . "/freegle/chats/$ljofferid?secret=" . LOVE_JUNK_SECRET, [
+                                'json'  => [
+                                    'message' => "$chunk\n"
+                                ]
+                            ]);
+
+                            $statusCode = $r->getStatusCode();
+                            $message = $r->getReasonPhrase();
+                            echo "Chat $chatid offerid $ljofferid status $statusCode message $message\n";
+
+                            if ($statusCode == 204) {
+                                $ret++;
+                            }
+                        } else {
+                            $ret++;
+                        }
+                    } catch (\Exception $e) {
+                        error_log("Exception {$e->getMessage()}");
+                        \Sentry\captureException($e);
+                    }
+                }
+            }
+        }
+
+        return $ret;
+    }
+
+    public function promise($chatid) {
+        $ret = 0;
+
+        $msgs = $this->dbhr->preQuery("SELECT ljofferid FROM chat_rooms WHERE id = ?", [
+            $chatid
+        ]);
+
+        foreach ($msgs as $msg) {
+            $ljofferid = $msg['ljofferid'];
+
+            $client = new Client();
+
+            try {
+                if (!LoveJunk::$mock) {
+                    $r = $client->request('PUT', LOVE_JUNK_API . "/freegle/offers/$ljofferid/accept?secret=" . LOVE_JUNK_SECRET, []);
+
+                    $statusCode = $r->getStatusCode();
+                    $message = $r->getReasonPhrase();
+                    echo "Chat $chatid offerid $ljofferid promised status $statusCode message $message\n";
+
+                    if ($statusCode == 200) {
+                        $ret++;
+                    }
+                } else {
+                    $ret++;
+                }
+            } catch (\Exception $e) {
+                error_log("Exception {$e->getMessage()}");
+                \Sentry\captureException($e);
+            }
+        }
+
+        return $ret;
+    }
+
+    public function complete($chatid, $msgid) {
+        $ret = 0;
+
+        $msgs = $this->dbhr->preQuery("SELECT ljofferid FROM chat_rooms WHERE id = ?", [
+            $chatid
+        ]);
+
+        foreach ($msgs as $msg) {
+            $ljofferid = $msg['ljofferid'];
+
+            $client = new Client();
+
+            try {
+                if (!LoveJunk::$mock) {
+                    $r = $client->request('POST', LOVE_JUNK_API . "/freegle/offers/$ljofferid/complete?secret=" . LOVE_JUNK_SECRET, []);
+
+                    $statusCode = $r->getStatusCode();
+                    $message = $r->getReasonPhrase();
+                    echo "Chat $chatid offerid $ljofferid completed status $statusCode message $message\n";
+
+                    if ($statusCode == 204) {
+                        $rsp = 200 . " " . $r->getReasonPhrase();
+                        $this->recordResultDelete(TRUE, $msgid, json_encode($rsp));
+                        $ret++;
+                    }
+                } else {
+                    $ret++;
+                }
+            } catch (\Exception $e) {
+                error_log("Exception {$e->getMessage()}");
+                \Sentry\captureException($e);
+            }
+        }
+
+        return $ret;
+    }
+
+    public function renege($chatid) {
+        $ret = 0;
+
+        $msgs = $this->dbhr->preQuery("SELECT ljofferid FROM chat_rooms WHERE id = ?", [
+            $chatid
+        ]);
+
+        foreach ($msgs as $msg) {
+            $ljofferid = $msg['ljofferid'];
+
+            $client = new Client();
+
+            try {
+                if (!LoveJunk::$mock) {
+                    $r = $client->request('PUT', LOVE_JUNK_API . "/freegle/offers/$ljofferid/relist?secret=" . LOVE_JUNK_SECRET, []);
+
+                    $statusCode = $r->getStatusCode();
+                    $message = $r->getReasonPhrase();
+                    echo "Chat $chatid offerid $ljofferid reneged status $statusCode message $message\n";
+
+                    if ($statusCode == 204) {
+                        $ret++;
+                    }
+                } else {
+                    $ret++;
+                }
+            } catch (\Exception $e) {
+                error_log("Exception {$e->getMessage()}");
+                \Sentry\captureException($e);
+            }
+        }
+
+        return $ret;
+    }
+
+    public function completeOrDelete($msgid) {
+        $m = new Message($this->dbhr, $this->dbhm, $msgid);
+
+        $promises = $m->getPromises();
+        $completed = FALSE;
+
+        // Check each promise to see if it is to a LoveJunk user; if so then complete the promise.
+        error_log("Found promise " . var_export($promises, TRUE));
+        foreach ($promises as $promise) {
+            $u = new User($this->dbhr, $this->dbhm, $promise['userid']);
+            $r = new ChatRoom($this->dbhr, $this->dbhm);
+
+            if ($u->getPrivate('ljuserid')) {
+                error_log("Got a user; check conversation between {$promise['userid']} and " . $m->getFromuser());
+                list ($cid, $banned) = $r->createConversation($m->getFromuser(), $promise['userid'], TRUE);
+                error_log("Got conversation?". $cid);
+
+                if ($cid) {
+                    $r = new ChatRoom($this->dbhr, $this->dbhm, $cid);
+
+                    if ($r->getPrivate('ljofferid')) {
+                        // This message is promised to this LoveJunk user.  Complete the promise.
+                        $this->complete($cid, $msgid);
+                        $completed = TRUE;
+                    }
+                }
+            }
+        }
+
+        if (!$completed) {
+            // Gone elsewhere or some other outcome.
+            error_log("Delete " . $msgid);
+            $this->delete($msgid);
+        }
+
+        return $completed;
     }
 }

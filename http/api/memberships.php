@@ -23,7 +23,6 @@ function memberships() {
     $volunteeringallowed = Utils::presint('volunteeringallowed', $_REQUEST, NULL);
     $ourpostingstatus = $g->ourPS(array_key_exists('ourpostingstatus', $_REQUEST) ? $_REQUEST['ourpostingstatus'] : NULL);
     $filter = (Utils::presint('filter', $_REQUEST, Group::FILTER_NONE));
-    $message = Utils::presdef('message', $_REQUEST, NULL);
 
     $ban = array_key_exists('ban', $_REQUEST) ? filter_var($_REQUEST['ban'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $collection = Utils::presdef('collection', $_REQUEST, MembershipCollection::APPROVED);
@@ -199,7 +198,7 @@ function memberships() {
 
                         $u = new User($dbhr, $dbhm, $uid);
                         $emailid = $u->getAnEmailId();
-                        $rc = $u->addMembership($groupid, $role, $emailid, MembershipCollection::APPROVED, $message);
+                        $rc = $u->addMembership($groupid, $role, $emailid, MembershipCollection::APPROVED);
 
                         $ret = ['ret' => 4, 'status' => 'Failed - likely ban'];
 
@@ -249,7 +248,7 @@ function memberships() {
 
                         if (!$userid || $role != User::ROLE_NONMEMBER) {
                             $manual = Utils::presBool('manual', $_REQUEST, NULL);
-                            $u->addMembership($groupid, $role, $emailid, $addtocoll, $message, NULL, TRUE, $manual);
+                            $u->addMembership($groupid, $role, $emailid, $addtocoll, NULL, TRUE, $manual);
 
                             $ret = [
                                 'ret' => 0,

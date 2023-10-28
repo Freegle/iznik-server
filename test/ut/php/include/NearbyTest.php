@@ -57,7 +57,10 @@ class nearbyTest extends IznikTestCase {
         }
     }
 
-    public function testBasic() {
+    /**
+     * @dataProvider trueFalseProvider
+     */
+    public function testBasic($allowed) {
         # Create a location for the message
         $l = new Location($this->dbhr, $this->dbhm);
         $lid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
@@ -71,6 +74,10 @@ class nearbyTest extends IznikTestCase {
         $g = Group::get($this->dbhr, $this->dbhm, $gid);
         $g->setPrivate('lng', 179.15);
         $g->setPrivate('lat', 8.4);
+
+        $settings = json_decode($g->getPrivate('settings'), TRUE);
+        $settings['engagement'] = $allowed;
+        $g->setSettings($settings);
 
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
         $u = new User($this->dbhr, $this->dbhm);
@@ -104,7 +111,14 @@ class nearbyTest extends IznikTestCase {
 
         $n = new Nearby($this->dbhm, $this->dbhm);
         $n->updateLocations();
-        $this->assertEquals(1, $n->messages($gid));
+        $this->assertEquals($allowed ? 1 : 0, $n->messages($gid));
+    }
+
+    public function trueFalseProvider() {
+        return [
+            [ TRUE ],
+            [ FALSE ]
+        ];
     }
 }
 

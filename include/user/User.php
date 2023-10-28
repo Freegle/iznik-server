@@ -41,7 +41,7 @@ class User extends Entity
     const TRUST_ADVANCED = 'Advanced';
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'newslettersallowed', 'relevantallowed', 'bouncing', 'added', 'invitesleft', 'onholidaytill');
+    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'newslettersallowed', 'relevantallowed', 'bouncing', 'added', 'invitesleft', 'onholidaytill', 'tnuserid', 'ljuserid');
 
     # Roles on specific groups
     const ROLE_NONMEMBER = 'Non-member';
@@ -840,11 +840,11 @@ class User extends Entity
         return FALSE;
     }
 
-    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED, $message = NULL, $byemail = NULL, $addedhere = TRUE, $manual = NULL)
+    public function addMembership($groupid, $role = User::ROLE_MEMBER, $emailid = NULL, $collection = MembershipCollection::APPROVED, $byemail = NULL, $addedhere = TRUE, $manual = NULL, $g = NULL)
     {
         $this->memberships = NULL;
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+        $g = $g ? $g : Group::get($this->dbhr, $this->dbhm, $groupid);
 
         Session::clearSessionCache();
 
@@ -911,12 +911,16 @@ class User extends Entity
         # We added it if it wasn't there before and the INSERT worked.
         $added = $this->dbhm->rowsAffected() && $existing[0]['count'] == 0;
 
-        # Record the operation for abuse detection.
-        $this->dbhm->preExec("INSERT INTO memberships_history (userid, groupid, collection) VALUES (?,?,?);", [
+        # Record the operation for abuse detection.  Setting processingrequired will cause background code to do
+        # work.
+        $this->dbhm->preExec("INSERT INTO memberships_history (userid, groupid, collection, processingrequired) VALUES (?,?,?,?);", [
             $this->id,
             $groupid,
-            $collection
+            $collection,
+            $added
         ]);
+
+        $historyid = $this->dbhm->lastInsertId();
 
         # We might need to update the systemrole.
         #
@@ -940,14 +944,6 @@ class User extends Entity
         // @codeCoverageIgnoreEnd
 
         if ($added) {
-            # The membership didn't already exist.  We might want to send a welcome mail.
-            $atts = $g->getPublic();
-
-            if (($addedhere) && ($atts['welcomemail'] || $message) && $collection == MembershipCollection::APPROVED && $g->getPrivate('onhere')) {
-                # They are now approved.  We need to send a per-group welcome mail.
-                $this->sendWelcome($message ? $message : $atts['welcomemail'], $groupid, $g, $atts);
-            }
-
             $l = new Log($this->dbhr, $this->dbhm);
             $text = NULL;
 
@@ -965,61 +961,7 @@ class User extends Entity
             ]);
         }
 
-        # Check whether this user now counts as a possible spammer.
-        $s = new Spam($this->dbhr, $this->dbhm);
-        $s->checkUser($this->id, $groupid);
-
-        # We might have mod notes which require this member to be flagged up.
-        $comments = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_comments WHERE userid = ? AND flag = 1;", [
-            $this->id,
-        ]);
-
-        if ($comments[0]['count'] > 0) {
-            $this->memberReview($groupid, TRUE, 'Note flagged to other groups');
-        }
-
         return ($rc);
-    }
-
-    public function sendWelcome($welcome, $gid, $g = NULL, $atts = NULL, $review = FALSE) {
-        $g = $g ? $g : Group::get($this->dbhr, $this->dbhm, $gid);
-        $atts = $atts ? $atts : $g->getPublic();
-
-        $to = $this->getEmailPreferred();
-
-        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/welcome');
-        $twig = new \Twig_Environment($loader);
-
-        $html = $twig->render('group.html', [
-            'email' => $to,
-            'message' => nl2br($welcome),
-            'review' => $review,
-            'groupname' => $g->getName()
-        ]);
-
-        if ($to) {
-            list ($transport, $mailer) = Mail::getMailer();
-            $message = \Swift_Message::newInstance()
-                ->setSubject(($review ? "Please review: " : "") . "Welcome to " . $atts['namedisplay'])
-                ->setFrom([$g->getAutoEmail() => $atts['namedisplay'] . ' Volunteers'])
-                ->setReplyTo([$g->getModsEmail() => $atts['namedisplay'] . ' Volunteers'])
-                ->setTo($to)
-                ->setDate(time())
-                ->setBody($welcome);
-
-            # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-            # Outlook.
-            $htmlPart = \Swift_MimePart::newInstance();
-            $htmlPart->setCharset('utf-8');
-            $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
-            $htmlPart->setContentType('text/html');
-            $htmlPart->setBody($html);
-            $message->attach($htmlPart);
-
-            Mail::addHeaders($message, Mail::WELCOME, $this->getId());
-
-            $this->sendIt($mailer, $message);
-        }
     }
 
     public function cacheMemberships($id = NULL)
@@ -2493,6 +2435,10 @@ class User extends Entity
         return strpos($this->getEmailPreferred(), '@user.trashnothing.com') !== FALSE;
     }
 
+    public function isLJ() {
+        return $this->user['ljuserid'] !== NULL;
+    }
+
     public function getPublicEmails(&$rets) {
         $userids = array_keys($rets);
         $emails = $this->getEmailsById($userids);
@@ -2948,8 +2894,6 @@ class User extends Entity
                         $this->dbhm->preExec("UPDATE IGNORE spam_users SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE spam_users SET byuserid = $id1 WHERE byuserid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_addresses SET userid = $id1 WHERE userid = $id2;");
-                        $this->dbhm->preExec("UPDATE IGNORE users_banned SET userid = $id1 WHERE userid = $id2;");
-                        $this->dbhm->preExec("UPDATE IGNORE users_banned SET byuser = $id1 WHERE byuser = $id2;");
                         $this->dbhm->preExec("UPDATE users_comments SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE users_comments SET byuserid = $id1 WHERE byuserid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_donations SET userid = $id1 WHERE userid = $id2;");
@@ -2987,6 +2931,21 @@ class User extends Entity
                         $this->dbhm->preExec("UPDATE IGNORE trysts SET user2 = $id1 WHERE user2 = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE isochrones_users SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE microactions SET userid = $id1 WHERE userid = $id2;");
+
+                        # Handle the bans.
+                        $this->dbhm->preExec("UPDATE IGNORE users_banned SET userid = $id1 WHERE userid = $id2;");
+                        $this->dbhm->preExec("UPDATE IGNORE users_banned SET byuser = $id1 WHERE byuser = $id2;");
+
+
+                        $bans = $this->dbhm->preQuery("SELECT * FROM users_banned WHERE userid = $id1");
+                        foreach ($bans as $ban) {
+                            # Make sure we are not a member; this could happen if one of the users is banned and
+                            # the other is not.
+                            $this->dbhm->preExec("DELETE FROM memberships WHERE userid = ? AND groupid = ?", [
+                                $id1,
+                                $ban['groupid']
+                            ]);
+                        }
 
                         # Merge chat rooms.  There might have be two separate rooms already, which means that we need
                         # to make sure that messages from both end up in the same one.
@@ -3987,7 +3946,7 @@ class User extends Entity
     public function listUnsubscribe($domain, $id, $type = NULL)
     {
         # Generates the value for the List-Unsubscribe header field.
-        $ret = "<mailto:unsubscribe-$id@" . USER_SITE . ">, <" . $this->getUnsubLink($domain, $id, $type) . ">";
+        $ret = "<" . $this->getUnsubLink($domain, $id, $type) . ">";
         return ($ret);
     }
 
@@ -6874,5 +6833,52 @@ memberships.groupid IN $groupq
         ]);
 
         $this->dbhm->commit();
+    }
+
+    public function processMemberships($g = NULL) {
+        $memberships = $this->dbhr->preQuery("SELECT id FROM `memberships_history` WHERE processingrequired = 1 ORDER BY id ASC;");
+
+        foreach ($memberships as $membership) {
+            $this->processMembership($membership['id'], $g);
+        }
+    }
+
+    public function processMembership($id, $g) {
+        $memberships = $this->dbhr->preQuery("SELECT * FROM memberships_history WHERE id = ?;",[
+            $id
+        ]);
+
+        foreach ($memberships as $membership) {
+            $groupid = $membership['groupid'];
+            $userid = $membership['userid'];
+            $collection = $membership['collection'];
+
+            $g = $g ? $g : Group::get($this->dbhr, $this->dbhm, $groupid);
+
+            # The membership didn't already exist.  We might want to send a welcome mail.
+            if ($g->getPrivate('welcomemail') && $collection == MembershipCollection::APPROVED && $g->getPrivate('onhere')){
+                # They are now approved.  We need to send a per-group welcome mail.
+                $g->sendWelcome($userid, false);
+            }
+
+            # Check whether this user now counts as a possible spammer.
+            $s = new Spam($this->dbhr, $this->dbhm);
+            $s->checkUser($userid, $groupid);
+
+            # We might have mod notes which require this member to be flagged up.
+            $comments = $this->dbhr->preQuery(
+                "SELECT COUNT(*) AS count FROM users_comments WHERE userid = ? AND flag = 1;", [
+                    $userid,
+                ]
+            );
+
+            if ($comments[0]['count'] > 0) {
+                $this->memberReview($groupid, true, 'Note flagged to other groups');
+            }
+
+            $this->dbhm->preExec("UPDATE memberships_history SET processingrequired = 0 WHERE id = ?", [
+                $id
+            ]);
+        }
     }
 }

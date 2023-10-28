@@ -146,6 +146,7 @@ class commentAPITest extends IznikAPITestCase {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup3', Group::GROUP_REUSE);
         $this->user2->addMembership($gid);
+        $this->user2->processMemberships();
         $this->assertNotNull($this->user2->getMembershipAtt($gid, 'reviewrequestedat'));
     }
 

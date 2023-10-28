@@ -156,8 +156,19 @@ class Noticeboard extends Entity
         $mailer->send($message);
     }
 
-    public function listAll() {
-        return($this->dbhr->preQuery("SELECT id, name, lat, lng FROM noticeboards WHERE name IS NOT NULL AND active = 1"));
+    public function listAll($authorityid) {
+        if (!$authorityid) {
+            $ret = $this->dbhr->preQuery("SELECT id, name, lat, lng FROM noticeboards WHERE name IS NOT NULL AND active = 1");
+        } else {
+            $ret = $this->dbhr->preQuery("SELECT noticeboards.id, noticeboards.name, noticeboards.lat, noticeboards.lng FROM noticeboards  
+              INNER JOIN authorities ON authorities.id = ?  
+              WHERE authorities.name IS NOT NULL AND active = 1 AND ST_CONTAINS(authorities.polygon, ST_SRID(POINT(noticeboards.lng, noticeboards.lat), ?));", [
+                  $authorityid,
+                $this->dbhr->SRID()
+            ]);
+        }
+
+        return($ret);
     }
 
     public function action($id, $userid, $action, $comments = NULL) {

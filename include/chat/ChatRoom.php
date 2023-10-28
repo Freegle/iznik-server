@@ -465,7 +465,7 @@ WHERE chat_rooms.id IN $idlist;";
             # We have an existing chat.  That'll do nicely.
             if ($checkonly) {
                 # Check if we have any messages.
-                $msgs = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = ?;", [
+                $msgs = $this->dbhm->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = ?;", [
                     $chats[0]['id']
                 ]);
 
@@ -1498,7 +1498,9 @@ WHERE chat_rooms.id IN $idlist;";
     public function getMessagesForReview(User $user, $groupid, &$ctx)
     {
         # We want the messages for review for any group where we are a mod and the recipient of the chat message is
-        # a member.  The order here matches that in ChatMessage::getReviewCountByGroup.
+        # a member, or where the recipient is on no groups and the sender is on one of ours.
+        #
+        # The order here matches that in ChatMessage::getReviewCountByGroup.
         $userid = $user->getId();
         $msgid = $ctx ? intval($ctx['msgid']) : 0;
         if ($groupid) {
@@ -1515,7 +1517,7 @@ WHERE chat_rooms.id IN $idlist;";
         }
         $groupq = implode(',', $groupids);
 
-        $sql = "SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages.reportreason, chat_messages_byemail.msgid, m1.settings AS m1settings, m1.groupid, m2.groupid AS groupidfrom, chat_messages_held.userid AS heldby, chat_messages_held.timestamp, chat_rooms.user1, chat_rooms.user2
+        $sql = "SELECT DISTINCT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages.reportreason, chat_messages_byemail.msgid, m1.settings AS m1settings, m1.groupid, m2.groupid AS groupidfrom, chat_messages_held.userid AS heldby, chat_messages_held.timestamp, chat_rooms.user1, chat_rooms.user2, m1.added
 FROM chat_messages
 LEFT JOIN chat_messages_held ON chat_messages.id = chat_messages_held.msgid
 LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messages.id
@@ -1524,8 +1526,17 @@ INNER JOIN memberships m1 ON m1.userid = (CASE WHEN chat_messages.userid = chat_
 LEFT JOIN memberships m2 ON m2.userid = chat_messages.userid AND m2.groupid IN ($groupq)
 INNER JOIN `groups` ON m1.groupid = groups.id AND groups.type = ?
 WHERE chat_messages.id > ?
-ORDER BY chat_messages.id, m1.added, groupid ASC;";
-        $msgs = $this->dbhr->preQuery($sql, [Group::GROUP_FREEGLE, $msgid]);
+UNION
+SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages.reportreason, chat_messages_byemail.msgid, m1.settings AS m1settings, m1.groupid, m2.groupid AS groupidfrom, chat_messages_held.userid AS heldby, chat_messages_held.timestamp, chat_rooms.user1, chat_rooms.user2, m1.added
+FROM chat_messages
+LEFT JOIN chat_messages_held ON chat_messages.id = chat_messages_held.msgid
+LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messages.id
+INNER JOIN chat_rooms ON reviewrequired = 1 AND reviewrejected = 0 AND chat_rooms.id = chat_messages.chatid
+LEFT JOIN memberships m1 ON m1.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END)
+INNER JOIN memberships m2 ON m2.userid = chat_messages.userid AND m2.groupid IN ($groupq)
+WHERE chat_messages.id > ? AND m1.id IS NULL
+ORDER BY id, added, groupid ASC;";
+        $msgs = $this->dbhr->preQuery($sql, [Group::GROUP_FREEGLE, $msgid, $msgid]);
         $ret = [];
 
         $ctx = $ctx ? $ctx : [];
@@ -1952,6 +1963,7 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
 
         $thistwig['date'] = date("Y-m-d H:i:s", strtotime($unmailedmsg['date']));
         $thistwig['replyexpected'] = Utils::presdef('replyexpected', $unmailedmsg, FALSE);
+        $thistwig['type'] = $unmailedmsg['type'];
 
         return $thistwig;
     }
@@ -2352,32 +2364,68 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                 }
                             }
 
+                            $html = '';
+
                             try {
                                 switch ($chattype) {
                                     case ChatRoom::TYPE_USER2USER:
-                                        # We might be sending a copy of the user's own message
-                                        $aboutme = $unmailedmsg['userid'] == $sendingto->getId() ?
-                                            $sendingto->getAboutMe() :
-                                            $sendingfrom->getAboutMe();
+                                        if (!$sendingto->isLJ()) {
+                                            # We might be sending a copy of the user's own message
+                                            $aboutme = $unmailedmsg['userid'] == $sendingto->getId() ?
+                                                $sendingto->getAboutMe() :
+                                                $sendingfrom->getAboutMe();
 
-                                        $html = $twig->render('chat_notify.html', [
-                                            'unsubscribe' => $sendingto->getUnsubLink($site, $member['userid'], User::SRC_CHATNOTIF),
-                                            'fromname' => $fromname ? $fromname : $sendingfrom->getName(),
-                                            'fromid' => $sendingfrom->getId(),
-                                            'reply' => $url,
-                                            'messages' => $twigmessages,
-                                            'backcolour' => '#FFF8DC',
-                                            'email' => $to,
-                                            'aboutme' => $aboutme ? $aboutme['text'] : '',
-                                            'previousmessages' => $prevmsg,
-                                            'jobads' => $jobads['jobs'],
-                                            'joblocation' => $jobads['location'],
-                                            'outcometaken' => $outcometaken,
-                                            'outcomewithdrawn' => $outcomewithdrawn,
-                                            'replyexpected' => $replyexpected
-                                        ]);
+                                            $html = $twig->render('chat_notify.html', [
+                                                'unsubscribe' => $sendingto->getUnsubLink($site, $member['userid'], User::SRC_CHATNOTIF),
+                                                'fromname' => $fromname ? $fromname : $sendingfrom->getName(),
+                                                'fromid' => $sendingfrom->getId(),
+                                                'reply' => $url,
+                                                'messages' => $twigmessages,
+                                                'backcolour' => '#FFF8DC',
+                                                'email' => $to,
+                                                'aboutme' => $aboutme ? $aboutme['text'] : '',
+                                                'previousmessages' => $prevmsg,
+                                                'jobads' => $jobads['jobs'],
+                                                'joblocation' => $jobads['location'],
+                                                'outcometaken' => $outcometaken,
+                                                'outcomewithdrawn' => $outcomewithdrawn,
+                                                'replyexpected' => $replyexpected
+                                            ]);
 
-                                        $sendname = $justmine ? $sendingto->getName() : $sendingfrom->getName();
+                                            $sendname = $justmine ? $sendingto->getName() : $sendingfrom->getName();
+                                        } else {
+                                            // LoveJunk user.  We send via their API.
+                                            $l = new LoveJunk($this->dbhr, $this->dbhm);
+                                            $msg = "";
+
+                                            foreach ($twigmessages as $t) {
+                                                if ($t['type'] == ChatMessage::TYPE_PROMISED) {
+                                                    # This is a separate API call.  It's possible that there are
+                                                    # chat messages too, and therefore we might promise slightly out
+                                                    # of sequence.  But that is kind of OK, as the user might have done
+                                                    # that.
+                                                    $notified += $l->promise($chat['chatid']);
+                                                } else if ($t['type'] == ChatMessage::TYPE_RENEGED) {
+                                                    # Ditto.
+                                                    $notified += $l->renege($chat['chatid']);
+                                                } else {
+                                                    # Use the text summary.
+                                                    $tt = trim($t['message']);
+
+                                                    if ($tt) {
+                                                        $msg .=  "$tt\n";
+                                                    }
+                                                }
+                                            }
+
+                                            if (strlen($msg)) {
+                                                $notified += $l->sendChatMessage($chat['chatid'], $msg);
+                                            }
+
+                                            // Don't try to send by email below.
+                                            $this->recordSend($lastmsgemailed, $member['userid'], $chat['chatid']);
+                                            $html = '';
+                                        }
                                         break;
                                     case ChatRoom::TYPE_USER2MOD:
                                         if ($notifyingmember) {
@@ -2422,79 +2470,77 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                                 }
                             } catch (\Exception $e) { $html = ''; error_log("Twig failed with " . $e->getMessage()); }
 
-                            # We ask them to reply to an email address which will direct us back to this chat.
-                            #
-                            # Use a special user for yahoo.co.uk to work around deliverability issues.
-                            $domain = USER_DOMAIN;
-                            #$domain = 'users2.ilovefreegle.org';
-                            $replyto = 'notify-' . $chat['chatid'] . '-' . $member['userid'] . '@' . $domain;
+                            if (strlen($html)) {
+                                # We ask them to reply to an email address which will direct us back to this chat.
+                                #
+                                # Use a special user for yahoo.co.uk to work around deliverability issues.
+                                $domain = USER_DOMAIN;
+                                #$domain = 'users2.ilovefreegle.org';
+                                $replyto = 'notify-' . $chat['chatid'] . '-' . $member['userid'] . '@' . $domain;
 
-                            # ModTools users should never get notified.
-                            if ($to && strpos($to, MOD_SITE) === FALSE) {
-                                error_log("Notify chat #{$chat['chatid']} $to for {$member['userid']} $subject last mailed will be $lastmsgemailed lastmax $lastmaxmailed");
+                                # ModTools users should never get notified.
+                                if ($to && strpos($to, MOD_SITE) === FALSE) {
+                                    error_log("Notify chat #{$chat['chatid']} $to for {$member['userid']} $subject last mailed will be $lastmsgemailed lastmax $lastmaxmailed");
 
-                                # Firewall against a case we have seen during cluster issues, which we don't understand
-                                # but which led to us sending chats to the wrong user.
-                                if ($chattype == ChatRoom::TYPE_USER2USER &&
-                                    ($r->getPrivate('id') != $chat['chatid'] ||
-                                    ($member['userid'] != $r->getPrivate('user1') && $member['userid'] != $r->getPrivate('user2')))) {
-                                    $errormsg = "Chat inconsistency - cluster issue? Chat {$r->getPrivate('id')} vs {$chat['chatid']} user {$member['userid']} vs {$r->getPrivate('user1')} and {$r->getPrivate('user2')}";
-                                    error_log($errormsg);
-                                    \Sentry\captureMessage($errormsg);
-                                    exit(1);
-                                }
+                                    # Firewall against a case we have seen during cluster issues, which we don't understand
+                                    # but which led to us sending chats to the wrong user.
+                                    if ($chattype == ChatRoom::TYPE_USER2USER &&
+                                        ($r->getPrivate('id') != $chat['chatid'] ||
+                                            ($member['userid'] != $r->getPrivate('user1') && $member['userid'] != $r->getPrivate('user2')))) {
+                                        $errormsg = "Chat inconsistency - cluster issue? Chat {$r->getPrivate('id')} vs {$chat['chatid']} user {$member['userid']} vs {$r->getPrivate('user1')} and {$r->getPrivate('user2')}";
+                                        error_log($errormsg);
+                                        \Sentry\captureMessage($errormsg);
+                                        exit(1);
+                                    }
 
-                                try {
-                                    #error_log("Our email " . $sendingto->getOurEmail() . " for " . $sendingto->getEmailPreferred());
-                                    # Make the text summary longer, because this helps with spam detection according
-                                    # to Litmus.
-                                    $textsummary .= "\r\n\r\n-------\r\nThis is a text-only version of the message; you can also view this message in HTML if you have it turned on, and on the website.  We're adding this because short text messages don't always get delivered successfully.\r\n";
-                                    $message = $this->constructMessage($sendingto,
-                                        $member['userid'],
-                                        $sendingto->getName(),
-                                        $emailoverride ? $emailoverride : $to,
-                                        $sendname,
-                                        $replyto,
-                                        $subject,
-                                        $textsummary,
-                                        $html,
-                                        $chattype == ChatRoom::TYPE_USER2USER ? $sendingfrom->getId() : NULL,
-                                        $groupid,
-                                        $refmsgs);
+                                    try {
+                                        #error_log("Our email " . $sendingto->getOurEmail() . " for " . $sendingto->getEmailPreferred());
+                                        # Make the text summary longer, because this helps with spam detection according
+                                        # to Litmus.
+                                        $textsummary .= "\r\n\r\n-------\r\nThis is a text-only version of the message; you can also view this message in HTML if you have it turned on, and on the website.  We're adding this because short text messages don't always get delivered successfully.\r\n";
+                                        $message = $this->constructMessage($sendingto,
+                                                                           $member['userid'],
+                                                                           $sendingto->getName(),
+                                                                           $emailoverride ? $emailoverride : $to,
+                                                                           $sendname,
+                                                                           $replyto,
+                                                                           $subject,
+                                                                           $textsummary,
+                                                                           $html,
+                                                                           $chattype == ChatRoom::TYPE_USER2USER ? $sendingfrom->getId() : NULL,
+                                                                           $groupid,
+                                                                           $refmsgs);
 
-                                    if ($message) {
-                                        if ($chattype == ChatRoom::TYPE_USER2USER && $sendingto->getId() && !$justmine) {
-                                            # Request read receipt.  We will often not get these for privacy reasons, but if
-                                            # we do, it's useful to have to that we can display feedback to the sender.
-                                            $headers = $message->getHeaders();
-                                            $headers->addTextHeader('Disposition-Notification-To', "readreceipt-{$chat['chatid']}-{$member['userid']}-$lastmsgemailed@" . USER_DOMAIN);
-                                            $headers->addTextHeader('Return-Receipt-To', "readreceipt-{$chat['chatid']}-{$member['userid']}-$lastmsgemailed@" . USER_DOMAIN);
-                                        }
-
-                                        Mail::addHeaders($message, Mail::CHAT, $sendingto->getId());
-
-                                        $this->mailer($message, $chattype == ChatRoom::TYPE_USER2USER ? $to : null);
-
-                                        $sentsome = TRUE;
-
-                                        if (!RETURN_PATH || !Utils::pres('seed', $member)) {
-                                            $this->dbhm->preExec("UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;", [
-                                                $lastmsgemailed,
-                                                $member['userid'],
-                                                $chat['chatid']
-                                            ]);
-
-                                            if ($chattype == ChatRoom::TYPE_USER2USER && !$justmine) {
-                                                # Send any SMS, but not if we're only mailing our own messages
-                                                $smsmsg = ($textsummary && substr($textsummary, 0, 1) != "\r") ? ('New message: "' . substr($textsummary, 0, 30) . '"...') : 'You have a new message.';
-                                                $sendingto->sms($smsmsg, 'https://' . $site . '/chats/' . $chat['chatid'] . '?src=sms');
+                                        if ($message) {
+                                            if ($chattype == ChatRoom::TYPE_USER2USER && $sendingto->getId() && !$justmine) {
+                                                # Request read receipt.  We will often not get these for privacy reasons, but if
+                                                # we do, it's useful to have to that we can display feedback to the sender.
+                                                $headers = $message->getHeaders();
+                                                $headers->addTextHeader('Disposition-Notification-To', "readreceipt-{$chat['chatid']}-{$member['userid']}-$lastmsgemailed@" . USER_DOMAIN);
+                                                $headers->addTextHeader('Return-Receipt-To', "readreceipt-{$chat['chatid']}-{$member['userid']}-$lastmsgemailed@" . USER_DOMAIN);
                                             }
 
-                                            $notified++;
+                                            Mail::addHeaders($message, Mail::CHAT, $sendingto->getId());
+
+                                            $this->mailer($message, $chattype == ChatRoom::TYPE_USER2USER ? $to : null);
+
+                                            $sentsome = TRUE;
+
+                                            if (!RETURN_PATH || !Utils::pres('seed', $member)) {
+                                                $this->recordSend($lastmsgemailed, $member['userid'], $chat['chatid']);
+
+                                                if ($chattype == ChatRoom::TYPE_USER2USER && !$justmine) {
+                                                    # Send any SMS, but not if we're only mailing our own messages
+                                                    $smsmsg = ($textsummary && substr($textsummary, 0, 1) != "\r") ? ('New message: "' . substr($textsummary, 0, 30) . '"...') : 'You have a new message.';
+                                                    $sendingto->sms($smsmsg, 'https://' . $site . '/chats/' . $chat['chatid'] . '?src=sms');
+                                                }
+
+                                                $notified++;
+                                            }
                                         }
+                                    } catch (\Exception $e) {
+                                        error_log("Send to {$member['userid']} failed with " . $e->getMessage());
                                     }
-                                } catch (\Exception $e) {
-                                    error_log("Send to {$member['userid']} failed with " . $e->getMessage());
                                 }
                             }
                         }
@@ -2858,5 +2904,17 @@ ORDER BY chat_messages.id, m1.added, groupid ASC;";
                 $waiting++;
             }
         }
+    }
+
+    private function recordSend( $lastmsgemailed, $userid, $chatid1): void
+    {
+        $this->dbhm->preExec(
+            "UPDATE chat_roster SET lastemailed = NOW(), lastmsgemailed = ? WHERE userid = ? AND chatid = ?;",
+            [
+                $lastmsgemailed,
+                $userid,
+                $chatid1
+            ]
+        );
     }
 }

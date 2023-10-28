@@ -43,7 +43,7 @@ if (!$gid) {
     $u->addEmail($ouremail, 0, FALSE);
     $u->addLogin(User::LOGIN_NATIVE, NULL, 'freegle');
     $u->addMembership($gid);
-    $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+    $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_UNMODERATED);
 
     # An isochrone for the user.
     $dbhm->preExec("INSERT INTO `isochrones` (`id`, `locationid`, `transport`, `minutes`, `timestamp`, `polygon`) VALUES (NULL, $pcid, 'Drive', '20', CURRENT_TIMESTAMP, ST_GeomFromText('POLYGON((-3.393639 55.979571,-3.334983 55.971921,-3.359333 55.967691,-3.315029 55.955875,-3.336093 55.937571,-3.3004 55.936504,-3.307505 55.917571,-3.287333 55.901114,-3.207333 55.901722,-3.197333 55.92384,-3.149311 55.903549,-3.127308 55.913571,-3.131561 55.939799,-3.111333 55.926988,-3.081996 55.947571,-3.187333 55.989277,-3.317333 55.969117,-3.393639 55.979571))',3857));");

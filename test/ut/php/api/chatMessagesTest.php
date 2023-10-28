@@ -57,6 +57,10 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->cid = $c->createGroupChat('test', $this->groupid);
     }
 
+    protected function tearDown(): void
+    {
+    }
+
     public function testGroupGet()
     {
         # Logged out - no rooms
@@ -468,22 +472,22 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $this->user2->removeMembership($this->groupid);
 
-        # We're a mod, but not on any of the groups that these users are on (because they're not on any).  So we
-        # shouldn't see this chat message to review.
+        # user2 is not on any groups, so the messages should show up for review as we are a mod on the sender's group.
         $ret = $this->call('session', 'GET', []);
         $this->assertEquals(0, $ret['ret']);
-        $this->assertEquals(0, $ret['work']['chatreview']);
+        $this->assertEquals(3, $ret['work']['chatreview']);
 
-        $this->user->addMembership($this->groupid, User::ROLE_MODERATOR);
+        $this->user3->removeMembership($this->groupid);
 
-        # Shouldn't see this as the recipient is still not on a group we mod.
+        # Shouldn't see this as the sender is not on a group we mod.
         $ret = $this->call('session', 'GET', []);
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals(0, $ret['work']['chatreview']);
 
         $this->user2->addMembership($this->groupid, User::ROLE_MODERATOR);
+        $this->user3->addMembership($this->groupid, User::ROLE_MODERATOR);
 
-        # Should see this now.
+        # Should see this now - normal review case of being a mod on the recipient's group.
         $this->log("Check can see for mod on {$this->groupid}");
         $ret = $this->call('session', 'GET', []);
         $this->assertEquals(0, $ret['ret']);
@@ -859,6 +863,110 @@ class chatMessagesAPITest extends IznikAPITestCase
         $ret = $this->call('chatmessages', 'GET', [ 'roomid' => $rid ]);
         $this->assertEquals(1, count($ret['chatmessages']));
         $this->assertEquals('(Message deleted)', $ret['chatmessages'][0]['message']);
+    }
+
+    public function testReviewRecipientOnNoGroups() {
+        # Normally mods on the recipient's groups see chat for review.  But if the recipient is not on any group
+        # then the sender's mods see it.
+        $this->dbhm->preExec("DELETE FROM spam_whitelist_links WHERE domain LIKE 'spam.wherever';");
+        $this->assertTrue($this->user->login('testpw'));
+
+        # Set up:
+        # - sender on group1
+        # - recipient on group2
+        $u = new User($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $this->groupid = $g->create('testgroup2', Group::GROUP_FREEGLE);
+        $this->uid = $u->create('Test', 'User', 'Test User');
+        $this->user = new User($this->dbhr, $this->dbhm, $this->uid);
+        $this->user->addMembership($this->groupid);
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->groupid2 = $g->create('testgroup3', Group::GROUP_FREEGLE);
+        $this->uid2 = $u->create('Test', 'User', 'Test User');
+        $this->user2 = new User($this->dbhr, $this->dbhm, $this->uid2);
+        $this->user2->addMembership($this->groupid2);
+        $this->assertGreaterThan(0, $this->user2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+
+        # Create a chat from first user to second user.
+        $this->assertTrue($this->user->login('testpw'));
+        $ret = $this->call('chatrooms', 'PUT', [
+            'userid' => $this->uid2
+        ]);
+
+        $this->assertEquals(0, $ret['ret']);
+        $this->cid = $ret['id'];
+        $this->assertNotNull($this->cid);
+
+        $ret = $this->call('chatmessages', 'POST', [
+            'roomid' => $this->cid,
+            'message' => 'Test with link http://spam.wherever and email test@test.com',
+            'refchatid' => $this->cid
+        ]);
+        $this->log("Create message " . var_export($ret, TRUE));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertNotNull($ret['id']);
+        $mid1 = $ret['id'];
+
+        # Set up:
+        # - mod on sender's group
+        # - mod on recipient's group
+        $u = new User($this->dbhr, $this->dbhm);
+        $modid1 = $u->create('Test', 'User', 'Test User');
+        $u = new User($this->dbhr, $this->dbhm, $modid1);
+        $u->addMembership($this->groupid, User::ROLE_MODERATOR);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+
+        $modid2 = $u->create('Test', 'User', 'Test User');
+        $u = new User($this->dbhr, $this->dbhm, $modid2);
+        $u->addMembership($this->groupid2, User::ROLE_MODERATOR);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+
+        # Mod on sender's group shouldn't see the message for review this recipient is on a group, but not theirs.
+        $u = new User($this->dbhr, $this->dbhm, $modid1);
+        $this->assertTrue($u->login('testpw'));
+        $ret = $this->call('session', 'GET', []);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['work']['chatreview']);
+
+        $ret = $this->call('chatmessages', 'GET', []);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, count($ret['chatmessages']));
+
+        # Mod on recipient's group should see it.
+        $u = new User($this->dbhr, $this->dbhm, $modid2);
+        $this->assertTrue($u->login('testpw'));
+        $ret = $this->call('session', 'GET', []);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, $ret['work']['chatreview']);
+
+        $ret = $this->call('chatmessages', 'GET', []);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, count($ret['chatmessages']));
+
+        # Make sure the recipient isn't on any groups.
+        $this->user2->removeMembership($this->groupid2);
+
+        # Mod on sender's group should now see the message for review.
+        $u = new User($this->dbhr, $this->dbhm, $modid1);
+        $this->assertTrue($u->login('testpw'));
+        $ret = $this->call('session', 'GET', []);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, $ret['work']['chatreview']);
+
+        $ret = $this->call('chatmessages', 'GET', []);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, count($ret['chatmessages']));
+
+        # Mod on recipient's group should not see it.
+        $u = new User($this->dbhr, $this->dbhm, $modid2);
+        $this->assertTrue($u->login('testpw'));
+        $ret = $this->call('session', 'GET', []);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['work']['chatreview']);
+
+        $ret = $this->call('chatmessages', 'GET', []);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, count($ret['chatmessages']));
     }
 
 //

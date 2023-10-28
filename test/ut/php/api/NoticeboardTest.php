@@ -170,5 +170,34 @@ class noticeboardAPITest extends IznikAPITestCase {
         $this->assertEquals(4, count($ret['noticeboard']['checks']));
         $this->assertEquals(1, $ret['noticeboard']['checks'][0]['inactive']);
     }
+
+    public function testAuthority() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test@test.com');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+
+        # Valid create
+        $ret = $this->call('noticeboard', 'POST', [
+            'lat' => 8.53333,
+            'lng' => 179.2167,
+            'description' => 'Test description'
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+
+        $a = new Authority($this->dbhr, $this->dbhm);
+        $aid = $a->create("UTAuth", 'GLA', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
+
+
+        $ret = $this->call('noticeboard', 'GET', [
+            'authorityid' => $aid
+        ]);
+
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, count($ret['noticeboards']));
+        $this->assertEquals($id, $ret['noticeboards'][0]['id']);
+    }
 }
 

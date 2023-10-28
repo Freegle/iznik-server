@@ -895,6 +895,11 @@ class Message
         return($locationlist[$locationid]);
     }
 
+    public function getPromises() {
+        $sql = "SELECT * FROM messages_promises WHERE msgid = ?;";
+        return $this->dbhr->preQuery($sql, [$this->id]);
+    }
+
     public function promiseCount() {
         $sql = "SELECT COUNT(*) AS count FROM messages_promises WHERE msgid = ?;";
         $promises = $this->dbhr->preQuery($sql, [$this->id]);
@@ -1676,7 +1681,7 @@ ORDER BY lastdate DESC;";
         $fetch = array_filter(array_column($rets, 'id'));
 
         if (count($fetch)) {
-            $posts = $this->dbhr->preQuery("SELECT * FROM messages_postings WHERE msgid IN (" . implode(',', $fetch) . ") ORDER BY date ASC;", NULL, FALSE, FALSE);
+            $posts = $this->dbhr->preQuery("SELECT messages_postings.*, COALESCE(namefull, nameshort) AS namedisplay FROM messages_postings INNER JOIN `groups` ON messages_postings.groupid = groups.id WHERE msgid IN (" . implode(',', $fetch) . ") ORDER BY date ASC;", NULL, FALSE, FALSE);
 
             foreach ($rets as &$ret) {
                 $ret['postings'] = [];

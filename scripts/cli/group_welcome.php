@@ -23,7 +23,6 @@ if (count($opts) < 3) {
 
     $u = new User($dbhr, $dbhm);
     $uid = $u->findByEmail($email);
-    $u = new User($dbhr, $dbhm, $uid);
 
-    $u->sendWelcome($g->getPrivate('welcomemail'), $gid, NULL, NULL, $review);
+    $g->sendWelcome($uid, $review);
 }
