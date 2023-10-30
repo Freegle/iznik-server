@@ -7,6 +7,31 @@ require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
+# Fix up any repost values which are configured with strings not ints.
+$groups = $dbhr->preQuery("SELECT id, nameshort, settings FROM `groups`;");
+
+foreach ($groups as $group) {
+    $settings = json_decode($group['settings'], TRUE);
+
+    if (Utils::pres('reposts', $settings)) {
+        $changed = FALSE;
+        foreach ($settings['reposts'] as $key => $val) {
+            if (!is_int($val)) {
+                error_log("{$group['nameshort']} fix repost $key");
+                $settings['reposts'][$key] = intval($val);
+                $changed = TRUE;
+            }
+        }
+
+        if ($changed) {
+            $dbhm->preExec("UPDATE `groups` SET settings = ? WHERE id = ?;", [
+                json_encode($settings),
+                $group['id']
+            ]);
+        }
+    }
+}
+
 # Update record of which groups are on TN.
 #
 # Not in a single call as this seems to hit a deadlock.
