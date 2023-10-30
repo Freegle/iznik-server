@@ -24,7 +24,9 @@ foreach ($chats as $chat) {
     error_log("Chat with spammer {$chat['id']}");
 
     # Check that there are some messages they'll actually have seen, otherwise we're warning them about nothing.
-    $messages = $dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = ? AND reviewrequired = 0 AND reviewrejected = 0 AND (processingsuccessful = 1 OR processingrequired = 0)");
+    $messages = $dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_messages WHERE chatid = ? AND reviewrequired = 0 AND reviewrejected = 0 AND (processingsuccessful = 1 OR processingrequired = 0);", [
+        $chat['id']
+    ]);
 
     if ($messages[0]['count'] > 0) {
         $innocent = new User($dbhr, $dbhm, ($chat['user1'] == $chat['userid']) ? $chat['user2'] : $chat['user1']);
