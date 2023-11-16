@@ -15,7 +15,7 @@ $l = new LoveJunk($dbhr, $dbhm);
 $start = date("Y-m-d", strtotime("24 hours ago"));
 
 // Edit any messages.
-$msgs = $dbhr->preQuery("SELECT DISTINCT messages.id, lovejunk.status, messages.arrival FROM messages 
+$msgs = $dbhr->preQuery("SELECT DISTINCT messages.id, lovejunk.status, messages.arrival,  FROM messages 
     INNER JOIN lovejunk ON lovejunk.msgid = messages.id
     INNER JOIN messages_groups ON messages_groups.msgid = messages.id
     INNER JOIN messages_edits ON messages_edits.msgid = messages.id

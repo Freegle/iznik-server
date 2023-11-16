@@ -29,6 +29,7 @@ class ChatRoom extends Entity
     const ACTION_ALLSEEN = 'AllSeen';
     const ACTION_NUDGE = 'Nudge';
     const ACTION_TYPING = 'Typing';
+    const ACTION_REFER_TO_SUPPORT = 'ReferToSupport';
 
     const DELAY = 30;
     const CACHED_LIST_SIZE = 20;
@@ -2824,6 +2825,23 @@ ORDER BY id, added, groupid ASC;";
         ]);
 
         return $this->dbhm->rowsAffected();
+    }
+
+    public function sendIt($mailer, $message) {
+        $mailer->send($message);
+    }
+
+    public function referToSupport() {
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
+
+        $message = \Swift_Message::newInstance()
+            ->setSubject($me->getName() . " asked for help with chat #{$this->id} " . $this->getName($this->id, $me->getId()))
+            ->setFrom([$me->getEmailPreferred()])
+            ->setTo(explode(',', SUPPORT_ADDR))
+            ->setBody('Please review the chat at https://' . MOD_SITE . "/modtools/support/refer/{$this->id} and then reply to this email to contact the mod who requested help.");
+
+        list ($transport, $mailer) = Mail::getMailer();
+        $this->sendIt($mailer, $message);
     }
 
     public function nudgess($uids) {

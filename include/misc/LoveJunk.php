@@ -193,10 +193,10 @@ class LoveJunk {
                 ]
             ];
 
-            if ($images) {
-                $data['images'] = $images;
-            }
+            $data['images'] = $images;
         }
+
+        error_log("Message $id data " . json_encode($data));
 
         return $data;
     }

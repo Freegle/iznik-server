@@ -251,8 +251,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals(1, count($ret['chatrooms']));
         $this->assertEquals($rid, $ret['chatrooms'][0]['id']);
-
-        }
+    }
 
     public function testAllSeen()
     {
@@ -512,6 +511,38 @@ class chatRoomsAPITest extends IznikAPITestCase
         ]);
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals('Item marked as TAKEN', $ret['chatroom']['snippet']);
+    }
+
+
+    public function testReferToSupport() {
+        $this->assertTrue($this->user->login('testpw'));
+
+        # Create a support room from this user to the group mods
+        $this->user->addMembership($this->groupid);
+
+        $ret = $this->call('chatrooms', 'PUT', [
+            'groupid' => $this->groupid,
+            'userid' => $this->uid,
+            'chattype' => ChatRoom::TYPE_USER2MOD
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+        $rid = $ret['id'];
+        $this->log("Created User2Mod $rid");
+        $this->assertNotNull($rid);
+
+        # Now create a group mod
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u->addEmail('test2@test.com');
+        $u->addMembership($this->groupid);
+        $this->assertTrue($u->login('testpw'));
+
+        $ret = $this->call('chatrooms', 'POST', [
+            'id' => $rid,
+            'action' => ChatRoom::ACTION_REFER_TO_SUPPORT,
+        ]);
+        $this->assertEquals(0, $ret['ret']);
     }
 
 //
