@@ -392,8 +392,7 @@ class Noticeboard extends Entity
                                 ->setSubject("Can you help?  There's a noticeboard $miles miles from you - " . $atts['name'])
                                 ->setFrom([NOREPLY_ADDR => 'Freegle'])
                                 ->setReturnPath($u->getBounce())
-//                            ->setTo([ $u->getEmailPreferred() => $u->getName() ])
-                                ->setTo([ 'log@ehibbert.org.uk' => $u->getName() ])
+                                ->setTo([ $u->getEmailPreferred() => $u->getName() ])
                                 ->setBody("Someone printed and put up a Freegle poster on it a while back.  Could you keep it alive by printing one and putting it up?  Click https://www.ilovefreegle.org/noticeboards/{$noticeboard['id']} to let us know...");
 
                             $htmlPart = \Swift_MimePart::newInstance();
