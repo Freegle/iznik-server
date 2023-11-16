@@ -24,4 +24,8 @@ foreach ($boards as $board) {
 $n = new Noticeboard($dbhr, $dbhm);
 $n->chaseup();
 
+# Just chasing up others on Wandsworth, as part of the project.
+$count = $n->chaseup(NULL, TRUE, 126719);
+error_log("Chased up $count");
+
 Utils::unlockScript($lockh);

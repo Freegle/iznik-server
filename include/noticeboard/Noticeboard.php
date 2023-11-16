@@ -225,7 +225,7 @@ class Noticeboard extends Entity
     }
 
     private function askedRecently($userid) {
-        $mysqltime = date('Y-m-d', strtotime("7 days ago"));
+        $mysqltime = date('Y-m-d', strtotime("14 days ago"));
 
         $checks = $this->dbhr->preQuery("SELECT * FROM noticeboards_checks WHERE userid = ? AND askedat >= ?;", [
             $userid,
@@ -235,20 +235,54 @@ class Noticeboard extends Entity
         return count($checks) > 0;
     }
 
-    public function chaseup($id = NULL) {
+    public function chaseup($id = NULL, $others = FALSE, $groupid = NULL) {
         $count = 0;
 
         # Chase up the person who put a poster up.  They're the most likely person to replace it.  We want noticeboards
         # to be checked once a month.
         $mysqltime = date('Y-m-d', strtotime("30 days ago"));
         $idq = $id ? " AND noticeboards.id = $id " : '';
-        $noticeboards = $this->dbhr->preQuery("SELECT * FROM noticeboards WHERE ((added <= ? AND lastcheckedat IS NULL) OR (lastcheckedat IS NOT NULL AND lastcheckedat < ?)) AND active = 1 AND name IS NOT NULL $idq;", [
+        $noticeboards = $this->dbhr->preQuery("SELECT * FROM noticeboards WHERE 
+                             ((added <= ? AND lastcheckedat IS NULL) OR (lastcheckedat IS NOT NULL AND lastcheckedat < ?)) 
+                             AND active = 1 AND name IS NOT NULL $idq;", [
             $mysqltime,
             $mysqltime
         ]);
 
         $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig/noticeboard/');
         $twig = new \Twig_Environment($loader);
+
+        # Get users who
+        # - have accepted microvolunteering
+        # - haven't been asked recently
+        # - are in the group
+        # ...and their lat/lngs.
+        $latlngs = [];
+
+        $mysqltime = date('Y-m-d', strtotime("7 days ago"));
+        $users = $this->dbhr->preQuery("SELECT DISTINCT(users.id) FROM users
+    INNER JOIN memberships ON users.id = memberships.userid
+    LEFT JOIN noticeboards_checks ON users.id = noticeboards_checks.userid
+    WHERE 
+    groupid = ? 
+    AND users.trustlevel IN (?, ?, ?) AND users.deleted IS NULL 
+    AND (askedat IS NULL OR askedat < ?) ", [
+            $groupid,
+            User::TRUST_BASIC, User::TRUST_MODERATE, User::TRUST_ADVANCED,
+            $mysqltime
+        ]);
+
+        foreach ($users as $user) {
+            $u = User::get($this->dbhr, $this->dbhm, $user['id']);
+
+            if ($u->getEmailPreferred() && $u->sendOurMails()) {
+                list ($lat, $lng, $loc) = $u->getLatLng();
+
+                if ($lat || $lng) {
+                    $latlngs[$user['id']] = [ $lat, $lng ];
+                }
+            }
+        }
 
         foreach ($noticeboards as $noticeboard) {
             # See if we've asked anyone about this one in the last week.  If so then we don't do anything, because
@@ -266,7 +300,10 @@ class Noticeboard extends Entity
 
                 $findone = TRUE;
 
-                if ($noticeboard['addedby'] && !$this->asked($noticeboard['addedby'], $noticeboard['id']) && !$this->askedRecently($noticeboard['addedby'])) {
+                if (!$others &&
+                    $noticeboard['addedby'] &&
+                    !$this->asked($noticeboard['addedby'], $noticeboard['id']) &&
+                    !$this->askedRecently($noticeboard['addedby'])) {
                     # We haven't.  Ask them now.
                     error_log("...ask owner {$noticeboard['addedby']}");
                     $u = User::get($this->dbhr, $this->dbhm, $noticeboard['addedby']);
@@ -301,10 +338,7 @@ class Noticeboard extends Entity
                             $this->sendIt($mailer, $message);
 
                             # Record our ask.
-                            $this->dbhm->preExec("INSERT INTO noticeboards_checks (noticeboardid, userid, askedat) VALUES (?, ?, NOW());", [
-                                $noticeboard['id'],
-                                $noticeboard['addedby']
-                            ]);
+                            $this->recordAsk($noticeboard['id'], $noticeboard['addedby']);
 
                             $findone = FALSE;
                             $count++;
@@ -312,14 +346,87 @@ class Noticeboard extends Entity
                     }
                 }
 
-                if ($findone) {
-                    # We've asked the owner if they're still around.  Find someone else.
-                    # TODO
+                if ($findone && $groupid) {
+                    # See if this noticeboard is within the area of the group.
+                    $within = $this->dbhr->preQuery("SELECT id FROM `groups` WHERE id = ? 
+                          AND ST_Contains(ST_GeomFromText(CASE WHEN poly IS NOT NULL THEN poly ELSE polyofficial END, ?), ST_SRID(POINT(?, ?), ?));", [
+                        $groupid,
+                        $this->dbhr->SRID(),
+                        $noticeboard['lng'],
+                        $noticeboard['lat'],
+                        $this->dbhr->SRID()
+                    ]);
+
+                    if (count($within)) {
+                        # Now find the closest.
+                        $closestid = NULL;
+                        $closestdist = NULL;
+
+                        foreach ($latlngs as $uid => $latlng) {
+                            list ($lat, $lng) = $latlng;
+                            $away = \GreatCircle::getDistance($noticeboard['lat'], $noticeboard['lng'], $lat, $lng);
+
+                            if (($lat || $lng) && (!$closestid || $away < $closestdist)) {
+                                $closestid = $uid;
+                                $closestdist = $away;
+                            }
+                        }
+
+                        if ($closestid) {
+                            $u = User::get($this->dbhr, $this->dbhm, $closestid);
+                            $n = new Noticeboard($this->dbhr, $this->dbhm, $noticeboard['id']);
+                            $atts = $n->getPublic();
+
+                            $html = $twig->render('chaseup_other.html', [
+                                'email' => $u->getEmailPreferred(),
+                                'id' => $noticeboard['id'],
+                                'name' => $noticeboard['name'],
+                                'description' => $noticeboard['description'],
+                                'photo' => array_key_exists('photo', $atts) ? $atts['photo']['photo'] : NULL,
+                            ]);
+
+                            $miles = $closestdist / 1609.344;
+                            $miles = $miles > 2 ? round($miles) : round($miles, 1);
+
+                            $message = \Swift_Message::newInstance()
+                                ->setSubject("Can you help?  There's a noticeboard $miles miles from you - " . $atts['name'])
+                                ->setFrom([NOREPLY_ADDR => 'Freegle'])
+                                ->setReturnPath($u->getBounce())
+//                            ->setTo([ $u->getEmailPreferred() => $u->getName() ])
+                                ->setTo([ 'log@ehibbert.org.uk' => $u->getName() ])
+                                ->setBody("Someone printed and put up a Freegle poster on it a while back.  Could you keep it alive by printing one and putting it up?  Click https://www.ilovefreegle.org/noticeboards/{$noticeboard['id']} to let us know...");
+
+                            $htmlPart = \Swift_MimePart::newInstance();
+                            $htmlPart->setCharset('utf-8');
+                            $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                            $htmlPart->setContentType('text/html');
+                            $htmlPart->setBody($html);
+                            $message->attach($htmlPart);
+
+                            Mail::addHeaders($message, Mail::NOTICEBOARD_CHASEUP_OWNER, $u->getId());
+
+                            list ($transport, $mailer) = Mail::getMailer();
+                            error_log("...ask $closestid away $closestdist for noticeboard {$noticeboard['id']}");
+                            $this->sendIt($mailer, $message);
+
+                            # Record our ask.
+                            $this->recordAsk($noticeboard['id'], $noticeboard['addedby']);
+                            $count++;
+                        }
+                    }
                 }
             }
         }
 
         return $count;
+    }
+
+    private function recordAsk($id, $userid): void
+    {
+        $this->dbhm->preExec("INSERT INTO noticeboards_checks (noticeboardid, userid, askedat) VALUES (?, ?, NOW());", [
+            $id,
+            $userid
+        ]);
     }
 }
 
