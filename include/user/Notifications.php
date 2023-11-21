@@ -26,8 +26,12 @@ class Notifications
     }
 
     public function countUnseen($userid) {
-        $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_notifications WHERE touser = ? AND seen = 0;", [
-            $userid
+        # Don't count old notifications - if we are not going to respond to these then after a while it looks better
+        # to stop nagging people about them.
+        $mysqltime = date("Y-m-d", strtotime("Midnight 90 days ago"));
+        $counts = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM users_notifications WHERE touser = ? AND seen = 0 AND timestamp >= ?;", [
+            $userid,
+            $mysqltime
         ]);
         return($counts[0]['count']);
     }
