@@ -32,22 +32,6 @@ foreach ($groups as $group) {
     }
 }
 
-# Update record of which groups are on TN.
-#
-# Not in a single call as this seems to hit a deadlock.
-$groups = $dbhr->preQuery("SELECT id FROM `groups` WHERE ontn = 1;");
-foreach ($groups as $group) {
-    $dbhm->preExec("UPDATE `groups` SET ontn = 0 WHERE id = ?;", [
-        $group['id']
-    ]);
-}
-
-$tngroups = file_get_contents("https://trashnothing.com/modtools/api/freegle-groups?key=" . TNKEY);
-$tngroups = str_replace("{u'", "{'", $tngroups);
-$tngroups = str_replace(", u'", ", '", $tngroups);
-$tngroups = str_replace("'", '"', $tngroups);
-$tngroups = json_decode($tngroups, TRUE);
-
 # Ensure the polyindex is set correctly.  It can get out of step if someone updates the DB manually.
 #
 # Bad geometries can sometimes be fixed like this:
@@ -80,11 +64,29 @@ foreach ($groups as $group) {
     }
 }
 
-$g = new Group($dbhr, $dbhm);
-foreach ($tngroups as $gname => $tngroup) {
-    if ($tngroup['listed']) {
-        $gid = $g->findByShortName($gname);
-        $dbhm->preExec("UPDATE `groups` SET ontn = 1 WHERE id = ?;", [$gid]);
+# Update record of which groups are on TN.
+#
+# Not in a single call as this seems to hit a deadlock.
+$tngroups = file_get_contents("https://trashnothing.com/modtools/api/freegle-groups?key=" . TNKEY);
+$tngroups = str_replace("{u'", "{'", $tngroups);
+$tngroups = str_replace(", u'", ", '", $tngroups);
+$tngroups = str_replace("'", '"', $tngroups);
+$tngroups = json_decode($tngroups, TRUE);
+
+if (count($tngroups)) {
+    $groups = $dbhr->preQuery("SELECT id FROM `groups` WHERE ontn = 1;");
+    foreach ($groups as $group) {
+        $dbhm->preExec("UPDATE `groups` SET ontn = 0 WHERE id = ?;", [
+            $group['id']
+        ]);
+    }
+
+    $g = new Group($dbhr, $dbhm);
+    foreach ($tngroups as $gname => $tngroup) {
+        if ($tngroup['listed']) {
+            $gid = $g->findByShortName($gname);
+            $dbhm->preExec("UPDATE `groups` SET ontn = 1 WHERE id = ?;", [$gid]);
+        }
     }
 }
 
