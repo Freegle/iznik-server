@@ -285,10 +285,10 @@ class Noticeboard extends Entity
         }
 
         foreach ($noticeboards as $noticeboard) {
-            # See if we've asked anyone about this one in the last week.  If so then we don't do anything, because
+            # See if we've asked anyone about this one recently.  If so then we don't do anything, because
             # we want to give them time to act.
             error_log("Check noticeboard {$noticeboard['id']} {$noticeboard['name']} added {$noticeboard['added']} last checked {$noticeboard['lastcheckedat']}");
-            $mysqltime2 = date('Y-m-d', strtotime("7 days ago"));
+            $mysqltime2 = date('Y-m-d', strtotime("4 days ago"));
             $checks = $this->dbhr->preQuery("SELECT * FROM noticeboards_checks WHERE noticeboardid = ? AND askedat >= ?;", [
                 $noticeboard['id'],
                 $mysqltime2
@@ -358,7 +358,7 @@ class Noticeboard extends Entity
                     ]);
 
                     if (count($within)) {
-                        # Now find the closest.
+                        # Now find the closest user we've not asked recently or about this one.
                         $closestid = NULL;
                         $closestdist = NULL;
 
@@ -366,7 +366,9 @@ class Noticeboard extends Entity
                             list ($lat, $lng) = $latlng;
                             $away = \GreatCircle::getDistance($noticeboard['lat'], $noticeboard['lng'], $lat, $lng);
 
-                            if (($lat || $lng) && (!$closestid || $away < $closestdist)) {
+                            if (($lat || $lng) && (!$closestid || $away < $closestdist) &&
+                                !$this->askedRecently($uid) &&
+                                !$this->asked($uid, $noticeboard['id'])) {
                                 $closestid = $uid;
                                 $closestdist = $away;
                             }
