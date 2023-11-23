@@ -3924,4 +3924,77 @@ class messageAPITest extends IznikAPITestCase
 
         $this->assertEquals(12, $ret['ret']);
     }
+
+    public function testAttachmentOrder()
+    {
+        # Can create drafts when not logged in.
+        $attids = [];
+
+        for ($i = 0; $i < 3; $i++) {
+            $attname = ['chair', 'pan', 'Tile'];
+            $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/' . $attname[$i] . '.jpg');
+            file_put_contents("/tmp/chair.jpg", $data);
+
+            $ret = $this->call('image', 'POST', [
+                'photo' => [
+                    'tmp_name' => '/tmp/chair.jpg'
+                ],
+                'identify' => FALSE
+            ]);
+
+            $this->assertEquals(0, $ret['ret']);
+            $this->assertNotNull($ret['id']);
+            $attids[] = $ret['id'];
+        }
+
+        $locid = $this->dbhr->preQuery("SELECT id FROM locations ORDER BY id LIMIT 1;")[0]['id'];
+
+        # Reorder the attachments so that the first one created is not the first one passed.  This should test
+        # the primary attachment ordering.
+        $attid = array_shift($attids);
+        $attids[] = $attid;
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'textbody' => 'Text body',
+            'locationid' => $locid,
+            'attachments' => $attids
+        ]);
+        $this->log("Draft PUT " . var_export($ret, TRUE));
+        $this->assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+
+        # Check attachment order.
+        $ret = $this->call('message', 'GET', [
+            'id' => $id
+        ]);
+        $msg = $ret['message'];
+        $this->assertEquals('Offer', $msg['type']);
+        $this->assertEquals('a thing', $msg['subject']);
+        $this->assertEquals('Text body', $msg['textbody']);
+        $this->assertEquals(3, count($msg['attachments']));
+        $this->assertEquals($attids[0], $msg['attachments'][0]['id']);
+
+        # Now reorder again.
+        $attid = array_shift($attids);
+        $attids[] = $attid;
+
+        $ret = $this->call('message', 'PATCH', [
+            'id' => $id,
+            'groupid' => $this->gid,
+            'subject' => 'Test edit',
+            'attachments' => $attids
+        ]);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $id
+        ]);
+        $msg = $ret['message'];
+        $this->assertEquals('Offer', $msg['type']);
+        $this->assertEquals('a thing', $msg['subject']);
+        $this->assertEquals('Text body', $msg['textbody']);
+        $this->assertEquals($attids[0], $msg['attachments'][0]['id']);
+    }
 }

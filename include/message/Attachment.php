@@ -151,7 +151,7 @@ class Attachment
         $ret = [];
 
         if (count($ids)) {
-            $sql = "SELECT id, {$this->idatt}, hash, archived FROM {$this->table} WHERE {$this->idatt} IN (" . implode(',', $ids) . ") AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1) ORDER BY id;";
+            $sql = "SELECT id, {$this->idatt}, hash, archived FROM {$this->table} WHERE {$this->idatt} IN (" . implode(',', $ids) . ") AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1) ORDER BY `primary` DESC, id;";
             $atts = $this->dbhr->preQuery($sql);
             foreach ($atts as $att) {
                 $ret[] = new Attachment($this->dbhr, $this->dbhm, $att['id'], $this->type, $att);

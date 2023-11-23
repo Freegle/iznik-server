@@ -3926,13 +3926,22 @@ ORDER BY lastdate DESC;";
             $oldids[] = $oldatt['id'];
         }
 
+        // The first attachment in this list is the primary one.
+        $first = TRUE;
+
         foreach ($atts as $attid) {
             if ($attid) {
-                $this->dbhm->preExec("UPDATE messages_attachments SET msgid = ? WHERE id = ?;", [ $this->id, $attid ]);
+                $this->dbhm->preExec("UPDATE messages_attachments SET msgid = ?, `primary` = ? WHERE id = ?;", [
+                    $this->id,
+                    $first,
+                    $attid
+                ]);
                 $key = array_search($attid, $oldids);
                 if ($key !== FALSE) {
                     unset($oldids[$key]);
                 }
+
+                $first = FALSE;
             }
         }
 
