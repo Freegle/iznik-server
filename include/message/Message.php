@@ -141,7 +141,8 @@ class Message
         'To complete this verification',
         'I am currently away from my computer, but will reply to your message as soon as I return',
         "E-mails to personal mailboxes aren’t monitored",
-        'I am currently unavailable'
+        'I am currently unavailable',
+        'We appreciate your patience while we get back to you.'
     ];
 
     private $autoreply_text_start = [
