@@ -1573,7 +1573,7 @@ class userTest extends IznikTestCase {
         $u->addEmail('test@test.com');
 
         $mock = $this->getMockBuilder('Freegle\Iznik\User')
-            ->disableOriginalConstructor()
+            ->setConstructorArgs([$this->dbhm, $this->dbhm, $id])
             ->setMethods(array('sendIt'))
             ->getMock();
         $mock->method('sendIt')->will($this->returnCallback(function($mailer, $message) {
@@ -1583,7 +1583,7 @@ class userTest extends IznikTestCase {
         $this->assertEquals(1, count($this->msgsSent));
 
         $mock = $this->getMockBuilder('Freegle\Iznik\User')
-            ->disableOriginalConstructor()
+            ->setConstructorArgs([$this->dbhm, $this->dbhm, $id])
             ->setMethods(array('sendIt'))
             ->getMock();
         $mock->method('sendIt')->willThrowException(new \Exception());
