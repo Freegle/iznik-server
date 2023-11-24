@@ -553,7 +553,7 @@ class MailRouter
         {
             error_log("Confirm twitter appeal");
         }
-        $this->mail($address, $to, "Re: " . $this->msg->getSubject(), "I confirm this", Mail::TWITTER_APPEAL);
+        $this->mail($address, $to, "Re: " . $this->msg->getSubject(), "I confirm this", Mail::TWITTER_APPEAL, 0);
         $ret = MailRouter::TO_SYSTEM;
         return $ret;
     }
@@ -1170,7 +1170,9 @@ class MailRouter
                     $this->msg->getFromaddr(),
                     NOREPLY_ADDR,
                     "This community is currently closed",
-                    "This Freegle community is currently closed.\r\n\r\nThis is an automated message - please do not reply."
+                    "This Freegle community is currently closed.\r\n\r\nThis is an automated message - please do not reply.",
+                    Mail::MODMAIL,
+                    $fromid
                 );
                 $ret = MailRouter::TO_SYSTEM;
             } else

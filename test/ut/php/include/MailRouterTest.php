@@ -821,10 +821,9 @@ class MailRouterTest extends IznikTestCase {
     public function testMail() {
         # For coverage.
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $r->mail("test@blackhole.io", "test2@blackhole.io", "Test", "test");
+        $r->mail("test@blackhole.io", "test2@blackhole.io", "Test", "test", Mail::MODMAIL, 0);
         $this->assertTrue(TRUE);
-
-        }
+    }
 
     public function testPound() {
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_UNMODERATED);
