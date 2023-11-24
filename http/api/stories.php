@@ -147,6 +147,8 @@ function stories() {
                             )
                             ->setTo(STORIES_ADDR);
 
+                        Mail::addHeaders($dbhr, $dbhm, $m, Mail::STORY);
+
                         $mailer->send($m);
                     } catch (\Exception $e) { error_log("Failed with " . $e->getMessage()); }
                 }

@@ -85,7 +85,7 @@ if (Utils::pres('mc_gross', $transaction)) {
             ->setBody($text);
 
         list ($transport, $mailer) = Mail::getMailer();
-        Mail::addHeaders($message, Mail::DONATE_IPN);
+        Mail::addHeaders($dbhr, $dbhm, $message, Mail::DONATE_IPN);
 
         $mailer->send($message);
     }

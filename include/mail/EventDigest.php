@@ -65,7 +65,7 @@ class EventDigest
                     $htmlPart->setBody($html);
                     $message->attach($htmlPart);
 
-                    Mail::addHeaders($message, Mail::EVENTS_OFF, $u->getId());
+                    Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::EVENTS_OFF, $u->getId());
 
                     $this->sendOne($mailer, $message);
                 }
@@ -243,10 +243,7 @@ class EventDigest
                     $htmlPart->setBody($tosend['html']);
                     $message->attach($htmlPart);
 
-                    Mail::addHeaders($message, Mail::EVENTS, $u->getId());
-
-                    $headers = $message->getHeaders();
-                    $headers->addTextHeader('List-Unsubscribe', '<mailto:{{noemail}}>, <{{unsubscribe}}>');
+                    Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::EVENTS, $u->getId());
 
                     try {
                         $message->setTo([ $email => $rep['{{toname}}'] ]);

@@ -1906,6 +1906,29 @@ class MailRouterTest extends IznikTestCase {
         }
     }
 
+    public function testOneClickUnsubscribe() {
+        $key = $this->user->getUserKey($this->user->getId());
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+
+        # Mail an invalid key.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        list ($id, $failok) = $r->received(Message::EMAIL, $this->user->getEmailPreferred(), "unsubscribe-{$this->uid}-1-a@" . USER_DOMAIN, $msg);
+        $this->assertNotNull($id);
+        $rc = $r->route();
+        $this->assertEquals(MailRouter::DROPPED, $rc);
+
+        # Mail a valid key.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        list ($id, $failok) = $r->received(Message::EMAIL, $this->user->getEmailPreferred(), "unsubscribe-{$this->uid}-$key-a@" . USER_DOMAIN, $msg);
+        $this->assertNotNull($id);
+        $rc = $r->route();
+        $this->assertEquals(MailRouter::TO_SYSTEM, $rc);
+
+        $u = new User($this->dbhr, $this->dbhm, $this->uid);
+        $this->assertEquals(NULL, $u->getEmailPreferred());
+    }
+
     //    public function testSpecial() {
 //        //
 //        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/special'));

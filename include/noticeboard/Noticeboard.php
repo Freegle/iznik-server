@@ -141,7 +141,7 @@ class Noticeboard extends Entity
         $htmlPart->setBody($html);
         $message->attach($htmlPart);
 
-        Mail::addHeaders($message, Mail::NOTICEBOARD, $u->getId());
+        Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::NOTICEBOARD, $u->getId());
 
         list ($transport, $mailer) = Mail::getMailer();
         $this->sendIt($mailer, $message);
@@ -332,7 +332,7 @@ class Noticeboard extends Entity
                             $htmlPart->setBody($html);
                             $message->attach($htmlPart);
 
-                            Mail::addHeaders($message, Mail::NOTICEBOARD_CHASEUP_OWNER, $u->getId());
+                            Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::NOTICEBOARD_CHASEUP_OWNER, $u->getId());
 
                             list ($transport, $mailer) = Mail::getMailer();
                             $this->sendIt($mailer, $message);
@@ -404,7 +404,7 @@ class Noticeboard extends Entity
                             $htmlPart->setBody($html);
                             $message->attach($htmlPart);
 
-                            Mail::addHeaders($message, Mail::NOTICEBOARD_CHASEUP_OWNER, $u->getId());
+                            Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::NOTICEBOARD_CHASEUP_OWNER, $u->getId());
 
                             list ($transport, $mailer) = Mail::getMailer();
                             error_log("...ask $closestid away $closestdist for noticeboard {$noticeboard['id']}");

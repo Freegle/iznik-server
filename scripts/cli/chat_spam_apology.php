@@ -95,7 +95,7 @@ if (count($opts) < 1) {
         $htmlPart->setBody($html);
         $message->attach($htmlPart);
 
-        Mail::addHeaders($message, Mail::SPAM_WARNING, $innocent->getId());
+        Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::SPAM_WARNING, $innocent->getId());
 
         list ($transport, $mailer) = Mail::getMailer();
         $mailer->send($message);

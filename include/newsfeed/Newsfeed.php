@@ -789,6 +789,8 @@ class Newsfeed extends Entity
                 ->setTo(explode(',', CHITCHAT_SUPPORT_ADDR))
                 ->setBody("They reported this thread\r\n\r\nhttps://" . USER_SITE . "/chitchat/{$this->id}\r\n\r\n...with this message:\r\n\r\n$reason");
 
+            Mail::addHeaders($this->dbhr, $this->dbhm, $message,Mail::REPORTED_NEWSFEED, $me->getId());
+
             list ($transport, $mailer) = Mail::getMailer();
             $this->sendIt($mailer, $message);
         }
@@ -965,7 +967,7 @@ class Newsfeed extends Entity
                 $htmlPart->setBody($html);
                 $message->attach($htmlPart);
 
-                Mail::addHeaders($message, Mail::NEWSFEED, $u->getId());
+                Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::NEWSFEED, $u->getId());
 
                 error_log("..." . $u->getEmailPreferred() . " send $count");
                 list ($transport, $mailer) = Mail::getMailer();
@@ -1095,7 +1097,7 @@ class Newsfeed extends Entity
                 $htmlPart->setBody($html);
                 $message->attach($htmlPart);
 
-                Mail::addHeaders($message, Mail::NEWSFEED_MODNOTIF, $mod->getId());
+                Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::NEWSFEED_MODNOTIF, $mod->getId());
 
                 error_log("..." . $mod->getEmailPreferred() . " send $count");
                 list ($transport, $mailer) = Mail::getMailer();

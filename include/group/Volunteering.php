@@ -329,7 +329,7 @@ class Volunteering extends Entity
                 $htmlPart->setBody($html);
                 $message->attach($htmlPart);
 
-                Mail::addHeaders($message, Mail::VOLUNTEERING, $u->getId());
+                Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::VOLUNTEERING, $u->getId());
 
                 $this->sendMail($mailer, $message);
                 error_log($v->getId() . " " . $v->getPrivate('title'));

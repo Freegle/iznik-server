@@ -65,7 +65,7 @@ class VolunteeringDigest
                     $htmlPart->setBody($html);
                     $message->attach($htmlPart);
 
-                    Mail::addHeaders($message, Mail::VOLUNTEERING_OFF, $u->getId());
+                    Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::VOLUNTEERING_OFF, $u->getId());
 
                     $this->sendOne($mailer, $message);
                 }
@@ -219,10 +219,7 @@ class VolunteeringDigest
                         $htmlPart->setBody($tosend['html']);
                         $message->attach($htmlPart);
 
-                        $headers = $message->getHeaders();
-                        $headers->addTextHeader('List-Unsubscribe', '<mailto:{{noemail}}>, <{{unsubscribe}}>');
-
-                        Mail::addHeaders($message, Mail::VOLUNTEERING, $rep['{{uid}}']);
+                        Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::VOLUNTEERING, $rep['{{uid}}']);
 
                         try {
                             $message->setTo([ $email => $rep['{{toname}}'] ]);

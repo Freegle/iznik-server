@@ -66,7 +66,7 @@ function donations() {
                             ->setBody($text);
 
                         list ($transport, $mailer) = Mail::getMailer();
-                        Mail::addHeaders($message, Mail::DONATE_EXTERNAL);
+                        Mail::addHeaders($dbhr, $dbhm, $message, Mail::DONATE_EXTERNAL);
 
                         $mailer->send($message);
 

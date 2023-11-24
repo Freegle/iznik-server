@@ -42,5 +42,7 @@ $msg = \Swift_Message::newInstance()
 
 $msg->attach($htmlPart);
 
+Mail::addHeaders($this->dbhr, $this->dbhm, $msg, Mail::DONATE_IPN);
+
 list ($transport, $mailer) = Mail::getMailer();
 $mailer->send($msg);

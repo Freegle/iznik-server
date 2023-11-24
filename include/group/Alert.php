@@ -298,7 +298,8 @@ class Alert extends Entity
                             }
 
                             $msg = $this->constructMessage($email['email'], $u->getName(), $u->getId(), $from, $this->alert['subject'], $text, $html);
-                            Mail::addHeaders($msg, Mail::ALERT, $u->getId());
+                            Mail::addHeaders($this->dbhr, $this->dbhm, $msg, Mail::ALERT, $u->getId());
+
                             $mailer->send($msg);
                             $done++;
                         }
@@ -341,7 +342,7 @@ class Alert extends Entity
                 }
 
                 $msg = $this->constructMessage($g->getPrivate('contactmail'), $toname, NULL, $from, $this->alert['subject'], $text, $html);
-                Mail::addHeaders($msg, Mail::ALERT);
+                Mail::addHeaders($this->dbhr, $this->dbhm, $msg, Mail::ALERT);
                 $mailer->send($msg);
                 $done++;
             } catch (\Exception $e) {
@@ -365,7 +366,7 @@ class Alert extends Entity
 
             $text = $this->alert['text'];
             $msg = $this->constructMessage($from, $g->getPrivate('nameshort'), NULL, $from, $this->alert['subject'], $text, $html);
-            Mail::addHeaders($msg, Mail::ALERT);
+            Mail::addHeaders($this->dbhr, $this->dbhm, $msg, Mail::ALERT);
             $mailer->send($msg);
         }
 

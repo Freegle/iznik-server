@@ -143,6 +143,8 @@ class Tryst extends Entity
                     ->setBody('You\'ve arranged a Freegle handover.  Please add this to your calendar to help things go smoothly.')
                     ->addPart($ics, 'text/calendar; name=handover.ics');
 
+                Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::CALENDAR, $u1->getId());
+
                 $this->sendIt($mailer, $message);
             } catch (\Exception $e) {
                 error_log("Failed to send calendar invite for {$this->id}" . $e->getMessage());

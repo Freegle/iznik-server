@@ -115,6 +115,8 @@ if (count($opts) != 1) {
                     ->setCc('log@ehibbert.org.uk')
                     ->setBody($text);
 
+                Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::DONATE_IPN);
+
                 list ($transport, $mailer) = Mail::getMailer();
                 $mailer->send($message);
             }

@@ -31,5 +31,6 @@ if ($count) {
         ->setBody(
             "The following groups are on Iznik but haven't received any messages recently.  Either they are inactive or don't have modtools@modtools.org on there on individual emails.\r\n\r\n$none"
         );
+    Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::MODMAIL);
     $mailer->send($message);
 }

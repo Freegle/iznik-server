@@ -1479,7 +1479,7 @@ HAVING logincount > 0
                 $htmlPart->setBody($html);
                 $message->attach($htmlPart);
 
-                Mail::addHeaders($message, Mail::WELCOME, $userid);
+                Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::WELCOME, $userid);
 
                 $this->sendIt($mailer, $message);
             }

@@ -93,7 +93,7 @@ class Newsletter extends Entity
                     $htmlPart->setBody($html);
                     $message->attach($htmlPart);
 
-                    Mail::addHeaders($message, Mail::NEWSLETTER_OFF, $u->getId());
+                    Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::NEWSLETTER_OFF, $u->getId());
 
                     $this->sendOne($mailer, $message);
                 }
@@ -225,10 +225,9 @@ class Newsletter extends Entity
                     $message->attach($htmlPart);
 
                     $headers = $message->getHeaders();
-                    $headers->addTextHeader('List-Unsubscribe', '<mailto:' . $rep['{{noemail}}'] . '>, <' . $rep['{{unsubscribe}}'] . '>');
                     $headers->addTextHeader('X-Iznik-Newsletter', $this->id);
 
-                    Mail::addHeaders($message, Mail::NEWSLETTER, $rep['{{id}}']);
+                    Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::NEWSLETTER, $rep['{{id}}']);
 
                     try {
                         $message->addTo($email);

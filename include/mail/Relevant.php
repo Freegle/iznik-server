@@ -52,7 +52,7 @@ class Relevant {
                 $htmlPart->setBody($html);
                 $message->attach($htmlPart);
 
-                Mail::addHeaders($message, Mail::RELEVANT_OFF, $u->getId());
+                Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::RELEVANT_OFF, $u->getId());
 
                 $this->sendOne($mailer, $message);
             }
@@ -309,7 +309,7 @@ class Relevant {
                                 $htmlPart->setBody($html);
                                 $message->attach($htmlPart);
 
-                                Mail::addHeaders($message, Mail::RELEVANT, $u->getId());
+                                Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::RELEVANT, $u->getId());
 
                                 $this->sendOne($mailer, $message);
                                 #error_log("Sent to $email");

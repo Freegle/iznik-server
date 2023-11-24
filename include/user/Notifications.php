@@ -221,9 +221,7 @@ class Notifications
                     $htmlPart->setBody($html);
                     $message->attach($htmlPart);
 
-                    $headers = $message->getHeaders();
-                    Mail::addHeaders($message, Mail::NOTIFICATIONS_OFF, $u->getId());
-                    $headers->addTextHeader('List-Unsubscribe', $u->listUnsubscribe(USER_SITE, $u->getId(), User::SRC_NOTIFICATIONS_EMAIL));
+                    Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::NOTIFICATIONS_OFF, $u->getId());
 
                     $this->sendIt($mailer, $message);
                 }
@@ -314,23 +312,7 @@ class Notifications
                     $htmlPart->setBody($html);
                     $message->attach($htmlPart);
 
-                    if (RETURN_PATH && Mail::shouldSend(Mail::NOTIFICATIONS)) {
-                        # Also send this to the seed list so that we can measure inbox placement.
-                        #
-                        # We send this as a BCC because this plays nicer with Litmus
-                        $seeds = Mail::getSeeds($this->dbhr, $this->dbhm);
-
-                        $bcc = [];
-
-                        foreach ($seeds as $seed) {
-                            $u = User::get($this->dbhr, $this->dbhm, $seed['userid']);
-                            $bcc[] = $u->getEmailPreferred();
-                        }
-
-                        $message->setBcc($bcc);
-                    }
-
-                    Mail::addHeaders($message, Mail::NOTIFICATIONS, $u->getId());
+                    Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::NOTIFICATIONS, $u->getId());
 
                     list ($transport, $mailer) = Mail::getMailer();
                     $this->sendIt($mailer, $message);

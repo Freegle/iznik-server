@@ -182,7 +182,7 @@ function merge() {
                     $htmlPart->setBody($html);
                     $message->attach($htmlPart);
 
-                    Mail::addHeaders($message, Mail::RELEVANT_OFF, $u1->getId());
+                    Mail::addHeaders($dbhr, $dbhm, $message, Mail::MERGE, $u1->getId());
 
                     $email ? $mailer->send($message) : 0;
                 }
@@ -205,7 +205,7 @@ function merge() {
                     $htmlPart->setBody($html);
                     $message->attach($htmlPart);
 
-                    Mail::addHeaders($message, Mail::RELEVANT_OFF, $u2->getId());
+                    Mail::addHeaders($dbhr, $dbhm, $message, Mail::MERGE, $u2->getId());
 
                     $email ? $mailer->send($message) : 0;
                 }

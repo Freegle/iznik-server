@@ -215,6 +215,8 @@ class MailRouter
             $ret = $this->toVolunteers($to, $matches[1], $notspam);
         } else if (preg_match('/(.*)-subscribe@' . GROUP_DOMAIN . '/', $to, $matches)) {
             $ret = $this->subscribe($matches[1]);
+        } else if (preg_match('/unsubscribe-(.*)-(.*)-(.*)@' . USER_DOMAIN . '/', $to, $matches)) {
+            $ret = $this->oneClickUnsubscribe($matches[1], $matches[2], $matches[3]);
         } else if (preg_match('/(.*)-unsubscribe@' . GROUP_DOMAIN . '/', $to, $matches)) {
             $ret = $this->unsubscribe($matches[1]);
         } else {
@@ -356,7 +358,7 @@ class MailRouter
         }
     }
 
-    public function mail($to, $from, $subject, $body) {
+    public function mail($to, $from, $subject, $body, $type, $uid) {
         # None of these mails need tracking, so we don't call AddHeaders.
         list ($transport, $mailer) = Mail::getMailer();
 
@@ -365,6 +367,9 @@ class MailRouter
             ->setFrom($from)
             ->setTo($to)
             ->setBody($body);
+
+        Mail::addHeaders($this->dbhr, $this->dbhm, $message, $type, $uid);
+
         $mailer->send($message);
     }
 
@@ -548,7 +553,7 @@ class MailRouter
         {
             error_log("Confirm twitter appeal");
         }
-        $this->mail($address, $to, "Re: " . $this->msg->getSubject(), "I confirm this");
+        $this->mail($address, $to, "Re: " . $this->msg->getSubject(), "I confirm this", Mail::TWITTER_APPEAL);
         $ret = MailRouter::TO_SYSTEM;
         return $ret;
     }
@@ -752,6 +757,25 @@ class MailRouter
                 $ret = MailRouter::TO_SYSTEM;
             }
         }
+        return $ret;
+    }
+
+    private function oneClickUnsubscribe($uid, $key, $type) {
+        $ret = MailRouter::DROPPED;
+
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+
+        # Prevent accidental unsubscription by mods.
+        if (!$u->isModerator()) {
+            # Validate the key to prevent spoof unsubscribes.
+            $ukey = $u->getUserKey($uid);
+
+            if ($ukey == $key) {
+                $u->forget("Unsubscribed from $type");
+                $ret = MailRouter::TO_SYSTEM;
+            }
+        }
+
         return $ret;
     }
 
@@ -1096,7 +1120,9 @@ class MailRouter
                                         $address,
                                         $to,
                                         "Message Rejected",
-                                        "You posted by email to $to, but you're not a member of that group."
+                                        "You posted by email to $to, but you're not a member of that group.",
+                                        Mail::NOT_A_MEMBER,
+                                        $uid
                                     );
                                     $ret = MailRouter::DROPPED;
                                 }

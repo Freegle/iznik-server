@@ -149,6 +149,7 @@ if( strlen($report)===0) {
       ->setFrom([FROM_ADDR => 'Geeks'])
       ->setTo([GEEKSALERTS_ADDR => 'Geeks Alerts'])
       ->setBody($report);
+  Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::MODMAIL);
   list ($transport, $mailer) = Mail::getMailer();
   $numSent = $mailer->send($message);
   echo "Mail sent to geeks: ".$numSent."\r\n";

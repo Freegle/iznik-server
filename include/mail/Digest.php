@@ -45,22 +45,6 @@ class Digest
 
     # Split out for UT to override
     public function sendOne($mailer, $message) {
-        if (RETURN_PATH && Mail::shouldSend(Mail::DIGEST)) {
-            # Also send this to the seed list so that we can measure inbox placement.
-            #
-            # We send this as a BCC because this plays nicer with Litmus
-            $seeds = Mail::getSeeds($this->dbhr, $this->dbhm);
-
-            $bcc = [];
-
-            foreach ($seeds as $seed) {
-                $u = User::get($this->dbhr, $this->dbhm, $seed['userid']);
-                $bcc[] = $u->getEmailPreferred();
-            }
-
-            $message->setBcc($bcc);
-        }
-
         $mailer->send($message);
     }
 
@@ -104,7 +88,7 @@ class Digest
                         $htmlPart->setBody($html);
                         $message->attach($htmlPart);
 
-                        Mail::addHeaders($message, Mail::DIGEST_OFF, $uid);
+                        Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::DIGEST_OFF, $uid);
 
                         $this->sendOne($mailer, $message);
                     }
@@ -513,12 +497,9 @@ class Digest
                                     $htmlPart->setBody(str_replace('{{nearby}}', $rep['{{nearby}}'], $html));
 
                                     $message->attach($htmlPart);
-
-                                    $headers = $message->getHeaders();
-                                    $headers->addTextHeader('List-Unsubscribe', '<mailto:{{noemail}}>, <{{unsubscribe}}>');
                                     $message->setTo([ $email => $rep['{{toname}}'] ]);
 
-                                    Mail::addHeaders($message,Mail::DIGEST, $rep['{{uid}}'], $frequency);
+                                    Mail::addHeaders($this->dbhr, $this->dbhm, $message,Mail::DIGEST, $rep['{{uid}}'], $frequency);
 
                                     #error_log("Send to $email");
                                     $this->sendOne($mailer, $message);

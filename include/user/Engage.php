@@ -31,8 +31,8 @@ class Engage
     }
     # Split out for UT to override
 
-    public function sendOne($mailer, $message) {
-        Mail::addHeaders($message, Mail::MISSING);
+    public function sendOne($mailer, $message, $uid) {
+        Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::MISSING, $uid);
         $mailer->send($message);
     }
 
@@ -289,7 +289,7 @@ class Engage
 //                        ->setTo('log@ehibbert.org.uk')
                                     ->setBody($textbody);
 
-                                Mail::addHeaders($m, Mail::MISSING);
+                                Mail::addHeaders($this->dbhr, $this->dbhm, $m, Mail::MISSING, $u->getId());
 
                                 $html = $this->twig->render($template, [
                                     'name' => $u->getName(),
@@ -308,7 +308,7 @@ class Engage
                                 $htmlPart->setBody($html);
                                 $m->attach($htmlPart);
 
-                                $this->sendOne($mailer, $m);
+                                $this->sendOne($mailer, $m, $u->getId());
                                 $count++;
                             }
                         }

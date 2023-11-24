@@ -323,7 +323,7 @@ class Story extends Entity
                         $htmlPart->setBody($html);
                         $message->attach($htmlPart);
 
-                        Mail::addHeaders($message, Mail::STORY_ASK, $u->getId());
+                        Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::STORY_ASK, $u->getId());
 
                         list ($transport, $mailer) = Mail::getMailer();
                         $mailer->send($message);
@@ -393,7 +393,8 @@ class Story extends Entity
             $htmlPart->setBody($html);
             $message->attach($htmlPart);
 
-            # No need to track for mailing Central.
+            Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::STORY);
+
             list ($transport, $mailer) = Mail::getMailer();
             $this->sendIt($mailer, $message);
         }

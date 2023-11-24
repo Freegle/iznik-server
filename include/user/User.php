@@ -100,6 +100,8 @@ class User extends Entity
     const SRC_NOTIFICATIONS_EMAIL = 'notifemail';
     const SRC_NEWSFEED_DIGEST = 'newsfeeddigest';
     const SRC_NOTICEBOARD = 'noticeboard';
+    const SRC_ADMIN = 'admin';
+    const SRC_DUMMY = 'dummy';
 
     # Chat mod status
     const CHAT_MODSTATUS_MODERATED = 'Moderated';
@@ -938,7 +940,8 @@ class User extends Entity
                 ->setDate(time())
                 ->setBody("Pleased to meet you.");
 
-            Mail::addHeaders($message, Mail::WELCOME);
+            Mail::addHeaders($this->dbhr, $this->dbhm, $message,Mail::WELCOME, $this->id);
+
             $this->sendIt($mailer, $message);
         }
         // @codeCoverageIgnoreEnd
@@ -1033,7 +1036,7 @@ class User extends Entity
                 ->setDate(time())
                 ->setBody("Parting is such sweet sorrow.");
 
-            Mail::addHeaders($message, Mail::REMOVED);
+            Mail::addHeaders($this->dbhr, $this->dbhm, $message,Mail::REMOVED, $this->id);
 
             $this->sendIt($mailer, $message);
         }
@@ -3164,7 +3167,6 @@ class User extends Entity
     }
 
     public function mailer($user, $modmail, $toname, $to, $bcc, $fromname, $from, $subject, $text) {
-        # These mails don't need tracking, so we don't call addHeaders.
         try {
             #error_log(session_id() . " mail " . microtime(true));
 
@@ -3188,6 +3190,8 @@ class User extends Entity
             if ($bcc) {
                 $message->setBcc(explode(',', $bcc));
             }
+
+            Mail::addHeaders($this->dbhr, $this->dbhm, $message,Mail::MODMAIL, $user->getId());
 
             $this->sendIt($mailer, $message);
 
@@ -3678,7 +3682,7 @@ class User extends Entity
         $htmlPart->setBody($html);
         $message->attach($htmlPart);
 
-        Mail::addHeaders($message, Mail::WELCOME, $this->getId());
+        Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::WELCOME, $this->getId());
 
         list ($transport, $mailer) = Mail::getMailer();
         $this->sendIt($mailer, $message);
@@ -3711,7 +3715,7 @@ class User extends Entity
         $htmlPart->setBody($html);
         $message->attach($htmlPart);
 
-        Mail::addHeaders($message, Mail::FORGOT_PASSWORD, $this->getId());
+        Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::FORGOT_PASSWORD, $this->getId());
 
         list ($transport, $mailer) = Mail::getMailer();
         $this->sendIt($mailer, $message);
@@ -3775,7 +3779,7 @@ class User extends Entity
             $htmlPart->setBody($html);
             $message->attach($htmlPart);
 
-            Mail::addHeaders($message, Mail::VERIFY_EMAIL, $this->getId());
+            Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::VERIFY_EMAIL, $this->getId());
 
             $this->sendIt($mailer, $message);
         }
@@ -3821,7 +3825,7 @@ class User extends Entity
             ->setDate(time())
             ->setBody("Please click here to leave Freegle:\r\n\r\n$link\r\n\r\nThis will remove all your data and cannot be undone.  If you just want to leave a Freegle or reduce the number of emails you get, please sign in and go to Settings.\r\n\r\nIf you didn't try to leave, please ignore this mail.\r\n\r\nThanks for freegling, and do please come back in the future.");
 
-        Mail::addHeaders($message, Mail::UNSUBSCRIBE);
+        Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::UNSUBSCRIBE);
         $this->sendIt($mailer, $message);
     }
 
@@ -3943,11 +3947,12 @@ class User extends Entity
         return (User::loginLink($domain, $id, "/unsubscribe/$id", $type, $auto));
     }
 
-    public function listUnsubscribe($domain, $id, $type = NULL)
-    {
-        # Generates the value for the List-Unsubscribe header field.
-        $ret = "<" . $this->getUnsubLink($domain, $id, $type) . ">";
-        return ($ret);
+    public function listUnsubscribe($id, $type = NULL) {
+        # These are links which will completely unsubscribe the user.  This is necessary because of Yahoo and Gmail
+        # changes in 2024, and also useful for CAN-SPAM.  We want them to involve the key to prevent spoof unsubscribes.
+        $key = $uid ? $this->getUserKey($id) : '1234';
+        $ret = "<mailto:unsubscribe-$id-$key-$type@" . USER_DOMAIN . "?subject=ubsubscribe>, <https://" . USER_SITE . "/one-click-unsubscribe/$id/$key";
+        return $ret;
     }
 
     public function loginLink($domain, $id, $url = '/', $type = NULL, $auto = FALSE)
@@ -3957,24 +3962,10 @@ class User extends Entity
 
         if ($auto) {
             # Get a per-user link we can use to log in without a password.
-            $key = NULL;
-            $sql = "SELECT * FROM users_logins WHERE userid = ? AND type = ?;";
-            $logins = $this->dbhr->preQuery($sql, [$id, User::LOGIN_LINK]);
-            foreach ($logins as $login) {
-                $key = $login['credentials'];
-            }
+            $key = $this->getUserKey($id);
 
-            if (!$key) {
-                $key = Utils::randstr(32);
-                $rc = $this->dbhm->preExec("INSERT INTO users_logins (userid, type, credentials) VALUES (?,?,?);", [
-                    $id,
-                    User::LOGIN_LINK,
-                    $key
-                ]);
-
-                # If this didn't work, we still return an URL - worst case they'll have to sign in.
-                $key = $rc ? $key : NULL;
-            }
+            # If this didn't work, we still return an URL - worst case they'll have to sign in.
+            $key = $key ? $key : null;
 
             $p = strpos($url, '?');
             $src = $type ? "&src=$type" : "";
@@ -4414,7 +4405,7 @@ class User extends Entity
                 ->setTo($this->getEmailPreferred())
                 ->setBody("Thank you for supporting Freegle!");
 
-            Mail::addHeaders($message, Mail::THANK_DONATION);
+            Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::THANK_DONATION, $this->id);
 
             $html = $twig->render('thank.html', [
                 'name' => $this->getName(),
@@ -4431,7 +4422,7 @@ class User extends Entity
             $htmlPart->setBody($html);
             $message->attach($htmlPart);
 
-            Mail::addHeaders($message, Mail::THANK_DONATION, $this->getId());
+            Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::THANK_DONATION, $this->getId());
 
             $this->sendIt($mailer, $message);
         } catch (\Exception $e) { error_log("Failed " . $e->getMessage()); };
@@ -4474,7 +4465,7 @@ class User extends Entity
                             ->setTo($email)
                             ->setBody("$fromname ($email) thinks you might like Freegle, which helps you give and get things for free near you.  Click $url to try it.");
 
-                        Mail::addHeaders($message, Mail::INVITATION);
+                        Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::INVITATION);
 
                         $html = invite($fromname, $frommail, $url);
 
@@ -6880,5 +6871,27 @@ memberships.groupid IN $groupq
                 $id
             ]);
         }
+    }
+
+    public function getUserKey($id) {
+        $key = null;
+        $sql = "SELECT * FROM users_logins WHERE userid = ? AND type = ?;";
+        $logins = $this->dbhr->preQuery($sql, [$id, User::LOGIN_LINK]);
+        foreach ($logins as $login)
+        {
+            $key = $login['credentials'];
+        }
+
+        if (!$key)
+        {
+            $key = Utils::randstr(32);
+            $rc = $this->dbhm->preExec("INSERT INTO users_logins (userid, type, credentials) VALUES (?,?,?);", [
+                $id,
+                User::LOGIN_LINK,
+                $key
+            ]);
+        }
+
+        return $key;
     }
 }

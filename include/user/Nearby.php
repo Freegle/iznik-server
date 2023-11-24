@@ -137,7 +137,7 @@ class Nearby
                                         $htmlPart->setBody($html);
                                         $message->attach($htmlPart);
 
-                                        Mail::addHeaders($message, Mail::NEARBY, $u->getId());
+                                        Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::NEARBY, $u->getId());
 
                                         $this->sendOne($mailer, $message);
                                         error_log("...user {$user['id']} dist $miles");

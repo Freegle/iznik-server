@@ -628,7 +628,6 @@ class Message
     }
 
     public function mailer($user, $modmail, $toname, $to, $bcc, $fromname, $from, $subject, $text) {
-        # These mails don't need tracking, so we don't call addHeaders.
         try {
             #error_log(session_id() . " mail " . microtime(true));
 
@@ -652,6 +651,8 @@ class Message
             if ($bcc) {
                 $message->setBcc(explode(',', $bcc));
             }
+
+            Mail::addHeaders($this->dbhr, $this->dbhm, $message,Mail::MODMAIL, $user->getId());
 
             $mailer->send($message);
 
@@ -4673,6 +4674,8 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                                                     $htmlPart->setBody($html);
                                                     $message->attach($htmlPart);
 
+                                                    Mail::addHeaders($this->dbhr, $this->dbhm, $message,Mail::AUTOREPOST, $u->getId(), $frequency);
+
                                                     $mailer->send($message);
                                                 }
                                             }
@@ -4858,6 +4861,8 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                                             $htmlPart->setContentType('text/html');
                                             $htmlPart->setBody($html);
                                             $message->attach($htmlPart);
+
+                                            Mail::addHeaders($this->dbhr, $this->dbhm, $message,Mail::CHASEUP, $u->getId(), $frequency);
 
                                             $mailer->send($message);
                                         }

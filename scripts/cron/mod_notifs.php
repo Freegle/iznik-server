@@ -190,6 +190,8 @@ foreach ($mail as $id => $work) {
         $htmlPart->setBody($html);
         $message->attach($htmlPart);
 
+        Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::MODMAIL);
+
         list ($transport, $mailer) = Mail::getMailer();
         $mailer->send($message);
 

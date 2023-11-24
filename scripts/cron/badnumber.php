@@ -46,11 +46,7 @@ foreach ($bads as $bad) {
     $htmlPart->setBody($html);
     $message->attach($htmlPart);
 
-    Mail::addHeaders($message, Mail::BAD_SMS, $u->getId());
-
-    $headers = $message->getHeaders();
-
-    $headers->addTextHeader('List-Unsubscribe', $u->listUnsubscribe(USER_SITE, $bad['userid'], User::SRC_CHATNOTIF));
+    Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::BAD_SMS, $u->getId());
 
     list ($transport, $mailer) = Mail::getMailer();
     $mailer->send($message);

@@ -38,6 +38,8 @@ foreach ($groups as $group) {
             ->setTo($g->getModsEmail())
             ->setBody("Just to remind you, you can make your Freegle group look more local and friendly for your members by customising how it appears on Freegle Direct.\n\nHere are some things you could add:\n\n$missing\n\nYou can change these from ModTools (https://modtools.org), in Settings - Group Settings - Group Appearance.  ModTools helps you run your group, and is free to use for all Freegle groups.\n\nIf you need help with this, then please contact " . MENTORS_ADDR . "\n\nP.S. This is an automated message sent once a month.  We send it regularly because sometimes the moderators on a group change, and they might not know about this stuff.");
 
+        Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::MODMAIL);
+
         $mailer->send($message);
         error_log("...mailed");
     }

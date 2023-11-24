@@ -309,7 +309,7 @@ WHERE chat_rooms.id IN $idlist;";
 
             $headers = $message->getHeaders();
 
-            $headers->addTextHeader('List-Unsubscribe', $u->listUnsubscribe(USER_SITE, $id, User::SRC_CHATNOTIF));
+            Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::CHAT);
 
             if ($refmsgs && count($refmsgs)) {
                 $headers->addTextHeader('X-Freegle-Msgids', implode(',', $refmsgs));
@@ -335,22 +335,6 @@ WHERE chat_rooms.id IN $idlist;";
     public function mailer($message, $recip = NULL)
     {
         list ($transport, $mailer) = Mail::getMailer();
-
-        if (RETURN_PATH && Mail::shouldSend(Mail::CHAT)) {
-            # Also send this to the seed list so that we can measure inbox placement.
-            #
-            # We send this as a BCC because this plays nicer with Litmus
-            $seeds = Mail::getSeeds($this->dbhr, $this->dbhm);
-
-            $bcc = [];
-
-            foreach ($seeds as $seed) {
-                $u = User::get($this->dbhr, $this->dbhm, $seed['userid']);
-                $bcc[] = $u->getEmailPreferred();
-            }
-
-            $message->setBcc($bcc);
-        }
 
         $mailer->send($message);
     }
@@ -2521,7 +2505,7 @@ ORDER BY id, added, groupid ASC;";
                                                 $headers->addTextHeader('Return-Receipt-To', "readreceipt-{$chat['chatid']}-{$member['userid']}-$lastmsgemailed@" . USER_DOMAIN);
                                             }
 
-                                            Mail::addHeaders($message, Mail::CHAT, $sendingto->getId());
+                                            Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::CHAT, $sendingto->getId());
 
                                             $this->mailer($message, $chattype == ChatRoom::TYPE_USER2USER ? $to : null);
 
@@ -2692,7 +2676,7 @@ ORDER BY id, added, groupid ASC;";
                                     $htmlPart->setBody($html);
                                     $message->attach($htmlPart);
 
-                                    Mail::addHeaders($message, Mail::CHAT_CHASEUP_MODS, $thisu->getId());
+                                    Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::CHAT_CHASEUP_MODS, $thisu->getId());
                                     $this->mailer($message);
                                 }
                             }
@@ -2841,6 +2825,9 @@ ORDER BY id, added, groupid ASC;";
             ->setBody('Please review the chat at https://' . MOD_SITE . "/modtools/support/refer/{$this->id} and then reply to this email to contact the mod who requested help.");
 
         list ($transport, $mailer) = Mail::getMailer();
+
+        Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::REFER_TO_SUPPORT);
+
         $this->sendIt($mailer, $message);
     }
 

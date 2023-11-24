@@ -45,6 +45,14 @@ class Mail {
     const MISSING = 41;
     const NOTICEBOARD_CHASEUP_OWNER = 42;
     const DONATE_EXTERNAL = 43;
+    const REFER_TO_SUPPORT = 44;
+    const TWITTER_APPEAL = 45;
+    const NOT_A_MEMBER = 46;
+    const MODMAIL = 47;
+    const AUTOREPOST = 48;
+    const CHASEUP = 49;
+    const REPORTED_NEWSFEED = 50;
+    const CALENDAR = 51;
 
     const DESCRIPTIONS = [
         Mail::DIGEST => 'Digest',
@@ -86,62 +94,23 @@ class Mail {
         Mail::NOTICEBOARD => 'Noticeboard',
         Mail::UNSUBSCRIBE => 'Unsubscribe',
         Mail::MISSING => 'Missing',
-        Mail::NOTICEBOARD_CHASEUP_OWNER => 'NoticeboardChaseupOwner'
-    ];
-
-    # This is the key control over how frequency we add Return Path seed lists to our mails.  0 will disable.
-    const RETURNPATH_THRESHOLDS = [
-        Mail::DIGEST => 0,
-        Mail::CHAT => 1000,
-        Mail::REMOVED => 0,
-        Mail::THANK_DONATION => 0,
-        Mail::INVITATION => 0,
-        Mail::ASK_DONATION => 0,
-        Mail::DONATE_IPN => 0,
-        Mail::CHAT_CHASEUP_MODS => 0,
-        Mail::ADMIN => 0,
-        Mail::ALERT => 0,
-        Mail::DIGEST_OFF => 0,
-        Mail::EVENTS => 0,
-        Mail::EVENTS_OFF => 0,
-        Mail::NEWSLETTER => 0,
-        Mail::NEWSLETTER_OFF => 0,
-        Mail::RELEVANT => 0,
-        Mail::RELEVANT_OFF => 0,
-        Mail::VOLUNTEERING => 0,
-        Mail::VOLUNTEERING_OFF => 0,
-        Mail::VOLUNTEERING_RENEW => 0,
-        Mail::NEWSFEED => 0,
-        Mail::NEWSFEED_OFF => 0,
-        Mail::NEWSFEED_MODNOTIF => 0,
-        Mail::NEARBY => 0,
-        Mail::NOTIFICATIONS => 0,
-        Mail::NOTIFICATIONS_OFF => 0,
-        Mail::REQUEST => 0,
-        Mail::REQUEST_COMPLETED => 0,
-        Mail::STORY => 0,
-        Mail::STORY_OFF => 0,
-        Mail::STORY_ASK => 0,
-        Mail::WELCOME => 0,
-        Mail::FORGOT_PASSWORD => 0,
-        Mail::VERIFY_EMAIL => 0,
-        Mail::BAD_SMS => 0,
-        Mail::SPAM_WARNING => 0,
-        Mail::NOTICEBOARD => 0,
-        Mail::UNSUBSCRIBE => 0,
-        Mail::MISSING => 0,
-        Mail::NOTICEBOARD_CHASEUP_OWNER => 0
+        Mail::NOTICEBOARD_CHASEUP_OWNER => 'NoticeboardChaseupOwner',
+        Mail::REFER_TO_SUPPORT => 'ReferToSupport',
+        Mail::MERGE => 'Merge',
+        Mail::DONATE_EXTERNAL => 'DonateExternal',
+        Mail::TWITTER_APPEAL => 'TwitterAppeal',
+        Mail::NOT_A_MEMBER => 'NotAMember',
+        Mail::MODMAIL => 'ModMail',
+        Mail::AUTOREPOST => 'AutoRepost',
+        Mail::CHASEUP => 'Chaseup',
+        Mail::REPORTED_NEWSFEED => 'ReportedNewsfeed',
+        Mail::CALENDAR => 'Calendar',
     ];
 
     private static $mailers = [];
 
     public static function getDescription($type) {
         return(Mail::DESCRIPTIONS[$type]);
-    }
-
-    public static function shouldSend($type) {
-        $ret = mt_rand(0, 1000) < Mail::RETURNPATH_THRESHOLDS[$type];
-        return($ret);
     }
 
     public static function matchingId($type, $qualifier) {
@@ -153,7 +122,7 @@ class Mail {
         return($matchingid);
     }
 
-    public static function addHeaders($msg, $type, $userid = 0, $qualifier = 0) {
+    public static function addHeaders($dbhr, $dbhm, $msg, $type, $userid = 0, $qualifier = 0) {
         $headers = $msg->getHeaders();
 
         # We add a header of our own.  TN uses this.
@@ -167,6 +136,11 @@ class Mail {
         # Google feedback loop uses Feedback-ID as per
         # https://support.google.com/mail/answer/6254652?hl=en&ref_topic=7279058
         $headers->addTextHeader('Feedback-ID', "$qualifier:$userid:" . Mail::getDescription($type) . ':freegle');
+
+        # Add one-click unsubscribe.
+        $u = new User($dbhr, $dbhm);
+        $headers->addTextHeader('List-Unsubscribe', $u->listUnsubscribe($userid, Mail::getDescription($type)));
+        $headers->addTextHeader('List-Unsubscribe-Post', 'List-Unsubscribe=One-Click');
     }
 
     public static function getSeeds($dbhr, $dbhm) {

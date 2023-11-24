@@ -203,10 +203,7 @@ class Admin extends Entity
                                                    $this->admin['ctatext'],
                                                    $this->admin['ctalink']);
 
-                    Mail::addHeaders($msg, Mail::ADMIN, $u->getId());
-
-                    $headers = $msg->getHeaders();
-                    $headers->addTextHeader('List-Unsubscribe', "<https://" . USER_SITE . "/unsubscribe" . ">");
+                    Mail::addHeaders($this->dbhr, $this->dbhm, $msg, Mail::ADMIN, $u->getId());
 
                     # Pick a random spooler.  This gives more throughput.
                     $mailer = $mailers[rand(1, Admin::SPOOLERS)];

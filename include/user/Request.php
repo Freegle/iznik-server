@@ -144,7 +144,7 @@ class Request extends Entity
                     $htmlPart->setBody($html);
                     $message->attach($htmlPart);
 
-                    Mail::addHeaders($message, Mail::REQUEST_COMPLETED, $u->getId());
+                    Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::REQUEST_COMPLETED, $u->getId());
 
                     list ($transport, $mailer) = Mail::getMailer();
                     $this->sendIt($mailer, $message);
@@ -185,7 +185,7 @@ class Request extends Entity
                     $htmlPart->setBody($html);
                     $message->attach($htmlPart);
 
-                    Mail::addHeaders($message, Mail::REQUEST, $u->getId());
+                    Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::REQUEST, $u->getId());
 
                     list ($transport, $mailer) = Mail::getMailer();
                     $this->sendIt($mailer, $message);
