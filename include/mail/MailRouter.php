@@ -770,7 +770,7 @@ class MailRouter
             # Validate the key to prevent spoof unsubscribes.
             $ukey = $u->getUserKey($uid);
 
-            if ($ukey == $key) {
+            if ($key && !strcasecmp($ukey, $key)) {
                 $u->forget("Unsubscribed from $type");
                 $ret = MailRouter::TO_SYSTEM;
             }
