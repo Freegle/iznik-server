@@ -307,9 +307,9 @@ WHERE chat_rooms.id IN $idlist;";
                 $message->attach($htmlPart);
             }
 
-            $headers = $message->getHeaders();
+            Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::CHAT, $id);
 
-            Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::CHAT);
+            $headers = $message->getHeaders();
 
             if ($refmsgs && count($refmsgs)) {
                 $headers->addTextHeader('X-Freegle-Msgids', implode(',', $refmsgs));
@@ -324,6 +324,7 @@ WHERE chat_rooms.id IN $idlist;";
             }
         } catch (\Exception $e) {
             # Flag the email as bouncing.
+            error_log("Exception " . $e->getMessage());
             error_log("Email $to for member #$id invalid, flag as bouncing");
             $this->dbhm->preExec("UPDATE users SET bouncing = 1 WHERE id = ?;", [  $id ]);
             $message = NULL;

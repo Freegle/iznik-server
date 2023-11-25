@@ -3950,8 +3950,15 @@ class User extends Entity
     public function listUnsubscribe($id, $type = NULL) {
         # These are links which will completely unsubscribe the user.  This is necessary because of Yahoo and Gmail
         # changes in 2024, and also useful for CAN-SPAM.  We want them to involve the key to prevent spoof unsubscribes.
-        $key = $uid ? $this->getUserKey($id) : '1234';
-        $ret = "<mailto:unsubscribe-$id-$key-$type@" . USER_DOMAIN . "?subject=ubsubscribe>, <https://" . USER_SITE . "/one-click-unsubscribe/$id/$key";
+        #
+        # We only include the web link, because this providers a better user experience - we can tell them
+        # things afterwards.  This is valid - RFC8058 the RFC says you MUST include an HTTPS link, and you MAY
+        # include others.
+        $key = $id ? $this->getUserKey($id) : '1234';
+        $key = $key ? $key : '1234';
+        #$ret = "<mailto:unsubscribe-$id-$key-$type@" . USER_DOMAIN . "?subject=unsubscribe>, <https://" . USER_SITE . "/one-click-unsubscribe/$id/$key>";
+        $ret = "<https://" . USER_SITE . "/one-click-unsubscribe/$id/$key>";
+        #$ret = "<http://localhost:3002/one-click-unsubscribe/$id/$key>";
         return $ret;
     }
 
@@ -5769,6 +5776,10 @@ class User extends Entity
             $this->id
         ]);
 
+        $this->dbhm->preExec("DELETE FROM sessions WHERE userid = ?;", [
+            $this->id
+        ]);
+
         $l = new Log($this->dbhr, $this->dbhm);
         $l->log([
             'type' => Log::TYPE_USER,
@@ -6877,13 +6888,11 @@ memberships.groupid IN $groupq
         $key = null;
         $sql = "SELECT * FROM users_logins WHERE userid = ? AND type = ?;";
         $logins = $this->dbhr->preQuery($sql, [$id, User::LOGIN_LINK]);
-        foreach ($logins as $login)
-        {
+        foreach ($logins as $login) {
             $key = $login['credentials'];
         }
 
-        if (!$key)
-        {
+        if (!$key) {
             $key = Utils::randstr(32);
             $rc = $this->dbhm->preExec("INSERT INTO users_logins (userid, type, credentials) VALUES (?,?,?);", [
                 $id,
