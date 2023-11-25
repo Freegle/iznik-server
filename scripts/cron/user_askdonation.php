@@ -61,7 +61,7 @@ foreach ($users as $user) {
                         "Thank you for using your local Freegle group.\r\n\r\nFreegle is free to use, but it's not free to run.  This month we're trying to raise " . DONATION_TARGET . " to keep us going.\r\n\r\nIf you can, please donate &pound;1 through PayPal:\r\n\r\nhttp://freegle.in/paypal1510\r\n\r\nWe realise not everyone is able to do this - and that's fine.  Either way, thanks for freegling!\r\n"
                     );
 
-                Mail::addHeaders($this->dbhr, $this->dbhm, $m, Mail::ASK_DONATION, $u->getId());
+                Mail::addHeaders($dbhr, $dbhm, $m, Mail::ASK_DONATION, $u->getId());
 
                 $html = $twig->render('collected.html', [
                     'name' => $u->getName(),
@@ -80,7 +80,7 @@ foreach ($users as $user) {
                 $htmlPart->setBody($html);
                 $m->attach($htmlPart);
 
-                Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::ASK_DONATION, $u->getId());
+                Mail::addHeaders($dbhr, $dbhm, $message, Mail::ASK_DONATION, $u->getId());
 
                 $mailer->send($m);
             } catch (\Exception $e) {

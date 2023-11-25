@@ -46,7 +46,7 @@ foreach ($bads as $bad) {
     $htmlPart->setBody($html);
     $message->attach($htmlPart);
 
-    Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::BAD_SMS, $u->getId());
+    Mail::addHeaders($dbhr, $dbhm, $message, Mail::BAD_SMS, $u->getId());
 
     list ($transport, $mailer) = Mail::getMailer();
     $mailer->send($message);
