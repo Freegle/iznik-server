@@ -622,7 +622,7 @@ function session() {
                 if ($notifs) {
                     $n = new PushNotifications($dbhr, $dbhm);
                     $push = Utils::presdef('push', $notifs, NULL);
-                    if ($push) {
+                    if ($push && Utils::pres('type', $push) && Utils::pres('subscription', $push)) {
                         switch ($push['type']) {
                             case PushNotifications::PUSH_GOOGLE:
                             case PushNotifications::PUSH_FIREFOX:
