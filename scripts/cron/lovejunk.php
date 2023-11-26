@@ -22,7 +22,7 @@ $msgs = $dbhr->preQuery("SELECT DISTINCT messages.id, lovejunk.status, messages.
     INNER JOIN `groups` ON groups.id = messages_groups.groupid
     WHERE messages.arrival >= ? AND
           messages.arrival >= '2023-07-11 16:00' AND
-          messages_edits.timestamp >= lovejunk.timestamp AND
+          messages_edits.timestamp > lovejunk.timestamp AND
       messages.type = ? AND   
       messages_groups.collection = ? AND
       groups.onlovejunk = 1

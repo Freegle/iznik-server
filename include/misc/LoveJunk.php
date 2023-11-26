@@ -48,6 +48,7 @@ class LoveJunk {
                 $ret = TRUE;
                 $this->recordResult(TRUE, $id, $e->getCode() . " " . $e->getMessage());
             } else {
+                error_log("Error sending " . $e->getMessage() . " with " . json_encode($data));
                 \Sentry\captureException($e);
                 $this->recordResult(FALSE, $id, $e->getCode() . " " . $e->getMessage());
             }
@@ -63,6 +64,10 @@ class LoveJunk {
         $client = new Client();
 
         try {
+            $this->dbhm->preExec("UPDATE lovejunk SET timestamp = NOW() WHERE msgid = ?", [
+                $id
+            ]);
+
             if (!LoveJunk::$mock) {
                 $r = $client->request('PUT', LOVE_JUNK_API . '/freegle/drafts/' . $ljdraftId . '?secret=' . LOVE_JUNK_SECRET, [
                     'json'  => $data
@@ -77,15 +82,12 @@ class LoveJunk {
                     ]
                 ];
             }
-
-            $this->dbhm->preExec("UPDATE lovejunk SET timestamp = NOW() WHERE msgid = ?", [
-                $id
-            ]);
         } catch (\Exception $e) {
             if ($e->getCode() == 410) {
                 // This is a valid error - import disabled.
                 $ret = TRUE;
             } else {
+                error_log("Error editing " . $e->getMessage() . " with " . json_encode($data));
                 \Sentry\captureException($e);
             }
         }
