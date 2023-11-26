@@ -2883,13 +2883,14 @@ ORDER BY id, added, groupid ASC;";
             $count = $afters[0]['count'];
             $other = $expected['userid'] == $expected['user1'] ? $expected['user2'] : $expected['user1'];
 
+            # There's a timing window where a merge can cause the other user id to be invalid, so we use IGNORE.
             if ($count) {
                 #error_log("Expected received to {$expected['date']} {$expected['id']} from user #{$expected['userid']}");
                 $this->dbhm->preExec("UPDATE chat_messages SET replyreceived = 1 WHERE id = ?;", [
                     $expected['id']
                 ]);
 
-                $this->dbhm->preExec("INSERT INTO users_expected (expecter, expectee, chatmsgid, value) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE value = ?;", [
+                $this->dbhm->preExec("INSERT IGNORE INTO users_expected (expecter, expectee, chatmsgid, value) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE value = ?;", [
                     $expected['userid'],
                     $other,
                     $expected['id'],
@@ -2899,7 +2900,7 @@ ORDER BY id, added, groupid ASC;";
 
                 $received++;
             } else {
-                $this->dbhm->preExec("INSERT INTO users_expected (expecter, expectee, chatmsgid, value) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE value = ?;", [
+                $this->dbhm->preExec("INSERT IGNORE INTO users_expected (expecter, expectee, chatmsgid, value) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE value = ?;", [
                     $expected['userid'],
                     $other,
                     $expected['id'],
