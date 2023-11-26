@@ -2731,6 +2731,11 @@ ORDER BY lastdate DESC;";
 
         # Save into the messages table.
         try {
+            if (strlen($this->message) > 100000) {
+                if ($log) { error_log("Prune large message " . strlen($this->message)); }
+                $this->message = $this->pruneMessage($this->message);
+            }
+
             $sql = "INSERT INTO messages (date, source, sourceheader, message, fromuser, envelopefrom, envelopeto, fromname, fromaddr, replyto, fromip, subject, suggestedsubject, messageid, tnpostid, textbody, type, lat, lng, locationid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
             $rc = $this->dbhm->preExec($sql, [
                 $this->date,
