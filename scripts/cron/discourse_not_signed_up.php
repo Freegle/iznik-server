@@ -339,7 +339,7 @@ try{
         ->setFrom([FROM_ADDR => 'Geeks'])
         ->setTo([CENTRALMODS_ADDR => 'Volunteer Support'])
         ->setBody($report);
-    Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::MODMAIL);
+    Mail::addHeaders($dbhr, $dbhm, $message, Mail::MODMAIL);
     list ($transport, $mailer) = Mail::getMailer();
     $numSent = $mailer->send($message);
     echo "Mail sent to centralmods: ".$numSent."\r\n";
@@ -352,7 +352,7 @@ try{
       ->setFrom([FROM_ADDR => 'Geeks'])
       ->setTo([GEEKSALERTS_ADDR => 'Geeks Alerts'])
       ->setBody($report);
-  Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::MODMAIL);
+  Mail::addHeaders($dbhr, $dbhm, $message, Mail::MODMAIL);
   list ($transport, $mailer) = Mail::getMailer();
   $numSent = $mailer->send($message);
   echo "Mail sent to geeks: ".$numSent."\r\n";
@@ -366,7 +366,7 @@ catch (\Exception $e) {
       ->setFrom([FROM_ADDR => 'Geeks'])
       ->setTo([GEEKSALERTS_ADDR => 'Geeks Alerts'])
       ->setBody($e->getMessage());
-  Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::MODMAIL);
+  Mail::addHeaders($dbhr, $dbhm, $message, Mail::MODMAIL);
   list ($transport, $mailer) = Mail::getMailer();
   $numSent = $mailer->send($message);
   echo "Mail sent to geeks: ".$numSent."\r\n";
