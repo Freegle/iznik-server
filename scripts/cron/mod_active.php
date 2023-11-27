@@ -89,7 +89,7 @@ foreach ($groups as $group) {
                             ->setTo($m->getEmailPreferred())
                             ->setBody($mail);
 
-                        Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::MODMAIL);
+                        Mail::addHeaders($dbhr, $dbhm, $message, Mail::MODMAIL);
                         list ($transport, $mailer) = Mail::getMailer();
                         $mailer->send($message);
 

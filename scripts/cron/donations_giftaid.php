@@ -70,7 +70,7 @@ foreach ($donations as $donation) {
                     ->setTo($email)
                     ->setBody("You kindly donated to Freegle on $date.  We can make your kind donation go even further if we can claim Gift Aid.  If you can, please go to https://www.ilovefreegle.org/giftaid to complete a donation.");
 
-                Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::THANK_DONATION, $u->getId());
+                Mail::addHeaders($dbhr, $dbhm, $message, Mail::THANK_DONATION, $u->getId());
 
                 $html = $twig->render('chaseup.html', [
                     'name' => $u->getName(),
@@ -88,7 +88,7 @@ foreach ($donations as $donation) {
                 $htmlPart->setBody($html);
                 $message->attach($htmlPart);
 
-                Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::THANK_DONATION, $u->getId());
+                Mail::addHeaders($dbhr, $dbhm, $message, Mail::THANK_DONATION, $u->getId());
 
                 $mailer->send($message);
 

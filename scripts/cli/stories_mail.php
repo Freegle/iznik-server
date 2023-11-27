@@ -43,7 +43,7 @@ if (count($opts)) {
         ->setTo($email)
         ->setBody($text);
 
-    Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::STORY);
+    Mail::addHeaders($dbhr, $dbhm, $message, Mail::STORY);
 
     list ($transport, $mailer) = Mail::getMailer();
 
