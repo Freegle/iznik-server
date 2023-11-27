@@ -299,8 +299,11 @@ class LoveJunk {
                             $ret++;
                         }
                     } catch (\Exception $e) {
-                        error_log("Exception {$e->getMessage()}");
-                        \Sentry\captureException($e);
+                        // Ignore errors that can legitimately happen.
+                        if (strpos($e->getMessage(), 'not active or could not find relevant freegle info') === FALSE) {
+                            error_log("Exception {$e->getMessage()}");
+                            \Sentry\captureException($e);
+                        }
                     }
                 }
             }
