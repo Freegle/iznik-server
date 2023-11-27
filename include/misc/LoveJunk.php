@@ -43,10 +43,15 @@ class LoveJunk {
 
             $this->recordResult(TRUE, $id, json_encode($rsp['body']));
         } catch (\Exception $e) {
-            if ($e->getCode() == 410) {
+            if ($e->getCode() == 410)
+            {
                 // This is a valid error - import disabled.
-                $ret = TRUE;
-                $this->recordResult(TRUE, $id, $e->getCode() . " " . $e->getMessage());
+                $ret = true;
+                $this->recordResult(true, $id, $e->getCode() . " " . $e->getMessage());
+            } else if ($e->getCode() == 409) {
+                // Duplicate of another listing - that's fine from our point of view.
+                $ret = true;
+                $this->recordResult(true, $id, $e->getCode() . " " . $e->getMessage());
             } else {
                 error_log("Error sending " . $e->getMessage() . " with " . json_encode($data));
                 \Sentry\captureException($e);

@@ -3399,7 +3399,7 @@ class User extends Entity
         $groupq = $groupid ? " groupid = $groupid AND " : '';
 
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $groupids = $me->getModeratorships();
+        $groupids = $me ? $me->getModeratorships() : [];
 
         if (count($groupids)) {
             $byq = $groupid ? '' : (' OR users_comments.byuserid = ' . $me->getId());
