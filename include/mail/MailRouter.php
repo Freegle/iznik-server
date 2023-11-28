@@ -1151,8 +1151,7 @@ class MailRouter
             $m = new Message($this->dbhr, $this->dbhm, $msgid);
             $groups = $m->getGroups(false, true);
             $closed = false;
-            foreach ($groups as $gid)
-            {
+            foreach ($groups as $gid) {
                 $g = Group::get($this->dbhr, $this->dbhm, $gid);
 
                 if ($g->getSetting('closed', false))
@@ -1176,8 +1175,18 @@ class MailRouter
                     $fromid
                 );
                 $ret = MailRouter::TO_SYSTEM;
-            } else
-            {
+            } else {
+                # Find the latest entry in messages_history for this message.
+                $hist = $this->dbhr->preQuery("SELECT DATEDIFF(NOW(), arrival) AS daysago FROM messages_history WHERE msgid= ? ORDER BY id DESC LIMIT 1;", [
+                    $msgid
+                ]);
+
+                if (count($hist) && $hist[0]['daysago'] > Message::EXPIRE_TIME) {
+                    if ($log) {
+                        error_log("Reply to expired message, days old {$hist[0]['daysago']}, reply subject " . $this->msg->getSubject());
+                    }
+                }
+
                 $u = User::get($this->dbhr, $this->dbhm, $fromid);
                 $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $fromid;");
 

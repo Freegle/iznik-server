@@ -1928,6 +1928,37 @@ class MailRouterTest extends IznikTestCase {
         $this->assertEquals(NULL, $u->getEmailPreferred());
     }
 
+    public function testToOld() {
+        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        User::clearCache();
+
+        # Create a user for a reply.
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+
+        # Send a message.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        list ($origid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $this->assertNotNull($origid);
+        $rc = $r->route();
+        $this->assertEquals(MailRouter::APPROVED, $rc);
+
+        # Mark the message as ancient.
+        $this->dbhm->preExec("UPDATE messages_history SET arrival = ? WHERE msgid = ?;", [
+            '2000-01-01 00:00:00',
+            $origid
+        ]);
+
+        # Send a reply.  This should be dropped as too old.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
+        $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
+        $r->received(Message::EMAIL, 'test2@test.com', 'replyto-' . $origid . '-' . $uid2 . '@' . USER_DOMAIN, $msg);
+        $this->assertEquals(MailRouter::TO_USER, $r->route());
+    }
+
     //    public function testSpecial() {
 //        //
 //        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/special'));
