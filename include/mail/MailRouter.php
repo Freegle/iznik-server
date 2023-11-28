@@ -910,6 +910,7 @@ class MailRouter
                     {
                         $spamret = $this->spamc->filter($this->msg->getMessage());
                         $spamscore = $this->spamc->result['SCORE'];
+                        if ($log) { error_log("Spam score $spamscore"); }
                     } catch (\Exception $e) {}
 
                     if ($spamret)
