@@ -1043,4 +1043,37 @@ class sessionTest extends IznikAPITestCase
         $this->assertEquals(NULL, $u->getMembershipAtt($group2, 'volunteeringallowed'));
         $this->assertEquals(NULL, $u->getMembershipAtt($group2, 'eventsallowed'));
     }
+
+    public function testConfirmTwice() {
+        # Setting the email twice in quick successsion should
+        $u = User::get($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $this->assertNotNull($u->addEmail('test123@test.com'));
+
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+
+        $ret = $this->call('session', 'PATCH', [
+            'email' => 'test456@test.com',
+        ]);
+
+        $this->assertEquals(10, $ret['ret']);
+
+        # Find the key
+        $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email = 'test456@test.com';");
+        $this->assertEquals(1, count($emails));
+        $key1 = $emails[0]['validatekey'];
+
+        $ret = $this->call('session', 'PATCH', [
+            'email' => 'test456@test.com',
+            'dup' => TRUE
+        ]);
+
+        $this->assertEquals(10, $ret['ret']);
+        $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email = 'test456@test.com';");
+        $this->assertEquals(1, count($emails));
+        $key2 = $emails[0]['validatekey'];
+
+        $this->assertEquals($key1, $key2);
+    }
 }

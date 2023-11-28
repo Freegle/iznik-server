@@ -3744,13 +3744,23 @@ class User extends Entity
             $headers = "From: " . SITE_NAME . " <" . NOREPLY_ADDR . ">\nContent-Type: multipart/alternative; boundary=\"_I_Z_N_I_K_\"\nMIME-Version: 1.0";
             $canon = User::canonMail($email);
 
-            do {
-                # Loop in case of clash on the key we happen to invent.
-                $key = uniqid();
-                $sql = "INSERT INTO users_emails (email, canon, validatekey, backwards) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE validatekey = ?;";
-                $this->dbhm->preExec($sql,
-                    [$email, $canon, $key, strrev($canon), $key]);
-            } while (!$this->dbhm->rowsAffected());
+            # We might be in the process of validating - sometimes people get confused and do this repeatedly.  So
+            # don't alter the key if it's only recently been set.
+            $existing = $this->dbhr->preQuery("SELECT validatekey FROM users_emails WHERE canon = ? AND TIMESTAMPDIFF(SECOND, validatetime, NOW()) < 600;", [
+                $canon
+            ]);
+
+            $key = count($existing) ? $existing[0]['validatekey'] : NULL;
+
+            if (!$key) {
+                do {
+                    # Loop in case of clash on the key we happen to invent.
+                    $key = uniqid();
+                    $sql = "INSERT INTO users_emails (email, canon, validatekey, backwards) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE validatekey = ?;";
+                    $this->dbhm->preExec($sql,
+                                         [$email, $canon, $key, strrev($canon), $key]);
+                } while (!$this->dbhm->rowsAffected());
+            }
 
             $confirm = $this->loginLink(USER_SITE, $this->id, "/settings/confirmmail/" . urlencode($key), 'changeemail', TRUE);
 
