@@ -947,6 +947,29 @@ class membershipsAPITest extends IznikAPITestCase {
         $this->assertTrue(array_key_exists('fduserid', $ret));
     }
 
+    public function testInvalidGroup() {
+        $key = Utils::randstr(64);
+        $id = $this->dbhm->preExec("INSERT INTO partners_keys (`partner`, `key`, `domain`) VALUES ('UT', ?, ?);", [$key, 'partner.com']);
+        $this->assertNotNull($id);
+
+        // Create user with email test@partner.com
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', 'Test User');
+        $u->addEmail('test@partner.com');
+        $uid2 = $u->create('Test', 'User', 'Test User');
+        $u->addEmail('test@partner2.com');
+
+        // Invalid groupid
+        $GLOBALS['sessionPrepared'] = FALSE;
+        $_SESSION['id'] = NULL;
+        $ret = $this->call('memberships', 'PUT', [
+            'groupid' => $this->groupid - 1,
+            'email' => 'test@partner.com',
+            'partner' => $key
+        ]);
+        $this->assertEquals(5, $ret['ret']);
+    }
+
 //
 //    public function testEH() {
 //        $_SESSION['id'] = 420;

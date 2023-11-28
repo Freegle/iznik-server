@@ -165,99 +165,103 @@ function memberships() {
             }
 
             case 'PUT': {
-                $ret = ['ret' => 2, 'status' => 'Permission denied'];
+                $g = Group::get($dbhr, $dbhm, $groupid);
+                $ret = ['ret' => 5, 'status' => "Group $groupid does not exist"];
 
-                $partner = Utils::pres('partner', $_SESSION);
-                $partnerdomain = Utils::pres('partnerdomain', $_SESSION);
-                $tnuserid = Utils::presdef('tnuserid', $_REQUEST, NULL);
-
-                if ($partner) {
-                    $u = User::get($dbhr, $dbhm, $userid);
-                    $uid = NULL;
-
-                    if ($tnuserid) {
-                        $uid = $u->findByTNId($tnuserid);
-                    }
-
-                    if (!$uid) {
-                        $uid = $u->findByEmail($email);
-                    }
-
+                if ($g->getId() == $groupid) {
                     $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
-                    if (strpos($email, '@' . $partnerdomain) !== FALSE) {
+                    $partner = Utils::pres('partner', $_SESSION);
+                    $partnerdomain = Utils::pres('partnerdomain', $_SESSION);
+                    $tnuserid = Utils::presdef('tnuserid', $_REQUEST, NULL);
+
+                    if ($partner) {
+                        $u = User::get($dbhr, $dbhm, $userid);
+                        $uid = NULL;
+
+                        if ($tnuserid) {
+                            $uid = $u->findByTNId($tnuserid);
+                        }
+
                         if (!$uid) {
-                            # The user doesn't already exist.  This is one way that a partner can create a new user.
-                            $p = strrpos($email, '-g');
-                            $p = $p !== FALSE ? $p : strrpos($email, '@');
-                            $name =  substr($email, 0, $p);
-                            $uid = $u->create(NULL, NULL, $name);
-                            $u->addEmail($email);
-                            $u->setPrivate('tnuserid', $tnuserid);
+                            $uid = $u->findByEmail($email);
                         }
 
-                        $u = new User($dbhr, $dbhm, $uid);
-                        $emailid = $u->getAnEmailId();
-                        $rc = $u->addMembership($groupid, $role, $emailid, MembershipCollection::APPROVED);
+                        $ret = ['ret' => 2, 'status' => 'Permission denied'];
 
-                        $ret = ['ret' => 4, 'status' => 'Failed - likely ban'];
+                        if (strpos($email, '@' . $partnerdomain) !== FALSE) {
+                            if (!$uid) {
+                                # The user doesn't already exist.  This is one way that a partner can create a new user.
+                                $p = strrpos($email, '-g');
+                                $p = $p !== FALSE ? $p : strrpos($email, '@');
+                                $name =  substr($email, 0, $p);
+                                $uid = $u->create(NULL, NULL, $name);
+                                $u->addEmail($email);
+                                $u->setPrivate('tnuserid', $tnuserid);
+                            }
 
-                        if ($rc) {
-                            $ret = ['ret' => 0, 'status' => 'Success', 'fduserid' => $u->getId()];
-                        }
-                    }
-                } else {
-                    # We might have been passed a userid; if not, then assume we're acting on ourselves.
-                    $userid = $userid ? $userid : ($me ? $me->getId() : NULL);
-                    $u = User::get($dbhr, $dbhm, $userid);
-
-                    if ($u && $me && $u->getId() && $me->getId() && $userid && $groupid) {
-                        $g = Group::get($dbhr, $dbhm, $groupid);
-                        $myrole = $me->getRoleForGroup($groupid, FALSE);
-                        $origrole = $role;
-
-                        if ($userid && $userid != $me->getId()) {
-                            # If this isn't us, we can add them, but not as someone with higher permissions than us, and
-                            # if we're only a user, we can't add someone else at all.
-                            $role = $myrole == User::ROLE_MEMBER ? User::ROLE_NONMEMBER : $u->roleMin($role, $myrole);
-
-                            # ...unless there are no mods at all, in which case this lucky person could become the owner.
-                            $role = ($origrole == User::ROLE_OWNER && $role == User::ROLE_MODERATOR && count($g->getMods()) == 0) ? User::ROLE_OWNER : $role;
-
-                            # If we're allowed to add another user, then they should be added as an approved member even
-                            # if the group approves members.
-                            $addtocoll = MembershipCollection::APPROVED;
-
-                            # Make sure they're not banned - an explicit add should override that.
-                            $u->unban($groupid);
-                        } else if ($userid) {
-                            # We're adding ourselves, i.e. joining a group.
-                            $addtocoll = MembershipCollection::APPROVED;
-
-                            # But joining shouldn't demote us - we can do that via PATCH.
-                            $role = $me->roleMax($role, $myrole);
-                        }
-
-                        if ($email) {
-                            # Get the emailid we'd like to use on this group.  This will add it if absent.
-                            $emailid = $u->addEmail($email);
-                        } else {
-                            # We've not asked to use a specific email address.  Just use our preferred one.
+                            $u = new User($dbhr, $dbhm, $uid);
                             $emailid = $u->getAnEmailId();
+                            $rc = $u->addMembership($groupid, $role, $emailid, MembershipCollection::APPROVED);
+
+                            $ret = ['ret' => 4, 'status' => 'Failed - likely ban'];
+
+                            if ($rc) {
+                                $ret = ['ret' => 0, 'status' => 'Success', 'fduserid' => $u->getId()];
+                            }
+                        }
+                    } else {
+                        # We might have been passed a userid; if not, then assume we're acting on ourselves.
+                        $userid = $userid ? $userid : ($me ? $me->getId() : NULL);
+                        $u = User::get($dbhr, $dbhm, $userid);
+
+                        if ($u && $me && $u->getId() && $me->getId() && $userid && $groupid) {
+                            $myrole = $me->getRoleForGroup($groupid, FALSE);
+                            $origrole = $role;
+
+                            if ($userid && $userid != $me->getId()) {
+                                # If this isn't us, we can add them, but not as someone with higher permissions than us, and
+                                # if we're only a user, we can't add someone else at all.
+                                $role = $myrole == User::ROLE_MEMBER ? User::ROLE_NONMEMBER : $u->roleMin($role, $myrole);
+
+                                # ...unless there are no mods at all, in which case this lucky person could become the owner.
+                                $role = ($origrole == User::ROLE_OWNER && $role == User::ROLE_MODERATOR && count($g->getMods()) == 0) ? User::ROLE_OWNER : $role;
+
+                                # If we're allowed to add another user, then they should be added as an approved member even
+                                # if the group approves members.
+                                $addtocoll = MembershipCollection::APPROVED;
+
+                                # Make sure they're not banned - an explicit add should override that.
+                                $u->unban($groupid);
+                            } else if ($userid) {
+                                # We're adding ourselves, i.e. joining a group.
+                                $addtocoll = MembershipCollection::APPROVED;
+
+                                # But joining shouldn't demote us - we can do that via PATCH.
+                                $role = $me->roleMax($role, $myrole);
+                            }
+
+                            if ($email) {
+                                # Get the emailid we'd like to use on this group.  This will add it if absent.
+                                $emailid = $u->addEmail($email);
+                            } else {
+                                # We've not asked to use a specific email address.  Just use our preferred one.
+                                $emailid = $u->getAnEmailId();
+                            }
+
+                            if (!$userid || $role != User::ROLE_NONMEMBER) {
+                                $manual = Utils::presBool('manual', $_REQUEST, NULL);
+                                $u->addMembership($groupid, $role, $emailid, $addtocoll, NULL, TRUE, $manual);
+
+                                $ret = [
+                                    'ret' => 0,
+                                    'status' => 'Success',
+                                    'addedto' => $addtocoll
+                                ];
+                            }
                         }
 
-                        if (!$userid || $role != User::ROLE_NONMEMBER) {
-                            $manual = Utils::presBool('manual', $_REQUEST, NULL);
-                            $u->addMembership($groupid, $role, $emailid, $addtocoll, NULL, TRUE, $manual);
-
-                            $ret = [
-                                'ret' => 0,
-                                'status' => 'Success',
-                                'addedto' => $addtocoll
-                            ];
-                        }
                     }
-
                 }
                 break;
             }
