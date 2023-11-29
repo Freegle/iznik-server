@@ -1177,91 +1177,94 @@ class MailRouter
                 $ret = MailRouter::TO_SYSTEM;
             } else {
                 # Find the latest entry in messages_history for this message.
-                $hist = $this->dbhr->preQuery("SELECT DATEDIFF(NOW(), arrival) AS daysago FROM messages_history WHERE msgid= ? ORDER BY id DESC LIMIT 1;", [
+                $hist = $this->dbhr->preQuery("SELECT DATEDIFF(NOW(), arrival) AS daysago FROM messages_history WHERE msgid = ? ORDER BY id DESC LIMIT 1;", [
                     $msgid
                 ]);
 
-                if (count($hist) && $hist[0]['daysago'] > Message::EXPIRE_TIME) {
-                    if ($log) {
-                        error_log("Reply to expired message, days old {$hist[0]['daysago']}, reply subject " . $this->msg->getSubject());
-                    }
-                }
+                $daysago = count($hist) ? $hist[0]['daysago'] : (time() - strtotime($m->getPrivate('arrival'))) / 86400;
 
-                $u = User::get($this->dbhr, $this->dbhm, $fromid);
-                $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $fromid;");
+                if (!$m->getId() || $daysago > Message::EXPIRE_TIME) {
+                    # This is a reply to a message which shouldn't still be getting replies.  This can happen if
+                    # a mailbox is hacked and old email addresses get on a spammer mailing list.
+                    if ($log) { error_log("Reply to expired message, $daysago days old, reply subject " . $this->msg->getSubject()); }
+                    $ret = MailRouter::DROPPED;
+                } else {
+                    $u = User::get($this->dbhr, $this->dbhm, $fromid);
+                    $this->dbhm->background("UPDATE users SET lastaccess = NOW() WHERE id = $fromid;");
 
-                if ($m->getID() && $u->getId() && $m->getFromuser())
-                {
-                    # The email address that we replied from might not currently be attached to the
-                    # other user, for example if someone has email forwarding set up.  So make sure we
-                    # have it.
-                    $u->addEmail($this->msg->getEnvelopefrom(), 0, false);
-
-                    # The sender of this reply will always be on our platform, because otherwise we
-                    # wouldn't have generated a What's New mail to them.  So we want to set up a chat
-                    # between them and the sender of the message (who might or might not be on our
-                    # platform).
-                    if ($log)
+                    if ($m->getID() && $u->getId() && $m->getFromuser())
                     {
-                        error_log(
-                            "Create chat between " . $this->msg->getFromuser() . " (" . $this->msg->getFromaddr(
-                            ) . ") and $fromid for $msgid"
-                        );
-                    }
-                    $r = new ChatRoom($this->dbhr, $this->dbhm);
+                        # The email address that we replied from might not currently be attached to the
+                        # other user, for example if someone has email forwarding set up.  So make sure we
+                        # have it.
+                        $u->addEmail($this->msg->getEnvelopefrom(), 0, false);
 
-                    if ($fromid != $m->getFromuser()) {
-                        list ($chatid, $blocked) = $r->createConversation($fromid, $m->getFromuser());
-
-                        # Now add this into the conversation as a message.  This will notify them.
-                        $textbody = $this->msg->stripQuoted();
-
-                        if (strlen($textbody))
+                        # The sender of this reply will always be on our platform, because otherwise we
+                        # wouldn't have generated a What's New mail to them.  So we want to set up a chat
+                        # between them and the sender of the message (who might or might not be on our
+                        # platform).
+                        if ($log)
                         {
-                            # Sometimes people will just email the photos, with no message.  We don't want to
-                            # create a blank chat message in that case, and such a message would get held
-                            # for review anyway.
-                            $cm = new ChatMessage($this->dbhr, $this->dbhm);
-                            list ($mid, $banned) = $cm->create(
-                                $chatid,
-                                $fromid,
-                                $textbody,
-                                ChatMessage::TYPE_INTERESTED,
-                                $msgid,
-                                false,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                $spamfound
+                            error_log(
+                                "Create chat between " . $this->msg->getFromuser() . " (" . $this->msg->getFromaddr(
+                                ) . ") and $fromid for $msgid"
                             );
-
-                            if ($mid)
-                            {
-                                $cm->chatByEmail($mid, $this->msg->getID());
-                            }
                         }
+                        $r = new ChatRoom($this->dbhr, $this->dbhm);
 
-                        # Add any photos.
-                        $this->addPhotosToChat($chatid);
+                        if ($fromid != $m->getFromuser()) {
+                            list ($chatid, $blocked) = $r->createConversation($fromid, $m->getFromuser());
 
-                        if ($m->hasOutcome())
-                        {
-                            # We don't want to email the recipient - no point pestering them with more
-                            # emails for items which are completed.  They can see them on the
-                            # site if they want.
-                            if ($log)
+                            # Now add this into the conversation as a message.  This will notify them.
+                            $textbody = $this->msg->stripQuoted();
+
+                            if (strlen($textbody))
                             {
-                                error_log("Don't mail as promised to someone else $mid");
-                            }
-                            $r->mailedLastForUser($m->getFromuser());
-                        }
+                                # Sometimes people will just email the photos, with no message.  We don't want to
+                                # create a blank chat message in that case, and such a message would get held
+                                # for review anyway.
+                                $cm = new ChatMessage($this->dbhr, $this->dbhm);
+                                list ($mid, $banned) = $cm->create(
+                                    $chatid,
+                                    $fromid,
+                                    $textbody,
+                                    ChatMessage::TYPE_INTERESTED,
+                                    $msgid,
+                                    false,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    $spamfound
+                                );
 
-                        $ret = MailRouter::TO_USER;
-                    } else {
-                        if ($log) { error_log("Email reply to self"); }
-                        $ret = MailRouter::DROPPED;
+                                if ($mid)
+                                {
+                                    $cm->chatByEmail($mid, $this->msg->getID());
+                                }
+                            }
+
+                            # Add any photos.
+                            $this->addPhotosToChat($chatid);
+
+                            if ($m->hasOutcome())
+                            {
+                                # We don't want to email the recipient - no point pestering them with more
+                                # emails for items which are completed.  They can see them on the
+                                # site if they want.
+                                if ($log)
+                                {
+                                    error_log("Don't mail as promised to someone else $mid");
+                                }
+                                $r->mailedLastForUser($m->getFromuser());
+                            }
+
+                            $ret = MailRouter::TO_USER;
+                        } else {
+                            if ($log) { error_log("Email reply to self"); }
+                            $ret = MailRouter::DROPPED;
+                        }
                     }
                 }
             }
