@@ -2730,6 +2730,8 @@ ORDER BY lastdate DESC;";
         $this->suggestedsubject = $this->groupid ? $this->suggestSubject($this->groupid, $this->subject) : $this->subject;
 
         # Save into the messages table.
+        $this->dbhm->suppressSentry = TRUE;
+
         try {
             if (strlen($this->message) > 100000) {
                 if ($log) { error_log("Prune large message " . strlen($this->message)); }
@@ -2764,10 +2766,16 @@ ORDER BY lastdate DESC;";
                 # This can happen if we receive duplicate copies of messages with the same message id, e.g. if TN
                 # resends a bunch of messages for some reason.
                 $failok = TRUE;
+            } else {
+                $msg = "Exception adding message " . $e->getMessage();
+                error_log($msg);
+                \Sentry\captureMessage($msg);
             }
 
             $rc = FALSE;
         }
+
+        $this->dbhm->suppressSentry = FALSE;
 
         if ($rc) {
             $this->id = $this->dbhm->lastInsertId();
