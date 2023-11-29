@@ -1956,7 +1956,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
         $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
         $r->received(Message::EMAIL, 'test2@test.com', 'replyto-' . $origid . '-' . $uid2 . '@' . USER_DOMAIN, $msg);
-        $this->assertEquals(MailRouter::TO_USER, $r->route());
+        $this->assertEquals(MailRouter::DROPPED, $r->route());
     }
 
     //    public function testSpecial() {
