@@ -817,9 +817,9 @@ class messageTest extends IznikTestCase {
         $count = $m->chaseUp(Group::GROUP_FREEGLE, '2016-03-01', $this->gid);
         $this->assertEquals(0, $count);
 
-        # Make it older.
+        # Make it older and appear to have autoreposted.
         $mysqltime = date("Y-m-d H:i:s", strtotime('121 hours ago'));
-        $this->dbhm->preExec("UPDATE messages_groups SET arrival = ? WHERE msgid = ?;", [
+        $this->dbhm->preExec("UPDATE messages_groups SET arrival = ?, autoreposts = 10 WHERE msgid = ?;", [
             $mysqltime,
             $mid
         ]);

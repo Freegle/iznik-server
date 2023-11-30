@@ -4758,8 +4758,6 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                         $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
 
                         if ($m->canChaseup() || $msgid) {
-                            $matts = $m->getPublic(FALSE, FALSE, TRUE);
-
                             $sql = "SELECT MAX(date) AS latest FROM chat_messages WHERE chatid IN (SELECT chatid FROM chat_messages WHERE refmsgid = ?);";
                             $replies = $this->dbhr->preQuery($sql, [$message['msgid']]);
                             $lastreply = $replies[0]['latest'];
@@ -5081,19 +5079,25 @@ $mq", [
 
     public function canChaseup() {
         $ret = FALSE;
-        $groups = $this->dbhr->preQuery("SELECT groupid, lastchaseup FROM messages_groups WHERE msgid = ?;", [ $this->id ]);
+        $groups = $this->dbhr->preQuery("SELECT groupid, lastchaseup, autoreposts FROM messages_groups WHERE msgid = ?;", [ $this->id ]);
 
         foreach ($groups as $group) {
             $g = Group::get($this->dbhr, $this->dbhm, $group['groupid']);
             $reposts = $g->getSetting('reposts', ['offer' => 3, 'wanted' => 7, 'max' => 5, 'chaseups' => 5]);
-            $interval = $this->getType() == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
-            $interval = max($interval, (array_key_exists('chaseups', $reposts) ? $reposts['chaseups'] : 2) * 24);
+            $maxreposts = Utils::presdef('max', $reposts, 5);
 
-            $ret = TRUE;
+            if ($maxreposts <= 0 || $group['autoreposts'] >= $maxreposts) {
+                # We have autoreposted as much as we are allowed to - time to chase up as a last ditch attempt to
+                # make something happen.
+                $interval = $this->getType() == Message::TYPE_OFFER ? $reposts['offer'] : $reposts['wanted'];
+                $interval = max($interval, (array_key_exists('chaseups', $reposts) ? $reposts['chaseups'] : 2) * 24);
 
-            if ($group['lastchaseup']) {
-                $age = (time() - strtotime($group['lastchaseup'])) / (60 * 60);
-                $ret = $age > $interval * 24;
+                $ret = TRUE;
+
+                if ($group['lastchaseup']) {
+                    $age = (time() - strtotime($group['lastchaseup'])) / (60 * 60);
+                    $ret = $age > $interval * 24;
+                }
             }
         }
 
