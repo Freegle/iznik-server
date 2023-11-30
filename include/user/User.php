@@ -92,7 +92,6 @@ class User extends Entity
     const SRC_REPOST_WARNING = 'repostwarn';
     const SRC_FORGOT_PASSWORD = 'forgotpass';
     const SRC_PUSHNOTIF = 'pushnotif'; // From JS
-    const SRC_TWITTER = 'twitter';
     const SRC_EVENT_DIGEST = 'eventdigest';
     const SRC_VOLUNTEERING_DIGEST = 'voldigest';
     const SRC_VOLUNTEERING_RENEWAL = 'volrenew';

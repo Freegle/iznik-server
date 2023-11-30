@@ -859,35 +859,6 @@ class sessionTest extends IznikAPITestCase
         $this->assertEquals(0, $ret['work']['relatedmembers']);
     }
 
-    public function testTwitter() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->findByShortName('FreeglePlayground');
-
-        if (!$gid) {
-            $gid = $g->create('FreeglePlayground', Group::GROUP_REUSE);
-            $t = new Twitter($this->dbhr, $this->dbhm, $gid);
-            $t->set('FreeglePlaygrnd', getenv('PLAYGROUND_TOKEN'), getenv('PLAYGROUND_SECRET'));
-        }
-
-        $gid = $g->create('testgroup', Group::GROUP_UT);
-        $t = new Twitter($this->dbhr, $this->dbhm, $gid);
-        $t->set('test', 'test', 'test');
-        $atts = $t->getPublic();
-        $this->assertEquals('test', $atts['name']);
-        $this->assertEquals('test', $atts['token']);
-        $this->assertEquals('test', $atts['secret']);
-
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $_SESSION['id'] = $uid;
-        $u->addMembership($gid, User::ROLE_MODERATOR);
-
-        $ret = $this->call('session', 'GET', []);
-        $this->assertEquals(0, $ret['ret']);
-
-        $this->assertEquals('test', $ret['groups'][0]['twitter']['name']);
-    }
-
     public function testFacebookPage() {
         $g = new Group($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_UT);

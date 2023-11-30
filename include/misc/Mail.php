@@ -46,7 +46,6 @@ class Mail {
     const NOTICEBOARD_CHASEUP_OWNER = 42;
     const DONATE_EXTERNAL = 43;
     const REFER_TO_SUPPORT = 44;
-    const TWITTER_APPEAL = 45;
     const NOT_A_MEMBER = 46;
     const MODMAIL = 47;
     const AUTOREPOST = 48;
@@ -98,7 +97,6 @@ class Mail {
         Mail::REFER_TO_SUPPORT => 'ReferToSupport',
         Mail::MERGE => 'Merge',
         Mail::DONATE_EXTERNAL => 'DonateExternal',
-        Mail::TWITTER_APPEAL => 'TwitterAppeal',
         Mail::NOT_A_MEMBER => 'NotAMember',
         Mail::MODMAIL => 'ModMail',
         Mail::AUTOREPOST => 'AutoRepost',

@@ -4,7 +4,6 @@ require_once dirname(__FILE__) . '/../../include/config.php';
 require_once(IZNIK_BASE . '/include/db.php');
 
 require_once(IZNIK_BASE . '/include/group/Group.php');
-require_once(IZNIK_BASE . '/include/group/Twitter.php');
 
 $dsn = "mysql:host={$dbconfig['host']};dbname=republisher;charset=utf8";
 

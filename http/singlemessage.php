@@ -35,11 +35,8 @@ if ($id) {
             $page = preg_replace('/name="description" content=".*?">/', "name=\"description\" content=\"$snippet\">", $page);
             $page = preg_replace('/property="og\:title.*?>/', "property=\"og:title\" content=\"$subj\">", $page);
             $page = preg_replace('/property="og\:description.*?>/', "property=\"og:description\" content=\"$snippet\">", $page);
-            $page = preg_replace('/property="twitter\:title.*?>/', "property=\"twitter:title\" content=\"$subj\">", $page);
-            $page = preg_replace('/property="twitter\:description.*?>/', "property=\"twitter:description\" content=\"$snippet\">", $page);
             $page = preg_replace('/property="og\:url.*?>/', "property=\"og:url\" content=\"https://" . USER_SITE . "/message/$id\">", $page);
             $page = preg_replace('/property="og\:image.*?>/', "property=\"og:image\" content=\"$image\">", $page);
-            $page = preg_replace('/property="twitter\:image.*?>/', "property=\"twitter:image\" content=\"$image\">", $page);
 
             echo $page;
         }

@@ -59,19 +59,11 @@ function group() {
                     $partner = Utils::pres('partner', $_SESSION);
 
                     if ($me && $me->isModerator() || $partner) {
-                        # Return info on Twitter status.  This isn't secret info - we don't put anything confidential
+                        # Return info on Facebook status.  This isn't secret info - we don't put anything confidential
                         # in here - but it's of no interest to members so there's no point delaying them by
                         # fetching it.
                         #
                         # Similar code in session.php
-                        $t = new Twitter($dbhr, $dbhm, $id);
-                        $atts = $t->getPublic();
-                        unset($atts['token']);
-                        unset($atts['secret']);
-                        $atts['authdate'] = Utils::ISODate($atts['authdate']);
-                        $ret['group']['twitter'] =  $atts;
-
-                        # Ditto Facebook.
                         $uids = GroupFacebook::listForGroup($dbhr, $dbhm, $id);
                         $ret['group']['facebook'] = [];
 

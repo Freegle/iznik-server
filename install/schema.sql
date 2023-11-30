@@ -1088,35 +1088,6 @@ CREATE TABLE `groups_sponsorship` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `groups_twitter`
---
-
-DROP TABLE IF EXISTS `groups_twitter`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `groups_twitter` (
-  `groupid` bigint unsigned NOT NULL,
-  `name` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `token` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `secret` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `authdate` timestamp NULL DEFAULT NULL,
-  `msgid` bigint unsigned DEFAULT NULL COMMENT 'Last message tweeted',
-  `msgarrival` timestamp NULL DEFAULT NULL,
-  `eventid` bigint unsigned DEFAULT NULL COMMENT 'Last event tweeted',
-  `valid` tinyint NOT NULL DEFAULT '1',
-  `locked` tinyint(1) NOT NULL DEFAULT '0',
-  `lasterror` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  `lasterrortime` timestamp NULL DEFAULT NULL,
-  UNIQUE KEY `groupid` (`groupid`),
-  KEY `msgid` (`msgid`),
-  KEY `eventid` (`eventid`),
-  CONSTRAINT `groups_twitter_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `groups_twitter_ibfk_2` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `groups_twitter_ibfk_3` FOREIGN KEY (`eventid`) REFERENCES `communityevents` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `isochrones`
 --
 

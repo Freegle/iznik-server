@@ -205,11 +205,6 @@ class MailRouter
             $ret = $this->turnVolunteeringOff($matches, $ret);
         } else if (preg_match('/notificationmailsoff-(.*)@/', $to, $matches) == 1) {
             $ret = $this->turnNotificationsOff($matches[1], $ret);
-        } else if (strcmp($this->msg->getFromaddr(), 'support@twitter.com') === 0 &&
-            preg_match('/(.*)-volunteers@' . GROUP_DOMAIN . '/', $to, $matches) &&
-            strpos($this->msg->getMessage(), 'We received your appeal regarding your account.') !== FALSE
-        ) {
-            $ret = $this->twitterAppeal($log, $fromheader[0]['address'], $to);
         } else if (preg_match('/(.*)-volunteers@' . GROUP_DOMAIN . '/', $to, $matches) ||
             preg_match('/(.*)-auto@' . GROUP_DOMAIN . '/', $to, $matches)) {
             $ret = $this->toVolunteers($to, $matches[1], $notspam);
@@ -546,18 +541,6 @@ class MailRouter
         return $ret;
     }
 
-    private function twitterAppeal(bool $log, $address, $to)
-    {
-        # We need to confirm this to allow appeals of blocked accounts.
-        if ($log)
-        {
-            error_log("Confirm twitter appeal");
-        }
-        $this->mail($address, $to, "Re: " . $this->msg->getSubject(), "I confirm this", Mail::TWITTER_APPEAL, 0);
-        $ret = MailRouter::TO_SYSTEM;
-        return $ret;
-    }
-
     private function toVolunteers($to, $matches, $notspam)
     {
         # Mail to our owner address.  First check if it's spam according to SpamAssassin.
@@ -641,8 +624,7 @@ class MailRouter
                                             error_log("Chatid is $chatid");
                                         }
 
-                                        # Now add this message into the chat.  Don't strip quoted as it might be useful -
-                                        # one example is twitter email confirmations, where the URL is quoted (weirdly).
+                                        # Now add this message into the chat.  Don't strip quoted as it might be useful.
                                         $textbody = $this->msg->getTextBody();
 
                                         # ...but we don't want the whole digest, if they sent that.

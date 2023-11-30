@@ -1539,22 +1539,6 @@ class MailRouterTest extends IznikTestCase {
 
         }
 
-    public function testTwitterAppeal() {
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create("Test", "User", "Test User");
-        $u->setPrivate('yahooid', 'testid');
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup1", Group::GROUP_REUSE);
-        $u->addMembership($gid, User::ROLE_MODERATOR);
-
-        $msg = str_replace('test@test.com', 'support@twitter.com', $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/twitterappeal')));
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        $r->log = TRUE;
-       list ($mid, $failok) = $r->received(Message::EMAIL, 'support@twitter.com', 'testgroup1-volunteers@groups.ilovefreegle.org', $msg);
-        $rc = $r->route();
-        $this->assertEquals(MailRouter::TO_SYSTEM, $rc);
-    }
-
     public function testWorry() {
         $this->dbhm->preExec("INSERT INTO worrywords (keyword, type) VALUES (?, ?);", [
             'UTtest1',
