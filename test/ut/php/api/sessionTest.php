@@ -1047,4 +1047,20 @@ class sessionTest extends IznikAPITestCase
 
         $this->assertEquals($key1, $key2);
     }
+
+    public function testPECR() {
+        $u = User::get($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $this->assertNotNull($u->addEmail('test123@test.com'));
+
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+
+        $ret = $this->call('session', 'PATCH', [
+            'marketingconsent' => TRUE
+        ]);
+
+        $u = new User($this->dbhr, $this->dbhm, $id);
+        $this->assertEquals(1, $u->getPrivate('marketingconsent', 0));
+    }
 }

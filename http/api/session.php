@@ -569,6 +569,12 @@ function session() {
             if (!$me) {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
             } else {
+                if (Utils::pres('marketingconsent', $_REQUEST)) {
+                    // Consent to marketing under PECR.
+                    $consent = Utils::presbool('marketingconsent', $_REQUEST, FALSE);
+                    $me->setPrivate('marketingconsent', $consent);
+                }
+
                 $fullname = Utils::presdef('displayname', $_REQUEST, NULL);
                 $firstname = Utils::presdef('firstname', $_REQUEST, NULL);
                 $lastname = Utils::presdef('lastname', $_REQUEST, NULL);
