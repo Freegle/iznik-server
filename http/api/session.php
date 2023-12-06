@@ -569,7 +569,7 @@ function session() {
             if (!$me) {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
             } else {
-                if (Utils::pres('marketingconsent', $_REQUEST)) {
+                if (array_key_exists('marketingconsent', $_REQUEST)) {
                     // Consent to marketing under PECR.
                     $consent = Utils::presbool('marketingconsent', $_REQUEST, FALSE);
                     $me->setPrivate('marketingconsent', $consent);
