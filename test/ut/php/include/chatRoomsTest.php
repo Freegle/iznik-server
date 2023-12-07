@@ -1485,6 +1485,38 @@ class chatRoomsTest extends IznikTestCase {
         $sent = $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0);
         $this->assertEquals(0, $sent);
     }
+
+    public function testOldNotify() {
+        # Set up a chatroom
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addEmail('test1@test.com');
+        $u->addEmail('test1@' . USER_DOMAIN);
+
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
+        $this->assertNotNull($id);
+
+        # Add a message.
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cm, $banned) = $m->create($id, $u1, "Testing", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
+        $this->log("Created chat message $cm");
+
+        # Make it old.
+        $r->setPrivate('latestmessage', '2001-01-01');
+
+        # Now send an email reply to this notification, but from a different email.  That email should be blocked
+        # because it's old.
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
+        $mr = new MailRouter($this->dbhm, $this->dbhm);
+        list ($mid, $failok) = $mr->received(Message::EMAIL, 'from2@test.com', "notify-$id-$u2@" . USER_DOMAIN, $msg);
+        $rc = $mr->route();
+        $this->assertEquals(MailRouter::DROPPED, $rc);
+    }
 }
 
 

@@ -1291,49 +1291,79 @@ class MailRouter
                     {
                         # ...and the user we're replying to is part of it or a mod.
                         #
-                        # The email address that we replied from might not currently be attached to the
-                        # other user, for example if someone has email forwarding set up.  So make sure we
-                        # have it.
-                        $u->addEmail($this->msg->getEnvelopefrom(), 0, false);
+                        # Check if the email address that we replied from is currently attached to the other user.
+                        $emails = $u->getEmails();
+                        $found = FALSE;
 
-                        # Now add this into the conversation as a message.  This will notify them.
-                        $textbody = $this->msg->stripQuoted();
-
-                        if (strlen($textbody))
-                        {
-                            # Sometimes people will just email the photos, with no message.  We don't want to
-                            # create a blank chat message in that case, and such a message would get held
-                            # for review anyway.
-                            $cm = new ChatMessage($this->dbhr, $this->dbhm);
-                            list ($mid, $banned) = $cm->create(
-                                $chatid,
-                                $userid,
-                                $textbody,
-                                ChatMessage::TYPE_DEFAULT,
-                                null,
-                                false,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                $spamfound
-                            );
-
-                            if ($mid)
-                            {
-                                $cm->chatByEmail($mid, $this->msg->getID());
+                        foreach ($emails as $e) {
+                            if ($e['email'] == $this->msg->getEnvelopefrom()) {
+                                $found = TRUE;
+                                break;
                             }
                         }
 
-                        # Add any photos.
-                        $this->addPhotosToChat($chatid);
+                        if (!$found) {
+                            # The email address that we replied from might not currently be attached to the
+                            # other user, for example if someone has email forwarding set up.  In that case we'd want
+                            # to add it.
+                            #
+                            # But if mailboxes are hacked, then the notify- email might have been harvested and we
+                            # might get spammers mailing that address.  There's no really good way to spot this,
+                            # but if we get a mail from an unassociated email address to a chat which hasn't been
+                            # active for a while, then that's quite likely to be spam.
+                            $lastmessage = $r->getPrivate('latestmessage');
 
-                        # It might be nice to suppress email notifications if the message has already
-                        # been promised or is complete, but we don't really know which message this
-                        # reply is for.
+                            if ($lastmessage && (time() - strtotime($lastmessage) > User::OPEN_AGE * 24 * 60 * 60)) {
+                                # It's been a while since the last message, so this is probably spam.
+                                if ($log) { error_log("Spammy reply to chat $chatid from $userid"); }
+                                $ret = MailRouter::DROPPED;
+                            } else {
+                                # It's probably not spam, so add the email address.
+                                $u->addEmail($this->msg->getEnvelopefrom(), 0, false);
+                                $found = TRUE;
+                            }
+                        }
 
-                        $ret = MailRouter::TO_USER;
+                        if ($found) {
+                            # Now add this into the conversation as a message.  This will notify them.
+                            $textbody = $this->msg->stripQuoted();
+
+                            if (strlen($textbody))
+                            {
+                                # Sometimes people will just email the photos, with no message.  We don't want to
+                                # create a blank chat message in that case, and such a message would get held
+                                # for review anyway.
+                                $cm = new ChatMessage($this->dbhr, $this->dbhm);
+                                list ($mid, $banned) = $cm->create(
+                                    $chatid,
+                                    $userid,
+                                    $textbody,
+                                    ChatMessage::TYPE_DEFAULT,
+                                    null,
+                                    false,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    $spamfound
+                                );
+
+                                if ($mid)
+                                {
+                                    $cm->chatByEmail($mid, $this->msg->getID());
+                                }
+                            }
+
+                            # Add any photos.
+                            $this->addPhotosToChat($chatid);
+
+                            # It might be nice to suppress email notifications if the message has already
+                            # been promised or is complete, but we don't really know which message this
+                            # reply is for.
+
+                            $ret = MailRouter::TO_USER;
+                        }
                     }
                 }
             } else
