@@ -713,6 +713,27 @@ function message() {
                                 }
                             }
                             break;
+                        case 'MoveToPending':
+                            # This is a message which has been rejected or reposted, which we are now going to edit.
+                            $ret = ['ret' => 3, 'status' => 'Message does not exist'];
+                            $sql = "SELECT id FROM messages_groups WHERE msgid = ? AND collection = ?;";
+                            $msgs = $dbhr->preQuery($sql, [ $id, MessageCollection::APPROVED ]);
+
+                            foreach ($msgs as $msg) {
+                                $m = new Message($dbhr, $dbhm, $id);
+                                $ret = ['ret' => 4, 'status' => 'Failed to edit message'];
+
+                                $role = $m->getRoleForMessage()[0];
+
+                                if ($role == User::ROLE_MODERATOR || $role = User::ROLE_OWNER) {
+                                    $rc = $m->backToPending();
+
+                                    if ($rc) {
+                                        $ret = ['ret' => 0, 'status' => 'Success' ];
+                                    }
+                                }
+                            }
+                            break;
                     }
                 }
 

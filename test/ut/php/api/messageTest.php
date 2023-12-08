@@ -3997,4 +3997,32 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals('Text body', $msg['textbody']);
         $this->assertEquals($attids[0], $msg['attachments'][0]['id']);
     }
+
+    public function testBackToPending()
+    {
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        $this->assertEquals(MailRouter::PENDING, $rc);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($this->gid, User::ROLE_MODERATOR);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'BackToPending',
+        ]);
+
+        $this->assertEquals(0, $ret['ret']);
+
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $this->assertEquals(MessageCollection::PENDING, $m->getGroups(FALSE, FALSE)[0]['collection']);
+    }
 }

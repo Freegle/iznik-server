@@ -4548,6 +4548,14 @@ WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND message
         return(!$rollback);
     }
 
+    public function backToPending(){
+        $this->hold();
+        $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ?;", [
+            MessageCollection::PENDING,
+            $this->id
+        ]);
+    }
+
     public function autoRepostGroup($type, $mindate, $groupid = NULL, $msgid = NULL) {
         $count = 0;
         $warncount = 0;
