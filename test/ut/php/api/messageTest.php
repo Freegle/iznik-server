@@ -4000,13 +4000,22 @@ class messageAPITest extends IznikAPITestCase
 
     public function testBackToPending()
     {
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $u = new User($this->dbhr, $this->dbhm);
+        $u->create('Test', 'User', 'Test User');
+        $this->assertNotNull($u->addEmail($email));
+        $u->addMembership($this->gid);
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
+        # Create a message at this location on this group.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('test@test.com', $email, $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
-        $this->assertEquals(MailRouter::PENDING, $rc);
+        $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');

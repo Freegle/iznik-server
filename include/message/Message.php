@@ -4549,6 +4549,7 @@ WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND message
     }
 
     public function backToPending(){
+        $this->deleteFromSpatialIndex();
         $this->hold();
         $this->dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ?;", [
             MessageCollection::PENDING,
