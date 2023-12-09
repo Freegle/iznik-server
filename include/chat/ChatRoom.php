@@ -1779,8 +1779,14 @@ ORDER BY id, added, groupid ASC;";
         if ($this->chatroom['chattype'] == ChatRoom::TYPE_USER2USER) {
             # This is a conversation between two users.  They're both in the roster so we can see what their last
             # seen message was and decide who to chase.  If they've blocked this chat we don't want to see it.
+            #
+            # Only pluck out the users the chat is between; we might have a roster entry for a mod.
             $readyq = $forceall ? '' : "HAVING lastemailed IS NULL OR lastmsgemailed < ? ";
-            $sql = "SELECT chat_roster.* FROM chat_roster WHERE chatid = ? AND (status IS NULL OR status != ?) $readyq;";
+            $sql = "SELECT chat_roster.* FROM chat_roster 
+                 INNER JOIN chat_rooms ON chat_rooms.id = chat_roster.chatid 
+                 WHERE chatid = ? AND
+                       chat_roster.userid IN (chat_rooms.user1, chat_rooms.user2) AND
+                       (status IS NULL OR status != ?) $readyq;";
             #error_log("$sql {$this->id}, $lastmessage");
             $users = $this->dbhr->preQuery($sql, $forceall ? [$this->id, ChatRoom::STATUS_BLOCKED] : [$this->id, ChatRoom::STATUS_BLOCKED, $lastmessage]);
 
