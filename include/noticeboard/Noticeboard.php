@@ -411,7 +411,7 @@ class Noticeboard extends Entity
                             $this->sendIt($mailer, $message);
 
                             # Record our ask.
-                            $this->recordAsk($noticeboard['id'], $noticeboard['addedby']);
+                            $this->recordAsk($noticeboard['id'], $closestid);
                             $count++;
                         }
                     }
