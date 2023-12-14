@@ -724,10 +724,15 @@ function message() {
                                 $ret = ['ret' => 4, 'status' => 'Failed to move message'];
 
                                 $role = $m->getRoleForMessage()[0];
-                                error_log("Role $role");
 
                                 if ($role == User::ROLE_MODERATOR || $role == User::ROLE_OWNER) {
                                     $rc = $m->backToPending();
+
+                                    # We should cancel this on LoveJunk.  We won't send this to them again if it is
+                                    # later approved, but this is rare so won't affect numbers.
+                                    $l = new LoveJunk($dbhr, $dbhm);
+                                    $l->delete($m->getId());
+
                                     $ret = ['ret' => 0, 'status' => 'Success' ];
                                 }
                             }

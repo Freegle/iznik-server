@@ -1157,6 +1157,12 @@ class Newsfeed extends Entity
         ]);
     }
 
+    public function convertToStory($newsfeedid) {
+        $n = new Newsfeed($this->dbhr, $this->dbhm, $newsfeedid);
+        $s = new Story($this->dbhr, $this->dbhm);
+        return $s->create($n->getPrivate('userid'), TRUE, 'My Freegle story', $n->getPrivate('message'), NULL);
+    }
+
     public function unhide($newsfeedid) {
         # Hide this post except to the author.
         $rc = $this->dbhm->preExec("UPDATE newsfeed SET hidden = NULL, hiddenby = NULL WHERE id = ?;", [

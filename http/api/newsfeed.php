@@ -178,6 +178,21 @@ function newsfeed() {
                             'status' => 'Success'
                         ];
                     }
+                } else if ($action == 'ConvertToStory') {
+                    $ret = [
+                        'ret' => 2,
+                        'status' => 'Permission denied'
+                    ];
+                    $me = Session::whoAmI($dbhr, $dbhm);
+                    if ($me && $me->isAdmin()) {
+                        $retid = $n->convertToStory($id);
+
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success',
+                            'id' => $retid
+                        ];
+                    }
                 } else {
                     $s = new Spam($dbhr, $dbhm);
                     $spammers = $s->getSpammerByUserid($myid);

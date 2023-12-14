@@ -986,6 +986,36 @@ class newsfeedAPITest extends IznikAPITestCase {
         }
         $this->assertTrue($found);
     }
+
+    public function testConvertToStory() {
+        $this->log("Log in as {$this->uid}");
+        $this->assertTrue($this->user->login('testpw'));
+        $ret = $this->call('newsfeed', 'POST', [
+            'message' => 'Test for mention'
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertNotNull($ret['id']);
+        $this->log("Created feed {$ret['id']}");
+        $nid = $ret['id'];
+
+        $ret = $this->call('newsfeed', 'POST', [
+            'id' => $nid,
+            'action' => 'ConvertToStory'
+        ]);
+
+        # Should fail, not admin.
+        $this->assertEquals(2, $ret['ret']);
+
+        $this->user->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
+        $ret = $this->call('newsfeed', 'POST', [
+            'id' => $nid,
+            'action' => 'ConvertToStory',
+            'dup' => TRUE,
+        ]);
+
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertGreaterThan(0, $ret['id']);
+    }
 //
 //    public function testEH() {
 //        $u = new User($this->dbhr, $this->dbhm);
