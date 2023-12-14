@@ -1,0 +1,73 @@
+<mjml>
+  <mj-head>
+      <mj-style>
+        a {
+          color: #288c0a;
+          text-decoration: none;
+          font-weight: bold
+        }
+        ol {
+          margin-top: 0; margin-bottom: 0;
+          /* margin-left: 2.2em; For Outlook */
+          padding-left: 2.4em; /* For the rest */
+        }
+        li {
+          margin: 0.5em 0;
+        }
+      </mj-style>
+      <mj-attributes>
+        <mj-all font-family="Trebuchet MS, Helvetica, Arial" />
+      </mj-attributes>
+    </mj-head>
+  <mj-body>
+    <mj-container>
+      <mj-wrapper padding="0"  full-width="full-width">
+        <!-- header section -->
+        <mj-section background-url="https://www.ilovefreegle.org/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0">
+          <mj-group>
+          <mj-column vertical-align="middle" width="65%">
+            <mj-text color="#61AE24" font-size="18pt" line-height="1.25em">Complete this quick survey for the chance to win a £50 voucher!</mj-text>
+          </mj-column>
+          <mj-column vertical-align="middle" width="35%">
+            <mj-image css-class="logo" src="https://www.ilovefreegle.org/icon.png" alt="Logo" width="80px" align="right" border-radius="5px" padding="20px"/>
+          </mj-column>
+          </mj-group>
+        </mj-section>
+        <mj-section background-color="#F7F6EC">
+          <mj-column>
+            <mj-text>Dear freegler,</mj-text>
+            <mj-text>
+Thank you for signing up recently to your local Wandsworth Freegle Community!
+</mj-text>
+            <mj-text>
+Could you help Freegle by answering a few questions? By doing this you’ll get the chance to win a £50 voucher!  We’d love to know how you found out about Freegle and whether you have found the platform useful so far.
+</mj-text>
+            <mj-text>
+This short survey will take less than 5 minutes and on completion you will be entered into a prize draw to win one of four £50 vouchers for ‘The Source Bulk Foods’, your local zero waste store - where sustainable shopping is made easy.
+</mj-text>
+            <mj-text>
+The closing date for the survey is 11 January 2024 and you will be informed by email by 15 January if you’ve won a voucher. For full terms and conditions please visit: Ts &amp; Cs link
+</mj-text>
+            <mj-text>
+Happy Freegling!
+</mj-text>
+        </mj-column>
+      </mj-section>
+        <mj-section background-color="#FFF8DC">
+        <mj-column width="100%">
+          <mj-button align="center" font-size="30px" href="https://ilovefreegle.org/shortlink/WandsworthSurvey" background-color="darkgreen">Click to complete the survey</mj-button>
+
+          </mj-column>
+        </mj-section>
+        <mj-section background-color="#E0E0E0">
+          <mj-column>
+            <mj-text font-size="9pt" color="#707070">This mail was sent to&nbsp;{{ email }}.  You can unsubscribe and leave Freegle completely by clicking <a href="{{ unsubscribe }}">here</a>.
+              <hr style="border: 0; border-top: 1px solid #AAA; "/>
+              Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.
+            </mj-text>
+            </mj-column>
+        </mj-section>
+      </mj-wrapper>
+    </mj-container>
+  </mj-body>
+</mjml>
