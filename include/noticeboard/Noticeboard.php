@@ -253,23 +253,24 @@ class Noticeboard extends Entity
         $twig = new \Twig_Environment($loader);
 
         # Get users who
-        # - have accepted microvolunteering
+        # - have been active recently
         # - haven't been asked recently
         # - are in the group
         # ...and their lat/lngs.
         $latlngs = [];
 
-        $mysqltime = date('Y-m-d', strtotime("7 days ago"));
+        $askedat = date('Y-m-d', strtotime("7 days ago"));
+        $activeat = date('Y-m-d', strtotime("90 days ago"));
         $users = $this->dbhr->preQuery("SELECT DISTINCT(users.id) FROM users
     INNER JOIN memberships ON users.id = memberships.userid
     LEFT JOIN noticeboards_checks ON users.id = noticeboards_checks.userid
     WHERE 
     groupid = ? 
-    AND users.trustlevel IN (?, ?, ?) AND users.deleted IS NULL 
+    AND lastaccess >= ? AND users.deleted IS NULL 
     AND (askedat IS NULL OR askedat < ?) ", [
             $groupid,
-            User::TRUST_BASIC, User::TRUST_MODERATE, User::TRUST_ADVANCED,
-            $mysqltime
+            $activeat,
+            $askedat
         ]);
 
         foreach ($users as $user) {
