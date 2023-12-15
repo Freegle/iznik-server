@@ -377,8 +377,11 @@ class LoveJunk {
                 }
             } catch (\Exception $e) {
                 error_log("Exception {$e->getMessage()}");
-                // Some errors are legitimate.
-                if (strpos($e->getMessage(), 'No suitable data found allowing supplier reuse of job') === FALSE) {
+                if (strpos($e->getMessage(), 'No suitable data found allowing supplier reuse of job') !== FALSE ||
+                    strpos($e->getMessage(), 'Cannot find any data relevant to junk lover offer') !== FALSE) {
+                    // Some errors are legitimate.
+                    $this->recordResultDelete(TRUE, $msgid, $e->getMessage());
+                } else {
                     \Sentry\captureException($e);
                 }
             }
