@@ -580,6 +580,7 @@ CREATE TABLE `chat_roster` (
   `lastemailed` timestamp NULL DEFAULT NULL,
   `lastmsgemailed` bigint unsigned DEFAULT NULL,
   `lastip` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `lasttype` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `chatid_2` (`chatid`,`userid`),
   KEY `chatid` (`chatid`),
