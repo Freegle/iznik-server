@@ -2815,7 +2815,15 @@ ORDER BY id, added, groupid ASC;";
             ChatRoom::DELAY
         ]);
 
-        return $this->dbhm->rowsAffected();
+        $rc = $this->dbhm->rowsAffected();
+
+        # Record the last typing time.
+        $this->dbhm->preExec("UPDATE chat_roster SET lasttype = NOW() WHERE chatid = ? AND userid = ?;", [
+            $this->id,
+            Session::whoAmId($this->dbhr, $this->dbhm)
+        ]);
+
+        return $rc;
     }
 
     public function sendIt($mailer, $message) {
