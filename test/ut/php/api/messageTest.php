@@ -4034,4 +4034,81 @@ class messageAPITest extends IznikAPITestCase
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $this->assertEquals(MessageCollection::PENDING, $m->getGroups(FALSE, FALSE)[0]['collection']);
     }
+
+    public function testMarkUnpromised() {
+        $u = $this->user;
+        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $uid3 = $u->create(NULL, NULL, 'Test User');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $msg = str_ireplace('Basic test', 'OFFER: A thing (A place)', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        $this->assertGreaterThan(0, $id);
+        $rc = $r->route();
+        $this->assertEquals(MailRouter::APPROVED, $rc);
+
+        # Set up some interest from two users.  No need to use the API as we're not testing chat function here.
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($rid2, $banned) = $r->createConversation($uid2, $this->uid);
+        $this->assertGreaterThan(0, $rid2);
+        $cm = new ChatMessage($this->dbhr, $this->dbhm);
+        $mid2 = $cm->create($rid2, $uid2, 'Test', ChatMessage::TYPE_INTERESTED, $id);
+        list ($rid3, $banned) = $r->createConversation($uid3, $this->uid);
+        $this->assertGreaterThan(0, $rid3);
+        $mid3 = $cm->create($rid3, $uid3, 'Test', ChatMessage::TYPE_INTERESTED, $id);
+
+        # Promise it and renege.
+        $u = User::get($this->dbhr, $this->dbhm, $this->uid);
+        $this->assertTrue($u->login('testpw'));
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'userid' => $uid2,
+            'action' => 'Promise'
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'userid' => $uid2,
+            'action' => 'Renege'
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+
+        # Now mark as taken.
+        $ret = $this->call('message', 'POST', [
+            'id' => $id,
+            'action' => 'Outcome',
+            'outcome' => Message::OUTCOME_TAKEN,
+            'message' => 'Message for others'
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+
+        $this->waitBackground();
+
+        # Should be interested, promised, reneged, taken.
+        $r = new ChatRoom($this->dbhr, $this->dbhm, $rid2);
+        list ($msgs, $users) = $r->getMessages();
+        $this->assertEquals(4, count($msgs));
+        $this->assertEquals(ChatMessage::TYPE_INTERESTED, $msgs[0]['type']);
+        $this->assertEquals(ChatMessage::TYPE_PROMISED, $msgs[1]['type']);
+        $this->assertEquals(ChatMessage::TYPE_RENEGED, $msgs[2]['type']);
+        $this->assertEquals(ChatMessage::TYPE_COMPLETED, $msgs[3]['type']);
+        $this->assertEquals(NULL, $msgs[3]['message']);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm, $rid3);
+        list ($msgs, $users) = $r->getMessages();
+
+        # Should be interested, message to others, taken.
+        $this->assertEquals(2, count($msgs));
+        $this->assertEquals(ChatMessage::TYPE_INTERESTED, $msgs[0]['type']);
+        $this->assertEquals(ChatMessage::TYPE_COMPLETED, $msgs[1]['type']);
+        $this->assertEquals('Message for others', $msgs[1]['message']);
+    }
 }

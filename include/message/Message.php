@@ -4434,7 +4434,20 @@ WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND message
         $cm = new ChatMessage($this->dbhr, $this->dbhm);
 
         foreach ($replies as $reply) {
-            list ($mid, $banned) = $cm->create($reply['chatid'], $this->getFromuser(), $messageForOthers, ChatMessage::TYPE_COMPLETED, $this->id);
+            # Check that we didn't unpromise this message in this chat.  If that's happened, someone has changed
+            # their minds, and the generic message is probably not appropriate to send.
+            $unpromised = count($this->dbhr->preQuery("SELECT * FROM chat_messages WHERE chatid = ? AND refmsgid = ? AND type = ?;", [
+                $reply['chatid'],
+                $this->id,
+                ChatMessage::TYPE_RENEGED
+            ])) > 0;
+            error_log("Unpromised in chat " . ($unpromised ? 'yes' : 'no') . " $reply[chatid] $this->id");
+
+            list ($mid, $banned) = $cm->create($reply['chatid'],
+                                               $this->getFromuser(),
+                                               $unpromised ? NULL : $messageForOthers,
+                                               ChatMessage::TYPE_COMPLETED,
+                                               $this->id);
 
             # Make sure this message is highlighted in chat/email.
             $r = new ChatRoom($this->dbhr, $this->dbhm, $reply['chatid']);
