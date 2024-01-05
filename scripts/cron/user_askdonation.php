@@ -47,7 +47,7 @@ foreach ($users as $user) {
         
         foreach ($messages as $message) {
             $count++;
-            $subj = $ours ? "Re: {$message['subject']}" : "Thanks for freegling!";
+            $subj = $ours ? "Regarding: {$message['subject']}" : "Thanks for freegling!";
             error_log("{$user['userid']} " . $u->getName() . " " . $u->getEmailPreferred() . " {$message['msgid']} {$message['date']} {$message['subject']} => $subj");
 
             try {

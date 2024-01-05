@@ -238,13 +238,13 @@ class Digest
                         try {
                             $html = $twig->render('digest/single.html', [
                                 # Per-message fields for expansion now.
-                                'fromname' => $msg['fromname'],
+                                'fromname' => $msg['fromname'] . ' on ' . SITE_NAME,
                                 'subject' => $msg['subject'],
                                 'textbody' => $msg['textbody'],
                                 'image' => count($msg['attachments']) > 0 ? $msg['attachments'][0]['path'] : NULL,
                                 'groupname' => $gatts['namedisplay'],
                                 'replyweb' => "https://" . USER_SITE . "/message/{$msg['id']}",
-                                'replyemail' => "mailto:$replyto?subject=" . rawurlencode("Re: " . $msg['subject']),
+                                'replyemail' => "mailto:$replyto?subject=" . rawurlencode("Regarding: " . $msg['subject']),
                                 'date' => $datetime->format('D, jS F g:ia'),
                                 'autoreposts' => $msg['autoreposts'],
                                 'sponsors' => $sponsors,
@@ -305,10 +305,10 @@ class Digest
                             'id' => $msg['id'],
                             'subject' => $msg['subject'],
                             'textbody' => $msg['textbody'],
-                            'fromname' => $msg['fromname'],
+                            'fromname' => $msg['fromname'] . ' on ' . SITE_NAME,
                             'image' => count($msg['attachments']) > 0 ? $msg['attachments'][0]['paththumb'] : NULL,
                             'replyweb' => "https://" . USER_SITE . "/message/{$msg['id']}",
-                            'replyemail' => "mailto:$replyto?subject=" . rawurlencode("Re: " . $msg['subject']),
+                            'replyemail' => "mailto:$replyto?subject=" . rawurlencode("Regarding: " . $msg['subject']),
                             'autoreposts' => $msg['autoreposts'],
                             'firstposted' => $msg['firstposted'],
                             'date' => date("D, jS F g:ia", strtotime($msg['arrival'])),

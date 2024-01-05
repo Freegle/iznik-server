@@ -42,7 +42,7 @@ list ($transport, $mailer) = Mail::getMailer();
 
 if (\Swift_Validate::email($to)) {
 $message = \Swift_Message::newInstance()
-->setSubject("Re: " . $subj)
+->setSubject("Regarding: " . $subj)
 ->setFrom([$g->getAutoEmail() => $gatts['namedisplay']])
 ->setReplyTo([$g->getModsEmail() => $gatts['namedisplay']])
 //->setTo($to)

@@ -314,7 +314,7 @@ class Volunteering extends Entity
                 $html = volunteering_renew(USER_SITE, USERLOGO, $v->getPrivate('title'), $url, $groupname);
 
                 $message = \Swift_Message::newInstance()
-                    ->setSubject("Re: " . $v->getPrivate('title'))
+                    ->setSubject("Regarding: " . $v->getPrivate('title'))
                     ->setFrom([NOREPLY_ADDR => SITE_NAME])
                     ->setReturnPath($u->getBounce())
                     ->setTo([ $u->getEmailPreferred() => $u->getName() ])
