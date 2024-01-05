@@ -2280,7 +2280,7 @@ ORDER BY id, added, groupid ASC;";
                                     if (count($subjs)) {
                                         $groupname = Utils::presdef('namefull', $subjs[0], $subjs[0]['nameshort']);
                                         $subject = count($subjs) == 0 ?  : ("Regarding: [$groupname] " .
-                                            str_replace('Regarding:', str_replace('Re: ', '', $subjs[0]['subject']), ''));
+                                            str_replace('Regarding:', '', str_replace('Re: ', '', $subjs[0]['subject'])));
                                     } else {
                                         $subject = "[Freegle] You have a new message";
                                     }
