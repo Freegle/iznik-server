@@ -2494,7 +2494,7 @@ ORDER BY id, added, groupid ASC;";
                                                                            $member['userid'],
                                                                            $sendingto->getName(),
                                                                            $emailoverride ? $emailoverride : $to,
-                                                                           $sendname,
+                                                                           $sendname . ' on ' . SITE_NAME,
                                                                            $replyto,
                                                                            $subject,
                                                                            $textsummary,

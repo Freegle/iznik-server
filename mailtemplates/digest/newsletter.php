@@ -49,7 +49,7 @@ EOT;
                                                                         <td>
                                                                             <p>This mail was sent to {{email}}.  You are set to receive $sitename newsletters.</p>
                                                                             <p>You can change your settings by clicking <a href="$siteurl/settings">here</a>, or turn these newsletter emails off by emailing <a href="mailto:{{noemail}}">{{noemail}}</a></p>
-                                                                            <p>Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.</p> 
+                                                                            <p>Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.  Registered address: Weaver's Field, Loud Bridge, Chipping PR3 2NX</p> 
                                                                         </td>
                                                                     </tr>
                                                                 </table>

@@ -58,7 +58,7 @@
         <mj-section background-color="#E0E0E0">
           <mj-column>
             <mj-text font-size="9pt" color="#707070">You received this automated mail because&nbsp;{{ email }}&nbsp;is a volunteer for Freegle.</a>
-              <hr style="border: 0; border-top: 1px solid #AAA; " /> Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.
+              <hr style="border: 0; border-top: 1px solid #AAA; " /> Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.  Registered address: Weaver's Field, Loud Bridge, Chipping PR3 2NX
             </mj-text>
           </mj-column>
         </mj-section>

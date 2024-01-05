@@ -66,7 +66,7 @@
           <mj-column>
             <mj-text font-size="9pt" color="#707070">This mail was sent to&nbsp;{{ email }}.  You can change your settings by clicking <a href="https://www.ilovefreegle.org/settings">here</a>.
               <hr style="border: 0; border-top: 1px solid #AAA; "/>
-              Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.
+              Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.  Registered address: Weaver's Field, Loud Bridge, Chipping PR3 2NX
             </mj-text>
             </mj-column>
         </mj-section>

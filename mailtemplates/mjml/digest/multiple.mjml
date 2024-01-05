@@ -20,7 +20,7 @@
             <mj-text align="center"><a font-weight="bold" href="{{ visit }}">Browse</a></mj-text>
           </mj-column>
           <mj-column>
-            <mj-text align="center"><a font-weight="bold" href="{{ unsubscribe }}">Leave</a></mj-text>
+            <mj-text align="center"><a font-weight="bold" href="{{ unsubscribe }}">Unsubscribe</a></mj-text>
           </mj-column>
         </mj-group>
       </mj-section>
@@ -179,7 +179,7 @@
               href="{{ settings }}">here</a>, or turn these OFFER/WANTED mails off for this group by emailing <a href="mailto:{{ noemail }}">{{ noemail }}</a>
               <br /> <br /> This mail was sent to&nbsp;{{ email }}.
               <br />
-              <hr style="border: 0; border-top: 1px solid #AAA; " /> Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.</mj-text>
+              <hr style="border: 0; border-top: 1px solid #AAA; " /> Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.  Registered address: Weaver's Field, Loud Bridge, Chipping PR3 2NX</mj-text>
         </mj-column>
       </mj-section>
     </mj-wrapper>
