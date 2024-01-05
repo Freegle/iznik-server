@@ -232,7 +232,7 @@ class chatRoomsTest extends IznikTestCase {
         # Notify - will email just one as we don't notify our own by default.
         $this->log("Will email justone");
         $this->assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
-        $this->assertEquals('Re: [FreeglePlayground] OFFER: Test item (location)', $this->msgsSent[0]['subject']);
+        $this->assertEquals('Regarding: [FreeglePlayground] OFFER: Test item (location)', $this->msgsSent[0]['subject']);
 
         # Now pretend we've seen the messages.  Should flag the message as seen by all.
         $r->updateRoster($u1, $cm, ChatRoom::STATUS_ONLINE);
