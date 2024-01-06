@@ -2989,6 +2989,33 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(2, $m->getLikes(Message::LIKE_VIEW));
     }
 
+    public function testMarkSeen() {
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
+
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list ($id, $failok) = $m->save();
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+
+        $this->assertEquals(0, $m->getLikes(Message::LIKE_VIEW));
+
+        $ret = $this->call('messages', 'POST', [
+            'action' => 'MarkSeen',
+            'ids' => [ $id ],
+        ]);
+
+        $this->assertEquals(0, $ret['ret']);
+        $this->waitBackground();
+
+        $this->assertEquals(1, $m->getLikes(Message::LIKE_VIEW));
+    }
+
     public function testBigSwitch()
     {
         $this->assertTrue(TRUE);
