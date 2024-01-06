@@ -727,6 +727,12 @@ class Newsfeed extends Entity
                 $this->id
             ]);
         }
+
+        # Mark any notifications referencing this newsfeed item as seen, because we have.
+        $this->dbhm->preExec("UPDATE users_notifications SET seen = 1 WHERE touser = ? AND newsfeedid = ?;", [
+            $userid,
+            $this->id
+        ]);
     }
 
     public function getUnseen($userid) {
