@@ -4190,6 +4190,17 @@ class User extends Entity
                 $thisone['donations'] = $d->listByUser($user['userid']);
             }
 
+            $thisone['newsfeedmodstatus'] = $u->getPrivate('newsfeedmodstatus');
+            $thisone['newsfeed'] = $this->dbhr->preQuery("SELECT id, message, timestamp, hidden, hiddenby, deleted, deletedby FROM newsfeed WHERE userid = ? ORDER BY id DESC;", [
+                $user['userid']
+            ]);
+
+            foreach ($thisone['newsfeed'] as &$nf) {
+                $nf['timestamp'] = Utils::ISODate($nf['timestamp']);
+                $nf['deleted'] = Utils::ISODate($nf['deleted']);
+                $nf['hidden'] = Utils::ISODate($nf['hidden']);
+            }
+
             $ret[] = $thisone;
         }
 

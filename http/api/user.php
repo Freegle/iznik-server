@@ -217,6 +217,14 @@ function user() {
                 }
             }
 
+            if (array_key_exists('newsfeedmodstatus', $_REQUEST) && $me->isAdminOrSupport()) {
+                $u->setPrivate('newsfeedmodstatus', $_REQUEST['newsfeedmodstatus']);
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success'
+                ];
+            }
+
             if ($u && $me && ($me->isModOrOwner($groupid) || $me->isAdminOrSupport())) {
                 if (!is_null($suspectcount) && $groupid) {
                     $u->memberReview($groupid, $suspectcount, $suspectreason);
