@@ -138,6 +138,8 @@ class Digest
                 # here.
                 #
                 # arrival is a high-precision timestamp, so it's effectively unique per message.
+                #
+                # We don't want to mail messages from deleted users.
                 $msgdtq = $track['msgdate'] ? " AND arrival > '{$track['msgdate']}' " : '';
 
                 # If we're forcing, change the query so that we get a message to send.
@@ -146,7 +148,10 @@ class Digest
                 $oldest = $uidforce ? '' : $oldest;
                 $msgdtq = $uidforce ? '' : $msgdtq;
 
-                $sql = "SELECT msgid, arrival, autoreposts FROM messages_groups WHERE groupid = ? AND collection = ? AND deleted = 0 $oldest $msgdtq ORDER BY arrival $ord $limq;";
+                $sql = "SELECT msgid, messages_groups.arrival, autoreposts FROM messages_groups
+                        INNER JOIN messages ON messages.id = messages_groups.msgid
+                        INNER JOIN users ON users.id = messages.fromuser
+                        WHERE groupid = ? AND collection = ? AND messages.deleted = 0 AND users.deleted IS NULL $oldest $msgdtq ORDER BY arrival $ord $limq;";
                 $messages = $this->dbhr->preQuery($sql, [
                     $groupid,
                     MessageCollection::APPROVED,
@@ -544,6 +549,7 @@ class Digest
 
                 $sql = "SELECT ST_Y(point) AS lat, ST_X(point) AS lng, messages_spatial.msgid, messages_spatial.groupid, messages.subject FROM messages_spatial 
     INNER JOIN messages ON messages_spatial.msgid = messages.id
+    INNER JOIN users ON users.id = messages.fromuser
     LEFT JOIN memberships ON memberships.userid = ? AND memberships.groupid = messages_spatial.groupid
     LEFT JOIN messages_outcomes ON messages_spatial.msgid = messages_outcomes.msgid
     WHERE ST_Contains($box, point)
@@ -551,6 +557,7 @@ class Digest
       AND fromuser != ?
       AND memberships.id IS NULL  
       AND messages_outcomes.id IS NULL
+      AND users.deleted IS NULL
     ORDER BY messages_spatial.arrival ASC;";
                 $posts = $this->dbhr->preQuery($sql, [
                     $u->getId(),

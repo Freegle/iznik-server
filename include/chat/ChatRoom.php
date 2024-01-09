@@ -2127,13 +2127,16 @@ ORDER BY id, added, groupid ASC;";
                 # For user2mod chats we want to mail messages even if they are held for chat review, because
                 # chat review only shows user2user chats, and if we don't do this we could delay chats with mods
                 # until the mod next visits the site.
+                #
+                # Don't mail messages from deleted users.
                 $limitq = $sendingtoTN ? " LIMIT 1 " : "";
                 $mysqltime = date("Y-m-d", strtotime("Midnight 90 days ago"));
                 $readyq = $forceall ? '' : "AND chat_messages.id > ? $reviewq AND reviewrejected = 0 AND chat_messages.date >= ?";
                 $ownq = $sendingown ? '' : (" AND chat_messages.userid != " . $sendingto->getId() . " ");
                 $sql = "SELECT chat_messages.*, messages.type AS msgtype, messages.subject FROM chat_messages 
-    LEFT JOIN messages ON chat_messages.refmsgid = messages.id 
-    WHERE chatid = ? $readyq $ownq 
+    LEFT JOIN messages ON chat_messages.refmsgid = messages.id
+    INNER JOIN users ON users.id = chat_messages.userid                                                               
+    WHERE chatid = ? AND users.deleted IS NULL $readyq $ownq 
     ORDER BY id ASC $limitq;";
                 #error_log("Query $sql");
                 $unmailedmsgs = $this->dbhr->preQuery($sql,
