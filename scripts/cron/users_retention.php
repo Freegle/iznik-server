@@ -14,6 +14,7 @@ $lockh = Utils::lockScript(basename(__FILE__));
 
 $u = new User($dbhr, $dbhm);
 $u->userRetention();
+$u->processForgets();
 
 error_log("Finish at " . date("Y-m-d H:i:s"));
 

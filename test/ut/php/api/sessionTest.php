@@ -618,6 +618,18 @@ class sessionTest extends IznikAPITestCase
         $ret = $this->call('session', 'GET', []);
         $this->assertEquals(1, $ret['ret']);
 
+        # Should still have name in DB.
+        $u = new User($this->dbhr, $this->dbhm, $id);
+        self::assertEquals(strpos($u->getName(), 'Test User'), 0);
+        $this->assertNotNull($u->getPrivate('yahooid'));
+
+        # Not due a forget yet.
+        self::assertEquals(0, $u->processForgets($id));
+
+        # Make it due a forget.
+        $u->setPrivate('deleted', '2001-01-01');
+        self::assertEquals(1, $u->processForgets($id));
+
         $u = new User($this->dbhr, $this->dbhm, $id);
         self::assertEquals(strpos($u->getName(), 'Deleted User'), 0);
         $this->assertNull($u->getPrivate('yahooid'));

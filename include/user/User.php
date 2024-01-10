@@ -5677,6 +5677,34 @@ class User extends Entity
         return ($ret);
     }
 
+    public function limbo() {
+        # We set the deleted attribute, which will cause the v2 Go API not to return any personal data.  The user
+        # can still log in, and potentially recover their account by calling session with PATCH of deleted = NULL.
+        # Otherwise a background script will purge their account after a couple of weeks.
+        #
+        # This allows us to handle the fairly common case of users deleting their accounts by mistake, or changing
+        # their minds.  This often happens because one-click unsubscribe in emails, which we need to have for
+        # delivery.
+        $this->dbhm->preExec("UPDATE users SET deleted = NOW() WHERE id = ?;", [
+            $this->id
+        ]);
+    }
+
+    public function processForgets($id = NULL) {
+        $count = 0;
+
+        $idq = $id ? "AND id = $id" : "";
+        $users = $this->dbhr->preQuery("SELECT id, deleted FROM users WHERE deleted IS NOT NULL AND DATEDIFF(NOW(), deleted) > 14 AND forgotten IS NULL $idq;");
+
+        foreach ($users as $user) {
+            $u = new User($this->dbhr, $this->dbhm, $user['id']);
+            $u->forget('Grace period');
+            $count++;
+        }
+
+        return $count;
+    }
+
     public function forget($reason)
     {
         # Wipe a user of personal data, for the GDPR right to be forgotten.  We don't delete the user entirely
@@ -5797,7 +5825,7 @@ class User extends Entity
             $this->id
         ]);
 
-        $this->dbhm->preExec("UPDATE users SET deleted = NOW(), tnuserid = NULL WHERE id = ?;", [
+        $this->dbhm->preExec("UPDATE users SET forgotten = NOW(), tnuserid = NULL WHERE id = ?;", [
             $this->id
         ]);
 
