@@ -41,7 +41,7 @@ class User extends Entity
     const TRUST_ADVANCED = 'Advanced';
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'newslettersallowed', 'relevantallowed', 'bouncing', 'added', 'invitesleft', 'onholidaytill', 'tnuserid', 'ljuserid');
+    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'newslettersallowed', 'relevantallowed', 'bouncing', 'added', 'invitesleft', 'onholidaytill', 'tnuserid', 'ljuserid', 'deleted', 'forgotten');
 
     # Roles on specific groups
     const ROLE_NONMEMBER = 'Non-member';
@@ -3993,6 +3993,10 @@ class User extends Entity
 
     public function sendOurMails($g = NULL, $checkholiday = TRUE, $checkbouncing = TRUE)
     {
+        if ($this->getPrivate('deleted')) {
+            return FALSE;
+        }
+
         # We don't want to send emails to people who haven't been active for more than six months.  This improves
         # our spam reputation, by avoiding honeytraps.
         $sendit = FALSE;
@@ -4273,6 +4277,10 @@ class User extends Entity
 
     public function notifsOn($type, $groupid = NULL)
     {
+        if ($this->getPrivate('deleted')) {
+            return FALSE;
+        }
+
         $settings = Utils::pres('settings', $this->user) ? json_decode($this->user['settings'], TRUE) : [];
         $notifs = Utils::pres('notifications', $settings);
 

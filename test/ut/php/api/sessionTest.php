@@ -588,6 +588,8 @@ class sessionTest extends IznikAPITestCase
         $this->assertNotNull($u->addEmail('test@test.com'));
         $u->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
         $u->setPrivate('yahooid', -1);
+        self::assertTrue($u->sendOurMails());
+        self::assertTrue($u->notifsOn(User::NOTIFS_PUSH));
 
         $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $ret = $this->call('session', 'POST', [
@@ -622,6 +624,8 @@ class sessionTest extends IznikAPITestCase
         $u = new User($this->dbhr, $this->dbhm, $id);
         self::assertEquals(strpos($u->getName(), 'Test User'), 0);
         $this->assertNotNull($u->getPrivate('yahooid'));
+        self::assertFalse($u->sendOurMails());
+        self::assertFalse($u->notifsOn(User::NOTIFS_PUSH));
 
         # Not due a forget yet.
         self::assertEquals(0, $u->processForgets($id));
@@ -633,6 +637,8 @@ class sessionTest extends IznikAPITestCase
         $u = new User($this->dbhr, $this->dbhm, $id);
         self::assertEquals(strpos($u->getName(), 'Deleted User'), 0);
         $this->assertNull($u->getPrivate('yahooid'));
+        self::assertFalse($u->sendOurMails());
+        self::assertFalse($u->notifsOn(User::NOTIFS_PUSH));
     }
 
     public function testAboutMe()
