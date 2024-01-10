@@ -268,7 +268,7 @@ class Digest
                             $tosend[] = [
                                 'subject' => '[' . $gatts['namedisplay'] . "] {$msg['subject']}",
                                 'from' => $replyto,
-                                'fromname' => $msg['fromname'],
+                                'fromname' => $msg['fromname'] . ' on ' . SITE_NAME ,
                                 'replyto' => $replyto,
                                 'replytoname' => $msg['fromname'],
                                 'html' => $html,
