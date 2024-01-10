@@ -130,8 +130,8 @@ class Digest
                 # Find the cut-off time for the earliest message we want to include.  If we've not sent anything for this
                 # group/frequency before then ensure we don't send anything older than a day the first time. And never
                 # send anything older than 30 days, that's just silly.
-                $oldest  = Utils::pres('ended', $track) ? '' : " AND arrival >= '" . date("Y-m-d H:i:s", strtotime("24 hours ago")) . "'";
-                $oldest .=  " AND arrival >= '" . date("Y-m-d H:i:s", strtotime("30 days ago")) . "'";
+                $oldest  = Utils::pres('ended', $track) ? '' : " AND messages_groups.arrival >= '" . date("Y-m-d H:i:s", strtotime("24 hours ago")) . "'";
+                $oldest .=  " AND messages_groups.arrival >= '" . date("Y-m-d H:i:s", strtotime("30 days ago")) . "'";
 
                 # We record where we got up to using arrival.  We don't use msgid because the arrival gets reset when
                 # we repost, but the msgid remains the same, and we want to send out messages which have been reposted
@@ -140,7 +140,7 @@ class Digest
                 # arrival is a high-precision timestamp, so it's effectively unique per message.
                 #
                 # We don't want to mail messages from deleted users.
-                $msgdtq = $track['msgdate'] ? " AND arrival > '{$track['msgdate']}' " : '';
+                $msgdtq = $track['msgdate'] ? " AND messages_groups.arrival > '{$track['msgdate']}' " : '';
 
                 # If we're forcing, change the query so that we get a message to send.
                 $limq = $uidforce ? " LIMIT 20 " : '';
