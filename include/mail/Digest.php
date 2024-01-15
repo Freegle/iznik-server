@@ -130,15 +130,17 @@ class Digest
                 # Find the cut-off time for the earliest message we want to include.  If we've not sent anything for this
                 # group/frequency before then ensure we don't send anything older than a day the first time. And never
                 # send anything older than 30 days, that's just silly.
-                $oldest  = Utils::pres('ended', $track) ? '' : " AND arrival >= '" . date("Y-m-d H:i:s", strtotime("24 hours ago")) . "'";
-                $oldest .=  " AND arrival >= '" . date("Y-m-d H:i:s", strtotime("30 days ago")) . "'";
+                $oldest  = Utils::pres('ended', $track) ? '' : " AND messages_groups.arrival >= '" . date("Y-m-d H:i:s", strtotime("24 hours ago")) . "'";
+                $oldest .=  " AND messages_groups.arrival >= '" . date("Y-m-d H:i:s", strtotime("30 days ago")) . "'";
 
                 # We record where we got up to using arrival.  We don't use msgid because the arrival gets reset when
                 # we repost, but the msgid remains the same, and we want to send out messages which have been reposted
                 # here.
                 #
                 # arrival is a high-precision timestamp, so it's effectively unique per message.
-                $msgdtq = $track['msgdate'] ? " AND arrival > '{$track['msgdate']}' " : '';
+                #
+                # We don't want to mail messages from deleted users.
+                $msgdtq = $track['msgdate'] ? " AND messages_groups.arrival > '{$track['msgdate']}' " : '';
 
                 # If we're forcing, change the query so that we get a message to send.
                 $limq = $uidforce ? " LIMIT 20 " : '';
@@ -146,7 +148,10 @@ class Digest
                 $oldest = $uidforce ? '' : $oldest;
                 $msgdtq = $uidforce ? '' : $msgdtq;
 
-                $sql = "SELECT msgid, arrival, autoreposts FROM messages_groups WHERE groupid = ? AND collection = ? AND deleted = 0 $oldest $msgdtq ORDER BY arrival $ord $limq;";
+                $sql = "SELECT msgid, messages_groups.arrival, autoreposts FROM messages_groups
+                        INNER JOIN messages ON messages.id = messages_groups.msgid
+                        INNER JOIN users ON users.id = messages.fromuser
+                        WHERE groupid = ? AND collection = ? AND messages_groups.deleted = 0 AND users.deleted IS NULL $oldest $msgdtq ORDER BY messages_groups.arrival $ord $limq;";
                 $messages = $this->dbhr->preQuery($sql, [
                     $groupid,
                     MessageCollection::APPROVED,
@@ -238,7 +243,7 @@ class Digest
                         try {
                             $html = $twig->render('digest/single.html', [
                                 # Per-message fields for expansion now.
-                                'fromname' => $msg['fromname'],
+                                'fromname' => $msg['fromname'] . ' on ' . SITE_NAME,
                                 'subject' => $msg['subject'],
                                 'textbody' => $msg['textbody'],
                                 'image' => count($msg['attachments']) > 0 ? $msg['attachments'][0]['path'] : NULL,
@@ -263,7 +268,7 @@ class Digest
                             $tosend[] = [
                                 'subject' => '[' . $gatts['namedisplay'] . "] {$msg['subject']}",
                                 'from' => $replyto,
-                                'fromname' => $msg['fromname'],
+                                'fromname' => $msg['fromname'] . ' on ' . SITE_NAME ,
                                 'replyto' => $replyto,
                                 'replytoname' => $msg['fromname'],
                                 'html' => $html,
@@ -305,7 +310,7 @@ class Digest
                             'id' => $msg['id'],
                             'subject' => $msg['subject'],
                             'textbody' => $msg['textbody'],
-                            'fromname' => $msg['fromname'],
+                            'fromname' => $msg['fromname'] . ' on ' . SITE_NAME,
                             'image' => count($msg['attachments']) > 0 ? $msg['attachments'][0]['paththumb'] : NULL,
                             'replyweb' => "https://" . USER_SITE . "/message/{$msg['id']}",
                             'replyemail' => "mailto:$replyto?subject=" . rawurlencode("Re: " . $msg['subject']),
@@ -544,6 +549,7 @@ class Digest
 
                 $sql = "SELECT ST_Y(point) AS lat, ST_X(point) AS lng, messages_spatial.msgid, messages_spatial.groupid, messages.subject FROM messages_spatial 
     INNER JOIN messages ON messages_spatial.msgid = messages.id
+    INNER JOIN users ON users.id = messages.fromuser
     LEFT JOIN memberships ON memberships.userid = ? AND memberships.groupid = messages_spatial.groupid
     LEFT JOIN messages_outcomes ON messages_spatial.msgid = messages_outcomes.msgid
     WHERE ST_Contains($box, point)
@@ -551,6 +557,7 @@ class Digest
       AND fromuser != ?
       AND memberships.id IS NULL  
       AND messages_outcomes.id IS NULL
+      AND users.deleted IS NULL
     ORDER BY messages_spatial.arrival ASC;";
                 $posts = $this->dbhr->preQuery($sql, [
                     $u->getId(),

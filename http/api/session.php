@@ -481,7 +481,7 @@ function session() {
                                 $s = new Spam($dbhr, $dbhm);
 
                                 if (!$s->isSpammer($me->getEmailPreferred())) {
-                                    $me->forget('Request');
+                                    $me->limbo();
 
                                     # Log out.
                                     $ret = array('ret' => 0, 'status' => 'Success', 'destroyed' => $sessionLogout($dbhr, $dbhm));
@@ -711,6 +711,12 @@ function session() {
                 if ($simplemail) {
                     # This is a way to set a bunch of email settings at once.
                     $me->setSimpleMail($simplemail);
+                }
+
+                if (array_key_exists('deleted', $_REQUEST)) {
+                    # Users who leave have deleted set, but can restore their account.  If they don't, their data
+                    # will be purged later in the background.
+                    $me->setPrivate('deleted', NULL);
                 }
 
                 Session::clearSessionCache();

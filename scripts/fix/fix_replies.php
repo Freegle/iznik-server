@@ -30,7 +30,7 @@ foreach ($lines as $line) {
                 $replyto = "replyto-$msgid-$uid@" . USER_DOMAIN;
                 $text = "I'm afraid we couldn't deliver your mail.  If you're still interested, please reply to this mail, and we'll do better this time!\n\nOur apologies,\n\nFreegle";
                 $message = \Swift_Message::newInstance()
-                    ->setSubject('Re: ' . $m->getSubject())
+                    ->setSubject('Regarding: ' . $m->getSubject())
                     ->setFrom([NOREPLY_ADDR => 'Freegle'])
                     ->setReturnPath(NOREPLY_ADDR)
                     ->setReplyTo($replyto)

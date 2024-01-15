@@ -84,7 +84,7 @@ EOT;
                                                         <tr>
                                                             <td colspan="2" style="color: grey; font-size:10px;">
                                                                 <p>This automated mail was sent to $email, because you are a member of $groupname.  You can change your settings or leave the group from <a href="$siteurl/settings">here</a></p>
-                                                                <p>Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.</p> 
+                                                                <p>Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.  Registered address: Weaver's Field, Loud Bridge, Chipping PR3 2NX</p> 
                                                             </td>
                                                         </tr>        
                                                     </tbody>

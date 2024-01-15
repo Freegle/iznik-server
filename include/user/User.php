@@ -41,7 +41,7 @@ class User extends Entity
     const TRUST_ADVANCED = 'Advanced';
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'newslettersallowed', 'relevantallowed', 'bouncing', 'added', 'invitesleft', 'onholidaytill', 'tnuserid', 'ljuserid');
+    var $publicatts = array('id', 'firstname', 'lastname', 'fullname', 'systemrole', 'settings', 'yahooid', 'newslettersallowed', 'relevantallowed', 'bouncing', 'added', 'invitesleft', 'onholidaytill', 'tnuserid', 'ljuserid', 'deleted', 'forgotten');
 
     # Roles on specific groups
     const ROLE_NONMEMBER = 'Non-member';
@@ -3993,6 +3993,10 @@ class User extends Entity
 
     public function sendOurMails($g = NULL, $checkholiday = TRUE, $checkbouncing = TRUE)
     {
+        if ($this->getPrivate('deleted')) {
+            return FALSE;
+        }
+
         # We don't want to send emails to people who haven't been active for more than six months.  This improves
         # our spam reputation, by avoiding honeytraps.
         $sendit = FALSE;
@@ -4190,6 +4194,17 @@ class User extends Entity
                 $thisone['donations'] = $d->listByUser($user['userid']);
             }
 
+            $thisone['newsfeedmodstatus'] = $u->getPrivate('newsfeedmodstatus');
+            $thisone['newsfeed'] = $this->dbhr->preQuery("SELECT id, message, timestamp, hidden, hiddenby, deleted, deletedby FROM newsfeed WHERE userid = ? ORDER BY id DESC;", [
+                $user['userid']
+            ]);
+
+            foreach ($thisone['newsfeed'] as &$nf) {
+                $nf['timestamp'] = Utils::ISODate($nf['timestamp']);
+                $nf['deleted'] = Utils::ISODate($nf['deleted']);
+                $nf['hidden'] = Utils::ISODate($nf['hidden']);
+            }
+
             $ret[] = $thisone;
         }
 
@@ -4262,6 +4277,10 @@ class User extends Entity
 
     public function notifsOn($type, $groupid = NULL)
     {
+        if ($this->getPrivate('deleted')) {
+            return FALSE;
+        }
+
         $settings = Utils::pres('settings', $this->user) ? json_decode($this->user['settings'], TRUE) : [];
         $notifs = Utils::pres('notifications', $settings);
 
@@ -5666,6 +5685,34 @@ class User extends Entity
         return ($ret);
     }
 
+    public function limbo() {
+        # We set the deleted attribute, which will cause the v2 Go API not to return any personal data.  The user
+        # can still log in, and potentially recover their account by calling session with PATCH of deleted = NULL.
+        # Otherwise a background script will purge their account after a couple of weeks.
+        #
+        # This allows us to handle the fairly common case of users deleting their accounts by mistake, or changing
+        # their minds.  This often happens because one-click unsubscribe in emails, which we need to have for
+        # delivery.
+        $this->dbhm->preExec("UPDATE users SET deleted = NOW() WHERE id = ?;", [
+            $this->id
+        ]);
+    }
+
+    public function processForgets($id = NULL) {
+        $count = 0;
+
+        $idq = $id ? "AND id = $id" : "";
+        $users = $this->dbhr->preQuery("SELECT id, deleted FROM users WHERE deleted IS NOT NULL AND DATEDIFF(NOW(), deleted) > 14 AND forgotten IS NULL $idq;");
+
+        foreach ($users as $user) {
+            $u = new User($this->dbhr, $this->dbhm, $user['id']);
+            $u->forget('Grace period');
+            $count++;
+        }
+
+        return $count;
+    }
+
     public function forget($reason)
     {
         # Wipe a user of personal data, for the GDPR right to be forgotten.  We don't delete the user entirely
@@ -5786,7 +5833,7 @@ class User extends Entity
             $this->id
         ]);
 
-        $this->dbhm->preExec("UPDATE users SET deleted = NOW(), tnuserid = NULL WHERE id = ?;", [
+        $this->dbhm->preExec("UPDATE users SET forgotten = NOW(), tnuserid = NULL WHERE id = ?;", [
             $this->id
         ]);
 
@@ -5844,11 +5891,9 @@ class User extends Entity
             gc_collect_cycles();
         }
 
-        error_log("...forgot $count");
-
         # The only reason for preserving deleted users is as a placeholder user for messages they sent.  If they
         # don't have any messages, they can go.
-        $ids = $this->dbhr->preQuery("SELECT users.id FROM `users` LEFT JOIN messages ON messages.fromuser = users.id WHERE users.deleted IS NOT NULL AND users.lastaccess < ? AND messages.id IS NULL LIMIT 100000;", [
+        $ids = $this->dbhr->preQuery("SELECT users.id FROM `users` LEFT JOIN messages ON messages.fromuser = users.id WHERE users.forgotten IS NOT NULL AND users.lastaccess < ? AND messages.id IS NULL LIMIT 100000;", [
             $mysqltime
         ]);
 

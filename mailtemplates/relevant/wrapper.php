@@ -121,7 +121,7 @@ EOT;
                                                         <tr>
                                                             <td colspan="2" style="color: grey; font-size:10px;">
                                                                 <p>This mail was sent to $email.  These suggestions are automated, so they won't always be right.  <span style="color: black"><b>If you don't find them useful, you can change your settings by clicking <a href="$siteurl/settings">here</a>, or turn these suggestion mails off by emailing <a href="mailto:$noemail">$noemail</a>.</b></font></p>
-                                                                <p>Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.</p> 
+                                                                <p>Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.  Registered address: Weaver's Field, Loud Bridge, Chipping PR3 2NX</p> 
                                                             </td>
                                                         </tr>        
                                                     </tbody>

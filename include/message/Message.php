@@ -4694,7 +4694,7 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
 
                                                 if (\Swift_Validate::email($to)) {
                                                     $message = \Swift_Message::newInstance()
-                                                        ->setSubject("Re: " . $subj)
+                                                        ->setSubject("Will Repost: " . $subj)
                                                         ->setFrom([$g->getAutoEmail() => $gatts['namedisplay']])
                                                         ->setReplyTo([$g->getModsEmail() => $gatts['namedisplay']])
                                                         ->setTo($to)
@@ -4880,7 +4880,7 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
 
                                         if (\Swift_Validate::email($to)) {
                                             $message = \Swift_Message::newInstance()
-                                                ->setSubject("Re: " . $subj)
+                                                ->setSubject("What happened to: " . $subj)
                                                 ->setFrom([$g->getAutoEmail() => $gatts['namedisplay']])
                                                 ->setReplyTo([$g->getModsEmail() => $gatts['namedisplay']])
                                                 ->setTo($to)
@@ -5533,8 +5533,11 @@ $mq", [
             }
         }
 
-        # Remove any messages which are deleted.
-        $sql = "SELECT DISTINCT messages_spatial.id FROM messages_spatial INNER JOIN messages ON messages_spatial.msgid = messages.id AND messages.deleted IS NOT NULL";
+        # Remove any messages which are deleted, or where the user has been deleted
+        $sql = "SELECT DISTINCT messages_spatial.id FROM messages_spatial 
+    INNER JOIN messages ON messages_spatial.msgid = messages.id 
+    INNER JOIN users ON users.id = messages.fromuser
+    WHERE messages.deleted IS NOT NULL OR users.deleted IS NOT NULL";
         $msgs = $this->dbhr->preQuery($sql);
 
         foreach ($msgs as $msg) {
