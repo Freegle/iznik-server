@@ -51,7 +51,7 @@ try {
             if (gettype($transactions) == 'array') {
                 foreach ($transactions as $transaction) {
                     # Don't record PPGF donations, as we process those separately.
-                    if ($transaction['GrossAmount']['value'] > 0 && $transaction['PayerDisplayName'] != 'PayPal Giving Fund UK') {
+                    if ($transaction['Payer'] && $transaction['GrossAmount']['value'] > 0 && $transaction['PayerDisplayName'] != 'PayPal Giving Fund UK') {
                         $eid = $u->findByEmail($transaction['Payer']);
 
                         $dbhm->preExec("INSERT INTO users_donations (userid, Payer, PayerDisplayName, timestamp, TransactionID, GrossAmount) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE userid = ?, timestamp = ?;", [
