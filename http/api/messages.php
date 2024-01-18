@@ -241,12 +241,12 @@ function messages() {
                         $m = new Message($dbhr, $dbhm, $mid);
                         $m->like($myid, Message::LIKE_VIEW);
                     }
-
-                    $ret = [
-                        'ret' => 0,
-                        'status' => 'Success'
-                    ];
                 }
+
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success'
+                ];
             }
         }
         break;
