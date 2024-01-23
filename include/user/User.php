@@ -6246,10 +6246,12 @@ class User extends Entity
     }
 
     public static function encodeId($id) {
-        $bin = base_convert($id, 10, 2);
-        $bin = str_replace('0', '-', $bin);
-        $bin = str_replace('1', '~', $bin);
-        return($bin);
+        # We're told that this is affecting our spam rating.  Let's see.
+        return '';
+//        $bin = base_convert($id, 10, 2);
+//        $bin = str_replace('0', '-', $bin);
+//        $bin = str_replace('1', '~', $bin);
+//        return($bin);
     }
 
     public static function decodeId($enc) {
