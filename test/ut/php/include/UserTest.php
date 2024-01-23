@@ -1382,7 +1382,8 @@ class userTest extends IznikTestCase {
     }
 
     public function testEncodeId() {
-        $this->assertEquals(123, User::decodeId(User::encodeId(123)));
+        // UID encoding is disabled for spam experiment.
+        $this->assertEquals(0, User::decodeId(User::encodeId(123)));
 
         # Test we can search on UID.
         $u = User::get($this->dbhm, $this->dbhm);
