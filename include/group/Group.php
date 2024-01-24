@@ -1272,7 +1272,7 @@ HAVING logincount > 0
           messages_groups.collection = ? AND ST_Contains(ST_GeomFromText(groups.polyofficial, {$this->dbhr->SRID()}), ST_SRID(POINT(messages.lng,messages.lat),  {$this->dbhr->SRID()})) AND
           messages_popular.id IS NULL
     GROUP BY messages_likes.msgid 
-    ORDER BY messages_groups.groupid ASC, count ASC;", [
+    ORDER BY messages_groups.groupid ASC, count DESC;", [
         MessageCollection::APPROVED
         ]);
 
@@ -1294,6 +1294,8 @@ HAVING logincount > 0
                     $groupid,
                     $msgid
                 ]);
+
+                break;
             }
         }
     }
