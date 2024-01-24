@@ -1394,7 +1394,8 @@ class userTest extends IznikTestCase {
         $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
         $_SESSION['id'] = $uid2;
         $enc = User::encodeId($uid1);
-        $this->assertEquals($uid1, User::decodeId($enc));
+        // UID encoding is disabled for spam experiment.
+//        $this->assertEquals($uid1, User::decodeId($enc));
         $ctx = NULL;
         $search = $u->search($enc, $ctx);
         $this->assertEquals(1, count($search));
