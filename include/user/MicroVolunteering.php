@@ -18,6 +18,7 @@ class MicroVolunteering
     const CHALLENGE_ITEMS = 'Items';  // No longer used.
     const CHALLENGE_FACEBOOK_SHARE = 'Facebook';
     const CHALLENGE_PHOTO_ROTATE = 'PhotoRotate';
+    const CHALLENGE_SURVEY = 'Survey';
 
     const RESULT_APPROVE = 'Approve';
     const RESULT_REJECT = 'Reject';
@@ -134,17 +135,37 @@ class MicroVolunteering
         $trustlevel = $u->getPrivate('trustlevel');
 
         if ($trustlevel != User::TRUST_DECLINED && $trustlevel !== User::TRUST_EXCLUDED) {
-            $groupids = [$groupid];
+            # Survey is always available.
+            $asked = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM microactions WHERE userid = ? AND actiontype = ?", [
+                $userid,
+                self::CHALLENGE_SURVEY
+            ]);
 
-            if (!$groupid) {
-                # Get all their groups.
-                $groupids = $u->getMembershipGroupIds(false, Group::GROUP_FREEGLE, $userid);
+            if (!$asked[0]['count']) {
+                $ret = [
+                    'type' => self::CHALLENGE_SURVEY
+                ];
+
+                $this->dbhm->preExec("INSERT INTO microactions (actiontype, userid, version) VALUES (?, ?, ?);", [
+                    self::CHALLENGE_SURVEY,
+                    $userid,
+                    self::VERSION
+                ]);
             }
 
-            if (count($groupids)) {
-                if ($u->getPrivate('trustlevel') == User::TRUST_MODERATE) {
-                    # Users with this trust level can review pending messages.
-                    $ret = $this->reviewPendingMessages($groupids, $userid);
+            if (!$ret) {
+                $groupids = [$groupid];
+
+                if (!$groupid) {
+                    # Get all their groups.
+                    $groupids = $u->getMembershipGroupIds(false, Group::GROUP_FREEGLE, $userid);
+                }
+
+                if (count($groupids)) {
+                    if ($u->getPrivate('trustlevel') == User::TRUST_MODERATE) {
+                        # Users with this trust level can review pending messages.
+                        $ret = $this->reviewPendingMessages($groupids, $userid);
+                    }
                 }
             }
 

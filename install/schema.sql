@@ -2395,7 +2395,7 @@ DROP TABLE IF EXISTS `microactions`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `microactions` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `actiontype` enum('CheckMessage','SearchTerm','Items','FacebookShare','PhotoRotate','ItemSize','ItemWeight') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `actiontype` enum('CheckMessage','SearchTerm','Items','FacebookShare','PhotoRotate','ItemSize','ItemWeight','Survey') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `userid` bigint unsigned NOT NULL,
   `msgid` bigint unsigned DEFAULT NULL,
   `msgcategory` enum('CouldBeBetter','ShouldntBeHere','NotSure') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -5398,4 +5398,4 @@ CREATE TABLE `worrywords` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-01-10 12:51:20
+-- Dump completed on 2024-01-24 16:43:16
