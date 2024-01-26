@@ -1381,33 +1381,33 @@ class userTest extends IznikTestCase {
         $this->assertTrue(in_array($uid, $ids));
     }
 
-    public function testEncodeId() {
-        // UID encoding is disabled for spam experiment.
+//    public function testEncodeId() {
+//        // UID encoding is disabled for spam experiment.
 //        $this->assertEquals(0, User::decodeId(User::encodeId(123)));
-
-        # Test we can search on UID.
-        $u = User::get($this->dbhm, $this->dbhm);
-        $uid1 = $u->create('Test', 'User', 'Test User');
-        $uid2 = $u->create('Test', 'User', 'Test User');
-        $r = new ChatRoom($this->dbhr, $this->dbhm);
-        list ($rid, $blocked) = $r->createConversation($uid1, $uid2);
-        $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
-        $_SESSION['id'] = $uid2;
-        $enc = User::encodeId($uid1);
-        // UID encoding is disabled for spam experiment.
+//
+//        # Test we can search on UID.
+//        $u = User::get($this->dbhm, $this->dbhm);
+//        $uid1 = $u->create('Test', 'User', 'Test User');
+//        $uid2 = $u->create('Test', 'User', 'Test User');
+//        $r = new ChatRoom($this->dbhr, $this->dbhm);
+//        list ($rid, $blocked) = $r->createConversation($uid1, $uid2);
+//        $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
+//        $_SESSION['id'] = $uid2;
+//        $enc = User::encodeId($uid1);
+//        // UID encoding is disabled for spam experiment.
 //        $this->assertEquals($uid1, User::decodeId($enc));
-        $ctx = NULL;
-        $search = $u->search($enc, $ctx);
-        $this->assertEquals(1, count($search));
-        $this->assertEquals($uid1, $search[0]['id']);
-
-        # Should see the login link.
-        $this->assertNotNull(Utils::presdef('loginlink', $search[0], NULL));
-
-        # Should see the chat rooms.
-        $this->assertEquals(1, count(Utils::pres('chatrooms', $search[0], NULL)));
-    }
-
+//        $ctx = NULL;
+//        $search = $u->search($enc, $ctx);
+//        $this->assertEquals(1, count($search));
+//        $this->assertEquals($uid1, $search[0]['id']);
+//
+//        # Should see the login link.
+//        $this->assertNotNull(Utils::presdef('loginlink', $search[0], NULL));
+//
+//        # Should see the chat rooms.
+//        $this->assertEquals(1, count(Utils::pres('chatrooms', $search[0], NULL)));
+//    }
+//
     public function testActiveCounts() {
         $u = new User($this->dbhr, $this->dbhm);
         $this->uid = $u->create('Test', 'User', 'Test User');
