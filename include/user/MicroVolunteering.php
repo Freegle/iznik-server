@@ -135,23 +135,23 @@ class MicroVolunteering
         $trustlevel = $u->getPrivate('trustlevel');
 
         if ($trustlevel != User::TRUST_DECLINED && $trustlevel !== User::TRUST_EXCLUDED) {
-            # Survey is always available.
-            $asked = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM microactions WHERE userid = ? AND actiontype = ?", [
-                $userid,
-                self::CHALLENGE_SURVEY
-            ]);
-
-            if (!$asked[0]['count']) {
-                $ret = [
-                    'type' => self::CHALLENGE_SURVEY
-                ];
-
-                $this->dbhm->preExec("INSERT INTO microactions (actiontype, userid, version) VALUES (?, ?, ?);", [
-                    self::CHALLENGE_SURVEY,
-                    $userid,
-                    self::VERSION
-                ]);
-            }
+            # Survey is something we use occasionally.
+//            $asked = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM microactions WHERE userid = ? AND actiontype = ?", [
+//                $userid,
+//                self::CHALLENGE_SURVEY
+//            ]);
+//
+//            if (!$asked[0]['count']) {
+//                $ret = [
+//                    'type' => self::CHALLENGE_SURVEY
+//                ];
+//
+//                $this->dbhm->preExec("INSERT INTO microactions (actiontype, userid, version) VALUES (?, ?, ?);", [
+//                    self::CHALLENGE_SURVEY,
+//                    $userid,
+//                    self::VERSION
+//                ]);
+//            }
 
             if (!$ret) {
                 $groupids = [$groupid];
