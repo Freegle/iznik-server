@@ -1382,8 +1382,7 @@ class userTest extends IznikTestCase {
     }
 
     public function testEncodeId() {
-        // UID encoding is disabled for spam experiment.
-        $this->assertEquals(0, User::decodeId(User::encodeId(123)));
+        $this->assertEquals(123, User::decodeId(User::encodeId(123)));
 
         # Test we can search on UID.
         $u = User::get($this->dbhm, $this->dbhm);
@@ -1394,8 +1393,7 @@ class userTest extends IznikTestCase {
         $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
         $_SESSION['id'] = $uid2;
         $enc = User::encodeId($uid1);
-        // UID encoding is disabled for spam experiment.
-//        $this->assertEquals($uid1, User::decodeId($enc));
+        $this->assertEquals($uid1, User::decodeId($enc));
         $ctx = NULL;
         $search = $u->search($enc, $ctx);
         $this->assertEquals(1, count($search));
