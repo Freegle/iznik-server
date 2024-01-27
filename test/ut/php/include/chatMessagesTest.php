@@ -39,6 +39,8 @@ class chatMessagesTest extends IznikTestCase {
         $this->user->addMembership($this->groupid);
         $this->user->addEmail('test@test.com');
         $this->user->setMembershipAtt($this->groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
+        $this->dbhm->preExec("DELETE FROM locations WHERE name = 'TV13 1HH';");
     }
 
     public function testGroup() {
@@ -703,6 +705,7 @@ class chatMessagesTest extends IznikTestCase {
 
         $l = new Location($this->dbhr, $this->dbhm);
         $pcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)');
+        $this->assertNotNull($pcid);
 
         $this->dbhm->preExec("INSERT INTO paf_thoroughfaredescriptor (thoroughfaredescriptor) VALUES (?) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id);", [
             'Tuvalu High Street'
@@ -711,7 +714,7 @@ class chatMessagesTest extends IznikTestCase {
         $tfid = $this->dbhm->lastInsertId();
         $this->assertNotNull($tfid);
 
-        $this->dbhm->preExec("INSERT INTO paf_addresses (postcodeid, thoroughfaredescriptorid) VALUES (?, ?);", [
+        $this->dbhm->preExec("INSERT INTO paf_addresses (postcodeid, thoroughfaredescriptorid) VALUES (?, ?) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id);", [
             $pcid,
             $tfid,
         ]);
