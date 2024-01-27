@@ -299,7 +299,7 @@ class Donations
             if (!$possible) {
                 # We didn't find it in one of their addresses.  See if we can find a postcode using the government
                 # regex;
-                if (preg_match('/([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9][A-Za-z]?))))\s?[0-9][A-Za-z]{2})/mi', $giftaid['homeaddress'], $matches)) {
+                if (preg_match(Utils::POSTCODE_PATTERN, $giftaid['homeaddress'], $matches)) {
                     $possible = strtoupper($matches[0]);
                 }
             }

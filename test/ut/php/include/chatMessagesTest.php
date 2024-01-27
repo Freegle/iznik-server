@@ -697,6 +697,34 @@ class chatMessagesTest extends IznikTestCase {
             }
         }
     }
+
+    public function testExtractAddress() {
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $pcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)');
+
+        $this->dbhm->preExec("INSERT INTO paf_thoroughfaredescriptor (thoroughfaredescriptor) VALUES (?) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id);", [
+            'Tuvalu High Street'
+        ]);
+
+        $tfid = $this->dbhm->lastInsertId();
+        $this->assertNotNull($tfid);
+
+        $this->dbhm->preExec("INSERT INTO paf_addresses (postcodeid, thoroughfaredescriptorid) VALUES (?, ?);", [
+            $pcid,
+            $tfid,
+        ]);
+
+        $this->user->setPrivate('lastlocation', $pcid);
+
+        # Shouldn't match without street.
+        $ret = $m->extractAddress('TV13 1HH', $this->uid);
+        $this->assertNull($ret);
+
+        $ret = $m->extractAddress('Tuvalu High Street TV13 1HH', $this->uid);
+        $this->assertEquals('TV13 1HH', $ret['name']);
+    }
 }
 
 

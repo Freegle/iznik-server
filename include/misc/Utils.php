@@ -8,6 +8,7 @@ class Utils {
     # Use matching based on https://gist.github.com/gruber/249502, but changed:
     # - to only look for http/https, otherwise here:http isn't caught
     const URL_PATTERN = '#(?i)\b(((?:(?:http|https):(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))|(\.com\/))#m';
+    const POSTCODE_PATTERN = '/([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9][A-Za-z]?))))\s?[0-9][A-Za-z]{2})/mi';
 
     # ...but this matches some bad character patterns.
     const URL_BAD = [ '%', '{', ';', '#', ':' ];
@@ -535,5 +536,38 @@ class Utils {
 
     public static function getBoxPoly($swlat, $swlng, $nelat, $nelng) {
         return "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
+    }
+
+    public static function levensteinSubstringContains($needle, $haystack, $maximalDistance = 2, $caseInsensitive = true)  {
+        $lengthNeedle = strlen($needle);
+        $lengthHaystack = strlen($haystack);
+
+        if ($caseInsensitive) {
+            $needle = strtolower($needle);
+            $haystack = strtolower($haystack);
+        }
+
+        if ($lengthNeedle > $lengthHaystack) {
+            return false;
+        }
+
+        if (false !== strpos($haystack, $needle)) {
+
+            return true;
+        }
+
+        $i = 0;
+        while (($i + $lengthNeedle) <= $lengthHaystack) {
+            $comparePart = substr($haystack, $i, $lengthNeedle);
+
+            $levenshteinDistance = levenshtein($needle, $comparePart);
+            if ($levenshteinDistance <= $maximalDistance) {
+
+                return true;
+            }
+            $i++;
+        }
+
+        return false;
     }
 }

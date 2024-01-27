@@ -780,4 +780,54 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
         $rc = $this->dbhm->preExec("DELETE FROM chat_messages WHERE id = ?;", [$this->id]);
         return ($rc);
     }
+
+    # Look for a postcode in a string, and check that it is close to the user.
+    public function extractAddress($msg, $userid)  {
+        $ret = null;
+
+        if (preg_match(Utils::POSTCODE_PATTERN, $msg, $matches)) {
+            # We have a possible postcode.
+            $pc = strtoupper($matches[0]);
+            $l = new Location($this->dbhr, $this->dbhm);
+
+            $locs = $this->dbhr->preQuery("SELECT * FROM locations WHERE canon = ?", [
+                $l->canon($pc)
+            ]);
+
+            if (count($locs)) {
+                $loc = $locs[0];
+
+                # Check it's not too far away.
+                $u = User::get($this->dbhr, $this->dbhm, $userid);
+                list ($lat, $lng, $loc2) = $u->getLatLng();
+
+                $dist = \GreatCircle::getDistance($lat, $lng, $loc['lat'], $loc['lng']);
+
+                if ($dist <= 20000) {
+                    # Found it.  Check that we have the street name in there too to avoid the possibility of us
+                    # just sending the postcode.
+                    $streets = $this->dbhr->preQuery(
+                        "SELECT DISTINCT thoroughfaredescriptor FROM paf_thoroughfaredescriptor INNER JOIN paf_addresses ON paf_addresses.thoroughfaredescriptorid = paf_thoroughfaredescriptor.id WHERE paf_addresses.postcodeid = ?",  [
+                            $loc['id']
+                        ]
+                    );
+
+                    $foundIt = false;
+
+                    foreach ($streets as $street) {
+                        if (Utils::levensteinSubstringContains($street['thoroughfaredescriptor'], $msg, 3)) {
+                            $foundIt = true;
+                            break;
+                        }
+                    }
+
+                    if ($foundIt) {
+                        $ret = $loc;
+                    }
+                }
+            }
+        }
+
+        return $ret;
+    }
 }
