@@ -1294,8 +1294,6 @@ HAVING logincount > 0
                     $groupid,
                     $msgid
                 ]);
-
-                break;
             }
         }
     }
