@@ -253,6 +253,7 @@ class Digest
                                 'date' => $datetime->format('D, jS F g:ia'),
                                 'autoreposts' => $msg['autoreposts'],
                                 'sponsors' => $sponsors,
+                                'firstposted' => $msg['firstposted'],
 
                                 # Per-recipient fields for later Swift expansion
                                 'settings' => '{{settings}}',
