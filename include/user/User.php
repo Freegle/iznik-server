@@ -3361,7 +3361,7 @@ class User extends Entity
             $commentusers = [];
 
             if ($commentuids && count($commentuids)) {
-                $commentusers = $this->getPublicsById($commentuids, NULL, FALSE, FALSE);
+                $commentusers = $this->getPublicsById($commentuids, NULL, FALSE, FALSE, FALSE, FALSE);
 
                 foreach ($commentusers as &$commentuser) {
                     $commentuser['settings'] = NULL;
