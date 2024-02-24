@@ -231,22 +231,34 @@ function messages() {
             $action = Utils::presdef('action', $_REQUEST, NULL);
             $myid = Session::whoAmId($dbhr, $dbhm);
 
-            if ($myid && $action == 'MarkSeen') {
-                $mids = Utils::presdef('ids', $_REQUEST, NULL);
+            $ret = [
+                'ret' => 1,
+                'status' => 'Not logged in'
+            ];
 
-                if ($mids) {
-                    $mids = array_map('intval', $mids);
-
-                    foreach ($mids as $mid) {
-                        $m = new Message($dbhr, $dbhm, $mid);
-                        $m->like($myid, Message::LIKE_VIEW);
-                    }
-                }
-
+            if ($myid) {
                 $ret = [
-                    'ret' => 0,
-                    'status' => 'Success'
+                    'ret' => 2,
+                    'status' => 'Invalid action'
                 ];
+
+                if ($action == 'MarkSeen') {
+                    $mids = Utils::presdef('ids', $_REQUEST, NULL);
+
+                    if ($mids) {
+                        $mids = array_map('intval', $mids);
+
+                        foreach ($mids as $mid) {
+                            $m = new Message($dbhr, $dbhm, $mid);
+                            $m->like($myid, Message::LIKE_VIEW);
+                        }
+                    }
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+                }
             }
         }
         break;
