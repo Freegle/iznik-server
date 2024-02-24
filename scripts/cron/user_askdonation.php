@@ -80,7 +80,7 @@ foreach ($users as $user) {
                 $htmlPart->setBody($html);
                 $m->attach($htmlPart);
 
-                Mail::addHeaders($dbhr, $dbhm, $message, Mail::ASK_DONATION, $u->getId());
+                Mail::addHeaders($dbhr, $dbhm, $m, Mail::ASK_DONATION, $u->getId());
 
                 $mailer->send($m);
             } catch (\Exception $e) {
