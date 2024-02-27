@@ -10,7 +10,7 @@ global $dbhr, $dbhm;
 
 # Only interested in being able to search within the last 30 days.
 $date = date('Y-m-d', strtotime("30 days ago"));
-$msgs = $dbhr->query("SELECT DISTINCT messages_groups.msgid FROM messages_groups INNER JOIN messages_index ON messages_index.msgid = messages_groups.msgid WHERE messages_groups.collection = 'Approved' AND messages_groups.arrival < '$date' ORDER BY messages_groups.arrival DESC;");
+$msgs = $dbhr->preQuery("SELECT DISTINCT messages_groups.msgid FROM messages_groups INNER JOIN messages_index ON messages_index.msgid = messages_groups.msgid WHERE messages_groups.collection = 'Approved' AND messages_groups.arrival < '$date' ORDER BY messages_groups.arrival DESC;");
 
 error_log("Deindex " . count($msgs));
 
