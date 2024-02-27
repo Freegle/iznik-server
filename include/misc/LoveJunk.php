@@ -43,8 +43,7 @@ class LoveJunk {
 
             $this->recordResult(TRUE, $id, json_encode($rsp['body']));
         } catch (\Exception $e) {
-            if ($e->getCode() == 410)
-            {
+            if ($e->getCode() == 410) {
                 // This is a valid error - import disabled.
                 $ret = true;
                 $this->recordResult(true, $id, $e->getCode() . " " . $e->getMessage());
@@ -300,7 +299,8 @@ class LoveJunk {
                         }
                     } catch (\Exception $e) {
                         // Ignore errors that can legitimately happen.
-                        if (strpos($e->getMessage(), 'not active or could not find relevant freegle info') === FALSE) {
+                        if (strpos($e->getMessage(), 'not active or could not find relevant freegle info') === FALSE &&
+                            strpos($e->getMessage(), 'Could not create reuse offer message thread for offer') === FALSE) {
                             error_log("Exception {$e->getMessage()}");
                             \Sentry\captureException($e);
                         }
