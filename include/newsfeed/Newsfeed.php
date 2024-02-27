@@ -1087,27 +1087,31 @@ class Newsfeed extends Entity
                     'email' => $mod->getEmailPreferred()
                 ]);
 
-                $message = \Swift_Message::newInstance()
-                    ->setSubject($subj)
-                    ->setFrom([NOREPLY_ADDR => 'Freegle'])
-                    ->setReturnPath($mod->getBounce())
-                    ->setTo([ $mod->getEmailPreferred() => $mod->getName() ])
-                    ->setBody("Recent chitchat posts from your members:\r\n\r\n$textsumm\r\n\r\nPlease click here to read them: $url");
+                try {
+                    $message = \Swift_Message::newInstance()
+                        ->setSubject($subj)
+                        ->setFrom([NOREPLY_ADDR => 'Freegle'])
+                        ->setReturnPath($mod->getBounce())
+                        ->setTo([ $mod->getEmailPreferred() => $mod->getName() ])
+                        ->setBody("Recent chitchat posts from your members:\r\n\r\n$textsumm\r\n\r\nPlease click here to read them: $url");
 
-                # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-                # Outlook.
-                $htmlPart = \Swift_MimePart::newInstance();
-                $htmlPart->setCharset('utf-8');
-                $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
-                $htmlPart->setContentType('text/html');
-                $htmlPart->setBody($html);
-                $message->attach($htmlPart);
+                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                    # Outlook.
+                    $htmlPart = \Swift_MimePart::newInstance();
+                    $htmlPart->setCharset('utf-8');
+                    $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                    $htmlPart->setContentType('text/html');
+                    $htmlPart->setBody($html);
+                    $message->attach($htmlPart);
 
-                Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::NEWSFEED_MODNOTIF, $mod->getId());
+                    Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::NEWSFEED_MODNOTIF, $mod->getId());
 
-                error_log("..." . $mod->getEmailPreferred() . " send $count");
-                list ($transport, $mailer) = Mail::getMailer();
-                $this->sendIt($mailer, $message);
+                    error_log("..." . $mod->getEmailPreferred() . " send $count");
+                    list ($transport, $mailer) = Mail::getMailer();
+                    $this->sendIt($mailer, $message);
+                } catch (\Exception $e) {
+                    error_log("Failed to send modnotif: " . $e->getMessage());
+                }
             }
 
             if ($max && $max > $lastseen) {
