@@ -14,7 +14,6 @@ class LoggedPDO {
     private $connected = FALSE;
     private $hosts = [];
     private $database = NULL;
-    private $inTransaction = FALSE;
     private $tries = 10;
     public $allDownRetries = 30;
     public  $errorLog = FALSE;
@@ -346,7 +345,7 @@ class LoggedPDO {
                     # This is similar to https://ghostaldev.com/2016/05/22/galera-gotcha-mysql-users/
                     $msg = $e->getMessage();
 
-                    if (!$this->inTransaction) {
+                    if (!$this->_db->inTransaction()) {
                         $try++;
                     } else {
                         $msg = "Deadlock in transaction " . $e->getMessage() . " $sql";
@@ -508,7 +507,7 @@ class LoggedPDO {
     }
 
     public function inTransaction() {
-        return($this->inTransaction) ;
+        return($this->_db->inTransaction()) ;
     }
 
     public function setAttribute($attr, $val) {
@@ -528,8 +527,6 @@ class LoggedPDO {
 
     public function rollBack() {
         $this->doConnect();
-
-        $this->inTransaction = FALSE;
 
         $time = microtime(true);
         if ($this->_db->inTransaction()) {
@@ -554,7 +551,6 @@ class LoggedPDO {
 
     public function beginTransaction() {
         $this->doConnect();
-        $this->inTransaction = TRUE;
         $this->transactionStart = microtime(true);
         $ret = $this->_db->beginTransaction();
         $duration = microtime(true) - $this->transactionStart;
@@ -604,8 +600,6 @@ class LoggedPDO {
             $logsql = "INSERT INTO logs_sql (userid, date, duration, session, request, response) VALUES ($myid, '$mysqltime', $duration, " . $this->quote(session_id()) . "," . $this->quote('COMMIT;') . "," . $this->quote($rc) . ");";
             $this->background($logsql);
         }
-
-        $this->inTransaction = FALSE;
 
         return($rc);
     }
