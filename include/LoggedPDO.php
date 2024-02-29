@@ -345,7 +345,7 @@ class LoggedPDO {
                     # This is similar to https://ghostaldev.com/2016/05/22/galera-gotcha-mysql-users/
                     $msg = $e->getMessage();
 
-                    if (!$this->_db->inTransaction()) {
+                    if (!$this->inTransaction()) {
                         $try++;
                     } else {
                         $msg = "Deadlock in transaction " . $e->getMessage() . " $sql";
@@ -507,7 +507,7 @@ class LoggedPDO {
     }
 
     public function inTransaction() {
-        return($this->_db->inTransaction()) ;
+        return($this->inTransaction()) ;
     }
 
     public function setAttribute($attr, $val) {
@@ -529,7 +529,7 @@ class LoggedPDO {
         $this->doConnect();
 
         $time = microtime(true);
-        if ($this->_db->inTransaction()) {
+        if ($this->inTransaction()) {
             $rc = $this->_db->rollBack();
         }
 
@@ -574,7 +574,7 @@ class LoggedPDO {
         $this->doConnect();
         $time = microtime(true);
 
-        if ($this->_db->inTransaction()) {
+        if ($this->inTransaction()) {
             # PDO's commit() isn't reliable, at least in some versions - it can return true.
             $this->_db->query('COMMIT;');
             $rc = $this->_db->errorCode() == '0000';
@@ -704,5 +704,9 @@ class LoggedPDO {
 
     public function isConnected() {
         return $this->connected;
+    }
+
+    public function isTransaction() {
+        return $this->_db ? $this->_db->inTransaction() : FALSE;
     }
 }
