@@ -506,10 +506,6 @@ class LoggedPDO {
         return($ret);
     }
 
-    public function inTransaction() {
-        return($this->inTransaction()) ;
-    }
-
     public function setAttribute($attr, $val) {
         $this->doConnect();
         return($this->_db->setAttribute($attr, $val));
@@ -706,7 +702,7 @@ class LoggedPDO {
         return $this->connected;
     }
 
-    public function isTransaction() {
+    public function inTransaction() {
         return $this->_db ? $this->_db->inTransaction() : FALSE;
     }
 }
