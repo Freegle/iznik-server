@@ -39,13 +39,13 @@ function microvolunteering() {
                     ]);
 
                     if (gettype($types) == 'string') {
-                        $types = [ $types ];
+                        $types = explode(',', $types);
                     }
 
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success',
-                        'microvolunteering' => $v->challenge($myid, $groupid, $types)
+                        'microvolunteering' => $v->challenge($myid, $groupid, $types),
                     ];
                 }
 
