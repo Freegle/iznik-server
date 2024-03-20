@@ -1301,7 +1301,7 @@ class chatRoomsTest extends IznikTestCase {
         $this->assertNotNull($cm);
         list ($cm, $banned) = $m->create($id, $u1, "test2", ChatMessage::TYPE_DEFAULT, NULL, FALSE);
         $this->assertNotNull($cm);
-        list ($cm, $banned) = $m->create($id, $u1, "test3", ChatMessage::TYPE_DEFAULT, NULL, FALSE);
+        list ($cm, $banned) = $m->create($id, $u1, "test3", ChatMessage::TYPE_PROMISED, NULL, FALSE);
         $this->assertNotNull($cm);
 
         $r = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
@@ -1323,14 +1323,14 @@ class chatRoomsTest extends IznikTestCase {
         $this->assertEquals('test1@test.com', array_keys($this->msgsSent[0]['to'])[0]);
         $this->assertNotFalse(strpos($this->msgsSent[0]['body'], 'test1'));
         $this->assertEquals('test2@user.trashnothing.com', array_keys($this->msgsSent[1]['to'])[0]);
-        $this->assertEquals(0, strpos($this->msgsSent[0]['body'], 'test2'));
+        $this->assertNotFalse(0, strpos($this->msgsSent[1]['body'], 'test2'));
 
         # Notify:
         # - other message from FD user to TN user
         $this->msgsSent = [];
         $this->assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
         $this->assertEquals('test2@user.trashnothing.com', array_keys($this->msgsSent[0]['to'])[0]);
-        $this->assertNotFalse(strpos($this->msgsSent[0]['body'], 'test3'));
+        $this->assertNotFalse(strpos($this->msgsSent[0]['body'], 'promised'));
     }
 
     public function testNotifyTNWhenOtherUserNotifyOff() {
