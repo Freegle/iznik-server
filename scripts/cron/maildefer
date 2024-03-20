@@ -1,0 +1,5 @@
+#!/bin/bash
+
+count=`grep -c "emporarily defer" /var/log/mail.log`
+
+echo | mail -s "bulk2 mail deferrals $count" -r noreply@ilovefreegle.org test@ehibbert.org.uk
