@@ -135,26 +135,26 @@ class MicroVolunteering
         $trustlevel = $u->getPrivate('trustlevel');
 
         if ($trustlevel != User::TRUST_DECLINED && $trustlevel !== User::TRUST_EXCLUDED) {
-            if (in_array(self::CHALLENGE_SURVEY, $types)) {
-                # Survey is something we use occasionally.
-                $asked = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM microactions WHERE userid = ? AND actiontype = ?  AND DATEDIFF(NOW(), `timestamp`) < 7", [
-                    $userid,
-                    self::CHALLENGE_SURVEY
-                ]);
-
-                if (!$asked[0]['count']) {
-                    $ret = [
-                        'type' => self::CHALLENGE_SURVEY,
-                        'url' => "https://docs.google.com/forms/d/e/1FAIpQLSfhO0f3MuyKIgJsAwsjEa6r_bzaEMqSgqA3H6P39ZflzQOS1w/viewform?embedded=true"
-                    ];
-
-                    $this->dbhm->preExec("INSERT INTO microactions (actiontype, userid, version) VALUES (?, ?, ?);", [
-                        self::CHALLENGE_SURVEY,
-                        $userid,
-                        self::VERSION
-                    ]);
-                }
-            }
+//            if (in_array(self::CHALLENGE_SURVEY, $types)) {
+//                # Survey is something we use occasionally.
+//                $asked = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM microactions WHERE userid = ? AND actiontype = ?  AND DATEDIFF(NOW(), `timestamp`) < 7", [
+//                    $userid,
+//                    self::CHALLENGE_SURVEY
+//                ]);
+//
+//                if (!$asked[0]['count']) {
+//                    $ret = [
+//                        'type' => self::CHALLENGE_SURVEY,
+//                        'url' => "https://docs.google.com/forms/d/e/1FAIpQLSfhO0f3MuyKIgJsAwsjEa6r_bzaEMqSgqA3H6P39ZflzQOS1w/viewform?embedded=true"
+//                    ];
+//
+//                    $this->dbhm->preExec("INSERT INTO microactions (actiontype, userid, version) VALUES (?, ?, ?);", [
+//                        self::CHALLENGE_SURVEY,
+//                        $userid,
+//                        self::VERSION
+//                    ]);
+//                }
+//            }
 
             if (!$ret) {
                 $groupids = [$groupid];
