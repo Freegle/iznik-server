@@ -95,6 +95,8 @@ function memberships() {
                             }
                         }
 
+                        $groupids = array_filter($groupids);
+
                         if ($proceed) {
                             if ($collection == MembershipCollection::HAPPINESS) {
                                 # This is handled differently - including a different processing for filter.
