@@ -376,7 +376,7 @@ class MailRouter
 
     private function FBL() {
         if ($this->log) {
-            error_log("FBL request")
+            error_log("FBL report");
         }
 
         return MailRouter::TO_SYSTEM;
