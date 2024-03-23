@@ -170,6 +170,7 @@ define('COUNCILS_ADDR', 'councils@ilovefreegle.org');
 define('STORIES_ADDR', 'stories@ilovefreegle.org');
 define('TREASURER_ADDR', 'treasurer@ilovefreegle.org');
 define('TN_ADDR', 'zzz');
+define('FBL_ADDR', 'fbl@users.ilovefreegle.org');
 
 define('NOREPLY_ADDR', 'noreply@ilovefreegle.org');
 

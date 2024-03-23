@@ -185,10 +185,16 @@ class MailRouter
             $fromheader = mailparse_rfc822_parse_addresses($fromheader);
         }
 
-        if ($this->spam->isSpammer($from)) {
+        if ($this->spam->isSpammer($from))
+        {
             # Mail from spammer. Drop it.
-            if ($log) { error_log("Spammer, drop"); }
+            if ($log)
+            {
+                error_log("Spammer, drop");
+            }
             $ret = MailRouter::DROPPED;
+        } else if (strpos($to, FBL_ADDR) === 0) {
+            $ret = $this->FBL();
         } else if (preg_match('/digestoff-(.*)-(.*)@/', $to, $matches) == 1) {
             $ret = $this->turnDigestOff($matches, $ret);
         } else if (preg_match('/readreceipt-(.*)-(.*)-(.*)@/', $to, $matches) == 1) {
@@ -366,6 +372,14 @@ class MailRouter
         Mail::addHeaders($this->dbhr, $this->dbhm, $message, $type, $uid);
 
         $mailer->send($message);
+    }
+
+    private function FBL() {
+        if ($this->log) {
+            error_log("FBL request")
+        }
+
+        return MailRouter::TO_SYSTEM;
     }
 
     private function turnDigestOff($matches, $ret)
