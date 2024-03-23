@@ -2516,8 +2516,6 @@ ORDER BY id, added, groupid ASC;";
                                                 $headers->addTextHeader('Return-Receipt-To', "readreceipt-{$chat['chatid']}-{$member['userid']}-$lastmsgemailed@" . USER_DOMAIN);
                                             }
 
-                                            Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::CHAT, $sendingto->getId());
-
                                             $this->mailer($message, $chattype == ChatRoom::TYPE_USER2USER ? $to : null);
 
                                             $sentsome = TRUE;
