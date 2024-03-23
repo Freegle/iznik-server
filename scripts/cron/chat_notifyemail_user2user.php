@@ -11,8 +11,9 @@ global $dbhr, $dbhm;
 
 $lockh = Utils::lockScript(basename(__FILE__));
 
-$opts = getopt(':i');
+$opts = getopt('i:e:');
 $id = Utils::presdef('i', $opts, NULL);
+$sendAndExit = Utils::presdef('e', $opts, NULL);
 
 $c = new ChatRoom($dbhr, $dbhm);
 
@@ -21,7 +22,7 @@ $max = 120;
 
 do {
     error_log("Start User2User " . date("Y-m-d H:i:s", time()));
-    $count = $c->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 30, "4 hours ago");
+    $count = $c->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 30, "4 hours ago", FALSE, $sendAndExit);
     error_log("Sent $count to User2User " . date("Y-m-d H:i:s", time()));
 
     if (!$count) {

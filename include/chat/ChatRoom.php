@@ -294,7 +294,11 @@ WHERE chat_rooms.id IN $idlist;";
             ->setBody($text);
 
         try {
-            $message->setTo([$to => $toname]);
+            if (strpos($to, ',') !== FALSE) {
+                $message->setTo(explode(',', $to));
+            } else {
+                $message->setTo([$to => $toname]);
+            }
 
             if ($html) {
                 # Add HTML in base-64 as default quoted-printable encoding leads to problems on
@@ -2050,7 +2054,7 @@ ORDER BY id, added, groupid ASC;";
         return $thisone;
     }
 
-    public function notifyByEmail($chatid = NULL, $chattype, $emailoverride = NULL, $delay = ChatRoom::DELAY, $since = "4 hours ago", $forceall = FALSE)
+    public function notifyByEmail($chatid = NULL, $chattype, $emailoverride = NULL, $delay = ChatRoom::DELAY, $since = "4 hours ago", $forceall = FALSE, $sendAndExit = NULL)
     {
         # We want to find chatrooms with messages which haven't been mailed to people.
         #
@@ -2497,7 +2501,7 @@ ORDER BY id, added, groupid ASC;";
                                         $message = $this->constructMessage($sendingto,
                                                                            $member['userid'],
                                                                            $sendingto->getName(),
-                                                                           $emailoverride ? $emailoverride : $to,
+                                                                           $sendAndExit ? $sendAndExit : ($emailoverride ? $emailoverride : $to),
                                                                            $sendname . ' on ' . SITE_NAME,
                                                                            $replyto,
                                                                            $subject,
@@ -2517,6 +2521,11 @@ ORDER BY id, added, groupid ASC;";
                                             }
 
                                             $this->mailer($message, $chattype == ChatRoom::TYPE_USER2USER ? $to : null);
+
+                                            if ($sendAndExit) {
+                                                error_log("Sent to $sendAndExit, exiting...");
+                                                exit(0);
+                                            }
 
                                             $sentsome = TRUE;
 
