@@ -177,6 +177,14 @@ class PushNotifications
                                     'title' => $iostitle,
                                     'body' => $iosbody,
                                 ];
+
+                                if ($notiftype == PushNotifications::PUSH_BROWSER_PUSH) {
+                                    $ios['notification']['webpush'] = [
+                                        'fcm_options' => [
+                                            'link' => $payload['route']
+                                        ]
+                                    ];
+                                }
                             }
 
                             #error_log("ios is " . var_export($ios, TRUE));
