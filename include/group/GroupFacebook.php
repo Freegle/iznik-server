@@ -388,7 +388,7 @@ ORDER BY groups_facebook_toshare.id DESC;";
 
                             $message = 'FREE!  Trending yesterday on ' . $g->getName() . ".";
                             $link = 'https://' . USER_SITE . '/explore/' . $g->getPrivate('nameshort') . '/' . $msgid;
-                            $message .= "\n\n" . $m->getSubject() . "\n\nHop over to $link to see what else is being given away - or to ask for stuff you'd like.";
+                            $message .= "\n\n" . $m->getSubject() . "\n\nHop over to $link to ask for this or to see what else is being given away - or to ask for stuff you'd like.";
 
                             $picture = NULL;
 
