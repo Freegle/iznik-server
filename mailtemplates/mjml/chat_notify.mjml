@@ -199,7 +199,7 @@
     </mj-section>
     <mj-section background-color="#F7F6EC" padding="0">
       <mj-column>
-        <mj-text padding-left="25px">
+        <mj-text padding-left="25px" color="black" font-weight="bold">
           {{ jobads|raw }}
         </mj-text>
       </mj-column>
@@ -347,7 +347,7 @@
 
     <mj-section mj-class="footer">
       <mj-column>
-        <mj-text color="#707070">
+        <mj-text color="black" font-weight="bold">
           You've received this mail because you're a member of Freegle. <a href="{{ unsubscribe }}">Unsubscribe</a>.
           <br />
           <br />
