@@ -1517,6 +1517,101 @@ class chatRoomsTest extends IznikTestCase {
         $rc = $mr->route();
         $this->assertEquals(MailRouter::DROPPED, $rc);
     }
+
+    private function processChats($forcereview) {
+        $msgs = $this->dbhr->preQuery("SELECT * FROM `chat_messages` WHERE chat_messages.processingrequired = 1 ORDER BY id ASC;");
+        foreach ($msgs as $msg) {
+            $cm = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
+            $cm->process($forcereview);
+        }
+    }
+
+    public function testModNoteNotifications() {
+        # Set up a chatroom
+        $ua = User::get($this->dbhr, $this->dbhm);
+        $u1 = $ua->create(NULL, NULL, "Test User 1");
+        $ua->addMembership($this->groupid);
+        $this->assertNotNull($ua->addEmail('test1@test.com'));
+
+        $ub = User::get($this->dbhr, $this->dbhm);
+        $u2 = $ub->create(NULL, NULL, "Test User 2");
+        $ub->addMembership($this->groupid);
+        $this->assertNotNull($ub->addEmail('test2@user.trashnothing.com'));
+
+        $uc = User::get($this->dbhr, $this->dbhm);
+        $u3 = $uc->create(NULL, NULL, "Test Mod");
+        $uc->addMembership($this->groupid, User::ROLE_MODERATOR);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
+        $this->assertNotNull($id);
+
+        # Two messages from FD user. Don't process inline - we're testing a case where the user would be using the Go API.
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+
+        list ($cmid2, $banned) = $m->create($id, $u1, "test2", ChatMessage::TYPE_DEFAULT, NULL, FALSE, NULL, NULL, NULL, NULL, NULL, FALSE, FALSE, FALSE);
+        $this->assertNotNull($cmid2);
+        list ($cmid3, $banned) = $m->create($id, $u1, "test3", ChatMessage::TYPE_DEFAULT, NULL, FALSE, NULL, NULL, NULL, NULL, NULL, FALSE, FALSE, FALSE);
+        $this->assertNotNull($cmid3);
+
+        $r = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
+            ->setMethods(array('mailer'))
+            ->getMock();
+
+        $r->method('mailer')->will($this->returnCallback(function($message) {
+            return($this->mailer($message));
+        }));
+
+        # Process the two chats and force them to be reviewed.
+        $this->processChats(TRUE);
+
+        # Add mod note.  This will be processed inline and should be held for review since the previous ones are.
+        list ($cmid4, $banned) = $m->create($id, $u3, "test3", ChatMessage::TYPE_MODMAIL, NULL, FALSE);
+        $this->assertNotNull($cmid4);
+
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $cmid2);
+        $this->assertEquals(1, $cm->getPrivate('reviewrequired'));
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $cmid3);
+        $this->assertEquals(1, $cm->getPrivate('reviewrequired'));
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $cmid4);
+        $this->assertEquals(1, $cm->getPrivate('reviewrequired'));
+
+        # Notify - shouldn't notify anything as the modmail should be queued up behind the two held messages.
+        $this->msgsSent = [];
+        $sent = $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0);
+        $this->assertEquals(0, $sent);
+
+        # Now approve the two messages.
+        $_SESSION['id'] = $u3;
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $cmid2);
+        $cm->approve($cmid2);
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $cmid3);
+        $cm->approve($cmid3);
+
+        # Now notify - should send out the first message to TN plus the mod note to FD.
+        $this->msgsSent = [];
+        $sent = $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0);
+        $this->assertEquals(2, $sent);
+        $text = $this->msgsSent[0]['body'];
+        $this->assertTrue(strpos($text, 'Message from Volunteers') !== FALSE);
+        $text = $this->msgsSent[1]['body'];
+        $this->assertTrue(strpos($text, 'test2') !== FALSE);
+
+        # Notify again - the second message to TN.
+        $this->msgsSent = [];
+        $sent = $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0);
+        $this->assertEquals(1, $sent);
+        $text = $this->msgsSent[0]['body'];
+        $this->assertTrue(strpos($text, 'test3') !== FALSE);
+
+        # Notify again - the mod note to TN.
+        $this->msgsSent = [];
+        $sent = $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0);
+        $this->assertEquals(1, $sent);
+        $text = $this->msgsSent[0]['body'];
+        $this->assertTrue(strpos($text, 'Message from Volunteers') !== FALSE);
+    }
 }
 
 

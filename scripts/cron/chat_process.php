@@ -13,7 +13,7 @@ $lockh = Utils::lockScript(basename(__FILE__));
 $max = 120;
 
 do {
-    $msgs = $dbhr->preQuery("SELECT * FROM `chat_messages` WHERE chat_messages.processingrequired = 1;");
+    $msgs = $dbhr->preQuery("SELECT * FROM `chat_messages` WHERE chat_messages.processingrequired = 1 ORDER BY id ASC;");
     if (!count($msgs)) {
         # Sleep for more to arrive, otherwise keep going.
         $max--;

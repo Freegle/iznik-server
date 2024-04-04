@@ -206,9 +206,10 @@ class ChatMessage extends Entity
             }
 
             # If the last message in this chat is held for review, then hold this one too.
-            $last = $this->dbhr->preQuery("SELECT reviewrequired FROM chat_messages WHERE chatid = ? AND userid = ? AND id != ? ORDER BY id DESC LIMIT 1;", [
+            # This includes chats by any user.  For example, suppose we add a Mod Note to a user2user chat - we don't
+            # want to send out that chat until the messages that triggered it have been reviewed.
+            $last = $this->dbhr->preQuery("SELECT reviewrequired FROM chat_messages WHERE chatid = ? AND id != ? ORDER BY id DESC LIMIT 1;", [
                 $chatid,
-                $userid,
                 $id
             ]);
 
@@ -384,7 +385,7 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
         return TRUE;
     }
 
-    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL, $facebookid = NULL, $forcereview = FALSE, $suppressmodnotif = FALSE) {
+    public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL, $facebookid = NULL, $forcereview = FALSE, $suppressmodnotif = FALSE, $process = TRUE) {
         // Create the message, requiring processing.
         $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, spamscore, reportreason, refchatid, imageid, facebookid, processingrequired) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,1);", [
             $chatid,
@@ -415,11 +416,13 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
         if ($rc && $id) {
             $this->fetch($this->dbhm, $this->dbhm, $id, 'chat_messages', 'chatmessage', $this->publicatts);
 
-            // Process this inline for now.  In future we might allow the backgrounding, but that has a risk of
-            // bugs and we only really need that perf improvement for the faster Go API.
-            $ret = $this->process($forcereview, $suppressmodnotif);
-            if (!$ret) {
-                $this->processFailed();
+            if ($process) {
+                // Process this inline for now.  In future we might allow the backgrounding, but that has a risk of
+                // bugs and we only really need that perf improvement for the faster Go API.
+                $ret = $this->process($forcereview, $suppressmodnotif);
+                if (!$ret) {
+                    $this->processFailed();
+                }
             }
 
             return([ $id, !$ret ]);
@@ -477,6 +480,24 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
         return($ret);
     }
 
+    private function autoApproveAnyModmail($id, $chatid, $myid) {
+        # If this was the last message requiring review in the chat, then we can approve any modmails
+        # which occur after it.  This makes modmails get sent out in the right order, but autoapproved.
+        $sql = "SELECT chat_messages.id FROM chat_messages 
+                        WHERE chatid = ? AND
+                              chat_messages.id > ?
+                          AND chat_messages.reviewrequired = 1 
+                          AND chat_messages.type = ?;";
+        $msgs = $this->dbhr->preQuery($sql, [ $chatid, $id, ChatMessage::TYPE_MODMAIL ]);
+
+        foreach ($msgs as $msg) {
+            $this->dbhm->preExec("UPDATE chat_messages SET reviewrequired = 0, reviewedby = ? WHERE id = ?;", [
+                $myid,
+                $msg['id']
+            ]);
+        }
+    }
+
     public function approve($id) {
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
@@ -498,6 +519,10 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
                         $myid,
                         $id
                     ]);
+
+                    # If this was the last message requiring review in the chat, then we can approve any modmails
+                    # which occur after it.  This makes modmails get sent out in the right order, but autoapproved.
+                    $this->autoApproveAnyModmail($id, $msg['chatid'], $myid);
 
                     # Whitelist any URLs - they can't be indicative of spam.
                     $this->whitelistURLs($msg['message']);
@@ -545,6 +570,10 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
                             $id
                         ]
                     );
+
+                    # If this was the last message requiring review in the chat, then we can approve any modmails
+                    # which occur after it.  This makes modmails get sent out in the right order, but autoapproved.
+                    $this->autoApproveAnyModmail($id, $msg['chatid'], $myid);
 
                     $r = new ChatRoom($this->dbhr, $this->dbhm, $msg['chatid']);
                     $r->updateMessageCounts();
