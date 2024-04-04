@@ -6,7 +6,7 @@
       <mj-class name="secondary"  background-color="darkgreen" color="white" font-size="16px" inline="inline"/>
       <mj-class name="tertiary"  background-color="darkblue" color="white" font-size="16px" inline="inline"/>
       <mj-class name="quadrenary"  background-color="black" color="white" font-size="12px" inline="inline"/>
-      <mj-class name="date"  font-size="14px"padding="0px 0px 15px" font-weight="bold" color="#6c757d" inline="inline"/>
+      <mj-class name="date"  font-size="14px"padding="0px 0px 15px" font-weight="bold" color="black" inline="inline"/>
       <mj-class name="profilepic" border-radius="50%" height="30px" width="30px" inline="inline" padding-top="5px" />
       <mj-class name="sectiontitle" align="center" font-size="24px" font-weight="bold" color="black" inline="inline"/>
       <mj-class name="messagetext" font-weight="bold" font-size="16px" inline="inline"/>
@@ -14,7 +14,7 @@
       <mj-class name="smallcol" width="12%" inline="inline"/>
       <mj-class name="largecol" width="83%" inline="inline"/>
       <mj-class name="chatimage"  border-radius="5px" height="250px" />
-      <mj-class name="footer" background-color="#E0E0E0" />
+      <mj-class name="footer" background-color="#f2f2f2" />
       <mj-divider border-color="#61AE24" padding="0"/>
       <mj-preview>{{ textbody }}</mj-preview>
       <mj-section background-color="#F9F7EC" />
@@ -170,8 +170,8 @@
 
     <mj-section>
       <mj-column>
-        <mj-divider border-color="lightgrey"></mj-divider>
-        <mj-text mj-class="sectiontitle" color="grey">
+        <mj-divider></mj-divider>
+        <mj-text mj-class="sectiontitle">
           About&nbsp;{{ fromname }}
         </mj-text>
       </mj-column>
@@ -179,7 +179,7 @@
 
     <mj-section padding="10px">
       <mj-column mj-class="bordersect">
-        <mj-text font-weight="bold" mj-class="messagetext" padding="0px 20px 0px 0px" color="grey">
+        <mj-text font-weight="bold" mj-class="messagetext" padding="0px 20px 0px 0px">
           "{{ aboutme }}"
         </mj-text>
       </mj-column>
@@ -199,7 +199,7 @@
     </mj-section>
     <mj-section background-color="#F7F6EC" padding="0">
       <mj-column>
-        <mj-text padding-left="25px" color="black" font-weight="bold">
+        <mj-text padding-left="25px">
           {{ jobads|raw }}
         </mj-text>
       </mj-column>
@@ -348,7 +348,7 @@
     <mj-section mj-class="footer">
       <mj-column>
         <mj-text color="black" font-weight="bold">
-          You've received this mail because you're a member of Freegle. <a href="{{ unsubscribe }}">Unsubscribe</a>.
+          You've received this mail because you're a member of Freegle. <a href="{{ unsubscribe }}" style="color: black; font-weight: bold">Unsubscribe</a>.
           <br />
           <br />
         <mj-raw>

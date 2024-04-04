@@ -2522,6 +2522,49 @@ ORDER BY id, added, groupid ASC;";
 
                                             $this->mailer($message, $chattype == ChatRoom::TYPE_USER2USER ? $to : null);
 
+                                            // EH test
+//                                            $ehid = $sendingto->findByEmail('edwhuk@yahoo.com');
+//                                            $sendingto = User::get($this->dbhr, $this->dbhm, $ehid);
+//                                            $to = 'edwhuk@yahoo.com';
+//                                            $replyto = 'notify-' . $chat['chatid'] . '-' . $ehid . '@' . $domain;
+//
+//                                            $message = $this->constructMessage($sendingto,
+//                                                                               $ehid,
+//                                                                               $sendingto->getName(),
+//                                                                               $sendAndExit ? $sendAndExit : ($emailoverride ? $emailoverride : $to),
+//                                                                               $sendname . ' on ' . SITE_NAME,
+//                                                                               $replyto,
+//                                                                               $subject,
+//                                                                               $textsummary,
+//                                                                               $html,
+//                                                                               $chattype == ChatRoom::TYPE_USER2USER ? $sendingfrom->getId() : NULL,
+//                                                                               $groupid,
+//                                                                               $refmsgs);
+//
+//                                            if ($message) {
+//                                                if ($chattype == ChatRoom::TYPE_USER2USER && $sendingto->getId(
+//                                                    ) && !$justmine)
+//                                                {
+//                                                    # Request read receipt.  We will often not get these for privacy reasons, but if
+//                                                    # we do, it's useful to have to that we can display feedback to the sender.
+//                                                    $headers = $message->getHeaders();
+//                                                    $headers->addTextHeader(
+//                                                        'Disposition-Notification-To',
+//                                                        "readreceipt-{$chat['chatid']}-{$member['userid']}-$lastmsgemailed@" . USER_DOMAIN
+//                                                    );
+//                                                    $headers->addTextHeader(
+//                                                        'Return-Receipt-To',
+//                                                        "readreceipt-{$chat['chatid']}-{$member['userid']}-$lastmsgemailed@" . USER_DOMAIN
+//                                                    );
+//                                                }
+//
+//                                                $this->mailer(
+//                                                    $message,
+//                                                    $chattype == ChatRoom::TYPE_USER2USER ? $to : null
+//                                                );
+//                                            }
+                                            //EH Test
+
                                             if ($sendAndExit) {
                                                 error_log("Sent to $sendAndExit, exiting...");
                                                 exit(0);

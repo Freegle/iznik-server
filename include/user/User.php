@@ -6308,7 +6308,7 @@ class User extends Entity
 
                 # Link via our site to avoid spam trap warnings.
                 $url = "https://" . USER_SITE . "/job/{$job['id']}";
-                $ret .= '<a href="' . $url . '" target="_blank">' . htmlentities($title) . '</a><br />';
+                $ret .= '<a href="' . $url . '" target="_blank" style="color:black; font-weight:bold;">' . htmlentities($title) . '</a><br />';
             }
         }
 
