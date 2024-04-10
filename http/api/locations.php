@@ -42,7 +42,7 @@ function locations() {
                         $group['postcount'] = Group::getOpenCount($dbhr, $group['id']);
                     }
                 }
-            } else if ($swlat || $swlng || $nelat || $nelng) {
+            } else if (($swlat || $nelat) && ($swlng || $nelng)) {
                 $ret = [ 'ret' => 0, 'status' => 'Success'];
 
                 if ($areas) {
