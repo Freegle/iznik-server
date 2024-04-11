@@ -44,6 +44,10 @@ class Attachment
     }
 
     public function getPath($thumb = FALSE, $id = NULL, $archived = FALSE) {
+        if ($this->url) {
+            return $this->url;
+        }
+
         # We serve up our attachment names as though they are files.
         # When these are fetched it will go through image.php
         $id = $id ? $id : $this->id;
@@ -88,49 +92,85 @@ class Attachment
         $this->type = $type;
         $this->archived = FALSE;
         $url = '';
+        $uid = 'externaluid';
 
         switch ($type) {
-            case Attachment::TYPE_MESSAGE: $this->table = 'messages_attachments'; $this->idatt = 'msgid'; break;
+            case Attachment::TYPE_MESSAGE:
+            {
+                $this->table = 'messages_attachments';
+                $this->idatt = 'msgid';
+                $this->urlname = 'externalurl';
+                $this->uidname = 'externaluid';
+                $url = ', externalurl';
+                $uid = ', externaluid';
+                break;
+            }
             case Attachment::TYPE_GROUP: $this->table = 'groups_images'; $this->idatt = 'groupid'; break;
             case Attachment::TYPE_NEWSLETTER: $this->table = 'newsletters_images'; $this->idatt = 'articleid'; break;
             case Attachment::TYPE_COMMUNITY_EVENT: $this->table = 'communityevents_images'; $this->idatt = 'eventid'; break;
             case Attachment::TYPE_VOLUNTEERING: $this->table = 'volunteering_images'; $this->idatt = 'opportunityid'; break;
             case Attachment::TYPE_CHAT_MESSAGE: $this->table = 'chat_images'; $this->idatt = 'chatmsgid'; break;
-            case Attachment::TYPE_USER: $this->table = 'users_images'; $this->idatt = 'userid'; $url = ', url'; break;
+            case Attachment::TYPE_USER:
+            {
+                $this->table = 'users_images';
+                $this->idatt = 'userid';
+                $this->urlname = 'externalurl';
+                $url = ', url';
+                break;
+            }
             case Attachment::TYPE_NEWSFEED: $this->table = 'newsfeed_images'; $this->idatt = 'newsfeedid'; break;
             case Attachment::TYPE_STORY: $this->table = 'users_stories_images'; $this->idatt = 'storyid'; break;
             case Attachment::TYPE_NOTICEBOARD: $this->table = 'noticeboards_images'; $this->idatt = 'noticeboardid'; break;
         }
 
+
         if ($id) {
-            $sql = "SELECT {$this->idatt}, hash, archived $url FROM {$this->table} WHERE id = ?;";
+            $sql = "SELECT {$this->idatt}, hash, archived $url $uid FROM {$this->table} WHERE id = ?;";
             $as = $atts ? [ $atts ] : $this->dbhr->preQuery($sql, [$id]);
             foreach ($as as $att) {
                 $this->hash = $att['hash'];
                 $this->archived = $att['archived'];
-                $this->url = Utils::presdef('url', $att, NULL);
+                $this->url = Utils::presdef($this->urlname, $att, NULL);
+                $this->externaluid = Utils::presdef($this->uidname, $att, NULL);
                 $this->{$this->idatt} = $att[$this->idatt];
             }
         }
     }
 
-    public function create($id, $data) {
-        # We generate a perceptual hash.  This allows us to spot duplicate or similar images later.
-        $hasher = new ImageHash;
-        $img = @imagecreatefromstring($data);
-        $hash = $img ? $hasher->hash($img) : NULL;
+    public function create($id, $data, $uid, $url) {
+        if ($url) {
+            // Image data is held externally.
+            $rc = $this->dbhm->preExec("INSERT INTO {$this->table} (`{$this->idatt}`, `{$this->uidname}`, `{$this->urlname}`) VALUES (?, ?, ?);", [
+                $id,
+                $uid,
+                $url
+            ]);
 
-        $rc = $this->dbhm->preExec("INSERT INTO {$this->table} (`{$this->idatt}`, `data`, `hash`) VALUES (?, ?, ?);", [
-            $id,
-            $data,
-            $hash
-        ]);
+            $imgid = $rc ? $this->dbhm->lastInsertId() : NULL;
 
-        $imgid = $rc ? $this->dbhm->lastInsertId() : NULL;
+            if ($imgid) {
+                $this->id = $imgid;
+                $this->externaluid = $uid;
+                $this->url = $url;
+            }
+        } else {
+            # We generate a perceptual hash.  This allows us to spot duplicate or similar images later.
+            $hasher = new ImageHash;
+            $img = @imagecreatefromstring($data);
+            $hash = $img ? $hasher->hash($img) : NULL;
 
-        if ($imgid) {
-            $this->id = $imgid;
-            $this->hash = $hash;
+            $rc = $this->dbhm->preExec("INSERT INTO {$this->table} (`{$this->idatt}`, `data`, `hash`) VALUES (?, ?, ?);", [
+                $id,
+                $data,
+                $hash
+            ]);
+
+            $imgid = $rc ? $this->dbhm->lastInsertId() : NULL;
+
+            if ($imgid) {
+                $this->id = $imgid;
+                $this->hash = $hash;
+            }
         }
 
         return($imgid);
@@ -211,6 +251,11 @@ class Attachment
     }
 
     public function archive() {
+        if ($this->url) {
+            // We don't archive external URLs.
+            return;
+        }
+
         # We archive out of the DB onto our two CDN image hosts.  This reduces load on the servers because we don't
         # have to serve the images up, and it also reduces the disk space we need within the DB (which is not an ideal
         # place to store large amounts of image data);

@@ -20,6 +20,9 @@ function image() {
     $story = Utils::presdef('story', $_REQUEST, NULL);
     $noticeboard = Utils::presdef('noticeboard', $_REQUEST, NULL);
     $circle = Utils::presdef('circle', $_REQUEST, NULL);
+    $imgtype = Utils::presdef('imgtype', $_REQUEST, Attachment::TYPE_MESSAGE);
+    $externaluid = Utils::presdef('externaluid', $_REQUEST, NULL);
+    $externalurl = Utils::presdef('externalurl', $_REQUEST, NULL);
 
     $sizelimit = 800;
     
@@ -103,8 +106,10 @@ function image() {
             # This next line is to simplify UT.
             $rotate = Utils::presint('rotate', $_REQUEST, NULL);
 
-            if ($rotate) {
-                if ($id) {
+            if ($rotate)
+            {
+                if ($id)
+                {
                     # We want to rotate.  Do so.
                     $a = new Attachment($dbhr, $dbhm, $id, $type);
                     $data = $a->getData();
@@ -113,7 +118,8 @@ function image() {
                     $newdata = $i->getData(100);
                     $a->setData($newdata);
 
-                    if ($type == Attachment::TYPE_MESSAGE) {
+                    if ($type == Attachment::TYPE_MESSAGE)
+                    {
                         # Only some kinds of attachments record whether they are rotated.
                         $a->recordRotate();
                     }
@@ -124,9 +130,17 @@ function image() {
                         'rotatedsize' => strlen($newdata)
                     ];
                 }
+            } else if ($externaluid && $externalurl) {
+                $a = new Attachment($dbhr, $dbhm, NULL, $imgtype);
+                $id = $a->create($msgid, NULL, $externaluid, $externalurl);
+
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success',
+                    'id' => $id
+                ];
             } else {
                 $photo = Utils::presdef('photo', $_FILES, NULL) ? $_FILES['photo'] : $_REQUEST['photo'];
-                $imgtype = Utils::presdef('imgtype', $_REQUEST, Attachment::TYPE_MESSAGE);
 
                 # Make sure what we have looks plausible - the file upload plugin should ensure this is the case.
                 if ($photo &&

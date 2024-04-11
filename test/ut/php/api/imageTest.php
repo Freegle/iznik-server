@@ -300,4 +300,33 @@ class imageAPITest extends IznikAPITestCase
             [ 'up-mirrored' ]
         ];
     }
+
+    public function testExternal() {
+        $url = 'https://ilovefreegle.org/icon.png';
+        $data = file_get_contents($url);
+
+        $ret = $this->call('image', 'POST', [
+            'externaluid' => 'uid',
+            'externalurl' => $url,
+        ]);
+
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertNotNull($ret['id']);
+        $id = $ret['id'];
+
+        // Get it back.  Will redirect but we don't have a good way to capture that in a test.
+        $ret = $this->call('image', 'GET', [
+            'id' => $id,
+        ], FALSE);
+
+        // ...so double-check the internals.
+        $a = new Attachment($this->dbhr, $this->dbhm, $id);
+        $this->assertEquals($url, $a->getPath());
+
+        $ret = $this->call('image', 'DELETE', [
+            'id' => $id
+        ]);
+
+        $this->assertEquals(0, $ret['ret']);
+    }
 }
