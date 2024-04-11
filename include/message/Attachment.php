@@ -137,7 +137,7 @@ class Attachment
         }
     }
 
-    public function create($id, $data, $uid, $url) {
+    public function create($id, $data, $uid = NULL, $url = NULL) {
         if ($url) {
             // Image data is held externally.
             $rc = $this->dbhm->preExec("INSERT INTO {$this->table} (`{$this->idatt}`, `{$this->uidname}`, `{$this->urlname}`) VALUES (?, ?, ?);", [
