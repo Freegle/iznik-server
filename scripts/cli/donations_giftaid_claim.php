@@ -28,7 +28,8 @@ fputcsv(STDOUT, [
     'Aggregated donations',
     'Sponsored event',
     'Donation date',
-    'Amount'
+    'Amount',
+    'Email'
 ]);
 
 $invalid = 0;
@@ -65,7 +66,8 @@ foreach ($donations as $donation) {
                 '',
                 '',
                 $date,
-                $donation['GrossAmount']
+                $donation['GrossAmount'],
+                $donation['Payer'],
             ]);
 
             $total += $donation['GrossAmount'];
