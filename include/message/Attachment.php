@@ -92,7 +92,7 @@ class Attachment
         $this->type = $type;
         $this->archived = FALSE;
         $url = '';
-        $uid = 'externaluid';
+        $uid = 'externaluid2';
 
         switch ($type) {
             case Attachment::TYPE_MESSAGE:
@@ -100,9 +100,9 @@ class Attachment
                 $this->table = 'messages_attachments';
                 $this->idatt = 'msgid';
                 $this->urlname = 'externalurl';
-                $this->uidname = 'externaluid';
+                $this->uidname = 'externaluid2';
                 $url = ', externalurl';
-                $uid = ', externaluid';
+                $uid = ', externaluid2';
                 break;
             }
             case Attachment::TYPE_GROUP: $this->table = 'groups_images'; $this->idatt = 'groupid'; break;
