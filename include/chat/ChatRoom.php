@@ -15,6 +15,7 @@ class ChatRoom extends Entity
 
     const ACTIVELIM = "31 days ago";
     const ACTIVELIM_MT = "365 days ago";
+    const REPLY_GRACE = 30;
     const TYPE_MOD2MOD = 'Mod2Mod';
     const TYPE_USER2MOD = 'User2Mod';
     const TYPE_USER2USER = 'User2User';
@@ -2090,7 +2091,6 @@ ORDER BY id, added, groupid ASC;";
             $r = new ChatRoom($this->dbhr, $this->dbhm, $chat['chatid']);
             $chatatts = $r->getPublic();
             $lastmaxmailed = $r->lastMailedToAll();
-            $maxbugspot = 0;
             $sentsome = FALSE;
             $notmailed = $r->getMembersStatus($chatatts['lastmsg'], $forceall);
             $outcometaken = '';
@@ -2165,149 +2165,42 @@ ORDER BY id, added, groupid ASC;";
                     $refmsgs = [];
 
                     foreach ($unmailedmsgs as $unmailedmsg) {
-                        if (Utils::pres('refmsgid', $unmailedmsg)) {
-                            $refmsgs[] = $unmailedmsg['refmsgid'];
-                        }
-
-                        # Message might be empty.
-                        $unmailedmsg['message'] = strlen(trim($unmailedmsg['message'])) === 0 ? "(Empty message)" : $unmailedmsg['message'];
-
-                        # Exclamation marks make emails look spammy, in conjunction with 'free' (which we use because,
-                        # y'know, freegle) according to Litmus.  Remove them.
-                        $unmailedmsg['message'] = str_replace('!', '.', $unmailedmsg['message']);
-
-                        # Convert all emojis to smilies.  Obviously that's not right, but most of them are, and we want
-                        # to get rid of the unicode.
-                        $unmailedmsg['message'] = preg_replace('/\\\\u.*?\\\\u/', ':-)', $unmailedmsg['message']);
-
-                        $maxbugspot = max($maxbugspot, $unmailedmsg['id']);
-
-                        if ($mailson) {
-                            if (!$firstid) {
-                                # We're going to want to include the previous message as reply context, so we need
-                                # to know the id of the first message we're sending.
-                                $firstid = $unmailedmsg['id'];
-                            }
-
-                            $thisone = $this->getTextSummary($unmailedmsg, $sendingto, $sendingfrom, count($unmailedmsgs) > 1, $intsubj);
-
-                            switch ($unmailedmsg['type']) {
-                                case ChatMessage::TYPE_INTERESTED:
-                                {
-                                    if ($unmailedmsg['refmsgid'] && $unmailedmsg['msgtype'] == Message::TYPE_OFFER) {
-                                        # We want to add in taken/received/withdrawn buttons.
-                                        $outcometaken = $sendingfrom->loginLink(
-                                            USER_SITE,
-                                            $sendingfrom->getId(),
-                                            "/mypost/{$unmailedmsg['refmsgid']}/completed",
-                                            User::SRC_CHATNOTIF
-                                        );
-                                        $outcomewithdrawn = $sendingfrom->loginLink(
-                                            USER_SITE,
-                                            $sendingfrom->getId(),
-                                            "/mypost/{$unmailedmsg['refmsgid']}/withdraw",
-                                            User::SRC_CHATNOTIF
-                                        );
-                                    }
-                                    break;
-                                }
-                            }
-
-                            # Have we got any messages from someone else?
-                            $justmine = ($unmailedmsg['userid'] != $sendingto->getId()) ? FALSE : $justmine;
-                            #error_log("From {$unmailedmsg['userid']} $thisone justmine? $justmine");
-
-                            if (!$lastmsg || $lastmsg != $thisone) {
-                                $twigmessages[] = $this->prepareForTwig($chattype,
-                                                                        $notifyingmember,
-                                                                        $chat['groupid'],
-                                                                        $unmailedmsg,
-                                                                        $sendingto,
-                                                                        $sendingfrom,
-                                                                        $textsummary,
-                                                                        $thisone,
-                                                                        $userlist);
-
-                                $lastmsgemailed = max($lastmsgemailed, $unmailedmsg['id']);
-                                $lastmsg = $thisone;
-                            }
-                        }
-
-                        # We want to include the name of the last person sending a message.
-                        switch ($chattype) {
-                            case ChatRoom::TYPE_USER2USER:
-                                # We might be sending a copy of the user's own message, so the fromname could be either.
-                                $fromname = $unmailedmsg['userid'] == $sendingto->getId() ?
-                                    $sendingto->getName() :
-                                    $sendingfrom->getName();
-                                break;
-                            case ChatRoom::TYPE_USER2MOD:
-                                if ($notifyingmember) {
-                                    # Always show message from volunteers.
-                                    $g = Group::get($this->dbhr, $this->dbhm, $chat['groupid']);
-                                    $fromname = $g->getPublic()['namedisplay'] . " volunteers";
-                                } else {
-                                    if ($unmailedmsg['userid'] ==  $chatatts['user1']['id']) {
-                                        # Notifying mod of message from member.
-                                        $u = User::get($this->dbhr, $this->dbhm, $unmailedmsg['userid']);
-                                        $fromname = $u->getName();
-                                    } else {
-                                        # Notifying mod of message from another mod.
-                                        $g = Group::get($this->dbhr, $this->dbhm, $chat['groupid']);
-                                        $fromname = $g->getPublic()['namedisplay'] . " volunteers";
-                                    }
-                                }
-                                break;
-                            case ChatRoom::TYPE_MOD2MOD:
-                                # Notifying mod of message from another mod, but can can show who.
-                                $u = User::get($this->dbhr, $this->dbhm, $unmailedmsg['userid']);
-                                $fromname = $u->getName();
-                                break;
-                        }
+                        $this->processUnmailedMessage(
+                            $unmailedmsg,
+                            $refmsgs,
+                            $mailson,
+                            $firstid,
+                            $sendingto,
+                            $sendingfrom,
+                            $unmailedmsgs,
+                            $intsubj,
+                            $outcometaken,
+                            $outcomewithdrawn,
+                            $justmine,
+                            $firstmsg,
+                            $lastmsg,
+                            $chattype,
+                            $notifyingmember,
+                            $chat['groupid'],
+                            $textsummary,
+                            $userlist,
+                            $twigmessages,
+                            $lastmsgemailed,
+                            $fromname,
+                            $chatatts['user1']['id']
+                        );
                     }
 
                     #error_log("Consider justmine $justmine TN $sendingtoTN vs " . $sendingto->notifsOn(User::NOTIFS_EMAIL_MINE) . " for " . $sendingto->getId());
 
                     if (!$justmine || $sendingtoTN || $sendingown) {
                         if (count($twigmessages)) {
-                            # As a subject, we should use the last "interested in" message in this chat - this is the
-                            # most likely thing they are talking about.
-                            $sql = "SELECT subject, nameshort, namefull FROM messages INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id INNER JOIN `groups` ON groups.id = messages_groups.groupid WHERE chatid = ? AND chat_messages.type = ? ORDER BY chat_messages.id DESC LIMIT 1;";
-                            #error_log($sql . $chat['chatid']);
-                            $subjs = $this->dbhr->preQuery($sql, [
-                                $chat['chatid'],
-                                ChatMessage::TYPE_INTERESTED
-                            ]);
-                            #error_log(var_export($subjs, TRUE));
-
-                            $groupid = NULL;
-
-                            switch ($chattype) {
-                                case ChatRoom::TYPE_USER2USER:
-                                    if (count($subjs)) {
-                                        $groupname = Utils::presdef('namefull', $subjs[0], $subjs[0]['nameshort']);
-                                        $subject = count($subjs) == 0 ?  : ("Regarding: [$groupname] " .
-                                            str_replace('Regarding:', '', str_replace('Re: ', '', $subjs[0]['subject'])));
-                                    } else {
-                                        $subject = "[Freegle] You have a new message";
-                                    }
-                                    $site = USER_SITE;
-                                    break;
-                                case ChatRoom::TYPE_USER2MOD:
-                                    # We might either be notifying a user, or the mods.
-                                    $g = Group::get($this->dbhr, $this->dbhm, $chat['groupid']);
-                                    if ($member['role'] == User::ROLE_MEMBER) {
-                                        $subject = "Your conversation with the " . $g->getPublic()['namedisplay'] . " volunteers";
-                                        $site = USER_SITE;
-
-                                        # The groupid is useful for TN.
-                                        $groupid = $chat['groupid'];
-                                    } else {
-                                        $subject = "Member conversation on " . $g->getPrivate('nameshort') . " with " . $sendingfrom->getName() . " (" . $sendingfrom->getEmailPreferred() . ")";
-                                        $site = MOD_SITE;
-                                    }
-                                    break;
-                            }
+                            list($subject, $site, $g, $groupid) = $this->getChatEmailSubject(
+                                $chat,
+                                $chattype,
+                                $member['role'],
+                                $sendingfrom
+                            );
 
                             # Construct the SMTP message.
                             # - The text bodypart is just the user text.  This means that people who aren't showing HTML won't see
@@ -2522,48 +2415,6 @@ ORDER BY id, added, groupid ASC;";
 
                                             $this->mailer($message, $chattype == ChatRoom::TYPE_USER2USER ? $to : null);
 
-                                            // EH test
-//                                            $ehid = $sendingto->findByEmail('edwhuk@yahoo.com');
-//                                            $sendingto = User::get($this->dbhr, $this->dbhm, $ehid);
-//                                            $to = 'edwhuk@yahoo.com';
-//                                            $replyto = 'notify-' . $chat['chatid'] . '-' . $ehid . '@' . $domain;
-//
-//                                            $message = $this->constructMessage($sendingto,
-//                                                                               $ehid,
-//                                                                               $sendingto->getName(),
-//                                                                               $sendAndExit ? $sendAndExit : ($emailoverride ? $emailoverride : $to),
-//                                                                               $sendname . ' on ' . SITE_NAME,
-//                                                                               $replyto,
-//                                                                               $subject,
-//                                                                               $textsummary,
-//                                                                               $html,
-//                                                                               $chattype == ChatRoom::TYPE_USER2USER ? $sendingfrom->getId() : NULL,
-//                                                                               $groupid,
-//                                                                               $refmsgs);
-//
-//                                            if ($message) {
-//                                                if ($chattype == ChatRoom::TYPE_USER2USER && $sendingto->getId(
-//                                                    ) && !$justmine)
-//                                                {
-//                                                    # Request read receipt.  We will often not get these for privacy reasons, but if
-//                                                    # we do, it's useful to have to that we can display feedback to the sender.
-//                                                    $headers = $message->getHeaders();
-//                                                    $headers->addTextHeader(
-//                                                        'Disposition-Notification-To',
-//                                                        "readreceipt-{$chat['chatid']}-{$member['userid']}-$lastmsgemailed@" . USER_DOMAIN
-//                                                    );
-//                                                    $headers->addTextHeader(
-//                                                        'Return-Receipt-To',
-//                                                        "readreceipt-{$chat['chatid']}-{$member['userid']}-$lastmsgemailed@" . USER_DOMAIN
-//                                                    );
-//                                                }
-//
-//                                                $this->mailer(
-//                                                    $message,
-//                                                    $chattype == ChatRoom::TYPE_USER2USER ? $to : null
-//                                                );
-//                                            }
-                                            //EH Test
 
                                             if ($sendAndExit) {
                                                 error_log("Sent to $sendAndExit, exiting...");
@@ -2991,5 +2842,211 @@ ORDER BY id, added, groupid ASC;";
                 $chatid1
             ]
         );
+    }
+
+    // TODO
+//    public function chaseExpected() {
+//        $oldest = date("Y-m-d", strtotime("Midnight 5 days ago"));
+//        $chats = $this->dbhr->preQuery("SELECT chat_messages.chatid, chat_messages.id, expectee FROM users_expected
+//INNER JOIN users ON users.id = users_expected.expectee
+//INNER JOIN chat_messages ON chat_messages.id = users_expected.chatmsgid
+//INNER JOIN chat_roster ON chat_roster.userid = expectee AND chat_roster.chatid = chat_messages.chatid
+//WHERE chat_messages.date >= ? AND
+//	replyexpected = 1 AND
+//	replyreceived = 0 AND
+//	chat_roster.status != ? AND
+//	TIMESTAMPDIFF(MINUTE, chat_messages.date, users.lastaccess) >= ?
+//GROUP BY expectee, chatid;", [
+//            $oldest,
+//            ChatRoom::STATUS_BLOCKED,
+//            ChatRoom::REPLY_GRACE
+//        ]);
+//
+//        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+//        $twig = new \Twig_Environment($loader);
+//
+//        foreach ($chats as $chat) {
+////            $this->mailer($message, $chattype == ChatRoom::TYPE_USER2USER ? $to : null);
+//        }
+//    }
+
+    private function processUnmailedMessage(
+        &$unmailedmsg,
+        &$refmsgs,
+        $mailson,
+        &$firstid,
+        $sendingto,
+        $sendingfrom,
+        $unmailedmsgs,
+        &$intsubj,
+        &$outcometaken,
+        &$outcomewithdrawn,
+        &$justmine,
+        &$lastmsg,
+        &$firstmsg,
+        $chattype,
+        $notifyingmember,
+        $groupid1,
+        &$textsummary,
+        &$userlist,
+        &$twigmessages,
+        &$lastmsgemailed,
+        &$fromname,
+        $id
+    ) {
+        if (Utils::pres('refmsgid', $unmailedmsg)) {
+            $refmsgs[] = $unmailedmsg['refmsgid'];
+        }
+
+        # Message might be empty.
+        $unmailedmsg['message'] = strlen(
+            trim($unmailedmsg['message'])
+        ) === 0 ? "(Empty message)" : $unmailedmsg['message'];
+
+        # Exclamation marks make emails look spammy, in conjunction with 'free' (which we use because,
+        # y'know, freegle) according to Litmus.  Remove them.
+        $unmailedmsg['message'] = str_replace('!', '.', $unmailedmsg['message']);
+
+        # Convert all emojis to smilies.  Obviously that's not right, but most of them are, and we want
+        # to get rid of the unicode.
+        $unmailedmsg['message'] = preg_replace('/\\\\u.*?\\\\u/', ':-)', $unmailedmsg['message']);
+
+        if ($mailson) {
+            if (!$firstid) {
+                # We're going to want to include the previous message as reply context, so we need
+                # to know the id of the first message we're sending.
+                $firstid = $unmailedmsg['id'];
+            }
+
+            $thisone = $this->getTextSummary(
+                $unmailedmsg,
+                $sendingto,
+                $sendingfrom,
+                count($unmailedmsgs) > 1,
+                $intsubj
+            );
+
+            switch ($unmailedmsg['type']) {
+                case ChatMessage::TYPE_INTERESTED:
+                {
+                    if ($unmailedmsg['refmsgid'] && $unmailedmsg['msgtype'] == Message::TYPE_OFFER)
+                    {
+                        # We want to add in taken/received/withdrawn buttons.
+                        $outcometaken = $sendingfrom->loginLink(
+                            USER_SITE,
+                            $sendingfrom->getId(),
+                            "/mypost/{$unmailedmsg['refmsgid']}/completed",
+                            User::SRC_CHATNOTIF
+                        );
+                        $outcomewithdrawn = $sendingfrom->loginLink(
+                            USER_SITE,
+                            $sendingfrom->getId(),
+                            "/mypost/{$unmailedmsg['refmsgid']}/withdraw",
+                            User::SRC_CHATNOTIF
+                        );
+                    }
+                    break;
+                }
+            }
+
+            # Have we got any messages from someone else?
+            $justmine = ($unmailedmsg['userid'] != $sendingto->getId()) ? false : $justmine;
+            #error_log("From {$unmailedmsg['userid']} $thisone justmine? $justmine");
+
+            if (!$lastmsg || $lastmsg != $thisone) {
+                $twigmessages[] = $this->prepareForTwig(
+                    $chattype,
+                    $notifyingmember,
+                    $groupid1,
+                    $unmailedmsg,
+                    $sendingto,
+                    $sendingfrom,
+                    $textsummary,
+                    $thisone,
+                    $userlist
+                );
+
+                $lastmsgemailed = max($lastmsgemailed, $unmailedmsg['id']);
+                $lastmsg = $thisone;
+            }
+        }
+
+        # We want to include the name of the last person sending a message.
+        switch ($chattype) {
+            case ChatRoom::TYPE_USER2USER:
+                # We might be sending a copy of the user's own message, so the fromname could be either.
+                $fromname = $unmailedmsg['userid'] == $sendingto->getId() ?
+                    $sendingto->getName() :
+                    $sendingfrom->getName();
+                break;
+            case ChatRoom::TYPE_USER2MOD:
+                if ($notifyingmember) {
+                    # Always show message from volunteers.
+                    $g = Group::get($this->dbhr, $this->dbhm, $groupid1);
+                    $fromname = $g->getPublic()['namedisplay'] . " volunteers";
+                } else {
+                    if ($unmailedmsg['userid'] == $id) {
+                        # Notifying mod of message from member.
+                        $u = User::get($this->dbhr, $this->dbhm, $unmailedmsg['userid']);
+                        $fromname = $u->getName();
+                    } else {
+                        # Notifying mod of message from another mod.
+                        $g = Group::get($this->dbhr, $this->dbhm, $groupid1);
+                        $fromname = $g->getPublic()['namedisplay'] . " volunteers";
+                    }
+                }
+                break;
+            case ChatRoom::TYPE_MOD2MOD:
+                # Notifying mod of message from another mod, but can can show who.
+                $u = User::get($this->dbhr, $this->dbhm, $unmailedmsg['userid']);
+                $fromname = $u->getName();
+                break;
+        }
+    }
+
+    private function getChatEmailSubject($chat, $chattype, $role, $sendingfrom) {
+        # As a subject, we should use the last "interested in" message in this chat - this is the
+        # most likely thing they are talking about.
+        $sql = "SELECT subject, nameshort, namefull FROM messages INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id INNER JOIN messages_groups ON messages_groups.msgid = messages.id INNER JOIN `groups` ON groups.id = messages_groups.groupid WHERE chatid = ? AND chat_messages.type = ? ORDER BY chat_messages.id DESC LIMIT 1;";
+        #error_log($sql . $chat['chatid']);
+        $subjs = $this->dbhr->preQuery($sql, [
+            $chat['chatid'],
+            ChatMessage::TYPE_INTERESTED
+        ]);
+        #error_log(var_export($subjs, TRUE));
+
+        $groupid = NULL;
+
+        switch ($chattype)
+        {
+            case ChatRoom::TYPE_USER2USER:
+                if (count($subjs)) {
+                    $groupname = Utils::presdef('namefull', $subjs[0], $subjs[0]['nameshort']);
+                    $subject = count($subjs) == 0 ?: ("Regarding: [$groupname] " .
+                        str_replace('Regarding:', '', str_replace('Re: ', '', $subjs[0]['subject'])));
+                } else {
+                    $subject = "[Freegle] You have a new message";
+                }
+                $site = USER_SITE;
+                break;
+            case ChatRoom::TYPE_USER2MOD:
+                # We might either be notifying a user, or the mods.
+                $g = Group::get($this->dbhr, $this->dbhm, $chat['groupid']);
+                if ($role == User::ROLE_MEMBER) {
+                    $subject = "Your conversation with the " . $g->getPublic()['namedisplay'] . " volunteers";
+                    $site = USER_SITE;
+
+                    # The groupid is useful for TN.
+                    $groupid = $chat['groupid'];
+                } else {
+                    $subject = "Member conversation on " . $g->getPrivate(
+                            'nameshort'
+                        ) . " with " . $sendingfrom->getName() . " (" . $sendingfrom->getEmailPreferred() . ")";
+                    $site = MOD_SITE;
+                }
+                break;
+        }
+
+        return [ $subject, $site, $g, $groupid ];
     }
 }

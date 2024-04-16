@@ -1609,7 +1609,7 @@ class User extends Entity
         }
     }
 
-    public function getInfos(&$users, $grace = 30) {
+    public function getInfos(&$users, $grace = ChatRoom::REPLY_GRACE) {
         $uids = array_filter(array_column($users, 'id'));
 
         $start = date('Y-m-d', strtotime(User::OPEN_AGE . " days ago"));
@@ -1754,7 +1754,7 @@ class User extends Entity
         }
     }
     
-    public function getInfo($grace = 30)
+    public function getInfo($grace = ChatRoom::REPLY_GRACE)
     {
         $users = [
             $this->id => [
@@ -6482,7 +6482,7 @@ memberships.groupid IN $groupq
         return $ret;
     }
 
-    public function getExpectedReplies($uids, $since = ChatRoom::ACTIVELIM, $grace = 30) {
+    public function getExpectedReplies($uids, $since = ChatRoom::ACTIVELIM, $grace = ChatRoom::REPLY_GRACE) {
         # We count replies where the user has been active since the reply was requested, which means they've had
         # a chance to reply, plus a grace period in minutes, so that if they're active right now we don't penalise them.
         #
@@ -6495,7 +6495,7 @@ memberships.groupid IN $groupq
         return($replies);
     }
 
-    public function listExpectedReplies($uid, $since = ChatRoom::ACTIVELIM, $grace = 30) {
+    public function listExpectedReplies($uid, $since = ChatRoom::ACTIVELIM, $grace = ChatRoom::REPLY_GRACE) {
         # We count replies where the user has been active since the reply was requested, which means they've had
         # a chance to reply, plus a grace period in minutes, so that if they're active right now we don't penalise them.
         #

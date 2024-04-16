@@ -188,10 +188,11 @@ class MailRouter
         if ($this->spam->isSpammer($from))
         {
             # Mail from spammer. Drop it.
-            if ($log)
-            {
-                error_log("Spammer, drop");
-            }
+            if ($log) { error_log("Spammer, drop"); }
+            $ret = MailRouter::DROPPED;
+        } else if (strpos($to, 'info@twitter.com') !== FALSE) {
+            # Twitter mails are getting us onto blacklists if we relay them.
+            if ($log) { error_log("Twitter info, drop"); }
             $ret = MailRouter::DROPPED;
         } else if (strpos($to, FBL_ADDR) === 0) {
             $ret = $this->FBL();
