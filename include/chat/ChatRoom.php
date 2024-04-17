@@ -285,8 +285,7 @@ WHERE chat_rooms.id IN $idlist;";
     }
 
     # This can be overridden in UT.
-    public function constructMessage(User $u, $id, $toname, $to, $fromname, $from, $subject, $text, $html, $fromuid = NULL, $groupid = NULL, $refmsgs = [])
-    {
+    public function constructSwiftMessage($id, $toname, $to, $fromname, $from, $subject, $text, $html, $fromuid = NULL, $groupid = NULL, $refmsgs = [])  {
         $_SERVER['SERVER_NAME'] = USER_DOMAIN;
         $message = \Swift_Message::newInstance()
             ->setSubject($subject)
@@ -2202,243 +2201,53 @@ ORDER BY id, added, groupid ASC;";
                                 $sendingfrom
                             );
 
-                            # Construct the SMTP message.
-                            # - The text bodypart is just the user text.  This means that people who aren't showing HTML won't see
-                            #   all the wrapping.  It also means that the kinds of preview notification popups you get on mail
-                            #   clients will show something interesting.
-                            # - The HTML bodypart will show the user text, but in a way that is designed to encourage people to
-                            #   click and reply on the web rather than by email.  This reduces the problems we have with quoting,
-                            #   and encourages people to use the (better) web interface, while still allowing email replies for
-                            #   those users who prefer it.  Because we put the text they're replying to inside a visual wrapping,
-                            #   it's less likely that they will interleave their response inside it - they will probably reply at
-                            #   the top or end.  This makes it easier for us, when processing their replies, to spot the text they
-                            #   added.
-                            #
-                            # In both cases we include the previous message quoted to look like an old-school email reply.  This
-                            # provides some context, and may also help with spam filters by avoiding really short messages.
-                            $prevmsg = [];
-
-                            if ($firstid) {
-                                # Get the last few substantive message in the chat before this one, if any are recent.
-                                $earliest = date("Y-m-d", strtotime("Midnight 90 days ago"));
-                                $prevmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, messages.type AS msgtype, messages.subject FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND chat_messages.id < ? AND chat_messages.date >= '$earliest' ORDER BY chat_messages.id DESC LIMIT 3;", [
-                                    $chat['chatid'],
-                                    $firstid
-                                ]);
-
-                                $prevmsgs = array_reverse($prevmsgs);
-
-                                $bin = '';
-
-                                foreach ($prevmsgs as $p) {
-                                    $prevmsg[] = $this->prepareForTwig($chattype,
-                                                                       $notifyingmember,
-                                                                       $chat['groupid'],
-                                                                       $p,
-                                                                       $sendingto,
-                                                                       $sendingfrom,
-                                                                       $bin,
-                                                                       $this->getTextSummary($p, $sendingto, $sendingfrom, count($prevmsgs) > 1, $intsubj),
-                                                                    $userlist);
-                                }
-                            }
-
-                            $url = $sendingto->loginLink($site, $member['userid'], '/chats/' . $chat['chatid'], User::SRC_CHATNOTIF);
-                            $to = $sendingto->getEmailPreferred();
-
-                            #$to = 'log@ehibbert.org.uk';
-
-                            $jobads = $sendingto->getJobAds();
-
-                            $replyexpected = FALSE;
-                            foreach ($twigmessages as $t) {
-                                if (Utils::presbool('replyexpected', $t, FALSE)) {
-                                    $replyexpected = TRUE;
-                                }
-                            }
-
-                            $html = '';
-
-                            try {
-                                switch ($chattype) {
-                                    case ChatRoom::TYPE_USER2USER:
-                                        if (!$sendingto->isLJ()) {
-                                            # We might be sending a copy of the user's own message
-                                            $aboutme = $unmailedmsg['userid'] == $sendingto->getId() ?
-                                                $sendingto->getAboutMe() :
-                                                $sendingfrom->getAboutMe();
-
-                                            $html = $twig->render('chat_notify.html', [
-                                                'unsubscribe' => $sendingto->getUnsubLink($site, $member['userid'], User::SRC_CHATNOTIF),
-                                                'fromname' => $fromname ? $fromname : $sendingfrom->getName(),
-                                                'fromid' => $sendingfrom->getId(),
-                                                'reply' => $url,
-                                                'messages' => $twigmessages,
-                                                'backcolour' => '#FFF8DC',
-                                                'email' => $to,
-                                                'aboutme' => $aboutme ? $aboutme['text'] : '',
-                                                'previousmessages' => $prevmsg,
-                                                'jobads' => $jobads['jobs'],
-                                                'joblocation' => $jobads['location'],
-                                                'outcometaken' => $outcometaken,
-                                                'outcomewithdrawn' => $outcomewithdrawn,
-                                                'replyexpected' => $replyexpected
-                                            ]);
-
-                                            $sendname = $justmine ? $sendingto->getName() : $sendingfrom->getName();
-                                        } else {
-                                            // LoveJunk user.  We send via their API.
-                                            $l = new LoveJunk($this->dbhr, $this->dbhm);
-                                            $msg = "";
-
-                                            foreach ($twigmessages as $t) {
-                                                if ($t['type'] == ChatMessage::TYPE_PROMISED) {
-                                                    # This is a separate API call.  It's possible that there are
-                                                    # chat messages too, and therefore we might promise slightly out
-                                                    # of sequence.  But that is kind of OK, as the user might have done
-                                                    # that.
-                                                    $notified += $l->promise($chat['chatid']);
-                                                } else if ($t['type'] == ChatMessage::TYPE_RENEGED) {
-                                                    # Ditto.
-                                                    $notified += $l->renege($chat['chatid']);
-                                                } else {
-                                                    # Use the text summary.
-                                                    $tt = trim($t['message']);
-
-                                                    if ($tt) {
-                                                        $msg .=  "$tt\n";
-                                                    }
-                                                }
-                                            }
-
-                                            if (strlen($msg)) {
-                                                $notified += $l->sendChatMessage($chat['chatid'], $msg);
-                                            }
-
-                                            // Don't try to send by email below.
-                                            $this->recordSend($lastmsgemailed, $member['userid'], $chat['chatid']);
-                                            $html = '';
-                                        }
-                                        break;
-                                    case ChatRoom::TYPE_USER2MOD:
-                                        if ($notifyingmember) {
-                                            $html = $twig->render('chat_notify.html', [
-                                                'unsubscribe' => $sendingto->getUnsubLink($site, $member['userid'], User::SRC_CHATNOTIF),
-                                                'fromname' => $fromname ? $fromname : ($g->getName() . ' volunteers'),
-                                                'reply' => $url,
-                                                'messages' => $twigmessages,
-                                                'backcolour' => '#FFF8DC',
-                                                'email' => $to,
-                                                'previousmessages' => $prevmsg,
-                                                'jobads' => $jobads['jobs'],
-                                                'joblocation' => $jobads['location'],
-                                                'outcometaken' => $outcometaken,
-                                                'outcomewithdrawn' => $outcomewithdrawn,
-                                            ]);
-
-                                            $sendname = $g->getName() . ' volunteers';
-                                        } else {
-                                            $url = $sendingto->loginLink($site, $member['userid'], '/modtools/chats/' . $chat['chatid'], User::SRC_CHATNOTIF);
-                                            $html = $twig->render('chat_notify.html', [
-                                                'unsubscribe' => $sendingto->getUnsubLink($site, $member['userid'], User::SRC_CHATNOTIF),
-                                                'fromname' => $fromname ? $fromname : $sendingfrom->getName(),
-                                                'fromid' => $sendingfrom->getId(),
-                                                'reply' => $url,
-                                                'messages' => $twigmessages,
-                                                'ismod' => $sendingto->isModerator(),
-                                                'support' => SUPPORT_ADDR,
-                                                'backcolour' => '#FFF8DC',
-                                                'email' => $to,
-                                                'previousmessages' => $prevmsg,
-                                                'jobads' => $jobads['jobs'],
-                                                'joblocation' => $jobads['location'],
-                                                'outcometaken' => $outcometaken,
-                                                'outcomewithdrawn' => $outcomewithdrawn,
-
-                                            ]);
-
-                                            $sendname = 'Reply All';
-                                        }
-                                        break;
-                                }
-                            } catch (\Exception $e) { $html = ''; error_log("Twig failed with " . $e->getMessage()); }
+                            list($to, $html, $sendname, $notified) = $this->constructTwigMessage(
+                                $firstid,
+                                $chat,
+                                $chattype,
+                                $notifyingmember,
+                                $sendingto,
+                                $sendingfrom,
+                                $intsubj,
+                                $userlist,
+                                $site,
+                                $member['userid'],
+                                $twigmessages,
+                                $unmailedmsg['userid'],
+                                $twig,
+                                $fromname,
+                                $outcometaken,
+                                $outcomewithdrawn,
+                                $justmine,
+                                $notified,
+                                $lastmsgemailed,
+                                $g
+                            );
 
                             if (strlen($html)) {
-                                # We ask them to reply to an email address which will direct us back to this chat.
-                                #
-                                # Use a special user for yahoo.co.uk to work around deliverability issues.
-                                $domain = USER_DOMAIN;
-                                #$domain = 'users2.ilovefreegle.org';
-                                $replyto = 'notify-' . $chat['chatid'] . '-' . $member['userid'] . '@' . $domain;
-
-                                # ModTools users should never get notified.
-                                if ($to && strpos($to, MOD_SITE) === FALSE) {
-                                    error_log("Notify chat #{$chat['chatid']} $to for {$member['userid']} $subject last mailed will be $lastmsgemailed lastmax $lastmaxmailed");
-
-                                    # Firewall against a case we have seen during cluster issues, which we don't understand
-                                    # but which led to us sending chats to the wrong user.
-                                    if ($chattype == ChatRoom::TYPE_USER2USER &&
-                                        ($r->getPrivate('id') != $chat['chatid'] ||
-                                            ($member['userid'] != $r->getPrivate('user1') && $member['userid'] != $r->getPrivate('user2')))) {
-                                        $errormsg = "Chat inconsistency - cluster issue? Chat {$r->getPrivate('id')} vs {$chat['chatid']} user {$member['userid']} vs {$r->getPrivate('user1')} and {$r->getPrivate('user2')}";
-                                        error_log($errormsg);
-                                        \Sentry\captureMessage($errormsg);
-                                        exit(1);
-                                    }
-
-                                    try {
-                                        #error_log("Our email " . $sendingto->getOurEmail() . " for " . $sendingto->getEmailPreferred());
-                                        # Make the text summary longer, because this helps with spam detection according
-                                        # to Litmus.
-                                        $textsummary .= "\r\n\r\n-------\r\nThis is a text-only version of the message; you can also view this message in HTML if you have it turned on, and on the website.  We're adding this because short text messages don't always get delivered successfully.\r\n";
-                                        $message = $this->constructMessage($sendingto,
-                                                                           $member['userid'],
-                                                                           $sendingto->getName(),
-                                                                           $sendAndExit ? $sendAndExit : ($emailoverride ? $emailoverride : $to),
-                                                                           $sendname . ' on ' . SITE_NAME,
-                                                                           $replyto,
-                                                                           $subject,
-                                                                           $textsummary,
-                                                                           $html,
-                                                                           $chattype == ChatRoom::TYPE_USER2USER ? $sendingfrom->getId() : NULL,
-                                                                           $groupid,
-                                                                           $refmsgs);
-
-                                        if ($message) {
-                                            if ($chattype == ChatRoom::TYPE_USER2USER && $sendingto->getId() && !$justmine) {
-                                                # Request read receipt.  We will often not get these for privacy reasons, but if
-                                                # we do, it's useful to have to that we can display feedback to the sender.
-                                                $headers = $message->getHeaders();
-                                                $headers->addTextHeader('Disposition-Notification-To', "readreceipt-{$chat['chatid']}-{$member['userid']}-$lastmsgemailed@" . USER_DOMAIN);
-                                                $headers->addTextHeader('Return-Receipt-To', "readreceipt-{$chat['chatid']}-{$member['userid']}-$lastmsgemailed@" . USER_DOMAIN);
-                                            }
-
-                                            $this->mailer($message, $chattype == ChatRoom::TYPE_USER2USER ? $to : null);
-
-
-                                            if ($sendAndExit) {
-                                                error_log("Sent to $sendAndExit, exiting...");
-                                                exit(0);
-                                            }
-
-                                            $sentsome = TRUE;
-
-                                            if (!RETURN_PATH || !Utils::pres('seed', $member)) {
-                                                $this->recordSend($lastmsgemailed, $member['userid'], $chat['chatid']);
-
-                                                if ($chattype == ChatRoom::TYPE_USER2USER && !$justmine) {
-                                                    # Send any SMS, but not if we're only mailing our own messages
-                                                    $smsmsg = ($textsummary && substr($textsummary, 0, 1) != "\r") ? ('New message: "' . substr($textsummary, 0, 30) . '"...') : 'You have a new message.';
-                                                    $sendingto->sms($smsmsg, 'https://' . $site . '/chats/' . $chat['chatid'] . '?src=sms');
-                                                }
-
-                                                $notified++;
-                                            }
-                                        }
-                                    } catch (\Exception $e) {
-                                        error_log("Send to {$member['userid']} failed with " . $e->getMessage());
-                                    }
-                                }
+                                $this->constructSwiftMessageAndSend(
+                                    $chat['chatid'],
+                                    $member,
+                                    $to,
+                                    $subject,
+                                    $lastmsgemailed,
+                                    $lastmaxmailed,
+                                    $chattype,
+                                    $r,
+                                    $textsummary,
+                                    $sendingto,
+                                    $sendAndExit,
+                                    $emailoverride,
+                                    $sendname,
+                                    $html,
+                                    $sendingfrom,
+                                    $groupid,
+                                    $refmsgs,
+                                    $justmine,
+                                    $sentsome,
+                                    $site,
+                                    $notified
+                                );
                             }
                         }
                     }
@@ -3048,5 +2857,319 @@ ORDER BY id, added, groupid ASC;";
         }
 
         return [ $subject, $site, $g, $groupid ];
+    }
+
+    private function constructTwigMessage(
+        $firstid,
+        $chat,
+        $chattype,
+        $notifyingmember,
+        $sendingto,
+        $sendingfrom,
+        &$intsubj,
+        &$userlist,
+        $site,
+        $memberuserid,
+        $twigmessages,
+        $unmaileduserid,
+        $twig,
+        $fromname,
+        $outcometaken,
+        $outcomewithdrawn,
+        $justmine,
+        $notified,
+        $lastmsgemailed,
+        $g
+    ) {
+        # Construct the SMTP message.
+        # - The text bodypart is just the user text.  This means that people who aren't showing HTML won't see
+        #   all the wrapping.  It also means that the kinds of preview notification popups you get on mail
+        #   clients will show something interesting.
+        # - The HTML bodypart will show the user text, but in a way that is designed to encourage people to
+        #   click and reply on the web rather than by email.  This reduces the problems we have with quoting,
+        #   and encourages people to use the (better) web interface, while still allowing email replies for
+        #   those users who prefer it.  Because we put the text they're replying to inside a visual wrapping,
+        #   it's less likely that they will interleave their response inside it - they will probably reply at
+        #   the top or end.  This makes it easier for us, when processing their replies, to spot the text they
+        #   added.
+        #
+        # In both cases we include the previous message quoted to look like an old-school email reply.  This
+        # provides some context, and may also help with spam filters by avoiding really short messages.
+        $prevmsg = [];
+
+        if ($firstid) {
+            # Get the last few substantive message in the chat before this one, if any are recent.
+            $earliest = date("Y-m-d", strtotime("Midnight 90 days ago"));
+            $prevmsgs = $this->dbhr->preQuery(
+                "SELECT chat_messages.*, messages.type AS msgtype, messages.subject FROM chat_messages LEFT JOIN messages ON chat_messages.refmsgid = messages.id WHERE chatid = ? AND chat_messages.id < ? AND chat_messages.date >= '$earliest' ORDER BY chat_messages.id DESC LIMIT 3;",
+                [
+                    $chat['chatid'],
+                    $firstid
+                ]
+            );
+
+            $prevmsgs = array_reverse($prevmsgs);
+
+            $bin = '';
+
+            foreach ($prevmsgs as $p) {
+                $prevmsg[] = $this->prepareForTwig(
+                    $chattype,
+                    $notifyingmember,
+                    $chat['groupid'],
+                    $p,
+                    $sendingto,
+                    $sendingfrom,
+                    $bin,
+                    $this->getTextSummary($p, $sendingto, $sendingfrom, count($prevmsgs) > 1, $intsubj),
+                    $userlist
+                );
+            }
+        }
+
+        $url = $sendingto->loginLink($site, $memberuserid, '/chats/' . $chat['chatid'], User::SRC_CHATNOTIF);
+        $to = $sendingto->getEmailPreferred();
+
+        #$to = 'log@ehibbert.org.uk';
+
+        $jobads = $sendingto->getJobAds();
+
+        $replyexpected = false;
+        foreach ($twigmessages as $t) {
+            if (Utils::presbool('replyexpected', $t, false))
+            {
+                $replyexpected = true;
+            }
+        }
+
+        $html = '';
+
+        try {
+            switch ($chattype) {
+                case ChatRoom::TYPE_USER2USER:
+                    if (!$sendingto->isLJ()) {
+                        # We might be sending a copy of the user's own message
+                        $aboutme = $unmaileduserid == $sendingto->getId() ?
+                            $sendingto->getAboutMe() :
+                            $sendingfrom->getAboutMe();
+
+                        $html = $twig->render('chat_notify.html', [
+                            'unsubscribe' => $sendingto->getUnsubLink($site, $memberuserid, User::SRC_CHATNOTIF),
+                            'fromname' => $fromname ? $fromname : $sendingfrom->getName(),
+                            'fromid' => $sendingfrom->getId(),
+                            'reply' => $url,
+                            'messages' => $twigmessages,
+                            'backcolour' => '#FFF8DC',
+                            'email' => $to,
+                            'aboutme' => $aboutme ? $aboutme['text'] : '',
+                            'previousmessages' => $prevmsg,
+                            'jobads' => $jobads['jobs'],
+                            'joblocation' => $jobads['location'],
+                            'outcometaken' => $outcometaken,
+                            'outcomewithdrawn' => $outcomewithdrawn,
+                            'replyexpected' => $replyexpected
+                        ]);
+
+                        $sendname = $justmine ? $sendingto->getName() : $sendingfrom->getName();
+                    } else {
+                        // LoveJunk user.  We send via their API.
+                        $l = new LoveJunk($this->dbhr, $this->dbhm);
+                        $msg = "";
+
+                        foreach ($twigmessages as $t) {
+                            if ($t['type'] == ChatMessage::TYPE_PROMISED) {
+                                # This is a separate API call.  It's possible that there are
+                                # chat messages too, and therefore we might promise slightly out
+                                # of sequence.  But that is kind of OK, as the user might have done
+                                # that.
+                                $notified += $l->promise($chat['chatid']);
+                            } elseif ($t['type'] == ChatMessage::TYPE_RENEGED) {
+                                # Ditto.
+                                $notified += $l->renege($chat['chatid']);
+                            } else {
+                                # Use the text summary.
+                                $tt = trim($t['message']);
+
+                                if ($tt) {
+                                    $msg .= "$tt\n";
+                                }
+                            }
+                        }
+
+                        if (strlen($msg)) {
+                            $notified += $l->sendChatMessage($chat['chatid'], $msg);
+                        }
+
+                        // Don't try to send by email below.
+                        $this->recordSend($lastmsgemailed, $memberuserid, $chat['chatid']);
+                        $html = '';
+                    }
+                    break;
+                case ChatRoom::TYPE_USER2MOD:
+                    if ($notifyingmember) {
+                        $html = $twig->render('chat_notify.html', [
+                            'unsubscribe' => $sendingto->getUnsubLink($site, $memberuserid, User::SRC_CHATNOTIF),
+                            'fromname' => $fromname ? $fromname : ($g->getName() . ' volunteers'),
+                            'reply' => $url,
+                            'messages' => $twigmessages,
+                            'backcolour' => '#FFF8DC',
+                            'email' => $to,
+                            'previousmessages' => $prevmsg,
+                            'jobads' => $jobads['jobs'],
+                            'joblocation' => $jobads['location'],
+                            'outcometaken' => $outcometaken,
+                            'outcomewithdrawn' => $outcomewithdrawn,
+                        ]);
+
+                        $sendname = $g->getName() . ' volunteers';
+                    } else {
+                        $url = $sendingto->loginLink(
+                            $site,
+                            $memberuserid,
+                            '/modtools/chats/' . $chat['chatid'],
+                            User::SRC_CHATNOTIF
+                        );
+                        $html = $twig->render('chat_notify.html', [
+                            'unsubscribe' => $sendingto->getUnsubLink($site, $memberuserid, User::SRC_CHATNOTIF),
+                            'fromname' => $fromname ? $fromname : $sendingfrom->getName(),
+                            'fromid' => $sendingfrom->getId(),
+                            'reply' => $url,
+                            'messages' => $twigmessages,
+                            'ismod' => $sendingto->isModerator(),
+                            'support' => SUPPORT_ADDR,
+                            'backcolour' => '#FFF8DC',
+                            'email' => $to,
+                            'previousmessages' => $prevmsg,
+                            'jobads' => $jobads['jobs'],
+                            'joblocation' => $jobads['location'],
+                            'outcometaken' => $outcometaken,
+                            'outcomewithdrawn' => $outcomewithdrawn,
+
+                        ]);
+
+                        $sendname = 'Reply All';
+                    }
+                    break;
+            }
+        } catch (\Exception $e) {
+            $html = '';
+            error_log("Twig failed with " . $e->getMessage());
+        }
+
+        return [ $to, $html, $sendname, $notified ];
+    }
+
+    private function constructSwiftMessageAndSend(
+        $chatid1,
+        $member,
+        $to,
+        $subject,
+        $lastmsgemailed,
+        $lastmaxmailed,
+        $chattype,
+        $r,
+        &$textsummary,
+        $sendingto,
+        $sendAndExit,
+        $emailoverride,
+        $sendname,
+        $html,
+        $sendingfrom,
+        $groupid,
+        $refmsgs,
+        $justmine,
+        &$sentsome,
+        $site,
+        &$notified
+    ) {
+        # We ask them to reply to an email address which will direct us back to this chat.
+        #
+        # Use a special user for yahoo.co.uk to work around deliverability issues.
+        $domain = USER_DOMAIN;
+        #$domain = 'users2.ilovefreegle.org';
+        $replyto = 'notify-' . $chatid1 . '-' . $member['userid'] . '@' . $domain;
+
+        # ModTools users should never get notified.
+        if ($to && strpos($to, MOD_SITE) === false) {
+            error_log(
+                "Notify chat #{$chatid1} $to for {$member['userid']} $subject last mailed will be $lastmsgemailed lastmax $lastmaxmailed"
+            );
+
+            # Firewall against a case we have seen during cluster issues, which we don't understand
+            # but which led to us sending chats to the wrong user.
+            if ($chattype == ChatRoom::TYPE_USER2USER &&
+                ($r->getPrivate('id') != $chatid1 ||
+                    ($member['userid'] != $r->getPrivate('user1') && $member['userid'] != $r->getPrivate('user2')))) {
+                $errormsg = "Chat inconsistency - cluster issue? Chat {$r->getPrivate('id')} vs {$chatid1} user {$member['userid']} vs {$r->getPrivate('user1')} and {$r->getPrivate('user2')}";
+                error_log($errormsg);
+                \Sentry\captureMessage($errormsg);
+                exit(1);
+            }
+
+            try {
+                #error_log("Our email " . $sendingto->getOurEmail() . " for " . $sendingto->getEmailPreferred());
+                # Make the text summary longer, because this helps with spam detection according
+                # to Litmus.
+                $textsummary .= "\r\n\r\n-------\r\nThis is a text-only version of the message; you can also view this message in HTML if you have it turned on, and on the website.  We're adding this because short text messages don't always get delivered successfully.\r\n";
+                $message = $this->constructSwiftMessage(
+                    $member['userid'],
+                    $sendingto->getName(),
+                    $sendAndExit ? $sendAndExit : ($emailoverride ? $emailoverride : $to),
+                    $sendname . ' on ' . SITE_NAME,
+                    $replyto,
+                    $subject,
+                    $textsummary,
+                    $html,
+                    $chattype == ChatRoom::TYPE_USER2USER ? $sendingfrom->getId() : null,
+                    $groupid,
+                    $refmsgs
+                );
+
+                if ($message) {
+                    if ($chattype == ChatRoom::TYPE_USER2USER && $sendingto->getId() && !$justmine) {
+                        # Request read receipt.  We will often not get these for privacy reasons, but if
+                        # we do, it's useful to have to that we can display feedback to the sender.
+                        $headers = $message->getHeaders();
+                        $headers->addTextHeader(
+                            'Disposition-Notification-To',
+                            "readreceipt-{$chatid1}-{$member['userid']}-$lastmsgemailed@" . USER_DOMAIN
+                        );
+                        $headers->addTextHeader(
+                            'Return-Receipt-To',
+                            "readreceipt-{$chatid1}-{$member['userid']}-$lastmsgemailed@" . USER_DOMAIN
+                        );
+                    }
+
+                    $this->mailer($message, $chattype == ChatRoom::TYPE_USER2USER ? $to : null);
+
+                    if ($sendAndExit) {
+                        error_log("Sent to $sendAndExit, exiting...");
+                        exit(0);
+                    }
+
+                    $sentsome = true;
+
+                    if (!RETURN_PATH || !Utils::pres('seed', $member)) {
+                        $this->recordSend($lastmsgemailed, $member['userid'], $chatid1);
+
+                        if ($chattype == ChatRoom::TYPE_USER2USER && !$justmine) {
+                            # Send any SMS, but not if we're only mailing our own messages
+                            $smsmsg = ($textsummary && substr($textsummary, 0, 1) != "\r") ? ('New message: "' . substr(
+                                    $textsummary,
+                                    0,
+                                    30
+                                ) . '"...') : 'You have a new message.';
+                            $sendingto->sms($smsmsg, 'https://' . $site . '/chats/' . $chatid1 . '?src=sms');
+                        }
+
+                        $notified++;
+                    }
+                }
+            } catch (\Exception $e) {
+                error_log("Send to {$member['userid']} failed with " . $e->getMessage());
+            }
+        }
+
+        return array($textsummary, $sentsome, $notified);
     }
 }

@@ -208,10 +208,10 @@ class chatRoomsTest extends IznikTestCase {
         $this->log("Fake exception");
         $r = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
-            ->setMethods(array('constructMessage'))
+            ->setMethods(array('constructSwiftMessage'))
             ->getMock();
 
-        $r->method('constructMessage')->willThrowException(new \Exception());
+        $r->method('constructSwiftMessage')->willThrowException(new \Exception());
 
         $this->assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
 
