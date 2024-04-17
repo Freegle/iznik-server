@@ -1612,6 +1612,80 @@ class chatRoomsTest extends IznikTestCase {
         $text = $this->msgsSent[0]['body'];
         $this->assertTrue(strpos($text, 'Message from Volunteers') !== FALSE);
     }
+
+    /**
+     * @dataProvider expectedProvider
+     */
+    public function testChaseExpected($expected) {
+        # Set up a chatroom
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test1@test.com');
+        $u->addEmail('test1@' . USER_DOMAIN);
+
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
+        $this->assertNotNull($id);
+
+        # Messages from u1 -> u2.
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cm, $banned) = $m->create($id, $u1, "Testing", ChatMessage::TYPE_DEFAULT, $msgid, TRUE, NULL, NULL, NULL, $attid);
+        $this->log("Created chat message $cm");
+        $m->setPrivate('replyexpected', $expected);
+
+        # Notify it.
+        $r = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
+            ->setMethods(array('mailer'))
+            ->getMock();
+
+        $r->method('mailer')->will($this->returnCallback(function($message) {
+            return($this->mailer($message));
+        }));
+
+        $this->msgsSent = [];
+
+        # Notify - will email just one as we don't notify our own by default.
+        $this->assertEquals(1, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
+        $this->assertEquals('[Freegle] You have a new message', $this->msgsSent[0]['subject']);
+
+        # Notify again - nothing to send.
+        $this->msgsSent = [];
+        $this->assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
+
+        list ($waiting, $received) = $r->updateExpected();
+        $this->assertEquals(1, $waiting);
+
+        # Make the message appear older.
+        $mysqltime = date("Y-m-d", strtotime("Midnight " . (ChatRoom::EXPECTED_CHASEUP - 1) . " days ago"));
+        $m->setPrivate('date', $mysqltime);
+        $this->msgsSent = [];
+
+        if ($expected) {
+            $this->assertEquals(1, $r->chaseupExpected());
+            $this->assertStringContainsString('WAITING FOR REPLY', $this->msgsSent[0]['subject']);
+
+            # Even older - shouldn't chase.
+            $mysqltime = date("Y-m-d", strtotime("Midnight " . (ChatRoom::EXPECTED_CHASEUP + 1) . " days ago"));
+            $m->setPrivate('date', $mysqltime);
+            $this->assertEquals(0, $r->chaseupExpected());
+        } else {
+            $this->assertEquals(0, $r->chaseupExpected());
+        }
+    }
+
+    public function expectedProvider() {
+        return [
+            [ TRUE ],
+            [ FALSE ]
+        ];
+    }
 }
 
 

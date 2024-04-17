@@ -16,6 +16,8 @@ class ChatRoom extends Entity
     const ACTIVELIM = "31 days ago";
     const ACTIVELIM_MT = "365 days ago";
     const REPLY_GRACE = 30;
+    const EXPECTED_GRACE = 24 * 60;
+    const EXPECTED_CHASEUP = 5;
     const TYPE_MOD2MOD = 'Mod2Mod';
     const TYPE_USER2MOD = 'User2Mod';
     const TYPE_USER2USER = 'User2User';
@@ -2643,6 +2645,8 @@ ORDER BY id, added, groupid ASC;";
                 $waiting++;
             }
         }
+
+        return [ $waiting, $received ];
     }
 
     private function recordSend( $lastmsgemailed, $userid, $chatid1): void
@@ -2657,15 +2661,16 @@ ORDER BY id, added, groupid ASC;";
         );
     }
 
-    // TODO
     public function chaseupExpected() {
-        $oldest = date("Y-m-d", strtotime("Midnight 5 days ago"));
+        $chased = 0;
+
+        $oldest = date("Y-m-d", strtotime("Midnight " . ChatRoom::EXPECTED_CHASEUP . " days ago"));
         $unmailedmsgs = $this->dbhr->preQuery("SELECT chat_messages.*, chat_rooms.chattype, messages.type AS msgtype, messages.subject, expectee FROM users_expected
             INNER JOIN users ON users.id = users_expected.expectee
             INNER JOIN chat_messages ON chat_messages.id = users_expected.chatmsgid
             INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid
             LEFT JOIN messages ON chat_messages.refmsgid = messages.id
-            INNER JOIN chat_roster ON chat_roster.userid = expectee AND chat_roster.chatid = chat_messages.chatid
+            LEFT JOIN chat_roster ON chat_roster.userid = expectee AND chat_roster.chatid = chat_messages.chatid
             WHERE chat_messages.date >= ? AND
                 replyexpected = 1 AND
                 replyreceived = 0 AND
@@ -2675,12 +2680,14 @@ ORDER BY id, added, groupid ASC;";
             GROUP BY expectee, chatid;", [
                         $oldest,
                         ChatRoom::STATUS_BLOCKED,
-                        ChatRoom::REPLY_GRACE,
+                        ChatRoom::EXPECTED_GRACE,
                         ChatRoom::TYPE_USER2USER
                     ]);
 
         $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
         $twig = new \Twig_Environment($loader);
+
+        $userlist = [];
 
         foreach ($unmailedmsgs as $unmailedmsg) {
             $textsummary = '';
@@ -2789,10 +2796,14 @@ ORDER BY id, added, groupid ASC;";
                             $notified,
                             FALSE
                         );
+
+                        $chased++;
                     }
                 }
             }
         }
+
+        return $chased;
     }
 
     private function processUnmailedMessage(
@@ -2852,10 +2863,8 @@ ORDER BY id, added, groupid ASC;";
             );
 
             switch ($unmailedmsg['type']) {
-                case ChatMessage::TYPE_INTERESTED:
-                {
-                    if ($unmailedmsg['refmsgid'] && $unmailedmsg['msgtype'] == Message::TYPE_OFFER)
-                    {
+                case ChatMessage::TYPE_INTERESTED: {
+                    if ($unmailedmsg['refmsgid'] && $unmailedmsg['msgtype'] == Message::TYPE_OFFER) {
                         # We want to add in taken/received/withdrawn buttons.
                         $outcometaken = $sendingfrom->loginLink(
                             USER_SITE,
