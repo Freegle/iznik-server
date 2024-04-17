@@ -101,11 +101,6 @@ if (!defined('IZNIK_BASE')) {
     }
 }
 
-if (!defined('RETURN_PATH')) {
-    # Using Return Path function.
-    define('RETURN_PATH', TRUE);
-}
-
 if (!defined('MMDB')) {
     if (file_exists('/usr/share/GeoIP/GeoLite2-Country.mmdb')) {
         define('MMDB', '/usr/share/GeoIP/GeoLite2-Country.mmdb');
