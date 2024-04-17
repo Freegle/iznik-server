@@ -1660,7 +1660,7 @@ class chatRoomsTest extends IznikTestCase {
         $this->assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
 
         list ($waiting, $received) = $r->updateExpected();
-        $this->assertEquals(1, $waiting);
+        $this->assertEquals($expected ? 1 : 0, $waiting);
 
         # Make the message appear older.
         $mysqltime = date("Y-m-d", strtotime("Midnight " . (ChatRoom::EXPECTED_CHASEUP - 1) . " days ago"));
