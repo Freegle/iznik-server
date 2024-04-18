@@ -12,8 +12,7 @@ $lockh = Utils::lockScript(basename(__FILE__));
 
 $c = new ChatRoom($dbhr, $dbhm);
 
-$chats = $c->chaseupExpected();
-$count = count($chats);
+$count = $c->chaseupExpected();
 error_log("Chased up $count messages waiting for reply");
 
 Utils::unlockScript($lockh);
