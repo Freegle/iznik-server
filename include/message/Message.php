@@ -2349,6 +2349,7 @@ ORDER BY lastdate DESC;";
 
         $this->textbody = $this->stripSigs($this->textbody);
         $this->textbody = $this->scrapePhotos();
+        $this->expandUrls();
 
         # If this is a reuse group, we need to determine the type.
         $g = Group::get($this->dbhr, $this->dbhm, $this->groupid);
@@ -4238,6 +4239,7 @@ ORDER BY lastdate DESC;";
         # - zero or more attachments
         #
         # We need to turn this into a full message:
+        # - expand any URLs in the textbody
         # - create a Message-ID
         # - other bits and pieces
         # - create a full MIME message
@@ -4281,8 +4283,9 @@ ORDER BY lastdate DESC;";
                 }
             }
 
-            $txtbody = $this->textbody;
-            $this->setPrivate('textbody', $txtbody);
+            # Expand any URLs which are redirects.  This mitigates use by spammers of shortening services and
+            # is required by Validity for email certification.
+            $this->expandUrls();
 
             # Strip possible group name.
             $subject = $this->subject;
@@ -5736,5 +5739,33 @@ $mq", [
     public function setPheanstalk($pheanstalk)
     {
         $this->pheanstalk = $pheanstalk;
+    }
+
+    private function expandUrls()  {
+        $txtbody = $this->textbody;
+
+        if (preg_match_all(Utils::URL_PATTERN, $txtbody, $matches)) {
+            $s = new Shortlink($this->dbhr, $this->dbhm);
+            foreach ($matches as $val) {
+                foreach ($val as $url) {
+                    if ($url) {
+                        $newurl = $s->expandExternal($url);
+                        $txtbody = str_replace($url, $newurl, $txtbody);
+                    }
+                }
+            }
+        }
+
+        if ($this->textbody != $txtbody) {
+            if ($this->id) {
+                # Update in the DB.
+                $this->setPrivate('textbody', $txtbody);
+            }
+
+            $this->textbody = $txtbody;
+        }
+
+        $this->setPrivate('textbody', $txtbody);
+        return $txtbody;
     }
 }

@@ -1953,6 +1953,32 @@ class MailRouterTest extends IznikTestCase {
         $this->assertEquals($rc, MailRouter::TO_SYSTEM);
     }
 
+    public function testExpandUrls() {
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->findByShortName('FreeglePlayground');
+        $this->user->addMembership($gid);
+        $this->user->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+
+        # Create a different user which will cause a merge.
+        $u2 = User::get($this->dbhr, $this->dbhm);
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+        $u2 = User::get($this->dbhr, $this->dbhm, $uid2);
+        $this->assertGreaterThan(0, $u->addEmail('test2@test.com'));
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace("X-Yahoo-Group-Post: member; u=420816297", "X-Yahoo-Group-Post: member; u=-1", $msg);
+        $msg = str_replace('Hey', 'Text body with http://microsoft.com which should expand', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $this->assertNotNull($id);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+
+        $this->assertEquals('Text body with https://www.microsoft.com/en-gb/ which should expand.', $m->getPublic()['textbody']);
+    }
+
     //    public function testSpecial() {
 //        //
 //        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/special'));

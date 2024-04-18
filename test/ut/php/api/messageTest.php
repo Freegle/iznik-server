@@ -4138,4 +4138,54 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(ChatMessage::TYPE_COMPLETED, $msgs[1]['type']);
         $this->assertEquals('Message for others', $msgs[1]['message']);
     }
+
+    public function testExpandUrl() {
+        $l = new Location($this->dbhr, $this->dbhm);
+        $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)');
+
+        # Create member and mod.
+        $u = User::get($this->dbhr, $this->dbhm);
+
+        $memberid = $u->create('Test','User', 'Test User');
+        $member = User::get($this->dbhr, $this->dbhm, $memberid);
+        $this->assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $member->addMembership($this->gid, User::ROLE_MEMBER);
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $member->addEmail($email);
+
+        $this->log("Created member $memberid");
+
+        # Submit a message from the member, who will be moderated as new members are.
+        $this->assertTrue($member->login('testpw'));
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'locationid' => $locid,
+            'messagetype' => 'Offer',
+            'item' => 'a thing',
+            'groupid' => $this->gid,
+            'textbody' => 'Text body with http://microsoft.com which should expand'
+        ]);
+
+        $this->assertEquals(0, $ret['ret']);
+        $mid = $ret['id'];
+
+        $ret = $this->call('message', 'POST', [
+            'id' => $mid,
+            'action' => 'JoinAndPost',
+            'ignoregroupoverride' => true,
+            'email' => $email
+        ]);
+
+        $this->assertEquals(0, $ret['ret']);
+
+        # Now log in as the member and edit the message in Pending.
+        $this->assertTrue($member->login('testpw'));
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $mid,
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals('Text body with https://www.microsoft.com/en-gb/ which should expand', $ret['message']['textbody']);
+    }
 }
