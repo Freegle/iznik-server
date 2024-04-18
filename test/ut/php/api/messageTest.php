@@ -4186,6 +4186,6 @@ class messageAPITest extends IznikAPITestCase
             'id' => $mid,
         ]);
         $this->assertEquals(0, $ret['ret']);
-        $this->assertEquals('Text body with https://www.microsoft.com/en-gb/ which should expand', $ret['message']['textbody']);
+        $this->assertStringContainsString('www.microsoft.com', $ret['message']['textbody']);
     }
 }

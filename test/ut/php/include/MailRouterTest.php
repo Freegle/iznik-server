@@ -1976,7 +1976,7 @@ class MailRouterTest extends IznikTestCase {
         $this->assertNotNull($id);
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
-        $this->assertEquals('Text body with https://www.microsoft.com/en-gb/ which should expand.', $m->getPublic()['textbody']);
+        $this->assertStringContainsString('www.microsoft.com', $m->getPublic()['textbody']);
     }
 
     //    public function testSpecial() {

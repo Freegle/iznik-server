@@ -119,7 +119,12 @@ class Shortlink extends Entity
 
         if ($depth > 10) {
             # Redirect loop?
-            return;
+            return $ret;
+        }
+
+        if (strpos($url, 'https://' . USER_SITE) === 0 || strpos($url, USER_TEST_SITE) === 0) {
+            # Ours - so no need to expand.
+            return $url;
         }
 
         try {
