@@ -69,8 +69,15 @@ class shortlinkTest extends IznikTestCase {
         self::assertEquals('https://test.com', $atts['url']);
         self::assertEquals('https://test.com', $s->resolve('testurl')[1]);
         $s->delete();
+    }
 
-        }
+    public function testExpand() {
+        $s = new Shortlink($this->dbhr, $this->dbhm);
+        $ret = $s->expandExternal('https://tinyurl.com/2u4ax3c8');
+        self::assertEquals('https://www.ilovefreegle.org/', $ret);
+        $ret = $s->expandExternal('https://tinyurl.comzzzzzzzzzzzzzz');
+        self::assertEquals('(URL removed)', $ret);
+    }
 }
 
 

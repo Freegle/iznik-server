@@ -728,6 +728,23 @@ class chatMessagesTest extends IznikTestCase {
         $ret = $m->extractAddress('Tuvalu High Street TV13 1HH', $this->uid);
         $this->assertEquals('TV13 1HH', $ret['name']);
     }
+
+    public function testExpandUrl() {
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $id = $r->createGroupChat('test', $this->groupid);
+        $this->assertNotNull($id);
+
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($mid, $banned) = $m->create($id, $this->uid, 'Refers to https://tinyurl.com/2u4ax3c8 which should be expanded', ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL, NULL, NULL, FALSE, FALSE, FALSE);
+        $this->assertNotNull($mid);
+
+        $m = new ChatMessage($this->dbhr, $this->dbhm, $mid);
+        $this->assertEquals('Refers to https://tinyurl.com/2u4ax3c8 which should be expanded', $m->getPrivate('message'));
+
+        $m->process();
+        $m = new ChatMessage($this->dbhr, $this->dbhm, $mid);
+        $this->assertEquals('Refers to https://www.ilovefreegle.org/ which should be expanded', $m->getPrivate('message'));
+    }
 }
 
 

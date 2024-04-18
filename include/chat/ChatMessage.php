@@ -161,6 +161,33 @@ class ChatMessage extends Entity
     public function process($forcereview = FALSE, $suppressmodnotif = FALSE) {
         # Process a chat message which was created with processingrequired = 1.  By doing this stuff
         # in the background we can keep chat message creation fast.
+        #
+        # First, expand any URLs which are redirects.  This mitigates use by spammers of shortening services and
+        # is required by Validity for email certification.
+        $message = $this->chatmessage['message'];
+        $expanded = $message;
+
+        if (preg_match_all(Utils::URL_PATTERN, $expanded, $matches)) {
+            $s = new Shortlink($this->dbhr, $this->dbhm);
+            foreach ($matches as $val) {
+                foreach ($val as $url) {
+                    if ($url) {
+                        $newurl = $s->expandExternal($url);
+                        $expanded = str_replace($url, $newurl, $expanded);
+                    }
+                }
+            }
+
+            if ($expanded != $message) {
+                $this->dbhm->preExec("UPDATE chat_messages SET message = ? WHERE id = ?;", [
+                    $expanded,
+                    $this->id
+                ]);
+
+                $this->chatmessage['message'] = $expanded;
+            }
+        }
+
         $id = $this->id;
         $chatid = $this->chatmessage['chatid'];
         $userid = $this->chatmessage['userid'];

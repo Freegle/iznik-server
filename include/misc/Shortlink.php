@@ -113,4 +113,43 @@ class Shortlink extends Entity
         $rc = $this->dbhm->preExec("DELETE FROM shortlinks WHERE id = ?;", [$this->id]);
         return($rc);
     }
+
+    public function expandExternal($url, $depth = 1) {
+        $ret = '(URL removed)';
+
+        if ($depth > 10) {
+            # Redirect loop?
+            return;
+        }
+
+        try {
+            # Timeout - if a shortener doesn't return in time we'll filter out the URL.
+            $opts['http']['timeout'] = 5;
+            $context = stream_context_create($opts);
+
+            $response = get_headers($url, 1, $context);
+
+            if ($response) {
+                # The location property of the response header is used for redirect.
+                if (array_key_exists('Location', $response)) {
+                    $location = $response["Location"];
+                    #error_log("Redirect to " . var_export($location, TRUE) . " from $url");
+
+                    if (is_array($location)) {
+                        # t.co gives Location as an array
+                        $ret = $this->expandExternal($location[count($location) - 1], $depth + 1);
+                    } else {
+                        $ret = $this->expandExternal($location, $depth + 1);
+                    }
+                } else {
+                    #error_log("Not redirect $url");
+                    $ret = $url;
+                }
+            }
+        } catch (\Exception $e) {
+            #error_log("Failed to expand $url: " . $e->getMessage());
+        }
+
+        return $ret;
+    }
 }
