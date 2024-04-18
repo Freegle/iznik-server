@@ -115,7 +115,7 @@ class Shortlink extends Entity
     }
 
     public function expandExternal($url, $depth = 1) {
-        $ret = '(URL removed)';
+        $ret = Spam::URL_REMOVED;
 
         if ($depth > 10) {
             # Redirect loop?

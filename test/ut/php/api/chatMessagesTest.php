@@ -55,6 +55,9 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $c = new ChatRoom($this->dbhr, $this->dbhm);
         $this->cid = $c->createGroupChat('test', $this->groupid);
+
+        $this->dbhm->preExec("DELETE FROM spam_whitelist_links WHERE domain LIKE '%google.co';");
+        $this->dbhm->preExec("DELETE FROM spam_whitelist_links WHERE domain LIKE '%microsoft.co%';");
     }
 
     protected function tearDown(): void
@@ -388,7 +391,6 @@ class chatMessagesAPITest extends IznikAPITestCase
     }
 
     public function testReview() {
-        $this->dbhm->preExec("DELETE FROM spam_whitelist_links WHERE domain LIKE 'spam.wherever';");
         $this->assertTrue($this->user->login('testpw'));
 
         # Make the originating user be on the group so we can test groupfrom.
@@ -411,7 +413,7 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $ret = $this->call('chatmessages', 'POST', [
             'roomid' => $this->cid,
-            'message' => 'Test with link http://spam.wherever and email test@test.com',
+            'message' => 'Test with link http://microsoft.com and email test@test.com',
             'refchatid' => $this->cid
         ]);
         $this->log("Create message " . var_export($ret, TRUE));
@@ -421,7 +423,7 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $ret = $this->call('chatmessages', 'POST', [
             'roomid' => $this->cid,
-            'message' => 'Test with link http://ham.wherever'
+            'message' => 'Test with link http://google.com'
         ]);
         $this->log("Create message with link" . var_export($ret, TRUE));
         $this->assertEquals(0, $ret['ret']);
@@ -506,6 +508,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->assertEquals(3, count($ret['chatmessages']));
         $this->assertEquals($mid1, $ret['chatmessages'][0]['id']);
         $this->assertEquals(ChatMessage::TYPE_REPORTEDUSER, $ret['chatmessages'][0]['type']);
+        error_log(var_export($ret['chatmessages'][0], true));
         $this->assertEquals(Spam::REASON_LINK, $ret['chatmessages'][0]['reviewreason']);
         $this->assertEquals($mid2, $ret['chatmessages'][1]['id']);
         $this->assertEquals(ChatMessage::REVIEW_LAST, $ret['chatmessages'][1]['reviewreason']);
@@ -524,7 +527,8 @@ class chatMessagesAPITest extends IznikAPITestCase
         $ret = $this->call('chatmessages', 'GET', []);
         #$this->log("After hold " . var_export($ret, TRUE));
         $this->assertEquals(0, $ret['ret']);
-        $this->assertEquals('Test with link http://spam.wherever and email (email removed)', $ret['chatmessages'][0]['message']);
+        $this->assertStringContainsString('https://www.microsoft', $ret['chatmessages'][0]['message']);
+        $this->assertStringContainsString('(email removed)', $ret['chatmessages'][0]['message']);
 
         # Test hold/unhold.
         $this->log("Hold");
@@ -580,7 +584,7 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $ret = $this->call('chatmessages', 'GET', []);
         $this->assertEquals(0, $ret['ret']);
-        $this->assertEquals(0, count($ret['chatmessages']));
+        $this->assertEquals(0, count($ret['chatmessages'])*-9);
 
         # Now log in as the recipient.  Should see the approved ones.
         $this->assertTrue($this->user2->login('testpw'));
@@ -595,7 +599,6 @@ class chatMessagesAPITest extends IznikAPITestCase
     }
 
     public function testReviewDup() {
-        $this->dbhm->preExec("DELETE FROM spam_whitelist_links WHERE domain LIKE 'spam.wherever';");
         $this->assertTrue($this->user->login('testpw'));
 
         # Make the originating user be on the group so we can test groupfrom.
@@ -620,7 +623,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         # Create the same spam on each.
         $ret = $this->call('chatmessages', 'POST', [
             'roomid' => $this->cid,
-            'message' => 'Test with link http://spam.wherever ',
+            'message' => 'Test with link http://microsoft.co.uk ',
             'refchatid' => $this->cid
         ]);
         $this->log("Create message " . var_export($ret, TRUE));
@@ -630,7 +633,7 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $ret = $this->call('chatmessages', 'POST', [
             'roomid' => $this->cid2,
-            'message' => 'Test with link http://spam.wherever ',
+            'message' => 'Test with link http://microsoft.co.uk ',
             'refchatid' => $this->cid2
         ]);
         $this->log("Create message " . var_export($ret, TRUE));
@@ -661,7 +664,6 @@ class chatMessagesAPITest extends IznikAPITestCase
     }
 
     public function testReviewUnmod() {
-        $this->dbhm->preExec("DELETE FROM spam_whitelist_links WHERE domain LIKE 'spam.wherever';");
         $this->user->setPrivate('chatmodstatus', User::CHAT_MODSTATUS_UNMODERATED);
         $this->assertTrue($this->user->login('testpw'));
 
@@ -868,7 +870,6 @@ class chatMessagesAPITest extends IznikAPITestCase
     public function testReviewRecipientOnNoGroups() {
         # Normally mods on the recipient's groups see chat for review.  But if the recipient is not on any group
         # then the sender's mods see it.
-        $this->dbhm->preExec("DELETE FROM spam_whitelist_links WHERE domain LIKE 'spam.wherever';");
         $this->assertTrue($this->user->login('testpw'));
 
         # Set up:

@@ -14,6 +14,7 @@ class Spam {
     const TYPE_PENDING_REMOVE = 'PendingRemove';
     const SPAM = 'Spam';
     const HAM = 'Ham';
+    const URL_REMOVED = '(URL removed)';
 
     const USER_THRESHOLD = 5;
     const GROUP_THRESHOLD = 20;
@@ -297,7 +298,10 @@ class Spam {
 
         if (!$check) {
             # Check for URLs.
-            if (preg_match_all(Utils::URL_PATTERN, $message, $matches)) {
+            if (stripos($message,Spam::URL_REMOVED) !== FALSE) {
+                # A URL which has been removed.
+                $check = self::REASON_LINK;
+            } else if (preg_match_all(Utils::URL_PATTERN, $message, $matches)) {
                 # A link.  Some domains are ok - where they have been whitelisted several times (to reduce bad whitelists).
                 $ourdomains = $this->dbhr->preQuery("SELECT domain FROM spam_whitelist_links WHERE count >= 3 AND LENGTH(domain) > 5 AND domain NOT LIKE '%linkedin%' AND domain NOT LIKE '%goo.gl%' AND domain NOT LIKE '%bit.ly%' AND domain NOT LIKE '%tinyurl%';");
 

@@ -1005,7 +1005,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply2'));
         $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'test2@test.com', "user-$uid1@" . USER_DOMAIN, $msg);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'test2@test.com', "user-$uid1@" . USER_DOMAIN, $msg);
         $this->assertNotNull($id);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $this->assertNotNull($m->getFromuser());
@@ -1019,6 +1019,7 @@ class MailRouterTest extends IznikTestCase {
             $uid2
         ]);
         $this->assertEquals(1, count($msgs));
+        error_log(var_export($msgs, true));
         $this->assertEquals(1, $msgs[0]['reviewrejected']);
     }
 
