@@ -229,6 +229,10 @@ class Message
         $ret = TRUE;
         $textbody = trim($textbody);
 
+        # Expand any urls.
+        $s = new Shortlink($this->dbhr, $this->dbhm);
+        $textbody = $s->expandExternal($textbody);
+
         # Get old values for edit history.  We put NULL if there is no edit.
         $oldtext = $textbody ? trim($this->getPrivate('textbody')) : NULL;
         $oldsubject = ($subject || $type || $item || $locationid) ? $this->getPrivate('subject') : NULL;
