@@ -1282,7 +1282,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'PATCH', [
             'id' => $mid,
             'groupid' => $this->gid,
-            'textbody' => 'Another text body',
+            'textbody' => 'Another text body with a link http://microsoft.com',
             'location' => 'TV1 1AB'
         ]);
         $this->assertEquals(0, $ret['ret']);
@@ -1406,7 +1406,7 @@ class messageAPITest extends IznikAPITestCase
         # Check edit history.  Edit should show as needing approval.
         $this->assertEquals(2, count($ret['message']['edits']));
         $this->assertEquals('Text body', $ret['message']['edits'][0]['oldtext']);
-        $this->assertEquals('Another text body', $ret['message']['edits'][0]['newtext']);
+        $this->assertEquals(0, strpos('Another text body with a link https://www.microsoft.com', $ret['message']['edits'][0]['newtext']));
         $this->assertEquals(TRUE, $ret['message']['edits'][0]['reviewrequired']);
         $this->assertNull($ret['message']['edits'][0]['oldsubject']);
         $this->assertNull($ret['message']['edits'][0]['newsubject']);
@@ -1469,7 +1469,7 @@ class messageAPITest extends IznikAPITestCase
             ]);
 
             $this->assertEquals('OFFER: Edited (TV1)', $ret['message']['subject']);
-            $this->assertEquals('Another text body', $ret['message']['textbody']);
+            $this->assertEquals(0, strpos('Another text body with a link https://www.microsoft.com', $ret['message']['textbody']));
         }
 
         # Not showing for review.

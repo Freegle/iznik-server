@@ -230,8 +230,17 @@ class Message
         $textbody = trim($textbody);
 
         # Expand any urls.
-        $s = new Shortlink($this->dbhr, $this->dbhm);
-        $textbody = $s->expandExternal($textbody);
+        if (preg_match_all(Utils::URL_PATTERN, $textbody, $matches)) {
+            $s = new Shortlink($this->dbhr, $this->dbhm);
+            foreach ($matches as $val) {
+                foreach ($val as $url) {
+                    if ($url) {
+                        $newurl = $s->expandExternal($url);
+                        $textbody = str_replace($url, $newurl, $textbody);
+                    }
+                }
+            }
+        }
 
         # Get old values for edit history.  We put NULL if there is no edit.
         $oldtext = $textbody ? trim($this->getPrivate('textbody')) : NULL;
