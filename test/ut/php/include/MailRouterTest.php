@@ -249,7 +249,7 @@ class MailRouterTest extends IznikTestCase {
         $rc = $r->route();
         $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
-        }
+    }
 
     public function testReferToSpammer() {
         # Suppress emails
