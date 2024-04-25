@@ -1436,37 +1436,7 @@ WHERE chat_rooms.id IN $idlist;";
                 break;
         }
 
-        # First Facebook.  Truncates after 120.  Only notify FD users for this; mods have plenty of other notifications.
-        $url = "chat/{$this->id}";
-        $text = $name . " wrote: " . $message;
-        $text = strlen($text) > 120 ? (substr($text, 0, 117) . '...') : $text;
-
-        $f = new Facebook($this->dbhr, $this->dbhm);
         $count = 0;
-
-        foreach ($fduserids as $userid) {
-            # We only want to notify users who have a group membership; if they don't, then we shouldn't annoy them.
-            $u = User::get($this->dbhr, $this->dbhm, $userid);
-            if ($u->isModerator() || count($u->getMemberships())  > 0) {
-                if ($userid != $excludeuser) {
-                    #error_log("Poke {$rost['userid']} for {$this->id}");
-                    if ($u->notifsOn(User::NOTIFS_FACEBOOK)) {
-                        $logins = $this->dbhr->preQuery("SELECT * FROM users_logins WHERE userid = ? AND type = ?;", [
-                            $userid,
-                            User::LOGIN_FACEBOOK
-                        ]);
-
-                        foreach ($logins as $login) {
-                            if (is_numeric($login['uid'])) {
-                                $f->notify($login['uid'], $text, $url);
-                            }
-                        }
-                    }
-
-                    $count++;
-                }
-            }
-        }
 
         # Now Push notifications, for both FD and MT.
         $n = new PushNotifications($this->dbhr, $this->dbhm);

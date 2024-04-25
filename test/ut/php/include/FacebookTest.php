@@ -225,32 +225,5 @@ class FacebookTest extends IznikTestCase {
         $fb = $f->getFB();
         $this->assertNotNull($fb);
     }
-
-    public function testNotify() {
-        $mock = $this->getMockBuilder('Freegle\Iznik\Facebook')
-            ->setConstructorArgs([$this->dbhr, $this->dbhm])
-            ->setMethods(array('pheanPut'))
-            ->getMock();
-
-        $mock->method('pheanPut')->willReturn(42);
-        $this->assertEquals(42, $mock->notify(NULL, NULL, NULL));
-
-        $mock->method('pheanPut')->willThrowException(new \Exception());
-        $this->assertNull($mock->notify(NULL, NULL, NULL));
-    }
-
-    public function testNotify2() {
-        $mock = $this->getMockBuilder('Freegle\Iznik\Facebook')
-            ->setConstructorArgs([$this->dbhr, $this->dbhm])
-            ->setMethods(array('fbpost'))
-            ->getMock();
-
-        $mock->method('fbpost')->willReturn(42);
-        $this->assertEquals(42, $mock->executeNotify(NULL, NULL, NULL));
-
-        $mock->method('fbpost')->willThrowException(new \Exception("(#803) Some of the aliases you requested do not exist:"));
-        $this->assertNull($mock->executeNotify(0, NULL, NULL));
-
-    }
 }
 

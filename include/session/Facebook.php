@@ -330,35 +330,6 @@ class Facebook
         return $this->pheanstalk->put($str);
     }
 
-    public function notify($fbid, $message, $href) {
-        $id = NULL;
-
-        try {
-            $this->uthook();
-
-            if (!$this->pheanstalk) {
-                $this->pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
-            }
-
-            $str = json_encode(array(
-                'type' => 'facebooknotif',
-                'queued' => microtime(TRUE),
-                'fbid' => $fbid,
-                'message' => $message,
-                'href' => $href,
-                'ttr' => Utils::PHEANSTALK_TTR
-            ));
-
-            $id = $this->pheanPut($str);
-        } catch (\Exception $e) {
-            # Try again in case it's a temporary error.
-            error_log("Beanstalk exception " . $e->getMessage());
-            $this->pheanstalk = NULL;
-        }
-
-        return $id;
-    }
-
     public function getProfilePicture($uid) {
         $fb = $this->getFB();
         $ret = NULL;

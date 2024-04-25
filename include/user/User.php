@@ -76,7 +76,6 @@ class User extends Entity
     const NOTIFS_EMAIL = 'email';
     const NOTIFS_EMAIL_MINE = 'emailmine';
     const NOTIFS_PUSH = 'push';
-    const NOTIFS_FACEBOOK = 'facebook';
     const NOTIFS_APP = 'app';
 
     const INVITE_PENDING = 'Pending';
@@ -4288,7 +4287,6 @@ class User extends Entity
             self::NOTIFS_EMAIL => TRUE,
             self::NOTIFS_EMAIL_MINE => FALSE,
             self::NOTIFS_PUSH => TRUE,
-            self::NOTIFS_FACEBOOK => TRUE,
             self::NOTIFS_APP => TRUE
         ];
 

@@ -118,12 +118,6 @@ try {
                             break;
                         }
 
-                        case 'facebooknotif': {
-                            $n = new Facebook($dbhr, $dbhm);
-                            $n->executeNotify($data['fbid'], $data['message'], $data['href']);
-                            break;
-                        }
-
                         case 'freebiealertsadd': {
                             $f = new FreebieAlerts($dbhr, $dbhm);
                             $f->add($data['msgid']);
