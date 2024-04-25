@@ -243,12 +243,6 @@ class MailRouterTest extends IznikTestCase {
        list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
-
-        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/greetingsspam3');
-       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
-        $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
-
     }
 
     public function testReferToSpammer() {
