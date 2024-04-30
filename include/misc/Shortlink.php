@@ -119,11 +119,13 @@ class Shortlink extends Entity
 
         if ($depth > 10) {
             # Redirect loop?
+            error_log('Loop');
             return $ret;
         }
 
         if (strpos($url, 'https://' . USER_SITE) === 0 || strpos($url, USER_TEST_SITE) === 0) {
             # Ours - so no need to expand.
+            error_log("Ours");
             return $url;
         }
 
@@ -138,16 +140,30 @@ class Shortlink extends Entity
                 # The location property of the response header is used for redirect.
                 if (array_key_exists('Location', $response)) {
                     $location = $response["Location"];
-                    #error_log("Redirect to " . var_export($location, TRUE) . " from $url");
 
                     if (is_array($location)) {
-                        # t.co gives Location as an array
-                        $ret = $this->expandExternal($location[count($location) - 1], $depth + 1);
+                        # Find the first entry  in the array starting with http
+                        $newloc = null;
+
+                        foreach ($location as $l) {
+                            if (strpos($l, 'http') === 0) {
+                                $newloc = $l;
+                                break;
+                            }
+                        }
+
+                        if ($newloc) {
+                            $ret = $this->expandExternal($newloc, $depth + 1);
+                        } else {
+                            $ret = Spam::URL_REMOVED;
+                        }
+                    } else if (stripos($location, 'http') === FALSE) {
+                        // Not a link - probably redirecting to relative path.
+                        $ret = $url;
                     } else {
                         $ret = $this->expandExternal($location, $depth + 1);
                     }
                 } else {
-                    #error_log("Not redirect $url");
                     $ret = $url;
                 }
             }
