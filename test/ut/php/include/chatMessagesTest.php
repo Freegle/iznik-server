@@ -729,10 +729,17 @@ class chatMessagesTest extends IznikTestCase {
         $this->assertEquals('TV13 1HH', $ret['name']);
     }
 
-    public function testExpandUrl() {
+    /**
+     * @dataProvider trueFalseProvider
+     */
+    public function testExpandUrl($mod) {
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         $id = $r->createGroupChat('test', $this->groupid);
         $this->assertNotNull($id);
+
+        if ($mod) {
+            $this->user->setPrivate('systemrole', User::ROLE_MODERATOR);
+        }
 
         $m = new ChatMessage($this->dbhr, $this->dbhm);
         list ($mid, $banned) = $m->create($id, $this->uid, 'Refers to https://tinyurl.com/2u4ax3c8 which should be expanded', ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL, NULL, NULL, FALSE, FALSE, FALSE);
@@ -743,7 +750,13 @@ class chatMessagesTest extends IznikTestCase {
 
         $m->process();
         $m = new ChatMessage($this->dbhr, $this->dbhm, $mid);
-        $this->assertEquals('Refers to https://www.ilovefreegle.org/ which should be expanded', $m->getPrivate('message'));
+
+        if ($mod) {
+            // Shouldn't replace URLs.
+            $this->assertEquals('Refers to https://tinyurl.com/2u4ax3c8 which should be expanded', $m->getPrivate('message'));
+        } else {
+            $this->assertEquals('Refers to https://www.ilovefreegle.org/ which should be expanded', $m->getPrivate('message'));
+        }
     }
 }
 

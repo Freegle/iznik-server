@@ -167,7 +167,9 @@ class ChatMessage extends Entity
         $message = $this->chatmessage['message'];
         $expanded = $message;
 
-        if (preg_match_all(Utils::URL_PATTERN, $expanded, $matches)) {
+        $u = User::get($this->dbhr, $this->dbhm, $this->chatmessage['userid']);
+
+        if (!$u->isModerator() && preg_match_all(Utils::URL_PATTERN, $expanded, $matches)) {
             $s = new Shortlink($this->dbhr, $this->dbhm);
             foreach ($matches as $val) {
                 foreach ($val as $url) {
