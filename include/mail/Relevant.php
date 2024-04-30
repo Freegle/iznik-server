@@ -1,9 +1,6 @@
 <?php
 namespace Freegle\Iznik;
 
-
-require_once(IZNIK_BASE . '/mailtemplates/relevant/wrapper.php');
-require_once(IZNIK_BASE . '/mailtemplates/relevant/one.php');
 require_once(IZNIK_BASE . '/mailtemplates/relevant/off.php');
 
 # Find messages relevant to users which they might have missed, and mail them to them.
@@ -229,6 +226,8 @@ class Relevant {
 
     public function sendMessages($userid = NULL, $earliest = "31 days ago", $latest = "24 hours ago") {
         list ($transport, $mailer) = Mail::getMailer();
+        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+        $twig = new \Twig_Environment($loader);
 
         $count = 0;
 
@@ -265,32 +264,42 @@ class Relevant {
                             $href = $u->loginLink(USER_SITE, $u->getId(), "/message/{$msg['id']}", User::SRC_RELEVANT);
                             $subject = $m->getSubject();
                             $subject = preg_replace('/\[.*?\]\s*/', '', $subject);
+                            $atts = [];
+                            $atts['subject'] = $subject;
+                            $atts['href'] = "https://" . USER_SITE . "/message/{$msg['id']}";
+
+                            # Get the reason to include.
+                            $reason = $msg['reason'];
+                            $s = $reason['type'] == Relevant::MATCH_VIEWED ? $reason['term'] : preg_replace('/\[.*?\]\s*/', '', $reason['subject']);
+                            $s = $reason['type'] == Relevant::MATCH_VIEWED ? "looked at a post containing '$s' " : "posted $s";
+                            $s .= " on " . date('d M', strtotime($reason['date']));
+                            $atts['reason'] = ' ' . $s;
 
                             if ($m->getType() == Message::TYPE_OFFER) {
                                 $offers[] = "$subject - see $href\r\n";
-                                $hoffers[] = relevant_one($subject, $href, $msg['matchedon'], $msg['reason']);
+                                $hoffers[] = $atts;
                             } else {
                                 $wanteds[] = "$subject - see $href\r\n";
-                                $hwanteds[] = relevant_one($subject, $href, $msg['matchedon'], $msg['reason']);
+                                $hwanteds[] = $atts;
                             }
                         }
 
                         $textbody .= count($offers) > 0 ? ("\r\nThings people are giving away which you might want:\r\n\r\n" . implode('', $offers)) : '';
                         $textbody .= count($wanteds) > 0 ? ("\r\nThings people are looking for which you might have:\r\n\r\n" . implode('', $wanteds)) : '';
 
-                        $htmloffers = count($offers) > 0 ? ("<p>Things people are giving away which you might want:</p>" . implode('', $hoffers)) : '';
-                        $htmlwanteds = count($wanteds) > 0 ? ("<p>Things people are looking for which you might have:</p>" . implode('', $hwanteds)) : '';
-
                         $email = $u->getEmailPreferred();
                         #error_log("Preferred email $email");
+                        $unsubscribe = $u->loginLink(USER_SITE, $u->getId(), "/unsubscribe", User::SRC_RELEVANT);
 
                         if ($email) {
                             $subj = "Any of these take your fancy?";
-                            $post = $u->loginLink(USER_SITE, $u->getId(), "/", User::SRC_RELEVANT);
-                            $unsubscribe = $u->loginLink(USER_SITE, $u->getId(), "/unsubscribe", User::SRC_RELEVANT);
-                            $visit = $u->loginLink(USER_SITE, $u->getId(), "/browse", User::SRC_RELEVANT);
 
-                            $html = relevant_wrapper(USER_SITE, USERLOGO, $subj, $htmloffers, $htmlwanteds, $email, $noemail, $post, $visit, $unsubscribe);
+                            $html = $twig->render('relevant.html', [
+                                'offers' => $hoffers,
+                                'wanteds' => $hwanteds,
+                                'email' => $email,
+                                'unsubscribe' => $unsubscribe,
+                            ]);
 
                             try {
                                 $message = \Swift_Message::newInstance()
