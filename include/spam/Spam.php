@@ -741,25 +741,28 @@ class Spam {
 
             $spammer['added'] = Utils::ISODate($spammer['added']);
 
-            # Add in any other users who have recently used the same IP.
+            # Add in any other users who have recently used the same IP.  But not for TN users, because
+            # the TN servers use our API for multiple users.
             $spammer['sameip'] = [];
 
-            $ips = $this->dbhr->preQuery("SELECT DISTINCT(ip) FROM logs_api WHERE userid = ?;", [
-                $spammer['userid']
-            ]);
-
-            foreach ($ips as $ip) {
-                $otherusers = $this->dbhr->preQuery("SELECT DISTINCT userid FROM logs_api WHERE ip = ? AND userid != ?;", [
-                    $ip['ip'],
+            if (strpos($spammer['user']['email'], '@user.trashnothing.com') === FALSE) {
+                $ips = $this->dbhr->preQuery("SELECT DISTINCT(ip) FROM logs_api WHERE userid = ?;", [
                     $spammer['userid']
                 ]);
 
-                foreach ($otherusers as $otheruser) {
-                    $spammer['sameip'][] = $otheruser['userid'];
-                }
-            }
+                foreach ($ips as $ip) {
+                    $otherusers = $this->dbhr->preQuery("SELECT DISTINCT userid FROM logs_api WHERE ip = ? AND userid != ?;", [
+                        $ip['ip'],
+                        $spammer['userid']
+                    ]);
 
-            $spammer['sameip'] = array_unique($spammer['sameip']);
+                    foreach ($otherusers as $otheruser) {
+                        $spammer['sameip'][] = $otheruser['userid'];
+                    }
+                }
+
+                $spammer['sameip'] = array_unique($spammer['sameip']);
+            }
 
             $context['id'] = $spammer['id'];
         }
