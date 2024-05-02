@@ -380,6 +380,15 @@ class MailRouter
             error_log("FBL report");
         }
 
+        $this->mail(
+            'log@ehibbert.org.uk',
+            NOREPLY_ADDR,
+            "FBL report received",
+            $this->msg->getMessage(),
+            Mail::MODMAIL,
+            0
+        );
+
         return MailRouter::TO_SYSTEM;
     }
 
