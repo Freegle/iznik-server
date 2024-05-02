@@ -1319,7 +1319,7 @@ HAVING logincount > 0
             $msgs = $this->dbhr->preQuery("SELECT messages_popular.* FROM messages_popular
             INNER JOIN groups_facebook ON groups_facebook.groupid = messages_popular.groupid
             INNER JOIN messages ON messages.id = messages_popular.msgid 
-            WHERE TIMESTAMPDIFF(HOUR, messages.arrival, NOW()) <= 48 AND messages_popular.groupid IN (" . implode(',', $gids) . ") AND shared = 0 AND declined = 0 AND expired = 0 AND deleted IS NULL
+            WHERE TIMESTAMPDIFF(HOUR, NOW(), messages.arrival) <= 48 AND messages_popular.groupid IN (" . implode(',', $gids) . ") AND shared = 0 AND declined = 0 AND expired = 0 AND deleted IS NULL
             GROUP BY messages_popular.id;");
 
             $ret = [];
