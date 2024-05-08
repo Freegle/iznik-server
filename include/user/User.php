@@ -100,6 +100,7 @@ class User extends Entity
     const SRC_NOTICEBOARD = 'noticeboard';
     const SRC_ADMIN = 'admin';
     const SRC_DUMMY = 'dummy';
+    const SRC_FBL = 'fbl';
 
     # Chat mod status
     const CHAT_MODSTATUS_MODERATED = 'Moderated';
@@ -3681,6 +3682,42 @@ class User extends Entity
         $message->attach($htmlPart);
 
         Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::WELCOME, $this->getId());
+
+        list ($transport, $mailer) = Mail::getMailer();
+        $this->sendIt($mailer, $message);
+    }
+
+    public function FBL()
+    {
+        $settings = $this->loginLink(USER_SITE, $this->id, '/settings', User::SRC_FBL, TRUE);
+        $unsubscribe = $this->loginLink(USER_SITE, $this->id, '/settings', User::SRC_FBL, TRUE);
+
+        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+        $twig = new \Twig_Environment($loader);
+
+        $html = $twig->render('fbl.html', [
+            'email' => $this->getEmailPreferred(),
+            'unsubscribe' => $unsubscribe,
+            'settings' => $settings
+        ]);
+
+        $message = \Swift_Message::newInstance()
+            ->setSubject("We've turned off emails for you")
+            ->setFrom([NOREPLY_ADDR => SITE_NAME])
+            ->setTo($this->getEmailPreferred())
+            ->setBcc('log@ehibbert.org.uk')
+            ->setBody("You marked a mail as spam, so we've turned off your emails.  You can leave Freegle completely from $unsubscribe or turn them back on from $settings.");
+
+        # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+        # Outlook.
+        $htmlPart = \Swift_MimePart::newInstance();
+        $htmlPart->setCharset('utf-8');
+        $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
+        $htmlPart->setContentType('text/html');
+        $htmlPart->setBody($html);
+        $message->attach($htmlPart);
+
+        Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::FBL_OFF, $this->getId());
 
         list ($transport, $mailer) = Mail::getMailer();
         $this->sendIt($mailer, $message);

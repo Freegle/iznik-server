@@ -52,6 +52,7 @@ class Mail {
     const CHASEUP = 49;
     const REPORTED_NEWSFEED = 50;
     const CALENDAR = 51;
+    const FBL_OFF = 52;
 
     const DESCRIPTIONS = [
         Mail::DIGEST => 'Digest',
@@ -103,6 +104,7 @@ class Mail {
         Mail::CHASEUP => 'Chaseup',
         Mail::REPORTED_NEWSFEED => 'ReportedNewsfeed',
         Mail::CALENDAR => 'Calendar',
+        Mail::FBL_OFF => 'FBLOff'
     ];
 
     private static $mailers = [];

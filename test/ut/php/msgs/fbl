@@ -1,0 +1,56 @@
+From feedback@arf.mail.yahoo.com Mon May 06 17:25:57 2024
+Return-path: <feedback@arf.mail.yahoo.com>
+Envelope-to: fbl@users.ilovefreegle.org
+Received: from sonic326-46.consmr.mail.ne1.yahoo.com ([66.163.186.21])
+	by bulk4.ilovefreegle.org with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+	(Exim 4.95)
+	(envelope-from <feedback@arf.mail.yahoo.com>)
+	id 1s4268-00GLPM-Eq
+	for fbl@users.ilovefreegle.org;
+	Mon, 06 May 2024 17:25:57 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arf.mail.yahoo.com; s=arf; t=1715016355; bh=HoR+ZNRauwOjO9Kg+1GhnrsXN3BwivzafzzRnrUquf8=; h=Date:From:To:Subject:From:Subject:Reply-To; b=Xr78e46xHPR2kM+Vq6Fn6mgZlYRPjO71aducWH3hGf919wZnfMLqeHbClXfTjOWI7OwLvo5jmj/K3vXNQ5TxgLW9iUafIVmsZr8qjpmBYC1Kg4OayzEJBlpJcSZYfza8hZGEtYG+1HUQMkDVCd9coB5U52aoHqvoKDWBzF7fLhg=
+X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1715016355; bh=PfdwYcg/QuD2wDGpRkpi7B47WSP6Uts1LSOyFKofFQe=; h=X-Sonic-MF:Date:From:To:Subject:From:Subject; b=KJbQ3ZSNtLmF8WwmWL+n8ahBOIcPpugGaz6RYO1Be7CxTiTu3OZxcbhGycsyOirL8QAnqxsuqQLkYqpbrh45HdHQ5+6RnWt8JWA81Ey2Y4DqqKvKRt65pMLnrREWx4rNGOmyYWtgTO1q4tFf/2Ham3mCALPwh5Piw8OpdvJLOemTm6orJUU2k08SLg80sKj0oHkd5guJpoWB1r+r04gmRZ843PAt6LvbLI80sNSkHRRwtzs8Y9eGd/O8ujz6/wIA6smIVSaqgJjOchJxdtz23Em66D4KgwSNpnoADfYcaAPsJBU9IU3KzPpHc164yz2ondIqVZVRbMuFDwPvp0OBwQ==
+X-Sonic-MF: feedback@arf.mail.yahoo.com
+X-Sonic-ID: 4904d99a-f256-4036-8d2b-916cb345571d
+Received: from sonic.gate.mail.ne1.yahoo.com by sonic326.consmr.mail.ne1.yahoo.com with HTTP; Mon, 6 May 2024 17:25:55 +0000
+Date: Mon, 6 May 2024 17:25:51 +0000 (UTC)
+From: Yahoo! Mail AntiSpam Feedback <feedback@arf.mail.yahoo.com>
+To: fbl@users.ilovefreegle.org
+Message-ID: <335150718.656534.1715016351134@chakraconsumer3.asd.mail.ne1.yahoo.com>
+Subject: FW:[Derby Freegle] What's New (25 messages) - Box Files, Bottles
+ for home brew, Glass cabinet, Double air bed...
+MIME-Version: 1.0
+Content-Type: multipart/report; report-type=feedback-report;
+	boundary="----=_Part_656533_1790088135.1715016351132"
+X-Yahoo-Newman-Property: cfl
+X-Yahoo-Newman-Id: cfl-test
+
+------=_Part_656533_1790088135.1715016351132
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+This is an email abuse report for an email message from groups.ilovefreegle.org on Fri, 3 May 2024 18:46:30 +0000
+
+------=_Part_656533_1790088135.1715016351132
+Content-Type: message/feedback-report
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Feedback-Type: abuse
+User-Agent: Yahoo!-Mail-Feedback/2.0
+Version: 0.1
+Original-Mail-From: <bounce-40874538-1714761943@users.ilovefreegle.org>
+Original-Rcpt-To: test@test.com
+Received-Date: Fri, 3 May 2024 18:46:30 +0000
+Reported-Domain: groups.ilovefreegle.org
+Authentication-Results: authentication result string is not available
+
+------=_Part_656533_1790088135.1715016351132
+Content-Type: message/rfc822
+Content-Disposition: inline
+
+...Content of size 376594 removed...
+
+------=_Part_656533_1790088135.1715016351132--
+

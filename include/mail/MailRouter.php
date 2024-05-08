@@ -376,18 +376,40 @@ class MailRouter
     }
 
     private function FBL() {
-        if ($this->log) {
-            error_log("FBL report");
+        if ($this->log) { error_log("FBL report"); }
+
+        // Find the email address that the FBL was about, in a hacky regex way.
+        $handled = FALSE;
+        $msg = $this->msg->getMessage();
+
+        if (preg_match('/Original-Rcpt-To:(.*)/', $msg, $matches)) {
+            $email = trim($matches[1]);
+            if ($this->log) { error_log("FBL report to $email"); }
+
+            $u = new User($this->dbhr, $this->dbhm);
+            $uid = $u->findByEmail($email);
+            if ($this->log) { error_log("FBL report for $uid"); }
+
+            if ($uid) {
+                $u = User::get($this->dbhr, $this->dbhm, $uid);
+                $u->setSetting('simplemail', User::SIMPLE_MAIL_NONE);
+                $u->FBL();
+                $handled = TRUE;
+            }
         }
 
-        $this->mail(
-            'log@ehibbert.org.uk',
-            NOREPLY_ADDR,
-            "FBL report received",
-            $this->msg->getMessage(),
-            Mail::MODMAIL,
-            0
-        );
+        if (!$handled) {
+            if ($this->log) { error_log("FBL report not processed"); }
+
+            $this->mail(
+                'log@ehibbert.org.uk',
+                NOREPLY_ADDR,
+                "Unprocessed FBL report received",
+                $this->msg->getMessage(),
+                Mail::MODMAIL,
+                0
+            );
+        }
 
         return MailRouter::TO_SYSTEM;
     }

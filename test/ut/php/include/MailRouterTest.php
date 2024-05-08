@@ -1939,12 +1939,17 @@ class MailRouterTest extends IznikTestCase {
     }
 
     public function testFBL() {
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        // Test that an FBL report turns off email.
+        $u = new User($this->dbhr, $this->dbhm, $this->uid);
+        $this->assertEquals($u->getSetting('simplemail', NULL), NULL);
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/fbl'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', FBL_ADDR, $msg);
         $this->assertNotNull($id);
         $rc = $r->route();
         $this->assertEquals($rc, MailRouter::TO_SYSTEM);
+        $u = new User($this->dbhr, $this->dbhm, $this->uid);
+        $this->assertEquals($u->getSetting('simplemail', NULL), User::SIMPLE_MAIL_NONE);
     }
 
     public function testExpandUrls() {
