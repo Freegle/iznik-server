@@ -392,7 +392,7 @@ class MailRouter
 
             if ($uid) {
                 $u = User::get($this->dbhr, $this->dbhm, $uid);
-                $u->setSetting('simplemail', User::SIMPLE_MAIL_NONE);
+                $u->setSimpleMail(User::SIMPLE_MAIL_NONE);
                 $u->FBL();
                 $handled = TRUE;
             }

@@ -17,7 +17,7 @@ $uid = $u->findByEmail($email);
 
 if ($uid) {
     $u = User::get($dbhr, $dbhm, $uid);
-    $u->setSetting('simplemail', User::SIMPLE_MAIL_NONE);
+    $u->setSimpleMail(User::SIMPLE_MAIL_NONE);
     $u->FBL();
     error_log("Email off for $email");
 } else {
