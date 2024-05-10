@@ -168,7 +168,7 @@ class Shortlink extends Entity
                 }
             }
         } catch (\Exception $e) {
-            #error_log("Failed to expand $url: " . $e->getMessage());
+            error_log("Failed to expand $url: " . $e->getMessage());
         }
 
         return $ret;
