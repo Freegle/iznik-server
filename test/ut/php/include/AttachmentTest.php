@@ -153,11 +153,10 @@ class AttachmentTest extends IznikTestCase {
     }
 
     public function testExternal() {
-        $url = 'https://' . USER_SITE . '/icon.png';
+        $url = 'https://ilovefreegle.org/icon.png';
         $a = new Attachment($this->dbhr, $this->dbhm);
-        $attid = $a->create(NULL,NULL,'uid', $url);
+        list ($attid, $uid, $url) = $a->create(NULL,NULL,'uid', $url, FALSE);
         $this->assertNotNull($attid);
-        $a->setPrivate('externalurl', $url);
 
         $a = new Attachment($this->dbhr, $this->dbhm, $attid);
         $this->assertGreaterThan(0, strlen($a->getData()));
