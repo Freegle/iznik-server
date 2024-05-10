@@ -105,7 +105,7 @@ define('MONIT_HOST', 'zzz');
 define('USER_GROUP_OVERRIDE', 'FreeglePlayground');
 
 # The domain for users to access.
-define('USER_SITE', 'wwww.ilovefreegle.org');
+define('USER_SITE', 'www.ilovefreegle.org');
 
 # The domain for mods to access.
 define('MOD_SITE', 'modtools.org');

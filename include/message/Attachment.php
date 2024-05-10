@@ -137,13 +137,15 @@ class Attachment
         }
     }
 
-    public function create($id, $data, $uid = NULL, $url = NULL) {
+    public function create($id, $data, $uid = NULL, $url = NULL, $stripExif = TRUE) {
         if ($url) {
-            // Image data is held externally on uploadcare.  The uploaded photo will contain EXIF data, and there
-            // isn't currently a way to strip that out on upload.  So we have to copy the image to a new one which
-            // "bakes in" the removal of the EXIF data.
-            $uc = new UploadCare();
-            list($uid, $url) = $uc->stripExif($uid, $url);
+            if ($stripExif) {
+                // Image data is held externally on uploadcare.  The uploaded photo will contain EXIF data, and there
+                // isn't currently a way to strip that out on upload.  So we have to copy the image to a new one which
+                // "bakes in" the removal of the EXIF data.
+                $uc = new UploadCare();
+                list($uid, $url) = $uc->stripExif($uid, $url);
+            }
 
             $rc = $this->dbhm->preExec("INSERT INTO {$this->table} (`{$this->idatt}`, `{$this->uidname}`, `{$this->urlname}`) VALUES (?, ?, ?);", [
                 $id,

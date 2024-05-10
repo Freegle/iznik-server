@@ -153,7 +153,7 @@ class AttachmentTest extends IznikTestCase {
     }
 
     public function testExternal() {
-        $url = 'https://ilovefreegle.org/icon.png';
+        $url = 'https://' . USER_SITE . '/icon.png';
         $a = new Attachment($this->dbhr, $this->dbhm);
         $attid = $a->create(NULL,NULL,'uid', $url);
         $this->assertNotNull($attid);
