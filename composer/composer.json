@@ -45,7 +45,8 @@
     "eluceo/ical": "^0.16.1",
     "prewk/xml-string-streamer": "^1.2",
     "sentry/sdk": "^3.1",
-    "cweagans/composer-patches": "^1.7"
+    "cweagans/composer-patches": "^1.7",
+    "uploadcare/uploadcare-php": "^4.0"
   },
   "repositories": [
     {
