@@ -139,7 +139,12 @@ class Attachment
 
     public function create($id, $data, $uid = NULL, $url = NULL) {
         if ($url) {
-            // Image data is held externally.
+            // Image data is held externally on uploadcare.  The uploaded photo will contain EXIF data, and there
+            // isn't currently a way to strip that out on upload.  So we have to copy the image to a new one which
+            // "bakes in" the removal of the EXIF data.
+            $uc = new UploadCare();
+            list($uid, $url) = $uc->stripExif($uid, $url);
+
             $rc = $this->dbhm->preExec("INSERT INTO {$this->table} (`{$this->idatt}`, `{$this->uidname}`, `{$this->urlname}`) VALUES (?, ?, ?);", [
                 $id,
                 $uid,
@@ -153,6 +158,8 @@ class Attachment
                 $this->externaluid = $uid;
                 $this->url = $url;
             }
+
+            return([ $imgid, $uid, $url ]);
         } else {
             # We generate a perceptual hash.  This allows us to spot duplicate or similar images later.
             $hasher = new ImageHash;
@@ -171,9 +178,9 @@ class Attachment
                 $this->id = $imgid;
                 $this->hash = $hash;
             }
-        }
 
-        return($imgid);
+            return($imgid);
+        }
     }
 
     public function getById($id) {

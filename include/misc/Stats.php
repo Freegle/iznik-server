@@ -1,8 +1,6 @@
 <?php
 namespace Freegle\Iznik;
 
-
-
 class Stats
 {
     /** @var  $dbhr LoggedPDO */

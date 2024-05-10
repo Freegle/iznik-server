@@ -132,12 +132,14 @@ function image() {
                 }
             } else if ($externaluid && $externalurl) {
                 $a = new Attachment($dbhr, $dbhm, NULL, $imgtype);
-                $id = $a->create($msgid, NULL, $externaluid, $externalurl);
+                list ($id, $uid, $url) = $a->create($msgid, NULL, $externaluid, $externalurl);
 
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
-                    'id' => $id
+                    'id' => $id,
+                    'uid' => $uid,
+                    'url' => $url,
                 ];
             } else {
                 $photo = Utils::presdef('photo', $_FILES, NULL) ? $_FILES['photo'] : $_REQUEST['photo'];

@@ -188,3 +188,6 @@ define('PLAYGROUND_SECRET', 'zzzz');
 
 define('LOVE_JUNK_API', 'https://staging-elmer.api-lovejunk.com/elmer/v1');
 define('LOVE_JUNK_SECRET', 'LOVE_JUNK_SECRET');
+
+define('UPLOADCARE_PUBLIC_KEY', 'zzzz');
+define('UPLOADCARE_SECRET_KEY', 'zzzz');
