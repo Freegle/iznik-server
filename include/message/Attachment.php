@@ -139,7 +139,7 @@ class Attachment
 
     public function create($id, $data, $uid = NULL, $url = NULL, $stripExif = TRUE) {
         if ($url) {
-            if ($stripExif) {
+            if ($stripExif && UPLOADCARE_PUBLIC_KEY) {
                 // Image data is held externally on uploadcare.  The uploaded photo will contain EXIF data, and there
                 // isn't currently a way to strip that out on upload.  So we have to copy the image to a new one which
                 // "bakes in" the removal of the EXIF data.
