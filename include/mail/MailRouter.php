@@ -304,7 +304,7 @@ class MailRouter
                 $data = $att->getData();
                 $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_CHAT_MESSAGE);
                 try {
-                    list ($aid2, $uid, $url) = $a->create($aid, $data);
+                    $aid2 = $a->create($aid, $data);
 
                     $hash = $a->getHash();
 
