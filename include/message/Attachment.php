@@ -1,15 +1,15 @@
 <?php
+
 namespace Freegle\Iznik;
 
 
-
 use Jenssegers\ImageHash\ImageHash;
+
 //use Google\Cloud\VideoIntelligence\V1\VideoIntelligenceServiceClient;
 //use Google\Cloud\VideoIntelligence\V1\Feature;
 
 # This is a base class
-class Attachment
-{
+class Attachment {
     /** @var  $dbhr LoggedPDO */
     private $dbhr;
     /** @var  $dbhm LoggedPDO */
@@ -19,8 +19,7 @@ class Attachment
     /**
      * @return null
      */
-    public function getId()
-    {
+    public function getId() {
         return $this->id;
     }
 
@@ -38,12 +37,11 @@ class Attachment
     /**
      * @return mixed
      */
-    public function getHash()
-    {
+    public function getHash() {
         return $this->hash;
     }
 
-    public function getPath($thumb = FALSE, $id = NULL, $archived = FALSE) {
+    public function getPath($thumb = false, $id = null, $archived = false) {
         if ($this->url) {
             return $this->url;
         }
@@ -53,22 +51,42 @@ class Attachment
         $id = $id ? $id : $this->id;
 
         switch ($this->type) {
-            case Attachment::TYPE_MESSAGE: $name = 'img'; break;
-            case Attachment::TYPE_GROUP: $name = 'gimg'; break;
-            case Attachment::TYPE_NEWSLETTER: $name = 'nimg'; break;
-            case Attachment::TYPE_COMMUNITY_EVENT: $name = 'cimg'; break;
-            case Attachment::TYPE_VOLUNTEERING: $name = 'oimg'; break;
-            case Attachment::TYPE_CHAT_MESSAGE: $name = 'mimg'; break;
-            case Attachment::TYPE_USER: $name = 'uimg'; break;
-            case Attachment::TYPE_NEWSFEED: $name = 'fimg'; break;
-            case Attachment::TYPE_STORY: $name = 'simg'; break;
-            case Attachment::TYPE_NOTICEBOARD: $name = 'bimg'; break;
+            case Attachment::TYPE_MESSAGE:
+                $name = 'img';
+                break;
+            case Attachment::TYPE_GROUP:
+                $name = 'gimg';
+                break;
+            case Attachment::TYPE_NEWSLETTER:
+                $name = 'nimg';
+                break;
+            case Attachment::TYPE_COMMUNITY_EVENT:
+                $name = 'cimg';
+                break;
+            case Attachment::TYPE_VOLUNTEERING:
+                $name = 'oimg';
+                break;
+            case Attachment::TYPE_CHAT_MESSAGE:
+                $name = 'mimg';
+                break;
+            case Attachment::TYPE_USER:
+                $name = 'uimg';
+                break;
+            case Attachment::TYPE_NEWSFEED:
+                $name = 'fimg';
+                break;
+            case Attachment::TYPE_STORY:
+                $name = 'simg';
+                break;
+            case Attachment::TYPE_NOTICEBOARD:
+                $name = 'bimg';
+                break;
         }
 
         $name = $thumb ? "t$name" : $name;
         $domain = ($this->archived || $archived) ? IMAGE_ARCHIVED_DOMAIN : IMAGE_DOMAIN;
 
-        return("https://$domain/{$name}_$id.jpg");
+        return ("https://$domain/{$name}_$id.jpg");
     }
 
     public function getPublic() {
@@ -78,19 +96,18 @@ class Attachment
             $this->idatt => $this->{$this->idatt}
         );
 
-        $ret['path'] = $this->getPath(FALSE);
-        $ret['paththumb'] = $this->getPath(TRUE);
+        $ret['path'] = $this->getPath(false);
+        $ret['paththumb'] = $this->getPath(true);
 
-        return($ret);
+        return ($ret);
     }
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $type = Attachment::TYPE_MESSAGE, $atts = NULL)
-    {
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = null, $type = Attachment::TYPE_MESSAGE, $atts = null) {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
         $this->id = $id;
         $this->type = $type;
-        $this->archived = FALSE;
+        $this->archived = false;
         $url = '';
         $uid = 'externaluid2';
 
@@ -105,11 +122,26 @@ class Attachment
                 $uid = ', externaluid2';
                 break;
             }
-            case Attachment::TYPE_GROUP: $this->table = 'groups_images'; $this->idatt = 'groupid'; break;
-            case Attachment::TYPE_NEWSLETTER: $this->table = 'newsletters_images'; $this->idatt = 'articleid'; break;
-            case Attachment::TYPE_COMMUNITY_EVENT: $this->table = 'communityevents_images'; $this->idatt = 'eventid'; break;
-            case Attachment::TYPE_VOLUNTEERING: $this->table = 'volunteering_images'; $this->idatt = 'opportunityid'; break;
-            case Attachment::TYPE_CHAT_MESSAGE: $this->table = 'chat_images'; $this->idatt = 'chatmsgid'; break;
+            case Attachment::TYPE_GROUP:
+                $this->table = 'groups_images';
+                $this->idatt = 'groupid';
+                break;
+            case Attachment::TYPE_NEWSLETTER:
+                $this->table = 'newsletters_images';
+                $this->idatt = 'articleid';
+                break;
+            case Attachment::TYPE_COMMUNITY_EVENT:
+                $this->table = 'communityevents_images';
+                $this->idatt = 'eventid';
+                break;
+            case Attachment::TYPE_VOLUNTEERING:
+                $this->table = 'volunteering_images';
+                $this->idatt = 'opportunityid';
+                break;
+            case Attachment::TYPE_CHAT_MESSAGE:
+                $this->table = 'chat_images';
+                $this->idatt = 'chatmsgid';
+                break;
             case Attachment::TYPE_USER:
             {
                 $this->table = 'users_images';
@@ -118,26 +150,35 @@ class Attachment
                 $url = ', url';
                 break;
             }
-            case Attachment::TYPE_NEWSFEED: $this->table = 'newsfeed_images'; $this->idatt = 'newsfeedid'; break;
-            case Attachment::TYPE_STORY: $this->table = 'users_stories_images'; $this->idatt = 'storyid'; break;
-            case Attachment::TYPE_NOTICEBOARD: $this->table = 'noticeboards_images'; $this->idatt = 'noticeboardid'; break;
+            case Attachment::TYPE_NEWSFEED:
+                $this->table = 'newsfeed_images';
+                $this->idatt = 'newsfeedid';
+                break;
+            case Attachment::TYPE_STORY:
+                $this->table = 'users_stories_images';
+                $this->idatt = 'storyid';
+                break;
+            case Attachment::TYPE_NOTICEBOARD:
+                $this->table = 'noticeboards_images';
+                $this->idatt = 'noticeboardid';
+                break;
         }
-
 
         if ($id) {
             $sql = "SELECT {$this->idatt}, hash, archived $url $uid FROM {$this->table} WHERE id = ?;";
-            $as = $atts ? [ $atts ] : $this->dbhr->preQuery($sql, [$id]);
+            error_log($sql);
+            $as = $atts ? [$atts] : $this->dbhr->preQuery($sql, [$id]);
             foreach ($as as $att) {
                 $this->hash = $att['hash'];
                 $this->archived = $att['archived'];
-                $this->url = Utils::presdef($this->urlname, $att, NULL);
-                $this->externaluid = Utils::presdef($this->uidname, $att, NULL);
+                $this->url = Utils::presdef($this->urlname, $att, null);
+                $this->externaluid = Utils::presdef($this->uidname, $att, null);
                 $this->{$this->idatt} = $att[$this->idatt];
             }
         }
     }
 
-    public function create($id, $data, $uid = NULL, $url = NULL, $stripExif = TRUE) {
+    public function create($id, $data, $uid = null, $url = null, $stripExif = true) {
         if ($url) {
             if ($stripExif && UPLOADCARE_PUBLIC_KEY) {
                 // Image data is held externally on uploadcare.  The uploaded photo will contain EXIF data, and there
@@ -147,13 +188,16 @@ class Attachment
                 list($uid, $url) = $uc->stripExif($uid, $url);
             }
 
-            $rc = $this->dbhm->preExec("INSERT INTO {$this->table} (`{$this->idatt}`, `{$this->uidname}`, `{$this->urlname}`) VALUES (?, ?, ?);", [
-                $id,
-                $uid,
-                $url
-            ]);
+            $rc = $this->dbhm->preExec(
+                "INSERT INTO {$this->table} (`{$this->idatt}`, `{$this->uidname}`, `{$this->urlname}`) VALUES (?, ?, ?);",
+                [
+                    $id,
+                    $uid,
+                    $url
+                ]
+            );
 
-            $imgid = $rc ? $this->dbhm->lastInsertId() : NULL;
+            $imgid = $rc ? $this->dbhm->lastInsertId() : null;
 
             if ($imgid) {
                 $this->id = $imgid;
@@ -161,27 +205,30 @@ class Attachment
                 $this->url = $url;
             }
 
-            return([ $imgid, $uid, $url ]);
+            return ([$imgid, $uid, $url]);
         } else {
             # We generate a perceptual hash.  This allows us to spot duplicate or similar images later.
             $hasher = new ImageHash;
             $img = @imagecreatefromstring($data);
-            $hash = $img ? $hasher->hash($img) : NULL;
+            $hash = $img ? $hasher->hash($img) : null;
 
-            $rc = $this->dbhm->preExec("INSERT INTO {$this->table} (`{$this->idatt}`, `data`, `hash`) VALUES (?, ?, ?);", [
-                $id,
-                $data,
-                $hash
-            ]);
+            $rc = $this->dbhm->preExec(
+                "INSERT INTO {$this->table} (`{$this->idatt}`, `data`, `hash`) VALUES (?, ?, ?);",
+                [
+                    $id,
+                    $data,
+                    $hash
+                ]
+            );
 
-            $imgid = $rc ? $this->dbhm->lastInsertId() : NULL;
+            $imgid = $rc ? $this->dbhm->lastInsertId() : null;
 
             if ($imgid) {
                 $this->id = $imgid;
                 $this->hash = $hash;
             }
 
-            return($imgid);
+            return ($imgid);
         }
     }
 
@@ -193,45 +240,67 @@ class Attachment
             $ret[] = new Attachment($this->dbhr, $this->dbhm, $att['id']);
         }
 
-        return($ret);
+        return ($ret);
     }
 
     public function getByIds($ids) {
         $ret = [];
 
+        $extstr = '';
+        $extwhere = '';
+
+        error_log("byIds type " . $this->type);
+        switch ($this->type) {
+            case Attachment::TYPE_MESSAGE:
+                $extstr = ', externalurl, externaluid2';
+                $extwhere = ' OR externaluid2 IS NOT NULL';
+                break;
+        }
+
         if (count($ids)) {
-            $sql = "SELECT id, {$this->idatt}, hash, archived FROM {$this->table} WHERE {$this->idatt} IN (" . implode(',', $ids) . ") AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1) ORDER BY `primary` DESC, id;";
+            $sql = "SELECT id, {$this->idatt}, hash, archived $extstr FROM {$this->table} 
+                       WHERE {$this->idatt} IN (" . implode(',', $ids) . ") 
+                       AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1 $extwhere) 
+                       ORDER BY `primary` DESC, id;";
+            error_log($sql);
             $atts = $this->dbhr->preQuery($sql);
             foreach ($atts as $att) {
+                error_log(json_encode($att));
                 $ret[] = new Attachment($this->dbhr, $this->dbhm, $att['id'], $this->type, $att);
             }
         }
 
-        return($ret);
+        return ($ret);
     }
 
     public function getByImageIds($ids) {
         $ret = [];
 
         if (count($ids)) {
-            $sql = "SELECT id, {$this->idatt}, hash, archived FROM {$this->table} WHERE id IN (" . implode(',', $ids) . ") AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1) ORDER BY id;";
+            $sql = "SELECT id, {$this->idatt}, hash, archived FROM {$this->table} WHERE id IN (" . implode(
+                    ',',
+                    $ids
+                ) . ") AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1) ORDER BY id;";
             $atts = $this->dbhr->preQuery($sql);
             foreach ($atts as $att) {
                 $ret[] = new Attachment($this->dbhr, $this->dbhm, $att['id'], $this->type, $att);
             }
         }
 
-        return($ret);
+        return ($ret);
     }
 
     public function scp($host, $data, $fn, &$failed) {
         $connection = @ssh2_connect($host, 22);
-        $failed = TRUE;
+        $failed = true;
 
         if ($connection) {
-            if (@ssh2_auth_pubkey_file($connection, CDN_SSH_USER,
+            if (@ssh2_auth_pubkey_file(
+                $connection,
+                CDN_SSH_USER,
                 CDN_SSH_PUBLIC_KEY,
-                CDN_SSH_PRIVATE_KEY)) {
+                CDN_SSH_PRIVATE_KEY
+            )) {
                 $temp = tempnam(sys_get_temp_dir(), "img_archive_$fn");
                 file_put_contents($temp, $data);
                 $rem = "/var/www/iznik/images/$fn";
@@ -271,25 +340,40 @@ class Attachment
         #
         # If we fail then we leave it unchanged for next time.
         $data = $this->getData();
-        $rc = TRUE;
+        $rc = true;
 
         if ($data) {
-            $rc = FALSE;
+            $rc = false;
 
             try {
-                $name = NULL;
+                $name = null;
 
                 # Only these types are in archive_attachments.
                 switch ($this->type) {
-                    case Attachment::TYPE_MESSAGE: $tname = 'timg'; $name = 'img'; break;
-                    case Attachment::TYPE_CHAT_MESSAGE: $tname = 'tmimg'; $name = 'mimg'; break;
-                    case Attachment::TYPE_NEWSFEED: $tname = 'tfimg'; $name = 'fimg'; break;
-                    case Attachment::TYPE_COMMUNITY_EVENT: $tname = 'tcimg'; $name = 'cimg'; break;
-                    case Attachment::TYPE_NOTICEBOARD: $tname = 'tbimg'; $name = 'bimg'; break;
+                    case Attachment::TYPE_MESSAGE:
+                        $tname = 'timg';
+                        $name = 'img';
+                        break;
+                    case Attachment::TYPE_CHAT_MESSAGE:
+                        $tname = 'tmimg';
+                        $name = 'mimg';
+                        break;
+                    case Attachment::TYPE_NEWSFEED:
+                        $tname = 'tfimg';
+                        $name = 'fimg';
+                        break;
+                    case Attachment::TYPE_COMMUNITY_EVENT:
+                        $tname = 'tcimg';
+                        $name = 'cimg';
+                        break;
+                    case Attachment::TYPE_NOTICEBOARD:
+                        $tname = 'tbimg';
+                        $name = 'bimg';
+                        break;
                 }
 
                 if ($name) {
-                    $failed = FALSE;
+                    $failed = false;
 
                     foreach ([CDN_HOST_1, CDN_HOST_2] as $host) {
                         # Upload the thumbnail.  If this fails we'll leave it untouched.
@@ -301,7 +385,6 @@ class Attachment
                             $failed |= $failed2;
                             $this->scp($host, $data, "{$name}_{$this->id}.jpg", $failed3);
                             $failed |= $failed3;
-
                         } else {
                             error_log("...failed to create image {$this->id}");
                         }
@@ -309,17 +392,19 @@ class Attachment
 
                     $rc = !$failed;
                 }
-            } catch (\Exception $e) { error_log("Archive failed " . $e->getMessage()); }
+            } catch (\Exception $e) {
+                error_log("Archive failed " . $e->getMessage());
+            }
         }
 
         if ($rc) {
             # Remove from the DB.
             $sql = "UPDATE {$this->table} SET archived = 1, data = NULL WHERE id = {$this->id};";
-            $this->archived = TRUE;
+            $this->archived = true;
             $this->dbhm->exec($sql);
         }
 
-        return($rc);
+        return ($rc);
     }
 
     public function setData($data) {
@@ -336,24 +421,40 @@ class Attachment
     public function canRedirect() {
         if ($this->url) {
             return $this->url;
-        } else if ($this->archived) {
-            # Only these types are in archive_attachments.
-            switch ($this->type) {
-                case Attachment::TYPE_MESSAGE: $tname = 'timg'; $name = 'img'; break;
-                case Attachment::TYPE_CHAT_MESSAGE: $tname = 'tmimg'; $name = 'mimg'; break;
-                case Attachment::TYPE_NEWSFEED: $tname = 'tfimg'; $name = 'fimg'; break;
-                case Attachment::TYPE_COMMUNITY_EVENT: $tname = 'tcimg'; $name = 'cimg'; break;
-                case Attachment::TYPE_NOTICEBOARD: $tname = 'tbimg'; $name = 'bimg'; break;
-            }
+        } else {
+            if ($this->archived) {
+                # Only these types are in archive_attachments.
+                switch ($this->type) {
+                    case Attachment::TYPE_MESSAGE:
+                        $tname = 'timg';
+                        $name = 'img';
+                        break;
+                    case Attachment::TYPE_CHAT_MESSAGE:
+                        $tname = 'tmimg';
+                        $name = 'mimg';
+                        break;
+                    case Attachment::TYPE_NEWSFEED:
+                        $tname = 'tfimg';
+                        $name = 'fimg';
+                        break;
+                    case Attachment::TYPE_COMMUNITY_EVENT:
+                        $tname = 'tcimg';
+                        $name = 'cimg';
+                        break;
+                    case Attachment::TYPE_NOTICEBOARD:
+                        $tname = 'tbimg';
+                        $name = 'bimg';
+                        break;
+                }
 
-            return 'https://' . IMAGE_ARCHIVED_DOMAIN . "/{$name}_{$this->id}.jpg";
+                return 'https://' . IMAGE_ARCHIVED_DOMAIN . "/{$name}_{$this->id}.jpg";
+            }
         }
 
-        return FALSE;
+        return false;
     }
 
-    public function getData()
-    {
+    public function getData() {
         $ret = null;
 
         $url = $this->canRedirect();
@@ -387,7 +488,7 @@ class Attachment
             }
         }
 
-        return($ret);
+        return ($ret);
     }
 
     public function identify() {
@@ -397,24 +498,28 @@ class Attachment
             $data = $this->getData();
             $base64 = base64_encode($data);
 
-            $r_json ='{
-			  	"requests": [
-					{
-					  "image": {
-					    "content":"' . $base64. '"
-					  },
-					  "features": [
-					      {
-					      	"type": "LABEL_DETECTION",
-							"maxResults": 20
-					      }
-					  ]
-					}
-				]
-			}';
+            $r_json = '{
+                "requests": [
+                    {
+                      "image": {
+                        "content":"' . $base64 . '"
+                      },
+                      "features": [
+                          {
+                            "type": "LABEL_DETECTION",
+                            "maxResults": 20
+                          }
+                      ]
+                    }
+                ]
+            }';
 
             $curl = curl_init();
-            curl_setopt($curl, CURLOPT_URL, 'https://vision.googleapis.com/v1/images:annotate?key=' . GOOGLE_VISION_KEY);
+            curl_setopt(
+                $curl,
+                CURLOPT_URL,
+                'https://vision.googleapis.com/v1/images:annotate?key=' . GOOGLE_VISION_KEY
+            );
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-type: application/json"));
             curl_setopt($curl, CURLOPT_POST, true);
@@ -423,19 +528,24 @@ class Attachment
             $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
             if ($status) {
-                $rsp = json_decode($json_response, TRUE);
+                $rsp = json_decode($json_response, true);
                 #error_log("Identified {$this->id} by Google $json_response for $r_json");
 
-                if ($rsp && array_key_exists('responses', $rsp) && count($rsp['responses']) > 0 && array_key_exists('labelAnnotations', $rsp['responses'][0])) {
+                if ($rsp && array_key_exists('responses', $rsp) && count($rsp['responses']) > 0 && array_key_exists(
+                        'labelAnnotations',
+                        $rsp['responses'][0]
+                    )) {
                     $rsps = $rsp['responses'][0]['labelAnnotations'];
                     $i = new Item($this->dbhr, $this->dbhm);
 
                     foreach ($rsps as $rsp) {
                         $found = $i->findByName($rsp['description']);
-                        $wasfound = FALSE;
+                        $wasfound = false;
                         foreach ($found as $item) {
-                            $this->dbhm->background("INSERT INTO messages_attachments_items (attid, itemid) VALUES ({$this->id}, {$item['id']});");
-                            $wasfound = TRUE;
+                            $this->dbhm->background(
+                                "INSERT INTO messages_attachments_items (attid, itemid) VALUES ({$this->id}, {$item['id']});"
+                            );
+                            $wasfound = true;
                         }
 
                         if (!$wasfound) {
@@ -444,7 +554,15 @@ class Attachment
                             #
                             # This is usually because they're too vague.
                             $url = "https://" . IMAGE_DOMAIN . "/img_{$this->id}.jpg";
-                            $this->dbhm->background("INSERT INTO items_non (name, lastexample) VALUES (" . $this->dbhm->quote($rsp['description']) . ", " . $this->dbhm->quote($url) . ") ON DUPLICATE KEY UPDATE popularity = popularity + 1, lastexample = " . $this->dbhm->quote($url) . ";");
+                            $this->dbhm->background(
+                                "INSERT INTO items_non (name, lastexample) VALUES (" . $this->dbhm->quote(
+                                    $rsp['description']
+                                ) . ", " . $this->dbhm->quote(
+                                    $url
+                                ) . ") ON DUPLICATE KEY UPDATE popularity = popularity + 1, lastexample = " . $this->dbhm->quote(
+                                    $url
+                                ) . ";"
+                            );
                         }
 
                         $items = array_merge($items, $found);
@@ -455,35 +573,39 @@ class Attachment
             curl_close($curl);
         }
 
-        return($items);
+        return ($items);
     }
 
     public function findWebReferences() {
         # Find a web page containing this imge, if any.
-        $ret = NULL;
+        $ret = null;
 
         if ($this->type == Attachment::TYPE_MESSAGE) {
             $data = $this->getData();
             $base64 = base64_encode($data);
 
-            $r_json ='{
-			  	"requests": [
-					{
-					  "image": {
-					    "content":"' . $base64. '"
-					  },
-					  "features": [
-					      {
-					      	"type": "WEB_DETECTION",
-							"maxResults": 1
-					      }
-					  ]
-					}
-				]
-			}';
+            $r_json = '{
+                "requests": [
+                    {
+                      "image": {
+                        "content":"' . $base64 . '"
+                      },
+                      "features": [
+                          {
+                            "type": "WEB_DETECTION",
+                            "maxResults": 1
+                          }
+                      ]
+                    }
+                ]
+            }';
 
             $curl = curl_init();
-            curl_setopt($curl, CURLOPT_URL, 'https://vision.googleapis.com/v1/images:annotate?key=' . GOOGLE_VISION_KEY);
+            curl_setopt(
+                $curl,
+                CURLOPT_URL,
+                'https://vision.googleapis.com/v1/images:annotate?key=' . GOOGLE_VISION_KEY
+            );
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-type: application/json"));
             curl_setopt($curl, CURLOPT_POST, true);
@@ -492,9 +614,9 @@ class Attachment
             $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
             if ($status) {
-                $rsp = json_decode($json_response, TRUE);
+                $rsp = json_decode($json_response, true);
                 #error_log("Identified {$this->id} by Google $json_response for $r_json");
-                error_log("Matching " . var_export($rsp, TRUE));
+                error_log("Matching " . var_export($rsp, true));
 
                 if ($rsp &&
                     array_key_exists('responses', $rsp) &&
@@ -504,21 +626,21 @@ class Attachment
                     $rsps = $rsp['responses'][0]['webDetection']['pagesWithMatchingImages'];
 
                     foreach ($rsps as $r) {
-                        if (array_key_exists('fullMatchingImages', $r) && strpos($r['url'], USER_SITE) === FALSE) {
+                        if (array_key_exists('fullMatchingImages', $r) && strpos($r['url'], USER_SITE) === false) {
                             $ret = $r['url'];
                         }
                     }
-                    error_log(var_export($rsps, TRUE));
+                    error_log(var_export($rsps, true));
                 }
             }
 
             curl_close($curl);
         }
 
-        return($ret);
+        return ($ret);
     }
 
-    public function ocr($data = NULL, $returnfull = FALSE, $video = FALSE) {
+    public function ocr($data = null, $returnfull = false, $video = false) {
         # Identify text in an attachment using Google Vision API.
         $base64 = $data ? $data : base64_encode($this->getData());
 
@@ -533,11 +655,11 @@ class Attachment
               "features": ["TEXT_DETECTION"],
             }';
         } else {
-            $r_json ='{
+            $r_json = '{
                 "requests": [
                     {
                       "image": {
-                        "content":"' . $base64. '",
+                        "content":"' . $base64 . '",
                       },
                       "features": [
                           {
@@ -570,13 +692,16 @@ class Attachment
         $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
         $text = '';
-        $rsps = NULL;
+        $rsps = null;
 
         if ($status) {
             error_log("Rsp $json_response");
-            $rsp = json_decode($json_response, TRUE);
+            $rsp = json_decode($json_response, true);
 
-            if ($rsp && array_key_exists('responses', $rsp) && count($rsp['responses']) > 0 && array_key_exists('textAnnotations', $rsp['responses'][0])) {
+            if ($rsp && array_key_exists('responses', $rsp) && count($rsp['responses']) > 0 && array_key_exists(
+                    'textAnnotations',
+                    $rsp['responses'][0]
+                )) {
                 $rsps = $rsp['responses'][0]['textAnnotations'];
 
                 foreach ($rsps as $rsp) {
@@ -588,18 +713,18 @@ class Attachment
 
         curl_close($curl);
 
-        return($returnfull ? $rsps : $text);
+        return ($returnfull ? $rsps : $text);
     }
 
-    public function objects($data = NULL) {
+    public function objects($data = null) {
         # Identify objects in an attachment using Google Vision API.
         $base64 = $data ? $data : base64_encode($this->getData());
 
-        $r_json ='{
+        $r_json = '{
             "requests": [
                 {
                   "image": {
-                    "content":"' . $base64. '"
+                    "content":"' . $base64 . '"
                   },
                   "features": [
                       {
@@ -619,15 +744,15 @@ class Attachment
         $json_response = curl_exec($curl);
         $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-        $rsp = NULL;
+        $rsp = null;
 
         if ($status) {
-            $rsp = json_decode($json_response, TRUE);
+            $rsp = json_decode($json_response, true);
         }
 
         curl_close($curl);
 
-        return($rsp);
+        return ($rsp);
     }
 
     public function setPrivate($att, $val) {

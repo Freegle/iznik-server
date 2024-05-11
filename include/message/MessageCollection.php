@@ -297,7 +297,7 @@ class MessageCollection
                 }
 
                 if (Utils::pres('attachmentid', $msg)) {
-                    $a = new Attachment($this->dbhr, $this->dbhm);
+                    $a = new Attachment($this->dbhr, $this->dbhm, $msg['attachmentid'], Attachment::TYPE_MESSAGE);
 
                     $msg['attachments'] = [
                         [

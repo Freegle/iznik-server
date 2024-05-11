@@ -18,7 +18,8 @@ class UploadCare {
         # add preview as an operation to make it work.
         $newFileInfo = $this->fileApi->copyToLocalStorage($uid . "/-/strip_meta/all/-/preview/", true);
         $newuid = $newFileInfo->getUuid();
-        $newurl = $newFileInfo->getUrl();
+        $newurl = $newFileInfo->getOriginalFileUrl();
+        #error_log("Copy $uid, $url to $newuid, $newurl");
 
         if ($newuid) {
             $this->fileApi->deleteFile($oldFileInfo);
