@@ -26,7 +26,7 @@
       <mj-section background-url="https://www.ilovefreegle.org/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0px">
         <mj-group>
           <mj-column vertical-align="middle" width="65%">
-            <mj-text color="#61AE24" font-size="18px">Thanks for joining Freegle</mj-text>
+            <mj-text color="#61AE24" font-size="18px"><b>Thanks for joining Freegle</b></mj-text>
           </mj-column>
           <mj-column vertical-align="middle" width="35%">
             <mj-image css-class="logo" src="https://www.ilovefreegle.org/icon.png" alt="Logo" width="80px" align="right" border-radius="5px" padding="20px"></mj-image>
@@ -46,74 +46,60 @@
               <li>We don't see or check items offered - see our <a href="https://www.ilovefreegle.org/disclaimer">disclaimer</a>.</li>
               <li>Freegle communities may have additional rules - please check the welcome mail you get when you join for details.</li>
               <li>Please <a href="https://www.ilovefreegle.org/disclaimer">keep yourself safe and watch out for scams</a>.</li>
-              <li>Objectionable content or behaviour will not be tolerated.</li>
-              <li>If you see anything inappropriate, suspicious or just dodgy then please <a href="https://www.ilovefreegle.org/help">report it</a>.</li>
-              <li>You must be aged 12 or over, as there is user-generated content.</li>
-              <li>We won't sell your email address to anyone else - see <a href="https://www.ilovefreegle.org/privacy">privacy page</a>.</li>
+              <li>Objectionable content or behaviour will not be tolerated.  If you see anything inappropriate, suspicious or just dodgy then please <a href="https://www.ilovefreegle.org/help">report it</a>.</li>
+              <li>You must be aged 13 or over, as there is user-generated content.</li>
+              <li>We keep your personal data private - see <a href="https://www.ilovefreegle.org/privacy">privacy page</a>.</li>
+              <li>Your posts will be public - see <a href="https://www.ilovefreegle.org/privacy">privacy page</a>.</li>
               <li>We will email you posts, replies, events, newsletters, etc - control these in <a href="https://www.ilovefreegle.org/settings">Settings</a>.</li>
-              <li>We will make your post public to publicise Freegle but not your email address - see <a href="https://www.ilovefreegle.org/privacy">privacy page</a>.</li>
             </ol>
           </mj-text>
-          <mj-text color="#61AE24" font-size="14px">Happy freegling!</mj-text>
-          <mj-button href="http://www.ilovefreegle.org" background-color="#61AE24" font-size="12px">Freegle something!</mj-button>
+          <mj-text font-size="14px"><b>Happy freegling!</b></mj-text>
           <mj-divider border-color="#d2cfb7" border-style="dotted"></mj-divider>
-          <mj-text>You might also like these quick instructions.</mj-text>
         </mj-column>
       </mj-section>
-      <mj-section background-color="#e6f3e1" padding-top="10px" padding-bottom="10px" border-top="3px solid #4f7a3f">
-        <mj-column>
-          <mj-text><span style="font-size: 14pt; color: #4f7a3f">How to post an OFFER</span>
-            <ol>
-              <li>Go to <a href="https://www.ilovefreegle.org/give">https://www.ilovefreegle.org/give</a></li>
-              <li>Click the 'Add photos' button to add a photo if you have one.</li>
-              <li>Fill in the appropriate info in the various boxes.</li>
-              <li>Click 'Next'.</li>
-              <li>Put your postcode into the box.</li>
-              <li>You will see, lower down the screen, a suggestion of which community to post on. If this is incorrect, click on the arrows and it will bring up a list of communities you are a member of.</li>
-              <li>Click on 'Next'.</li>
-              <li>Fill in your email address.</li>
-              <li>Click 'Freegle it!'</li>
-            </ol>
-          </mj-text>
+      <mj-section background-color="#FFFFFF">
+        <mj-column width="55%">
+          <mj-image fluid-on-mobile src="https://www.ilovefreegle.org/images/welcome1.jpg" width="280px" padding-bottom="20px" alt="" align="center" border="none"></mj-image>
         </mj-column>
-      </mj-section>
-      <mj-section background-color="#e1f3f2" padding-top="10px" padding-bottom="10px" border-top="3px solid #346d6a">
-        <mj-column>
-          <mj-text><span style="font-size: 14pt; color: #346d6a">How to post a WANTED</span>
-            <ol>
-              <li>Go to <a href="https://www.ilovefreegle.org/find">https://www.ilovefreegle.org/find</a></li>
-              <li>Click the 'Add photos' button to add a photo if you have one.</li>
-              <li>Fill in the appropriate info in the various boxes.</li>
-              <li>Click 'Next'.</li>
-              <li>Put your postcode into the box.</li>
-              <li>You will see, lower down the screen, a suggestion of which community to post on. If this is incorrect, click on the arrows and it will bring up a list of communities you are a member of.</li>
-              <li>Click on 'Next'.</li>
-              <li>Fill in your email address.</li>
-              <li>Click 'Freegle it!'</li>
-            </ol>
-          </mj-text>
+
+        <mj-column width="45%" background-color="#FFFFFF">
+          <mj-text align="left" padding=" 10px 10px" font-size="20px" line-height="30px" font-family="Alice, Helvetica, Arial, sans-serif">Post an OFFER</mj-text>
+          <mj-text align="left" padding="0 10px">Give something away!  Upload a photo, share the info, enter your postcode and email, and you’re ready to go!</mj-text>
+          <mj-button href="https://www.ilovefreegle.org/give" background-color="#325906" color="white" padding="20px 20px 30px 20px" border-radius="20px">POST AN OFFER</mj-button>
         </mj-column>
-      </mj-section>
-      <mj-section background-color="#e6f3e1" padding-top="10px" padding-bottom="10px" border-top="3px solid #4f7a3f">
-        <mj-column>
-          <mj-text><span style="font-size: 14pt; color: #4f7a3f">How to join a community</span>
-            <ol>
-              <li>Go to <a href="https://www.ilovefreegle.org/explore">https://www.ilovefreegle.org/explore</a></li>
-              <li>Click on one of the 'regions' to see a list of communities in that area.</li>
-              <li>Click on the 'Join' button, or click on 'Explore' to see what's being freegled.</li>
-              <li>Alternatively, use the map to browse around, and either click on the 'Join' buttons below the map or reply to a post you're interested in.</li>
-            </ol>
-          </mj-text>
+        <mj-divider padding="0 20px" border-width="1px" border-color="#000000">						</mj-divider>
+    	</mj-section>
+      <mj-section background-color="#FFFFFF">
+        <mj-column width="55%">
+          <mj-image fluid-on-mobile src="https://www.ilovefreegle.org/images/welcome2.jpg" width="280px" padding-bottom="20px" alt="" align="center" border="none"></mj-image>
         </mj-column>
-      </mj-section>
-      <mj-section background-color="#E0E0E0">
-        <mj-column>
-          <mj-text font-size="9px" color="#707070">This mail was sent to&nbsp;{{ email }}. You can change your settings by clicking <a href="https://www.ilovefreegle.org/settings">here</a>.
-            <hr style="border: 0; border-top: 1px solid #AAA; " />
-            Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.  Registered address: Weaver's Field, Loud Bridge, Chipping PR3 2NX
-          </mj-text>
+
+        <mj-column width="45%" background-color="#FFFFFF">
+          <mj-text align="left" padding=" 10px 10px" font-size="20px" line-height="30px" font-family="Alice, Helvetica, Arial, sans-serif">Post a WANTED</mj-text>
+          <mj-text align="left" padding="0 10px">Ask the Freegle community for something you need.  </mj-text>
+          <mj-button href="https://www.ilovefreegle.org/find" background-color="#325906" color="white" padding="20px 20px 30px 20px" border-radius="20px">POST A WANTED</mj-button>
         </mj-column>
+         <mj-divider padding="0 20px" border-width="1px" border-color="#000000"></mj-divider>
       </mj-section>
+      <mj-section background-color="#FFFFFF">
+        <mj-column width="55%">
+          <mj-image fluid-on-mobile src="https://www.ilovefreegle.org/images/welcome3.jpg" width="280px" padding-bottom="20px" alt="" align="center" border="none"></mj-image>
+        </mj-column>
+        <mj-column width="45%" background-color="#FFFFFF">
+          <mj-text align="left" padding=" 10px 10px" font-size="20px" line-height="30px" font-family="Alice, Helvetica, Arial, sans-serif">Join a community</mj-text>
+          <mj-text align="left" padding="0 10px">Just browsing?  Find communities and sign up for email alerts here.</mj-text>
+          <mj-button href="https://www.ilovefreegle.org/explore" background-color="#325906" color="white" padding="20px 20px 30px 20px" border-radius="20px">EXPLORE COMMUNITIES</mj-button>
+        </mj-column>
+        <mj-divider padding="0 20px" border-width="1px" border-color="#000000"></mj-divider>
+      </mj-section>
+        <mj-section background-color="#E0E0E0">
+          <mj-column>
+            <mj-text font-size="9px" color="#707070">This mail was sent to&nbsp;{{ email }}. You can change your settings by clicking <a href="https://www.ilovefreegle.org/settings">here</a>.
+              <hr style="border: 0; border-top: 1px solid #AAA; " />
+              Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.  Registered address: Weaver's Field, Loud Bridge, Chipping PR3 2NX
+            </mj-text>
+          </mj-column>
+        </mj-section>
     </mj-wrapper>
   </mj-body>
 </mjml>
