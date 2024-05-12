@@ -14,6 +14,7 @@ $max = 120;
 
 do {
     $msgs = $dbhr->preQuery("SELECT * FROM `chat_messages` WHERE chat_messages.processingrequired = 1 ORDER BY id ASC;");
+
     if (!count($msgs)) {
         # Sleep for more to arrive, otherwise keep going.
         $max--;
@@ -23,12 +24,12 @@ do {
             exit(0);
         }
     } else {
-        error_log("Start chat processing at " . date("Y-m-d H:i:s", time()) . " for " . count($msgs));
-
         foreach ($msgs as $msg) {
-            error_log("..." . $msg['id']);
-            $cm = new ChatMessage($dbhr, $dbhm, $msg['id']);
-            $cm->process();
+            if ($msg['processingrequired']) {
+                error_log(date("Y-m-d H:i:s", time()) . " " . $msg['id']);
+                $cm = new ChatMessage($dbhr, $dbhm, $msg['id']);
+                $cm->process();
+            }
         }
     }
 } while ($max > 0);

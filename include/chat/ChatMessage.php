@@ -175,6 +175,11 @@ class ChatMessage extends Entity
                 foreach ($val as $url) {
                     if ($url) {
                         $newurl = $s->expandExternal($url);
+
+                        if ($url != $newurl) {
+                            error_log("Expand $url to $newurl");
+                        }
+
                         $expanded = str_replace($url, $newurl, $expanded);
                     }
                 }
