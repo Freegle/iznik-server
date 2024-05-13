@@ -80,7 +80,7 @@ class shortlinkTest extends IznikTestCase {
         $ret = $s->expandExternal('http://www.ilovefreegle.org/mobile');
         self::assertEquals('https://www.ilovefreegle.org/mobile', $ret);
         $ret = $s->expandExternal('www.shivatrust.org');
-        self::assertEquals('https://www.ilovefreegle.org/mobile', $ret);
+        self::assertEquals('https://www.shivatrust.org/', $ret);
     }
 }
 

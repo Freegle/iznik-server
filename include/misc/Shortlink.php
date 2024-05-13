@@ -129,9 +129,8 @@ class Shortlink extends Entity
             return $url;
         }
 
-        if (stripos($url, 'http:') !== 0) {
+        if (stripos($url, 'http') !== 0) {
             # We don't want to follow http links.
-            error_log("Add http:// to $url");
             $url = "http://$url";
         }
 
