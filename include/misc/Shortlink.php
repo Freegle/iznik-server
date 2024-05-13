@@ -119,14 +119,20 @@ class Shortlink extends Entity
 
         if ($depth > 10) {
             # Redirect loop?
-            error_log('Loop');
+            error_log("Loop in $url at $depth");
             return $ret;
         }
 
         if (strpos($url, 'https://' . USER_SITE) === 0 || strpos($url, USER_TEST_SITE) === 0) {
             # Ours - so no need to expand.
-            error_log("Ours");
+            error_log("URL $url is our domain " . USER_SITE . " or " . USER_TEST_SITE);
             return $url;
+        }
+
+        if (stripos($url, 'http:') !== 0) {
+            # We don't want to follow http links.
+            error_log("Add http:// to $url");
+            $url = "http://$url";
         }
 
         try {
@@ -155,6 +161,7 @@ class Shortlink extends Entity
                         if ($newloc) {
                             $ret = $this->expandExternal($newloc, $depth + 1);
                         } else {
+                            error_log("Redirect not handled for $url: " . json_encode($location));
                             $ret = Spam::URL_REMOVED;
                         }
                     } else if (stripos($location, 'http') === FALSE) {
@@ -166,6 +173,8 @@ class Shortlink extends Entity
                 } else {
                     $ret = $url;
                 }
+            } else {
+                error_log("$url returned no response");
             }
         } catch (\Exception $e) {
             error_log("Failed to expand $url: " . $e->getMessage());
