@@ -166,7 +166,6 @@ class Attachment {
 
         if ($id) {
             $sql = "SELECT {$this->idatt}, hash, archived $url $uid FROM {$this->table} WHERE id = ?;";
-            error_log($sql);
             $as = $atts ? [$atts] : $this->dbhr->preQuery($sql, [$id]);
             foreach ($as as $att) {
                 $this->hash = $att['hash'];
@@ -249,7 +248,6 @@ class Attachment {
         $extstr = '';
         $extwhere = '';
 
-        error_log("byIds type " . $this->type);
         switch ($this->type) {
             case Attachment::TYPE_MESSAGE:
                 $extstr = ', externalurl, externaluid2';
