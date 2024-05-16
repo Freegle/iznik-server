@@ -14,7 +14,7 @@ class Attachment {
     private $dbhr;
     /** @var  $dbhm LoggedPDO */
     private $dbhm;
-    private $id, $table, $hash, $archived, $url;
+    private $id, $table, $hash, $archived, $externalurl, $externaluid, $externalmods;
 
     /**
      * @return null
@@ -42,8 +42,8 @@ class Attachment {
     }
 
     public function getPath($thumb = false, $id = null, $archived = false) {
-        if ($this->url) {
-            return $this->url;
+        if ($this->externalurl) {
+            return $this->externalurl;
         }
 
         # We serve up our attachment names as though they are files.
@@ -98,6 +98,7 @@ class Attachment {
 
         $ret['path'] = $this->getPath(false);
         $ret['paththumb'] = $this->getPath(true);
+        $ret['mods'] = $this->externalmods;
 
         return ($ret);
     }
@@ -110,17 +111,19 @@ class Attachment {
         $this->archived = false;
         $url = '';
         $uid = 'externaluid';
+        $mods = '';
 
         switch ($type) {
             case Attachment::TYPE_MESSAGE:
             {
                 $this->table = 'messages_attachments';
                 $this->idatt = 'msgid';
-                $this->urlname = 'externalurl';
+                $this->externalurlname = 'externalurl';
                 $this->uidname = 'externaluid';
                 $this->modsname = 'externalmods';
                 $url = ', externalurl';
                 $uid = ', externaluid';
+                $mods = ', externalmods';
                 break;
             }
             case Attachment::TYPE_GROUP:
@@ -147,7 +150,7 @@ class Attachment {
             {
                 $this->table = 'users_images';
                 $this->idatt = 'userid';
-                $this->urlname = 'externalurl';
+                $this->externalurlname = 'externalurl';
                 $url = ', url';
                 break;
             }
@@ -166,13 +169,14 @@ class Attachment {
         }
 
         if ($id) {
-            $sql = "SELECT {$this->idatt}, hash, archived $url $uid FROM {$this->table} WHERE id = ?;";
+            $sql = "SELECT {$this->idatt}, hash, archived $url $uid $mods FROM {$this->table} WHERE id = ?;";
             $as = $atts ? [$atts] : $this->dbhr->preQuery($sql, [$id]);
             foreach ($as as $att) {
                 $this->hash = $att['hash'];
                 $this->archived = $att['archived'];
-                $this->url = Utils::presdef($this->urlname, $att, null);
+                $this->externalurl = Utils::presdef($this->externalurlname, $att, null);
                 $this->externaluid = Utils::presdef($this->uidname, $att, null);
+                $this->externalmods = Utils::presdef($this->modsname, $att, null);
                 $this->{$this->idatt} = $att[$this->idatt];
             }
         }
@@ -189,7 +193,7 @@ class Attachment {
             }
 
             $rc = $this->dbhm->preExec(
-                "INSERT INTO {$this->table} (`{$this->idatt}`, `{$this->uidname}`, `{$this->urlname}`, `{$this->modsname}`) VALUES (?, ?, ?, ?);",
+                "INSERT INTO {$this->table} (`{$this->idatt}`, `{$this->uidname}`, `{$this->externalurlname}`, `{$this->modsname}`) VALUES (?, ?, ?, ?);",
                 [
                     $id,
                     $uid,
@@ -203,7 +207,8 @@ class Attachment {
             if ($imgid) {
                 $this->id = $imgid;
                 $this->externaluid = $uid;
-                $this->url = $url;
+                $this->externalmods = $mods;
+                $this->externalurl = $url;
             }
 
             return ([$imgid, $uid, $url]);
@@ -328,7 +333,7 @@ class Attachment {
     }
 
     public function archive() {
-        if ($this->url) {
+        if ($this->externalurl) {
             // We don't archive external URLs.
             return;
         }
@@ -418,8 +423,8 @@ class Attachment {
     }
 
     public function canRedirect() {
-        if ($this->url) {
-            return $this->url;
+        if ($this->externalurl) {
+            return $this->externalurl;
         } else {
             if ($this->archived) {
                 # Only these types are in archive_attachments.
