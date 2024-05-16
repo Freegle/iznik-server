@@ -189,7 +189,7 @@ class Attachment {
             }
 
             $rc = $this->dbhm->preExec(
-                "INSERT INTO {$this->table} (`{$this->idatt}`, `{$this->uidname}`, `{$this->urlname}, `{$this->modsname}`) VALUES (?, ?, ?);",
+                "INSERT INTO {$this->table} (`{$this->idatt}`, `{$this->uidname}`, `{$this->urlname}`, `{$this->modsname}`) VALUES (?, ?, ?, ?);",
                 [
                     $id,
                     $uid,
