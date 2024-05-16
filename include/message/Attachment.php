@@ -178,7 +178,7 @@ class Attachment {
         }
     }
 
-    public function create($id, $data, $uid = null, $url = null, $stripExif = TRUE, $mods) {
+    public function create($id, $data, $uid = null, $url = null, $stripExif = TRUE, $mods = NULL) {
         if ($url) {
             if ($stripExif && UPLOADCARE_PUBLIC_KEY) {
                 // Image data is held externally on uploadcare.  The uploaded photo will contain EXIF data, and there
