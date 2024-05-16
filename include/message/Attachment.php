@@ -118,6 +118,7 @@ class Attachment {
                 $this->idatt = 'msgid';
                 $this->urlname = 'externalurl';
                 $this->uidname = 'externaluid';
+                $this->modsname = 'externalmods';
                 $url = ', externalurl';
                 $uid = ', externaluid';
                 break;
@@ -177,7 +178,7 @@ class Attachment {
         }
     }
 
-    public function create($id, $data, $uid = null, $url = null, $stripExif = true) {
+    public function create($id, $data, $uid = null, $url = null, $stripExif = TRUE, $mods) {
         if ($url) {
             if ($stripExif && UPLOADCARE_PUBLIC_KEY) {
                 // Image data is held externally on uploadcare.  The uploaded photo will contain EXIF data, and there
@@ -188,11 +189,12 @@ class Attachment {
             }
 
             $rc = $this->dbhm->preExec(
-                "INSERT INTO {$this->table} (`{$this->idatt}`, `{$this->uidname}`, `{$this->urlname}`) VALUES (?, ?, ?);",
+                "INSERT INTO {$this->table} (`{$this->idatt}`, `{$this->uidname}`, `{$this->urlname}, `{$this->modsname}`) VALUES (?, ?, ?);",
                 [
                     $id,
                     $uid,
-                    $url
+                    $url,
+                    $mods
                 ]
             );
 
@@ -250,7 +252,7 @@ class Attachment {
 
         switch ($this->type) {
             case Attachment::TYPE_MESSAGE:
-                $extstr = ', externalurl, externaluid, externalmod ';
+                $extstr = ', externalurl, externaluid, externalmods ';
                 $extwhere = ' OR externaluid IS NOT NULL';
                 break;
         }
