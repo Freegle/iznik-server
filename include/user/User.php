@@ -3705,7 +3705,7 @@ class User extends Entity
             ->setSubject("We've turned off emails for you")
             ->setFrom([NOREPLY_ADDR => SITE_NAME])
             ->setTo($this->getEmailPreferred())
-            ->setBcc('log@ehibbert.org.uk')
+//            ->setBcc('log@ehibbert.org.uk')
             ->setBody("You marked a mail as spam, so we've turned off your emails.  You can leave Freegle completely from $unsubscribe or turn them back on from $settings.");
 
         # Add HTML in base-64 as default quoted-printable encoding leads to problems on
