@@ -19,10 +19,22 @@ class UploadCare {
         $newFileInfo = $this->fileApi->copyToLocalStorage($uid . "/-/strip_meta/all/-/preview/", true);
         $newuid = $newFileInfo->getUuid();
         $newurl = $newFileInfo->getOriginalFileUrl();
-        #error_log("Copy $uid, $url to $newuid, $newurl");
+        error_log("Copy $uid, $url to $newuid, $newurl, ready " . $newFileInfo->isReady());
+
+        # The image is not immediately available on the CDN.  Wait for upto a second.
+        for ($i = 0; $i < 10; $i++) {
+            if ($newFileInfo->isReady()) {
+                error_log("$newurl is ready");
+                break;
+            } else {
+                error_log("$newurl is not ready");
+                usleep(100000); # 0.1s
+                $newFileInfo = $this->fileApi->fileInfo($newuid);
+            }
+        }
 
         if ($newuid) {
-            $this->fileApi->deleteFile($oldFileInfo);
+            #$this->fileApi->deleteFile($oldFileInfo);
         }
 
         return [ $newuid, $newurl ];

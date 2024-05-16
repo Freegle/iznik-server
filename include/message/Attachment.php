@@ -109,7 +109,7 @@ class Attachment {
         $this->type = $type;
         $this->archived = false;
         $url = '';
-        $uid = 'externaluid2';
+        $uid = 'externaluid';
 
         switch ($type) {
             case Attachment::TYPE_MESSAGE:
@@ -117,9 +117,9 @@ class Attachment {
                 $this->table = 'messages_attachments';
                 $this->idatt = 'msgid';
                 $this->urlname = 'externalurl';
-                $this->uidname = 'externaluid2';
+                $this->uidname = 'externaluid';
                 $url = ', externalurl';
-                $uid = ', externaluid2';
+                $uid = ', externaluid';
                 break;
             }
             case Attachment::TYPE_GROUP:
@@ -250,8 +250,8 @@ class Attachment {
 
         switch ($this->type) {
             case Attachment::TYPE_MESSAGE:
-                $extstr = ', externalurl, externaluid2';
-                $extwhere = ' OR externaluid2 IS NOT NULL';
+                $extstr = ', externalurl, externaluid, externalmod ';
+                $extwhere = ' OR externaluid IS NOT NULL';
                 break;
         }
 
@@ -263,7 +263,6 @@ class Attachment {
             error_log($sql);
             $atts = $this->dbhr->preQuery($sql);
             foreach ($atts as $att) {
-                error_log(json_encode($att));
                 $ret[] = new Attachment($this->dbhr, $this->dbhm, $att['id'], $this->type, $att);
             }
         }

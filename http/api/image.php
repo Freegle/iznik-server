@@ -23,6 +23,7 @@ function image() {
     $imgtype = Utils::presdef('imgtype', $_REQUEST, Attachment::TYPE_MESSAGE);
     $externaluid = Utils::presdef('externaluid', $_REQUEST, NULL);
     $externalurl = Utils::presdef('externalurl', $_REQUEST, NULL);
+    $externalmods = Utils::presdef('externalmods', $_REQUEST, NULL);
 
     $sizelimit = 800;
     
@@ -131,8 +132,9 @@ function image() {
                     ];
                 }
             } else if ($externaluid && $externalurl) {
+                // This is an external image.  Typically it's uploaded to a service like Uploadcare.
                 $a = new Attachment($dbhr, $dbhm, NULL, $imgtype);
-                list ($id, $uid, $url) = $a->create($msgid, NULL, $externaluid, $externalurl);
+                list ($id, $uid, $url) = $a->create($msgid, NULL, $externaluid, $externalurl, $externalmods);
 
                 $ret = [
                     'ret' => 0,
