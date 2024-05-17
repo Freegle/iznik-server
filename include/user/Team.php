@@ -12,6 +12,7 @@ class Team extends Entity
     const TEAM_INFO = 'Info';
     const TEAM_GEEKS = 'Geeks';
     const TEAM_VOLUNTEERS = 'Volunteers';
+    const TEAM_CHITCHAT = 'ChitChat Moderation';
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL)
     {
@@ -50,6 +51,15 @@ class Team extends Entity
         }
 
         return($ret);
+    }
+
+    public function isAMember($uid) {
+        $membs = $this->dbhr->preQuery("SELECT userid FROM teams_members WHERE teamid = ? AND userid = ?;", [
+            $this->id,
+            $uid
+        ]);
+
+        return(count($membs) > 0);
     }
 
     public function listAll() {

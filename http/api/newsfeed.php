@@ -147,7 +147,11 @@ function newsfeed() {
 
                     $me = Session::whoAmI($dbhr, $dbhm);
 
-                    if ($me->isAdminOrSupport()) {
+                    $t = new Team($dbhr, $dbhm);
+                    $tid = $t->findByName(Team::TEAM_CHITCHAT);
+                    $t = new Team($dbhr, $dbhm,$tid);
+
+                    if ($me->isAdminOrSupport() || $t->isAMember($myid)) {
                         $n->unhide($id);
 
                         $ret = [

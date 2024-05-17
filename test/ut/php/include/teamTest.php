@@ -18,7 +18,7 @@ class teamTest extends IznikTestCase {
     private $count = 0;
 
     protected function setUp() : void {
-        parent::setUp ();
+        parent::setUp();
 
         /** @var LoggedPDO $dbhr */
         /** @var LoggedPDO $dbhm */
@@ -56,6 +56,17 @@ class teamTest extends IznikTestCase {
         }
 
         $this->assertTrue($found);
+    }
+
+    public function testMember() {
+        $t = new Team($this->dbhr, $this->dbhm);
+        $tid = $t->create('Test Team', NULL, 'Test Team Description');
+
+        $t = new Team($this->dbhr, $this->dbhm, $tid);
+        $t->addMember($this->uid2);
+
+        $this->assertFalse($t->isAMember($this->uid));
+        $this->assertTrue($t->isAMember($this->uid2));
     }
 }
 

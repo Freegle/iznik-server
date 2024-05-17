@@ -5,6 +5,7 @@ function user() {
     global $dbhr, $dbhm;
 
     $me = Session::whoAmI($dbhr, $dbhm);
+    $myid = $me ? $me->getId() : NULL;
 
     $id = (Utils::presint('id', $_REQUEST, NULL));
     $groupid = (Utils::presint('groupid', $_REQUEST, NULL));
@@ -217,12 +218,24 @@ function user() {
                 }
             }
 
-            if (array_key_exists('newsfeedmodstatus', $_REQUEST) && $me->isAdminOrSupport()) {
-                $u->setPrivate('newsfeedmodstatus', $_REQUEST['newsfeedmodstatus']);
+            if (array_key_exists('newsfeedmodstatus', $_REQUEST)) {
                 $ret = [
-                    'ret' => 0,
-                    'status' => 'Success'
+                    'ret' => 2,
+                    'status' => 'Permission denied'
                 ];
+
+                $t = new Team($dbhr, $dbhm);
+                $tid = $t->findByName(Team::TEAM_CHITCHAT);
+                $t = new Team($dbhr, $dbhm,$tid);
+
+                if ($me->isAdminOrSupport() || $t->isAMember($myid)) {
+                    $u->setPrivate('newsfeedmodstatus', $_REQUEST['newsfeedmodstatus']);
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success'
+                    ];
+                }
             }
 
             if ($u && $me && ($me->isModOrOwner($groupid) || $me->isAdminOrSupport())) {
