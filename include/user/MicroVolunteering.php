@@ -298,11 +298,7 @@ class MicroVolunteering
         if ($votes[0]['count'] >= self::APPROVAL_QUORUM) {
             # We do.
             $a = new Attachment($this->dbhr, $this->dbhm, $photoid, Attachment::TYPE_MESSAGE);
-            $data = $a->getData();
-            $i = new Image($data);
-            $i->rotate($deg);
-            $newdata = $i->getData(100);
-            $a->setData($newdata);
+            $a->rotate($deg);
             $a->recordRotate();
             $ret = true;
         }
