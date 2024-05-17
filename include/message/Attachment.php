@@ -198,7 +198,7 @@ class Attachment {
                     $id,
                     $uid,
                     $url,
-                    $mods
+                    json_encode($mods)
                 ]
             );
 
@@ -769,6 +769,26 @@ class Attachment {
 
     public function getIdAtt() {
         return $this->idatt;
+    }
+
+    function rotate($rotate) {
+        if ($this->externaluid) {
+            # We can rotate this by changing external mods.
+            $mods = json_decode($this->externalmods, TRUE);
+            $mods['rotate'] = $rotate;
+            $this->setPrivate('externalmods', json_encode($mods));
+        } else {
+            $data = $this->getData();
+            $i = new Image($data);
+            $i->rotate($rotate);
+            $newdata = $i->getData(100);
+            $this->setData($newdata);
+        }
+
+        if ($this->type == Attachment::TYPE_MESSAGE) {
+            # Only some kinds of attachments record whether they are rotated.
+            $this->recordRotate();
+        }
     }
 
     public function recordRotate() {

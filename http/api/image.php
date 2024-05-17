@@ -107,34 +107,21 @@ function image() {
             # This next line is to simplify UT.
             $rotate = Utils::presint('rotate', $_REQUEST, NULL);
 
-            if ($rotate)
-            {
-                if ($id)
-                {
+            if (Utis::pres('rotate', $_REQUEST)) {
+                if ($id) {
                     # We want to rotate.  Do so.
                     $a = new Attachment($dbhr, $dbhm, $id, $type);
-                    $data = $a->getData();
-                    $i = new Image($data);
-                    $i->rotate($rotate);
-                    $newdata = $i->getData(100);
-                    $a->setData($newdata);
-
-                    if ($type == Attachment::TYPE_MESSAGE)
-                    {
-                        # Only some kinds of attachments record whether they are rotated.
-                        $a->recordRotate();
-                    }
+                    $a->rotate($rotate);
 
                     $ret = [
                         'ret' => 0,
                         'status' => 'Success',
-                        'rotatedsize' => strlen($newdata)
                     ];
                 }
             } else if ($externaluid && $externalurl) {
                 // This is an external image.  Typically it's uploaded to a service like Uploadcare.
                 $a = new Attachment($dbhr, $dbhm, NULL, $imgtype);
-                list ($id, $uid, $url) = $a->create($msgid, NULL, $externaluid, $externalurl, $externalmods);
+                list ($id, $uid, $url) = $a->create($msgid, NULL, $externaluid, $externalurl, TRUE, $externalmods);
 
                 $ret = [
                     'ret' => 0,
