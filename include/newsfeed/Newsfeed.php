@@ -849,7 +849,8 @@ class Newsfeed extends Entity
                     (!$unseen || $feed['id'] > $lastseen) &&
                     $feed['timestamp'] > $oldest &&
                     (Utils::pres('message', $feed) || $feed['type'] == Newsfeed::TYPE_STORY) &&
-                    !$feed['deleted']) {
+                    !$feed['deleted'] &&
+                    !$feed['hidden']) {
                     $str = $feed['message'];
 
                     $u = User::get($this->dbhr, $this->dbhm, $feed['userid']);
