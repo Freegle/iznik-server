@@ -57,7 +57,6 @@ abstract class IznikAPITestCase extends IznikTestCase {
 
         # Get the output since we last did this.
         $op = $this->getActualOutput();
-        error_log("Output: $op");
 
         if ($this->lastOutput) {
             $len = strlen($this->lastOutput);

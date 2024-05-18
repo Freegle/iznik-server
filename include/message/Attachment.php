@@ -267,7 +267,7 @@ class Attachment {
                        WHERE {$this->idatt} IN (" . implode(',', $ids) . ") 
                        AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1 $extwhere) 
                        ORDER BY `primary` DESC, id;";
-            error_log($sql);
+            #error_log($sql);
             $atts = $this->dbhr->preQuery($sql);
             foreach ($atts as $att) {
                 $ret[] = new Attachment($this->dbhr, $this->dbhm, $att['id'], $this->type, $att);

@@ -658,12 +658,6 @@ class Newsfeed extends Entity
         $id = $this->create($type, NULL, NULL, NULL, NULL, $this->id);
         $n = new Notifications($this->dbhr, $this->dbhm);
         $n->add($myid, $userid, Notifications::TYPE_COMMENT_ON_YOUR_POST, $this->id, $this->threadId());
-
-        # Hide this post except to the author.
-        $rc = $this->dbhm->preExec("UPDATE newsfeed SET hidden = NOW(), hiddenby = ? WHERE id = ?;", [
-            $myid,
-            $referredid
-        ]);
     }
 
     public function like() {
@@ -1173,8 +1167,17 @@ class Newsfeed extends Entity
         return $s->create($n->getPrivate('userid'), TRUE, 'My Freegle story', $n->getPrivate('message'), NULL);
     }
 
-    public function unhide($newsfeedid) {
+    public function hide($newsfeedid) {
         # Hide this post except to the author.
+        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
+        $rc = $this->dbhm->preExec("UPDATE newsfeed SET hidden = NOW(), hiddenby = ? WHERE id = ?;", [
+            $myid,
+            $newsfeedid
+        ]);
+    }
+
+    public function unhide($newsfeedid) {
+        # Unhide this post.
         $rc = $this->dbhm->preExec("UPDATE newsfeed SET hidden = NULL, hiddenby = NULL WHERE id = ?;", [
             $newsfeedid
         ]);

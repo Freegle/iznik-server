@@ -457,6 +457,24 @@ class newsfeedAPITest extends IznikAPITestCase {
         ]);
         $this->assertEquals(0, $ret['ret']);
 
+        $ret = $this->call('newsfeed', 'GET', [
+            'id' => $nid
+        ]);
+        $this->assertNull($ret['newsfeed']['hidden']);
+
+        # Hide it
+        $ret = $this->call('newsfeed', 'POST', [
+            'id' => $nid,
+            'action' => 'Hide',
+            'dup' => TRUE
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('newsfeed', 'GET', [
+            'id' => $nid
+        ]);
+        $this->assertNotNull($ret['newsfeed']['hidden']);
+
         # Report it
         $ret = $this->call('newsfeed', 'POST', [
             'id' => $nid,

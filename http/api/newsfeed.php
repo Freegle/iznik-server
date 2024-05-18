@@ -139,6 +139,26 @@ function newsfeed() {
                         'ret' => 0,
                         'status' => 'Success'
                     ];
+                } else if ($action == 'Hide') {
+                    $ret = [
+                        'ret' => 2,
+                        'status' => 'Permission denied'
+                    ];
+
+                    $me = Session::whoAmI($dbhr, $dbhm);
+
+                    $t = new Team($dbhr, $dbhm);
+                    $tid = $t->findByName(Team::TEAM_CHITCHAT);
+                    $t = new Team($dbhr, $dbhm,$tid);
+
+                    if ($me->isAdminOrSupport() || $t->isAMember($myid)) {
+                        $n->hide($id);
+
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success'
+                        ];
+                    }
                 } else if ($action == 'Unhide') {
                     $ret = [
                         'ret' => 2,
