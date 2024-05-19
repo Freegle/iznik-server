@@ -74,7 +74,7 @@ foreach (array_merge($spammers, $news) as $user) {
                         if (Utils::pres('spam', $user)) {
                             $str .= " who is on the spammer list.  This is not a guarantee that they are a spammer, but it's a good indicator.  Please check.";
                             $s = new Spam($dbhr, $dbhm);
-//                                $s->addSpammer($other['userid'], Spam::TYPE_PENDING_ADD, $str);
+                            $s->addSpammer($other['userid'], Spam::TYPE_PENDING_ADD, $str);
                         } else {
                             $str .= " who is muted on ChitChat (mute them too)";
 
