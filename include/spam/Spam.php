@@ -861,6 +861,19 @@ class Spam {
             ]);
         }
 
+        # Delete any sessions for spammers.
+        $sessions = $this->dbhr->preQuery("SELECT sessions.id FROM sessions INNER JOIN 
+    spam_users ON spam_users.userid = sessions.userid WHERE sessions.userid IS NOT NULL AND collection = ?;", [
+            Spam::TYPE_SPAMMER
+        ]);
+
+        foreach ($sessions as $session) {
+            error_log("Delete session {$session['id']} for {$session['userid']}");
+            $this->dbhm->preExec("DELETE FROM sessions WHERE id = ?;", [
+                $session['id']
+            ]);
+        }
+
         return($count);
     }
 
