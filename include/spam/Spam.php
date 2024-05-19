@@ -862,7 +862,7 @@ class Spam {
         }
 
         # Delete any sessions for spammers.
-        $sessions = $this->dbhr->preQuery("SELECT sessions.id FROM sessions INNER JOIN 
+        $sessions = $this->dbhr->preQuery("SELECT sessions.id, sessions.userid FROM sessions INNER JOIN 
     spam_users ON spam_users.userid = sessions.userid WHERE sessions.userid IS NOT NULL AND collection = ?;", [
             Spam::TYPE_SPAMMER
         ]);
