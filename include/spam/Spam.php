@@ -894,6 +894,13 @@ class Spam {
             }
             case Spam::TYPE_PENDING_ADD: {
                 $text = "Reported: $reason";
+
+                # We set the newsfeed status of any reported user to 'Suppressed', to reduce vandalism.
+                $u = new User($this->dbhr, $this->dbhm, $userid);
+                if ($u->getPrivate('systemrole') == User::SYSTEMROLE_USER) {
+                    $u->setPrivate('newsfeedmodstatus', User::NEWSFEED_SUPPRESSED);
+                }
+
                 break;
             }
         }
