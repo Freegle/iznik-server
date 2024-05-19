@@ -549,9 +549,17 @@ class Newsfeed extends Entity
                 $pinq .= ")";
             }
 
-            $sql = "SELECT newsfeed." . implode(',newsfeed.', $this->publicatts) . ", hidden, newsfeed_unfollow.id AS unfollowed FROM newsfeed LEFT JOIN newsfeed_unfollow ON newsfeed.id = newsfeed_unfollow.newsfeedid AND newsfeed_unfollow.userid = $userid WHERE $first AND replyto IS NULL AND newsfeed.deleted IS NULL $typeq $pinq ORDER BY pinned DESC, timestamp DESC LIMIT 5;";
+            $sql = "SELECT newsfeed." . implode(',newsfeed.', $this->publicatts) . ", hidden, newsfeed_unfollow.id AS unfollowed 
+            FROM newsfeed
+            LEFT JOIN spam_users ON spam_users.userid = newsfeed.userid AND collection IN (?, ?) 
+            LEFT JOIN newsfeed_unfollow ON newsfeed.id = newsfeed_unfollow.newsfeedid AND newsfeed_unfollow.userid = $userid 
+            WHERE $first AND replyto IS NULL AND newsfeed.deleted IS NULL $typeq $pinq ORDER BY pinned DESC, timestamp DESC LIMIT 5;";
             #error_log("Get feed $sql");
-            $entries = $this->dbhr->preQuery($sql);
+            $entries = $this->dbhr->preQuery($sql, [
+                Spam::TYPE_SPAMMER,
+                Spam::TYPE_PENDING_ADD
+            ]);
+
             $last = NULL;
 
             $me = Session::whoAmI($this->dbhr, $this->dbhm);
