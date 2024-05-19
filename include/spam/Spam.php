@@ -1040,12 +1040,12 @@ class Spam {
         return($ret);
     }
 
-    public function isSpammerUid($uid) {
+    public function isSpammerUid($uid, $collection = Spam::TYPE_SPAMMER) {
         $ret = FALSE;
 
         $spammers = $this->dbhr->preQuery("SELECT id FROM spam_users WHERE userid = ? AND collection = ?;", [
             $uid,
-            Spam::TYPE_SPAMMER
+            $collection
         ]);
 
         foreach ($spammers as $spammer) {

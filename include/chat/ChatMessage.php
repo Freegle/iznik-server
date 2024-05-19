@@ -247,10 +247,17 @@ class ChatMessage extends Entity
                 $id
             ]);
 
+
             $modstatus = $u->getPrivate('chatmodstatus');
 
             if (count($last) && $last[0]['reviewrequired']) {
                 $reviewreason = self::REVIEW_LAST;
+                $review = 1;
+            } else  if ($s->isSpammerUid($userid, Spam::TYPE_SPAMMER) ||
+                $s->isSpammerUid($userid, Spam::TYPE_PENDING_ADD)) {
+                # If the user is a spammer (confirmed or pending) hold their messages so that they don't get through
+                # before the spam report is processed.
+                $reviewreason = self::REVIEW_SPAM;
                 $review = 1;
             } else if ($forcereview && $modstatus !== User::CHAT_MODSTATUS_UNMODERATED) {
                 $reviewreason = self::REVIEW_FORCE;
