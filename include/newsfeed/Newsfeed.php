@@ -106,6 +106,8 @@ class Newsfeed extends Entity
 
                     if ($replyto && $hidden == 'NULL') {
                         # Bump the thread all the way up to the thread head, so that it moves up the feed.
+                        #
+                        # This does mean that replies from spammers will bump old threads up to the top.
                         $bump = $replyto;
 
                         do {

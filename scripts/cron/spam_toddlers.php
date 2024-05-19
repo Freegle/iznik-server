@@ -19,7 +19,6 @@ foreach ($news as &$user) {
     $user['newsfeed'] = TRUE;
 }
 
-error_log("Found " . count($news) . " active users muted on ChitChat");
 
 # Find active users who are on the spammer list.
 $spammers = $dbhr->preQuery("SELECT DISTINCT spam_users.userid FROM logs_api INNER JOIN spam_users ON logs_api.userid = spam_users.userid WHERE collection = ?", [
@@ -30,14 +29,17 @@ foreach ($spammers as &$spammer) {
     $spammer['spam'] = TRUE;
 }
 
-error_log("Found " . count($spammers) . " active users on spam list");
 
 if (file_exists('/var/www/toddlers.json')) {
     $found = json_decode(file_get_contents('/var/www/toddlers.json'), TRUE);
-    error_log("Found " . count($found) . " previously processed.");
 } else {
     $found = [];
 }
+
+error_log("Start at " . date("Y-m-d H:i:s") . " with " .
+          count($news) . " active users muted on ChitChat, " .
+          count($spammers) . " active users on spam list, and " .
+          count($found) . " previously processed.");
 
 foreach (array_merge($spammers, $news) as $user) {
     # Find the IP addresses they're using.
