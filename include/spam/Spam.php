@@ -830,7 +830,7 @@ class Spam {
         # Find any chat messages from spammers.
         $chats = $this->dbhr->preQuery("SELECT id, chatid FROM chat_messages WHERE 
 userid IN (SELECT userid FROM spam_users WHERE collection = 'Spammer')
-AND reviewrequested != 1;");
+AND reviewrejected != 1;");
         foreach ($chats as $chat) {
             error_log("Found spam chat message {$chat['id']}");
             $sql = "UPDATE chat_messages SET reviewrejected = 1, reviewrequired = 0 WHERE id = ?";
