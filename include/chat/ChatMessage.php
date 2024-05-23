@@ -169,21 +169,9 @@ class ChatMessage extends Entity
 
         $u = User::get($this->dbhr, $this->dbhm, $this->chatmessage['userid']);
 
-        if (!$u->isModerator() && preg_match_all(Utils::URL_PATTERN, $expanded, $matches)) {
+        if (!$u->isModerator()) {
             $s = new Shortlink($this->dbhr, $this->dbhm);
-            foreach ($matches as $val) {
-                foreach ($val as $url) {
-                    if ($url) {
-                        $newurl = $s->expandExternal($url);
-
-                        if ($url != $newurl) {
-                            error_log("Expand $url to $newurl");
-                        }
-
-                        $expanded = str_replace($url, $newurl, $expanded);
-                    }
-                }
-            }
+            $expanded = $s->expandAllUrls($expanded);
 
             if ($expanded != $message) {
                 $this->dbhm->preExec("UPDATE chat_messages SET message = ? WHERE id = ?;", [

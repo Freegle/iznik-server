@@ -228,19 +228,8 @@ class Message
     public function edit($subject, $textbody, $type, $item, $locationid, $attachments, $checkreview = TRUE, $groupid = NULL) {
         $ret = TRUE;
         $textbody = trim($textbody);
-
-        # Expand any urls.
-        if (preg_match_all(Utils::URL_PATTERN, $textbody, $matches)) {
-            $s = new Shortlink($this->dbhr, $this->dbhm);
-            foreach ($matches as $val) {
-                foreach ($val as $url) {
-                    if ($url) {
-                        $newurl = $s->expandExternal($url);
-                        $textbody = str_replace($url, $newurl, $textbody);
-                    }
-                }
-            }
-        }
+        $s = new Shortlink($this->dbhr, $this->dbhm);
+        $textbody = $s->expandAllUrls($textbody);
 
         # Get old values for edit history.  We put NULL if there is no edit.
         $oldtext = $textbody ? trim($this->getPrivate('textbody')) : NULL;
@@ -5760,17 +5749,8 @@ $mq", [
     private function expandUrls()  {
         $txtbody = $this->textbody;
 
-        if (preg_match_all(Utils::URL_PATTERN, $txtbody, $matches)) {
-            $s = new Shortlink($this->dbhr, $this->dbhm);
-            foreach ($matches as $val) {
-                foreach ($val as $url) {
-                    if ($url) {
-                        $newurl = $s->expandExternal($url);
-                        $txtbody = str_replace($url, $newurl, $txtbody);
-                    }
-                }
-            }
-        }
+        $s = new Shortlink($this->dbhr, $this->dbhm);
+        $txtbody = $s->expandAllUrls($txtbody);
 
         if ($this->textbody != $txtbody) {
             if ($this->id) {

@@ -4139,7 +4139,10 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals('Message for others', $msgs[1]['message']);
     }
 
-    public function testExpandUrl() {
+    /**
+     * @dataProvider expandText
+     */
+    public function testExpandUrl($text, $result) {
         $l = new Location($this->dbhr, $this->dbhm);
         $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)');
 
@@ -4164,7 +4167,7 @@ class messageAPITest extends IznikAPITestCase
             'messagetype' => 'Offer',
             'item' => 'a thing',
             'groupid' => $this->gid,
-            'textbody' => 'Text body with http://microsoft.com which should expand'
+            'textbody' => $text
         ]);
 
         $this->assertEquals(0, $ret['ret']);
@@ -4186,6 +4189,19 @@ class messageAPITest extends IznikAPITestCase
             'id' => $mid,
         ]);
         $this->assertEquals(0, $ret['ret']);
-        $this->assertStringContainsString('www.microsoft.com', $ret['message']['textbody']);
+        $this->assertStringContainsString($result, $ret['message']['textbody']);
+    }
+
+    public function expandText() {
+        return [
+            [
+                'Text body with http://microsoft.com which should expand',
+                'www.microsoft.com'
+            ],
+            [
+                "Hi\r\nVirus-free.www.avg.com",
+                'www.avg.com'
+            ]
+        ];
     }
 }

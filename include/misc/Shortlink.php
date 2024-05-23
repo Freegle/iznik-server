@@ -131,6 +131,7 @@ class Shortlink extends Entity
 
         if (stripos($url, 'http') !== 0) {
             # We don't want to follow http links.
+            error_log("Add http:// to $url");
             $url = "http://$url";
         }
 
@@ -180,5 +181,32 @@ class Shortlink extends Entity
         }
 
         return $ret;
+    }
+
+    function expandAllUrls($str) {
+        $urls = [];
+
+        if (preg_match_all(Utils::URL_PATTERN, $str, $matches)) {
+            foreach ($matches as $val) {
+                foreach ($val as $url) {
+                    $urls[] = $url;
+                }
+            }
+
+            $urls = array_unique($urls);
+
+            foreach ($urls as $url) {
+                if ($url) {
+                    $newurl = $this->expandExternal($url);
+
+                    if ($newurl != $url) {
+                        $str = str_replace($url, $newurl, $str);
+                        error_log("Expand $url to $newurl");
+                    }
+                }
+            }
+        }
+
+        return $str;
     }
 }
