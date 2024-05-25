@@ -27,10 +27,6 @@ class sessionTest extends IznikAPITestCase
         $this->dbhm->preExec("DELETE FROM users_push_notifications WHERE `type` = 'Test';");
     }
 
-    protected function tearDown() : void
-    {
-    }
-
     public function sendMock($mailer, $message)
     {
         $this->msgsSent[] = $message->toString();
@@ -1080,5 +1076,28 @@ class sessionTest extends IznikAPITestCase
 
         $u = new User($this->dbhr, $this->dbhm, $id);
         $this->assertEquals(1, $u->getPrivate('marketingconsent', 0));
+    }
+
+    public function testSpammerLogin() {
+        $u = User::get($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $this->assertNotNull($u->addEmail('test123@test.com'));
+
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+
+        # Add to the spammer list.
+        $s = new Spam($this->dbhr, $this->dbhm);
+        $this->assertNotNull($s->addSpammer($id, Spam::TYPE_SPAMMER, 'UT'));
+
+        # Should be able to appear to log in.
+        $ret = $this->call('session', 'POST', [
+            'email' => 'test123@test.com',
+            'password' => 'testpw'
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+
+        # But hasn't in fact got a session.
+        $ret = $this->call('session', 'GET', []);
+        $this->assertEquals(1, $ret['ret']);
     }
 }

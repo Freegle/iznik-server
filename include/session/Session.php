@@ -209,39 +209,46 @@ class Session {
     }
 
     public function create($userid) {
-        # If we wanted to only allow login from a single device/browser, we'd destroy cookies at this point.  But
-        # we want to allow login on as many devices as the user wants.  We want to leave any existing sessions around
-        # so that if they are used later on by other clients, they'll still work.  This can happen if they're stored
-        # in local storage - we can get different sessions on different clients, and unless we allow them all, one
-        # device can effectively log another one out.  They get tidied up via a cron script.
-        # TODO SHA1 is no longer brilliantly secure.
-        $series = Utils::devurandom_rand();
-        $token  = Utils::devurandom_rand();
-        $thash  = sha1($token);
+        # Spammers can't create sessions, but we make it look as though they did.
+        $s = new Spam($this->dbhr, $this->dbhm);
 
-        $sql = "INSERT INTO sessions (`userid`, `series`, `token`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);";
+        if (!$s->isSpammerUid($userid, Spam::TYPE_SPAMMER)) {
+            # If we wanted to only allow login from a single device/browser, we'd destroy cookies at this point.  But
+            # we want to allow login on as many devices as the user wants.  We want to leave any existing sessions around
+            # so that if they are used later on by other clients, they'll still work.  This can happen if they're stored
+            # in local storage - we can get different sessions on different clients, and unless we allow them all, one
+            # device can effectively log another one out.  They get tidied up via a cron script.
+            # TODO SHA1 is no longer brilliantly secure.
+            $series = Utils::devurandom_rand();
+            $token  = Utils::devurandom_rand();
+            $thash  = sha1($token);
 
-        $this->dbhm->preExec($sql, [
-            $userid,
-            $series,
-            $thash
-        ]);
+            $sql = "INSERT INTO sessions (`userid`, `series`, `token`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id);";
 
-        $id = $this->dbhm->lastInsertId();
-        $this->id = $id;
+            $this->dbhm->preExec($sql, [
+                $userid,
+                $series,
+                $thash
+            ]);
 
-        $_SESSION['id'] = $userid;
-        #error_log("Created session for $userid in " . session_id());
-        $_SESSION['logged_in'] = TRUE;
+            $id = $this->dbhm->lastInsertId();
+            $this->id = $id;
 
-        $_SESSION['persistent'] = [
-            'id' => $id,
-            'series' => $series,
-            'token' => $thash,
-            'userid' => $userid
-        ];
-        
-        return ($_SESSION['persistent']);
+            $_SESSION['id'] = $userid;
+            #error_log("Created session for $userid in " . session_id());
+            $_SESSION['logged_in'] = TRUE;
+
+            $_SESSION['persistent'] = [
+                'id' => $id,
+                'series' => $series,
+                'token' => $thash,
+                'userid' => $userid
+            ];
+
+            return ($_SESSION['persistent']);
+        }
+
+        return NULL;
     }
 
     public function verify($id, $series, $token) {
