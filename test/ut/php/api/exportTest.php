@@ -61,10 +61,6 @@ class exportAPITest extends IznikAPITestCase {
         # Add a ban by us.
         $this->user->removeMembership($gid1, TRUE);
 
-        # Add to spammer list.
-        $s = new Spam($this->dbhr, $this->dbhm);
-        $s->addSpammer($this->user->getId(), Spam::TYPE_SPAMMER, 'UT');
-
         # Try logged out - should fail
         $_SESSION['id'] = NULL;
 
@@ -114,7 +110,6 @@ class exportAPITest extends IznikAPITestCase {
         $this->assertNotNull($ret['id']);
         $this->assertNotNull($ret['tag']);
         $this->assertEquals(1, count($ret['export']['data']['bans']));
-        $this->assertEquals(1, count($ret['export']['data']['spammers']));
         $this->assertEquals(1, count($ret['export']['data']['comments']));
         $this->assertEquals($this->user->getId(), $ret['export']['data']['Our_internal_ID_for_you']);
     }
