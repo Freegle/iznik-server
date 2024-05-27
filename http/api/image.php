@@ -107,7 +107,7 @@ function image() {
             # This next line is to simplify UT.
             $rotate = Utils::presint('rotate', $_REQUEST, NULL);
 
-            if (Utils::pres('rotate', $_REQUEST)) {
+            if (array_key_exists('rotate', $_REQUEST)) {
                 if ($id) {
                     # We want to rotate.  Do so.
                     $a = new Attachment($dbhr, $dbhm, $id, $type);
