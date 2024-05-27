@@ -8,7 +8,9 @@ class UploadCare {
 
     function __construct() {
         $this->config = \Uploadcare\Configuration::create(UPLOADCARE_PUBLIC_KEY, UPLOADCARE_SECRET_KEY);
-        $this->fileApi = (new \Uploadcare\Api($this->config))->file();
+        $this->api = (new \Uploadcare\Api($this->config));
+        $this->fileApi = $this->api->file();
+        $this->uploaderApi = $this->api->uploader();
     }
 
     function stripExif($uid, $url) {
@@ -16,23 +18,13 @@ class UploadCare {
 
         # We want to strip the EXIF data.  We remove all of it to avoid any privacy issues.  You have to
         # add preview as an operation to make it work.
-        $newFileInfo = $this->fileApi->copyToLocalStorage($uid . "/-/strip_meta/all/-/preview/", true);
+        #
+        # syncUploadFromUrl guarantees that the image is available on the CDN before returning.
+        $newFileInfo = $this->uploaderApi->syncUploadFromUrl("https://ucarecdn.com/$uid/-/strip_meta/all/-/preview/");
         $newuid = $newFileInfo->getUuid();
         $newurl = $newFileInfo->getOriginalFileUrl();
         $this->fileApi->storeFile($newuid);
         #error_log("Copy $uid, $url to $newuid, $newurl, ready " . $newFileInfo->isReady());
-
-        # The image is not immediately available on the CDN.  Wait for upto a second.
-        for ($i = 0; $i < 10; $i++) {
-            if ($newFileInfo->isReady()) {
-                #error_log("$newurl is ready");
-                break;
-            } else {
-                #error_log("$newurl is not ready");
-                usleep(100000); # 0.1s
-                $newFileInfo = $this->fileApi->fileInfo($newuid);
-            }
-        }
 
         if ($newuid) {
             $this->fileApi->deleteFile($oldFileInfo);
