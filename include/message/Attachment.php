@@ -190,15 +190,17 @@ class Attachment {
                 // "bakes in" the removal of the EXIF data.
                 $uc = new UploadCare();
                 list($uid, $url) = $uc->stripExif($uid, $url);
+                $this->hash = $uc->getPerceptualHash($uid);
             }
 
             $rc = $this->dbhm->preExec(
-                "INSERT INTO {$this->table} (`{$this->idatt}`, `{$this->uidname}`, `{$this->externalurlname}`, `{$this->modsname}`) VALUES (?, ?, ?, ?);",
+                "INSERT INTO {$this->table} (`{$this->idatt}`, `{$this->uidname}`, `{$this->externalurlname}`, `{$this->modsname}`, `hash`) VALUES (?, ?, ?, ?, ?);",
                 [
                     $id,
                     $uid,
                     $url,
-                    json_encode($mods)
+                    json_encode($mods),
+                    $this->hash,
                 ]
             );
 
