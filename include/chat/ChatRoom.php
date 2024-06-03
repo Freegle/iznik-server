@@ -918,6 +918,11 @@ WHERE chat_rooms.id IN $idlist;";
             $invalidcount = ($un['valid'] == 0) ? ++$invalidcount : $invalidcount;
         }
 
+        if ($this->getPrivate('chattype') == ChatRoom::TYPE_MOD2MOD) {
+           # If we have messages in this state it could result in us hiding a chat.
+           $invalidcount = 0;
+        }
+
         $dates = $this->dbhr->preQuery("SELECT MAX(date) AS maxdate FROM chat_messages WHERE chatid = ?;", [
             $this->id
         ], FALSE);
@@ -1015,6 +1020,7 @@ WHERE chat_rooms.id IN $idlist;";
                 #error_log("Add " . count($rooms) . " group chats using $sql");
             }
 
+            error_log($sql);
             $rooms = $this->dbhr->preQuery($sql);
 
             if (count($rooms) > 0) {
