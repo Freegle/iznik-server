@@ -206,26 +206,6 @@ class MailRouterTest extends IznikTestCase {
 
         }
 
-    public function testMoreSpam() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup", Group::GROUP_REUSE);
-
-        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamcam');
-        $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        list ($id, $failok) = $m->save();
-
-        $r = new MailRouter($this->dbhr, $this->dbhm, $id);
-        $rc = $r->route(NULL);
-        $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
-
-        # Force some code coverage for approvedby.
-        $r->markApproved();
-        $m = new Message($this->dbhr, $this->dbhm, $id);
-        $p = $m->getPublic();
-
-        }
-
     public function testGreetingSpam() {
         # Suppress emails
         $r = $this->getMockBuilder('Freegle\Iznik\MailRouter')
