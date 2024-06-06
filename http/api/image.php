@@ -71,7 +71,6 @@ function image() {
                     'status' => "Failed to create image $id of type $type",
                 ];
 
-
                 if ($i->img) {
                     $w = (Utils::presint('w', $_REQUEST, $i->width()));
                     $h = (Utils::presint('h', $_REQUEST, $i->height()));

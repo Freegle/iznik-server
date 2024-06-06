@@ -110,7 +110,7 @@ class Attachment {
         $this->type = $type;
         $this->archived = false;
         $url = '';
-        $uid = 'externaluid';
+        $uid = '';
         $mods = '';
 
         switch ($type) {
