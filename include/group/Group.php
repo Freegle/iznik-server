@@ -1269,7 +1269,7 @@ HAVING logincount > 0
     LEFT JOIN messages_popular ON messages_popular.msgid = messages_groups.msgid
     WHERE TIMESTAMPDIFF(HOUR, messages_likes.timestamp, NOW()) <= 24 AND 
           messages_groups.deleted = 0 AND
-          DATEDIFF(NOW(), messages_groups.added) <= 31
+          DATEDIFF(NOW(), messages_groups.added) <= 31 AND
           messages_groups.collection = ? AND ST_Contains(ST_GeomFromText(groups.polyofficial, {$this->dbhr->SRID()}), ST_SRID(POINT(messages.lng,messages.lat),  {$this->dbhr->SRID()})) AND
           messages_popular.id IS NULL
     GROUP BY messages_likes.msgid 
