@@ -129,6 +129,12 @@ class Shortlink extends Entity
             return $url;
         }
 
+        if (stripos($url, 'www.facebook.com')) {
+            # Facebook bounces us with unsupported browser, but we don't need to expand them anyway.
+            error_log("URL $url is Facebook");
+            return $url;
+        }
+
         if (stripos($url, 'http') !== 0) {
             # We don't want to follow http links.
             error_log("Add http:// to $url");
