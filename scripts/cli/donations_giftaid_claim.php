@@ -17,7 +17,7 @@ $count = $d->identifyGiftAidHouse();
 $d->identifyGiftAidedDonations();
 
 # Find all donations on which we could claim gift aid, but haven't.
-$donations = $dbhr->preQuery("SELECT users_donations.*, giftaid.fullname, giftaid.postcode, giftaid.housenameornumber FROM `users_donations` 
+$donations = $dbhr->preQuery("SELECT users_donations.*, giftaid.id AS giftaidid, giftaid.fullname, giftaid.postcode, giftaid.housenameornumber FROM `users_donations` 
     INNER JOIN giftaid ON users_donations.userid = giftaid.userid 
     WHERE giftaidconsent = 1 AND giftaidclaimed IS NULL AND giftaid.deleted IS NULL AND giftaid.reviewed IS NOT NULL AND GrossAmount > 0 
     AND source = 'DonateWithPayPal' ORDER BY users_donations.timestamp ASC;");
@@ -32,7 +32,9 @@ fputcsv(STDOUT, [
     'Sponsored event',
     'Donation date',
     'Amount',
-    'Email'
+    'Email',
+    'UserId',
+    'GiftAidId',
 ]);
 
 $invalid = 0;
@@ -71,6 +73,8 @@ foreach ($donations as $donation) {
                 $date,
                 $donation['GrossAmount'],
                 $donation['Payer'],
+                $donation['userid'],
+                $donation['giftaidid'],
             ]);
 
             $total += $donation['GrossAmount'];
