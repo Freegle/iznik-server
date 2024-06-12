@@ -321,7 +321,7 @@ class imageAPITest extends IznikAPITestCase
 
         // ...so double-check the internals.
         $a = new Attachment($this->dbhr, $this->dbhm, $id);
-        $this->assertEquals($url, $a->getPath());
+        $this->assertEquals(UPLOADCARE_CDN . "uid/", $a->getPath());
 
         $ret = $this->call('image', 'DELETE', [
             'id' => $id

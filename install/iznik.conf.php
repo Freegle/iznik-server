@@ -190,3 +190,4 @@ define('LOVE_JUNK_SECRET', 'LOVE_JUNK_SECRET');
 
 define('UPLOADCARE_PUBLIC_KEY', NULL);
 define('UPLOADCARE_SECRET_KEY', NULL);
+define('UPLOADCARE_CDN', 'https://ucarecdn.com/');
