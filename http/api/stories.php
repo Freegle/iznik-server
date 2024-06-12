@@ -130,28 +130,6 @@ function stories() {
                     $n = new Newsfeed($dbhr, $dbhm);
                     $n->create(Newsfeed::TYPE_STORY, $s->getPrivate('userid'), NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, $s->getPrivate('id'));
                 }
-
-                if ($newsletter && $newsletterreviewed) {
-                    # We have reviewed a story for inclusion in the newsletter.  Mail it to the local publicity address.
-                    list ($transport, $mailer) = Mail::getMailer();
-
-                    try {
-                        $m = \Swift_Message::newInstance()
-                            ->setSubject('New story for possible local publicity')
-                            ->setFrom([NOREPLY_ADDR => SITE_NAME])
-                            ->setReplyTo(NOREPLY_ADDR)
-                            ->setBody(
-                                $s->getPrivate('headline') . "\n\n\n\n" .
-                                $s->getPrivate('story') . "\n\n\n\n" .
-                                'https://' . USER_SITE . '/story/' . $s->getPrivate('id')
-                            )
-                            ->setTo(STORIES_ADDR);
-
-                        Mail::addHeaders($dbhr, $dbhm, $m, Mail::STORY);
-
-                        $mailer->send($m);
-                    } catch (\Exception $e) { error_log("Failed with " . $e->getMessage()); }
-                }
             }
             break;
         }
