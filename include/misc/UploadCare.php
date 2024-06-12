@@ -50,7 +50,8 @@ class UploadCare {
         $mods = json_decode($mods, TRUE);
 
         if ($mods) {
-            $url .= '-';
+            $url .= '-/';
+
             foreach ($mods as $mod => $val) {
                 $url .= "$mod/$val/";
             }
