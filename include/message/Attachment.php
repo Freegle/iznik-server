@@ -118,10 +118,8 @@ class Attachment {
             {
                 $this->table = 'messages_attachments';
                 $this->idatt = 'msgid';
-                $this->externalurlname = 'externalurl';
                 $this->uidname = 'externaluid';
                 $this->modsname = 'externalmods';
-                $url = ', externalurl';
                 $uid = ', externaluid';
                 $mods = ', externalmods';
                 break;
@@ -145,6 +143,10 @@ class Attachment {
             case Attachment::TYPE_CHAT_MESSAGE:
                 $this->table = 'chat_images';
                 $this->idatt = 'chatmsgid';
+                $this->uidname = 'externaluid';
+                $this->modsname = 'externalmods';
+                $uid = ', externaluid';
+                $mods = ', externalmods';
                 break;
             case Attachment::TYPE_USER:
             {
