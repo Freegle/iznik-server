@@ -164,6 +164,10 @@ class Attachment {
             case Attachment::TYPE_NEWSFEED:
                 $this->table = 'newsfeed_images';
                 $this->idatt = 'newsfeedid';
+                $this->uidname = 'externaluid';
+                $this->modsname = 'externalmods';
+                $uid = ', externaluid';
+                $mods = ', externalmods';
                 break;
             case Attachment::TYPE_STORY:
                 $this->table = 'users_stories_images';
