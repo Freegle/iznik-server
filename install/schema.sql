@@ -421,6 +421,8 @@ CREATE TABLE `chat_images` (
   `data` longblob,
   `identification` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `hash` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `externaluid` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `externalmods` text COLLATE utf8mb4_unicode_ci,
   PRIMARY KEY (`id`),
   KEY `incomingid` (`chatmsgid`),
   KEY `hash` (`hash`),
