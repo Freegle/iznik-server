@@ -13,16 +13,16 @@ $lockh = Utils::lockScript(basename(__FILE__));
 $max = 120;
 
 do {
+    if (file_exists('/tmp/iznik.mail.abort')) {
+        exit(0);
+    }
+
     $msgs = $dbhr->preQuery("SELECT * FROM `chat_messages` WHERE chat_messages.processingrequired = 1 ORDER BY id ASC;");
 
     if (!count($msgs)) {
         # Sleep for more to arrive, otherwise keep going.
         $max--;
         sleep(1);
-
-        if (file_exists('/tmp/iznik.mail.abort')) {
-            exit(0);
-        }
     } else {
         foreach ($msgs as $msg) {
             if ($msg['processingrequired']) {
