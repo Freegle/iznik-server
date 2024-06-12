@@ -42,6 +42,11 @@ class Attachment {
     }
 
     public function getPath($thumb = false, $id = null, $archived = false) {
+        if ($this->externaluid) {
+            $u = new UploadCare();
+            return $u->getUrl($this->externaluid, $this->externalmods);
+        }
+
         if ($this->externalurl) {
             return $this->externalurl;
         }
@@ -185,26 +190,38 @@ class Attachment {
     }
 
     public function create($id, $data, $uid = null, $url = null, $stripExif = TRUE, $mods = NULL) {
-        if ($url) {
+        if ($uid) {
             if ($stripExif && UPLOADCARE_PUBLIC_KEY) {
                 // Image data is held externally on uploadcare.  The uploaded photo will contain EXIF data, and there
                 // isn't currently a way to strip that out on upload.  So we have to copy the image to a new one which
                 // "bakes in" the removal of the EXIF data.
                 $uc = new UploadCare();
-                list($uid, $url) = $uc->stripExif($uid, $url);
+                $uid = $uc->stripExif($uid);
                 $this->hash = $uc->getPerceptualHash($uid);
             }
 
-            $rc = $this->dbhm->preExec(
-                "INSERT INTO {$this->table} (`{$this->idatt}`, `{$this->uidname}`, `{$this->externalurlname}`, `{$this->modsname}`, `hash`) VALUES (?, ?, ?, ?, ?);",
-                [
-                    $id,
-                    $uid,
-                    $url,
-                    json_encode($mods),
-                    $this->hash,
-                ]
-            );
+            if ($this->externalurlname) {
+                $rc = $this->dbhm->preExec(
+                    "INSERT INTO {$this->table} (`{$this->idatt}`, `{$this->uidname}`, `{$this->externalurlname}`, `{$this->modsname}`, `hash`) VALUES (?, ?, ?, ?, ?);",
+                    [
+                        $id,
+                        $uid,
+                        $url,
+                        json_encode($mods),
+                        $this->hash,
+                    ]
+                );
+            } else {
+                $rc = $this->dbhm->preExec(
+                    "INSERT INTO {$this->table} (`{$this->idatt}`, `{$this->uidname}`, `{$this->modsname}`, `hash`) VALUES (?, ?, ?, ?);",
+                    [
+                        $id,
+                        $uid,
+                        json_encode($mods),
+                        $this->hash,
+                    ]
+                );
+            }
 
             $imgid = $rc ? $this->dbhm->lastInsertId() : null;
 
@@ -215,7 +232,7 @@ class Attachment {
                 $this->externalurl = $url;
             }
 
-            return ([$imgid, $uid, $url]);
+            return ([$imgid, $uid]);
         } else {
             # We generate a perceptual hash.  This allows us to spot duplicate or similar images later.
             $hasher = new ImageHash;
@@ -261,7 +278,7 @@ class Attachment {
 
         switch ($this->type) {
             case Attachment::TYPE_MESSAGE:
-                $extstr = ', externalurl, externaluid, externalmods ';
+                $extstr = ', externaluid, externalmods ';
                 $extwhere = ' OR externaluid IS NOT NULL';
                 break;
         }
@@ -427,7 +444,10 @@ class Attachment {
     }
 
     public function canRedirect() {
-        if ($this->externalurl) {
+        if ($this->externaluid) {
+            $u = new UploadCare();
+            return $u->getUrl($this->externaluid, $this->externalmods);
+        } else if ($this->externalurl) {
             return $this->externalurl;
         } else {
             if ($this->archived) {

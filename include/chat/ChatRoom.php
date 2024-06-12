@@ -1020,7 +1020,6 @@ WHERE chat_rooms.id IN $idlist;";
                 #error_log("Add " . count($rooms) . " group chats using $sql");
             }
 
-            error_log($sql);
             $rooms = $this->dbhr->preQuery($sql);
 
             if (count($rooms) > 0) {

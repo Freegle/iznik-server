@@ -119,14 +119,13 @@ function image() {
             } else if ($externaluid) {
                 // This is an external image.  Typically it's uploaded to a service like Uploadcare.
                 $a = new Attachment($dbhr, $dbhm, NULL, $imgtype);
-                list ($id, $uid, $url) = $a->create($msgid, NULL, $externaluid, NULL, TRUE, $externalmods);
+                list ($id, $uid) = $a->create($msgid, NULL, $externaluid, NULL, TRUE, $externalmods);
 
                 $ret = [
                     'ret' => 0,
                     'status' => 'Success',
                     'id' => $id,
                     'uid' => $uid,
-                    'url' => $url,
                 ];
             } else {
                 $photo = Utils::presdef('photo', $_FILES, NULL) ? $_FILES['photo'] : $_REQUEST['photo'];
