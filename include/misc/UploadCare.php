@@ -6,10 +6,12 @@ class UploadCare {
     private $fileApi = NULL;
 
     function __construct() {
-        $this->config = \Uploadcare\Configuration::create(UPLOADCARE_PUBLIC_KEY, UPLOADCARE_SECRET_KEY);
-        $this->api = (new \Uploadcare\Api($this->config));
-        $this->fileApi = $this->api->file();
-        $this->uploaderApi = $this->api->uploader();
+        if (UPLOADCARE_PUBLIC_KEY) {
+            $this->config = \Uploadcare\Configuration::create(UPLOADCARE_PUBLIC_KEY, UPLOADCARE_SECRET_KEY);
+            $this->api = (new \Uploadcare\Api($this->config));
+            $this->fileApi = $this->api->file();
+            $this->uploaderApi = $this->api->uploader();
+        }
     }
 
     function stripExif($uid) {
