@@ -180,10 +180,18 @@ class Attachment {
             case Attachment::TYPE_STORY:
                 $this->table = 'users_stories_images';
                 $this->idatt = 'storyid';
+                $this->uidname = 'externaluid';
+                $this->modsname = 'externalmods';
+                $uid = ', externaluid';
+                $mods = ', externalmods';
                 break;
             case Attachment::TYPE_NOTICEBOARD:
                 $this->table = 'noticeboards_images';
                 $this->idatt = 'noticeboardid';
+                $this->uidname = 'externaluid';
+                $this->modsname = 'externalmods';
+                $uid = ', externaluid';
+                $mods = ', externalmods';
                 break;
         }
 

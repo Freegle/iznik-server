@@ -85,7 +85,9 @@ class Noticeboard extends Entity
         $toenc = $this->noticeboard;
 
         if ($photoid) {
+            $full = $this->dbhr->preQuery("SELECT * FROM noticeboards_images WHERE id = ? AND externaluid IS NOT NULL;", [ $photoid ]);
             $toenc['photo'] = $photoid;
+            $toenc['photofull'] = $full[0];
         }
 
         unset($toenc['position']);
