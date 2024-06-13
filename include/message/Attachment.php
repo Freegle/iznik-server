@@ -140,10 +140,18 @@ class Attachment {
             case Attachment::TYPE_COMMUNITY_EVENT:
                 $this->table = 'communityevents_images';
                 $this->idatt = 'eventid';
+                $this->uidname = 'externaluid';
+                $this->modsname = 'externalmods';
+                $uid = ', externaluid';
+                $mods = ', externalmods';
                 break;
             case Attachment::TYPE_VOLUNTEERING:
                 $this->table = 'volunteering_images';
                 $this->idatt = 'opportunityid';
+                $this->uidname = 'externaluid';
+                $this->modsname = 'externalmods';
+                $uid = ', externaluid';
+                $mods = ', externalmods';
                 break;
             case Attachment::TYPE_CHAT_MESSAGE:
                 $this->table = 'chat_images';
