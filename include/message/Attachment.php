@@ -165,8 +165,12 @@ class Attachment {
             {
                 $this->table = 'users_images';
                 $this->idatt = 'userid';
-                $this->externalurlname = 'externalurl';
+                $this->externalurlname = 'url';
                 $url = ', url';
+                $this->uidname = 'externaluid';
+                $this->modsname = 'externalmods';
+                $uid = ', externaluid';
+                $mods = ', externalmods';
                 break;
             }
             case Attachment::TYPE_NEWSFEED:
