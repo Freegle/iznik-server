@@ -2530,7 +2530,7 @@ ORDER BY id, added, groupid ASC;";
 
         $message = \Swift_Message::newInstance()
             ->setSubject($me->getName() . " asked for help with chat #{$this->id} " . $this->getName($this->id, $me->getId()))
-            ->setFrom([$me->getEmailPreferred()])
+            ->setFrom([NOREPLY_ADDR => SITE_NAME])
             ->setTo(explode(',', SUPPORT_ADDR))
             ->setBody('Please review the chat at https://' . MOD_SITE . "/modtools/support/refer/{$this->id} and then reply to this email to contact the mod who requested help.");
 
