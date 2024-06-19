@@ -378,8 +378,8 @@ class Attachment {
     }
 
     public function archive() {
-        if ($this->externalurl) {
-            // We don't archive external URLs.
+        if ($this->externalurl || $this->externaluid) {
+            // We don't archive external images.
             return;
         }
 
