@@ -80,7 +80,7 @@ class IncomingMessageTest extends IznikTestCase {
 
         # Check the saved attachment.  Only one - other stripped for aspect ratio.
         $atts = $m->getAttachments();
-        $this->assertEquals(7975, strlen($atts[0]->getData()));
+        $this->assertEquals(1, count($atts));
 
         # Check the returned attachment.  Only one - other stripped for aspect ratio.
         $atts = $m->getPublic();

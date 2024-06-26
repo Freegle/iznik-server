@@ -250,7 +250,7 @@ class Attachment {
     }
 
     public function getById($id) {
-        $sql = "SELECT id FROM {$this->table} WHERE {$this->idatt} = ? AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1) ORDER BY id;";
+        $sql = "SELECT id FROM {$this->table} WHERE {$this->idatt} = ? AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1 OR externaluid IS NOT NULL) ORDER BY id;";
         $atts = $this->dbhr->preQuery($sql, [$id]);
         $ret = [];
         foreach ($atts as $att) {
@@ -263,20 +263,10 @@ class Attachment {
     public function getByIds($ids) {
         $ret = [];
 
-        $extstr = '';
-        $extwhere = '';
-
-        switch ($this->type) {
-            case Attachment::TYPE_MESSAGE:
-                $extstr = ', externaluid, externalmods ';
-                $extwhere = ' OR externaluid IS NOT NULL';
-                break;
-        }
-
         if (count($ids)) {
-            $sql = "SELECT id, {$this->idatt}, hash, archived $extstr FROM {$this->table} 
+            $sql = "SELECT id, {$this->idatt}, hash, archived, externaluid, externalmods FROM {$this->table} 
                        WHERE {$this->idatt} IN (" . implode(',', $ids) . ") 
-                       AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1 $extwhere) 
+                       AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1 OR externaluid IS NOT NULL) 
                        ORDER BY `primary` DESC, id;";
             #error_log($sql);
             $atts = $this->dbhr->preQuery($sql);
