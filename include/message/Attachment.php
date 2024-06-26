@@ -210,6 +210,7 @@ class Attachment {
                 // upload.  So we have to copy the image to a new one which "bakes in" the removal of the EXIF data.
                 $uc = new UploadCare();
                 $uid = $uc->stripExif($uid);
+
                 $this->hash = $uc->getPerceptualHash($uid);
             }
 
@@ -247,6 +248,8 @@ class Attachment {
 
             return ([$imgid, $uid]);
         }
+
+        return NULL;
     }
 
     public function getById($id) {

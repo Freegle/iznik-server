@@ -1409,11 +1409,11 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(TRUE, $ret['message']['edits'][0]['reviewrequired']);
         $this->assertNull($ret['message']['edits'][0]['oldsubject']);
         $this->assertNull($ret['message']['edits'][0]['newsubject']);
-        $this->assertNull($ret['message']['edits'][2]['oldtext']);
-        $this->assertNull($ret['message']['edits'][2]['newtext']);
-        $this->assertEquals(TRUE, $ret['message']['edits'][2]['reviewrequired']);
-        $this->assertEquals('OFFER: a thing (TV1)', $ret['message']['edits'][2]['oldsubject']);
-        $this->assertEquals('OFFER: Edited (TV1)', $ret['message']['edits'][2]['newsubject']);
+        $this->assertNull($ret['message']['edits'][1]['oldtext']);
+        $this->assertNull($ret['message']['edits'][1]['newtext']);
+        $this->assertEquals(TRUE, $ret['message']['edits'][1]['reviewrequired']);
+        $this->assertEquals('OFFER: a thing (TV1)', $ret['message']['edits'][1]['oldsubject']);
+        $this->assertEquals('OFFER: Edited (TV1)', $ret['message']['edits'][1]['newsubject']);
 
         # This message should also show up in edits.
         $ret = $this->call('messages', 'GET', [
@@ -2099,7 +2099,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals(2, count($ret['message']['promises']));
         $this->assertEquals($uid3, $ret['message']['promises'][0]['userid']);
-        $this->assertEquals($uid2, $ret['message']['promises'][2]['userid']);
+        $this->assertEquals($uid2, $ret['message']['promises'][1]['userid']);
         
         # Renege on one of them.
         $ret = $this->call('message', 'POST', [
@@ -3900,8 +3900,8 @@ class messageAPITest extends IznikAPITestCase
         list ($msgs, $users) = $r->getMessages();
         $this->assertEquals(2, count($msgs));
         $this->assertEquals(ChatMessage::TYPE_INTERESTED, $msgs[0]['type']);
-        $this->assertEquals(ChatMessage::TYPE_COMPLETED, $msgs[2]['type']);
-        $this->assertEquals("Message for others", $msgs[2]['message']);
+        $this->assertEquals(ChatMessage::TYPE_COMPLETED, $msgs[1]['type']);
+        $this->assertEquals("Message for others", $msgs[1]['message']);
     }
 
     public function testSubmitLoggedInDifferentEmail() {
@@ -4120,10 +4120,10 @@ class messageAPITest extends IznikAPITestCase
         list ($msgs, $users) = $r->getMessages();
         $this->assertEquals(4, count($msgs));
         $this->assertEquals(ChatMessage::TYPE_INTERESTED, $msgs[0]['type']);
-        $this->assertEquals(ChatMessage::TYPE_PROMISED, $msgs[2]['type']);
+        $this->assertEquals(ChatMessage::TYPE_PROMISED, $msgs[1]['type']);
         $this->assertEquals(ChatMessage::TYPE_RENEGED, $msgs[2]['type']);
-        $this->assertEquals(ChatMessage::TYPE_COMPLETED, $msgs[2]['type']);
-        $this->assertEquals(NULL, $msgs[2]['message']);
+        $this->assertEquals(ChatMessage::TYPE_COMPLETED, $msgs[3]['type']);
+        $this->assertEquals(NULL, $msgs[3]['message']);
 
         $r = new ChatRoom($this->dbhr, $this->dbhm, $rid3);
         list ($msgs, $users) = $r->getMessages();
@@ -4131,8 +4131,8 @@ class messageAPITest extends IznikAPITestCase
         # Should be interested, message to others, taken.
         $this->assertEquals(2, count($msgs));
         $this->assertEquals(ChatMessage::TYPE_INTERESTED, $msgs[0]['type']);
-        $this->assertEquals(ChatMessage::TYPE_COMPLETED, $msgs[2]['type']);
-        $this->assertEquals('Message for others', $msgs[2]['message']);
+        $this->assertEquals(ChatMessage::TYPE_COMPLETED, $msgs[1]['type']);
+        $this->assertEquals('Message for others', $msgs[1]['message']);
     }
 
     /**

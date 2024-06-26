@@ -17,7 +17,6 @@ class UploadCare {
     function upload($data, $mimeType) {
         $file = $this->uploaderApi->fromContent($data, $mimeType);
         $uid = $file->getUuid();
-        $this->fileApi->storeFile($uid);
 
         return $uid;
     }
