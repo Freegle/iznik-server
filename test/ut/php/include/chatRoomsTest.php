@@ -185,7 +185,7 @@ class chatRoomsTest extends IznikTestCase {
 
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_CHAT_MESSAGE);
-        $attid = $a->create(NULL, $data);
+        list ($attid, $uid) = $a->create(NULL, $data);
         $this->assertNotNull($attid);
 
         # Messages from u1 -> u2.
@@ -1251,7 +1251,7 @@ class chatRoomsTest extends IznikTestCase {
 
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_CHAT_MESSAGE);
-        $attid = $a->create(NULL, $data);
+        list ($attid, $uid) = $a->create(NULL, $data);
         $this->assertNotNull($attid);
 
         $m = new ChatMessage($this->dbhr, $this->dbhm);

@@ -49,7 +49,7 @@ class newsletterTest extends IznikTestCase {
 
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_NEWSLETTER);
-        $attid = $a->create(NULL, $data);
+        list ($attid, $uid) = $a->create(NULL, $data);
         $artid = $n->addArticle(Newsletter::TYPE_ARTICLE, 1, '<p>Article with photo</p>', $attid);
         $a->setPrivate('articleid', $artid);
 

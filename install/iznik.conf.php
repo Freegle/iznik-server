@@ -33,7 +33,6 @@ define('GOOGLE_PROJECT', 'zzz');
 define('GOOGLE_PUSH_KEY', 'zzzz');
 
 # Other Google keys
-define('GOOGLE_VISION_KEY', 'zzz');
 define('GOOGLE_CLIENT_ID', 'zzz');
 define('GOOGLE_CLIENT_SECRET', 'zzz');
 define('GOOGLE_APP_NAME', 'zzz');

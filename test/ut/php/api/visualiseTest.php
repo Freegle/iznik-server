@@ -35,7 +35,7 @@ class visualiseAPITest extends IznikAPITestCase
 
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm);
-        $attid = $a->create(NULL, $data);
+        list ($attid, $uid) = $a->create(NULL, $data);
         $this->assertNotNull($attid);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment'));

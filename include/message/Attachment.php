@@ -5,8 +5,10 @@ namespace Freegle\Iznik;
 
 use Jenssegers\ImageHash\ImageHash;
 
-//use Google\Cloud\VideoIntelligence\V1\VideoIntelligenceServiceClient;
-//use Google\Cloud\VideoIntelligence\V1\Feature;
+# TODO:
+# - migrate old images across
+# - retire externalurl
+# - retire archiving
 
 # This is a base class
 class Attachment {
@@ -115,18 +117,16 @@ class Attachment {
         $this->type = $type;
         $this->archived = false;
         $url = '';
-        $uid = '';
-        $mods = '';
+        $this->uidname = 'externaluid';
+        $this->modsname = 'externalmods';
+        $uid = ', externaluid';
+        $mods = ', externalmods';
 
         switch ($type) {
             case Attachment::TYPE_MESSAGE:
             {
                 $this->table = 'messages_attachments';
                 $this->idatt = 'msgid';
-                $this->uidname = 'externaluid';
-                $this->modsname = 'externalmods';
-                $uid = ', externaluid';
-                $mods = ', externalmods';
                 break;
             }
             case Attachment::TYPE_GROUP:
@@ -140,26 +140,14 @@ class Attachment {
             case Attachment::TYPE_COMMUNITY_EVENT:
                 $this->table = 'communityevents_images';
                 $this->idatt = 'eventid';
-                $this->uidname = 'externaluid';
-                $this->modsname = 'externalmods';
-                $uid = ', externaluid';
-                $mods = ', externalmods';
                 break;
             case Attachment::TYPE_VOLUNTEERING:
                 $this->table = 'volunteering_images';
                 $this->idatt = 'opportunityid';
-                $this->uidname = 'externaluid';
-                $this->modsname = 'externalmods';
-                $uid = ', externaluid';
-                $mods = ', externalmods';
                 break;
             case Attachment::TYPE_CHAT_MESSAGE:
                 $this->table = 'chat_images';
                 $this->idatt = 'chatmsgid';
-                $this->uidname = 'externaluid';
-                $this->modsname = 'externalmods';
-                $uid = ', externaluid';
-                $mods = ', externalmods';
                 break;
             case Attachment::TYPE_USER:
             {
@@ -167,35 +155,19 @@ class Attachment {
                 $this->idatt = 'userid';
                 $this->externalurlname = 'url';
                 $url = ', url';
-                $this->uidname = 'externaluid';
-                $this->modsname = 'externalmods';
-                $uid = ', externaluid';
-                $mods = ', externalmods';
                 break;
             }
             case Attachment::TYPE_NEWSFEED:
                 $this->table = 'newsfeed_images';
                 $this->idatt = 'newsfeedid';
-                $this->uidname = 'externaluid';
-                $this->modsname = 'externalmods';
-                $uid = ', externaluid';
-                $mods = ', externalmods';
                 break;
             case Attachment::TYPE_STORY:
                 $this->table = 'users_stories_images';
                 $this->idatt = 'storyid';
-                $this->uidname = 'externaluid';
-                $this->modsname = 'externalmods';
-                $uid = ', externaluid';
-                $mods = ', externalmods';
                 break;
             case Attachment::TYPE_NOTICEBOARD:
                 $this->table = 'noticeboards_images';
                 $this->idatt = 'noticeboardid';
-                $this->uidname = 'externaluid';
-                $this->modsname = 'externalmods';
-                $uid = ', externaluid';
-                $mods = ', externalmods';
                 break;
         }
 
@@ -213,12 +185,29 @@ class Attachment {
         }
     }
 
-    public function create($id, $data, $uid = null, $url = null, $stripExif = TRUE, $mods = NULL) {
+    public function create($id, $data, $uid = NULL, $url = null, $stripExif = TRUE, $mods = NULL) {
+        if ($url) {
+            # We need to fetch the data from an external URL.
+            $ctx = stream_context_create(['http' =>
+                [
+                    'timeout' => 120
+                ]
+             ]);
+
+            $data = @file_get_contents($url, false, $ctx);
+        }
+
+        if (!$uid && $data) {
+            # We have the literal data, which we need to upload.
+            $uc = new UploadCare();
+            $uid = $uc->upload($data, 'image/jpeg');
+        }
+
         if ($uid) {
-            if ($stripExif && UPLOADCARE_PUBLIC_KEY) {
-                // Image data is held externally on uploadcare.  The uploaded photo will contain EXIF data, and there
-                // isn't currently a way to strip that out on upload.  So we have to copy the image to a new one which
-                // "bakes in" the removal of the EXIF data.
+            # We now have an image on Uploadcare.
+            if ($stripExif) {
+                // The uploaded photo will contain EXIF data, and there isn't currently a way to strip that out on
+                // upload.  So we have to copy the image to a new one which "bakes in" the removal of the EXIF data.
                 $uc = new UploadCare();
                 $uid = $uc->stripExif($uid);
                 $this->hash = $uc->getPerceptualHash($uid);
@@ -257,29 +246,6 @@ class Attachment {
             }
 
             return ([$imgid, $uid]);
-        } else {
-            # We generate a perceptual hash.  This allows us to spot duplicate or similar images later.
-            $hasher = new ImageHash;
-            $img = @imagecreatefromstring($data);
-            $hash = $img ? $hasher->hash($img) : null;
-
-            $rc = $this->dbhm->preExec(
-                "INSERT INTO {$this->table} (`{$this->idatt}`, `data`, `hash`) VALUES (?, ?, ?);",
-                [
-                    $id,
-                    $data,
-                    $hash
-                ]
-            );
-
-            $imgid = $rc ? $this->dbhm->lastInsertId() : null;
-
-            if ($imgid) {
-                $this->id = $imgid;
-                $this->hash = $hash;
-            }
-
-            return ($imgid);
         }
     }
 
@@ -324,12 +290,11 @@ class Attachment {
 
     public function getByImageIds($ids) {
         $ret = [];
-
         if (count($ids)) {
             $sql = "SELECT id, {$this->idatt}, hash, archived FROM {$this->table} WHERE id IN (" . implode(
                     ',',
                     $ids
-                ) . ") AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1) ORDER BY id;";
+                ) . ") AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1 OR externaluid IS NOT NULL) ORDER BY id;";
             $atts = $this->dbhr->preQuery($sql);
             foreach ($atts as $att) {
                 $ret[] = new Attachment($this->dbhr, $this->dbhm, $att['id'], $this->type, $att);
@@ -543,91 +508,6 @@ class Attachment {
         return ($ret);
     }
 
-    public function identify() {
-        # Identify objects in an attachment using Google Vision API.  Only for messages.
-        $items = [];
-        if ($this->type == Attachment::TYPE_MESSAGE) {
-            $data = $this->getData();
-            $base64 = base64_encode($data);
-
-            $r_json = '{
-                "requests": [
-                    {
-                      "image": {
-                        "content":"' . $base64 . '"
-                      },
-                      "features": [
-                          {
-                            "type": "LABEL_DETECTION",
-                            "maxResults": 20
-                          }
-                      ]
-                    }
-                ]
-            }';
-
-            $curl = curl_init();
-            curl_setopt(
-                $curl,
-                CURLOPT_URL,
-                'https://vision.googleapis.com/v1/images:annotate?key=' . GOOGLE_VISION_KEY
-            );
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-type: application/json"));
-            curl_setopt($curl, CURLOPT_POST, true);
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $r_json);
-            $json_response = curl_exec($curl);
-            $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-
-            if ($status) {
-                $rsp = json_decode($json_response, true);
-                #error_log("Identified {$this->id} by Google $json_response for $r_json");
-
-                if ($rsp && array_key_exists('responses', $rsp) && count($rsp['responses']) > 0 && array_key_exists(
-                        'labelAnnotations',
-                        $rsp['responses'][0]
-                    )) {
-                    $rsps = $rsp['responses'][0]['labelAnnotations'];
-                    $i = new Item($this->dbhr, $this->dbhm);
-
-                    foreach ($rsps as $rsp) {
-                        $found = $i->findByName($rsp['description']);
-                        $wasfound = false;
-                        foreach ($found as $item) {
-                            $this->dbhm->background(
-                                "INSERT INTO messages_attachments_items (attid, itemid) VALUES ({$this->id}, {$item['id']});"
-                            );
-                            $wasfound = true;
-                        }
-
-                        if (!$wasfound) {
-                            # Record items which were suggested but not considered as items by us.  This allows us to find common items which we ought to
-                            # add.
-                            #
-                            # This is usually because they're too vague.
-                            $url = "https://" . IMAGE_DOMAIN . "/img_{$this->id}.jpg";
-                            $this->dbhm->background(
-                                "INSERT INTO items_non (name, lastexample) VALUES (" . $this->dbhm->quote(
-                                    $rsp['description']
-                                ) . ", " . $this->dbhm->quote(
-                                    $url
-                                ) . ") ON DUPLICATE KEY UPDATE popularity = popularity + 1, lastexample = " . $this->dbhm->quote(
-                                    $url
-                                ) . ";"
-                            );
-                        }
-
-                        $items = array_merge($items, $found);
-                    }
-                }
-            }
-
-            curl_close($curl);
-        }
-
-        return ($items);
-    }
-
     public function findWebReferences() {
         # Find a web page containing this imge, if any.
         $ret = null;
@@ -766,45 +646,6 @@ class Attachment {
         curl_close($curl);
 
         return ($returnfull ? $rsps : $text);
-    }
-
-    public function objects($data = null) {
-        # Identify objects in an attachment using Google Vision API.
-        $base64 = $data ? $data : base64_encode($this->getData());
-
-        $r_json = '{
-            "requests": [
-                {
-                  "image": {
-                    "content":"' . $base64 . '"
-                  },
-                  "features": [
-                      {
-                        "type": "OBJECT_LOCALIZATION"
-                      }
-                  ]
-                }
-            ]
-        }';
-
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'https://vision.googleapis.com/v1/images:annotate?key=' . GOOGLE_VISION_KEY);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-type: application/json"));
-        curl_setopt($curl, CURLOPT_POST, true);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $r_json);
-        $json_response = curl_exec($curl);
-        $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-
-        $rsp = null;
-
-        if ($status) {
-            $rsp = json_decode($json_response, true);
-        }
-
-        curl_close($curl);
-
-        return ($rsp);
     }
 
     public function setPrivate($att, $val) {

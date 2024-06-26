@@ -7,9 +7,7 @@ function image() {
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
     $id = (Utils::presint('id', $_REQUEST, 0));
     $msgid = Utils::presint('msgid', $_REQUEST, NULL);
-    $identify = array_key_exists('identify', $_REQUEST) ? filter_var($_REQUEST['identify'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $ocr = array_key_exists('ocr', $_REQUEST) ? filter_var($_REQUEST['ocr'], FILTER_VALIDATE_BOOLEAN) : FALSE;
-    $objects = array_key_exists('objects', $_REQUEST) ? filter_var($_REQUEST['objects'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $group = Utils::presdef('group', $_REQUEST, NULL);
     $newsletter = Utils::presdef('newsletter', $_REQUEST, NULL);
     $communityevent = Utils::presdef('communityevent', $_REQUEST, NULL);
@@ -178,7 +176,7 @@ function image() {
 
                             if ($data) {
                                 $a = new Attachment($dbhr, $dbhm, NULL, $imgtype);
-                                $id = $a->create($msgid,$data);
+                                list ($id, $uid) = $a->create($msgid,$data);
 
                                 # Make sure it's not too large, to keep DB size down.  Ought to have been resized by
                                 # client, but you never know.
@@ -219,19 +217,9 @@ function image() {
 
                                 $ret['append'] = TRUE;
 
-                                if ($identify) {
-                                    $a = new Attachment($dbhr, $dbhm, $id);
-                                    $ret['items'] = $a->identify();
-                                }
-
                                 if ($ocr) {
                                     $a = new Attachment($dbhr, $dbhm, $id, $type);
                                     $ret['ocr'] = $a->ocr();
-                                }
-
-                                if ($objects) {
-                                    $a = new Attachment($dbhr, $dbhm, $id, $type);
-                                    $ret['objects'] = $a->objects();
                                 }
                             }
                         }
