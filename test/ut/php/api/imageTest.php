@@ -68,43 +68,9 @@ class imageAPITest extends IznikAPITestCase
             'w' => 100
         ], FALSE);
 
-        $this->assertTrue(strlen($ret) == 1178 || strlen($ret) == 1179);
-
-        $ret = $this->call('image', 'GET', [
-            'id' => $img1,
-            'h' => 100
-        ], FALSE);
-
-        $this->assertEquals(2116, strlen($ret));
-
-        $ret = $this->call('image', 'GET', [
-            'id' => $img1,
-            'h' => 100
-        ], FALSE);
-
-        $this->assertEquals(2116, strlen($ret));
-
-        $ret = $this->call('image', 'GET', [
-            'id' => $img1,
-            'h' => 100,
-            'group' => 1
-        ], TRUE);
-
-        $this->log("Expect 1 " . var_export($ret, TRUE));
-        $this->assertEquals(1, $ret['ret']);
-
-        $ret = $this->call('image', 'GET', [
-            'id' => $img1,
-            'h' => 100,
-            'newsletter' => 1
-        ], TRUE);
-
-        $this->assertEquals(1, $ret['ret']);
-
         $a->delete();
         $g->delete();
-
-        }
+    }
 
     public function testPost()
     {
@@ -115,19 +81,16 @@ class imageAPITest extends IznikAPITestCase
             'photo' => [
                 'tmp_name' => '/tmp/pan.jpg'
             ],
-            'identify' => TRUE
         ]);
 
         $this->assertEquals(0, $ret['ret']);
         $this->assertNotNull($ret['id']);
         $id = $ret['id'];
-        
-        # Now rotate.
-        $origdata = $this->call('image', 'GET', [
-            'id' => $id,
-            'w' => 100
-        ], FALSE);
 
+        $a = new Attachment($this->dbhr, $this->dbhm, $id);
+        $this->assertEquals('null', $a->getPublic()['mods']);
+        
+        # Now rotate. We have to check the resulting mods to make sure the image has been rotated.
         $ret = $this->call('image', 'POST', [
             'id' => $id,
             'rotate' => 90
@@ -135,44 +98,25 @@ class imageAPITest extends IznikAPITestCase
 
         $this->assertEquals(0, $ret['ret']);
 
-        $newdata = $this->call('image', 'GET', [
-            'id' => $id,
-            'w' => 100
-        ], FALSE);
+        $a = new Attachment($this->dbhr, $this->dbhm, $id);
+        $this->assertEquals('{"rotate":90}', $a->getPublic()['mods']);
 
-        $this->log("Lengths " . strlen($origdata) . " vs " . strlen($newdata));
-        $this->assertNotEquals($origdata, $newdata);
-
+        # Rotate back.
         $ret = $this->call('image', 'POST', [
             'id' => $id,
             'rotate' => -90
         ]);
+        $this->assertEquals(0, $ret['ret']);
 
-        $newdata = $this->call('image', 'GET', [
-            'id' => $id,
-            'w' => 100
-        ], FALSE);
-
-        # Get as a circle.
-        $origdata = $this->call('image', 'GET', [
-            'id' => $id,
-            'w' => 100
-        ], FALSE);
-
-        $newdata = $this->call('image', 'GET', [
-            'id' => $id,
-            'w' => 100,
-            'circle' => TRUE
-        ], FALSE);
-        $this->assertNotEquals($origdata, $newdata);
+        $a = new Attachment($this->dbhr, $this->dbhm, $id);
+        $this->assertEquals('{"rotate":270}', $a->getPublic()['mods']);
 
         $ret = $this->call('image', 'DELETE', [
             'id' => $id
         ]);
 
         $this->assertEquals(0, $ret['ret']);
-
-        }
+    }
 
     public function testHEIC()
     {
@@ -184,7 +128,6 @@ class imageAPITest extends IznikAPITestCase
                 'tmp_name' => '/tmp/image1.heic',
                 'type' => 'image/heic'
             ],
-            'identify' => TRUE
         ]);
 
         $this->assertEquals(2, $ret['ret']);
@@ -264,12 +207,12 @@ class imageAPITest extends IznikAPITestCase
     }
 
     public function testExternal() {
-        $url = 'https://ilovefreegle.org/icon.png';
-        $data = file_get_contents($url);
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
+        $u = new UploadCare();
+        $uid = $u->upload($data, 'image/jpeg');
 
         $ret = $this->call('image', 'POST', [
-            'externaluid' => 'uid',
-            'externalurl' => $url,
+            'externaluid' => $uid,
         ]);
 
         $this->assertEquals(0, $ret['ret']);
@@ -281,9 +224,9 @@ class imageAPITest extends IznikAPITestCase
             'id' => $id,
         ], FALSE);
 
-        // ...so double-check the internals.
+        // ...so double-check the internals.  The UID should have changed because we've stripped the exif.
         $a = new Attachment($this->dbhr, $this->dbhm, $id);
-        $this->assertEquals(UPLOADCARE_CDN . "uid/", $a->getPath());
+        $this->assertNotEquals(UPLOADCARE_CDN . "$uid/", $a->getPath());
 
         $ret = $this->call('image', 'DELETE', [
             'id' => $id

@@ -1045,7 +1045,6 @@ class messageAPITest extends IznikAPITestCase
             'photo' => [
                 'tmp_name' => '/tmp/chair.jpg'
             ],
-            'identify' => FALSE
         ]);
 
         $this->assertEquals(0, $ret['ret']);
@@ -1701,7 +1700,6 @@ class messageAPITest extends IznikAPITestCase
             'photo' => [
                 'tmp_name' => '/tmp/chair.jpg'
             ],
-            'identify' => TRUE
         ]);
 
         $this->assertEquals(0, $ret['ret']);
@@ -1777,7 +1775,6 @@ class messageAPITest extends IznikAPITestCase
                 'tmp_name' => '/tmp/chair.jpg',
                 'dedup' => 1
             ],
-            'identify' => TRUE
         ]);
 
         $this->assertEquals(0, $ret['ret']);
@@ -3966,7 +3963,6 @@ class messageAPITest extends IznikAPITestCase
                 'photo' => [
                     'tmp_name' => '/tmp/chair.jpg'
                 ],
-                'identify' => FALSE
             ]);
 
             $this->assertEquals(0, $ret['ret']);
