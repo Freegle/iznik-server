@@ -198,9 +198,36 @@ class Attachment {
         }
 
         if (!$uid && $data) {
-            # We have the literal data, which we need to upload.
-            $uc = new UploadCare();
-            $uid = $uc->upload($data, 'image/jpeg');
+            # We have the literal data.  We want to avoid uploading the same image multiple times - something
+            # which is particularly likely to happen with TN because it crossposts a lot and each separate message
+            # (from our p.o.v.) contains a link to the same images.  We do this by doing a perceptual hash of the
+            # image and having a local dirty cache of hashes we've seen before and the corresponding Uploadcare
+            # uid.  We rely on servers being rebooted before this gets too large.
+            #
+            # Uploadcare also creates a hash, and that's what gets stored in the DB, but there is no guarantee
+            # that their hash algorithm is the same as ours, and we need the hash value precisely to avoid
+            # the upload.
+            $hasher = new ImageHash;
+            $img = @imagecreatefromstring($data);
+            $uid = NULL;
+            $fn = NULL;
+
+            if ($img) {
+                $hash = $hasher->hash($img);
+                $fn = "/tmp/imagehash-$hash";
+
+                if (file_exists($fn)) {
+                    $uid = file_get_contents($fn);
+                    #error_log("Hash match on $hash gives $uid");
+                }
+            }
+
+            if (!$uid) {
+                # No match - upload.
+                $uc = new UploadCare();
+                $uid = $uc->upload($data, 'image/jpeg');
+                file_put_contents($fn, $uid);
+            }
         }
 
         if ($uid) {
