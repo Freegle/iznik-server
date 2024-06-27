@@ -27,14 +27,14 @@ class Attachment {
 
     const TYPE_MESSAGE = 'Message';
     const TYPE_GROUP = 'Group';
-    const TYPE_NEWSLETTER = 'Newsletter';
-    const TYPE_COMMUNITY_EVENT = 'CommunityEvent';
+    const TYPE_NEWSLETTER = 'Newsletter'; // Migrated
+    const TYPE_COMMUNITY_EVENT = 'CommunityEvent';  // Migrated
     const TYPE_CHAT_MESSAGE = 'ChatMessage';
     const TYPE_USER = 'User';
-    const TYPE_NEWSFEED = 'Newsfeed';
-    const TYPE_VOLUNTEERING = 'Volunteering';
-    const TYPE_STORY = 'Story';
-    const TYPE_NOTICEBOARD = 'Noticeboard';
+    const TYPE_NEWSFEED = 'Newsfeed'; // Migrated
+    const TYPE_VOLUNTEERING = 'Volunteering'; // Migrated
+    const TYPE_STORY = 'Story'; // Migrated
+    const TYPE_NOTICEBOARD = 'Noticeboard'; // Migrated
 
     /**
      * @return mixed
