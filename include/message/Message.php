@@ -2692,6 +2692,7 @@ ORDER BY lastdate DESC;";
                 }
             }
 
+            # Now that we have the msgid, create the attachments.
             foreach ($this->inlineimgs as $att) {
                 $a->create($msgid, $att);
             }
