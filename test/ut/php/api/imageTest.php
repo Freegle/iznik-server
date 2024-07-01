@@ -225,8 +225,9 @@ class imageAPITest extends IznikAPITestCase
         ], FALSE);
 
         // ...so double-check the internals.  The UID should have changed because we've stripped the exif.
-        $a = new Attachment($this->dbhr, $this->dbhm, $id);
-        $this->assertNotEquals(UPLOADCARE_CDN . "$uid/", $a->getPath());
+//        $a = new Attachment($this->dbhr, $this->dbhm, $id);
+//        $this->assertNotEquals(UPLOADCARE_CDN . "$uid/", $a->getPath());
+        // Disabled as not currently stripping.
 
         $ret = $this->call('image', 'DELETE', [
             'id' => $id

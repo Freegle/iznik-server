@@ -38,7 +38,7 @@ class UploadCare {
 //
 //        return $newuid;
 
-        // Disabling to investigate the effect on costs.
+        // Disabling to investigate the effect on costs.  Affects imageTest:229.
         return $uid;
     }
 
