@@ -22,22 +22,24 @@ class UploadCare {
     }
 
     function stripExif($uid) {
-        $oldFileInfo = $this->fileApi->fileInfo($uid);
-
         # We want to strip the EXIF data.  We remove all of it to avoid any privacy issues.  You have to
         # add preview as an operation to make it work.
         #
         # syncUploadFromUrl guarantees that the image is available on the CDN before returning.
-        $newFileInfo = $this->uploaderApi->syncUploadFromUrl(UPLOADCARE_CDN . "$uid/-/strip_meta/all/-/preview/");
-        $newuid = $newFileInfo->getUuid();
-        $this->fileApi->storeFile($newuid);
-        #error_log("Copy $uid, $url to $newuid, $newurl, ready " . $newFileInfo->isReady());
+//        $oldFileInfo = $this->fileApi->fileInfo($uid);
+//        $newFileInfo = $this->uploaderApi->syncUploadFromUrl(UPLOADCARE_CDN . "$uid/-/strip_meta/all/-/preview/");
+//        $newuid = $newFileInfo->getUuid();
+//        $this->fileApi->storeFile($newuid);
+//        #error_log("Copy $uid, $url to $newuid, $newurl, ready " . $newFileInfo->isReady());
+//
+//        if ($newuid) {
+//            $this->fileApi->deleteFile($oldFileInfo);
+//        }
+//
+//        return $newuid;
 
-        if ($newuid) {
-            $this->fileApi->deleteFile($oldFileInfo);
-        }
-
-        return $newuid;
+        // Disabling to investigate the effect on costs.
+        return $uid;
     }
 
     function getPerceptualHash($uid) {
