@@ -232,14 +232,15 @@ class Attachment {
 
         if ($uid) {
             # We now have an image on Uploadcare.
+            $uc = new UploadCare();
+
             if ($stripExif) {
                 // The uploaded photo will contain EXIF data, and there isn't currently a way to strip that out on
                 // upload.  So we have to copy the image to a new one which "bakes in" the removal of the EXIF data.
-                $uc = new UploadCare();
                 $uid = $uc->stripExif($uid);
-
-                $this->hash = $uc->getPerceptualHash($uid);
             }
+
+            $this->hash = $uc->getPerceptualHash($uid);
 
             if ($this->externalurlname) {
                 $rc = $this->dbhm->preExec(

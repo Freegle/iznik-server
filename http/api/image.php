@@ -58,6 +58,12 @@ function image() {
                     'ret' => 0,
                     'redirectto' => $redirect
                 ];
+            } else if (!$id) {
+                # It's not clear how this arises, but we've seen gimg_0.jpg.
+                $ret = [
+                    'ret' => 0,
+                    'redirectto' => 'https://' . USER_DOMAIN . '/defaultprofile.png'
+                ];
             } else {
                 $data = $a->getData();
 
