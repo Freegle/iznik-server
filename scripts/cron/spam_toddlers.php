@@ -50,8 +50,8 @@ foreach (array_merge($spammers, $news) as $user) {
         $others = $dbhr->preQuery("SELECT DISTINCT l2.userid FROM logs_api l1
                    INNER JOIN logs_api l2 ON l1.ip = l2.ip
                    WHERE l1.ip = ? AND l2.userid IS NOT NULL AND l2.userid != l1.userid AND
-                   ((l1.date >= l2.date AND l1.date < l2.date + INTERVAL 30 MINUTE) OR
-                    (l2.date >= l1.date AND l1.date < l2.date - INTERVAL 30 MINUTE))
+                   ((l1.date >= l2.date AND l1.date < l2.date + INTERVAL 5 MINUTE) OR
+                    (l2.date >= l1.date AND l1.date < l2.date - INTERVAL 5 MINUTE))
                     ", [
             $ip['ip']
         ]);
@@ -71,7 +71,7 @@ foreach (array_merge($spammers, $news) as $user) {
                     ]);
 
                     if (!count($mods)) {
-                        $str = $other['userid'] . " used {$ip['ip']} within 30 minutes of " . $user['userid'];
+                        $str = $other['userid'] . " used {$ip['ip']} within 5 minutes of " . $user['userid'];
 
                         if (Utils::pres('spam', $user)) {
                             $str .= " who is on the spammer list.  This is not a guarantee that they are a spammer, but it's a good indicator.  Please check.";
