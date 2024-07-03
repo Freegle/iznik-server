@@ -218,7 +218,7 @@ class Attachment {
 
                 if (file_exists($fn)) {
                     $uid = file_get_contents($fn);
-                    #error_log("Hash match on $hash gives $uid");
+                    #error_log("Hash match on $hash for $id gives $uid");
                 }
             }
 

@@ -8,18 +8,25 @@ require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
-$opts = getopt('t:');
+$opts = getopt('t:i:');
 
-if (count($opts) != 1) {
-    echo "Usage: php fix_uploadcare_migrate.php -t <table>\n";
+if (count($opts) < 1) {
+    echo "Usage: php fix_uploadcare_migrate.php -t <table> (-i <id>) \n";
     exit(1);
 }
 
 $table = $opts['t'];
+$id = $opts['i'];
 
 error_log("Querying for entries");
 
-$entries = $dbhr->preQuery("SELECT id FROM `$table` WHERE data IS NOT NULL;");
+if ($id) {
+    $entries = $dbhr->preQuery("SELECT id FROM `$table` WHERE id = ? AND data IS NOT NULL;", [
+        $id
+    ]);
+} else {
+    $entries = $dbhr->preQuery("SELECT id FROM `$table` WHERE data IS NOT NULL;");
+}
 
 error_log("Found " . count($entries) . " to migrate");
 $count = 0;
