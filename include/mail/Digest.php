@@ -98,15 +98,19 @@ class Digest
     }
 
     private function possibleExternalImage($atts, $size) {
-        # If the image is externally hosted, then we can request a smaller version.  For
-        # immediate mails we show it full width.
         $image = NULL;
 
         if (count($atts) > 0) {
             $image = $atts[0]['path'];
 
             if (strpos($image, UPLOADCARE_CDN) !== FALSE) {
-                $image .= "-/scale_crop/{$size}x{$size}/center/";
+                # If the image is externally hosted, then we can request a smaller version.  For
+                # immediate mails we'd like to show it full width, whereas in digests we only need the
+                # thumbnails.
+                #
+                # However use of Uploadcare resizing incurs a cost we can't afford.  So for now this
+                # is disabled until we have a usable resizer (e.g. using nginx modules).
+                #$image .= "-/scale_crop/{$size}x{$size}/center/";
             }
         }
 
@@ -263,7 +267,7 @@ class Digest
                                 'fromname' => $msg['fromname'] . ' on ' . SITE_NAME,
                                 'subject' => $msg['subject'],
                                 'textbody' => $msg['textbody'],
-                                'image' => count($msg['attachments']) > 0 ? $msg['attachments'][0]['path'] : NULL,
+                                'image' => $this->possibleExternalImage($msg['attachments'], 768),
                                 'groupname' => $gatts['namedisplay'],
                                 'replyweb' => "https://" . USER_SITE . "/message/{$msg['id']}",
                                 'replyemail' => "mailto:$replyto?subject=" . rawurlencode("Re: " . $msg['subject']),
