@@ -97,6 +97,22 @@ class Digest
         }
     }
 
+    private function possibleExternalImage($atts, $size) {
+        # If the image is externally hosted, then we can request a smaller version.  For
+        # immediate mails we show it full width.
+        $image = NULL;
+
+        if (count($atts) > 0) {
+            $image = $atts[0]['path'];
+
+            if (strpos($image, UPLOADCARE_CDN) !== FALSE) {
+                $image .= "-/scale_crop/{$size}x{$size}/center/";
+            }
+        }
+
+        return $image;
+    }
+
     public function send($groupid, $frequency, $host = 'localhost', $uidforce = NULL, $allownearby = FALSE, $nearbyintext = FALSE) {
         $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
         $twig = new \Twig_Environment($loader);
@@ -242,7 +258,8 @@ class Digest
 
                         try {
                             $html = $twig->render('digest/single.html', [
-                                # Per-message fields for expansion now.
+                                # Per-message fields for expansion now.  We serve the original image
+                                # to avoid a resize operation cost.
                                 'fromname' => $msg['fromname'] . ' on ' . SITE_NAME,
                                 'subject' => $msg['subject'],
                                 'textbody' => $msg['textbody'],
@@ -312,7 +329,7 @@ class Digest
                             'subject' => $msg['subject'],
                             'textbody' => $msg['textbody'],
                             'fromname' => $msg['fromname'] . ' on ' . SITE_NAME,
-                            'image' => count($msg['attachments']) > 0 ? $msg['attachments'][0]['paththumb'] : NULL,
+                            'image' => $this->possibleExternalImage($msg['attachments'], 200),
                             'replyweb' => "https://" . USER_SITE . "/message/{$msg['id']}",
                             'replyemail' => "mailto:$replyto?subject=" . rawurlencode("Re: " . $msg['subject']),
                             'autoreposts' => $msg['autoreposts'],
@@ -344,7 +361,7 @@ class Digest
                             'subject' => $msg['subject'],
                             'textbody' => $msg['textbody'],
                             'fromname' => $msg['fromname'],
-                            'image' => count($msg['attachments']) > 0 ? $msg['attachments'][0]['paththumb'] : NULL,
+                            'image' => $this->possibleExternalImage($msg['attachments'], 200),
                             'replyweb' => NULL,
                             'replyemail' => NULL,
                             'autoreposts' => $msg['autoreposts'],

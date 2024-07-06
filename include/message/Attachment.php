@@ -43,10 +43,11 @@ class Attachment {
         return $this->hash;
     }
 
-    public function getPath($thumb = false, $id = null, $archived = false) {
+    public function getPath($thumb = false, $id = null, $archived = false, $mods = NULL) {
         if ($this->externaluid) {
             $u = new UploadCare();
-            return $u->getUrl($this->externaluid, $this->externalmods);
+            $mods = $mods ? $mods : $this->externalmods;
+            return $u->getUrl($this->externaluid, $mods);
         }
 
         if ($this->externalurl) {
