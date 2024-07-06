@@ -11,7 +11,7 @@ global $dbhr, $dbhm;
 $donations = $dbhr->preQuery(
     "SELECT users_donations.*, giftaid.id AS giftaidid FROM `users_donations` 
     LEFT JOIN giftaid ON users_donations.userid = giftaid.userid 
-    WHERE users_donations.timestamp >= '2023-02-08' AND users_donations.timestamp <= '2023-02-26' AND GrossAmount > 0 
+    WHERE users_donations.timestamp >= '2023-02-08' AND users_donations.timestamp <= '2023-02-27' AND GrossAmount > 0 
     AND source = 'DonateWithPayPal' ORDER BY users_donations.timestamp ASC;"
 );
 
@@ -35,7 +35,7 @@ $dups = [];
 
 foreach ($donations as $donation) {
     $date = date("d/m/y", strtotime($donation['timestamp']));
-    $key = "{$donation['userid']}-{$donation['GrossAmount']}-$date";
+    $key = "{$donation['TransactionID']}";
 
     if (!Utils::pres($key, $dups)) {
         $dups[$key] = true;
