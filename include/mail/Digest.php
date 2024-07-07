@@ -107,10 +107,7 @@ class Digest
                 # If the image is externally hosted, then we can request a smaller version.  For
                 # immediate mails we'd like to show it full width, whereas in digests we only need the
                 # thumbnails.
-                #
-                # However use of Uploadcare resizing incurs a cost we can't afford.  So for now this
-                # is disabled until we have a usable resizer (e.g. using nginx modules).
-                #$image .= "-/scale_crop/{$size}x{$size}/center/";
+                $image .= "-/scale_crop/{$size}x{$size}/center/";
             }
         }
 
