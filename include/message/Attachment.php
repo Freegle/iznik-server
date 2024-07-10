@@ -187,6 +187,8 @@ class Attachment {
     }
 
     public function create($id, $data, $uid = NULL, $url = null, $stripExif = TRUE, $mods = NULL) {
+        $fh = NULL;
+
         if ($url) {
             # We need to fetch the data from an external URL.
             $ctx = stream_context_create(['http' =>
@@ -208,6 +210,21 @@ class Attachment {
             # Uploadcare also creates a hash, and that's what gets stored in the DB, but there is no guarantee
             # that their hash algorithm is the same as ours, and we need the hash value precisely to avoid
             # the upload.
+            #
+            # We use a simplistic file lock to serialise uploads so that this caching works.  It's common for us
+            # to receive multiple emails from TN with the same images simultaneously.
+            $fh = fopen('/tmp/iznik.uploadcare', 'r+');
+
+            if ($fh) {
+                if (!flock($fh, LOCK_EX)) {
+                    error_log("Failed to lock uploadcare");
+                    exit(-1);
+                }
+            } else {
+                error_log("Failed to open uploadcare");
+                exit(-1);
+            }
+
             $hasher = new ImageHash;
             $img = @imagecreatefromstring($data);
             $uid = NULL;
@@ -219,7 +236,7 @@ class Attachment {
 
                 if (file_exists($fn)) {
                     $uid = file_get_contents($fn);
-                    #error_log("Hash match on $hash for $id gives $uid");
+                    error_log("Hash match on $hash for $id gives $uid");
                 }
             }
 
@@ -276,6 +293,11 @@ class Attachment {
             }
 
             return ([$imgid, $uid]);
+        }
+
+        if ($fh) {
+            flock($fh, LOCK_UN);
+            fclose($fh);
         }
 
         return NULL;
