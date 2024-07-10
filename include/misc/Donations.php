@@ -214,12 +214,43 @@ class Donations
         ]);
     }
 
+    public function correctUserIdInDonations() {
+        # Look for donations where the payer email belongs to a user who has given gift aid. If we find
+        # one, change the donation to be assigned to that userid.  This handles cases where we have donations from
+        # an email that we didn't know about but is later associated with a user.
+        #
+        # First find the donations where the payer email is associated with a user who has given gift aid.
+        $donations = $this->dbhr->preQuery("SELECT DISTINCT giftaid.userid, users_donations.Payer, giftaid.period FROM users_donations             
+  INNER JOIN users_emails ON (users_donations.Payer = users_emails.email OR (users_donations.userid IS NOT NULL AND users_emails.userid = users_donations.userid))    
+  INNER JOIN giftaid ON users_emails.userid = giftaid.userid        
+  WHERE Payer != '' AND giftaid.deleted IS NULL AND giftaid.userid IS NOT NULL                                                           
+  GROUP BY Payer;");
+
+        $total = 0;
+
+        foreach ($donations as $donation) {
+            $missed = $this->dbhr->preQuery("SELECT users_donations.* FROM users_donations WHERE Payer = ? AND (userid IS NULL OR userid != ?) AND giftaidclaimed IS NULL;", [
+                $donation['Payer'],
+                $donation['userid']
+            ]);
+
+            foreach ($missed as $m) {
+                error_log("Missed donation {$m['timestamp']} {$m['id']} from {$m['Payer']} for {$m['GrossAmount']}, userid in donation {$m['userid']}, gift aid userid {$donation['userid']} type {$donation['period']}");
+                $total += $m['GrossAmount'];
+            }
+        }
+
+        error_log("Possible missed $total");
+    }
+    
     public function identifyGiftAidedDonations($id = NULl) {
         $idq = $id ? " AND id = $id " : '';
         $found = 0;
 
         $giftaids = $this->dbhr->preQuery("SELECT * FROM giftaid WHERE reviewed IS NOT NULL $idq;");
 
+        $this->correctUserIdInDonations();
+        
         foreach ($giftaids as $giftaid) {
             switch ($giftaid['period']) {
                 case Donations::PERIOD_PAST_4_YEARS_AND_FUTURE:
