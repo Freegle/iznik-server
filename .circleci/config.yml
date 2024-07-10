@@ -103,6 +103,9 @@ jobs:
 
       - run: echo "define('SQLLOG', TRUE);" >> /etc/iznik.conf
 
+      - run: sudo touch /tmp/iznik.uploadcare
+      - run: sudo chmod 777 /tmp/iznik.uploadcare
+
       # phpunit.xml is set up for running tests on our debug server.
       - run: sudo sed -ie 's/\/var\/www\/iznik.mt.dbg\//\//g' test/ut/php/phpunit.xml
 

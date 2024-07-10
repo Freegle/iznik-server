@@ -214,7 +214,7 @@ class Attachment {
             # We use a simplistic file lock to serialise uploads so that this caching works.  It's common for us
             # to receive multiple emails from TN with the same images simultaneously.
             error_log("Open uploadcare");
-            $fh = fopen('/tmp/iznik.uploadcare', 'w+');
+            $fh = fopen('/tmp/iznik.uploadcare', 'r+');
 
             if ($fh) {
                 error_log("Lock uploadcare");
