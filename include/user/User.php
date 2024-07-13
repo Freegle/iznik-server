@@ -737,18 +737,7 @@ class User extends Entity
             }
         }
 
-        # We might have donations made via PayPal using this email address which we can now link to this user.  Do
-        # SELECT first to avoid this having to replicate in the cluster.
-        $donations = $this->dbhr->preQuery("SELECT id FROM users_donations WHERE Payer = ? AND userid IS NULL;", [
-            $email
-        ]);
-
-        foreach ($donations as $donation) {
-            $this->dbhm->preExec("UPDATE users_donations SET userid = ? WHERE id = ?;", [
-                $this->id,
-                $donation['id']
-            ]);
-        }
+        $this->assignUserToToDonation($email, $this->id);
 
         return ($rc);
     }
@@ -7003,5 +6992,20 @@ memberships.groupid IN $groupq
         }
 
         return $key;
+    }
+
+    public function assignUserToToDonation($email, $userid) {
+        # We might have donations made via PayPal using this email address which we can now link to this user.  Do
+        # SELECT first to avoid this having to replicate in the cluster.
+        $donations = $this->dbhr->preQuery("SELECT id FROM users_donations WHERE Payer = ? AND userid IS NULL;", [
+            $email
+        ]);
+
+        foreach ($donations as $donation) {
+            $this->dbhm->preExec("UPDATE users_donations SET userid = ? WHERE id = ?;", [
+                $userid,
+                $donation['id']
+            ]);
+        }
     }
 }

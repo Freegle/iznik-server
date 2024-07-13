@@ -213,16 +213,18 @@ class Attachment {
             #
             # We use a simplistic file lock to serialise uploads so that this caching works.  It's common for us
             # to receive multiple emails from TN with the same images simultaneously.
+            error_log("Open uploadcare");
             $fh = fopen('/tmp/iznik.uploadcare', 'r+');
 
             if ($fh) {
+                error_log("Lock uploadcare");
                 if (!flock($fh, LOCK_EX)) {
                     error_log("Failed to lock uploadcare");
-                    exit(-1);
+                    throw new \Exception("Failed to lock uploadcare");
                 }
             } else {
-                error_log("Failed to open uploadcare");
-                exit(-1);
+                error_log("Failed to open uploadcare " . json_encode(error_get_last()));
+                throw new \Exception("Failed to open uploadcare "  . json_encode(error_get_last()));
             }
 
             $hasher = new ImageHash;
@@ -231,12 +233,12 @@ class Attachment {
             $fn = NULL;
 
             if ($img) {
-                $hash = $hasher->hash($img);
-                $fn = "/tmp/imagehash-$hash";
+                $this->hash = $hasher->hash($img);
+                $fn = "/tmp/imagehash-{$this->hash}";
 
                 if (file_exists($fn)) {
                     $uid = file_get_contents($fn);
-                    error_log("Hash match on $hash for $id gives $uid");
+                    error_log("Hash match on {$this->hash} for $id gives $uid");
                 }
             }
 
@@ -246,6 +248,11 @@ class Attachment {
                 $uid = $uc->upload($data, 'image/jpeg');
                 file_put_contents($fn, $uid);
             }
+
+            if ($fh) {
+                flock($fh, LOCK_UN);
+                fclose($fh);
+            }
         }
 
         if ($uid) {
@@ -253,12 +260,17 @@ class Attachment {
             $uc = new UploadCare();
 
             if ($stripExif) {
-                // The uploaded photo will contain EXIF data, and there isn't currently a way to strip that out on
-                // upload.  So we have to copy the image to a new one which "bakes in" the removal of the EXIF data.
+                # The uploaded photo will contain EXIF data, and there isn't currently a way to strip that out on
+                # upload.  So we have to copy the image to a new one which "bakes in" the removal of the EXIF data.
                 $uid = $uc->stripExif($uid);
             }
 
-            $this->hash = $uc->getPerceptualHash($uid);
+            if (!$this->hash) {
+                // This is slightly dubious - above we have one perceptual hash, here we have another.  But it's
+                // likely that when the same image is uploaded multiple times it's uploaded via the same route, and
+                // it's unlikely that we will get collisions between the two algorithms.
+                $this->hash = $uc->getPerceptualHash($uid);
+            }
 
             if ($this->externalurlname) {
                 $rc = $this->dbhm->preExec(
@@ -293,11 +305,6 @@ class Attachment {
             }
 
             return ([$imgid, $uid]);
-        }
-
-        if ($fh) {
-            flock($fh, LOCK_UN);
-            fclose($fh);
         }
 
         return NULL;
