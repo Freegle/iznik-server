@@ -4612,7 +4612,8 @@ LEFT OUTER JOIN messages_promises ON messages_promises.msgid = messages.id
 WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' 
   AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') 
   AND messages.source = ?
-  AND messages.deleted IS NULL $msgq;";
+  AND messages.deleted IS NULL
+  AND users.deleted IS NULL $msgq;";
                 #error_log("$sql, $mindate, {$group['id']}");
                 $messages = $this->dbhr->preQuery($sql, [
                     $mindate,
