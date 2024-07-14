@@ -895,7 +895,7 @@ class messageTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tnatt2'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $m->save();
+        list ($id, $failok) = $m->save();
         $m->saveAttachments($id);
         $atts = $m->getAttachments();
         $this->assertEquals(1, count($atts));

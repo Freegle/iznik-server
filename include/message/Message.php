@@ -2643,13 +2643,13 @@ ORDER BY lastdate DESC;";
         return($current);
     }
 
-    public function saveAttachments($msgid) {
+    public function saveAttachments($msgid, $type = Attachment::TYPE_MESSAGE) {
         if ($this->type != Message::TYPE_TAKEN && $this->type != Message::TYPE_RECEIVED) {
             # Don't want attachments for TAKEN/RECEIVED.  They can occur if people forward the original message.
             #
             # If we crash or fail at this point, we would have mislaid an attachment for a message.  That's not great, but the
             # perf cost of a transaction for incoming messages is significant, and we can live with it.
-            $a = new Attachment($this->dbhr, $this->dbhm);
+            $a = new Attachment($this->dbhr, $this->dbhm, NULL, $type);
 
             foreach ($this->attachments as $att) {
                 /** @var \PhpMimeMailParser\Attachment $att */
@@ -3248,7 +3248,7 @@ ORDER BY lastdate DESC;";
         $rc = true;
 
         if ($this->attach_dir) {
-            this->rrmdir($this->attach_dir);
+            $this->rrmdir($this->attach_dir);
         }
 
         if ($this->id) {
