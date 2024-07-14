@@ -233,7 +233,7 @@ class Attachment {
             $fn = NULL;
 
             if ($img) {
-                $this->hash = $hasher->hash($img);
+                $this->hash = $hasher->hash($img)->toHex();
                 $fn = "/tmp/imagehash-{$this->hash}";
 
                 if (file_exists($fn)) {

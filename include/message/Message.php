@@ -543,6 +543,7 @@ class Message
     private $groupid = NULL;
 
     private $inlineimgs = [];
+    private $externalimgs = [];
 
     /**
      * @return mixed
@@ -2457,56 +2458,6 @@ ORDER BY lastdate DESC;";
         $textbody = $textbody ? $textbody : $this->textbody;
 
         # Trash Nothing sends attachments too, but just as links - get those.
-        #
-        # - links to flic.kr, for groups which for some reason don't like images hosted on TN
-        # - links to TN itself
-        if (preg_match_all('/(http:\/\/flic\.kr.*)$/m', $textbody, $matches)) {
-            $urls = [];
-            foreach ($matches as $val) {
-                foreach ($val as $url) {
-                    $urls[] = $url;
-                }
-            }
-
-            $urls = array_unique($urls);
-            foreach ($urls as $url) {
-                $ctx = stream_context_create(array('http' =>
-                    array(
-                        'timeout' => 120
-                    )
-                ));
-
-                $data = @file_get_contents($url, false, $ctx);
-
-                if ($data) {
-                    # Now get the link to the actual image.  DOMDocument chokes on the HTML so do it the dirty way.
-                    if (preg_match('#<meta property="og:image" content="(.*)"  data-dynamic="true">#', $data, $matches)) {
-                        $imgurl = $matches[1];
-                        $ctx = stream_context_create(array('http' =>
-                            array(
-                                'timeout' => 120
-                            )
-                        ));
-
-                        $data = @file_get_contents($imgurl, false, $ctx);
-
-                        if ($data) {
-                            # Try to convert to an image.  If it's not an image, this will fail.
-                            $img = new Image($data);
-
-                            if ($img->img) {
-                                $newdata = $img->getData(100);
-
-                                if ($newdata && $img->width() > 50 && $img->height() > 50) {
-                                    $this->inlineimgs[] = $newdata;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         if (preg_match_all('/(https:\/\/trashnothing\.com\/pics\/.*)$/m', $textbody, $matches)) {
             $urls = [];
             foreach ($matches as $val) {
@@ -2538,26 +2489,7 @@ ORDER BY lastdate DESC;";
                         if (strpos($src, '/img/') !== FALSE ||
                             strpos($src, '/tn-photos/') !== FALSE ||
                             strpos($src, 'photos.trashnothing.com') !== FALSE) {
-                            $ctx = stream_context_create(array('http' =>
-                                array(
-                                    'timeout' => 120
-                                )
-                            ));
-
-                            $data = @file_get_contents($src, false, $ctx);
-
-                            if ($data) {
-                                # Try to convert to an image.  If it's not an image, this will fail.
-                                $img = new Image($data);
-
-                                if ($img->img) {
-                                    $newdata = $img->getData(100);
-
-                                    if ($newdata && $img->width() > 50 && $img->height() > 50) {
-                                        $this->inlineimgs[] = $newdata;
-                                    }
-                                }
-                            }
+                            $this->externalimgs[] = $src;
                         }
                     }
                 }
@@ -2695,6 +2627,11 @@ ORDER BY lastdate DESC;";
             # Now that we have the msgid, create the attachments.
             foreach ($this->inlineimgs as $att) {
                 $a->create($msgid, $att);
+            }
+
+            # External images by URL.
+            foreach ($this->externalimgs as $url) {
+                $a->create($msgid, NULL, NULL, $url);
             }
         }
 
