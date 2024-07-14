@@ -311,7 +311,9 @@ class MailRouter
         $m = new ChatMessage($this->dbhr, $this->dbhm);
         $count = 0;
 
-        $this->msg->saveAttachments($this->msg->getID(), Attachment::TYPE_CHAT_MESSAGE);
+        # Save the attachments so that they get uploaded.  This is attached to the message object but we will
+        # create new attachments below referencing the same uploaded item - effectively moving them.
+        $this->msg->saveAttachments($this->msg->getID());
         $atts = $this->msg->getAttachments();
 
         foreach ($atts as $att) {
@@ -320,10 +322,13 @@ class MailRouter
             if ($hash == '61e4d4a2e4bb8a5d' || $hash == '61e4d4a2e4bb8a59') {
                 # Images to suppress, e.g. our logo.
             } else {
-                list ($aid, $banned) = $m->create($rid, $this->msg->getFromuser(), NULL, ChatMessage::TYPE_IMAGE, NULL, FALSE);
+                list ($mid, $banned) = $m->create($rid, $this->msg->getFromuser(), NULL, ChatMessage::TYPE_IMAGE, NULL, FALSE);
 
-                if ($aid) {
-                    $m->setPrivate('imageid', $att->getID());
+                if ($mid) {
+                    $a = new Attachment($this->dbhr, $this->dbhm, Attachment::TYPE_CHAT_MESSAGE);
+                    list ($aid2, $uid) = $a->create($mid, NULL, $att->getExternalUid(), $att->getExternalUrl(), TRUE, $att->getExternalMods(), $att->getHash());
+                    $m->setPrivate('imageid', $aid2);
+                    $att->delete();
 
                     # Check whether this hash has recently been used for lots of messages.  If so then flag
                     # the message for review.  We currently only do this for email (which comes through here)

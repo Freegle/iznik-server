@@ -43,6 +43,18 @@ class Attachment {
         return $this->hash;
     }
 
+    public function getExternalUid() {
+        return $this->externaluid;
+    }
+
+    public function getExternalMods() {
+        return $this->externalmods;
+    }
+
+    public function getExternalUrl() {
+        return $this->externalurl;
+    }
+
     public function getPath($thumb = false, $id = null, $archived = false, $mods = NULL) {
         if ($this->externaluid) {
             $u = new UploadCare();
@@ -186,8 +198,11 @@ class Attachment {
         }
     }
 
-    public function create($id, $data, $uid = NULL, $url = null, $stripExif = TRUE, $mods = NULL) {
+    public function create($id, $data, $uid = NULL, $url = null, $stripExif = TRUE, $mods = NULL, $hash = NULL) {
         $fh = NULL;
+        if ($hash) {
+            $this->hash = $hash;
+        }
 
         if ($url) {
             # We need to fetch the data from an external URL.
