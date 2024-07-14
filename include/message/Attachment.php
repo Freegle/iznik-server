@@ -139,6 +139,7 @@ class Attachment {
                 $this->table = 'messages_attachments';
                 $this->idatt = 'msgid';
                 $this->externalurlname = 'externalurl';
+                $url = ', externalurl';
                 break;
             }
             case Attachment::TYPE_GROUP:
