@@ -311,27 +311,26 @@ class MailRouter
         $m = new ChatMessage($this->dbhr, $this->dbhm);
         $count = 0;
 
-        $this->msg->saveAttachments($this->msg->getID());
+        $this->msg->saveAttachments($this->msg->getID(), Attachment::TYPE_CHAT_MESSAGE);
         $atts = $this->msg->getAttachments();
 
         foreach ($atts as $att) {
-            list ($aid, $banned) = $m->create($rid, $this->msg->getFromuser(), NULL, ChatMessage::TYPE_IMAGE, NULL, FALSE);
+            $hash = $att->getHash();
 
-            if ($aid) {
-                $hash = $att->getHash();
+            if ($hash == '61e4d4a2e4bb8a5d' || $hash == '61e4d4a2e4bb8a59') {
+                # Images to suppress, e.g. our logo.
+            } else {
+                list ($aid, $banned) = $m->create($rid, $this->msg->getFromuser(), NULL, ChatMessage::TYPE_IMAGE, NULL, FALSE);
 
-                if ($hash == '61e4d4a2e4bb8a5d' || $hash == '61e4d4a2e4bb8a59') {
-                    # Images to suppress, e.g. our logo.
-                    $att->delete();
-                } else {
+                if ($aid) {
                     $m->setPrivate('imageid', $att->getID());
 
                     # Check whether this hash has recently been used for lots of messages.  If so then flag
                     # the message for review.  We currently only do this for email (which comes through here)
                     # as spam is largely an email problem.
                     $used = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM chat_images 
-                     INNER JOIN chat_messages ON chat_images.id = chat_messages.imageid 
-                     WHERE hash = ? AND TIMESTAMPDIFF(HOUR, chat_messages.date, NOW()) <= ?;", [
+                         INNER JOIN chat_messages ON chat_images.id = chat_messages.imageid 
+                         WHERE hash = ? AND TIMESTAMPDIFF(HOUR, chat_messages.date, NOW()) <= ?;", [
                         $hash,
                         Spam::IMAGE_THRESHOLD_TIME
                     ]);
