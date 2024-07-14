@@ -3229,13 +3229,26 @@ ORDER BY lastdate DESC;";
         }
     }
 
+    function rrmdir($dir) {
+        if (is_dir($dir)) {
+            $objects = scandir($dir);
+            foreach ($objects as $object) {
+                if ($object != "." && $object != "..") {
+                    if (filetype($dir."/".$object) == "dir") rrmdir($dir."/".$object); else unlink($dir."/".$object);
+                }
+            }
+            reset($objects);
+            rmdir($dir);
+        }
+    }
+
     function delete($reason = NULL, $groupid = NULL, $subject = NULL, $body = NULL, $stdmsgid = NULL, $localonly = FALSE)
     {
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $rc = true;
 
         if ($this->attach_dir) {
-            rrmdir($this->attach_dir);
+            this->rrmdir($this->attach_dir);
         }
 
         if ($this->id) {

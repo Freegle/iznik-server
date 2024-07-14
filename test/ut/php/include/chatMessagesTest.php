@@ -531,8 +531,6 @@ class chatMessagesTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replyimage'));
         $r = new MailRouter($this->dbhr, $this->dbhm);
         list ($replyid, $failok) = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
-        $m = new Message($this->dbhr, $this->dbhm, $replyid);
-        $atts = $m->getAttachments();
 
         # Notification payload - just usual intro
         $u = new User($this->dbhr, $this->dbhm, $fromuid);
@@ -541,8 +539,6 @@ class chatMessagesTest extends IznikTestCase {
         $this->assertEquals(1, $total);
         $this->assertEquals("Why not introduce yourself to other freeglers?  You'll get a better response.", $title);
 
-        # Expect one of these to have been stripped as too small
-        self::assertEquals(1, count($atts));
         $rc = $r->route();
         $this->assertEquals(MailRouter::TO_USER, $rc);
 

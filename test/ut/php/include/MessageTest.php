@@ -896,11 +896,11 @@ class messageTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $m->save();
+        $m->saveAttachments($id);
         $atts = $m->getAttachments();
         $this->assertEquals(1, count($atts));
         $m->delete();
-
-        }
+    }
 
     public function testIncludeArea() {
         $l = new Location($this->dbhr, $this->dbhm);

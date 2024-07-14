@@ -77,6 +77,7 @@ class IncomingMessageTest extends IznikTestCase {
         # Save it
         list ($id, $failok) = $m->save();
         $this->assertNotNull($id);
+        $m->saveAttachments($id);
 
         # Check the saved attachment.  Only one - other stripped for aspect ratio.
         $atts = $m->getAttachments();
@@ -87,8 +88,7 @@ class IncomingMessageTest extends IznikTestCase {
         $this->assertEquals(1, count($atts['attachments']));
 
         $m->delete();
-
-        }
+    }
 
     public function testAttachmentDup() {
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachmentdup');
@@ -97,14 +97,14 @@ class IncomingMessageTest extends IznikTestCase {
 
         list ($id, $failok) = $m->save();
         $this->assertNotNull($id);
+        $m->saveAttachments($id);
 
         # Check the returned attachment.  Only one - other stripped for aspect ratio.
         $atts = $m->getPublic();
         $this->assertEquals(1, count($atts['attachments']));
 
         $m->delete();
-
-        }
+    }
 
     public function testEmbedded() {
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/inlinephoto');
@@ -117,6 +117,7 @@ class IncomingMessageTest extends IznikTestCase {
 
         # Save it and check they show up as attachments
         list ($id, $failok) = $m->save();
+        $m->saveAttachments($id);
         $a = new Attachment($this->dbhr, $this->dbhm);
         $atts = $a->getById($id);
         $this->assertEquals(1, count($atts));

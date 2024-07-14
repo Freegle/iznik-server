@@ -759,13 +759,13 @@ class MailRouterTest extends IznikTestCase {
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list ($id, $failok) = $m->save();
         $this->assertNotNull($id);
+        $m->saveAttachments($id);
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $atts = $m->getAttachments();
         $this->assertEquals(1, count($atts));
         $this->assertLessThan(300000, strlen($atts[0]->getData()));
-
-        }
+    }
 
     public function testYahooNotify() {
         # Suppress emails
@@ -891,7 +891,7 @@ class MailRouterTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replyhtml'));
         $msg = str_replace('Subject: Re: Basic test', 'Subject: Re: [Group-tag] Offer: thing (place)', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'test3@test.com', 'test@test.com', $msg);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'test3@test.com', 'test@test.com', $msg);
         $this->assertNotNull($id);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $this->assertNotNull($m->getFromuser());
