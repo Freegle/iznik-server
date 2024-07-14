@@ -2697,6 +2697,9 @@ ORDER BY lastdate DESC;";
                 $a->create($msgid, $att);
             }
         }
+
+        # Attachments now safely stored in the DB
+        $this->removeAttachDir();
     }
 
     # Save a parsed message to the DB
@@ -2799,8 +2802,7 @@ ORDER BY lastdate DESC;";
                 $this->addItem($itemid);
             }
 
-            $this->saveAttachments($this->id);
-
+            # Don't save attachments yet - we might yet discard it.
             if ($log) {
                 $l = new Log($this->dbhr, $this->dbhm);
                 $l->log([
@@ -2831,9 +2833,6 @@ ORDER BY lastdate DESC;";
             # Also save into the history table, for spam checking.
             $this->addToMessageHistory();
         }
-
-        # Attachments now safely stored in the DB
-        $this->removeAttachDir();
 
         return [ $this->id, $failok ];
     }

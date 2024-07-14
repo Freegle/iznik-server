@@ -285,6 +285,21 @@ class MailRouter
             $this->msg->getID()
         ]);
 
+        if ($ret == MailRouter::APPROVED ||
+            $ret == MailRouter::PENDING) {
+            # If we routed successfully then we need to save the attachments.  No point saving them before now
+            # because we don't know that we actually need them.
+            #
+            # No need for chat messages to users or mods because they are handled inside addPhotosToChat.
+            error_log("Saving attachments for {$this->msg->getID()} {$this->msg->getSubject()}");
+            $this->msg->saveAttachments($this->msg->getID());
+        } else if (count($this->msg->getParsedAttachments()) &&
+            ($ret == MailRouter::FAILURE || $ret == MailRouter::INCOMING_SPAM ||
+             $ret == MailRouter::RECEIPT || $ret == MailRouter::TRYST || $ret == MailRouter::DROPPED)
+            ) {
+            error_log("Discarding attachments for {$this->msg->getID()} {$this->msg->getSubject()}");
+        }
+
         # Dropped messages will get tidied up by cron; we leave them around in case we need to
         # look at them for PD.
         error_log("Routed #" . $this->msg->getID(). " " . $this->msg->getMessageID() . " " . $this->msg->getEnvelopefrom() . " -> " . $this->msg->getEnvelopeto() . " " . $this->msg->getSubject() . " " . $ret);
