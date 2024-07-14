@@ -325,7 +325,7 @@ class MailRouter
                 list ($mid, $banned) = $m->create($rid, $this->msg->getFromuser(), NULL, ChatMessage::TYPE_IMAGE, NULL, FALSE);
 
                 if ($mid) {
-                    $a = new Attachment($this->dbhr, $this->dbhm, Attachment::TYPE_CHAT_MESSAGE);
+                    $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_CHAT_MESSAGE);
                     list ($aid2, $uid) = $a->create($mid, NULL, $att->getExternalUid(), $att->getExternalUrl(), TRUE, $att->getExternalMods(), $att->getHash());
                     $m->setPrivate('imageid', $aid2);
                     $att->delete();
