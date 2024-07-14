@@ -199,7 +199,6 @@ class Attachment {
     }
 
     public function create($id, $data, $uid = NULL, $url = null, $stripExif = TRUE, $mods = NULL, $hash = NULL) {
-        $fh = NULL;
         if ($hash) {
             $this->hash = $hash;
         }
@@ -331,7 +330,8 @@ class Attachment {
     }
 
     public function getById($id) {
-        $sql = "SELECT id FROM {$this->table} WHERE {$this->idatt} = ? AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1 OR externaluid IS NOT NULL) ORDER BY id;";
+        $urlq = $this->externalurlname ? " OR {$this->externalurlname} IS NOT NULL" : '';
+        $sql = "SELECT id FROM {$this->table} WHERE {$this->idatt} = ? AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1 OR externaluid IS NOT NULL $urlq) ORDER BY id;";
         $atts = $this->dbhr->preQuery($sql, [$id]);
         $ret = [];
         foreach ($atts as $att) {
@@ -343,11 +343,12 @@ class Attachment {
 
     public function getByIds($ids) {
         $ret = [];
+        $urlq = $this->externalurlname ? " OR {$this->externalurlname} IS NOT NULL" : '';
 
         if (count($ids)) {
             $sql = "SELECT id, {$this->idatt}, hash, archived, externaluid, externalmods FROM {$this->table} 
                        WHERE {$this->idatt} IN (" . implode(',', $ids) . ") 
-                       AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1 OR externaluid IS NOT NULL) 
+                       AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1 OR externaluid IS NOT NULL $urlq) 
                        ORDER BY `primary` DESC, id;";
             #error_log($sql);
             $atts = $this->dbhr->preQuery($sql);
@@ -361,11 +362,12 @@ class Attachment {
 
     public function getByImageIds($ids) {
         $ret = [];
+        $urlq = $this->externalurlname ? " OR {$this->externalurlname} IS NOT NULL" : '';
         if (count($ids)) {
             $sql = "SELECT id, {$this->idatt}, hash, archived FROM {$this->table} WHERE id IN (" . implode(
                     ',',
                     $ids
-                ) . ") AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1 OR externaluid IS NOT NULL) ORDER BY id;";
+                ) . ") AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1 OR externaluid IS NOT NULL $urlq) ORDER BY id;";
             $atts = $this->dbhr->preQuery($sql);
             foreach ($atts as $att) {
                 $ret[] = new Attachment($this->dbhr, $this->dbhm, $att['id'], $this->type, $att);

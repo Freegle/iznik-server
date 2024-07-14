@@ -248,7 +248,7 @@ class Message
             $olditems = json_encode($olditems);
         }
 
-        $oldatts = $this->dbhr->preQuery("SELECT id FROM messages_attachments WHERE msgid = ? AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1) ORDER BY id;", [
+        $oldatts = $this->dbhr->preQuery("SELECT id FROM messages_attachments WHERE msgid = ? AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1 OR externalurl IS NOT NULL) ORDER BY id;", [
             $this->id
         ]);
 
@@ -2486,9 +2486,10 @@ ORDER BY lastdate DESC;";
                     foreach ($imgs as $img) {
                         $src = $img->getAttribute('src');
 
-                        if (strpos($src, '/img/') !== FALSE ||
+                        if (strpos($src, 'https://') === 0 &&
+                            (strpos($src, '/img/') !== FALSE ||
                             strpos($src, '/tn-photos/') !== FALSE ||
-                            strpos($src, 'photos.trashnothing.com') !== FALSE) {
+                            strpos($src, 'photos.trashnothing.com') !== FALSE)) {
                             $this->externalimgs[] = $src;
                         }
                     }
