@@ -202,8 +202,9 @@ class Attachment {
             $this->hash = $hash;
         }
 
-        if ($url) {
-            # We need to fetch the data from an external URL.
+        if ($url && !$this->externalurlname) {
+            # We need to fetch the data from an external URL, because there is no attribute in this table to
+            # store the external url.
             $ctx = stream_context_create(['http' =>
                 [
                     'timeout' => 120
@@ -285,28 +286,15 @@ class Attachment {
                 $this->hash = $uc->getPerceptualHash($uid);
             }
 
-            if ($this->externalurlname) {
-                $rc = $this->dbhm->preExec(
-                    "INSERT INTO {$this->table} (`{$this->idatt}`, `{$this->uidname}`, `{$this->externalurlname}`, `{$this->modsname}`, `hash`) VALUES (?, ?, ?, ?, ?);",
-                    [
-                        $id,
-                        $uid,
-                        $url,
-                        json_encode($mods),
-                        $this->hash,
-                    ]
-                );
-            } else {
-                $rc = $this->dbhm->preExec(
-                    "INSERT INTO {$this->table} (`{$this->idatt}`, `{$this->uidname}`, `{$this->modsname}`, `hash`) VALUES (?, ?, ?, ?);",
-                    [
-                        $id,
-                        $uid,
-                        json_encode($mods),
-                        $this->hash,
-                    ]
-                );
-            }
+            $rc = $this->dbhm->preExec(
+                "INSERT INTO {$this->table} (`{$this->idatt}`, `{$this->uidname}`, `{$this->modsname}`, `hash`) VALUES (?, ?, ?, ?);",
+                [
+                    $id,
+                    $uid,
+                    json_encode($mods),
+                    $this->hash,
+                ]
+            );
 
             $imgid = $rc ? $this->dbhm->lastInsertId() : null;
 
@@ -318,6 +306,23 @@ class Attachment {
             }
 
             return ([$imgid, $uid]);
+        } else if ($this->externalurlname && $url) {
+            $rc = $this->dbhm->preExec(
+                "INSERT INTO {$this->table} (`{$this->idatt}`, `{$this->externalurlname}`) VALUES (?, ?);",
+                [
+                    $id,
+                    $url,
+                ]
+            );
+
+            $imgid = $rc ? $this->dbhm->lastInsertId() : null;
+
+            if ($imgid) {
+                $this->id = $imgid;
+                $this->externalurl = $url;
+            }
+
+            return ([$imgid, NULL]);
         }
 
         return NULL;

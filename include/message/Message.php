@@ -2497,6 +2497,7 @@ ORDER BY lastdate DESC;";
         }
 
         $this->inlineimgs = array_unique($this->inlineimgs);
+        $this->externalimgs = array_unique($this->externalimgs);
 
         # Return text without photos.
         return preg_replace('/Check out the pictures[\s\S]*?https:\/\/trashnothing[\s\S]*?pics\/[a-zA-Z0-9]*/', '', $textbody);
@@ -2631,7 +2632,7 @@ ORDER BY lastdate DESC;";
 
             # External images by URL.
             foreach ($this->externalimgs as $url) {
-                $a->create($msgid, NULL, NULL, $url);
+                $a->create($msgid, NULL, NULL, $url, FALSE, NULL, NULL);
             }
         }
 
