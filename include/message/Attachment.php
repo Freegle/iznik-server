@@ -6,8 +6,6 @@ namespace Freegle\Iznik;
 use Jenssegers\ImageHash\ImageHash;
 
 # TODO:
-# - migrate old images across
-# - retire externalurl
 # - retire archiving
 
 # This is a base class
