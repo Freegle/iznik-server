@@ -2490,7 +2490,16 @@ ORDER BY lastdate DESC;";
                             (strpos($src, '/img/') !== FALSE ||
                             strpos($src, '/tn-photos/') !== FALSE ||
                             strpos($src, 'photos.trashnothing.com') !== FALSE)) {
-                            $this->externalimgs[] = $src;
+                            # The largest resolution is in the parent anchor tag.
+                            $img = $img->parentNode;
+                            $src = $img->getAttribute('href');
+
+                            if (strpos($src, 'https://') === 0 &&
+                                (strpos($src, '/img/') !== FALSE ||
+                                    strpos($src, '/tn-photos/') !== FALSE ||
+                                    strpos($src, 'photos.trashnothing.com') !== FALSE)) {
+                                $this->externalimgs[] = $src;
+                            }
                         }
                     }
                 }
