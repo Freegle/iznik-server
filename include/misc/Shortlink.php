@@ -144,6 +144,9 @@ class Shortlink extends Entity
         try {
             # Timeout - if a shortener doesn't return in time we'll filter out the URL.
             $opts['http']['timeout'] = 5;
+            # Show warnings - e.g. from get_headers.
+            error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
+
             $context = stream_context_create($opts);
 
             $response = get_headers($url, 1, $context);
@@ -184,6 +187,8 @@ class Shortlink extends Entity
             }
         } catch (\Exception $e) {
             error_log("Failed to expand $url: " . $e->getMessage());
+        } finally {
+            error_reporting(E_ALL & ~E_WARNING & ~E_DEPRECATED & ~E_NOTICE);
         }
 
         return $ret;
