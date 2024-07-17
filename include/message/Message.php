@@ -4573,12 +4573,14 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
   AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') 
   AND messages.source = ?
   AND messages.deleted IS NULL
+  AND memberships.ourPostingStatus != ?
   AND users.deleted IS NULL $msgq;";
                 #error_log("$sql, $mindate, {$group['id']}");
                 $messages = $this->dbhr->preQuery($sql, [
                     $mindate,
                     $group['id'],
-                    Message::PLATFORM
+                    Message::PLATFORM,
+                    Group::POSTING_PROHIBITED
                 ]);
 
                 $now = time();
