@@ -3060,7 +3060,17 @@ class messageAPITest extends IznikAPITestCase
         $this->assertTrue($m->isPending($this->gid));
     }
 
-    public function testCantPost()
+    public function trueFalseProvider() {
+        return [
+            [ TRUE ],
+            [ FALSE ]
+        ];
+    }
+
+    /**
+     * @dataProvider trueFalseProvider
+     */
+    public function testCantPost($login)
     {
         $l = new Location($this->dbhr, $this->dbhm);
         $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)');
@@ -3078,8 +3088,10 @@ class messageAPITest extends IznikAPITestCase
         # Forbid us from posting.
         $member->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_PROHIBITED);
 
-        # Submit a message from the member - should fail
-        $this->assertTrue($member->login('testpw'));
+        if ($login) {
+            # Submit a message from the member - should fail
+            $this->assertTrue($member->login('testpw'));
+        }
 
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
