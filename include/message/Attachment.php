@@ -54,7 +54,8 @@ class Attachment {
     }
 
     private function getImageDeliveryUrl($uid, $mods) {
-        $p = strrpos($uid, '-');
+        $p = strrpos($uid, 'freegletusd-');
+
         if ($p !== FALSE) {
             $url = IMAGE_DELIVERY . "?url=" . TUS_UPLOADER . "/" . substr($uid, $p + 1) . "/";
             $mods = json_decode($mods, TRUE);
