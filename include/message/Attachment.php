@@ -53,11 +53,26 @@ class Attachment {
         return $this->externalurl;
     }
 
+    private function getImageDeliveryUrl($uid, $mods) {
+        $p = strrpos($uid, '-');
+        if ($p !== FALSE) {
+            $url = IMAGE_DELIVERY . "?url=" . TUS_UPLOADER . "/" . substr($uid, $p + 1) . "/";
+            $mods = json_decode($mods, TRUE);
+            
+            if (array_key_exists('rotate', $mods)) {
+                $url .= '?ro=' . $mods['rotate'];
+            }
+            
+            return $url;
+        } else {
+            $u = new UploadCare();
+            return $u->getUrl($this->externaluid, $mods);
+        }
+    }
+
     public function getPath($thumb = false, $id = null, $archived = false, $mods = NULL) {
         if ($this->externaluid) {
-            $u = new UploadCare();
-            $mods = $mods ? $mods : $this->externalmods;
-            return $u->getUrl($this->externaluid, $mods);
+            return $this->getImageDeliveryUrl($this->externaluid, $mods ? $mods : $this->externalmods);
         }
 
         if ($this->externalurl) {
@@ -507,8 +522,7 @@ class Attachment {
 
     public function canRedirect() {
         if ($this->externaluid) {
-            $u = new UploadCare();
-            return $u->getUrl($this->externaluid, $this->externalmods);
+            return $this->getImageDeliveryUrl($this->externaluid, $this->externalmods);
         } else if ($this->externalurl) {
             return $this->externalurl;
         } else {
