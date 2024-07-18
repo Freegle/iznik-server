@@ -60,7 +60,7 @@ class Attachment {
             $url = IMAGE_DELIVERY . "?url=" . TUS_UPLOADER . "/" . substr($uid, $p + 1) . "/";
             $mods = json_decode($mods, TRUE);
             
-            if (array_key_exists('rotate', $mods)) {
+            if (Utils::pres('rotate', $mods)) {
                 $url .= '?ro=' . $mods['rotate'];
             }
             
