@@ -57,7 +57,7 @@ class Attachment {
         $p = strrpos($uid, 'freegletusd-');
 
         if ($p !== FALSE) {
-            $url = IMAGE_DELIVERY . "?url=" . TUS_UPLOADER . "/" . substr($uid, $p + 1) . "/";
+            $url = IMAGE_DELIVERY . "?url=" . TUS_UPLOADER . "/" . substr($uid, $p + strlen('freegletusd-')) . "/";
             $mods = json_decode($mods, TRUE);
             
             if (Utils::pres('rotate', $mods)) {
