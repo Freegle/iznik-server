@@ -208,8 +208,8 @@ class imageAPITest extends IznikAPITestCase
 
     public function testExternal() {
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
-        $u = new UploadCare();
-        $uid = $u->upload($data, 'image/jpeg');
+        $t = new Tus();
+        $uid = $t->upload(NULL, 'image/jpeg', $data);
 
         $ret = $this->call('image', 'POST', [
             'externaluid' => $uid,
@@ -223,11 +223,6 @@ class imageAPITest extends IznikAPITestCase
         $ret = $this->call('image', 'GET', [
             'id' => $id,
         ], FALSE);
-
-        // ...so double-check the internals.  The UID should have changed because we've stripped the exif.
-//        $a = new Attachment($this->dbhr, $this->dbhm, $id);
-//        $this->assertNotEquals(UPLOADCARE_CDN . "$uid/", $a->getPath());
-        // Disabled as not currently stripping.
 
         $ret = $this->call('image', 'DELETE', [
             'id' => $id
