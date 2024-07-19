@@ -166,15 +166,6 @@ function group() {
                             # more importantly, download time.
                             $g->setPrivate('profile', $profile);
                             $a = new Attachment($dbhr, $dbhm, $profile, Attachment::TYPE_GROUP);
-                            $data = $a->getData();
-                            $i = new Image($data);
-                            
-                            if ($i->width() > 200 || $i->height() > 200) {
-                                $i->scale(200, 200);
-                                $data = $i->getData(100);
-                                $a->setPrivate('data', $data);
-                            }
-
                             $a->setPrivate('groupid', $id);
                         }
 
