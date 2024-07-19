@@ -25,13 +25,13 @@ class Attachment {
 
     const TYPE_MESSAGE = 'Message';
     const TYPE_GROUP = 'Group';
-    const TYPE_NEWSLETTER = 'Newsletter'; // Migrated
-    const TYPE_COMMUNITY_EVENT = 'CommunityEvent';  // Migrated
+    const TYPE_NEWSLETTER = 'Newsletter'; // Migrated once from Uploadcare, not yet from old storage
+    const TYPE_COMMUNITY_EVENT = 'CommunityEvent';  // Migrated once from Uploadcare, not yet from old storage
     const TYPE_CHAT_MESSAGE = 'ChatMessage';
     const TYPE_USER = 'User';
     const TYPE_NEWSFEED = 'Newsfeed'; // Migrated
-    const TYPE_VOLUNTEERING = 'Volunteering'; // Migrated
-    const TYPE_STORY = 'Story'; // Migrated
+    const TYPE_VOLUNTEERING = 'Volunteering'; // Migrated once from Uploadcare, not yet from old storage
+    const TYPE_STORY = 'Story'; // Migrated once from Uploadcare, not yet from old storage
     const TYPE_NOTICEBOARD = 'Noticeboard'; // Migrated
 
     /**
@@ -235,27 +235,21 @@ class Attachment {
             # We have the literal data.  We want to avoid uploading the same image multiple times - something
             # which is particularly likely to happen with TN because it crossposts a lot and each separate message
             # (from our p.o.v.) contains a link to the same images.  We do this by doing a perceptual hash of the
-            # image and having a local dirty cache of hashes we've seen before and the corresponding Uploadcare
+            # image and having a local dirty cache of hashes we've seen before and the corresponding uploaded.
             # uid.  We rely on servers being rebooted before this gets too large.
-            #
-            # Uploadcare also creates a hash, and that's what gets stored in the DB, but there is no guarantee
-            # that their hash algorithm is the same as ours, and we need the hash value precisely to avoid
-            # the upload.
             #
             # We use a simplistic file lock to serialise uploads so that this caching works.  It's common for us
             # to receive multiple emails from TN with the same images simultaneously.
-            error_log("Open uploadcare");
-            $fh = fopen('/tmp/iznik.uploadcare', 'r+');
+            $fh = fopen('/tmp/iznik.uploadlock', 'r+');
 
             if ($fh) {
-                error_log("Lock uploadcare");
                 if (!flock($fh, LOCK_EX)) {
-                    error_log("Failed to lock uploadcare");
-                    throw new \Exception("Failed to lock uploadcare");
+                    error_log("Failed to lock upload file");
+                    throw new \Exception("Failed to lock upload file");
                 }
             } else {
-                error_log("Failed to open uploadcare " . json_encode(error_get_last()));
-                throw new \Exception("Failed to open uploadcare "  . json_encode(error_get_last()));
+                error_log("Failed to open upload file " . json_encode(error_get_last()));
+                throw new \Exception("Failed to open upload file "  . json_encode(error_get_last()));
             }
 
             $hasher = new ImageHash;
@@ -269,15 +263,16 @@ class Attachment {
 
                 if (file_exists($fn)) {
                     $uid = file_get_contents($fn);
-                    error_log("Hash match on {$this->hash} for $id gives $uid");
+                    #error_log("Hash match on {$this->hash} for $id gives $uid");
                 }
             }
 
             if (!$uid) {
                 # No match - upload.
-                $uc = new UploadCare();
-                $uid = $uc->upload($data, 'image/jpeg');
+                $t = new Tus();
+                $uid = $t->upload(NULL, 'image/jpeg', $data);
                 file_put_contents($fn, $uid);
+                error_log("Uploaded to TUS $uid");
             }
 
             if ($fh) {
@@ -287,22 +282,7 @@ class Attachment {
         }
 
         if ($uid) {
-            # We now have an image on Uploadcare.
-            $uc = new UploadCare();
-
-            if ($stripExif) {
-                # The uploaded photo will contain EXIF data, and there isn't currently a way to strip that out on
-                # upload.  So we have to copy the image to a new one which "bakes in" the removal of the EXIF data.
-                $uid = $uc->stripExif($uid);
-            }
-
-            if (!$this->hash) {
-                // This is slightly dubious - above we have one perceptual hash, here we have another.  But it's
-                // likely that when the same image is uploaded multiple times it's uploaded via the same route, and
-                // it's unlikely that we will get collisions between the two algorithms.
-                $this->hash = $uc->getPerceptualHash($uid);
-            }
-
+            # We now have an image uploaded.
             $rc = $this->dbhm->preExec(
                 "INSERT INTO {$this->table} (`{$this->idatt}`, `{$this->uidname}`, `{$this->modsname}`, `hash`) VALUES (?, ?, ?, ?);",
                 [

@@ -100,11 +100,12 @@ jobs:
       - run: sudo sed -ie "s/'SENTRY_DSN', 'zzzz'/'SENTRY_DSN', '$SENTRY_DSN'/g" /etc/iznik.conf
       - run: sudo sed -ie "s/'PGSQLDB', 'iznik'/'PGSQLDB', 'circle_test'/g" /etc/iznik.conf
       - run: sudo sed -ie "s/LOVE_JUNK_SECRET/$LOVE_JUNK_SECRET/g" /etc/iznik.conf
+      - run: sudo sed -ie "s/'TUS_UPLOADER', NULL/'TUS_UPLOADER', '$TUS_UPLOADER'/g" /etc/iznik.conf
 
       - run: echo "define('SQLLOG', TRUE);" >> /etc/iznik.conf
 
-      - run: sudo touch /tmp/iznik.uploadcare
-      - run: sudo chmod 777 /tmp/iznik.uploadcare
+      - run: sudo touch /tmp/iznik.uploadlock
+      - run: sudo chmod 777 /tmp/iznik.uploadlock
 
       # phpunit.xml is set up for running tests on our debug server.
       - run: sudo sed -ie 's/\/var\/www\/iznik.mt.dbg\//\//g' test/ut/php/phpunit.xml

@@ -32,7 +32,9 @@ RUN mkdir -p /var/www \
 	&& git clone https://github.com/Freegle/iznik-server.git iznik \
   && touch iznik/standalone \
   && mkdir /var/www/iznik/spool \
-  && chown www-data:www-data /var/www/iznik/spool
+  && chown www-data:www-data /var/www/iznik/spool \
+  && touch /tmp/iznik.uploadlock \
+  && chmod 777 /tmp/iznik.uploadlock
 
 # SSHD
 RUN apt-get -y install openssh-server \
