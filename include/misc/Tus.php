@@ -32,7 +32,7 @@ class Tus {
 
         $result = curl_exec($ch);
         if (curl_errno($ch)) {
-            echo "Error: " . curl_error($ch);
+            error_log("Error: " . curl_error($ch));
             return NULL;
         }
         if (curl_getinfo($ch, CURLINFO_HTTP_CODE) == 201) {
@@ -41,7 +41,7 @@ class Tus {
             $headers = Tus::getHeaders($header);
             $url = $headers['Location'];
         } else {
-            print "Error creating file \n";
+            error_log("Error creating file");
             return NULL;
         }
         curl_close($ch);
@@ -65,7 +65,7 @@ class Tus {
 
         $result = curl_exec($ch);
         if (curl_errno($ch)) {
-            echo "Error: " . curl_error($ch);
+            error_log("Error: " . curl_error($ch));
             return NULL;
         }
 
@@ -83,7 +83,7 @@ class Tus {
         }
 
         if (curl_getinfo($ch, CURLINFO_HTTP_CODE) == 404) {
-            print "File not found!";
+            error_log("File not found!");
             return NULL;
         }
         curl_close($ch);
@@ -109,7 +109,7 @@ class Tus {
 
         $result = curl_exec($ch);
         if (curl_errno($ch)) {
-            echo "Error: " . curl_error($ch);
+            error_log("Error: " . curl_error($ch));
         }
         $rc = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);

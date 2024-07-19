@@ -240,7 +240,13 @@ class Attachment {
             #
             # We use a simplistic file lock to serialise uploads so that this caching works.  It's common for us
             # to receive multiple emails from TN with the same images simultaneously.
-            $fh = fopen('/tmp/iznik.uploadlock', 'r+');
+            $fn = '/tmp/iznik.uploadlock';
+
+            if (!file_exists($fn)) {
+                touch($fn);
+            }
+
+            $fh = fopen($fn, 'r+');
 
             if ($fh) {
                 if (!flock($fh, LOCK_EX)) {
