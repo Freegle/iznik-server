@@ -276,9 +276,10 @@ class Attachment {
             if (!$uid) {
                 # No match - upload.
                 $t = new Tus();
-                $uid = $t->upload(NULL, 'image/jpeg', $data);
+                $url = $t->upload(NULL, 'image/jpeg', $data);
+                $uid = 'freegletusd-' . basename($url);
                 file_put_contents($fn, $uid);
-                error_log("Uploaded to TUS $uid");
+                #error_log("Uploaded to TUS $uid len " . strlen($data));
             }
 
             if ($fh) {

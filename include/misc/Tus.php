@@ -5,6 +5,7 @@ namespace Freegle\Iznik;
 class Tus {
     public static function upload($url, $mime = "image/webp", $data = NULL) {
         # Basic uploader, which we use for migration.
+        #error_log("Upload to " . TUS_UPLOADER . " url $url data len " . ($data ? strlen($data) : 0) . " mime $mime");
         $data = $data ? $data : file_get_contents($url);
 
         $url = TUS_UPLOADER;
@@ -31,17 +32,25 @@ class Tus {
         curl_setopt($ch, CURLOPT_HTTPHEADER, $fheaders);
 
         $result = curl_exec($ch);
-        if (curl_errno($ch)) {
-            error_log("Error: " . curl_error($ch));
+        $errno = curl_errno($ch);
+        if ($errno) {
+            error_log("POST error: $errno " . curl_error($ch));
             return NULL;
         }
+
         if (curl_getinfo($ch, CURLINFO_HTTP_CODE) == 201) {
             $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
             $header = substr($result, 0, $headerSize);
             $headers = Tus::getHeaders($header);
-            $url = $headers['Location'];
+            #error_log(json_encode($headers));
+            $url = $headers['location'];
+
+            if (!$url) {
+                return NULL;
+            }
+            #error_log("Post returned location $url");
         } else {
-            error_log("Error creating file");
+            #error_log("Error creating file");
             return NULL;
         }
         curl_close($ch);
@@ -64,8 +73,9 @@ class Tus {
         curl_setopt($ch, CURLOPT_HTTPHEADER, $fheaders);
 
         $result = curl_exec($ch);
+        $errno = curl_errno($ch);
         if (curl_errno($ch)) {
-            error_log("Error: " . curl_error($ch));
+            error_log("Get size on $url error $errno: " . curl_error($ch));
             return NULL;
         }
 
@@ -78,12 +88,10 @@ class Tus {
                 return true;
             }
         });
-        $serverOffset = (int)array_shift($header)[1];
-        if (curl_getinfo($ch, CURLINFO_HTTP_CODE) == 200) {
-        }
 
-        if (curl_getinfo($ch, CURLINFO_HTTP_CODE) == 404) {
-            error_log("File not found!");
+        if (curl_getinfo($ch, CURLINFO_HTTP_CODE) == 200) {
+        } else if (curl_getinfo($ch, CURLINFO_HTTP_CODE) == 404) {
+            error_log("File not found! $url");
             return NULL;
         }
         curl_close($ch);
@@ -109,10 +117,11 @@ class Tus {
 
         $result = curl_exec($ch);
         if (curl_errno($ch)) {
-            error_log("Error: " . curl_error($ch));
+            error_log("Full upload error: " . curl_error($ch));
         }
         $rc = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
+        #error_log("Upload rc $rc");
 
         if  ($rc == 200 || $rc == 204) {
             return $url;
@@ -132,7 +141,7 @@ class Tus {
             } else {
                 list ($key, $value) = explode(': ', $line);
 
-                $headers[$key] = $value;
+                $headers[strtolower($key)] = $value;
             }
         }
 
