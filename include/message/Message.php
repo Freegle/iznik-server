@@ -3569,6 +3569,7 @@ ORDER BY lastdate DESC;";
         $textbody = preg_replace('/^Try trashnothing.com for quicker and easier access.*!/ims', '', $textbody);
         $textbody = preg_replace('/^Discover a better way to browse.*trashnothing.com/ims', '', $textbody);
         $textbody = preg_replace('/^Securely sent with Tutanota.*/ims', '', $textbody);
+        $textbody = preg_replace('/^This email has been checked for viruses by Avast antivirus software*/ims', '', $textbody);
 
         return(trim($textbody));
     }
