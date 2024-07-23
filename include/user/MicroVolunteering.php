@@ -19,6 +19,7 @@ class MicroVolunteering
     const CHALLENGE_FACEBOOK_SHARE = 'Facebook';
     const CHALLENGE_PHOTO_ROTATE = 'PhotoRotate';
     const CHALLENGE_SURVEY = 'Survey2';
+    const CHALLENGE_INVITE = 'Invite';
 
     const RESULT_APPROVE = 'Approve';
     const RESULT_REJECT = 'Reject';
@@ -187,6 +188,12 @@ class MicroVolunteering
 
             if (!$ret && in_array(self::CHALLENGE_SEARCH_TERM, $types)) {
                 $ret = $this->searchTerms($userid);
+            }
+
+            if (!$ret && in_array(self::CHALLENGE_INVITE, $types)) {
+                $ret = [
+                    'type' => self::CHALLENGE_INVITE
+                ];
             }
         }
 
