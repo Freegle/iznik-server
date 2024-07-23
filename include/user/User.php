@@ -229,23 +229,27 @@ class User extends Entity
             $logins = $this->getLogins(TRUE);
 
             foreach ($logins as $login) {
-                $pw = $this->hashPassword($suppliedpw, Utils::presdef('salt', $login, PASSWORD_SALT));
+                if ($login['type'] == User::LOGIN_NATIVE) {
+                    $pw = $this->hashPassword($suppliedpw, Utils::presdef('salt', $login, PASSWORD_SALT));
 
-                if ($force || ($login['type'] == User::LOGIN_NATIVE && $login['uid'] == $this->id && strtolower($pw) == strtolower($login['credentials']))) {
-                    $s = new Session($this->dbhr, $this->dbhm);
-                    $s->create($this->id);
+                    if ($force || ($login['type'] == User::LOGIN_NATIVE && $login['uid'] == $this->id && strtolower(
+                                $pw
+                            ) == strtolower($login['credentials']))) {
+                        $s = new Session($this->dbhr, $this->dbhm);
+                        $s->create($this->id);
 
-                    User::clearCache($this->id);
+                        User::clearCache($this->id);
 
-                    $l = new Log($this->dbhr, $this->dbhm);
-                    $l->log([
-                        'type' => Log::TYPE_USER,
-                        'subtype' => Log::SUBTYPE_LOGIN,
-                        'byuser' => $this->id,
-                        'text' => 'Using email/password'
-                    ]);
+                        $l = new Log($this->dbhr, $this->dbhm);
+                        $l->log([
+                                    'type' => Log::TYPE_USER,
+                                    'subtype' => Log::SUBTYPE_LOGIN,
+                                    'byuser' => $this->id,
+                                    'text' => 'Using email/password'
+                                ]);
 
-                    return (TRUE);
+                        return (true);
+                    }
                 }
             }
         }
