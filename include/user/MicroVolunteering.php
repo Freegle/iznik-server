@@ -273,6 +273,20 @@ class MicroVolunteering
         }
     }
 
+    public function responseInvite($userid) {
+        try {
+            $this->dbhm->preExec(
+                "INSERT IGNORE INTO microactions (actiontype, userid, version) VALUES (?, ?, ?);",
+                [
+                    self::CHALLENGE_INVITE,
+                    $userid,
+                    self::VERSION
+                ]
+            );
+        } catch (\Exception $e) {
+        }
+    }
+
     public function responsePhotoRotate($userid, $photoid, $result, $deg)
     {
         $ret = false;

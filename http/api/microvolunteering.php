@@ -62,6 +62,7 @@ function microvolunteering() {
                 $searchterm2 = (Utils::presint('searchterm2', $_REQUEST, 0));
                 $facebook = (Utils::presint('facebook', $_REQUEST, 0));
                 $photoid = (Utils::presint('photoid', $_REQUEST, 0));
+                $invite = (Utils::presbool('invite', $_REQUEST, FALSE));
                 $deg = (Utils::presint('deg', $_REQUEST, 0));
 
                 $ret = [ 'ret' => 3, 'status' => 'Invalid parameters' ];
@@ -92,6 +93,13 @@ function microvolunteering() {
                         'ret' => 0,
                         'status' => 'Success',
                         'rotated' => $v->responsePhotoRotate($myid, $photoid, $response, $deg)
+                    ];
+                } else if ($invite) {
+                    $v->responseInvite($myid);
+
+                    $ret = [
+                        'ret' => 0,
+                        'status' => 'Success',
                     ];
                 }
             }
