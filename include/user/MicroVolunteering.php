@@ -129,7 +129,7 @@ class MicroVolunteering
 
     public function challenge($userid, $groupid = null, $types)
     {
-        $ret = null;
+        $ret = NULL;
         $today = date('Y-m-d');
 
         $u = User::get($this->dbhr, $this->dbhm, $userid);
@@ -191,9 +191,7 @@ class MicroVolunteering
             }
 
             if (!$ret && in_array(self::CHALLENGE_INVITE, $types)) {
-                $ret = [
-                    'type' => self::CHALLENGE_INVITE
-                ];
+                $ret = $this->invite($userid);
             }
         }
 
@@ -639,6 +637,26 @@ class MicroVolunteering
                 'terms' => $items
             ];
         }
+        return $ret;
+    }
+
+    private function invite($userid) {
+        $ret = NULL;
+
+        $last = $this->dbhr->preQuery(
+            "SELECT * FROM microactions WHERE userid = ? AND actiontype = ? AND DATEDIFF(NOW(), timestamp) < 31 ORDER BY id DESC LIMIT 1;",
+            [
+                $userid,
+                self::CHALLENGE_INVITE
+            ]
+        );
+
+        if (!count($last)) {
+            $ret = [
+                'type' => self::CHALLENGE_INVITE
+            ];
+        }
+
         return $ret;
     }
 }
