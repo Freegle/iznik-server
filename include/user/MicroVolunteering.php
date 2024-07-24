@@ -157,6 +157,11 @@ class MicroVolunteering
 //                }
 //            }
 
+
+            if (!$ret && in_array(self::CHALLENGE_INVITE, $types)) {
+                $ret = $this->invite($userid);
+            }
+
             if (!$ret) {
                 $groupids = [$groupid];
 
@@ -188,10 +193,6 @@ class MicroVolunteering
 
             if (!$ret && in_array(self::CHALLENGE_SEARCH_TERM, $types)) {
                 $ret = $this->searchTerms($userid);
-            }
-
-            if (!$ret && in_array(self::CHALLENGE_INVITE, $types)) {
-                $ret = $this->invite($userid);
             }
         }
 
