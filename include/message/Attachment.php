@@ -23,11 +23,11 @@ class Attachment {
         return $this->id;
     }
 
-    const TYPE_MESSAGE = 'Message';
+    const TYPE_MESSAGE = 'Message';  // Migrated once from Uploadcare, not yet from old storage
     const TYPE_GROUP = 'Group';
     const TYPE_NEWSLETTER = 'Newsletter'; // Migrated once from Uploadcare, not yet from old storage
     const TYPE_COMMUNITY_EVENT = 'CommunityEvent';  // Migrated once from Uploadcare, not yet from old storage
-    const TYPE_CHAT_MESSAGE = 'ChatMessage';
+    const TYPE_CHAT_MESSAGE = 'ChatMessage';  // Migrated once from Uploadcare, not yet from old storage
     const TYPE_USER = 'User';
     const TYPE_NEWSFEED = 'Newsfeed'; // Migrated
     const TYPE_VOLUNTEERING = 'Volunteering'; // Migrated once from Uploadcare, not yet from old storage
