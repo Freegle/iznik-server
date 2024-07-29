@@ -274,14 +274,15 @@ class MicroVolunteering
         }
     }
 
-    public function responseInvite($userid) {
+    public function responseInvite($userid, $response) {
         try {
             $this->dbhm->preExec(
-                "INSERT IGNORE INTO microactions (actiontype, userid, version) VALUES (?, ?, ?);",
+                "INSERT IGNORE INTO microactions (actiontype, userid, version, result) VALUES (?, ?, ?, ?);",
                 [
                     self::CHALLENGE_INVITE,
                     $userid,
-                    self::VERSION
+                    self::VERSION,
+                    $response
                 ]
             );
         } catch (\Exception $e) {

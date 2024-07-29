@@ -95,7 +95,7 @@ function microvolunteering() {
                         'rotated' => $v->responsePhotoRotate($myid, $photoid, $response, $deg)
                     ];
                 } else if ($invite) {
-                    $v->responseInvite($myid);
+                    $v->responseInvite($myid, $response);
 
                     $ret = [
                         'ret' => 0,
