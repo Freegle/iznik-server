@@ -315,15 +315,15 @@ function user() {
                     $ret = ['ret' => 4, 'status' => "You cannot administer those users"];
 
                     if ($me && ($me->isAdminOrSupport() || $id == $me->getId())) {
-                        $uid = $u->findByEmail(trim($email));
 
                         if ($action == 'Unsubscribe') {
-                            $u = new User($dbhr, $dbhm, $uid);
+                            $u = new User($dbhr, $dbhm, $id);
                             $u->limbo();
                             $ret = [ 'ret' => 0, 'status' => 'Success' ];
                         } else {
                             # We can do this if we're an admin and the email is not already  used, or it's used for the
                             # logged-in user and we're just setting the primary flag.
+                            $uid = $u->findByEmail(trim($email));
                             if ((!$uid && $me->isAdminOrSupport()) || $uid == $me->getId()) {
                                 $id = $u->addEmail($email, Utils::presbool('primary', $_REQUEST, TRUE), TRUE);
                                 $ret = $id ? [ 'ret' => 0, 'status' => 'Success', 'emailid' => $id ] : [ 'ret' => 4, 'status' => 'Email add failed for some reason' ];

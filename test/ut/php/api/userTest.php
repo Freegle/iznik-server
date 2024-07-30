@@ -1129,6 +1129,8 @@ class userAPITest extends IznikAPITestCase {
             'action' => 'Unsubscribe'
         ]);
         $this->assertEquals(4, $ret['ret']);
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $this->assertNull($u->getPrivate('deleted'));
 
         # Support should be able to.
         $u = new User($this->dbhr, $this->dbhm, $mod);
@@ -1139,6 +1141,8 @@ class userAPITest extends IznikAPITestCase {
             'bump' => TRUE
         ]);
         $this->assertEquals(0, $ret['ret']);
+        $u = new User($this->dbhr, $this->dbhm, $uid);
+        $this->assertNotNull($u->getPrivate('deleted'));
     }
 }
 
