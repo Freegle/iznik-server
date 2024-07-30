@@ -73,13 +73,26 @@ class Attachment {
         }
     }
 
+    private function getExternalImageDeliveryUrl($externalurl, $mods) {
+        $url = IMAGE_DELIVERY . "?";
+        $mods = json_decode($mods, TRUE);
+
+        if (Utils::pres('rotate', $mods)) {
+            $url .= 'ro=' . $mods['rotate'] . "&";
+        }
+
+        $url .= "url=$externalurl";
+
+        return $url;
+    }
+
     public function getPath($thumb = false, $id = null, $archived = false, $mods = NULL) {
         if ($this->externaluid) {
             return $this->getImageDeliveryUrl($this->externaluid, $mods ? $mods : $this->externalmods);
         }
 
         if ($this->externalurl) {
-            return $this->externalurl;
+            return $this->getExternalImageDeliveryUrl($this->externalurl, $this->externalmods);
         }
 
         # We serve up our attachment names as though they are files.
@@ -351,7 +364,7 @@ class Attachment {
         $urlq = $this->externalurlname ? " OR {$this->externalurlname} IS NOT NULL" : '';
 
         if (count($ids)) {
-            $sql = "SELECT id, {$this->idatt}, hash, archived, externaluid, externalmods FROM {$this->table} 
+            $sql = "SELECT id, {$this->idatt}, hash, archived, externaluid, externalmods, externalurl FROM {$this->table} 
                        WHERE {$this->idatt} IN (" . implode(',', $ids) . ") 
                        AND ((data IS NOT NULL AND LENGTH(data) > 0) OR archived = 1 OR externaluid IS NOT NULL $urlq) 
                        ORDER BY `primary` DESC, id;";
@@ -514,7 +527,7 @@ class Attachment {
         if ($this->externaluid) {
             return $this->getImageDeliveryUrl($this->externaluid, $this->externalmods);
         } else if ($this->externalurl) {
-            return $this->externalurl;
+            return $this->getExternalImageDeliveryUrl($this->externalurl, $this->externalmods);
         } else {
             if ($this->archived) {
                 # Only these types are in archive_attachments.
