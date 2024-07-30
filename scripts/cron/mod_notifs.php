@@ -35,7 +35,7 @@ if ($hour >= 8 && $hour <= 21)
             $email = $u->getEmailPreferred();
             $name = $u->getName();
 
-            $approved = $dbhr->preQuery("SELECT DATEDIFF(NOW(), MAX(arrival)) AS activeago FROM messages_groups WHERE groupid = ? AND approvedby = ?;", [ $group['id'], $mod ] );
+            $approved = $dbhr->preQuery("SELECT DATEDIFF(NOW(), MAX(arrival)) AS activeago FROM messages_groups WHERE approvedby = ?;", [ $mod ] );
             #error_log("SELECT DATEDIFF(NOW(), MAX(arrival)) AS activeago FROM messages_groups WHERE groupid = {$group['id']} AND approvedby = $mod");
             $lastactive = $approved[0]['activeago'];
             $activeminage = $u->getSetting('modnotifs', 4);
