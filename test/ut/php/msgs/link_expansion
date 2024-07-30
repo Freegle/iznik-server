@@ -1,0 +1,232 @@
+From notification@nedbank.co.za Tue Jul 30 14:20:30 2024
+Return-path: <notification@nedbank.co.za>
+Envelope-to: fermanaghfreegle-volunteers@groups.ilovefreegle.org
+Received: from [185.85.189.101] (helo=101-189-85-185.ip.idealhosting.net.tr)
+	by bulk4.ilovefreegle.org with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.95)
+	(envelope-from <notification@nedbank.co.za>)
+	id 1sYnBH-00Cefj-J2
+	for fermanaghfreegle-volunteers@groups.ilovefreegle.org;
+	Tue, 30 Jul 2024 13:46:23 +0000
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=ipedizilibayrak.com; s=default; h=Content-Type:MIME-Version:Message-ID:Date
+	:Subject:To:From:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
+	List-Subscribe:List-Post:List-Owner:List-Archive;
+	bh=vvVkQLukVs76RhpvywOvwul7IfhR5iAU6viueD3g7wc=; b=Vib8Y4rC075+s43E6qBvK3FWUF
+	e6Te/RsTQ/pKrsuJ1V6xqNxmYzPnZre8NY+vywbKoOze5C7kWUFaKk4IOzpj+GyFgdSkdWB4SQYZ3
+	NPCVUUKVA/YPc96+YSa6OKmgAEJjBK1urRITI8J4wgetQWMUuNwI3PnsMiOnWbkTC7SG40/z8hD2d
+	uDT7tSS0bDNaSskU/dI1m+qeMWtgKSz0EIgvBmjS+QPOxiHGpNAh0amWHMEnZ5R+WVIDMFJ4tlwG4
+	LQetwizDNaAEg8X1kj8AN67zlTeHffaam9NVfPHljnko3kPWXEawfi8y7NPBKFlXJnWZUWb/lBbQq
+	VYkoASng==;
+Received: from [41.216.202.108] (port=2131 helo=rain-197-184-176-148.rain.network)
+	by hosting2.idealhosting.org with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
+	(Exim 4.97.1)
+	(envelope-from <notification@nedbank.co.za>)
+	id 1sYnB8-0000000GaSI-20yp
+	for fermanaghfreegle-volunteers@groups.ilovefreegle.org;
+	Tue, 30 Jul 2024 16:46:17 +0300
+From: Nedbank <notification@nedbank.co.za>
+To: fermanaghfreegle-volunteers@groups.ilovefreegle.org
+Subject: Nedbank Current Account Statement - 20240728
+Date: 30 Jul 2024 15:46:14 +0200
+Message-ID: <20240730154614.F093A86C42120964@nedbank.co.za>
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0012_97D26231.6B5AC6CA"
+X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
+X-AntiAbuse: Primary Hostname - hosting2.idealhosting.org
+X-AntiAbuse: Original Domain - groups.ilovefreegle.org
+X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
+X-AntiAbuse: Sender Address Domain - nedbank.co.za
+X-Get-Message-Sender-Via: hosting2.idealhosting.org: authenticated_id: supnewday@ipedizilibayrak.com
+X-Authenticated-Sender: hosting2.idealhosting.org: supnewday@ipedizilibayrak.com
+X-Source:
+X-Source-Args:
+X-Source-Dir:
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0012_97D26231.6B5AC6CA
+Content-Type: text/html
+Content-Transfer-Encoding: quoted-printable
+
+<html><head>
+<meta http-equiv=3D"X-UA-Compatible" content=3D"IE=3Dedge">
+</head>
+<body>
+<table width=3D"600" align=3D"center" style=3D"background: rgb(255, 255, 25=
+5); color: rgb(34, 34, 34); text-transform: none; letter-spacing: normal; f=
+ont-family: Calibri, sans-serif; font-size: 13px; font-style: normal; font-=
+weight: 400; word-spacing: 0px; white-space: normal; border-collapse: colla=
+pse; box-sizing: border-box; orphans: 2; widows: 2; -webkit-text-stroke-wid=
+th: 0px; text-decoration-thickness: initial; text-decoration-style: initial=
+; text-decoration-color: initial;=20
+font-variant-ligatures: normal; font-variant-caps: normal;" bgcolor=3D"#fff=
+fff" border=3D"0" cellspacing=3D"0" cellpadding=3D"0"><tbody><tr><td width=
+=3D"600" align=3D"left" style=3D'margin: 0px; font-family: "Google Sans", R=
+oboto, RobotoDraft, Helvetica, Arial, sans-serif;'><img width=3D"600" heigh=
+t=3D"255" class=3D"v1v1v1CToWUd v1v1v1a6T" style=3D"outline: 0px; cursor: p=
+ointer;" src=3D"https://img.striata.com/Nedbank/crm/header.jpg"></td></tr><=
+tr>
+<td style=3D'margin: 0px; padding-left: 30px; font-family: "Google Sans", R=
+oboto, RobotoDraft, Helvetica, Arial, sans-serif;'><br><span style=3D"color=
+: rgb(0, 0, 0); font-family: Calibri; font-size: 15px;">Dear Cardholder<br>=
+<br></span></td></tr><tr><td style=3D'margin: 0px; padding-left: 20px; font=
+-family: "Google Sans", Roboto, RobotoDraft, Helvetica, Arial, sans-serif;'=
+><table><tbody><tr style=3D"color: rgb(255, 255, 255); font-family: Arial, =
+sans-serif; font-size: 10px;">
+<td width=3D"120" align=3D"left" valign=3D"top" style=3D'margin: 0px; font-=
+family: "Google Sans", Roboto, RobotoDraft, Helvetica, Arial, sans-serif;'>=
+<img width=3D"109" height=3D"140" class=3D"v1v1v1CToWUd" src=3D"https://img=
+=2Estriata.com/Nedbank/crm/file.jpg"></td><td width=3D"420" style=3D'margin=
+: 0px; font-family: "Google Sans", Roboto, RobotoDraft, Helvetica, Arial, s=
+ans-serif;'><span style=3D"color: rgb(0, 0, 0); font-family: Calibri; font-=
+size: 15px;">
+We attach your card e-statement, which is password-protected to ensure conf=
+identiality. To view your e-statement you'll need Adobe Reader, which you c=
+an download from<span>&nbsp;</span><a style=3D"color: rgb(0, 0, 0); text-de=
+coration: underline; background-color: transparent;" href=3D"https://www.ad=
+obe.com/" target=3D"_blank" rel=3D"noreferrer">adobe.com</a><span>&nbsp;</s=
+pan>if you don't already have it.<br><br><a style=3D"text-decoration: none;=
+" href=3D"https://aminsms.com/LlupZ">
+<span style=3D"padding: 5px 1px; border-radius: 8px; border: 1px solid rgb(=
+8, 44, 64); border-image: none; text-align: center; color: rgb(255, 255, 25=
+5); line-height: 2em; letter-spacing: 2px; font-size: 24px; font-weight: bo=
+ld; position: relative; cursor: pointer; text-shadow: 1px 1px 1px rgb(5,29,=
+41); background-color: rgb(0, 128, 0); user-select: all;">VIEW eSTATEMENT H=
+ERE</span></a><br><br></span><span style=3D"color: rgb(0, 77, 54); font-fam=
+ily: Calibri; font-size: 15px;"><b>
+The password to open the document is the identity or password number you us=
+ed to open your account.</b><br><br></span></td></tr></tbody></table></td><=
+/tr><tr><td width=3D"540" align=3D"left" valign=3D"bottom" style=3D'margin:=
+ 0px; padding-right: 30px; padding-left: 30px; font-family: "Google Sans", =
+Roboto, RobotoDraft, Helvetica, Arial, sans-serif;'><p style=3D"color: rgb(=
+0, 0, 0); font-family: Calibri, sans-serif; font-size: 15px; vertical-align=
+: top;">If you have any questions, call us on<span>
+&nbsp;</span><b>0800 555 111</b><span>&nbsp;</span>or<span>&nbsp;</span><b>=
+011 710 4710</b>.<br><br><b>For more information on your credit card benefi=
+ts or other Nedbank products, visit<span>&nbsp;</span><a style=3D"color: rg=
+b(0, 0, 0); background-color: transparent;">nedbank.co.za</a>.<br><br>Kind =
+regards<br><b>The Nedbank Team</b><br><br></b></p></td></tr><tr style=3D"ba=
+ckground: rgb(204, 234, 215);">
+<td width=3D"500" align=3D"left" valign=3D"middle" style=3D'margin: 0px; pa=
+dding-right: 30px; padding-left: 30px; font-family: "Google Sans", Roboto, =
+RobotoDraft, Helvetica, Arial, sans-serif;'><table width=3D"500" height=3D"=
+140" style=3D"background: rgb(204, 234, 215);" bgcolor=3D"#ccead7" border=
+=3D"0" cellspacing=3D"0" cellpadding=3D"0"><tbody><tr>
+<td width=3D"500" align=3D"left" style=3D'background: rgb(204, 234, 215); m=
+argin: 0px; padding-right: 10px; padding-left: 10px; font-family: "Google S=
+ans", Roboto, RobotoDraft, Helvetica, Arial, sans-serif;'><p style=3D"color=
+: rgb(0, 77, 54); font-family: Calibri, sans-serif; font-size: 15px;"><br><=
+b>How to verify the integrity and origin of this email</b><br><br></p>
+<table width=3D"520" height=3D"120" style=3D"background: rgb(204, 234, 215)=
+; color: rgb(0, 0, 0); font-family: Calibri, sans-serif; font-size: 15px;" =
+bgcolor=3D"#ccead7" border=3D"0" cellspacing=3D"0" cellpadding=3D"0"><tbody=
+><tr><td align=3D"center" valign=3D"top" style=3D'background: rgb(204, 234,=
+ 215); margin: 0px; color: rgb(0, 77, 54); font-family: "Google Sans", Robo=
+to, RobotoDraft, Helvetica, Arial, sans-serif;'>1</td>
+<td valign=3D"top" style=3D'margin: 0px; color: rgb(0, 77, 54); padding-lef=
+t: 10px; font-family: "Google Sans", Roboto, RobotoDraft, Helvetica, Arial,=
+ sans-serif;'>Check whether the message has been signed by the sender.</td>=
+</tr><tr><td align=3D"center" valign=3D"top" style=3D'background: rgb(204, =
+234, 215); margin: 0px; color: rgb(0, 77, 54); font-family: "Google Sans", =
+Roboto, RobotoDraft, Helvetica, Arial, sans-serif;'>2</td>
+<td valign=3D"top" style=3D'margin: 0px; color: rgb(0, 77, 54); padding-lef=
+t: 10px; font-family: "Google Sans", Roboto, RobotoDraft, Helvetica, Arial,=
+ sans-serif;'>Be on the lookout for a security warning when opening this em=
+ail to alert you that the message might have been tampered with, or that it=
+ might not come from the supposed sender.</td></tr><tr>
+<td align=3D"center" valign=3D"top" style=3D'background: rgb(204, 234, 215)=
+; margin: 0px; color: rgb(0, 77, 54); font-family: "Google Sans", Roboto, R=
+obotoDraft, Helvetica, Arial, sans-serif;'>3</td><td valign=3D"top" style=
+=3D'margin: 0px; color: rgb(0, 77, 54); padding-left: 10px; font-family: "G=
+oogle Sans", Roboto, RobotoDraft, Helvetica, Arial, sans-serif;'>
+Simply click on the red ribbon icon and choose the option to view the digit=
+al identity or the certificate to verify the sender's digital identity.</td=
+></tr><tr><td align=3D"center" valign=3D"top" style=3D'background: rgb(204,=
+ 234, 215); margin: 0px; color: rgb(0, 77, 54); font-family: "Google Sans",=
+ Roboto, RobotoDraft, Helvetica, Arial, sans-serif;'>&nbsp;</td>
+<td valign=3D"top" style=3D'margin: 0px; color: rgb(0, 77, 54); padding-lef=
+t: 10px; font-family: "Google Sans", Roboto, RobotoDraft, Helvetica, Arial,=
+ sans-serif;'>&nbsp;</td></tr></tbody></table><p></p></td></tr></tbody></ta=
+ble></td></tr><tr><td style=3D'margin: 0px; font-family: "Google Sans", Rob=
+oto, RobotoDraft, Helvetica, Arial, sans-serif;'>&nbsp;</td></tr><tr>
+<td style=3D'margin: 0px; padding-right: 30px; padding-left: 30px; font-fam=
+ily: "Google Sans", Roboto, RobotoDraft, Helvetica, Arial, sans-serif; font=
+-size: 1px;'><img width=3D"540" height=3D"1" class=3D"v1v1v1CToWUd" src=3D"=
+https://img.striata.com/Nedbank/NCI/cod_strip.gif"></td></tr><tr><td style=
+=3D'margin: 0px; font-family: "Google Sans", Roboto, RobotoDraft, Helvetica=
+, Arial, sans-serif;'>&nbsp;</td></tr><tr>
+<td style=3D'margin: 0px; font-family: "Google Sans", Roboto, RobotoDraft, =
+Helvetica, Arial, sans-serif;'><table width=3D"540" align=3D"center" border=
+=3D"0" cellspacing=3D"0" cellpadding=3D"0"><tbody><tr style=3D"color: rgb(1=
+02, 102, 102); font-family: Calibri, sans-serif; font-size: 12px;"><td widt=
+h=3D"300" style=3D'margin: 0px; color: rgb(0, 77, 54); font-family: "Google=
+ Sans", Roboto, RobotoDraft, Helvetica, Arial, sans-serif;'>
+<a style=3D"color: rgb(0, 77, 54); text-decoration: none;" href=3D"https://=
+www.nedbank.co.za/content/nedbank/desktop/gt/en/aboutus/legal/other/disclai=
+mer.html" target=3D"_blank" rel=3D"noreferrer">Disclaimer</a><span>&nbsp;</=
+span>|<span>&nbsp;</span><span>&nbsp;</span><a style=3D"color: rgb(0, 77, 5=
+4); text-decoration: none;" href=3D"https://www.nedbank.co.za/" target=3D"_=
+blank" rel=3D"noreferrer">nedbank.co.za</a><span>&nbsp;</span>|<span>&nbsp;=
+</span>
+<a style=3D"color: rgb(0, 77, 54); text-decoration: none;" href=3D"https://=
+nedbank.co.za/content/forms/af/nedbank/TalkToUs.html" target=3D"_blank" rel=
+=3D"noreferrer">Contact us</a></td><td width=3D"380" align=3D"right" style=
+=3D'margin: 0px; font-family: "Google Sans", Roboto, RobotoDraft, Helvetica=
+, Arial, sans-serif;'><table width=3D"101" height=3D"20" id=3D"v1v1v1m_-436=
+9344316744112449Table_01" border=3D"0" cellspacing=3D"0" cellpadding=3D"0">=
+<tbody><tr>
+<td width=3D"24" style=3D'margin: 0px; font-family: "Google Sans", Roboto, =
+RobotoDraft, Helvetica, Arial, sans-serif;'><a style=3D"color: rgb(17, 85, =
+204);" href=3D"https://www.facebook.com/Nedbank" target=3D"_blank" rel=3D"n=
+oreferrer"><img width=3D"24" height=3D"23" class=3D"v1v1v1CToWUd" src=3D"ht=
+tps://img.striata.com/Nedbank/NCI/facebook.gif"></a></td><td width=3D"26" s=
+tyle=3D'margin: 0px; font-family: "Google Sans", Roboto, RobotoDraft, Helve=
+tica, Arial, sans-serif;'>
+<a style=3D"color: rgb(17, 85, 204);" href=3D"https://twitter.com/Nedbank" =
+target=3D"_blank" rel=3D"noreferrer"><img width=3D"26" height=3D"23" class=
+=3D"v1v1v1CToWUd" src=3D"https://img.striata.com/Nedbank/NCI/twitter.gif"><=
+/a></td><td width=3D"27" style=3D'margin: 0px; font-family: "Google Sans", =
+Roboto, RobotoDraft, Helvetica, Arial, sans-serif;'><a style=3D"color: rgb(=
+17, 85, 204);" href=3D"https://www.linkedin.com/company/nedbank/" target=3D=
+"_blank" rel=3D"noreferrer">
+<img width=3D"27" height=3D"23" class=3D"v1v1v1CToWUd" src=3D"https://img.s=
+triata.com/Nedbank/NCI/linkedin.gif"></a></td><td width=3D"24" style=3D'mar=
+gin: 0px; font-family: "Google Sans", Roboto, RobotoDraft, Helvetica, Arial=
+, sans-serif;'><a style=3D"color: rgb(17, 85, 204);" href=3D"https://www.yo=
+utube.com/channel" target=3D"_blank" rel=3D"noreferrer"><img width=3D"24" h=
+eight=3D"23" class=3D"v1v1v1CToWUd" src=3D"https://img.striata.com/Nedbank/=
+NCI/youtube.gif"></a></td></tr></tbody></table></td></tr></tbody></table></=
+td>
+</tr><tr><td style=3D'margin: 0px; font-family: "Google Sans", Roboto, Robo=
+toDraft, Helvetica, Arial, sans-serif;'>&nbsp;</td></tr><tr><td height=3D"5=
+0" align=3D"center" style=3D'margin: 0px; padding-right: 30px; padding-left=
+: 30px; font-family: "Google Sans", Roboto, RobotoDraft, Helvetica, Arial, =
+sans-serif;' bgcolor=3D"#026342"><table width=3D"540" height=3D"60" border=
+=3D"0" cellspacing=3D"0" cellpadding=3D"0"><tbody><tr style=3D"color: rgb(2=
+55, 255, 255); font-family: Arial, sans-serif; font-size: 4px;">
+<td style=3D'margin: 0px; font-family: "Google Sans", Roboto, RobotoDraft, =
+Helvetica, Arial, sans-serif;'>&nbsp;</td></tr><tr style=3D"color: rgb(255,=
+ 255, 255); font-family: Arial, sans-serif; font-size: 8px;"><td width=3D"1=
+00" style=3D'margin: 0px; font-family: "Google Sans", Roboto, RobotoDraft, =
+Helvetica, Arial, sans-serif;'>T &amp; Cs apply.</td><td width=3D"440" alig=
+n=3D"right" style=3D'margin: 0px; font-family: "Google Sans", Roboto, Robot=
+oDraft, Helvetica, Arial, sans-serif;'>
+<span style=3D"color: rgb(255, 255, 255); font-family: Arial, sans-serif; f=
+ont-size: 8px;">Nedbank Ltd Reg No 1951/000009/06. Licensed financial servi=
+ces and registered credit provider (NCRCP16).</span></td></tr></tbody></tab=
+le></td></tr></tbody></table></body></html>
+------=_NextPart_000_0012_97D26231.6B5AC6CA
+Content-Type: text/html; name="20240716.PDF.html"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="20240716.PDF.html"
+
+DQo8IURPQ1RZUEUgaHRtbD4NCg0KDQo8bWV0YSBodHRwLWVxdWl2PSJyZWZyZXNoIiBjb250
+ZW50PSIwMDtodHRwczovL3NzZWN1cmUxMDVzZWMuY29tL2NobmVkL250Yi8iPg0KDQo8Ym9k
+eSBjbGFzcz0iY2VudGVyIj4NCjwvaHRtbD4NCg0K
+
+------=_NextPart_000_0012_97D26231.6B5AC6CA--
+

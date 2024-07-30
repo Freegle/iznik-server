@@ -149,7 +149,20 @@ class Shortlink extends Entity
 
             $context = stream_context_create($opts);
 
-            $response = get_headers($url, 1, $context);
+            $retries = 10;
+            do {
+                $response = get_headers($url, 1, $context);
+
+                if (!$response) {
+                    $retries--;
+
+                    if (!$retries) {
+                        break;
+                    }
+
+                    usleep(100000);
+                }
+            } while (!$response);
 
             if ($response) {
                 # The location property of the response header is used for redirect.
@@ -200,6 +213,9 @@ class Shortlink extends Entity
         if (preg_match_all(Utils::URL_PATTERN, $str, $matches)) {
             foreach ($matches as $val) {
                 foreach ($val as $url) {
+                    // If url contains ] then use everything before it.  This seems common and wrong, and the regex is
+                    // impenetrable.
+                    $url = strstr($url, ']', true) ?: $url;
                     $urls[] = $url;
                 }
             }
