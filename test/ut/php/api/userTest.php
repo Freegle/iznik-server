@@ -1107,5 +1107,38 @@ class userAPITest extends IznikAPITestCase {
         ]);
         $this->assertEquals(0, $ret['ret']);
     }
+
+    public function testSupportUnsubscribe() {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test1@test.com');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test2@test.com');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $mod = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test3@test.com');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
+
+        # User shouldn't be able to unsub another.
+        $u = new User($this->dbhr, $this->dbhm, $uid2);
+        $this->assertTrue($u->login('testpw'));
+        $ret = $this->call('user', 'POST', [
+            'id' => $uid,
+            'action' => 'Unsubscribe'
+        ]);
+        $this->assertEquals(4, $ret['ret']);
+
+        # Support should be able to.
+        $u = new User($this->dbhr, $this->dbhm, $mod);
+        $this->assertTrue($u->login('testpw'));
+        $ret = $this->call('user', 'POST', [
+            'id' => $uid,
+            'action' => 'Unsubscribe',
+            'bump' => TRUE
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+    }
 }
 

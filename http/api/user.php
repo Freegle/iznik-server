@@ -311,19 +311,25 @@ function user() {
                     $role = $me && $me->moderatorForUser($id) ? User::ROLE_MODERATOR : User::ROLE_NONMEMBER;
                 }
 
-                if ($action == 'AddEmail') {
+                if ($action == 'AddEmail' || $action == 'Unsubscribe') {
                     $ret = ['ret' => 4, 'status' => "You cannot administer those users"];
 
                     if ($me && ($me->isAdminOrSupport() || $id == $me->getId())) {
                         $uid = $u->findByEmail(trim($email));
 
-                        # We can do this if we're an admin and the email is not already  used, or it's used for the
-                        # logged-in user and we're just setting the primary flag.
-                        if ((!$uid && $me->isAdminOrSupport()) || $uid == $me->getId()) {
-                            $id = $u->addEmail($email, Utils::presbool('primary', $_REQUEST, TRUE), TRUE);
-                            $ret = $id ? [ 'ret' => 0, 'status' => 'Success', 'emailid' => $id ] : [ 'ret' => 4, 'status' => 'Email add failed for some reason' ];
+                        if ($action == 'Unsubscribe') {
+                            $u = new User($dbhr, $dbhm, $uid);
+                            $u->limbo();
+                            $ret = [ 'ret' => 0, 'status' => 'Success' ];
                         } else {
-                            $ret = [ 'ret' => 3, 'status' => "Email already used by $uid" ];
+                            # We can do this if we're an admin and the email is not already  used, or it's used for the
+                            # logged-in user and we're just setting the primary flag.
+                            if ((!$uid && $me->isAdminOrSupport()) || $uid == $me->getId()) {
+                                $id = $u->addEmail($email, Utils::presbool('primary', $_REQUEST, TRUE), TRUE);
+                                $ret = $id ? [ 'ret' => 0, 'status' => 'Success', 'emailid' => $id ] : [ 'ret' => 4, 'status' => 'Email add failed for some reason' ];
+                            } else {
+                                $ret = [ 'ret' => 3, 'status' => "Email already used by $uid" ];
+                            }
                         }
                     }
                 } else if (($me && ($me->isAdminOrSupport() || $id == $me->getId())) && $action == 'RemoveEmail') {
