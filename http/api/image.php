@@ -121,7 +121,8 @@ function image() {
                     ];
                 }
             } else if ($externaluid) {
-                // This is an external image.  Typically it's uploaded to a service like Uploadcare.
+                // This is an external image i.e. not in the DB.  Currently this is only uploaded to our own
+                // storage via tusd.
                 $a = new Attachment($dbhr, $dbhm, NULL, $imgtype);
                 list ($id, $uid) = $a->create($msgid, NULL, $externaluid, NULL, TRUE, $externalmods);
 

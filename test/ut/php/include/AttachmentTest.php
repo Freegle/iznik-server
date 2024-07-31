@@ -87,7 +87,7 @@ class AttachmentTest extends IznikTestCase {
     public function testExternal() {
         $url = 'https://ilovefreegle.org/icon.png';
         $a = new Attachment($this->dbhr, $this->dbhm);
-        list ($attid, $uid) = $a->create(NULL,NULL,'uid', $url, FALSE);
+        list ($attid, $uid) = $a->create(NULL,NULL,'freegletusd-uid', $url, FALSE);
         $this->assertNotNull($attid);
 
         $a = new Attachment($this->dbhr, $this->dbhm, $attid);
@@ -95,10 +95,10 @@ class AttachmentTest extends IznikTestCase {
         $this->assertEquals(0, strlen($a->getData()));
         $a->archive();
         $this->assertEquals(0, strlen($a->getData()));
-        $this->assertEquals(UPLOADCARE_CDN . 'uid/', $a->getPath());
+        $this->assertEquals( TUS_UPLOADER . '?url=/uid/', $a->getPath());
         $atts = $a->getPublic();
-        $this->assertEquals(UPLOADCARE_CDN . 'uid/', $atts['path']);
-        $this->assertEquals(UPLOADCARE_CDN . 'uid/', $atts['paththumb']);
+        $this->assertEquals(TUS_UPLOADER . '?url=/uid/', $atts['path']);
+        $this->assertEquals(TUS_UPLOADER . '?url=/uid/', $atts['paththumb']);
     }
 }
 

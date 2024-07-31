@@ -45,8 +45,7 @@
     "eluceo/ical": "^0.16.1",
     "prewk/xml-string-streamer": "^1.2",
     "sentry/sdk": "^3.1",
-    "cweagans/composer-patches": "^1.7",
-    "uploadcare/uploadcare-php": "^4.0"
+    "cweagans/composer-patches": "^1.7"
   },
   "repositories": [
     {
@@ -64,7 +63,8 @@
   "config": {
     "allow-plugins": {
       "composer/installers": true,
-      "cweagans/composer-patches": true
+      "cweagans/composer-patches": true,
+      "php-http/discovery": true
     }
   },
   "extra": {

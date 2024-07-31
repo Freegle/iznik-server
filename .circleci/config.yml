@@ -87,9 +87,6 @@ jobs:
       # Redis listens on localhost, whereas we use a unix socket on the live servers.
       - run: sudo sed -ie 's/\/var\/run\/redis\/redis.sock/127.0.0.1/g' /etc/iznik.conf
 
-      - run: sudo sed -ie "s/'UPLOADCARE_PUBLIC_KEY', NULL/'UPLOADCARE_PUBLIC_KEY', '$UPLOADCARE_PUBLIC_KEY'/g" /etc/iznik.conf
-      - run: sudo sed -ie "s/'UPLOADCARE_SECRET_KEY', NULL/'UPLOADCARE_SECRET_KEY', '$UPLOADCARE_SECRET_KEY'/g" /etc/iznik.conf
-      - run: sudo sed -ie "s/'UPLOADCARE_CDN', NULL/'UPLOADCARE_CDN', '$UPLOADCARE_CDN'/g" /etc/iznik.conf
       - run: sudo sed -ie "s/'AZURE_CONNECTION_STRING', 'zzzz'/'AZURE_CONNECTION_STRING', '$AZURE_CONNECTION_STRING'/g" /etc/iznik.conf
       - run: sudo sed -ie "s/'PLAYGROUND_TOKEN', 'zzzz'/'PLAYGROUND_TOKEN', '$PLAYGROUND_TOKEN'/g" /etc/iznik.conf
       - run: sudo sed -ie "s/'PLAYGROUND_SECRET', 'zzzz'/'PLAYGROUND_SECRET', '$PLAYGROUND_SECRET'/g" /etc/iznik.conf

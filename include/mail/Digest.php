@@ -102,14 +102,9 @@ class Digest
 
         if (count($atts) > 0) {
             $image = $atts[0]['path'];
-
-            if (strpos($image, UPLOADCARE_CDN) !== FALSE) {
-                # If the image is externally hosted, then we can request a smaller version.  For
-                # immediate mails we'd like to show it full width, whereas in digests we only need the
-                # thumbnails.
-                $image .= "-/scale_crop/{$size}x{$size}/center/";
-            }
         }
+
+        // TODO Get smaller veresion.
 
         return $image;
     }

@@ -23,16 +23,16 @@ class Attachment {
         return $this->id;
     }
 
-    const TYPE_MESSAGE = 'Message';  // Migrated once from Uploadcare, not yet from old storage
+    const TYPE_MESSAGE = 'Message';
     const TYPE_GROUP = 'Group';
-    const TYPE_NEWSLETTER = 'Newsletter'; // Migrated once from Uploadcare, not yet from old storage
-    const TYPE_COMMUNITY_EVENT = 'CommunityEvent';  // Migrated once from Uploadcare, not yet from old storage
-    const TYPE_CHAT_MESSAGE = 'ChatMessage';  // Migrated once from Uploadcare, not yet from old storage
+    const TYPE_NEWSLETTER = 'Newsletter';
+    const TYPE_COMMUNITY_EVENT = 'CommunityEvent';
+    const TYPE_CHAT_MESSAGE = 'ChatMessage';
     const TYPE_USER = 'User';
-    const TYPE_NEWSFEED = 'Newsfeed'; // Migrated
-    const TYPE_VOLUNTEERING = 'Volunteering'; // Migrated once from Uploadcare, not yet from old storage
-    const TYPE_STORY = 'Story'; // Migrated once from Uploadcare, not yet from old storage
-    const TYPE_NOTICEBOARD = 'Noticeboard'; // Migrated
+    const TYPE_NEWSFEED = 'Newsfeed';
+    const TYPE_VOLUNTEERING = 'Volunteering';
+    const TYPE_STORY = 'Story';
+    const TYPE_NOTICEBOARD = 'Noticeboard';
 
     /**
      * @return mixed
@@ -55,6 +55,7 @@ class Attachment {
 
     private function getImageDeliveryUrl($uid, $mods) {
         $p = strrpos($uid, 'freegletusd-');
+        $url = NULL;
 
         if ($p !== FALSE) {
             $url = IMAGE_DELIVERY . "?";
@@ -65,12 +66,9 @@ class Attachment {
             }
 
             $url .= "url=" . TUS_UPLOADER . "/" . substr($uid, $p + strlen('freegletusd-')) . "/";
-            
-            return $url;
-        } else {
-            $u = new UploadCare();
-            return $u->getUrl($this->externaluid, $mods);
         }
+
+        return $url;
     }
 
     private function getExternalImageDeliveryUrl($externalurl, $mods) {
