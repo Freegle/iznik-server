@@ -752,7 +752,7 @@ class Attachment {
 
     function rotate($rotate) {
         // Ensure $rotate is not negative.
-        if ($this->externaluid) {
+        if ($this->externaluid || $this->externalurl) {
             # We can rotate this by changing external mods.
             $mods = json_decode($this->externalmods, TRUE);
             $rotate = ($rotate + 360) % 360;
