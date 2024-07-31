@@ -81,7 +81,7 @@ class Attachment {
             $url .= 'ro=' . $mods['rotate'] . "&";
         }
 
-        $url .= "url=$externalurl";
+        $url .= "url=" . urlencode($externalurl);
 
         return $url;
     }
