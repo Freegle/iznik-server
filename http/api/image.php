@@ -72,15 +72,15 @@ function image() {
 
                 $i = new Image($data);
 
-                $w = $w ? $w : $i->width();
-                $h = $h ? $h : $i->height();
-
                 $ret = [
                     'ret' => 1,
                     'status' => "Failed to create image $id of type $type",
                 ];
 
                 if ($i->img) {
+                    $w = $w ? $w : $i->width();
+                    $h = $h ? $h : $i->height();
+
                     if (($w > 0) || ($h > 0)) {
                         # Need to resize
                         $i->scale($w, $h);
