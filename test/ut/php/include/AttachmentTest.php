@@ -95,10 +95,10 @@ class AttachmentTest extends IznikTestCase {
         $this->assertEquals(0, strlen($a->getData()));
         $a->archive();
         $this->assertEquals(0, strlen($a->getData()));
-        $this->assertEquals( TUS_UPLOADER . '?url=/uid/', $a->getPath());
+        $this->assertEquals('?url=' . TUS_UPLOADER . '/uid/', $a->getPath());
         $atts = $a->getPublic();
-        $this->assertEquals(TUS_UPLOADER . '?url=/uid/', $atts['path']);
-        $this->assertEquals(TUS_UPLOADER . '?url=/uid/', $atts['paththumb']);
+        $this->assertEquals('?url=' . TUS_UPLOADER . '/uid/', $atts['path']);
+        $this->assertEquals('?url=' . TUS_UPLOADER . '/uid/', $atts['paththumb']);
     }
 }
 
