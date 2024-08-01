@@ -104,7 +104,11 @@ class Digest
             $image = $atts[0]['path'];
         }
 
-        // TODO Get smaller veresion.
+        if (strpos($image, IMAGE_DELIVERY) !== FALSE) {
+            # We can request a smaller version.  For immediate mails we'd like to show it full width, whereas
+            # in digests we only need the thumbnails.
+            $image .= "&w=200&h=200";
+        }
 
         return $image;
     }
