@@ -521,38 +521,47 @@ class Attachment {
         return @file_get_contents($url, $use_include_path, $ctx);
     }
 
-    public function canRedirect() {
+    public function canRedirect($w = NULL, $h = NULL) {
         if ($this->externaluid) {
+            # These are images uploaded to our current upload system, via tusd.
             return $this->getImageDeliveryUrl($this->externaluid, $this->externalmods);
         } else if ($this->externalurl) {
+            # These are images hosted elsewhere, typically on TN or user profiles.
             return $this->getExternalImageDeliveryUrl($this->externalurl, $this->externalmods);
         } else {
             if ($this->archived) {
-                # Only these types are in archive_attachments.
+                # These are legacy images which have been archived to Azure storage.
                 switch ($this->type) {
                     case Attachment::TYPE_MESSAGE:
-                        $tname = 'timg';
                         $name = 'img';
                         break;
                     case Attachment::TYPE_CHAT_MESSAGE:
-                        $tname = 'tmimg';
                         $name = 'mimg';
                         break;
                     case Attachment::TYPE_NEWSFEED:
-                        $tname = 'tfimg';
                         $name = 'fimg';
                         break;
                     case Attachment::TYPE_COMMUNITY_EVENT:
-                        $tname = 'tcimg';
                         $name = 'cimg';
                         break;
                     case Attachment::TYPE_NOTICEBOARD:
-                        $tname = 'tbimg';
                         $name = 'bimg';
                         break;
                 }
 
-                return 'https://' . IMAGE_ARCHIVED_DOMAIN . "/{$name}_{$this->id}.jpg";
+                $url = IMAGE_DELIVERY . "?";
+
+                if ($w) {
+                    $url .= "w=$w&";
+                }
+
+                if ($h) {
+                    $url .= "h=$h&";
+                }
+
+                $url .= "url=" . urlencode("https://" . IMAGE_ARCHIVED_DOMAIN . "/{$name}_{$this->id}.jpg");
+
+                return $url;
             }
         }
 

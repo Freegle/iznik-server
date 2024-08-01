@@ -50,8 +50,11 @@ function image() {
 
     switch ($_REQUEST['type']) {
         case 'GET': {
+            $w = Utils::presint('w', $_REQUEST, 0);
+            $h = Utils::presint('h', $_REQUEST, 0);
+
             $a = new Attachment($dbhr, $dbhm, $id, $type);
-            $redirect = $a->canRedirect();
+            $redirect = $a->canRedirect($w, $h);
 
             if ($redirect) {
                 $ret = [
@@ -69,15 +72,15 @@ function image() {
 
                 $i = new Image($data);
 
+                $w = $w ? $w : $i->width();
+                $h = $h ? $h : $i->height();
+
                 $ret = [
                     'ret' => 1,
                     'status' => "Failed to create image $id of type $type",
                 ];
 
                 if ($i->img) {
-                    $w = (Utils::presint('w', $_REQUEST, $i->width()));
-                    $h = (Utils::presint('h', $_REQUEST, $i->height()));
-
                     if (($w > 0) || ($h > 0)) {
                         # Need to resize
                         $i->scale($w, $h);

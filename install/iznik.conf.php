@@ -143,7 +143,7 @@ switch($host) {
 
 # We archive to our own hosts, which are fronted by round-robin DNS.
 define('IMAGE_DOMAIN', 'dev.modtools.org');
-define('IMAGE_ARCHIVED_DOMAIN', 'cdn.ilovefreegle.org');
+define('IMAGE_ARCHIVED_DOMAIN', 'freegle.blob.core.windows.net');
 define('CDN_HOST_1', 'xxx1.ilovefreegle.org');
 define('CDN_HOST_2', 'xxx2.ilovefreegle.org');
 define('CDN_SSH_USER', 'root');
