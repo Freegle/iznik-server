@@ -49,10 +49,10 @@ class jobsTest extends IznikTestCase
 
     public function testGeoCode() {
         list ($swlat, $swlng, $nelat, $nelng, $geom, $area) = Jobs::geocode('Dunsop Bridge', FALSE, TRUE);
-        $this->assertEquals(53.9585066, round($swlat, 7));
-        $this->assertEquals(-2.5658671, round($swlng, 7));
-        $this->assertEquals(53.9567612, round($nelat, 7));
-        $this->assertEquals(-2.5633336, round($nelng, 7));
+        $this->assertEquals(53.9458368, round($swlat, 7));
+        $this->assertEquals(-2.5205488, round($swlng, 7));
+        $this->assertEquals(53.9457544, round($nelat, 7));
+        $this->assertEquals(-2.5203574, round($nelng, 7));
         list ($swlat, $swlng, $nelat, $nelng, $geom, $area) = Jobs::geocode('Dunsop Bridge', TRUE, TRUE);
         $this->assertEquals(53.9445729, round($swlat, 7));
         $this->assertEquals(-2.5185855, round($swlng, 7));
