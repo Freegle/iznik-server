@@ -416,7 +416,7 @@ GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
             $ctx = stream_context_create(
                 array(
                     'http' => [
-                        'timeout' => 1,
+                        'timeout' => 5,
                         "method" => "GET",
                         "header" => "Accept-language: en\r\n" .
                             "Api-Key: " . DISCOURSE_APIKEY . "\r\n" .
