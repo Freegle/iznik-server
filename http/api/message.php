@@ -281,7 +281,7 @@ function message() {
                         $availableinitially = Utils::presint('availableinitially', $_REQUEST, NULL);
                         $availablenow = Utils::presint('availablenow', $_REQUEST, NULL);
                         $attachments = array_key_exists('attachments', $_REQUEST) ? $_REQUEST['attachments'] : NULL;
-                        $deliverypossible = array_key_exists('deliverypossible', $_REQUEST) ? Utils::presbool('deliverypossible', $_REQUEST) : NULL;
+                        $deliverypossible = array_key_exists('deliverypossible', $_REQUEST) ? Utils::presbool('deliverypossible', $_REQUEST, FALSE) : NULL;
                         $deadline = Utils::presdef('deadline', $_REQUEST, NULL);
 
                         $ret = [
