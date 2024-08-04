@@ -151,7 +151,7 @@ class Shortlink extends Entity
 
             $retries = 10;
             do {
-                $response = get_headers($url, 1, $context);
+                $response = @get_headers($url, 1, $context);
 
                 if (!$response) {
                     $retries--;
