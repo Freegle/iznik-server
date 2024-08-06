@@ -5509,8 +5509,8 @@ $mq", [
         # Remove any messages which are deleted, or where the user has been deleted
         $sql = "SELECT DISTINCT messages_spatial.id FROM messages_spatial 
     INNER JOIN messages ON messages_spatial.msgid = messages.id 
-    INNER JOIN users ON users.id = messages.fromuser
-    WHERE messages.deleted IS NOT NULL OR users.deleted IS NOT NULL";
+    LEFT JOIN users ON users.id = messages.fromuser
+    WHERE messages.fromuser IS NULL OR messages.deleted IS NOT NULL OR users.deleted IS NOT NULL";
         $msgs = $this->dbhr->preQuery($sql);
 
         foreach ($msgs as $msg) {
