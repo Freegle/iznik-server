@@ -347,6 +347,7 @@
 
     <mj-section mj-class="footer">
       <mj-column>
+        <mj-image fluid-on-mobile="true" alt="Ecosend mail campaigns" align="center" mj-class="ecosend" src="https://www.ilovefreegle.org/ecosend.png" href="https://www.ilovefreegle.org/shortlink/EcosendFooter"></mj-image>
         <mj-text color="black" font-weight="bold">
           You've received this mail because you're a member of Freegle. <a href="{{ unsubscribe }}" style="color: black; font-weight: bold">Unsubscribe</a>.
           <br />
