@@ -1470,7 +1470,7 @@ ORDER BY lastdate DESC;";
                 $deadline = Utils::pres('deadline', $rets[$msg['id']]);
                 $now = Utils::ISODate('@' . time());
 
-                if ($deadline < $now) {
+                if ($deadline && $deadline < $now) {
                     $rets[$msg['id']]['outcomes'] = [
                         [
                             'timestamp' => $deadline,
