@@ -1118,5 +1118,25 @@ class messageTest extends IznikTestCase {
         $this->assertEquals(1, preg_match(Message::EMAIL_REGEXP, 'test@test.com'));
         $this->assertEquals(1, preg_match(Message::EMAIL_REGEXP, 'test@test.cloud'));
     }
+
+    public function testDeadline() {
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', '[hertford_freegle] Offered - Grey Driveway Blocks - Hoddesdon', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list ($id1, $failok) = $m->save();
+
+        $m = new Message($this->dbhr, $this->dbhm, $id1);
+        $deadline = '2016-01-01';
+        $m->setPrivate('deadline', $deadline);
+        $this->assertEquals($deadline, $m->getPublic()['deadline']);
+        $outcomes = $m->getPublic()['outcomes'];
+        $this->assertEquals([
+            [
+                'timestamp' => $deadline,
+                'outcome' => Message::OUTCOME_EXPIRED
+            ]
+        ], $outcomes);
+    }
 }
 

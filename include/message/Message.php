@@ -560,7 +560,7 @@ class Message
     # Other attributes are only visible within the server code.
     public $nonMemberAtts = [
         'id', 'subject', 'suggestedsubject', 'type', 'arrival', 'date', 'deleted', 'heldby', 'textbody', 'FOP', 'fromaddr', 'isdraft',
-        'lat', 'lng', 'availableinitially', 'availablenow'
+        'lat', 'lng', 'availableinitially', 'availablenow', 'deliverypossible', 'deadline'
     ];
 
     public $memberAtts = [

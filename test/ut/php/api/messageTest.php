@@ -1062,7 +1062,7 @@ class messageAPITest extends IznikAPITestCase
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $this->assertFalse($m->isEdited());
         $rc = $r->route();
