@@ -1466,8 +1466,20 @@ ORDER BY lastdate DESC;";
             }
 
             if (count($rets[$msg['id']]['outcomes']) === 0) {
-                # No outcomes - but has it expired?  Need to check the groups though - it might be reposted later, in
-                # which case the time on messages_groups is bumped whereas the message arrival time is the same.
+                # No outcomes - but has it expired?
+                $deadline = Utils::pres('deadline', $rets[$msg['id']]);
+                $now = Utils::ISODate('@' . time());
+
+                if ($deadline < $now) {
+                    $rets[$msg['id']]['outcomes'] = [
+                        [
+                            'timestamp' => $deadline,
+                            'outcome' => Message::OUTCOME_EXPIRED
+                        ]
+                    ];
+                }
+
+                # Also need to check the groups - it might be reposted later, in which case the time on messages_groups is bumped whereas the message arrival time is the same.
                 foreach ($rets[$msg['id']]['groups'] as $group) {
                     $grouparrival = strtotime($group['arrival']);
                     $grouparrivalago = floor((time() - $grouparrival) / 86400);
