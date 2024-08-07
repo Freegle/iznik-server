@@ -347,8 +347,9 @@ function message() {
                             $m->setPrivate('deliverypossible', $deliverypossible);
                         }
 
-                        if ($deadline) {
-                            $m->setPrivate('deadline', $deadline);
+                        if (array_key_exists('deadline', $_REQUEST)) {
+                            // Deadline can be null.
+                            $m->setPrivate('deadline', $deadline, TRUE);
                         }
 
                         if ($groupid) {
