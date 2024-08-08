@@ -17,7 +17,7 @@ $chats = $dbhr->preQuery("SELECT chatid, messages_by.userid, messages.fromuser F
     INNER JOIN messages ON messages.id = messages_by.msgid
     INNER JOIN chat_messages ON chat_messages.refmsgid = messages.id
     WHERE messages.type = ?
-    ORDER BY messages_by.id DESC LIMIT 50;", [
+    ORDER BY messages_by.id DESC LIMIT 1000000;", [
         Message::TYPE_OFFER,
 ]);
 
