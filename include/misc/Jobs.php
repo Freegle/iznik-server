@@ -599,12 +599,12 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
         error_log(date("Y-m-d H:i:s", time()) . "...finished file load");
     }
 
-    public function deleteSpammyJobs() {
+    public function deleteSpammyJobs($table) {
         # There are some "spammy" jobs which are posted with identical descriptions across the UK.  They feel scuzzy, so
         # remove them.
         $spamcount = 0;
         error_log(date("Y-m-d H:i:s", time()) . "Count spammy jobs");
-        $spams = $this->dbhr->preQuery("SELECT COUNT(*) as count, title, bodyhash FROM jobs_new GROUP BY bodyhash HAVING count > 50 AND bodyhash IS NOT NULL;");
+        $spams = $this->dbhr->preQuery("SELECT COUNT(*) as count, title, bodyhash FROM $table GROUP BY bodyhash HAVING count > 50 AND bodyhash IS NOT NULL;");
 
         error_log(date("Y-m-d H:i:s", time()) . "Delete spammy jobs");
 
@@ -614,7 +614,7 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
             $spamcount += $spam['count'];
 
             do {
-                $this->dbhm->preExec("DELETE FROM jobs_new WHERE bodyhash = ? LIMIT 1;", [
+                $this->dbhm->preExec("DELETE FROM $table WHERE bodyhash = ? LIMIT 1;", [
                     $spam['bodyhash']
                 ]);
             } while ($this->dbhm->rowsAffected());

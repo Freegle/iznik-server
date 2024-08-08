@@ -58,7 +58,7 @@ try {
 } catch (\Exception $e) {
     \Sentry\captureException($e);
 }
-$j->deleteSpammyJobs();
+$j->deleteSpammyJobs("jobs_new");
 $j->swapTables();
 
 Utils::unlockScript($lockh);
