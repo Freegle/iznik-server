@@ -1365,7 +1365,7 @@ HAVING logincount > 0
         return $ret;
     }
 
-    public function getModsToNotify() {
+    public function getModsToNotify($allowMods = TRUE) {
         $ret = [];
 
         # This is to find mods to notify about things on the group which require attention, ideally from the
@@ -1405,7 +1405,7 @@ HAVING logincount > 0
             }
         }
 
-        if (!count($ret)) {
+        if (!count($ret) && $allowMods) {
             $mods = $this->getMods([ User::ROLE_MODERATOR ]);
 
             foreach ($mods as $mod) {
@@ -1436,7 +1436,7 @@ HAVING logincount > 0
 
         if (!count($ret)) {
             error_log("...fallback to Mentors");
-            $ret[]= MENTORS_ADDR;
+            $ret[] = MENTORS_ADDR;
         }
 
         return $ret;
@@ -1490,5 +1490,27 @@ HAVING logincount > 0
     public function sendIt($mailer, $message)
     {
         $mailer->send($message);
+    }
+
+    function notifyAboutSignificantEvent($subject, $mail) {
+        $notify = $this->getModsToNotify();
+
+        foreach ($notify as $n) {
+            $m = User::get($this->dbhr, $this->dbhm, $n);
+            $email = $m->getEmailPreferred();
+
+            $message = \Swift_Message::newInstance()
+                ->setSubject($subject)
+                ->setFrom(NOREPLY_ADDR)
+                ->setTo($m->getEmailPreferred())
+                ->setBody($mail);
+
+            Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::MODMAIL);
+            list ($transport, $mailer) = Mail::getMailer();
+            $this->sendIt($mailer, $message);
+            $count++;
+        }
+
+        return $count;
     }
 }

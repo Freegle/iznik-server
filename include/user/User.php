@@ -1551,6 +1551,12 @@ class User extends Entity
                 $r->upToDateAll($this->getId(),[
                     ChatRoom::TYPE_USER2MOD
                 ]);
+            } else if (($currentRole == User::ROLE_MODERATOR || $currentRole == User::ROLE_OWNER) && $role == User::ROLE_MEMBER) {
+                # This member has been demoted.  Mail the other mods.
+                $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+                $g->notifyAboutSignificantEvent($this->getName() . " is no longer a moderator on " . $g->getPrivate('nameshort'),
+                    "If this is unexpected, please contact them and/or check that there are enough volunteers on this group.  If you need help, please contact ". MENTORS_ADDR . "."
+                );
             }
 
             $this->memberships = NULL;
