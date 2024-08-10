@@ -408,7 +408,7 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
 
             # Notify mods if we have flagged this for review and we've not been asked to suppress it.
             $modstoo = $review && !$suppressmodnotif;
-            $r->notifyMembers($u->getName(), $message, $userid, $modstoo);
+            $r->notifyMembers($userid, $modstoo);
         }
 
         return TRUE;
@@ -561,7 +561,7 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
                     $r->updateMessageCounts();
                     $u = User::get($this->dbhr, $this->dbhm, $msg['userid']);
                     $r->pokeMembers();
-                    $r->notifyMembers($u->getName(), $msg['message'], $msg['userid'], TRUE);
+                    $r->notifyMembers($msg['userid'], TRUE);
 
                     $this->log->log([
                                         'type' => Log::TYPE_CHAT,
