@@ -51,14 +51,14 @@ class RestartProject {
             if (count($groups)) {
                 foreach ($groups as $group) {
                     if (strpos($group['name'], "[INACTIVE]") === false) {
-                        $details = $this->request("https://restarters.net/api/v2/groups/" . $group['id']);
+                        $group_details = $this->request("https://restarters.net/api/v2/groups/" . $group['id']);
 
-                        if ($details) {
+                        if ($group_details) {
                             # We only care about GB groups.
-                            if ($details['location']['country_code'] == 'GB') {
+                            if ($group_details['location']['country_code'] == 'GB') {
                                 // Only interested in these.  Check the location is inside a DPA/CGA
-                                $lat = $details['location']['lat'];
-                                $lng = $details['location']['lng'];
+                                $lat = $group_details['location']['lat'];
+                                $lng = $group_details['location']['lng'];
                                 $l = new Location($this->dbhr, $this->dbhm);
                                 $pc = $l->closestPostcode($lat, $lng);
                                 $groupsnear = Utils::pres('groupsnear', $pc);
@@ -101,6 +101,14 @@ class RestartProject {
                                                             $title = "Repair Cafe: " . $title;
                                                         }
 
+                                                        $url = Utils::presdef('link', $event_details, NULL);
+
+                                                        if (!$url) {
+                                                            $url = Utils::presdef('website', $group_details, NULL);
+                                                        }
+
+                                                        $email = Utils::presdef('email', $group_details, NULL);
+
                                                         # See if we already have the event.
                                                         $existing = $this->dbhr->preQuery("SELECT * FROM communityevents WHERE externalid = ?", [ $externalid ]);
 
@@ -109,7 +117,7 @@ class RestartProject {
                                                             #
                                                             # We don't update the photo as there is no good way to
                                                             # check it hasn't changed.
-                                                            error_log("Found existing event " . $event['id']);
+                                                            error_log("...updated existing " . $existing[0]['id']);
                                                             $e = new CommunityEvent($this->dbhr, $this->dbhm, $existing[0]['id']);
 
                                                             $pending = $e->getPrivate('title') != $title ||
@@ -125,6 +133,8 @@ class RestartProject {
                                                             $e->setPrivate('title', $title);
                                                             $e->setPrivate('location', $event['location']);
                                                             $e->setPrivate('description', $description);
+                                                            $e->setPrivate('contacturl', $url);
+                                                            $e->setPrivate('contactemail', $email);
 
                                                             # Replace dates in case they have changed.
                                                             $e->removeDates();
@@ -140,12 +150,13 @@ class RestartProject {
                                                                 $event['location'],
                                                                 $event_details['group']['name'],
                                                                 NULL,
-                                                                Utils::presdef('email', $event_details['group'], NULL),
-                                                                Utils::presdef('website', $event_details['group'], NULL),
+                                                                $email,
+                                                                $url,
                                                                 $description,
                                                                 NULL,
                                                                 $externalid
                                                             );
+                                                            error_log("...created as $eid");
 
                                                             $e->addGroup($groupsnear[0]['id']);
                                                             $e->addDate($event['start'], $event['end']);
@@ -185,11 +196,11 @@ class RestartProject {
                                         );
                                     }
                                 } else {
-                                    error_log("No groups found for {$details['name']} {$lat},{$lng}");
-                                    \Sentry\captureMessage("No postcode found for {$details['name']} {$lat},{$lng}");
+                                    error_log("No groups found for {$group_details['name']} {$lat},{$lng}");
+                                    \Sentry\captureMessage("No postcode found for {$group_details['name']} {$lat},{$lng}");
                                 }
                             } else {
-                                #error_log("Skip group " . $group['name'] . " because " . $details['location']['country_code'] . " {$details['location']['lat']},{$details['location']['lng']}");
+                                #error_log("Skip group " . $group['name'] . " because " . $group_details['location']['country_code'] . " {$group_details['location']['lat']},{$group_details['location']['lng']}");
                             }
                         } else {
                             error_log("No details found for group " . $group['name']);
