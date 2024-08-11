@@ -1010,6 +1010,10 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals(0, count($ret['chatmessages']));
 
+        $ret = $this->call('session', 'GET', []);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['work']['chatreview']);
+
         # Now enable quick chat review.
         $g = Group::get($this->dbhr, $this->dbhm, $gid);
         $settings = json_decode($g->getPrivate('settings'), TRUE);
@@ -1023,6 +1027,10 @@ class chatMessagesAPITest extends IznikAPITestCase
         ]);
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals(1, count($ret['chatmessages']));
+
+        $ret = $this->call('session', 'GET', []);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, $ret['work']['chatreviewother']);
     }
 
 //
