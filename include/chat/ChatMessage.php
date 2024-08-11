@@ -701,7 +701,6 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
 
         if ($me) {
             # See getMessagesForReview for logic comments.
-            $wideq = "";
             $widerreview = $me->widerReview();
 
             if ($widerreview) {
@@ -750,8 +749,9 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
                     $sql .= " UNION
                     SELECT chat_messages.id, memberships.groupid FROM chat_messages 
     INNER JOIN chat_rooms ON reviewrequired = 1 AND reviewrejected = 0 AND chat_rooms.id = chat_messages.chatid 
+    LEFT JOIN chat_messages_held ON chat_messages.id = chat_messages_held.msgid
     INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END)  
-    INNER JOIN `groups` ON memberships.groupid = groups.id AND groups.type = ? WHERE chat_messages.date > '$mysqltime' $wideq";
+    INNER JOIN `groups` ON memberships.groupid = groups.id AND groups.type = ? WHERE chat_messages.date > '$mysqltime' $wideq AND chat_messages_held.id IS NULL ";
                     $params[] = Group::GROUP_FREEGLE;
                 }
 

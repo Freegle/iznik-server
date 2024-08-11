@@ -1472,6 +1472,7 @@ WHERE chat_rooms.id IN $idlist;";
         if ($widerreview) {
             # We want all messages for review on groups which are also enrolled in this scheme
             $wideq = " AND JSON_EXTRACT(groups.settings, '$.widerchatreview') = true ";
+            $wideq = " ";
         }
 
         # We want the messages for review for any group where we are a mod and the recipient of the chat message is
@@ -1526,7 +1527,7 @@ INNER JOIN chat_rooms ON reviewrequired = 1 AND reviewrejected = 0 AND chat_room
 INNER JOIN memberships m1 ON m1.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) 
 LEFT JOIN memberships m2 ON m2.userid = chat_messages.userid 
 INNER JOIN `groups` ON m1.groupid = groups.id AND groups.type = ?
-WHERE chat_messages.id > ? $wideq";
+WHERE chat_messages.id > ? $wideq AND chat_messages_held.id IS NULL ";
             $params[] = Group::GROUP_FREEGLE;
             $params[] = $msgid;
         }
