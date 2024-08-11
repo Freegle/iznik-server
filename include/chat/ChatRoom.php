@@ -1494,7 +1494,7 @@ WHERE chat_rooms.id IN $idlist;";
         $groupq1 = "AND m1.groupid IN (" . implode(',', $groupids) . ")";
         $groupq2 = "AND m2.groupid IN (" . implode(',', $groupids) . ") ";
 
-        $sql = "SELECT DISTINCT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages.reportreason, chat_messages_byemail.msgid, m1.settings AS m1settings, m1.groupid, m2.groupid AS groupidfrom, chat_messages_held.userid AS heldby, chat_messages_held.timestamp, chat_rooms.user1, chat_rooms.user2, m1.added
+        $sql = "SELECT DISTINCT chat_messages.id, 0 AS widerchatreview, chat_messages.chatid, chat_messages.userid, chat_messages.reportreason, chat_messages_byemail.msgid, m1.settings AS m1settings, m1.groupid, m2.groupid AS groupidfrom, chat_messages_held.userid AS heldby, chat_messages_held.timestamp, chat_rooms.user1, chat_rooms.user2, m1.added
 FROM chat_messages
 LEFT JOIN chat_messages_held ON chat_messages.id = chat_messages_held.msgid
 LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messages.id
@@ -1504,7 +1504,7 @@ LEFT JOIN memberships m2 ON m2.userid = chat_messages.userid $groupq2
 INNER JOIN `groups` ON m1.groupid = groups.id AND groups.type = ?
 WHERE chat_messages.id > ? 
 UNION
-SELECT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages.reportreason, chat_messages_byemail.msgid, m1.settings AS m1settings, m1.groupid, m2.groupid AS groupidfrom, chat_messages_held.userid AS heldby, chat_messages_held.timestamp, chat_rooms.user1, chat_rooms.user2, m1.added
+SELECT DISTINCT chat_messages.id, 0 AS widerchatreview, chat_messages.chatid, chat_messages.userid, chat_messages.reportreason, chat_messages_byemail.msgid, m1.settings AS m1settings, m1.groupid, m2.groupid AS groupidfrom, chat_messages_held.userid AS heldby, chat_messages_held.timestamp, chat_rooms.user1, chat_rooms.user2, m1.added
 FROM chat_messages
 LEFT JOIN chat_messages_held ON chat_messages.id = chat_messages_held.msgid
 LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messages.id
@@ -1513,11 +1513,12 @@ LEFT JOIN memberships m1 ON m1.userid = (CASE WHEN chat_messages.userid = chat_r
 INNER JOIN memberships m2 ON m2.userid = chat_messages.userid $groupq2
 LEFT JOIN `groups` ON m1.groupid = groups.id AND groups.type = ?
 WHERE chat_messages.id > ? AND m1.id IS NULL";
+        file_put_contents('/tmp/a.a', $sql);
         $params = [Group::GROUP_FREEGLE, $msgid, Group::GROUP_FREEGLE, $msgid];
 
         if ($wideq) {
             $sql .= " UNION
-SELECT DISTINCT chat_messages.id, chat_messages.chatid, chat_messages.userid, chat_messages.reportreason, chat_messages_byemail.msgid, m1.settings AS m1settings, m1.groupid, m2.groupid AS groupidfrom, chat_messages_held.userid AS heldby, chat_messages_held.timestamp, chat_rooms.user1, chat_rooms.user2, m1.added
+SELECT DISTINCT chat_messages.id, 1 AS widerchatreview, chat_messages.chatid, chat_messages.userid, chat_messages.reportreason, chat_messages_byemail.msgid, m1.settings AS m1settings, m1.groupid, m2.groupid AS groupidfrom, chat_messages_held.userid AS heldby, chat_messages_held.timestamp, chat_rooms.user1, chat_rooms.user2, m1.added
 FROM chat_messages
 LEFT JOIN chat_messages_held ON chat_messages.id = chat_messages_held.msgid
 LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messages.id
@@ -1601,6 +1602,7 @@ WHERE chat_messages.id > ? $wideq";
                 $thisone['msgid'] = $msg['msgid'];
 
                 $thisone['reviewreason'] = $msg['reportreason'];
+                $thisone['widerchatreview'] = $msg['widerchatreview'];
 
                 if ($thisone['reviewreason'] == ChatMessage::REVIEW_SPAM) {
                     # Pass this through the spam checks again to see if we can get a more detailed reason.
