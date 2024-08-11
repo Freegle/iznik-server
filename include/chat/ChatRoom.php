@@ -1525,7 +1525,7 @@ LEFT JOIN chat_messages_byemail ON chat_messages_byemail.chatmsgid = chat_messag
 INNER JOIN chat_rooms ON reviewrequired = 1 AND reviewrejected = 0 AND chat_rooms.id = chat_messages.chatid
 LEFT JOIN memberships m1 ON m1.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END)
 INNER JOIN memberships m2 ON m2.userid = chat_messages.userid $groupq2
-INNER JOIN `groups` ON m1.groupid = groups.id AND groups.type = ?
+LEFT JOIN `groups` ON m1.groupid = groups.id AND groups.type = ?
 WHERE chat_messages.id > ? AND m1.id IS NULL $wideq
 ORDER BY id, added, groupid ASC;";
 
