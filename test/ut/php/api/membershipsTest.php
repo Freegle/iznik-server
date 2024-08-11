@@ -962,8 +962,10 @@ class membershipsAPITest extends IznikAPITestCase {
         // Invalid groupid
         $GLOBALS['sessionPrepared'] = FALSE;
         $_SESSION['id'] = NULL;
+        $groups = $this->dbhr->preQuery("SELECT MAX(id) AS maxid FROM `groups`;");
+        $invalid = $groups[0]['maxid'] + 1;
         $ret = $this->call('memberships', 'PUT', [
-            'groupid' => $this->groupid - 1,
+            'groupid' => $invalid,
             'email' => 'test@partner.com',
             'partner' => $key
         ]);
