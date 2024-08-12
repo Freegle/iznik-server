@@ -33,6 +33,13 @@ class API
     {
         global $dbhr, $dbhm;
 
+        $ip = Utils::presdef('REMOTE_ADDR', $_SERVER, '');
+
+        if (file_exists("/tmp/noheaders-$ip")) {
+            echo json_encode(array('ret' => 1, 'status' => 'Not  logged in'));
+            exit(0);
+        }
+
         $scriptstart = microtime(true);
 
         $entityBody = file_get_contents('php://input');
