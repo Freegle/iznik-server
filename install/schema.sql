@@ -2214,7 +2214,7 @@ CREATE TABLE `messages_outcomes` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `msgid` bigint unsigned NOT NULL,
-  `outcome` enum('Taken','Received','Withdrawn','Repost') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `outcome` enum('Taken','Received','Withdrawn','Repost', 'Expired') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `happiness` enum('Happy','Fine','Unhappy') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `comments` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `reviewed` tinyint(1) NOT NULL DEFAULT '0',
