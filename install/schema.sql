@@ -2618,7 +2618,7 @@ CREATE TABLE `newsfeed` (
   KEY `pinned` (`pinned`,`timestamp`),
   KEY `eventid` (`eventid`) USING BTREE,
   SPATIAL KEY `position` (`position`),
-  KEY `timestamp` (`timestamp`,`replyto`) USING BTREE,
+  KEY `timestamp` (`timestamp`,`replyto`,`deleted`,`reviewrequired`,`type`) USING BTREE,
   CONSTRAINT `newsfeed_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `newsfeed_ibfk_2` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE,
   CONSTRAINT `newsfeed_ibfk_3` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE,
@@ -5422,4 +5422,4 @@ CREATE TABLE `worrywords` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-08-13 12:11:43
+-- Dump completed on 2024-08-13 15:56:26
