@@ -266,10 +266,6 @@ class Facebook
     public function loginLimited($jwt) {
         // Facebook limited login returns a JWT.  We need to fetch the public keys, and then decode it.
         $s = NULL;
-        $ret = [
-            'ret' => 1,
-            'status' => 'Login with limited token failed'
-        ];
 
         try {
             $ctx = stream_context_create(array('http'=> [
@@ -284,15 +280,28 @@ class Facebook
 
                 if ($keys) {
                     JWT::$leeway = 60;
+
+                    # Field names need mapping - not the same as Graph API.
                     $fbme = JWT::decode($jwt, JWK::parseKeySet($keys));
+                    $fbme['id'] = $fbme['sub'];
+                    $fbme['first_name'] = $fbme['given_name'];
+                    $fbme['last_name'] = $fbme['family_name'];
 
                     $s = $this->facebookMatchOrCreate($fbme, $jwt);
 
-                    if ($s) {
-                        $ret = 0;
-                        $status = 'Success';
-                    }
+                    if ($s && Utils::pres('picture', $fbme)) {
+                        # We have an image - save it here because we can't fetch it over the API.
+                        $this->dbhm->preExec("INSERT INTO users_images (userid, url, `default`) VALUES (?, ?, ?);", [
+                            $s->getId(),
+                            $fbme['picture'],
+                            0
+                        ]);
 
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success'
+                        ];
+                    }
                 }
             }
         } catch (\Exception $e) {
@@ -407,11 +416,8 @@ class Facebook
                         'byuser' => $id,
                         'text' => "Using Facebook $fid"
                     ]);
-
-            $ret = 0;
-            $status = 'Success';
         }
 
-        return [$s, $ret, $status];
+        return $s;
     }
 }
