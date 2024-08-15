@@ -371,6 +371,7 @@ function session() {
             # Login
             $fblogin = array_key_exists('fblogin', $_REQUEST) ? filter_var($_REQUEST['fblogin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $fbaccesstoken = Utils::presdef('fbaccesstoken', $_REQUEST, NULL);
+            $fblimited = Utils::presbool('fblimited', $_REQUEST, FALSE);
             $googlelogin = array_key_exists('googlelogin', $_REQUEST) ? filter_var($_REQUEST['googlelogin'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $googleauthcode = array_key_exists('googleauthcode', $_REQUEST) ? $_REQUEST['googleauthcode'] : NULL;
             $googlejwt = array_key_exists('googlejwt', $_REQUEST) ? $_REQUEST['googlejwt'] : NULL;
@@ -396,11 +397,17 @@ function session() {
                 # uid and key login, used in email links and impersonation.
                 $u = new User($dbhr, $dbhm, $keyu);
 
-                if (Utils::presdef('id', $_SESSION, NULL) ==  $keyu || $u->linkLogin($keyk)) {
+                if (Utils::presdef('id', $_SESSION, null) == $keyu || $u->linkLogin($keyk)) {
                     $id = $keyu;
 
-                    $ret = [ 'ret' => 0, 'status' => 'Success' ];
+                    $ret = ['ret' => 0, 'status' => 'Success'];
                 }
+            } else if ($fblimited) {
+                # We've been asked to log in using Facebook Limited Login
+                $f = new Facebook($dbhr, $dbhm);
+                list ($session, $ret) = $f->loginLimited($fbaccesstoken);
+                /** @var Session $session */
+                $id = $session ? $session->getUserId() : NULL;
             } else if ($fblogin) {
                 # We've been asked to log in via Facebook.
                 $f = new Facebook($dbhr, $dbhm);

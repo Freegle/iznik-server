@@ -1,6 +1,10 @@
 <?php
 namespace Freegle\Iznik;
 
+use Firebase\JWT\JWT;
+use Firebase\JWT\JWK;
+use Firebase\JWT\Key;
+
 require_once("/etc/iznik.conf");
 
 use Pheanstalk\Pheanstalk;
@@ -61,7 +65,7 @@ class Facebook
             }
 
             if ($accessToken) {
-                list($s, $ret) = $this->processAccessToken($fb, $accessToken);
+                list($s, $ret) = $this->processAccessTokenLogin($fb, $accessToken);
             }
         } catch (\Exception $e) {
             $ret = [
@@ -110,7 +114,7 @@ class Facebook
         return $accessToken;
     }
 
-    private function processAccessToken($fb, $accessToken) {
+    private function processAccessTokenLogin($fb, $accessToken) {
         $s = NULL;
 
         if (!$accessToken->isLongLived()) {
@@ -133,103 +137,9 @@ class Facebook
             $response = $fb->get('/me?fields=id,name,first_name,last_name,email', $accessToken);
             $fbme = $response->getDecodedBody();
 
-            $fbemail = Utils::presdef('email', $fbme, NULL);
-            $fbuid = Utils::presdef('id', $fbme, NULL);
-            $firstname = Utils::presdef('first_name', $fbme, NULL);
-            $lastname = Utils::presdef('last_name', $fbme, NULL);
-            $fullname = Utils::presdef('name', $fbme, NULL);
+            $s = $this->facebookMatchOrCreate($fbme, $accessToken);
 
-            # See if we know this user already.  We might have an entry for them by email, or by Facebook ID.
-            $u = User::get($this->dbhr, $this->dbhm);
-            $eid = $fbemail ? $u->findByEmail($fbemail) : NULL;
-            $fid = $fbuid ? $u->findByLogin('Facebook', $fbuid) : NULL;
-            #error_log("Email $eid  from $fbemail Facebook $fid, f $firstname, l $lastname, full $fullname");
-
-            if ($eid && $fid && $eid != $fid) {
-                # This is a duplicate user.  Merge them.
-                $u = User::get($this->dbhr, $this->dbhm);
-                $u->merge($eid, $fid, "Facebook Login - FacebookID $fid, Email $fbemail = $eid");
-            }
-
-            $id = $eid ? $eid : $fid;
-            #error_log("Login id $id from $eid and $fid");
-
-            if (!$id) {
-                # We don't know them.  Create a user.
-                #
-                # There's a timing window here, where if we had two first-time logins for the same user,
-                # one would fail.  Bigger fish to fry.
-                #
-                # We don't have the firstname/lastname split, only a single name.  Way two go.
-                $id = $u->create($firstname, $lastname, $fullname, "Facebook login from $fid");
-
-                if ($id) {
-                    # Make sure that we have the Yahoo email recorded as one of the emails for this user.
-                    $u = User::get($this->dbhr, $this->dbhm, $id);
-
-                    if ($fbemail) {
-                        $u->addEmail($fbemail, 0, FALSE);
-                    }
-
-                    # Now Set up a login entry.  Use IGNORE as there is a timing window here.
-                    $rc = $this->dbhm->preExec(
-                        "INSERT IGNORE INTO users_logins (userid, type, uid) VALUES (?,'Facebook',?);",
-                        [
-                            $id,
-                            $fbuid
-                        ]
-                    );
-
-                    $id = $rc ? $id : NULL;
-                }
-            } else {
-                # We know them - but we might not have all the details.
-                $u = User::get($this->dbhr, $this->dbhm, $id);
-
-                if (!$eid) {
-                    $u->addEmail($fbemail, 0, FALSE);
-                }
-
-                if (!$fid) {
-                    $this->dbhm->preExec(
-                        "INSERT IGNORE INTO users_logins (userid, type, uid) VALUES (?,'Facebook',?);",
-                        [
-                            $id,
-                            $fbuid
-                        ]
-                    );
-                }
-            }
-
-            # Save off the access token, which we might need, and update the access time.
-            $this->dbhm->preExec("UPDATE users_logins SET lastaccess = NOW(), credentials = ? WHERE userid = ? AND type = 'Facebook';",
-                [
-                    (string)$accessToken,
-                    $id
-                ]);
-
-            # We might have have them without a good name.
-            if (!$u->getPrivate('fullname')) {
-                $u->setPrivate('firstname', $firstname);
-                $u->setPrivate('lastname', $lastname);
-                $u->setPrivate('fullname', $fullname);
-            }
-
-            if ($id) {
-                # We are logged in.
-                $s = new Session($this->dbhr, $this->dbhm);
-                $s->create($id);
-
-                User::clearCache($id);
-
-                $l = new Log($this->dbhr, $this->dbhm);
-                $l->log([
-                    'type' => Log::TYPE_USER,
-                    'subtype' => Log::SUBTYPE_LOGIN,
-                    'byuser' => $id,
-                    'text' => "Using Facebook $fid"
-                ]);
-
+            if ($s) {
                 $ret = 0;
                 $status = 'Success';
             }
@@ -267,7 +177,7 @@ class Facebook
             try {
                 $helper = $fb->getCanvasHelper();
                 $accessToken = $helper->getAccessToken();
-                list ($s, $ret) = $this->processAccessToken($fb, $accessToken);
+                list ($s, $ret) = $this->processAccessTokenLogin($fb, $accessToken);
             } catch (\Exception $e) {
                 $ret = [
                     'ret' => 2,
@@ -351,5 +261,157 @@ class Facebook
         }
 
         return $ret;
+    }
+
+    public function loginLimited($jwt) {
+        // Facebook limited login returns a JWT.  We need to fetch the public keys, and then decode it.
+        $s = NULL;
+        $ret = [
+            'ret' => 1,
+            'status' => 'Login with limited token failed'
+        ];
+
+        try {
+            $ctx = stream_context_create(array('http'=> [
+                'timeout' => 1,
+                "method" => "GET",
+            ]));
+
+            $keys = file_get_contents("https://limited.facebook.com/.well-known/oauth/openid/jwks/", FALSE, $ctx);
+
+            if ($keys) {
+                $keys = json_decode($keys, TRUE);
+
+                if ($keys) {
+                    JWT::$leeway = 60;
+                    $fbme = JWT::decode($jwt, JWK::parseKeySet($keys));
+
+                    $s = $this->facebookMatchOrCreate($fbme, $jwt);
+
+                    if ($s) {
+                        $ret = 0;
+                        $status = 'Success';
+                    }
+
+                }
+            }
+        } catch (\Exception $e) {
+            error_log("JWT validation failed with " . $e->getMessage());
+            $ret = [
+                'ret' => 2,
+                'status' => "JWT validation failed with " . $e->getMessage()
+            ];
+        }
+
+        return [ $s, $ret ];
+    }
+
+    private function facebookMatchOrCreate($fbme, $accessToken) {
+        $s = NULL;
+
+        $fbemail = Utils::presdef('email', $fbme, null);
+        $fbuid = Utils::presdef('id', $fbme, null);
+        $firstname = Utils::presdef('first_name', $fbme, null);
+        $lastname = Utils::presdef('last_name', $fbme, null);
+        $fullname = Utils::presdef('name', $fbme, null);
+
+        # See if we know this user already.  We might have an entry for them by email, or by Facebook ID.
+        $u = User::get($this->dbhr, $this->dbhm);
+        $eid = $fbemail ? $u->findByEmail($fbemail) : null;
+        $fid = $fbuid ? $u->findByLogin('Facebook', $fbuid) : null;
+        #error_log("Email $eid  from $fbemail Facebook $fid, f $firstname, l $lastname, full $fullname");
+
+        if ($eid && $fid && $eid != $fid) {
+            # This is a duplicate user.  Merge them.
+            $u = User::get($this->dbhr, $this->dbhm);
+            $u->merge($eid, $fid, "Facebook Login - FacebookID $fid, Email $fbemail = $eid");
+        }
+
+        $id = $eid ? $eid : $fid;
+        #error_log("Login id $id from $eid and $fid");
+
+        if (!$id) {
+            # We don't know them.  Create a user.
+            #
+            # There's a timing window here, where if we had two first-time logins for the same user,
+            # one would fail.  Bigger fish to fry.
+            #
+            # We don't have the firstname/lastname split, only a single name.  Way two go.
+            $id = $u->create($firstname, $lastname, $fullname, "Facebook login from $fid");
+
+            if ($id) {
+                # Make sure that we have the Yahoo email recorded as one of the emails for this user.
+                $u = User::get($this->dbhr, $this->dbhm, $id);
+
+                if ($fbemail) {
+                    $u->addEmail($fbemail, 0, false);
+                }
+
+                # Now Set up a login entry.  Use IGNORE as there is a timing window here.
+                $rc = $this->dbhm->preExec(
+                    "INSERT IGNORE INTO users_logins (userid, type, uid) VALUES (?,'Facebook',?);",
+                    [
+                        $id,
+                        $fbuid
+                    ]
+                );
+
+                $id = $rc ? $id : null;
+            }
+        } else {
+            # We know them - but we might not have all the details.
+            $u = User::get($this->dbhr, $this->dbhm, $id);
+
+            if (!$eid) {
+                $u->addEmail($fbemail, 0, false);
+            }
+
+            if (!$fid) {
+                $this->dbhm->preExec(
+                    "INSERT IGNORE INTO users_logins (userid, type, uid) VALUES (?,'Facebook',?);",
+                    [
+                        $id,
+                        $fbuid
+                    ]
+                );
+            }
+        }
+
+        # Save off the access token, which we might need, and update the access time.
+        $this->dbhm->preExec(
+            "UPDATE users_logins SET lastaccess = NOW(), credentials = ? WHERE userid = ? AND type = 'Facebook';",
+            [
+                (string)$accessToken,
+                $id
+            ]
+        );
+
+        # We might have have them without a good name.
+        if (!$u->getPrivate('fullname')) {
+            $u->setPrivate('firstname', $firstname);
+            $u->setPrivate('lastname', $lastname);
+            $u->setPrivate('fullname', $fullname);
+        }
+
+        if ($id) {
+            # We are logged in.
+            $s = new Session($this->dbhr, $this->dbhm);
+            $s->create($id);
+
+            User::clearCache($id);
+
+            $l = new Log($this->dbhr, $this->dbhm);
+            $l->log([
+                        'type' => Log::TYPE_USER,
+                        'subtype' => Log::SUBTYPE_LOGIN,
+                        'byuser' => $id,
+                        'text' => "Using Facebook $fid"
+                    ]);
+
+            $ret = 0;
+            $status = 'Success';
+        }
+
+        return [$s, $ret, $status];
     }
 }
