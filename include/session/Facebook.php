@@ -282,7 +282,7 @@ class Facebook
                     JWT::$leeway = 60;
 
                     # Field names need mapping - not the same as Graph API.
-                    $fbme = JWT::decode($jwt, JWK::parseKeySet($keys));
+                    $fbme = (array)JWT::decode($jwt, JWK::parseKeySet($keys));
                     $fbme['id'] = $fbme['sub'];
                     $fbme['first_name'] = $fbme['given_name'];
                     $fbme['last_name'] = $fbme['family_name'];
@@ -292,7 +292,7 @@ class Facebook
                     if ($s && Utils::pres('picture', $fbme)) {
                         # We have an image - save it here because we can't fetch it over the API.
                         $this->dbhm->preExec("INSERT INTO users_images (userid, url, `default`) VALUES (?, ?, ?);", [
-                            $s->getId(),
+                            $_SESSION['id'],
                             $fbme['picture'],
                             0
                         ]);

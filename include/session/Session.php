@@ -11,10 +11,6 @@ class Session {
     private $dbhm;
     private $id;
 
-    public function getId() {
-        return $this->id;
-    }
-
     public static function modtools() {
         # Whether we are in ModTools or Freegle Direct.  For API calls this is passed as a request parameter.
         if (isset($_REQUEST) && array_key_exists('modtools', $_REQUEST)) {
