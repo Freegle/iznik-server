@@ -211,21 +211,30 @@ class trystTest extends IznikAPITestCase {
 
         # No reminders - too far in advance.
         $t = new Tryst($this->dbhr, $this->dbhm, $id);
-        $this->assertEquals(0, $t->sendRemindersDue($id));
+        $ret = $t->sendRemindersDue($id);
+        $this->assertEquals(0, $ret[0]);
+        $this->assertEquals(0, $ret[1]);
 
         # No reminder - was arranged today.
         $t->setPrivate('arrangedat', (new \DateTime())->format('Y-m-d H:i:s'));
         $t->setPrivate('arrangedfor', (new \DateTime())->add(new \DateInterval('PT1H'))->format('Y-m-d H:i:s'));
-        $this->assertEquals(0, $t->sendRemindersDue($id));
+        $ret = $t->sendRemindersDue($id);
+        $this->assertEquals(0, $ret[0]);
+        $this->assertEquals(0, $ret[1]);
 
-        # No reminder - no phone or email.
+        # No phone, reminder in chat.
         $t->setPrivate('arrangedat', (new \DateTime())->sub(new \DateInterval('P1D'))->format('Y-m-d H:i:s'));
         $t->setPrivate('arrangedfor', (new \DateTime())->add(new \DateInterval('PT1H'))->format('Y-m-d H:i:s'));
-        $this->assertEquals(0, $t->sendRemindersDue($id));
+        $ret = $t->sendRemindersDue($id);
+        $this->assertEquals(0, $ret[0]);
+        $this->assertEquals(1, $ret[1]);
+        $t->setPrivate('remindersent', NULL);
 
-        # Reminder - phone.
+        # Reminder - phone and chat.
         $u1->addPhone('123');
-        $this->assertEquals(1, $t->sendRemindersDue($id));
+        $ret = $t->sendRemindersDue($id);
+        $this->assertEquals(1, $ret[0]);
+        $this->assertEquals(1, $ret[1]);
 
         $ret = $this->call('tryst', 'POST', [
             'id' => $id,
@@ -240,7 +249,8 @@ class trystTest extends IznikAPITestCase {
         $this->assertEquals(0, $ret['ret']);
 
         # No reminder - already sent.
-        $this->assertEquals(0, $t->sendRemindersDue($id));
+        $this->assertEquals(0, $t->sendRemindersDue($id)[0]);
+        $this->assertEquals(0, $t->sendRemindersDue($id)[1]);
     }
 
     public function testConfirm() {

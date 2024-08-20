@@ -20,6 +20,7 @@ class ChatMessage extends Entity
     const TYPE_IMAGE = 'Image';
     const TYPE_ADDRESS = 'Address';
     const TYPE_NUDGE = 'Nudge';
+    const TYPE_REMINDER = 'Reminder';
 
     const ACTION_APPROVE = 'Approve';
     const ACTION_APPROVE_ALL_FUTURE = 'ApproveAllFuture';
@@ -255,7 +256,6 @@ class ChatMessage extends Entity
                 # include user text.
                 #
                 # We also don't want to check for spam in chats between users and mods.
-
                 if ($modstatus == User::CHAT_MODSTATUS_MODERATED || $modstatus == User::CHAT_MODSTATUS_FULLY) {
                     if ($chattype != ChatRoom::TYPE_USER2MOD &&
                         !$u->isModerator() &&
