@@ -224,7 +224,7 @@ class Tryst extends Entity
 
                 $r = new ChatRoom($this->dbhr, $this->dbhm);
                 list ($rid, $blocked) = $r->createConversation($u1id, $u2id);
-                $url = "https://" . USER_SITE . "/handover/" . $due['id'] . '?src=sms';
+                $url = "https://" . USER_SITE . "/chats/$rid?src=sms";
 
                 if ($u1phone) {
                     $u1->sms(NULL, NULL, TWILIO_FROM, TWILIO_SID, TWILIO_AUTH, "Reminder: handover with " . $u2->getName() . " at $time.  Click $url to let us know if it's still ok.");
@@ -248,14 +248,13 @@ class Tryst extends Entity
                                 "Handover at $time.  Please confirm that's still ok or let them know if things have changed.  Everybody hates a no-show...",
                                 ChatMessage::TYPE_REMINDER,
                     NULL, FALSE);
+                    error_log("Chat reminder sent in $rid for users $u1id, $u2id");
                     $chat++;
                 }
 
-                if ($u1phone || $u2phone) {
-                    $this->dbhm->preExec("UPDATE trysts SET remindersent = NOW() WHERE id = ?;", [
-                        $due['id']
-                    ]);
-                }
+                $this->dbhm->preExec("UPDATE trysts SET remindersent = NOW() WHERE id = ?;", [
+                    $due['id']
+                ]);
             }
         }
 
