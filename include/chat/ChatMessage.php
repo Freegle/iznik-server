@@ -705,7 +705,7 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
 
             if ($widerreview) {
                 # We want all messages for review on groups which are also enrolled in this scheme
-                $wideq = " AND JSON_EXTRACT(groups.settings, '$.widerchatreview') = true ";
+                $wideq = " AND JSON_EXTRACT(groups.settings, '$.widerchatreview') = 1 ";
             }
 
             $allmods = $me->getModeratorships();

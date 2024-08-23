@@ -984,7 +984,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         # the earlier mod isn't on.
         $gid2 = $g->create('testgroup3', Group::GROUP_FREEGLE);
         $settings = json_decode($g->getPrivate('settings'), TRUE);
-        $settings['widerchatreview'] = TRUE;
+        $settings['widerchatreview'] = 1;
         $g->setSettings($settings);
         Group::clearCache();
 
@@ -1017,7 +1017,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         # Now enable quick chat review.
         $g = Group::get($this->dbhr, $this->dbhm, $gid);
         $settings = json_decode($g->getPrivate('settings'), TRUE);
-        $settings['widerchatreview'] = TRUE;
+        $settings['widerchatreview'] = 1;
         $g->setSettings($settings);
         Group::clearCache();
 

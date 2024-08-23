@@ -1471,7 +1471,7 @@ WHERE chat_rooms.id IN $idlist;";
 
         if ($widerreview) {
             # We want all messages for review on groups which are also enrolled in this scheme
-            $wideq = " AND JSON_EXTRACT(groups.settings, '$.widerchatreview') = true ";
+            $wideq = " AND JSON_EXTRACT(groups.settings, '$.widerchatreview') = 1 ";
         }
 
         # We want the messages for review for any group where we are a mod and the recipient of the chat message is
