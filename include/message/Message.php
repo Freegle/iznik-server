@@ -1468,9 +1468,9 @@ ORDER BY lastdate DESC;";
             if (count($rets[$msg['id']]['outcomes']) === 0) {
                 # No outcomes - but has it expired?
                 $deadline = Utils::pres('deadline', $rets[$msg['id']]);
-                $now = Utils::ISODate('@' . time());
+                $today = date ("Y-m-d", strtotime("today"));
 
-                if ($deadline && $deadline < $now) {
+                if ($deadline && $deadline < $today) {
                     $rets[$msg['id']]['outcomes'] = [
                         [
                             'timestamp' => $deadline,
