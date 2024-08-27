@@ -1525,9 +1525,10 @@ INNER JOIN chat_rooms ON reviewrequired = 1 AND reviewrejected = 0 AND chat_room
 INNER JOIN memberships m1 ON m1.userid = (CASE WHEN chat_messages.userid = chat_rooms.user1 THEN chat_rooms.user2 ELSE chat_rooms.user1 END) 
 LEFT JOIN memberships m2 ON m2.userid = chat_messages.userid 
 INNER JOIN `groups` ON m1.groupid = groups.id AND groups.type = ?
-WHERE chat_messages.id > ? $wideq AND chat_messages_held.id IS NULL ";
+WHERE chat_messages.id > ? $wideq AND chat_messages_held.id IS NULL AND chat_messages.reportreason NOT IN (?)";
             $params[] = Group::GROUP_FREEGLE;
             $params[] = $msgid;
+            $params[] = ChatMessage::REVIEW_USER;
         }
 
         $sql .= " ORDER BY id, added, groupid ASC;";
