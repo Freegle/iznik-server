@@ -1468,9 +1468,9 @@ ORDER BY lastdate DESC;";
             if (count($rets[$msg['id']]['outcomes']) === 0) {
                 # No outcomes - but has it expired?
                 $deadline = Utils::pres('deadline', $rets[$msg['id']]);
-                $now = Utils::ISODate('@' . time());
+                $today = date ("Y-m-d", strtotime("today"));
 
-                if ($deadline && $deadline < $now) {
+                if ($deadline && $deadline < $today) {
                     $rets[$msg['id']]['outcomes'] = [
                         [
                             'timestamp' => $deadline,
@@ -4586,7 +4586,7 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
   AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') 
   AND messages.source = ?
   AND messages.deleted IS NULL
-  AND memberships.ourPostingStatus != ?
+  AND (memberships.ourPostingStatus IS NULL OR memberships.ourPostingStatus != ?)
   AND users.deleted IS NULL $msgq;";
                 #error_log("$sql, $mindate, {$group['id']}");
                 $messages = $this->dbhr->preQuery($sql, [

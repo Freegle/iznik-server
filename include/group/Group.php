@@ -468,8 +468,17 @@ HAVING logincount > 0
             #error_log($happsql);
 
             $c = new ChatMessage($this->dbhr, $this->dbhm);
-            $reviewcounts = $c->getReviewCountByGroup($me, NULL, FALSE);
-            $reviewcountsother = $c->getReviewCountByGroup($me, NULL, TRUE);
+            $reviewcounts = $c->getReviewCountByGroup($me,  FALSE);
+            $reviewcountsother = $c->getReviewCountByGroup($me,  TRUE);
+
+            # We might be returned counts for groups we were not expecting, because we are using the wider chat
+            # review function.  So add any groupids from $reviewcountsother into $groupids so that we process
+            # the results below.
+            foreach ($reviewcountsother as $count) {
+                if (!in_array($count['groupid'], $groupids)) {
+                    $groupids[] = $count['groupid'];
+                }
+            }
 
             foreach ($groupids as $groupid) {
                 # Depending on our group settings we might not want to show this work as primary; "other" work is displayed
@@ -478,7 +487,8 @@ HAVING logincount > 0
                 # If we have the active flag use that; otherwise assume that the legacy showmessages flag tells us.  Default
                 # to active.
                 # TODO Retire showmessages entirely and remove from user configs.
-                $active = array_key_exists('active', $mysettings[$groupid]) ? $mysettings[$groupid]['active'] : (!array_key_exists('showmessages', $mysettings[$groupid]) || $mysettings[$groupid]['showmessages']);
+                $active = array_key_exists($groupid, $mysettings) && array_key_exists('active', $mysettings[$groupid]) ?
+                    $mysettings[$groupid]['active'] : FALSE;
 
                 $thisone = [
                     'pending' => 0,
@@ -1365,7 +1375,7 @@ HAVING logincount > 0
         return $ret;
     }
 
-    public function getModsToNotify() {
+    public function getModsToNotify($allowMods = TRUE) {
         $ret = [];
 
         # This is to find mods to notify about things on the group which require attention, ideally from the
@@ -1405,7 +1415,7 @@ HAVING logincount > 0
             }
         }
 
-        if (!count($ret)) {
+        if (!count($ret) && $allowMods) {
             $mods = $this->getMods([ User::ROLE_MODERATOR ]);
 
             foreach ($mods as $mod) {
@@ -1436,7 +1446,7 @@ HAVING logincount > 0
 
         if (!count($ret)) {
             error_log("...fallback to Mentors");
-            $ret[]= MENTORS_ADDR;
+            $ret[] = MENTORS_ADDR;
         }
 
         return $ret;
@@ -1490,5 +1500,27 @@ HAVING logincount > 0
     public function sendIt($mailer, $message)
     {
         $mailer->send($message);
+    }
+
+    function notifyAboutSignificantEvent($subject, $mail) {
+        $notify = $this->getModsToNotify();
+
+        foreach ($notify as $n) {
+            $m = User::get($this->dbhr, $this->dbhm, $n);
+            $email = $m->getEmailPreferred();
+
+            $message = \Swift_Message::newInstance()
+                ->setSubject($subject)
+                ->setFrom(NOREPLY_ADDR)
+                ->setTo($m->getEmailPreferred())
+                ->setBody($mail);
+
+            Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::MODMAIL);
+            list ($transport, $mailer) = Mail::getMailer();
+            $this->sendIt($mailer, $message);
+            $count++;
+        }
+
+        return $count;
     }
 }

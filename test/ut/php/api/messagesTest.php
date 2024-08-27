@@ -414,6 +414,19 @@ class messagesTest extends IznikAPITestCase {
         $this->assertEquals($id, $msgs[0]['id']);
     }
 
+    public function testNullSearch() {
+        $ret = $this->call('messages', 'GET', [
+            'search' => ' ',
+            'subaction' => 'searchmess',
+            'swlng' => 179.11,
+            'swlat' => 8.31,
+            'nelng' => 179.3,
+            'nelat' => 8.4
+        ]);
+
+        $this->assertEquals(0, $ret['ret']);
+    }
+
     public function testSearchInBounds() {
         # Need a location and polygon for near testing.
         $this->group->setPrivate('lng', 179.15);

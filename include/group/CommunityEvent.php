@@ -6,7 +6,7 @@ namespace Freegle\Iznik;
 class CommunityEvent extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    public $publicatts = [ 'id', 'userid', 'pending', 'title', 'location', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description', 'added', 'heldby'];
+    public $publicatts = [ 'id', 'userid', 'pending', 'title', 'location', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description', 'added', 'heldby', 'externalid'];
     public $settableatts = [ 'pending', 'title', 'location', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description' ];
     var $event;
 
@@ -15,11 +15,11 @@ class CommunityEvent extends Entity
         $this->fetch($dbhr, $dbhm, $id, 'communityevents', 'event', $this->publicatts, $fetched);
     }
 
-    public function create($userid, $title, $location, $contactname, $contactphone, $contactemail, $contacturl, $description, $photo = NULL) {
+    public function create($userid, $title, $location, $contactname, $contactphone, $contactemail, $contacturl, $description, $photo = NULL, $externalid = NULL) {
         $id = NULL;
 
-        $rc = $this->dbhm->preExec("INSERT INTO communityevents (`userid`, `pending`, `title`, `location`, `contactname`, `contactphone`, `contactemail`, `contacturl`, `description`) VALUES (?,1,?,?,?,?,?,?,?);", [
-            $userid, $title, $location, $contactname, $contactphone, $contactemail, $contacturl, $description
+        $rc = $this->dbhm->preExec("INSERT INTO communityevents (`userid`, `pending`, `title`, `location`, `contactname`, `contactphone`, `contactemail`, `contacturl`, `description`, `externalid`) VALUES (?,1,?,?,?,?,?,?,?,?);", [
+            $userid, $title, $location, $contactname, $contactphone, $contactemail, $contacturl, $description, $externalid
         ]);
 
         if ($rc) {
@@ -53,6 +53,12 @@ class CommunityEvent extends Entity
     public function removeDate($id) {
         $this->dbhm->preExec("DELETE FROM communityevents_dates WHERE id = ?;" , [
             $id
+        ]);
+    }
+
+    public function removeDates() {
+        $this->dbhm->preExec("DELETE FROM communityevents_dates WHERE eventid = ?;" , [
+            $this->id
         ]);
     }
 
@@ -169,6 +175,11 @@ class CommunityEvent extends Entity
         if ($atts['userid']) {
             $u = User::get($this->dbhr, $this->dbhm, $atts['userid']);
             $atts['user'] = $u->getPublic(NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
+        } else {
+            $atts['user'] = [
+                'id' => 0,
+                'displayname' => 'System'
+            ];
         }
 
         foreach ($groups as $group) {

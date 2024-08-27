@@ -1168,6 +1168,35 @@ class User extends Entity
                     }
                 }
             }
+
+            # We might have been returned extra group info for wider chat review.  Add any extra groups from the work
+            # counts, in a basic way, so that the work counts appear.
+            #
+            # Find groupids in $work which are not in $ret.
+            $existingids = [];
+            foreach ($ret as $r) {
+                $existingids[] = $r['id'];
+            }
+
+
+            $extraworkids = [];
+
+            foreach ($work as $gid => $w) {
+                if (!in_array($gid, $existingids)) {
+                    $extraworkids[] = $gid;
+                }
+            }
+
+            # We have some subtle and baffling reference thing going on which is trashing the array.
+            # Do a json_encode/decode to remove them.
+            $ret = json_decode(json_encode($ret), TRUE);
+            foreach ($extraworkids as $groupid) {
+                $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+                $group = $g->getPublic($groupid, TRUE);
+                $group['work'] = $work[$groupid];
+                $group['role'] = User::ROLE_NONMEMBER;
+                $ret[] = $group;
+            }
         }
 
         return ($ret);
@@ -1462,6 +1491,24 @@ class User extends Entity
         return ($active);
     }
 
+    public function widerReview() {
+        # Check if we are participating in wider chat review, i.e. we are a mod on a group with that setting.
+        $modships = $this->getModeratorships();
+        $widerreview = FALSE;
+
+        foreach ($modships as $mod) {
+            if ($this->activeModForGroup($mod)) {
+                $g = Group::get($this->dbhr, $this->dbhm, $mod);
+                if ($g->getSetting('widerchatreview', FALSE)) {
+                    $widerreview = TRUE;
+                    break;
+                }
+            }
+        }
+
+        return $widerreview;
+    }
+
     public function getGroupSettings($groupid, $configid = NULL, $id = NULL)
     {
         $id = $id ? $id : $this->id;
@@ -1551,6 +1598,12 @@ class User extends Entity
                 $r->upToDateAll($this->getId(),[
                     ChatRoom::TYPE_USER2MOD
                 ]);
+            } else if (($currentRole == User::ROLE_MODERATOR || $currentRole == User::ROLE_OWNER) && $role == User::ROLE_MEMBER) {
+                # This member has been demoted.  Mail the other mods.
+                $g = Group::get($this->dbhr, $this->dbhm, $groupid);
+                $g->notifyAboutSignificantEvent($this->getName() . " is no longer a moderator on " . $g->getPrivate('nameshort'),
+                    "If this is unexpected, please contact them and/or check that there are enough volunteers on this group.  If you need help, please contact ". MENTORS_ADDR . "."
+                );
             }
 
             $this->memberships = NULL;

@@ -1771,5 +1771,23 @@ class userTest extends IznikTestCase {
         $this->assertEquals($group1, $membs[0]['id']);
         $this->assertEquals($group3, $membs[1]['id']);
     }
+
+    public function testDemote() {
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_FREEGLE);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id1 = $u->create(NULL, NULL, 'Test User');
+        $id2 = $u->create(NULL, NULL, 'Test User');
+        $id3 = $u->create(NULL, NULL, 'Test User');
+        $u1 = User::get($this->dbhr, $this->dbhm, $id1);
+        $u2 = User::get($this->dbhr, $this->dbhm, $id2);
+        $this->assertGreaterThan(0, $u1->addEmail('test@test.com'));
+        $u1->addMembership($gid, User::ROLE_OWNER);
+        $u2->addMembership($gid, User::ROLE_MODERATOR);
+
+        # Demote.  Should trigger a mail to the owner.
+        $u2->setRole(User::ROLE_MEMBER, $gid);
+    }
 }
 

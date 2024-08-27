@@ -25,6 +25,12 @@ foreach ($groups as $group) {
     $g = new Group($dbhr, $dbhm, $group['id']);
     error_log($g->getName());
 
+    if ($g->getModsToNotify(FALSE) == MENTORS_ADDR) {
+        # This group doesn't have an active owner. Make sure the Mentors know about it.
+        $g->notifyAboutSignificantEvent($g->getName() . " does not have an active owner", "We don't think there is an active mod with owner status on this group.  Can you check it?");
+        continue;
+    }
+
     # Check that we have an approval within the relevant time period days.  No point alerting about inactive mods on inactive groups.
     $mysqltime = date("Y-m-d", strtotime(ACTIVE_LIMIT . " days ago"));
     $approvals = $dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_groups WHERE arrival >= ? AND groupid = ? AND approvedby IS NOT NULL;", [
@@ -62,43 +68,30 @@ foreach ($groups as $group) {
                 if (!$acted || $lastactive > ACTIVE_LIMIT) {
                     # A mod that has not been active in the last week.  We want to notify about them.
                     error_log("...inactive mod $name ($email) last active $lastactive days ago");
+                    $mail = "Please see https://discourse.ilovefreegle.org/t/safeguarding-volunteers for the background, and post any questions/issues on there.\r\n\r\n" .
+                        "We are identifying volunteers on who have not actively moderated for some time, and contacting you about them because we believe you are responsible for the group.\r\n\r\n" .
+                        "Initially, some of these may have been inactive for a long time. We will gradually decrease the timescale so that it will find volunteers who are usually active, but have stopped, so that you can check that they are OK.\r\n\r\n" .
+                        "We think $name ($email) has not been actively moderating on {$g->getName()} for " . ($lastactive ? "$lastactive days" : "a long time") . ".\r\n\r\n" .
+                        "At this point there are several things you could do:\r\n" .
+                        "1. Contact them and see if they’d like to stay active, or come back.\r\n" .
+                        "2. If you know that they are a backup mod, contact them and ask them to change their ModTools settings in Settings->Community->Your Settings to record them as a backup.\r\n" .
+                        "3. If you know that they are no longer a mod, or it’s a duplicate account, please manually change their status to Member, from Members->Approved.\r\n" .
+                        "4. Do nothing. Eventually the change to member status may happen automatically after about six months, but we'll be discussing how that works later.\r\n" .
+                        "5. If there is some reason why you’d like them to be exempt from this check (e.g. if they are long-term ill) please forward this mail to geeks@ilovefreegle.org.\r\n\r\n" .
+                        "We will notify you about the same volunteer no more than once a month.\r\n\r\n" .
+                        "Regards,\r\n\r\n" .
+                        "Freegle Geeks";
+                    $subject = "{$g->getName()}: $name doesn't seem to be active";
 
-                    $notify = $g->getModsToNotify();
+                    $count = $g->notifyAboutSignificantEvent($subject, $mail);
 
-                    foreach ($notify as $n) {
-                        $m = User::get($dbhr, $dbhm, $n);
-                        error_log($g->getPrivate('nameshort') . ": Mail {$m->getEmailPreferred()} about inactive mod $name ($email) last active $lastactive days ago");
-
-                        $mail = "Please see https://discourse.ilovefreegle.org/t/safeguarding-volunteers for the background, and post any questions/issues on there.\r\n\r\n" .
-                            "We are identifying volunteers on who have not actively moderated for some time, and contacting you about them because we believe you are responsible for the group.\r\n\r\n" .
-                            "Initially, some of these may have been inactive for a long time. We will gradually decrease the timescale so that it will find volunteers who are usually active, but have stopped, so that you can check that they are OK.\r\n\r\n" .
-                            "We think $name ($email) has not been actively moderating on {$g->getName()} for " . ($lastactive ? "$lastactive days" : "a long time") . ".\r\n\r\n" .
-                            "At this point there are several things you could do:\r\n" .
-                            "1. Contact them and see if they’d like to stay active, or come back.\r\n" .
-                            "2. If you know that they are a backup mod, contact them and ask them to change their ModTools settings in Settings->Community->Your Settings to record them as a backup.\r\n" .
-                            "3. If you know that they are no longer a mod, or it’s a duplicate account, please manually change their status to Member, from Members->Approved.\r\n" .
-                            "4. Do nothing. Eventually the change to member status may happen automatically after about six months, but we'll be discussing how that works later.\r\n" .
-                            "5. If there is some reason why you’d like them to be exempt from this check (e.g. if they are long-term ill) please forward this mail to geeks@ilovefreegle.org.\r\n\r\n" .
-                            "We will notify you about the same volunteer no more than once a month.\r\n\r\n" .
-                            "Regards,\r\n\r\n" .
-                            "Freegle Geeks";
-
-                        $message = \Swift_Message::newInstance()
-                            ->setSubject("{$g->getName()}: $name doesn't seem to be active")
-                            ->setFrom(NOREPLY_ADDR)
-                            ->setTo($m->getEmailPreferred())
-                            ->setBody($mail);
-
-                        Mail::addHeaders($dbhr, $dbhm, $message, Mail::MODMAIL);
-                        list ($transport, $mailer) = Mail::getMailer();
-                        $mailer->send($message);
-
-                        $dbhm->preExec("INSERT INTO groups_mods_welfare (groupid, modid) VALUES (?, ?) ON DUPLICATE KEY UPDATE warnedat = NOW();", [
-                            $group['id'],
+                    $dbhm->preExec(
+                        "INSERT INTO groups_mods_welfare (groupid, modid) VALUES (?, ?) ON DUPLICATE KEY UPDATE warnedat = NOW();",
+                        [
+                            $g->getId(),
                             $mod
-                        ]);
-                        $count++;
-                    }
+                        ]
+                    );
                 }
             }
         }
@@ -106,7 +99,6 @@ foreach ($groups as $group) {
         error_log("...inactive group");
     }
 }
-
 
 error_log("\nFound $count inactive mods, skipped $skipped");
 Utils::unlockScript($lockh);

@@ -69,21 +69,6 @@ class AttachmentTest extends IznikTestCase {
         $this->assertEquals($attid1, $atts[0]->getId());
     }
 
-    public function testSCP() {
-        if (function_exists('ssh2_connect')) {
-            $failed = FALSE;
-            $a = new Attachment($this->dbhr, $this->dbhm);
-            $a->scp('localhost', 'testdata', 'unittest', $failed);
-            $this->assertEquals(1, $failed);
-
-            # Invalid host, fails.
-            $a->scp('localhost2', 'testdata', 'unittest', $failed);
-            $this->assertEquals(1, $failed);
-        }
-
-        $this->assertTrue(TRUE);
-    }
-
     public function testExternal() {
         $url = 'https://ilovefreegle.org/icon.png';
         $a = new Attachment($this->dbhr, $this->dbhm);
@@ -92,8 +77,6 @@ class AttachmentTest extends IznikTestCase {
 
         $a = new Attachment($this->dbhr, $this->dbhm, $attid);
         # Data length will be zero because this isn't a real uploaded file.
-        $this->assertEquals(0, strlen($a->getData()));
-        $a->archive();
         $this->assertEquals(0, strlen($a->getData()));
         $this->assertEquals('?url=' . TUS_UPLOADER . '/uid/', $a->getPath());
         $atts = $a->getPublic();

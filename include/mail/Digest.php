@@ -107,7 +107,8 @@ class Digest
         if (strpos($image, IMAGE_DELIVERY) !== FALSE) {
             # We can request a smaller version.  For immediate mails we'd like to show it full width, whereas
             # in digests we only need the thumbnails.
-            $image .= "&w=200&h=200";
+            $image = str_replace("&w=200&h=200", "", $image);
+            $image .= "&w=$size&h=$size";
         }
 
         return $image;

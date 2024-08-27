@@ -82,7 +82,7 @@ class jobsTest extends IznikTestCase
         ]);
         $this->assertEquals(1, $found[0]['count']);
 
-        $j->deleteSpammyJobs();
+        $j->deleteSpammyJobs("jobs_new");
         $j->swapTables();
 
         $found = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM jobs WHERE job_reference = ?;", [

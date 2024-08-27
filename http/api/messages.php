@@ -138,52 +138,56 @@ function messages() {
                             # A search on message info.
                             $search = Utils::presdef('search', $_REQUEST, NULL);
                             $search = $search ? trim($search) : NULL;
-                            $ctx = Utils::presdef('context', $_REQUEST, NULL);
-                            $messagetype = Utils::presdef('messagetype', $_REQUEST, NULL);
-                            $nearlocation = Utils::presdef('nearlocation', $_REQUEST, NULL);
-                            $nearlocation = $nearlocation ? intval($nearlocation) : NULL;
+                            $msgs = [];
 
-                            # On MT, search for more messages - slower but acceptable.
-                            $limit = Session::modtools() ? 100 : Utils::presint('limit', $_REQUEST, Search::Limit);
+                            if ($search) {
+                                $ctx = Utils::presdef('context', $_REQUEST, NULL);
+                                $messagetype = Utils::presdef('messagetype', $_REQUEST, NULL);
+                                $nearlocation = Utils::presdef('nearlocation', $_REQUEST, NULL);
+                                $nearlocation = $nearlocation ? intval($nearlocation) : NULL;
 
-                            if (is_numeric($search)) {
-                                $m = new Message($dbhr, $dbhm, $search);
+                                # On MT, search for more messages - slower but acceptable.
+                                $limit = Session::modtools() ? 100 : Utils::presint('limit', $_REQUEST, Search::Limit);
 
-                                if ($m->getID() == $search) {
-                                    # Found by message id.
-                                    list($groups, $msgs) = $c->fillIn([['id' => $search]], $limit, null, $summary);
+                                if (is_numeric($search)) {
+                                    $m = new Message($dbhr, $dbhm, $search);
+
+                                    if ($m->getID() == $search) {
+                                        # Found by message id.
+                                        list($groups, $msgs) = $c->fillIn([['id' => $search]], $limit, null, $summary);
+                                    }
+                                } else if (!is_null($swlat) && !is_null($swlng) && !is_null($nelat) && !is_null($nelng)) {
+                                    $m = new Message($dbhr, $dbhm);
+                                    $msgs = $m->searchActiveInBounds($search, $messagetype, $swlat, $swlng, $nelat, $nelng, $groupid, $exactonly);
+                                } else if ($searchmygroups) {
+                                    $mygroups = [];
+
+                                    if ($groupid) {
+                                        $mygroups = [ $groupid ];
+                                    } else if ($me) {
+                                        $mygroups = $me->getMembershipGroupIds(FALSE, $grouptype, NULL);
+                                    }
+
+                                    $m = new Message($dbhr, $dbhm);
+                                    $msgs = count($mygroups) ? $m->searchActiveInGroups($search, $messagetype, $exactonly, $mygroups) : [];
+                                } else {
+                                    # Search near location.
+                                    $m = new Message($dbhr, $dbhm);
+
+                                    $searchgroups = $groupid ? [ $groupid ] : NULL;
+
+                                    if ($nearlocation) {
+                                        # We need to look in the groups near this location.
+                                        $l = new Location($dbhr, $dbhm, $nearlocation);
+                                        $searchgroups = $l->groupsNear();
+                                    }
+
+                                    do {
+                                        $searched = $m->search($search, $ctx, $limit, NULL, $searchgroups, $nearlocation, $exactonly);
+                                        list($groups, $msgs) = $c->fillIn($searched, $limit, $messagetype, FALSE);
+                                        # We might have excluded all the messages we found; if so, keep going.
+                                    } while (count($searched) > 0 && count($msgs) == 0);
                                 }
-                            } else if (!is_null($swlat) && !is_null($swlng) && !is_null($nelat) && !is_null($nelng)) {
-                                $m = new Message($dbhr, $dbhm);
-                                $msgs = $m->searchActiveInBounds($search, $messagetype, $swlat, $swlng, $nelat, $nelng, $groupid, $exactonly);
-                            } else if ($searchmygroups) {
-                                $mygroups = [];
-
-                                if ($groupid) {
-                                    $mygroups = [ $groupid ];
-                                } else if ($me) {
-                                    $mygroups = $me->getMembershipGroupIds(FALSE, $grouptype, NULL);
-                                }
-
-                                $m = new Message($dbhr, $dbhm);
-                                $msgs = count($mygroups) ? $m->searchActiveInGroups($search, $messagetype, $exactonly, $mygroups) : [];
-                            } else {
-                                # Search near location.
-                                $m = new Message($dbhr, $dbhm);
-
-                                $searchgroups = $groupid ? [ $groupid ] : NULL;
-
-                                if ($nearlocation) {
-                                    # We need to look in the groups near this location.
-                                    $l = new Location($dbhr, $dbhm, $nearlocation);
-                                    $searchgroups = $l->groupsNear();
-                                }
-
-                                do {
-                                    $searched = $m->search($search, $ctx, $limit, NULL, $searchgroups, $nearlocation, $exactonly);
-                                    list($groups, $msgs) = $c->fillIn($searched, $limit, $messagetype, FALSE);
-                                    # We might have excluded all the messages we found; if so, keep going.
-                                } while (count($searched) > 0 && count($msgs) == 0);
                             }
 
                             break;

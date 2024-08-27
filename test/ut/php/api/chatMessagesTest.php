@@ -970,6 +970,69 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->assertEquals(0, count($ret['chatmessages']));
     }
 
+    public function testQuickChatReview() {
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup2', Group::GROUP_FREEGLE);
+
+        # Make uid a mod on the group.  Not signed up for quick review yet.
+        $u = new User($this->dbhr, $this->dbhm, $this->uid);
+        $u->addMembership($gid, User::ROLE_MODERATOR);
+        $u->setGroupSettings($gid, [ 'active' => 1 ]);
+        $this->assertTrue($u->login('testpw'));
+
+        # Set up a chat message for review on another group which has widerchatreview on, has another mod, but
+        # the earlier mod isn't on.
+        $gid2 = $g->create('testgroup3', Group::GROUP_FREEGLE);
+        $settings = json_decode($g->getPrivate('settings'), TRUE);
+        $settings['widerchatreview'] = 1;
+        $g->setSettings($settings);
+        Group::clearCache();
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid1 = $u->create('Test', 'User', 'Test User');
+        $u->addMembership($gid2);
+        $uid2 = $u->create('Test', 'User', 'Test User');
+        $u->addMembership($gid2);
+        $uid3 = $u->create('Test', 'User', 'Test User');
+        $u->addMembership($gid2, User::ROLE_MODERATOR);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($rid, $blocked) = $r->createConversation($uid1, $uid2);
+
+        $cm = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cid, $banned) = $cm->create($rid, $uid1, "Test message");
+        $cm->process(TRUE);
+
+        # Should not see this for review
+        $ret = $this->call('chatmessages', 'GET', [
+            'roomid' => $rid
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, count($ret['chatmessages']));
+
+        $ret = $this->call('session', 'GET', []);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(0, $ret['work']['chatreview']);
+
+        # Now enable quick chat review.
+        $g = Group::get($this->dbhr, $this->dbhm, $gid);
+        $settings = json_decode($g->getPrivate('settings'), TRUE);
+        $settings['widerchatreview'] = 1;
+        $g->setSettings($settings);
+        Group::clearCache();
+
+        # Should now see it.
+        $ret = $this->call('chatmessages', 'GET', [
+            'roomid' => $rid
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, count($ret['chatmessages']));
+
+        $ret = $this->call('session', 'GET', []);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, $ret['work']['chatreviewother']);
+    }
+
 //
 //    public function testEH2()
 //    {
