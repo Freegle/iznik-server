@@ -319,6 +319,7 @@ try{
   echo "\r\n";
 
   $subject = 'Discourse: ';
+  if( $notrepresentedcount==0) $subject .= "All groups represented. ";
   if( $notrepresentedcount>0) $subject .= "$notrepresentedcount groups not represented. ";
   if( $notondiscourse>0) $subject .= "$notondiscourse volunteers not signed up. ";
   if( $notrepresentedcount==0 && $notondiscourse==0) $subject .= 'all active volunteers on here';
@@ -332,7 +333,7 @@ try{
     $mailedcentralmods = true;
   }*/
 
-  if( !$mailedcentralmods && (date('w')==6)){
+  if( (!$mailedcentralmods && (date('w')==6)) || ($notrepresentedcount>0)){
     //$sent = mail(CENTRALMODS_ADDR, $subject, $report,$headers);
     $message = \Swift_Message::newInstance()
         ->setSubject($subject)
@@ -347,15 +348,17 @@ try{
   
   //$report = wordwrap($report, 70, "\r\n");
   //$sent = mail(GEEKSALERTS_ADDR, $subject, $report,$headers);
-  $message = \Swift_Message::newInstance()
-      ->setSubject($subject)
-      ->setFrom([FROM_ADDR => 'Geeks'])
-      ->setTo([GEEKSALERTS_ADDR => 'Geeks Alerts'])
-      ->setBody($report);
-  Mail::addHeaders($dbhr, $dbhm, $message, Mail::MODMAIL);
-  list ($transport, $mailer) = Mail::getMailer();
-  $numSent = $mailer->send($message);
-  echo "Mail sent to geeks: ".$numSent."\r\n";
+  if( $notrepresentedcount>0){
+    $message = \Swift_Message::newInstance()
+        ->setSubject($subject)
+        ->setFrom([FROM_ADDR => 'Geeks'])
+        ->setTo([GEEKSALERTS_ADDR => 'Geeks Alerts'])
+        ->setBody($report);
+    Mail::addHeaders($dbhr, $dbhm, $message, Mail::MODMAIL);
+    list ($transport, $mailer) = Mail::getMailer();
+    $numSent = $mailer->send($message);
+    echo "Mail sent to geeks: ".$numSent."\r\n";
+  }
 }
 catch (\Exception $e) {
   echo $e->getMessage();
