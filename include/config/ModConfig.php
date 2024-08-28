@@ -184,27 +184,28 @@ class ModConfig extends Entity
                 # Need to find out who shared it.  Pluck data directly because this is performance-significant
                 # for people on many groups.
                 $modships = $me ? $me->getModeratorships() : [0];
-                $sql = "SELECT userid, firstname, lastname, fullname, groupid, nameshort, namefull FROM memberships INNER JOIN users ON users.id = memberships.userid INNER JOIN `groups` ON groups.id = memberships.groupid WHERE groupid IN (" . implode(',', $modships) . ") AND userid != {$this->id} AND role IN ('Moderator', 'Owner') AND configid = {$this->id};";
-                $shareds = $this->dbhr->preQuery($sql);
 
-                foreach ($shareds as $shared) {
-                    $ret['cansee'] = ModConfig::CANSEE_SHARED;
-                    $ret['sharedon'] = [
-                        'namedisplay' => $shared['namefull'] ? $shared['namefull'] : $shared['nameshort']
-                    ];
+                if (count($modships)) {
+                    $sql = "SELECT userid, firstname, lastname, fullname, groupid, nameshort, namefull FROM memberships INNER JOIN users ON users.id = memberships.userid INNER JOIN `groups` ON groups.id = memberships.groupid WHERE groupid IN (" . implode(',', $modships) . ") AND userid != {$this->id} AND role IN ('Moderator', 'Owner') AND configid = {$this->id};";
+                    $shareds = $this->dbhr->preQuery($sql);
 
-                    $name = 'Unknown';
-                    if ($shared['fullname']) {
-                        $name = $shared['fullname'];
-                    } else if ($shared['firstname'] || $shared['lastname']) {
-                        $name = $shared['firstname'] . ' ' . $shared['lastname'];
+                    foreach ($shareds as $shared) {
+                        $ret['cansee'] = ModConfig::CANSEE_SHARED;
+                        $ret['sharedon'] = [
+                            'namedisplay' => $shared['namefull'] ? $shared['namefull'] : $shared['nameshort']
+                        ];
+
+                        $name = 'Unknown';
+                        if ($shared['fullname']) {
+                            $name = $shared['fullname'];
+                        } else if ($shared['firstname'] || $shared['lastname']) {
+                            $name = $shared['firstname'] . ' ' . $shared['lastname'];
+                        }
+
+                        $ret['sharedby'] = [
+                            'displayname' => $name
+                        ];
                     }
-
-                    $ret['sharedby'] = [
-                        'displayname' => $name
-                    ];
-
-                    $ctx = NULL;
                 }
             }
         }
