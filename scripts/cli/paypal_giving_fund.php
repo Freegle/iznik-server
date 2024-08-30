@@ -36,7 +36,7 @@ if (count($opts) != 1) {
 
             $date = $fields[0];
             $name = $fields[1] . " " . $fields[2];
-            $email = $fields[3];
+            $email = trim($fields[3]);
             $program = $fields[4];
             $ebayId = $fields[5];
             $amount = $fields[7];
@@ -46,14 +46,14 @@ if (count($opts) != 1) {
             # undercounting is probably better than overcounting for soliciting donations...
             $txid = $fields[10];
 
-            error_log("$date email $email amount $amount " . json_encode($fields));
-
             $eid = NULL;
 
             if ($email) {
                 # Not anonymous
                 $eid = $u->findByEmail($email);
             }
+
+            error_log("$date email $email = $eid amount $amount " . json_encode($fields));
 
             $donations[] = [
                 'eid' => $eid,
