@@ -12,7 +12,7 @@ require_once(UT_DIR . '/../../include/db.php');
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class addressAPITest extends IznikAPITestCase {
+class LoveJunkAPITest extends IznikAPITestCase {
     public $dbhr, $dbhm;
 
     public function testRemoveUser() {
