@@ -477,7 +477,22 @@ function session() {
                     case 'Forget': {
                         $ret = array('ret' => 1, 'status' => 'Not logged in');
 
-                        if ($me) {
+                        $partner = Utils::presdef('partner', $_REQUEST, NULL);
+                        $id = Utils::presdef('id', $_REQUEST, NULL);
+
+                        if ($partner) {
+                            // Might not be logged in but still have control over this user.
+                            list ($partner, $domain) = Session::partner($dbhr, $partner);
+
+                            if ($partner) {
+                                $u = new User($dbhr, $dbhm, $id);
+
+                                if ($u->getId() == $id && $u->getPrivate('ljuserid')) {
+                                    $u->limbo();
+                                    $ret = [ 'ret' => 0, 'status' => "Success" ];
+                                }
+                            }
+                        } else if ($me) {
                             # We don't allow mods/owners to do this, as they might do it by accident.
                             $ret = array('ret' => 2, 'status' => 'Please demote yourself to a member first');
 

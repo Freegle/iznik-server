@@ -27,7 +27,6 @@ class LoveJunkTest extends IznikTestCase
         $this->dbhm->preExec("DELETE FROM returnpath_seedlist WHERE email LIKE 'test@test.com';");
     }
 
-
     public function trueFalseProvider() {
         return [
             [ TRUE ],
