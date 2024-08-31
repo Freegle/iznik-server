@@ -245,7 +245,7 @@ class Tryst extends Entity
                     # which we use.
                     $cm = new ChatMessage($this->dbhr, $this->dbhm);
                     $cm->create($rid, $u1id,
-                                "Handover at $time.  Please confirm that's still ok or let them know if things have changed.  Everybody hates a no-show...",
+                                "Automatic reminder: Handover at $time.  Please confirm that's still ok or let them know if things have changed.  Everybody hates a no-show...",
                                 ChatMessage::TYPE_REMINDER,
                     NULL, FALSE);
                     error_log("Chat reminder sent in $rid for users $u1id, $u2id");
