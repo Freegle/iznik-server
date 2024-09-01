@@ -440,10 +440,6 @@ try{
       }
 
       if( $u){
-        //echo "BIO ";
-        //echo $user2->bio_raw;
-        //echo "\r\n";
-        //echo "NEEDS TO BE ";
         $bio = $useremail." is a mod on ";
 
         $memberships = $u->getModGroupsByActivity();
@@ -453,11 +449,9 @@ try{
         }
         $bio .= substr(implode(', ', $grouplist),0,1000);
 
-        //echo $bio;
         if( $bio != $user2->bio_raw){
           SetBio($user->username,$bio);
         }
-        //echo "\r\n";
       }
     }
     //if( $count>5) break;
