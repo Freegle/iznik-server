@@ -6,6 +6,7 @@
 // 2019-12-13 Add bounce reporting
 // 2021-02-28 Fix DateTime namespace
 // 2022-02-02 Look up altemail for mods
+// 2024-09-01 set bio profile appropriately
 
 namespace Freegle\Iznik;
 use \Datetime;
@@ -220,6 +221,41 @@ function SetWatchCategory($username,$alreadywatching,$catid){
   curl_close( $ch );
 }
 
+// SET USER BIO
+// https://discourse.ilovefreegle.org/u/chris_cant.json
+//  PUT
+//  Form: bio_raw: <email> is a mod on groups...
+
+function SetBio($username,$bio){
+  global $api_username;
+  $url = 'https://discourse.ilovefreegle.org/users/'.$username.'.json';
+  //echo "url: $url\r\n";
+
+  $ch = curl_init();
+  curl_setopt( $ch, CURLOPT_URL, $url );
+  curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+  curl_setopt( $ch, CURLOPT_USERAGENT, 'Freegle' );
+  curl_setopt( $ch, CURLOPT_HTTPHEADER, array(
+    'Api-Key: '.DISCOURSE_APIKEY,
+    'Api-Username: '.$api_username
+    //'accept: application/json',
+    //'content-type: application/json'
+  ));
+  $data = 'bio_raw='.$bio;
+  //echo "data: $data\r\n";
+  curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT'); 
+  curl_setopt($ch, CURLOPT_POSTFIELDS,$data);
+
+  $result = curl_exec( $ch );
+  //echo "result: ".print_r($result)."\r\n";
+  //echo htmlspecialchars($result);
+
+  if ( curl_errno( $ch ) !== 0 ) {
+    curl_close($ch);
+    throw new \Exception('curl_errno: SetBio'.$username);
+  }
+  curl_close( $ch );
+}
 
 //  https://discourse.ilovefreegle.org/admin/users/list/active.json
 //  "last_emailed_at":"2019-10-26T07:14:45.040Z"
@@ -316,15 +352,15 @@ try{
 
     echo $count." external_id: ".$external_id."\r\n";
     if( $external_id){
+      $useremail = '';
       $u = new User($dbhr, $dbhm, $external_id);
       if( $u){
-        $useremail = '';
+        // Get email from Discourse
+        $useremail = GetUserEmail($user->username);
         $ismod = $u->isModerator();
         if( !$ismod){
           // May have been merged so look up main account id
           usleep(250000);
-          // Get email from Discourse
-          $useremail = GetUserEmail($user->username);
           $sql = "SELECT * FROM users_emails where email = ?;";
           $altemails = $dbhr->preQuery($sql, [$useremail]);
           $actualid = 0;
@@ -348,7 +384,6 @@ try{
       } else {
         // No entry in MT at all
         usleep(250000);
-        $useremail = GetUserEmail($user->username);
         echo "NOT EVEN A USER\r\n";
         $notuser++;
         $report .= 'Not a MT user: Discourse username: '.$user->username.', email: '.$useremail."\r\n";
@@ -402,6 +437,27 @@ try{
           echo 'Was not on Announcements: Discourse username: '.$user->username."\r\n";
           $report .= 'Was not on Announcements: Discourse username: '.$user->username."\r\n";
         }
+      }
+
+      if( $u){
+        //echo "BIO ";
+        //echo $user2->bio_raw;
+        //echo "\r\n";
+        //echo "NEEDS TO BE ";
+        $bio = $useremail." is a mod on ";
+
+        $memberships = $u->getModGroupsByActivity();
+        $grouplist = [];
+        foreach ($memberships as $membership) {
+            $grouplist[] = $membership['namedisplay'];
+        }
+        $bio .= substr(implode(', ', $grouplist),0,1000);
+
+        //echo $bio;
+        if( $bio != $user2->bio_raw){
+          SetBio($user->username,$bio);
+        }
+        //echo "\r\n";
       }
     }
     //if( $count>5) break;
