@@ -135,9 +135,13 @@ function GetUser2($id,$username){
   //  {"errors":["The requested URL or resource could not be found."],"error_type":"not_found"}
   $user2 = json_decode($result);
   //echo print_r($user2)."\r\n\r\n";
-  if (property_exists($user2, 'errors')){
+  if( !$user2){
+    echo print_r($result)."\r\n\r\n";
+    throw new \Exception('GetUser2 error A ');
+  }
+  else if (property_exists($user2, 'errors')){
     echo print_r($user2)."\r\n\r\n";
-    throw new \Exception('GetUser error '.$user2->errors[0]);
+    throw new \Exception('GetUser2 error B '.$user2->errors[0]);
   }
   $user2 = $user2->user;
   //echo print_r($user2)."\r\n\r\n";
