@@ -135,7 +135,7 @@ function GetUser2($id,$username){
   //  {"errors":["The requested URL or resource could not be found."],"error_type":"not_found"}
   $user2 = json_decode($result);
   //echo print_r($user2)."\r\n\r\n";
-  if( !$user2){
+  if( !$user2){ // Probably 429 Too Many Requests
     echo print_r($result)."\r\n\r\n";
     throw new \Exception('GetUser2 error A ');
   }
@@ -245,7 +245,10 @@ function SetBio($username,$bio){
     //'accept: application/json',
     //'content-type: application/json'
   ));
-  $data = 'bio_raw='.$bio;
+  $fields = array(
+    'bio_raw'=>$bio
+  );
+  $data = http_build_query($fields);
   //echo "data: $data\r\n";
   curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT'); 
   curl_setopt($ch, CURLOPT_POSTFIELDS,$data);
@@ -297,6 +300,7 @@ try{
   $email_digests = 0;
   $notreceivingmail = 0;
   $notonannoucements = 0;
+  $bioupdatedcount = 0;
   foreach ($allusers as $user) {
     //echo "user: ".print_r($user)."\r\n";
 
@@ -364,7 +368,6 @@ try{
         $ismod = $u->isModerator();
         if( !$ismod){
           // May have been merged so look up main account id
-          usleep(250000);
           $sql = "SELECT * FROM users_emails where email = ?;";
           $altemails = $dbhr->preQuery($sql, [$useremail]);
           $actualid = 0;
@@ -387,7 +390,6 @@ try{
         }
       } else {
         // No entry in MT at all
-        usleep(250000);
         echo "NOT EVEN A USER\r\n";
         $notuser++;
         $report .= 'Not a MT user: Discourse username: '.$user->username.', email: '.$useremail."\r\n";
@@ -395,6 +397,7 @@ try{
 
       // SEE WHAT MAILS THEY ARE GETTING
       // Check for mailing list mode
+      usleep(250000);
       $user2 = GetUser2($user->id,$user->username);
 
       $gettingAnyMails = false;
@@ -455,6 +458,7 @@ try{
 
         if( $bio != $user2->bio_raw){
           SetBio($user->username,$bio);
+          $bioupdatedcount++;
         }
       }
     }
@@ -489,6 +493,7 @@ try{
   if( $notonannoucements>0) $report .= " but hopefully now are";
   $report .= "\r\n";
   $report .= "notreceivingmail: ($notreceivingmail)\r\n";
+  $report .= "bioupdatedcount: ($bioupdatedcount)\r\n";
 
   echo $report;
   echo "\r\n";
