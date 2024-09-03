@@ -333,7 +333,9 @@ try{
     $mailedcentralmods = true;
   }*/
 
-  if( (!$mailedcentralmods && (date('w')==6)) || ($notrepresentedcount>0)){
+  $weeklySendToday = date('w')==6; // Saturday
+  if( (!$mailedcentralmods && $weeklySendToday) || ($notrepresentedcount>0)){
+  echo "GEEK WEEK\r\n";
     //$sent = mail(CENTRALMODS_ADDR, $subject, $report,$headers);
     $message = \Swift_Message::newInstance()
         ->setSubject($subject)
@@ -348,7 +350,7 @@ try{
   
   //$report = wordwrap($report, 70, "\r\n");
   //$sent = mail(GEEKSALERTS_ADDR, $subject, $report,$headers);
-  if( $notrepresentedcount>0){
+  if( $weeklySendToday || ($notrepresentedcount>0)){
     $message = \Swift_Message::newInstance()
         ->setSubject($subject)
         ->setFrom([FROM_ADDR => 'Geeks'])

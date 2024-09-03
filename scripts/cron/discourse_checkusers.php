@@ -6,6 +6,7 @@
 // 2019-12-13 Add bounce reporting
 // 2021-02-28 Fix DateTime namespace
 // 2022-02-02 Look up altemail for mods
+// 2024-09-01 set bio profile appropriately
 
 namespace Freegle\Iznik;
 use \Datetime;
@@ -134,9 +135,13 @@ function GetUser2($id,$username){
   //  {"errors":["The requested URL or resource could not be found."],"error_type":"not_found"}
   $user2 = json_decode($result);
   //echo print_r($user2)."\r\n\r\n";
-  if (property_exists($user2, 'errors')){
+  if( !$user2){ // Probably 429 Too Many Requests
+    echo print_r($result)."\r\n\r\n";
+    throw new \Exception('GetUser2 error A ');
+  }
+  else if (property_exists($user2, 'errors')){
     echo print_r($user2)."\r\n\r\n";
-    throw new \Exception('GetUser error '.$user2->errors[0]);
+    throw new \Exception('GetUser2 error B '.$user2->errors[0]);
   }
   $user2 = $user2->user;
   //echo print_r($user2)."\r\n\r\n";
@@ -220,6 +225,44 @@ function SetWatchCategory($username,$alreadywatching,$catid){
   curl_close( $ch );
 }
 
+// SET USER BIO
+// https://discourse.ilovefreegle.org/u/chris_cant.json
+//  PUT
+//  Form: bio_raw: <email> is a mod on groups...
+
+function SetBio($username,$bio){
+  global $api_username;
+  $url = 'https://discourse.ilovefreegle.org/users/'.$username.'.json';
+  //echo "url: $url\r\n";
+
+  $ch = curl_init();
+  curl_setopt( $ch, CURLOPT_URL, $url );
+  curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+  curl_setopt( $ch, CURLOPT_USERAGENT, 'Freegle' );
+  curl_setopt( $ch, CURLOPT_HTTPHEADER, array(
+    'Api-Key: '.DISCOURSE_APIKEY,
+    'Api-Username: '.$api_username
+    //'accept: application/json',
+    //'content-type: application/json'
+  ));
+  $fields = array(
+    'bio_raw'=>$bio
+  );
+  $data = http_build_query($fields);
+  //echo "data: $data\r\n";
+  curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT'); 
+  curl_setopt($ch, CURLOPT_POSTFIELDS,$data);
+
+  $result = curl_exec( $ch );
+  //echo "result: ".print_r($result)."\r\n";
+  //echo htmlspecialchars($result);
+
+  if ( curl_errno( $ch ) !== 0 ) {
+    curl_close($ch);
+    throw new \Exception('curl_errno: SetBio'.$username);
+  }
+  curl_close( $ch );
+}
 
 //  https://discourse.ilovefreegle.org/admin/users/list/active.json
 //  "last_emailed_at":"2019-10-26T07:14:45.040Z"
@@ -257,6 +300,7 @@ try{
   $email_digests = 0;
   $notreceivingmail = 0;
   $notonannoucements = 0;
+  $bioupdatedcount = 0;
   foreach ($allusers as $user) {
     //echo "user: ".print_r($user)."\r\n";
 
@@ -316,15 +360,14 @@ try{
 
     echo $count." external_id: ".$external_id."\r\n";
     if( $external_id){
+      $useremail = '';
       $u = new User($dbhr, $dbhm, $external_id);
       if( $u){
-        $useremail = '';
+        // Get email from Discourse
+        $useremail = GetUserEmail($user->username);
         $ismod = $u->isModerator();
         if( !$ismod){
           // May have been merged so look up main account id
-          usleep(250000);
-          // Get email from Discourse
-          $useremail = GetUserEmail($user->username);
           $sql = "SELECT * FROM users_emails where email = ?;";
           $altemails = $dbhr->preQuery($sql, [$useremail]);
           $actualid = 0;
@@ -347,8 +390,6 @@ try{
         }
       } else {
         // No entry in MT at all
-        usleep(250000);
-        $useremail = GetUserEmail($user->username);
         echo "NOT EVEN A USER\r\n";
         $notuser++;
         $report .= 'Not a MT user: Discourse username: '.$user->username.', email: '.$useremail."\r\n";
@@ -356,6 +397,7 @@ try{
 
       // SEE WHAT MAILS THEY ARE GETTING
       // Check for mailing list mode
+      usleep(250000);
       $user2 = GetUser2($user->id,$user->username);
 
       $gettingAnyMails = false;
@@ -403,6 +445,22 @@ try{
           $report .= 'Was not on Announcements: Discourse username: '.$user->username."\r\n";
         }
       }
+
+      if( $u){
+        $bio = $useremail." is a mod on ";
+
+        $memberships = $u->getModGroupsByActivity();
+        $grouplist = [];
+        foreach ($memberships as $membership) {
+            $grouplist[] = $membership['namedisplay'];
+        }
+        $bio .= substr(implode(', ', $grouplist),0,1000);
+
+        if( $bio != $user2->bio_raw){
+          SetBio($user->username,$bio);
+          $bioupdatedcount++;
+        }
+      }
     }
     //if( $count>5) break;
   }
@@ -435,6 +493,7 @@ try{
   if( $notonannoucements>0) $report .= " but hopefully now are";
   $report .= "\r\n";
   $report .= "notreceivingmail: ($notreceivingmail)\r\n";
+  $report .= "bioupdatedcount: ($bioupdatedcount)\r\n";
 
   echo $report;
   echo "\r\n";
