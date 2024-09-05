@@ -347,7 +347,7 @@ function message() {
                             $m->setPrivate('deliverypossible', $deliverypossible);
                         }
 
-                        if (array_key_exists('deadline', $_REQUEST)) {
+                        if (array_key_exists('deadline', $_REQUEST) && (!$deadline || $deadline > '1970-01-01')) {
                             // Deadline can be null.
                             $m->setPrivate('deadline', $deadline, TRUE);
                         }
