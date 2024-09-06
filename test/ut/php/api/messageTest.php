@@ -4212,4 +4212,46 @@ class messageAPITest extends IznikAPITestCase
             ]
         ];
     }
+
+    public function testDeadline() {
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', '[hertford_freegle] Offered - Grey Driveway Blocks - Hoddesdon', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list ($id1, $failok) = $m->save();
+
+        $m = new Message($this->dbhr, $this->dbhm, $id1);
+        $deadline = '2016-01-01';
+        $m->setPrivate('deadline', $deadline);
+        $m->setPrivate('arrival', '2050-01-01');
+        $m->processExpiry();
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $id1,
+        ]);
+
+        $this->assertEquals(1, count($ret['message']['outcomes']));
+
+        $this->assertEquals($deadline, $m->getPublic()['deadline']);
+
+        $u = new User($this->dbhr, $this->dbhm);
+        $this->uid = $u->create('Test', 'User', 'Test User');
+        $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+
+        # Set the deadline to the future - should no longer have an outcome.
+        $ret = $this->call('message', 'PATCH', [
+            'id' => $id1,
+            'deadline' => '2050-01-01',
+        ]);
+
+        $this->assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('message', 'GET', [
+            'id' => $id1,
+        ]);
+
+        $this->assertEquals(0, count($ret['message']['outcomes']));
+    }
 }

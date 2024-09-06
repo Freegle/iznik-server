@@ -33,17 +33,7 @@ $count = 0;
 
 foreach ($msgs as $msg) {
     $m = new Message($dbhr, $dbhm, $msg['msgid']);
-    $atts = $m->getPublic(FALSE, FALSE);
-
-    if (Utils::pres('outcomes', $atts)) {
-        foreach ($atts['outcomes'] as $outcome) {
-            if ($outcome['outcome'] == Message::OUTCOME_EXPIRED) {
-                error_log("#{$msg['msgid']} " . $m->getPrivate('arrival') . " " . $m->getSubject() . " expired");
-                $m->deleteFromSpatialIndex();
-                $m->mark(Message::OUTCOME_WITHDRAWN, "Auto-expired", NULL, NULL);
-            }
-        }
-    }
+    $m->processExpiry();
     $count++;
 
     if ($count % 100 == 0) {

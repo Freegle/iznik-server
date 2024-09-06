@@ -4998,6 +4998,13 @@ $mq", [
         return !$this->dullComment($comment) ? $comment : NULL;
     }
 
+    public function removeExpiryOutcome() {
+        $this->dbhm->preExec("DELETE FROM messages_outcomes WHERE msgid = ? AND outcome = ?;", [
+            $this->id,
+            Message::OUTCOME_WITHDRAWN
+        ]);
+    }
+
     public function tidyOutcomes($since) {
         $count = 0;
         $outcomes = $this->dbhr->preQuery("SELECT * FROM messages_outcomes WHERE timestamp >= '$since' AND comments IS NOT NULL;");
@@ -5740,5 +5747,19 @@ $mq", [
 
         $this->setPrivate('textbody', $txtbody);
         return $txtbody;
+    }
+
+    public function processExpiry() {
+        $atts = $this->getPublic(FALSE, FALSE);
+
+        if (Utils::pres('outcomes', $atts)) {
+            foreach ($atts['outcomes'] as $outcome) {
+                if ($outcome['outcome'] == Message::OUTCOME_EXPIRED) {
+                    error_log("#{$this->id} " . $this->getPrivate('arrival') . " " . $this->getSubject() . " expired");
+                    $this->deleteFromSpatialIndex();
+                    $this->mark(Message::OUTCOME_WITHDRAWN, "Auto-expired", NULL, NULL);
+                }
+            }
+        }
     }
 }

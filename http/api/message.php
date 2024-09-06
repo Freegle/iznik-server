@@ -350,6 +350,13 @@ function message() {
                         if (array_key_exists('deadline', $_REQUEST) && (!$deadline || $deadline > '1970-01-01')) {
                             // Deadline can be null.
                             $m->setPrivate('deadline', $deadline, TRUE);
+
+                            if ($deadline) {
+                                // If we have a deadline in the future then make sure the message is not expired - that
+                                // can happen if someone edits a message and extends the deadline.  If the message has
+                                // also expired for other reasons then messages_expired will add it back in.
+                                $m->removeExpiryOutcome();
+                            }
                         }
 
                         if ($groupid) {
