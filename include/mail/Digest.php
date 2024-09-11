@@ -281,7 +281,9 @@ class Digest
                                 'noemail' => '{{noemail}}',
                                 'visit' => '{{visit}}',
                                 'jobads' => '{{jobads}}',
-                                'joblocation' => '{{joblocation}}'
+                                'joblocation' => '{{joblocation}}',
+                                'chatmessages' => '{{chatmessages}}',
+                                'viewchats' => '{{viewchats}}'
                             ]);
 
                             $tosend[] = [
@@ -395,7 +397,9 @@ class Digest
                             'jobads' => '{{jobads}}',
                             'sponsors' => $sponsors,
                             'joblocation' => '{{joblocation}}',
-                            'nearby' => '{{nearby}}'
+                            'nearby' => '{{nearby}}',
+                            'chatmessages' => '{{chatmessages}}',
+                            'viewchats' => '{{viewchats}}'
                         ]);
                     } catch (\Exception $e) {
                         error_log("Message prepare failed with " . $e->getMessage());
@@ -443,6 +447,9 @@ class Digest
                             $jobads = $u->getJobAds();
                             $nearby = $allownearby ? $this->getMessagesOnNearbyGroups($twig, $u, $g, $frequency) : '';
 
+                            $r = new ChatRoom($this->dbhr, $this->dbhm);
+                            $unseenChats = $r->allUnseenForUser($u->getId(), [ChatRoom::TYPE_USER2USER, ChatRoom::TYPE_USER2MOD], FALSE);
+
                             $replacements[$email] = [
                                 '{{uid}}' => $u->getId(),
                                 '{{toname}}' => $u->getName(),
@@ -458,7 +465,9 @@ class Digest
                                 '{{replyto}}' => $u->getId(),
                                 '{{jobads}}' => $jobads['jobs'],
                                 '{{joblocation}}' => $jobads['location'],
-                                '{{nearby}}' => $nearby
+                                '{{nearby}}' => $nearby,
+                                '{{chatmessages}}' => count($unseenChats),
+                                '{{viewchats}}' => $u->loginLink(USER_SITE, $u->getId(), '/chats', User::SRC_DIGEST),
                             ];
 
                             $emailToId[$email] = $u->getId();

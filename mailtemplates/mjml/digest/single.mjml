@@ -22,6 +22,13 @@
           </mj-column>
         </mj-group>
       </mj-section>
+      <mj-raw>{% if chatmessages > 0 %}</mj-raw>
+      <mj-section>
+      	<mj-column>
+          <mj-text align="center" font-weight="bold"><a style="color: red" href="{{ viewchats }}">You have unread Chat messages.  Click here.</a></mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-raw>{% endif %}</mj-raw>
 
  			<mj-section padding="0px" background-color="#F5F5F5">
         <mj-column padding="0px">
