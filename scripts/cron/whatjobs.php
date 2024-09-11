@@ -60,5 +60,7 @@ try {
 }
 $j->deleteSpammyJobs("jobs_new");
 $j->swapTables();
+$j->analyseClickability();
+$j->updateClickability();
 
 Utils::unlockScript($lockh);

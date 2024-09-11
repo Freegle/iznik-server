@@ -149,6 +149,74 @@ class Jobs {
         ]);
     }
 
+    public function analyseClickability() {
+        # This looks at the jobs we've clicked on, extracts keywords, and uses that to build a measure of how
+        # clickable a job is.  Obviously this is distorted by the order in which we display jobs, but it
+        # still gives a reasonable idea of the keywords which would generate the most clicks.
+        #
+        # Prune old job logs - old data not worth analysing.
+        $mysqltime = date("Y-m-d H:i:s", strtotime("midnight 31 days ago"));
+        $this->dbhm->preExec("DELETE FROM logs_jobs WHERE timestamp < ?", [
+            $mysqltime
+        ]);
+
+        # Find any jobs which have the link but not the id.
+        $logs = $this->dbhr->preQuery("SELECT jobs.id AS jobid, logs_jobs.id FROM logs_jobs 
+    INNER JOIN jobs ON jobs.url = logs_jobs.link 
+    WHERE jobid IS NULL AND link IS NOT NULL
+    ORDER BY id DESC;");
+        error_log("Logs to fix " . count($logs));
+        $count = 0;
+
+        foreach ($logs as $log) {
+            $this->dbhm->preExec("UPDATE logs_jobs SET jobid = ? WHERE id = ?;", [
+                $log['jobid'],
+                $log['id']
+            ]);
+
+            $count++;
+
+            if ($count % 100 == 0) {
+                error_log("...$count / " . count($logs));
+            }
+        }
+
+        # Now process the clicked jobs to extract keywords.  Use DISTINCT as some people click obsessively on the same job.
+        $jobs = $this->dbhr->preQuery("SELECT DISTINCT jobs.* FROM logs_jobs INNER JOIN jobs ON logs_jobs.jobid = jobs.id");
+        $this->dbhm->preExec("TRUNCATE TABLE jobs_keywords");
+
+        error_log("Process " . count($jobs));
+
+        foreach ($jobs as $job) {
+            $keywords = Jobs::getKeywords($job['title']);
+
+            if (count($keywords)) {
+                #error_log("{$job['title']} => " . json_encode($keywords));
+                foreach ($keywords as $k) {
+                    $this->dbhm->preExec("INSERT INTO jobs_keywords (keyword, count) VALUES (?, 1) ON DUPLICATE KEY UPDATE count = count + 1;", [
+                        $k
+                    ]);
+                }
+            }
+        }
+    }
+
+    public function updateClickability() {
+        # This updates the list of jobs with a clickability measure, based on the keyword analyse we have done on
+        # previous clicks.
+        $jobs = $this->dbhr->preQuery("SELECT id, title FROM jobs;");
+
+        $maxish = $this->getMaxish();
+
+        foreach ($jobs as $job) {
+            $score = $this->clickability($job['id'], $job['title'], $maxish);
+            $this->dbhm->preExec("UPDATE jobs SET clickability = ? WHERE id = ?;", [
+                $score,
+                $job['id']
+            ]);
+        }
+    }
+
     public function clickability($jobid, $title = NULL, $maxish = NULL) {
         $ret = 0;
 
