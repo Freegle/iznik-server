@@ -3055,7 +3055,13 @@ WHERE chat_messages.id > ? $wideq AND chat_messages_held.id IS NULL AND chat_mes
             }
         }
 
-        $url = $sendingto->loginLink($site, $memberuserid, '/chats/' . $chatid, User::SRC_CHATNOTIF);
+        if ($sendingto->isLJ()) {
+            # Force replies by email.
+            $url = "mailto:edward@ehibbert.org.uk?subject=Re: Freegle Volunteer message for LoveJunk user #" . $sendingto->getId();
+        } else {
+            $url = $sendingto->loginLink($site, $memberuserid, '/chats/' . $chatid, User::SRC_CHATNOTIF);
+        }
+
         $to = $sendingto->getEmailPreferred();
 
         #$to = 'log@ehibbert.org.uk';
@@ -3128,7 +3134,7 @@ WHERE chat_messages.id > ? $wideq AND chat_messages_held.id IS NULL AND chat_mes
                             $notified += $l->sendChatMessage($chatid, $msg);
                         }
 
-                        // Don't try to send by email below.
+                        // Don't try to send by email.
                         $this->recordSend($lastmsgemailed, $memberuserid, $chatid);
                         $html = '';
                     }
@@ -3174,10 +3180,17 @@ WHERE chat_messages.id > ? $wideq AND chat_messages_held.id IS NULL AND chat_mes
                             'joblocation' => $jobads['location'],
                             'outcometaken' => $outcometaken,
                             'outcomewithdrawn' => $outcomewithdrawn,
-
                         ]);
 
                         $sendname = 'Reply All';
+                    }
+
+                    if ($sendingto->isLJ()) {
+                        // Notify mod messages by email.
+                        $l = new LoveJunk($this->dbhr, $this->dbhm);
+                        $l->modMessage($sendingto->getPrivate('ljuserid'), $html);
+                        $this->recordSend($lastmsgemailed, $memberuserid, $chatid);
+                        $html = '';
                     }
                     break;
             }

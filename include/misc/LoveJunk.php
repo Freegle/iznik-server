@@ -458,4 +458,25 @@ class LoveJunk {
 
         return $completed;
     }
+
+    public function modMessage($uid, $html) {
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $message = \Swift_Message::newInstance()
+            ->setSubject("Freegle Volunteer message for LoveJunk user #$uid " . $u->getName())
+            ->setFrom('log@ehibbert.org.uk')
+            ->setTo(LJ_SUPPORT_ADDR)
+            ->setCc('log@ehibbert.org.uk');
+
+        $htmlPart = \Swift_MimePart::newInstance();
+        $htmlPart->setCharset('utf-8');
+        $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
+        $htmlPart->setContentType('text/html');
+        $htmlPart->setBody($html);
+        $message->attach($htmlPart);
+
+        list ($transport, $mailer) = Mail::getMailer();
+        Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::MODMAIL);
+
+        $mailer->send($message);
+    }
 }

@@ -157,6 +157,7 @@ define('GROUP_DOMAIN', 'groups.ilovefreegle.org');
 # Contact emails
 define('SUPPORT_ADDR', 'support@ilovefreegle.org');
 define('INFO_ADDR', 'info@ilovefreegle.org');
+define('LJ_SUPPORT_ADDR', 'support@lovejunk.com');
 define('GEEKS_ADDR', 'geeks@ilovefreegle.org');
 define('BOARD_ADDR', 'board@ilovefreegle.org');
 define('MENTORS_ADDR', 'mentors@ilovefreegle.org');
