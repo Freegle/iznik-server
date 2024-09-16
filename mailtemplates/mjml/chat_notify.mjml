@@ -189,41 +189,6 @@
       {% endif %}
     </mj-raw>
 
-    <mj-section>
-      <mj-column>
-        <mj-divider></mj-divider>
-        <mj-text mj-class="sectiontitle">
-          Jobs near you
-        </mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section background-color="#F7F6EC" padding="0">
-      <mj-column>
-        <mj-text padding-left="25px">
-          {{ jobads|raw }}
-        </mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section padding="0">
-      <mj-column>
-        <mj-text background-color="#FFF8DC">
-          If you are interested and click then it will raise a little to help keep Freegle running and free to use.
-        </mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section padding="0">
-      <mj-column>
-        <mj-button align="center" href="https://www.ilovefreegle.org/jobs/{{ joblocation }}" mj-class="tertiary">
-          View more jobs
-        </mj-button>
-      </mj-column>
-      <mj-column>
-        <mj-button align="center" href="https://freegle.in/paypal1510" mj-class="secondary">
-          Donating helps too!
-        </mj-button>
-      </mj-column>
-    </mj-section>
-
     <mj-raw>
       {% if previousmessages|length %}
     </mj-raw>

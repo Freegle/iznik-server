@@ -24,13 +24,13 @@
     <mj-container>
       <mj-wrapper padding="0"  full-width="full-width">
         <!-- header section -->
-        <mj-section background-url="https://www.ilovefreegle.org/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0">
+        <mj-section background-url="https://www.ilovefreegle.org/wallpaper2.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0">
           <mj-group>
           <mj-column vertical-align="middle" width="65%">
             <mj-text color="#61AE24" font-size="18pt" line-height="1.25em">That poster you put up...</mj-text>
           </mj-column>
           <mj-column vertical-align="middle" width="35%">
-            <mj-image css-class="logo" src="https://www.ilovefreegle.org/icon.png" alt="Logo" width="80px" align="right" border-radius="5px" padding="20px"/>
+            <mj-image css-class="logo" src="https://www.ilovefreegle.org/icon.png?oxfordhigh" alt="Logo" width="80px" align="right" border-radius="5px" padding="20px"/>
           </mj-column>
           </mj-group>
         </mj-section>

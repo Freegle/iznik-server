@@ -10,23 +10,20 @@ global $dbhr, $dbhm;
 
 $opts = getopt('e:n:p:');
 
-if (count($opts) < 3) {
-    echo "Usage: php user_create.php -e <email> -n <full name> -p <password>\n";
+if (count($opts) < 2) {
+    echo "Usage: php user_welcome.php -e <email> -p <password>\n";
 } else {
     $email = Utils::presdef('e', $opts, NULL);
-    $name = Utils::presdef('n', $opts, NULL);
     $password = Utils::presdef('p', $opts, NULL);
 
     $u = User::get($dbhr, $dbhm);
     $uid = $u->findByEmail($email);
 
-    if ($uid) {
-        error_log("User already exists for $email");
+    if (!$uid) {
+        error_log("No user found");
     } else {
-        $uid = $u->create(NULL, NULL, $name);
-        $u->addEmail($email);
-        $u->addLogin(User::LOGIN_NATIVE, NULL, $password);
+        $u = new User($dbhr, $dbhm, $uid);
         $u->welcome($email, $password);
-        error_log("Created ". $uid);
+        error_log("Welcome email sent to $email");
     }
 }

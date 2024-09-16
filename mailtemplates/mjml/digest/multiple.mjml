@@ -11,7 +11,7 @@
       <mj-raw>
         <!-- header section -->
       </mj-raw>
-      <mj-section background-url="https://www.ilovefreegle.org/wallpaper.png" border-top="5px solid #61AE24" padding="0px">
+      <mj-section background-url="https://www.ilovefreegle.org/wallpaper2.png" border-top="5px solid #61AE24" padding="0px">
         <mj-group>
           <mj-column>
             <mj-text align="center"><a font-weight="bold" href="https://www.ilovefreegle.org/">Freegle</a></mj-text>
@@ -23,20 +23,6 @@
             <mj-text align="center"><a font-weight="bold" href="{{ unsubscribe }}">Unsubscribe</a></mj-text>
           </mj-column>
         </mj-group>
-      </mj-section>
-      <mj-section background-color="#F7F6EC" padding="0px">
-        <mj-column>
-          <mj-text background-color="#FFF8DC" color="#1D6607" font-size="20px" line-height="1.25" padding-bottom="0px">Jobs near you<br /></mj-text>
-          <mj-text background-color="#FFF8DC">If you are interested and click then it will raise a little to help keep Freegle running and free to use.<br /></mj-text>
-        </mj-column>
-        <mj-column>
-          <mj-button align="right" href="https://www.ilovefreegle.org/jobs/{{ joblocation }}" font-family="Helvetica" background-color="darkblue" color="white">View more jobs</mj-button>
-        </mj-column>
-      </mj-section>
-      <mj-section background-color="#F7F6EC" padding="0px">
-        <mj-column>
-          <mj-text>{{ jobads }}</mj-text>
-        </mj-column>
       </mj-section>
       <mj-raw><a id="top" name="top" /> {% if availablemessages | length > 0 %}</mj-raw>
       <mj-section background-color="#FFF8DC" padding="0px">
@@ -99,7 +85,6 @@
             <mj-button align="center" href="{{ message.replyweb }}" background-color="darkgreen">Reply</mj-button>
           </mj-column>
           <mj-column >
-            <mj-text padding-top="20px" align="center"><a font-weight="bold" href="{{ message.replyemail }}">Reply by email</a></mj-text>
           </mj-column>
           <mj-column>
             <mj-text padding-top="20px" align="center"><a href="#top" style="float: right">Back to top</a></mj-text>
@@ -176,7 +161,7 @@
         <mj-column>
           <mj-text font-size="9px" color="#707070">You've received this automated mail because you're a member of <a href="{{ visit }}">{{ groupname }}</a>. You are set to receive updates for&nbsp;{{ groupname }}&nbsp;{{ frequency }}.<br /> <br /> You can change your settings by clicking
             <a
-              href="{{ settings }}">here</a>, or turn these OFFER/WANTED mails off for this group by emailing <a href="mailto:{{ noemail }}">{{ noemail }}</a>
+              href="{{ settings }}">here</a>
               <br /> <br /> This mail was sent to&nbsp;{{ email }}.
               <br />
               <hr style="border: 0; border-top: 1px solid #AAA; " /> Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.  Registered address: Weaver's Field, Loud Bridge, Chipping PR3 2NX</mj-text>

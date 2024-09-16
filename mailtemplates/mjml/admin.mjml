@@ -11,7 +11,7 @@
       <mj-raw>
         <!-- header section -->
       </mj-raw>
-      <mj-section background-url="https://www.ilovefreegle.org/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0px">
+      <mj-section background-url="https://www.ilovefreegle.org/wallpaper2.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0px">
         <mj-group>
           <mj-column>
             <mj-text align="center"><a font-weight="bold" href="https://www.ilovefreegle.org/">Freegle</a></mj-text>

@@ -114,7 +114,7 @@ class Digest
         return $image;
     }
 
-    public function send($groupid, $frequency, $host = 'localhost', $uidforce = NULL, $allownearby = FALSE, $nearbyintext = FALSE) {
+    public function send($groupid, $frequency, $host = MAIL_HOST, $uidforce = NULL, $allownearby = FALSE, $nearbyintext = FALSE) {
         $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
         $twig = new \Twig_Environment($loader);
         $sent = 0;
@@ -503,9 +503,11 @@ class Digest
                                         $msg['text'] .= $rep['{{nearby}}'];
                                     }
 
+                                    $from = NO_EMAIL_REPLIES ? NOREPLY_ADDR : $msg['from'];
+
                                     $message = \Swift_Message::newInstance()
                                         ->setSubject($msg['subject'] . ' ' . User::encodeId($emailToId[$email]))
-                                        ->setFrom([$msg['from'] => $msg['fromname']])
+                                        ->setFrom([ $from => $msg['fromname']])
                                         ->setReturnPath($rep['{{bounce}}'])
                                         ->setReplyTo($msg['replyto'], $msg['replytoname'])
                                         ->setBody($msg['text']);
@@ -525,7 +527,7 @@ class Digest
 
                                     Mail::addHeaders($this->dbhr, $this->dbhm, $message,Mail::DIGEST, $rep['{{uid}}'], $frequency);
 
-                                    #error_log("Send to $email");
+                                    error_log("Send $from => $email via $host");
                                     $this->sendOne($mailer, $message);
                                     $sent++;
                                 } catch (\Exception $e) {

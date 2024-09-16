@@ -289,6 +289,11 @@ WHERE chat_rooms.id IN $idlist;";
     # This can be overridden in UT.
     public function constructSwiftMessage($id, $toname, $to, $fromname, $from, $subject, $text, $html, $fromuid = NULL, $groupid = NULL, $refmsgs = [])  {
         $_SERVER['SERVER_NAME'] = USER_DOMAIN;
+
+        if (NO_EMAIL_REPLIES) {
+            $from = NOREPLY_ADDR;
+        }
+
         $message = \Swift_Message::newInstance()
             ->setSubject($subject)
             ->setFrom([$from => $fromname])

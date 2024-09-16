@@ -857,7 +857,7 @@ class User extends Entity
         # row in the child table being deleted.
         $simplemail = $this->getSetting('simplemail', NULL);
 
-        $emailfrequency = 24;
+        $emailfrequency = -1;
         $eventsallowed = 1;
         $volunteeringallowed = 1;
 
@@ -870,7 +870,7 @@ class User extends Entity
             }
 
             case User::SIMPLE_MAIL_BASIC: {
-                $emailfrequency = 24;
+                $emailfrequency = -1;
                 $eventsallowed = 0;
                 $volunteeringallowed = 0;
                 break;
@@ -3708,7 +3708,8 @@ class User extends Entity
 
         $html = $twig->render('welcome/welcome.html', [
             'email' => $email,
-            'password' => $password
+            'password' => $password,
+            'url' => $this->loginLink(USER_SITE, $this->id, '', Mail::WELCOME, TRUE)
         ]);
 
         $message = \Swift_Message::newInstance()

@@ -189,3 +189,5 @@ define('LOVE_JUNK_SECRET', 'LOVE_JUNK_SECRET');
 
 define('IMAGE_DELIVERY', NULL);
 define('TUS_UPLOADER', "https://tusd.tusdemo.net/files/");
+define('MAIL_HOST', 'localhost');
+define('NO_EMAIL_REPLIES', FALSE);

@@ -39,7 +39,7 @@ if (count($opts) < 1) {
 
         # Don't send for closed groups.
         if (!$g->getSetting('closed',FALSE)) {
-            $total += $d->send($group['id'], $interval, 'localhost', NULL, TRUE, FALSE);
+            $total += $d->send($group['id'], $interval, MAIL_HOST, NULL, TRUE, FALSE);
             if (file_exists('/tmp/iznik.mail.abort')) {
                 break;
             }

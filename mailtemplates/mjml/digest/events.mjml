@@ -12,7 +12,7 @@
     <mj-container>
       <mj-wrapper full-width="full-width">
         <!-- header section -->
-        <mj-section background-url="https://www.ilovefreegle.org/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0">
+        <mj-section background-url="https://www.ilovefreegle.org/wallpaper2.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0">
           <mj-group>
             <mj-column>
               <mj-text align="center">

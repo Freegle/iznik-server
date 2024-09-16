@@ -154,7 +154,7 @@ class Mail {
         return($users);
     }
 
-    public static function getMailer($host = 'localhost', $spoolname = '/spool') {
+    public static function getMailer($host = MAIL_HOST, $spoolname = '/spool') {
         $key = $host . $spoolname;
 
         if (!array_key_exists($key, self::$mailers)) {
