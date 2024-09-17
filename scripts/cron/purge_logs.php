@@ -13,6 +13,31 @@ global $dbhr, $dbhm, $dbconfig;
 
 $lockh = Utils::lockScript(basename(__FILE__));
 
+# Delete messages likes older than a year.
+error_log("Purge old likes");
+
+$total = -0;
+
+try {
+    $start = date('Y-m-d', strtotime("midnight 365 days ago"));
+    $sql = "SELECT msgid FROM messages_likes WHERE `timestamp` < '$start';";
+    $likes = $dbhr->preQuery($sql);
+    error_log("Deleting " . count($likes) . " likes");
+
+    foreach ($likes as $like) {
+        $dbhm->exec("DELETE FROM messages_likes WHERE msgid = {$like['msgid']};");
+        $total++;
+
+        if ($total % 1000 == 0) {
+            error_log("...$total");
+            set_time_limit(600);
+        }
+    }
+} catch (\Exception $e) {
+    error_log("Failed to delete likes " . $e->getMessage());
+    \Sentry\captureException($e);
+}
+
 # Delete login/logout logs older than a year.
 error_log("Purge old login/logout");
 
