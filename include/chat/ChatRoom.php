@@ -1481,14 +1481,7 @@ WHERE chat_rooms.id IN $idlist;";
         if ($groupid) {
             $groupids = [$groupid];
         } else {
-            $allmods = $user->getModeratorships();
-            $groupids = [];
-
-            foreach ($allmods as $mod) {
-                if ($user->activeModForGroup($mod)) {
-                    $groupids[] = $mod;
-                }
-            }
+            $groupids = $user->getModeratorships($user->getId(), TRUE);
         }
 
         $groupq1 = "AND m1.groupid IN (" . implode(',', $groupids) . ")";
@@ -1590,8 +1583,10 @@ WHERE chat_messages.id > ? $wideq AND chat_messages_held.id IS NULL AND chat_mes
                 $touserid = $msg['userid'] == $thisone['chatroom']['user1']['id'] ? $thisone['chatroom']['user2']['id'] : $thisone['chatroom']['user1']['id'];
                 $thisone['touser'] = $userlist[$touserid];
 
-                $g = Group::get($this->dbhr, $this->dbhm, $msg['groupid']);
-                $thisone['group'] = $g->getPublic();
+                if ($msg['groupid']) {
+                    $g = Group::get($this->dbhr, $this->dbhm, $msg['groupid']);
+                    $thisone['group'] = $g->getPublic();
+                }
 
                 if ($msg['groupidfrom']) {
                     $g = Group::get($this->dbhr, $this->dbhm, $msg['groupidfrom']);
