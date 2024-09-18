@@ -42,6 +42,7 @@ class RestartProject {
         $added = 0;
         $latest = Utils::ISODate(date("Y-m-d", strtotime("+31 days")));
         $now = Utils::ISODate(date("Y-m-d"));
+        $externalsSeen = [];
 
         $groups = $this->request("https://restarters.net/api/v2/groups/names");
 
@@ -108,6 +109,8 @@ class RestartProject {
                                                         }
 
                                                         $email = Utils::presdef('email', $group_details, NULL);
+
+                                                        $externalsSeen[$externalid] = TRUE;
 
                                                         # See if we already have the event.
                                                         $existing = $this->dbhr->preQuery("SELECT * FROM communityevents WHERE externalid = ?", [ $externalid ]);
@@ -206,6 +209,19 @@ class RestartProject {
                             error_log("No details found for group " . $group['name']);
                             \Sentry\captureMessage("No details found for group " . $group['name']);
                         }
+                    }
+                }
+
+                # Look for events which need removing because they aren't on Restart any more.
+                $existings = $this->dbhr->preQuery("SELECT externalid FROM communityevents 
+                    INNER JOIN communityevents_dates ON communityevents.id = communityevents_dates.eventid 
+                    WHERE externalid LIKE 'Restart-%' AND start >= ?", [ $now ]);
+
+                foreach ($existings as $e) {
+                    if (!array_key_exists($e['externalid'], $externalsSeen)) {
+                        error_log("...deleting old " . $e['externalid']);
+                        $ce = new CommunityEvent($this->dbhr, $this->dbhm, $e['id']);
+                        $ce->setPrivate('deleted', 1);
                     }
                 }
             } else {
