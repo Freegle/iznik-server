@@ -7,8 +7,8 @@ require_once(IZNIK_BASE . '/mailtemplates/volunteerrenew.php');
 class Volunteering extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    public $publicatts = [ 'id', 'userid', 'pending', 'title', 'location', 'online', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description', 'added', 'askedtorenew', 'renewed', 'timecommitment', 'expired', 'heldby' ];
-    public $settableatts = [ 'userid', 'pending', 'title', 'location', 'online', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description', 'added', 'renewed', 'timecommitment' ];
+    public $publicatts = [ 'id', 'userid', 'pending', 'title', 'location', 'online', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description', 'added', 'askedtorenew', 'renewed', 'timecommitment', 'expired', 'heldby', 'externalid' ];
+    public $settableatts = [ 'userid', 'pending', 'title', 'location', 'online', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description', 'added', 'renewed', 'timecommitment', 'externalid' ];
     var $volunteering;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $id = NULL, $fetched = NULL)
@@ -16,11 +16,11 @@ class Volunteering extends Entity
         $this->fetch($dbhr, $dbhm, $id, 'volunteering', 'volunteering', $this->publicatts, $fetched);
     }
 
-    public function create($userid, $title, $online, $location, $contactname, $contactphone, $contactemail, $contacturl, $description, $timecommitment) {
+    public function create($userid, $title, $online, $location, $contactname, $contactphone, $contactemail, $contacturl, $description, $timecommitment, $externalid = NULL) {
         $id = NULL;
 
-        $rc = $this->dbhm->preExec("INSERT INTO volunteering (`userid`, `pending`, `title`, `online`, `location`, `contactname`, `contactphone`, `contactemail`, `contacturl`, `description`, `timecommitment`) VALUES (?,1,?,?,?,?,?,?,?,?,?);", [
-            $userid, $title, is_null($online) ? FALSE : $online, $location, $contactname, $contactphone, $contactemail, $contacturl, $description, $timecommitment
+        $rc = $this->dbhm->preExec("INSERT INTO volunteering (`userid`, `pending`, `title`, `online`, `location`, `contactname`, `contactphone`, `contactemail`, `contacturl`, `description`, `timecommitment`, `externalid`) VALUES (?,1,?,?,?,?,?,?,?,?,?,?);", [
+            $userid, $title, is_null($online) ? FALSE : $online, $location, $contactname, $contactphone, $contactemail, $contacturl, $description, $timecommitment, $externalid
         ]);
 
         if ($rc) {

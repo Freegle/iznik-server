@@ -189,3 +189,7 @@ define('LOVE_JUNK_SECRET', 'LOVE_JUNK_SECRET');
 
 define('IMAGE_DELIVERY', NULL);
 define('TUS_UPLOADER', "https://tusd.tusdemo.net/files/");
+
+define('REACH_FEED', NULL);
+define('REACH_USER', NULL);
+define('REACH_PASSWORD', NULL);
