@@ -453,6 +453,7 @@ class User extends Entity
         $ret = [];
 
         if ($uids && count($uids)) {
+            error_log(var_export($uids, true));
             $sql = "SELECT id, userid, email, preferred, added, validated FROM users_emails WHERE userid IN (" . implode(',', $uids) . ") ORDER BY preferred DESC, email ASC;";
             $emails = $this->dbhr->preQuery($sql, NULL, FALSE, FALSE);
 
