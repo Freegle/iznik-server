@@ -1144,5 +1144,25 @@ class userAPITest extends IznikAPITestCase {
         $u = new User($this->dbhr, $this->dbhm, $uid);
         $this->assertNotNull($u->getPrivate('deleted'));
     }
+
+    public function testCreateFullName() {
+        $ret = $this->call('user', 'PUT', [
+            'email' => 'test4@test.com',
+            'password' => 'wibble',
+            'fullname' => 'Test User'
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+        $id = $ret['id'];
+        $this->assertNotNull($id);
+
+        $ret = $this->call('user', 'GET', [
+            'id' => $id,
+            'info' => TRUE
+        ]);
+
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals('Test User', $ret['user']['fullname']);
+        $this->assertEquals('Test User', $ret['user']['displayname']);
+    }
 }
 

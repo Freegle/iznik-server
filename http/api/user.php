@@ -93,6 +93,7 @@ function user() {
 
             $firstname = Utils::presdef('firstname', $_REQUEST, NULL);
             $lastname = Utils::presdef('lastname', $_REQUEST, NULL);
+            $fullname = Utils::presdef('fullname', $_REQUEST, NULL);
 
             $ret = ['ret' => 1, 'status' => 'Invalid parameters'];
 
@@ -126,7 +127,7 @@ function user() {
                         ];
                     }
                 } else {
-                    $id = $u->create($firstname, $lastname, NULL, "Registered");
+                    $id = $u->create($firstname, $lastname, $fullname, "Registered");
 
                     $ret = [
                         'ret' => 3,
