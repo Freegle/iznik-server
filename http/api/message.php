@@ -826,8 +826,11 @@ function message() {
                                 $ret = ['ret' => 0, 'status' => 'Success'];
                                 break;
                             case 'Outcome':
-                                # Ignore duplicate attempts by user to supply an outcome.
-                                if (!$m->hasOutcome()) {
+                                # Ignore duplicate attempts by user to supply an outcome, unless it's on a post
+                                # that has expired.  That allows us to make an expired post as TAKEN, for example.
+                                $existingOutcome = $m->hasOutcome();
+
+                                if (!$existingOutcome || $existingOutcome == Message::OUTCOME_EXPIRED) {
                                     $outcome = Utils::presdef('outcome', $_REQUEST, NULL);
                                     $h = Utils::presdef('happiness', $_REQUEST, NULL);
                                     $happiness = NULL;

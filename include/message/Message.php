@@ -4440,6 +4440,7 @@ WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND message
         $intcomment = $this->interestingComment($comment);
 
         $this->dbhm->preExec("DELETE FROM messages_outcomes_intended WHERE msgid = ?;", [ $this->id ]);
+        $this->dbhm->preExec("DELETE FROM messages_outcomes WHERE msgid = ?;", [ $this->id ]);
         $this->dbhm->preExec("INSERT INTO messages_outcomes (msgid, outcome, happiness, comments) VALUES (?,?,?,?);", [
             $this->id,
             $outcome,
