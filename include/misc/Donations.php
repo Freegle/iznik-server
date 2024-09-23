@@ -117,7 +117,7 @@ class Donations
     public function listGiftAidReview() {
         $giftaids = $this->dbhr->preQuery("SELECT giftaid.*, SUM(users_donations.GrossAmount) AS donations FROM giftaid 
                                                 LEFT JOIN users_donations ON users_donations.userid = giftaid.userid
-                                                WHERE reviewed IS NULL AND deleted IS NULL AND period != ? ORDER BY timestamp ASC;", [
+                                                WHERE reviewed IS NULL AND deleted IS NULL AND period != ? GROUP BY giftaid.userid ORDER BY timestamp ASC;", [
             Donations::PERIOD_DECLINED
         ], FALSE, FALSE);
 
