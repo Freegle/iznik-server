@@ -393,16 +393,16 @@ class MicroVolunteering
                     }
                 }
 
-                # Update the scoring.
+                # Update the scoring.  But don't overwrite manual feedback from mods.
                 if ($score_positive != $action['score_positive']) {
-                    $this->dbhm->preExec("UPDATE microactions SET score_positive = ? WHERE id = ?;", [
+                    $this->dbhm->preExec("UPDATE microactions SET score_positive = ? WHERE id = ? AND modfeedback IS NULL;", [
                         $score_positive,
                         $action['id']
                     ]);
                 }
                 
                 if ($score_negative != $action['score_negative']) {
-                    $this->dbhm->preExec("UPDATE microactions SET score_negative = ? WHERE id = ?;", [
+                    $this->dbhm->preExec("UPDATE microactions SET score_negative = ? WHERE id = ? AND modfeedback IS NULL;", [
                         $score_negative,
                         $action['id']
                     ]);
@@ -676,9 +676,11 @@ class MicroVolunteering
         return $ret;
     }
 
-    public function modFeedback($id, $feedback) {
-        $this->dbhm->preExec("UPDATE microactions SET modfeedback = ? WHERE id = ?;", [
+    public function modFeedback($id, $feedback, $score_positive, $score_negative) {
+        $this->dbhm->preExec("UPDATE microactions SET modfeedback = ?, score_positive = ?, score_negative = ? WHERE id = ?;", [
             $feedback,
+            $score_positive,
+            $score_negative,
             $id
         ]);
     }

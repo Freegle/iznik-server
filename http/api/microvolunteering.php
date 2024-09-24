@@ -112,11 +112,13 @@ function microvolunteering() {
                 if ($me->isModerator()) {
                     $ret = [ 'ret' => 5, 'status' => 'Invalid parameters' ];
                     $feedback = Utils::presdef('feedback', $_REQUEST, NULL);
+                    $score_positive = Utils::presint('score_positive', $_REQUEST, 0);
+                    $score_negative = Utils::presint('score_negative', $_REQUEST, 0);
                     $id = Utils::presint('id', $_REQUEST, 0);
 
                     if ($id && $feedback) {
                         $v = new MicroVolunteering($dbhr, $dbhm);
-                        $v->modFeedback($id, $feedback);
+                        $v->modFeedback($id, $feedback, $score_positive, $score_negative);
 
                         $ret = [
                             'ret' => 0,
