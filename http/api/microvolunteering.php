@@ -102,6 +102,29 @@ function microvolunteering() {
                         'status' => 'Success',
                     ];
                 }
+
+                break;
+            }
+
+            case 'PATCH': {
+                $ret = [ 'ret' => 4, 'status' => 'Not allowed' ];
+
+                if ($me->isModerator()) {
+                    $ret = [ 'ret' => 5, 'status' => 'Invalid parameters' ];
+                    $feedback = Utils::presdef('feedback', $_REQUEST, NULL);
+                    $id = Utils::presint('id', $_REQUEST, 0);
+
+                    if ($id && $feedback) {
+                        $v = new MicroVolunteering($dbhr, $dbhm);
+                        $v->modFeedback($id, $feedback);
+
+                        $ret = [
+                            'ret' => 0,
+                            'status' => 'Success'
+                        ];
+                    }
+                }
+
             }
         }
     }

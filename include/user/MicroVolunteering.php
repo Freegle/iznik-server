@@ -675,4 +675,11 @@ class MicroVolunteering
 
         return $ret;
     }
+
+    public function modFeedback($id, $feedback) {
+        $this->dbhm->preExec("UPDATE microactions SET modfeedback = ? WHERE id = ?;", [
+            $feedback,
+            $id
+        ]);
+    }
 }

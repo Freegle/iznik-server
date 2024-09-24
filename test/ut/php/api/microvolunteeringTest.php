@@ -46,7 +46,7 @@ class microvolunteeringAPITest extends IznikAPITestCase
         $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $r = new MailRouter($this->dbhm, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
         $this->assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
@@ -221,6 +221,87 @@ class microvolunteeringAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals(MicroVolunteering::CHALLENGE_CHECK_MESSAGE, $ret['microvolunteering']['type']);
         $this->assertEquals($id, $ret['microvolunteering']['msgid']);
+    }
+
+    public function testModFeedback()
+    {
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup1', Group::GROUP_FREEGLE);
+        $g->setPrivate('microvolunteering', 1);
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace("FreeglePlayground", "testgroup", $msg);
+        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
+        $msg = str_replace("Hey", "Hey {{username}}", $msg);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
+        $u->addEmail('test@test.com');
+        $u->addMembership($gid);
+        $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
+        $r = new MailRouter($this->dbhm, $this->dbhm);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
+        $this->assertNotNull($id);
+        $this->log("Created message $id");
+        $rc = $r->route();
+        $this->assertEquals(MailRouter::APPROVED, $rc);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $m->setPrivate('lat', 8.5);
+        $m->setPrivate('lng', 179.3);
+        $m->addToSpatialIndex();
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+        $u->setPrivate('trustlevel', User::TRUST_BASIC);
+
+        $u->addMembership($gid);
+        $ret = $this->call('microvolunteering', 'GET', [
+            'groupid' => $gid
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(MicroVolunteering::CHALLENGE_CHECK_MESSAGE, $ret['microvolunteering']['type']);
+        $this->assertEquals($id, $ret['microvolunteering']['msgid']);
+
+        # Response
+        $ret = $this->call('microvolunteering', 'POST', [
+            'msgid' => $id,
+            'response' => MicroVolunteering::RESULT_APPROVE
+        ]);
+
+        $this->assertEquals(0, $ret['ret']);
+
+        # Log in as a mod.
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u->create('Test', 'User', NULL);
+        $u->addMembership($gid, User::ROLE_MODERATOR);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+
+        # Get the messages.
+        $ret = $this->call('messages', 'GET', [
+            'groupid' => $this->gid,
+            'collection' => MessageCollection::APPROVED
+        ]);
+
+        $microvolid = $ret['messages'][0]['microvolunteering'][0]['id'];
+        $this->assertNotNull($microvolid);
+
+        # Give feedback.
+        $ret = $this->call('microvolunteering', 'PATCH', [
+            'id' => $microvolid,
+            'feedback' => 'Test feedback'
+        ]);
+
+        $this->assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('messages', 'GET', [
+            'groupid' => $this->gid,
+            'collection' => MessageCollection::APPROVED
+        ]);
+
+        $this->assertEquals('Test feedback', $ret['messages'][0]['microvolunteering'][0]['modfeedback']);
     }
 
     public function testFacebook() {
