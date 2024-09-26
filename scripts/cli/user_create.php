@@ -10,12 +10,20 @@ global $dbhr, $dbhm;
 
 $opts = getopt('e:n:p:');
 
-if (count($opts) < 3) {
-    echo "Usage: php user_create.php -e <email> -n <full name> -p <password>\n";
+if (count($opts) < 2) {
+    echo "Usage: php user_create.php -e <email> -n <full name> (-p <password>)\n";
 } else {
     $email = Utils::presdef('e', $opts, NULL);
     $name = Utils::presdef('n', $opts, NULL);
     $password = Utils::presdef('p', $opts, NULL);
+
+    $u = User::get($dbhr, $dbhm);
+
+    if (!$password) {
+        $password = $u->inventPassword();
+        error_log("Use password $password");
+        sleep(5);
+    }
 
     $u = User::get($dbhr, $dbhm);
     $uid = $u->findByEmail($email);
