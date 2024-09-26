@@ -5364,7 +5364,7 @@ $mq", [
         return $ret;
     }
 
-    public function autoapprove($id = NULL) {
+    public function autoapprove($id = NULL, $ignorelogs = FALSE) {
         # Look for messages which have been pending for too long.  This fallback catches cases where the group is not being
         # regularly moderated.
         #
@@ -5386,7 +5386,7 @@ $mq", [
                 $message['msgid']
             ]);
 
-            if (!count($logs)) {
+            if ($ignorelogs || !count($logs)) {
                 $uid = $m->getFromuser();
                 $u = new User($this->dbhr, $this->dbhm, $uid);
 

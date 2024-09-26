@@ -1020,7 +1020,7 @@ class messageTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
         # Too soon to autoapprove.
-        $this->assertEquals(0, $m->autoapprove($id));
+        $this->assertEquals(0, $m->autoapprove($id, TRUE));
 
         # Age it.
         $this->dbhm->preExec("UPDATE messages_groups SET arrival = '2018-01-01' WHERE msgid = ?;", [
@@ -1030,7 +1030,7 @@ class messageTest extends IznikTestCase {
             $m->getFromuser()
         ]);
 
-        $this->assertEquals(1, $m->autoapprove($id));
+        $this->assertEquals(1, $m->autoapprove($id, TRUE));
 
         # Check logs.
         $this->waitBackground();
