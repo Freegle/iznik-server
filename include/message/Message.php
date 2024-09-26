@@ -5379,36 +5379,45 @@ $mq", [
 
         foreach ($messages as $message) {
             $m = new Message($this->dbhr, $this->dbhm, $message['msgid']);
-            $uid = $m->getFromuser();
-            $u = new User($this->dbhr, $this->dbhm, $uid);
 
-            $gids = $m->getGroups();
+            # Check there aren't recent logs referencing this message.  That avoids the case where a message which was
+            # held is unheld and then immediately auto-approved.
+            $logs = $this->dbhr->preQuery("SELECT * FROM logs WHERE msgid = ? AND timestamp > DATE_SUB(NOW(), INTERVAL 48 HOUR);", [
+                $message['msgid']
+            ]);
 
-            foreach ($gids as $gid) {
-                $g = new Group($this->dbhr, $this->dbhm, $gid);
+            if (!count($logs)) {
+                $uid = $m->getFromuser();
+                $u = new User($this->dbhr, $this->dbhm, $uid);
 
-                error_log("Group $gid " . $g->getName() . " " . $g->getSetting('closed', FALSE) . "," . $g->getPrivate('autofunctionoverride'));
+                $gids = $m->getGroups();
 
-                if ($g->getSetting('publish', TRUE) && !$g->getSetting('closed', FALSE) && !$g->getPrivate('autofunctionoverride')) {
-                    error_log("will do it");
-                    $joined = $u->getMembershipAtt($gid, 'added');
-                    $hoursago = round((time() - strtotime($joined)) / 3600);
+                foreach ($gids as $gid) {
+                    $g = new Group($this->dbhr, $this->dbhm, $gid);
 
-                    error_log("{$message['msgid']} has been pending for {$message['ago']}, membership $hoursago");
+                    error_log("Group $gid " . $g->getName() . " " . $g->getSetting('closed', FALSE) . "," . $g->getPrivate('autofunctionoverride'));
 
-                    if ($hoursago > 48) {
-                        error_log("...approve");
-                        $m->approve($message['groupid']);
+                    if ($g->getSetting('publish', TRUE) && !$g->getSetting('closed', FALSE) && !$g->getPrivate('autofunctionoverride')) {
+                        error_log("will do it");
+                        $joined = $u->getMembershipAtt($gid, 'added');
+                        $hoursago = round((time() - strtotime($joined)) / 3600);
 
-                        $this->log->log([
-                                            'type' => Log::TYPE_MESSAGE,
-                                            'subtype' => Log::SUBTYPE_AUTO_APPROVED,
-                                            'groupid' => $message['groupid'],
-                                            'msgid' => $message['msgid'],
-                                            'user' => $m->getFromuser()
-                                        ]);
+                        error_log("{$message['msgid']} has been pending for {$message['ago']}, membership $hoursago");
 
-                        $ret++;
+                        if ($hoursago > 48) {
+                            error_log("...approve");
+                            $m->approve($message['groupid']);
+
+                            $this->log->log([
+                                                'type' => Log::TYPE_MESSAGE,
+                                                'subtype' => Log::SUBTYPE_AUTO_APPROVED,
+                                                'groupid' => $message['groupid'],
+                                                'msgid' => $message['msgid'],
+                                                'user' => $m->getFromuser()
+                                            ]);
+
+                            $ret++;
+                        }
                     }
                 }
             }
