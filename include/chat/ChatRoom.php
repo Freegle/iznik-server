@@ -1976,10 +1976,10 @@ WHERE chat_messages.id > ? $wideq AND chat_messages_held.id IS NULL AND chat_mes
                 # There's no text stored for this - we invent it on the client.  Do so here
                 # too.
                 if ($unmailedmsg['msgtype'] == Message::TYPE_OFFER) {
-                    if (Utils::pres('message', $unmailedmsg)) {
+                    if (Utils::pres('message', $unmailedmsg) && $unmailedmsg['message']) {
                         $thisone = "'{$unmailedmsg['subject']}' is no longer available. \r\n\r\n{$unmailedmsg['message']}";
                     } else {
-                        $thisone = "Sorry, '{$unmailedmsg['subject']}' is no longer available. \r\nThis is an automated message.";
+                        $thisone = "Sorry, '{$unmailedmsg['subject']}' is no longer available. \r\n\r\nThis is an automated message.";
                     }
                 } else {
                     $thisone = "Thanks, '{$unmailedmsg['subject']}' is no longer needed.";
@@ -2837,10 +2837,16 @@ WHERE chat_messages.id > ? $wideq AND chat_messages_held.id IS NULL AND chat_mes
             $refmsgs[] = $unmailedmsg['refmsgid'];
         }
 
-        # Message might be empty.
-        $unmailedmsg['message'] = strlen(
-            trim($unmailedmsg['message'])
-        ) === 0 ? "(Empty message)" : $unmailedmsg['message'];
+        if ($unmailedmsg['type'] == ChatMessage::TYPE_COMPLETED) {
+            $unmailedmsg['message'] = strlen(
+                trim($unmailedmsg['message'])
+            ) === 0 ? "" : $unmailedmsg['message'];
+        } else {
+            # Message might be empty.
+            $unmailedmsg['message'] = strlen(
+                trim($unmailedmsg['message'])
+            ) === 0 ? "(Empty message)" : $unmailedmsg['message'];
+        }
 
         # Exclamation marks make emails look spammy, in conjunction with 'free' (which we use because,
         # y'know, freegle) according to Litmus.  Remove them.

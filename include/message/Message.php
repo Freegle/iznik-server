@@ -4420,7 +4420,7 @@ WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND message
                 $this->id,
                 ChatMessage::TYPE_RENEGED
             ])) > 0;
-            error_log("Unpromised in chat " . ($unpromised ? 'yes' : 'no') . " $reply[chatid] $this->id");
+            #error_log("Unpromised in chat " . ($unpromised ? 'yes' : 'no') . " $reply[chatid] $this->id");
 
             list ($mid, $banned) = $cm->create($reply['chatid'],
                                                $this->getFromuser(),

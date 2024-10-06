@@ -1680,6 +1680,48 @@ class chatRoomsTest extends IznikTestCase {
         }
     }
 
+    public function testNotifyUser2UserCompleted() {
+        $this->log(__METHOD__ );
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test1@test.com');
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
+
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list ($msgid, $failok) = $m->save();
+        $m = new Message($this->dbhr, $this->dbhm, $msgid);
+        $m->setPrivate('type', Message::TYPE_OFFER);
+        $u2 = $m->getPrivate('fromuser');
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($rid, $blocked) = $r->createConversation($u1, $u2);
+        $this->assertNotNull($rid);
+
+        $cm = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cmid, $banned) = $cm->create($rid, $u1, "Testing", ChatMessage::TYPE_INTERESTED, $msgid, TRUE, NULL, NULL, NULL, $attid);
+
+        $m->backgroundMark(Message::OUTCOME_TAKEN, NULL, NULL, NULL, NULL);
+
+        $r = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $rid))
+            ->setMethods(array('mailer'))
+            ->getMock();
+
+        $r->method('mailer')->will($this->returnCallback(function($message) {
+            return($this->mailer($message));
+        }));
+
+        $this->msgsSent = [];
+
+        $this->assertEquals(1, $r->notifyByEmail($rid, ChatRoom::TYPE_USER2USER, NULL, 0));
+        $this->assertStringContainsString('This is an automated message', $this->msgsSent[0]['body']);
+    }
+
     public function expectedProvider() {
         return [
             [ TRUE ],
