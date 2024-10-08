@@ -901,7 +901,7 @@ class messageTest extends IznikTestCase {
         $this->assertEquals(1, count($atts));
 
         # Should point at TN, as it uses externalurl.
-        $this->assertStringContainsString('photos.trashnothing.com', $atts[0]->getPath());
+        $this->assertStringContainsString('img.trashnothing.com', $atts[0]->getPath());
         $m->delete();
     }
 

@@ -2499,17 +2499,19 @@ ORDER BY lastdate DESC;";
                         $src = $img->getAttribute('src');
 
                         if (strpos($src, 'https://') === 0 &&
-                            (strpos($src, '/img/') !== FALSE ||
+                            (strpos($src, 'img.trashnothing.com') !== FALSE ||
                             strpos($src, '/tn-photos/') !== FALSE ||
+                            strpos($src, '/pics/') !== FALSE ||
                             strpos($src, 'photos.trashnothing.com') !== FALSE)) {
                             # The largest resolution is in the parent anchor tag.
                             $img = $img->parentNode;
                             $src = $img->getAttribute('href');
 
                             if (strpos($src, 'https://') === 0 &&
-                                (strpos($src, '/img/') !== FALSE ||
-                                    strpos($src, '/tn-photos/') !== FALSE ||
-                                    strpos($src, 'photos.trashnothing.com') !== FALSE)) {
+                                (strpos($src, 'img.trashnothing.com') !== FALSE ||
+                                strpos($src, '/pics/') !== FALSE ||
+                                strpos($src, '/tn-photos/') !== FALSE ||
+                                strpos($src, 'photos.trashnothing.com') !== FALSE)) {
                                 $this->externalimgs[] = $src;
                             }
                         }
