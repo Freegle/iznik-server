@@ -542,7 +542,6 @@ class Attachment {
                             $ret = $r['url'];
                         }
                     }
-                    error_log(var_export($rsps, true));
                 }
             }
 

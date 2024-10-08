@@ -445,7 +445,7 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid2);
         self::assertEquals(1, $cm->getPrivate('reviewrequired'));
-        self::assertEquals(ChatMessage::REVIEW_LAST, $cm->getPrivate('reportreason'));
+        self::assertEquals(ChatMessage::REVIEW_SPAM, $cm->getPrivate('reportreason'));
 
         $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid3);
         self::assertEquals(1, $cm->getPrivate('reviewrequired'));
@@ -504,14 +504,14 @@ class chatMessagesAPITest extends IznikAPITestCase
         # Get the messages for review.
         $ret = $this->call('chatmessages', 'GET', []);
         $this->assertEquals(0, $ret['ret']);
+        error_log(var_export($ret['chatmessages'], true));
         $this->log("Messages for review " . var_export($ret, TRUE));
         $this->assertEquals(3, count($ret['chatmessages']));
         $this->assertEquals($mid1, $ret['chatmessages'][0]['id']);
         $this->assertEquals(ChatMessage::TYPE_REPORTEDUSER, $ret['chatmessages'][0]['type']);
-        error_log(var_export($ret['chatmessages'][0], true));
         $this->assertEquals(Spam::REASON_LINK, $ret['chatmessages'][0]['reviewreason']);
         $this->assertEquals($mid2, $ret['chatmessages'][1]['id']);
-        $this->assertEquals(ChatMessage::REVIEW_LAST, $ret['chatmessages'][1]['reviewreason']);
+        $this->assertEquals(Spam::REASON_LINK, $ret['chatmessages'][1]['reviewreason']);
         $this->assertEquals($mid3, $ret['chatmessages'][2]['id']);
         $this->assertEquals(ChatMessage::REVIEW_LAST, $ret['chatmessages'][2]['reviewreason']);
         $this->assertEquals($this->groupid, $ret['chatmessages'][0]['group']['id']);
