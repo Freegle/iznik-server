@@ -228,21 +228,9 @@ class ChatMessage extends Entity
                 return FALSE;
             }
 
-            # If the last message in this chat is held for review, then hold this one too.
-            # This includes chats by any user.  For example, suppose we add a Mod Note to a user2user chat - we don't
-            # want to send out that chat until the messages that triggered it have been reviewed.
-            $last = $this->dbhr->preQuery("SELECT reviewrequired FROM chat_messages WHERE chatid = ? AND id != ? ORDER BY id DESC LIMIT 1;", [
-                $chatid,
-                $id
-            ]);
-
-
             $modstatus = $u->getPrivate('chatmodstatus');
 
-            if (count($last) && $last[0]['reviewrequired']) {
-                $reviewreason = self::REVIEW_LAST;
-                $review = 1;
-            } else  if ($s->isSpammerUid($userid, Spam::TYPE_SPAMMER) ||
+            if ($s->isSpammerUid($userid, Spam::TYPE_SPAMMER) ||
                 $s->isSpammerUid($userid, Spam::TYPE_PENDING_ADD)) {
                 # If the user is a spammer (confirmed or pending) hold their messages so that they don't get through
                 # before the spam report is processed.
@@ -293,6 +281,21 @@ class ChatMessage extends Entity
                             }
                         }
                     }
+                }
+            }
+
+            if (!$review) {
+                # If the last message in this chat is held for review, then hold this one too.
+                # This includes chats by any user.  For example, suppose we add a Mod Note to a user2user chat - we don't
+                # want to send out that chat until the messages that triggered it have been reviewed.
+                $last = $this->dbhr->preQuery("SELECT reviewrequired FROM chat_messages WHERE chatid = ? AND id != ? ORDER BY id DESC LIMIT 1;", [
+                    $chatid,
+                    $id
+                ]);
+
+                if (count($last) && $last[0]['reviewrequired']) {
+                    $reviewreason = self::REVIEW_LAST;
+                    $review = 1;
                 }
             }
 

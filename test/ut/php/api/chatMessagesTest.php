@@ -1033,6 +1033,64 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->assertEquals(1, $ret['work']['chatreviewother']);
     }
 
+    public function testReviewLastSpam() {
+        $this->assertTrue($this->user->login('testpw'));
+
+        # Create a chat to the second user
+        $ret = $this->call('chatrooms', 'PUT', [
+            'userid' => $this->uid2
+        ]);
+
+        $this->assertEquals(0, $ret['ret']);
+        $this->cid = $ret['id'];
+        $this->assertNotNull($this->cid);
+
+        $ret = $this->call('chatmessages', 'POST', [
+            'roomid' => $this->cid,
+            'message' => 'Test £1',
+            'refchatid' => $this->cid
+        ]);
+        $this->log("Create message " . var_export($ret, TRUE));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertNotNull($ret['id']);
+        $mid1 = $ret['id'];
+
+        $ret = $this->call('chatmessages', 'POST', [
+            'roomid' => $this->cid,
+            'message' => 'Test £1 again',
+            'refchatid' => $this->cid
+        ]);
+        $this->log("Create message " . var_export($ret, TRUE));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertNotNull($ret['id']);
+        $mid2 = $ret['id'];
+
+        $ret = $this->call('chatmessages', 'POST', [
+            'roomid' => $this->cid,
+            'message' => 'Test innocent',
+            'refchatid' => $this->cid
+        ]);
+        $this->log("Create message " . var_export($ret, TRUE));
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertNotNull($ret['id']);
+        $mid3 = $ret['id'];
+
+        # Messages should be held for:
+        # - spam
+        # - spam (not last)
+        # - last
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid1);
+        self::assertEquals(1, $cm->getPrivate('reviewrequired'));
+        self::assertEquals(ChatMessage::REVIEW_SPAM, $cm->getPrivate('reportreason'));
+
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid2);
+        self::assertEquals(1, $cm->getPrivate('reviewrequired'));
+        self::assertEquals(ChatMessage::REVIEW_SPAM, $cm->getPrivate('reportreason'));
+
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid3);
+        self::assertEquals(1, $cm->getPrivate('reviewrequired'));
+        self::assertEquals(ChatMessage::REVIEW_LAST, $cm->getPrivate('reportreason'));
+    }
 //
 //    public function testEH2()
 //    {
