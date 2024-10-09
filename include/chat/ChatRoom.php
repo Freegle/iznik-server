@@ -1552,7 +1552,9 @@ WHERE chat_messages.id > ? $wideq AND chat_messages_held.id IS NULL AND chat_mes
             # not.  We want to ensure that we return the active one so that the client pays attention to it.
             $m1settings = json_decode($msg['m1settings']);
 
-            if (!Utils::pres($msg['id'], $processed) || Utils::pres('active', $m1settings)) {
+            # We might get multiple copies, e.g. from backup mod status or widerchatreview.  If so we want our
+            # active status to be the one that gets returned.
+            if (!Utils::pres($msg['id'], $processed) || Utils::pres('active', $m1settings) || !$msg['widerchatreview']) {
                 $processed[$msg['id']] = TRUE;
 
                 $m = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
