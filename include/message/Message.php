@@ -2031,6 +2031,11 @@ ORDER BY lastdate DESC;";
         return $this->inlineimgs;
     }
 
+    public function getExternalimgs()
+    {
+        return $this->externalimgs;
+    }
+
     /**
      * @return PhpMimeMailParser\Attachment[]
      */
@@ -2499,7 +2504,7 @@ ORDER BY lastdate DESC;";
                         $src = $img->getAttribute('src');
 
                         if (strpos($src, 'https://') === 0 &&
-                            (strpos($src, 'img.trashnothing.com') !== FALSE ||
+                            (strpos($src, '/img/') !== FALSE ||
                             strpos($src, '/tn-photos/') !== FALSE ||
                             strpos($src, '/pics/') !== FALSE ||
                             strpos($src, 'photos.trashnothing.com') !== FALSE)) {
@@ -2508,7 +2513,7 @@ ORDER BY lastdate DESC;";
                             $src = $img->getAttribute('href');
 
                             if (strpos($src, 'https://') === 0 &&
-                                (strpos($src, 'img.trashnothing.com') !== FALSE ||
+                                (strpos($src, '/img/') !== FALSE ||
                                 strpos($src, '/pics/') !== FALSE ||
                                 strpos($src, '/tn-photos/') !== FALSE ||
                                 strpos($src, 'photos.trashnothing.com') !== FALSE)) {
