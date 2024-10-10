@@ -2502,9 +2502,11 @@ ORDER BY lastdate DESC;";
                     /* @var DOMNodeList $imgs */
                     foreach ($imgs as $img) {
                         $src = $img->getAttribute('src');
+                        error_log("Got $src");
 
                         if (strpos($src, 'https://') === 0 &&
                             (strpos($src, '/img/') !== FALSE ||
+                            strpos($src, 'img.trashnothing.com') !== FALSE ||
                             strpos($src, '/tn-photos/') !== FALSE ||
                             strpos($src, '/pics/') !== FALSE ||
                             strpos($src, 'photos.trashnothing.com') !== FALSE)) {
@@ -2514,6 +2516,7 @@ ORDER BY lastdate DESC;";
 
                             if (strpos($src, 'https://') === 0 &&
                                 (strpos($src, '/img/') !== FALSE ||
+                                strpos($src, 'img.trashnothing.com') !== FALSE ||
                                 strpos($src, '/pics/') !== FALSE ||
                                 strpos($src, '/tn-photos/') !== FALSE ||
                                 strpos($src, 'photos.trashnothing.com') !== FALSE)) {
