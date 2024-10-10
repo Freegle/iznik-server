@@ -2502,7 +2502,6 @@ ORDER BY lastdate DESC;";
                     /* @var DOMNodeList $imgs */
                     foreach ($imgs as $img) {
                         $src = $img->getAttribute('src');
-                        error_log("Got $src");
 
                         if (strpos($src, 'https://') === 0 &&
                             (strpos($src, '/img/') !== FALSE ||
