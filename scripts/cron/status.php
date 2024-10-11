@@ -117,35 +117,35 @@ function status()
             $warningtext = "exim mail queue large on $host ($queuesize)";
         }
 
-        # Get the postfix mail count in case it's too large
-        $queuesize = trim(shell_exec("ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@$host \"/usr/sbin/postqueue -p | /usr/bin/tail -n1\" | /usr/bin/gawk '{print $5}' 2>&1"));
-        error_log("Postfix queue $queuesize");
-
-        if (intval($queuesize) > 100000) {
-            $warning = TRUE;
-            $overallwarning = TRUE;
-            $warningtext = "postfix mail queue large on $host ($queuesize)";
-        }
-
-        # Get the spool folder count in case it's too large
-        $queuesize = trim(shell_exec("ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@$host \"ls -1 /var/www/iznik/spool*/* | wc -l\" 2>&1"));
-        error_log("Spool queue $queuesize");
-
-        if (intval($queuesize) > 2000) {
-            $warning = TRUE;
-            $overallwarning = TRUE;
-            $warningtext = "Mail spool folder large ($queuesize)";
-        }
-
-        # Zero length files cause the spooler to choke.
-        $zeros = trim(shell_exec("ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@$host \"find /var/www/iznik/ -size 0  | grep spool | wc -l\" 2>&1"));
-        error_log("Zero length spool files $zeros");
-
-        if (intval($queuesize) > 10000) {
-            $warning = TRUE;
-            $overallwarning = TRUE;
-            $warningtext = "Mail spool contains zero length files ($zeros)";
-        }
+//        # Get the postfix mail count in case it's too large
+//        $queuesize = trim(shell_exec("ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@$host \"/usr/sbin/postqueue -p | /usr/bin/tail -n1\" | /usr/bin/gawk '{print $5}' 2>&1"));
+//        error_log("Postfix queue $queuesize");
+//
+//        if (intval($queuesize) > 100000) {
+//            $warning = TRUE;
+//            $overallwarning = TRUE;
+//            $warningtext = "postfix mail queue large on $host ($queuesize)";
+//        }
+//
+//        # Get the spool folder count in case it's too large
+//        $queuesize = trim(shell_exec("ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@$host \"ls -1 /var/www/iznik/spool*/* | wc -l\" 2>&1"));
+//        error_log("Spool queue $queuesize");
+//
+//        if (intval($queuesize) > 2000) {
+//            $warning = TRUE;
+//            $overallwarning = TRUE;
+//            $warningtext = "Mail spool folder large ($queuesize)";
+//        }
+//
+//        # Zero length files cause the spooler to choke.
+//        $zeros = trim(shell_exec("ssh -o ConnectTimeout=10 -oStrictHostKeyChecking=no root@$host \"find /var/www/iznik/ -size 0  | grep spool | wc -l\" 2>&1"));
+//        error_log("Zero length spool files $zeros");
+//
+//        if (intval($queuesize) > 10000) {
+//            $warning = TRUE;
+//            $overallwarning = TRUE;
+//            $warningtext = "Mail spool contains zero length files ($zeros)";
+//        }
 
         $info[$host]['error'] = $error;
         $info[$host]['errortext'] = $errortext;
