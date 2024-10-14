@@ -275,7 +275,6 @@ class chatRoomsTest extends IznikTestCase {
         # There has now been a reply from u2 -> u1, so that should have a reply time.
         $this->assertNull($r->replyTime($u1));
         $this->assertNotNull($r->replyTime($u2));
-
     }
 
     public function testBlockingUnpromises() {
@@ -1614,7 +1613,7 @@ class chatRoomsTest extends IznikTestCase {
     }
 
     /**
-     * @dataProvider expectedProvider
+     * @dataProvider trueFalseProvider
      */
     public function testChaseExpected($expected) {
         # Set up a chatroom
@@ -1722,11 +1721,62 @@ class chatRoomsTest extends IznikTestCase {
         $this->assertStringContainsString('This is an automated message', $this->msgsSent[0]['body']);
     }
 
-    public function expectedProvider() {
+    public function trueFalseProvider() {
         return [
             [ TRUE ],
             [ FALSE ]
         ];
+    }
+
+    /**
+     * @dataProvider trueFalseProvider
+     */
+    public function testUserStopsReplyingReplyTime($expected) {
+        $this->log(__METHOD__ );
+
+        # Set up a chatroom
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test1@test.com');
+        $u->addEmail('test1@' . USER_DOMAIN);
+
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
+        $this->assertNotNull($id);
+
+        # Create a message from u2 -> u1, then a message from u1 -> u2 with reply expected.  That sets us up
+        # for calculating a reply time for u2.
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cm, $banned) = $m->create($id, $u2, "Testing");
+        list ($cm, $banned) = $m->create($id, $u1, "Testing");
+        $m = new ChatMessage($this->dbhr, $this->dbhm, $cm);
+        $m->setPrivate('replyexpected', $expected ? 1 : 0);
+
+        # Reply time should be null as not evaluated.
+        $this->assertEquals(0, $r->replyTime($u2, TRUE));
+
+        # Force recalculation
+        sleep(2);
+        $time1 = $r->replyTime($u2, TRUE);
+
+        if ($expected) {
+            # Should have a value, as we have not yet replied.
+            $this->assertNotNull($time1);
+
+            sleep(2);
+            $time2 = $r->replyTime($u2, TRUE);
+
+            # Should have increased.
+            $this->assertGreaterThan($time1, $time2);
+        } else {
+            $this->assertNull($r->replyTime($u2));
+        }
     }
 }
 

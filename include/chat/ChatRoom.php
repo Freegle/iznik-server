@@ -2457,7 +2457,10 @@ WHERE chat_messages.id > ? $wideq AND chat_messages_held.id IS NULL AND chat_mes
 
         if (count($left)) {
             $mysqltime = date("Y-m-d", strtotime("90 days ago"));
-            $msgs = $this->dbhr->preQuery("SELECT chat_messages.userid, chat_messages.id, chat_messages.chatid, chat_messages.date FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid WHERE chat_messages.userid IN (" . implode(',', $left) . ") AND chat_messages.date > ? AND chat_rooms.chattype = ? AND chat_messages.type IN (?, ?);", [
+            $msgs = $this->dbhr->preQuery("SELECT chat_messages.userid, chat_messages.id, chat_messages.chatid, chat_messages.date 
+FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid 
+WHERE chat_messages.userid IN (" . implode(',', $left) . ") 
+AND chat_messages.date > ? AND chat_rooms.chattype = ? AND chat_messages.type IN (?, ?);", [
                 $mysqltime,
                 ChatRoom::TYPE_USER2USER,
                 ChatMessage::TYPE_INTERESTED,
@@ -2471,20 +2474,38 @@ WHERE chat_messages.id > ? $wideq AND chat_messages_held.id IS NULL AND chat_mes
 
                 foreach ($msgs as $msg) {
                     if ($msg['userid'] == $userid) {
-                        #error_log("$userid Chat message {$msg['id']}, {$msg['date']} in {$msg['chatid']}");
-                        # Find the previous message in this conversation.
-                        $lasts = $this->dbhr->preQuery("SELECT MAX(date) AS max FROM chat_messages WHERE chatid = ? AND id < ? AND userid != ?;", [
+                        # See if the last message in this chat is a message from the other user with an outstanding
+                        # reply.  This helps with the case where someone is responsive and then stops replying.
+                        #error_log("$userid Chat message {$msg['id']}, {$msg['date']} in {$msg['chatid']}, expected {$msg['replyexpected']}, received {$msg['replyreceived']}");
+
+                        $expecting = $this->dbhr->preQuery("SELECT chat_messages.userid, chat_messages.id, chat_messages.chatid, chat_messages.date, chat_messages.replyexpected, chat_messages.replyreceived 
+FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid 
+WHERE chat_rooms.id = ? AND userid != ? 
+ORDER BY chat_messages.id DESC LIMIT 1;", [
                             $msg['chatid'],
-                            $msg['id'],
-                            $userid
+                            $userid,
                         ]);
 
-                        if (count($lasts) > 0 && $lasts[0]['max']) {
-                            $thisdelay = strtotime($msg['date']) - strtotime($lasts[0]['max']);;
-                            #error_log("Last {$lasts[0]['max']} delay $thisdelay");
-                            if ($thisdelay < 30 * 24 * 60 * 60) {
-                                # Ignore very large delays - probably dating from a previous interaction.
-                                $delays[] = $thisdelay;
+                        if (count($expecting) && $expecting[0]['replyexpected'] && !$expecting[0]['replyreceived']) {
+                            # We are waiting for a reply.  Use the gap between that and now as the reply delay.  This
+                            $thisdelay = time() - strtotime($expecting[0]['date']);
+                            $delays[] = $thisdelay;
+                        } else {
+                            # No outstanding reply, so find the previous message in this conversation from the other
+                            # user.  That shows how long we took to reply to it.
+                            $lasts = $this->dbhr->preQuery("SELECT MAX(date) AS max FROM chat_messages WHERE chatid = ? AND id < ? AND userid != ?;", [
+                                $msg['chatid'],
+                                $msg['id'],
+                                $userid
+                            ]);
+
+                            if (count($lasts) > 0 && $lasts[0]['max']) {
+                                $thisdelay = strtotime($msg['date']) - strtotime($lasts[0]['max']);;
+                                #error_log("Last {$lasts[0]['max']} delay $thisdelay");
+                                if ($thisdelay < 30 * 24 * 60 * 60) {
+                                    # Ignore very large delays - probably dating from a previous interaction.
+                                    $delays[] = $thisdelay;
+                                }
                             }
                         }
                     }
