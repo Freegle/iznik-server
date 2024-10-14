@@ -11,12 +11,13 @@ global $dbhr, $dbhm;
 $opts = getopt('e:n:p:g:');
 
 if (count($opts) < 2) {
-    echo "Usage: php user_create.php -e <email> -n <full name> (-p <password>) (-g <shortname group to add>)\n";
+    echo "Usage: php user_create.php -e <email> -n <full name> (-p <password>) (-g <shortname group to add>) (-f email frequency)\n";
 } else {
     $email = Utils::presdef('e', $opts, NULL);
     $name = Utils::presdef('n', $opts, NULL);
     $password = Utils::presdef('p', $opts, NULL);
     $group = Utils::presdef('g', $opts, NULL);
+    $emailFrequency = Utils::presdef('f', $opts, '24');
 
     $u = User::get($dbhr, $dbhm);
 
@@ -44,6 +45,7 @@ if (count($opts) < 2) {
 
             if ($gid) {
                 $u->addMembership($gid);
+                $u->setMembershipAtt($gid, 'emailfrequency', $emailFrequency);
                 error_log("Added $email to $group");
             } else {
                 error_log("Group $group not found");
