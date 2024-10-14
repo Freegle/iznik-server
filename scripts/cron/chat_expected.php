@@ -11,6 +11,21 @@ global $dbhr, $dbhm;
 
 $lockh = Utils::lockScript(basename(__FILE__));
 
+# Update reply times for recent chats expecting replies.  Normally we update the reply time when processing a chat
+# message, but we want to handle the case where someone stops replying entirely.
+error_log("Update reply times");
+$chats = $dbhr->preQuery("SELECT DISTINCT chatid FROM chat_messages WHERE chat_messages.date >= ? 
+    AND chat_messages.replyexpected = 1 AND chat_messages.replyreceived = 0;", [
+    date('Y-m-d', strtotime("midnight 31 days ago"))
+]);
+
+foreach ($chats as $chat) {
+    $r = new ChatRoom($dbhr, $dbhm, $chat['chatid']);
+    $u1 = $r->getPrivate('user1');
+    $u2 = $r->getPrivate('user2');
+    $r->replyTimes(array_filter([$u1, $u2]), TRUE);
+}
+
 # Tidy up any expected replies from deleted users, which shouldn't count.
 $tidy = 0;
 $mysqltime = date("Y-m-d", strtotime("24 hours ago"));

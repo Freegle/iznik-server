@@ -2511,7 +2511,9 @@ ORDER BY chat_messages.id DESC LIMIT 1;", [
                     }
                 }
 
-                $time = (count($delays) > 0) ? Utils::calculate_median($delays) : NULL;
+                # We can have multiple copies of the same delay from above logic.  Hackily fix this by using
+                # array_unique.
+                $time = (count($delays) > 0) ? Utils::calculate_median(array_unique($delays)) : NULL;
 
                 # Background these because we've seen occasions where we're in the context of a transaction
                 # and this causes a deadlock.
