@@ -286,7 +286,8 @@ class MailRouter
         ]);
 
         if ($ret == MailRouter::APPROVED ||
-            $ret == MailRouter::PENDING) {
+            $ret == MailRouter::PENDING ||
+            $ret == MailRouter::INCOMING_SPAM) {
             # If we routed successfully then we need to save the attachments.  No point saving them before now
             # because we don't know that we actually need them.
             #
@@ -294,8 +295,7 @@ class MailRouter
             error_log("Saving attachments for {$this->msg->getID()} {$this->msg->getSubject()}");
             $this->msg->saveAttachments($this->msg->getID());
         } else if (count($this->msg->getParsedAttachments()) &&
-            ($ret == MailRouter::FAILURE || $ret == MailRouter::INCOMING_SPAM ||
-             $ret == MailRouter::RECEIPT || $ret == MailRouter::TRYST || $ret == MailRouter::DROPPED)
+            ($ret == MailRouter::FAILURE || $ret == MailRouter::RECEIPT || $ret == MailRouter::TRYST || $ret == MailRouter::DROPPED)
             ) {
             error_log("Discarding attachments for {$this->msg->getID()} {$this->msg->getSubject()}");
         }

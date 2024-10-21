@@ -2479,6 +2479,7 @@ ORDER BY lastdate DESC;";
             $urls = [];
             foreach ($matches as $val) {
                 foreach ($val as $url) {
+                    #error_log("Picture url $url for {$this->id}");
                     $urls[] = $url;
                 }
             }
@@ -2502,6 +2503,7 @@ ORDER BY lastdate DESC;";
                     /* @var DOMNodeList $imgs */
                     foreach ($imgs as $img) {
                         $src = $img->getAttribute('src');
+                        #error_log("Src $src");
 
                         if (strpos($src, 'https://') === 0 &&
                             (strpos($src, '/img/') !== FALSE ||
@@ -2512,6 +2514,7 @@ ORDER BY lastdate DESC;";
                             # The largest resolution is in the parent anchor tag.
                             $img = $img->parentNode;
                             $src = $img->getAttribute('href');
+                            #error_log("Src from parent $src");
 
                             if (strpos($src, 'https://') === 0 &&
                                 (strpos($src, '/img/') !== FALSE ||
@@ -2519,10 +2522,13 @@ ORDER BY lastdate DESC;";
                                 strpos($src, '/pics/') !== FALSE ||
                                 strpos($src, '/tn-photos/') !== FALSE ||
                                 strpos($src, 'photos.trashnothing.com') !== FALSE)) {
+                                #error_log("Add $src");
                                 $this->externalimgs[] = $src;
                             }
                         }
                     }
+                } else {
+                    error_log("Failed to fetch $url");
                 }
             }
         }
@@ -2608,6 +2614,7 @@ ORDER BY lastdate DESC;";
     }
 
     public function saveAttachments($msgid, $type = Attachment::TYPE_MESSAGE) {
+       #error_log("Save attachments for $msgid type $type");
         if ($this->type != Message::TYPE_TAKEN && $this->type != Message::TYPE_RECEIVED) {
             # Don't want attachments for TAKEN/RECEIVED.  They can occur if people forward the original message.
             #
@@ -2616,6 +2623,7 @@ ORDER BY lastdate DESC;";
             $a = new Attachment($this->dbhr, $this->dbhm, NULL, $type);
 
             foreach ($this->attachments as $att) {
+                #error_log("Consider attachment " . $att->getFilename());
                 /** @var \PhpMimeMailParser\Attachment $att */
                 $ct = $att->getContentType();
 
@@ -2649,7 +2657,8 @@ ORDER BY lastdate DESC;";
                             # We also only want images which are a decent size; otherwise more likely to just be
                             # logos and suchlike.
                             if ($ow > 150 && $oh > 150 && ($ow > 600 || $oh > 600 || ($r >= 0.5 && $r <= 1.5))) {
-                                $a->create($msgid, $data);
+                                list ($id, $dummy) = $a->create($msgid, $data);
+                                #error_log("Created attachment $id");
                             }
                         }
                     }
@@ -2658,12 +2667,14 @@ ORDER BY lastdate DESC;";
 
             # Now that we have the msgid, create the attachments.
             foreach ($this->inlineimgs as $att) {
-                $a->create($msgid, $att);
+                list ($id, $dummy) = $a->create($msgid, $att);
+                #error_log("Created inline attachment $id");
             }
 
             # External images by URL.
             foreach ($this->externalimgs as $url) {
-                $a->create($msgid, NULL, NULL, $url, FALSE, NULL, NULL);
+                list ($id, $dummy) = $a->create($msgid, NULL, NULL, $url, FALSE, NULL, NULL);
+                #error_log("Created external attachment $id");
             }
         }
 
@@ -3946,11 +3957,13 @@ ORDER BY lastdate DESC;";
         }
 
         foreach ($oldids as $oldid) {
+            #error_log("Replace attachments - delete $oldid for {$this->id}");
             $this->dbhm->preExec("DELETE FROM messages_attachments WHERE id = ?;", [ $oldid ]);
         }
     }
 
     public function deleteAllAttachments() {
+        #error_log("Replace attachments - delete all for {$this->id}");
         $this->dbhm->preExec("DELETE FROM messages_attachments WHERE msgid = ?;", [ $this->id ]);
     }
 
