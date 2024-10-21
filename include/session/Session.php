@@ -71,6 +71,9 @@ class Session {
             # Always verify the persistent session if passed.  This guards against
             # session id collisions, which can happen (albeit quite rarely).
             $cookie = Utils::presdef('persistent', $_REQUEST, NULL);
+            if ($cookie && gettype($cookie) == 'string') {
+                $cookie = json_decode($cookie, TRUE);
+            }
 
             if (!$cookie) {
                 # Check headers too.
