@@ -161,7 +161,10 @@ class Newsfeed extends Entity
                         # Now notify them, pointing at the part of the thread which has been replied to.
                         foreach ($contributed as $contrib) {
                             $n = new Notifications($this->dbhr, $this->dbhm);
-                            $n->add($userid, $contrib, Notifications::TYPE_COMMENT_ON_YOUR_POST, $id, $replyto);
+
+                            if ($contrib) {
+                                $n->add($userid, $contrib, Notifications::TYPE_COMMENT_ON_YOUR_POST, $id, $replyto);
+                            }
                         }
 
                         # We might have notifications which refer to this thread.  But there's no need to show them
