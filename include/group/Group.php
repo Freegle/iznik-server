@@ -408,11 +408,25 @@ class Group extends Entity
                     GROUP BY memberships.groupid, held;";
             $spammembercounts = $this->dbhr->preQuery($sql, []);
 
-            $pendingeventcounts = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT communityevents.id) AS count FROM communityevents INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id INNER JOIN communityevents_groups ON communityevents.id = communityevents_groups.eventid WHERE communityevents_groups.groupid IN $groupq AND communityevents.pending = 1 AND communityevents.deleted = 0 AND end >= ? GROUP BY groupid;", [
+            $pendingeventcounts = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT communityevents.id) AS count FROM communityevents 
+                INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id 
+                INNER JOIN communityevents_groups ON communityevents.id = communityevents_groups.eventid 
+                INNER JOIN `groups` ON groups.id = communityevents_groups.groupid                             
+                WHERE communityevents_groups.groupid IN $groupq AND
+                    (groups.settings IS NULL OR JSON_EXTRACT(groups.settings, '$.communityevents') IS NULL OR JSON_EXTRACT(groups.settings, '$.communityevents') = 1) AND
+                    communityevents.pending = 1 AND communityevents.deleted = 0 AND end >= ? GROUP BY groupid;", [
                 $eventsqltime
             ]);
 
-            $pendingvolunteercounts = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT volunteering.id) AS count FROM volunteering LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id INNER JOIN volunteering_groups ON volunteering.id = volunteering_groups.volunteeringid WHERE volunteering_groups.groupid IN $groupq AND volunteering.pending = 1 AND volunteering.deleted = 0 AND volunteering.expired = 0 AND (applyby IS NULL OR applyby >= ?) AND (end IS NULL OR end >= ?) GROUP BY groupid;", [
+            $pendingvolunteercounts = $this->dbhr->preQuery("SELECT groupid, COUNT(DISTINCT volunteering.id) AS count FROM volunteering 
+                 LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id 
+                 INNER JOIN volunteering_groups ON volunteering.id = volunteering_groups.volunteeringid
+                 INNER JOIN `groups` ON groups.id = volunteering_groups.groupid                             
+                 WHERE volunteering_groups.groupid IN $groupq AND 
+                     volunteering.pending = 1 AND volunteering.deleted = 0 AND volunteering.expired = 0
+                     AND (groups.settings IS NULL OR JSON_EXTRACT(groups.settings, '$.volunteering') IS NULL OR JSON_EXTRACT(groups.settings, '$.volunteering') = 1)
+                     AND (applyby IS NULL OR applyby >= ?) AND (end IS NULL OR end >= ?) 
+                GROUP BY groupid;", [
                 $eventsqltime,
                 $eventsqltime
             ]);

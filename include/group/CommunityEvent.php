@@ -102,7 +102,8 @@ class CommunityEvent extends Entity
         $u = User::get($this->dbhr, $this->dbhm, $userid);
 
         foreach ($events as $event) {
-            if (!$event['pending'] || $u->activeModForGroup($event['groupid'])) {
+            if (Group::get($this->dbhr, $this->dbhm, $event['groupid'])->getSetting('communityevents', 1) &&
+                (!$event['pending'] || $u->activeModForGroup($event['groupid']))) {
                 $ctx['end'] = $event['end'];
                 $e = new CommunityEvent($this->dbhr, $this->dbhm, $event['id'], $event);
                 $atts = $e->getPublic();
@@ -118,31 +119,38 @@ class CommunityEvent extends Entity
     public function listForGroup($pending, $groupid = NULL, &$ctx) {
         $ret = [];
         $myid = Session::whoAmId($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
-        # We can only see pending events if we're an owner/mod.
-        # We might be called for a specific groupid; if not then use logged in user's groups.
-        $pendingq = $pending ? " AND pending = 1 " : " AND pending = 0 ";
-        $roleq = $pending ? (" AND groupid IN (SELECT groupid FROM memberships WHERE userid = " . intval($myid) . " AND role IN ('Owner', 'Moderator')) ") : '';
-        $groupq = $groupid ? (" AND groupid = " . intval($groupid)) : (" AND groupid IN (SELECT groupid FROM memberships WHERE userid = " . intval($myid) . ") ");
-        $ctxq = $ctx ? (" AND end > '" . Utils::safedate($ctx['end']) . "' ") : '';
+        if ($g->getSetting('communityevent', 1)) {
+            # We can only see pending events if we're an owner/mod.
+            # We might be called for a specific groupid; if not then use logged in user's groups.
+            $pendingq = $pending ? " AND pending = 1 " : " AND pending = 0 ";
+            $roleq = $pending ? (" AND groupid IN (SELECT groupid FROM memberships WHERE userid = " . intval(
+                    $myid
+                ) . " AND role IN ('Owner', 'Moderator')) ") : '';
+            $groupq = $groupid ? (" AND groupid = " . intval(
+                    $groupid
+                )) : (" AND groupid IN (SELECT groupid FROM memberships WHERE userid = " . intval($myid) . ") ");
+            $ctxq = $ctx ? (" AND end > '" . Utils::safedate($ctx['end']) . "' ") : '';
 
-        $mysqltime = date("Y-m-d H:i:s", time());
-        $sql = "SELECT communityevents.*, communityevents_dates.end FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id $groupq $roleq AND deleted = 0 INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id AND end >= ? $pendingq $ctxq ORDER BY end ASC LIMIT 20;";
-        # error_log("$sql, $mysqltime");
-        $events = $this->dbhr->preQuery($sql, [
-            $mysqltime
-        ]);
+            $mysqltime = date("Y-m-d H:i:s", time());
+            $sql = "SELECT communityevents.*, communityevents_dates.end FROM communityevents INNER JOIN communityevents_groups ON communityevents_groups.eventid = communityevents.id $groupq $roleq AND deleted = 0 INNER JOIN communityevents_dates ON communityevents_dates.eventid = communityevents.id AND end >= ? $pendingq $ctxq ORDER BY end ASC LIMIT 20;";
+            # error_log("$sql, $mysqltime");
+            $events = $this->dbhr->preQuery($sql, [
+                $mysqltime
+            ]);
 
-        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
+            $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
-        foreach ($events as $event) {
-            $ctx['end'] = $event['end'];
-            $e = new CommunityEvent($this->dbhr, $this->dbhm, $event['id'], $event);
-            $atts = $e->getPublic();
+            foreach ($events as $event) {
+                $ctx['end'] = $event['end'];
+                $e = new CommunityEvent($this->dbhr, $this->dbhm, $event['id'], $event);
+                $atts = $e->getPublic();
 
-            $atts['canmodify'] = $e->canModify($myid);
+                $atts['canmodify'] = $e->canModify($myid);
 
-            $ret[] = $atts;
+                $ret[] = $atts;
+            }
         }
 
         return($ret);

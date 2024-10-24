@@ -102,7 +102,8 @@ class Volunteering extends Entity
         $u = User::get($this->dbhr, $this->dbhm, $userid);
 
         foreach ($volunteerings as $volunteering) {
-            if ((!$volunteering['pending'] || is_null($volunteering['groupid']) || $u->activeModForGroup($volunteering['groupid'])) &&
+            if (Group::get($this->dbhr, $this->dbhm, $volunteering['groupid'])->getSetting('volunteering', 1) &&
+                (!$volunteering['pending'] || is_null($volunteering['groupid']) || $u->activeModForGroup($volunteering['groupid'])) &&
                 (!Utils::pres('applyby', $volunteering) || time() < strtotime($volunteering['applyby'])) &&
                 (!Utils::pres('end', $volunteering) || time() < strtotime($volunteering['end']))
             ) {
@@ -121,30 +122,33 @@ class Volunteering extends Entity
     public function listForGroup($pending, $groupid = NULL, &$ctx) {
         $ret = [];
         $myid = Session::whoAmId($this->dbhr, $this->dbhm);
+        $g = Group::get($this->dbhr, $this->dbhm, $groupid);
 
-        # We can only see pending volunteerings if we're an owner/mod.
-        # We might be called for a specific groupid; if not then use logged in user's groups.
-        $pendingq = $pending ? " pending = 1 " : " pending = 0 ";
-        $roleq = $pending ? (" AND groupid IN (SELECT groupid FROM memberships WHERE userid = " . intval($myid) . " AND role IN ('Owner', 'Moderator')) ") : '';
-        $groupq = $groupid ? (" AND groupid = " . intval($groupid)) : (" AND groupid IN (SELECT groupid FROM memberships WHERE userid = " . intval($myid) . ") ");
-        $ctxq = $ctx ? (" AND volunteering.id < '" . intval($ctx['id']) . "' ") : '';
+        if ($g->getSetting('volunteering', 1)) {
+            # We can only see pending volunteerings if we're an owner/mod.
+            # We might be called for a specific groupid; if not then use logged in user's groups.
+            $pendingq = $pending ? " pending = 1 " : " pending = 0 ";
+            $roleq = $pending ? (" AND groupid IN (SELECT groupid FROM memberships WHERE userid = " . intval($myid) . " AND role IN ('Owner', 'Moderator')) ") : '';
+            $groupq = $groupid ? (" AND groupid = " . intval($groupid)) : (" AND groupid IN (SELECT groupid FROM memberships WHERE userid = " . intval($myid) . ") ");
+            $ctxq = $ctx ? (" AND volunteering.id < '" . intval($ctx['id']) . "' ") : '';
 
-        $sql = "SELECT volunteering.*, volunteering_dates.applyby, volunteering_dates.end FROM volunteering INNER JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id $groupq $roleq AND deleted = 0 AND expired = 0 LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id WHERE $pendingq $ctxq ORDER BY id DESC LIMIT 20;";
-        $volunteerings = $this->dbhr->preQuery($sql);
+            $sql = "SELECT volunteering.*, volunteering_dates.applyby, volunteering_dates.end FROM volunteering INNER JOIN volunteering_groups ON volunteering_groups.volunteeringid = volunteering.id $groupq $roleq AND deleted = 0 AND expired = 0 LEFT JOIN volunteering_dates ON volunteering_dates.volunteeringid = volunteering.id WHERE $pendingq $ctxq ORDER BY id DESC LIMIT 20;";
+            $volunteerings = $this->dbhr->preQuery($sql);
 
-        $myid = Session::whoAmId($this->dbhr, $this->dbhm);
+            $myid = Session::whoAmId($this->dbhr, $this->dbhm);
 
-        foreach ($volunteerings as $volunteering) {
-            if ((!Utils::pres('applyby', $volunteering) || time() < strtotime($volunteering['applyby'])) &&
-                (!Utils::pres('end', $volunteering) || time() < strtotime($volunteering['end']))
-            ) {
-                $ctx['id'] = $volunteering['id'];
-                $e = new Volunteering($this->dbhr, $this->dbhm, $volunteering['id'], $volunteering);
-                $atts = $e->getPublic();
+            foreach ($volunteerings as $volunteering) {
+                if ((!Utils::pres('applyby', $volunteering) || time() < strtotime($volunteering['applyby'])) &&
+                    (!Utils::pres('end', $volunteering) || time() < strtotime($volunteering['end']))
+                ) {
+                    $ctx['id'] = $volunteering['id'];
+                    $e = new Volunteering($this->dbhr, $this->dbhm, $volunteering['id'], $volunteering);
+                    $atts = $e->getPublic();
 
-                $atts['canmodify'] = $e->canModify($myid);
+                    $atts['canmodify'] = $e->canModify($myid);
 
-                $ret[] = $atts;
+                    $ret[] = $atts;
+                }
             }
         }
 
