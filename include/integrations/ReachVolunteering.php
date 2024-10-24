@@ -62,7 +62,7 @@ class ReachVolunteering {
                                     error_log("...on #{$groups[0]} " . $g->getName());
 
                                     if ($g->getSetting('volunteering', 1)) {
-                                        $existing = $this->dbhr->preQuery("SELECT * FROM communityevents WHERE externalid = ?", [ $externalid ]);
+                                        $existing = $this->dbhr->preQuery("SELECT * FROM volunteering WHERE externalid = ?", [ $externalid ]);
 
                                         $title = $opp['title'];
                                         $description = $opp['Job description'];
@@ -76,59 +76,60 @@ class ReachVolunteering {
                                             # We don't update the photo as there is no good way to
                                             # check it hasn't changed.
                                             error_log("...updated existing " . $existing[0]['id']);
-    //                                    $v = new Volunteering($this->dbhr, $this->dbhm, $existing[0]['id']);
-    //
-    //                                    $pending = $v->getPrivate('title') != $title ||
-    //                                        $v->getPrivate('location') != $location ||
-    //                                        $v->getPrivate('description') != $description;
-    //
-    //                                    if ($pending && !$v->getPrivate('pending')) {
-    //                                        # Return to pending for re-review, in case the mod
-    //                                        # edited these.
-    //                                        $v->setPrivate('pending', 1);
-    //                                    }
-    //
-    //                                    $v->setPrivate('title', $title);
-    //                                    $v->setPrivate('location', $location);
-    //                                    $v->setPrivate('description', $description);
-    //                                    $v->setPrivate('contacturl', $url);
-    //                                    $v->setPrivate('timecommitment', $commitment);
+                                            $v = new Volunteering($this->dbhr, $this->dbhm, $existing[0]['id']);
+
+                                            $pending = $v->getPrivate('title') != $title ||
+                                                $v->getPrivate('location') != $location ||
+                                                $v->getPrivate('description') != $description;
+
+                                            if ($pending && !$v->getPrivate('pending')) {
+                                                # Return to pending for re-review, in case the mod
+                                                # edited these.
+                                                $v->setPrivate('pending', 1);
+                                            }
+
+                                            $v->setPrivate('title', $title);
+                                            $v->setPrivate('location', $location);
+                                            $v->setPrivate('description', $description);
+                                            $v->setPrivate('contacturl', $url);
+                                            $v->setPrivate('timecommitment', $commitment);
                                         } else {
                                             $added++;
+
                                             # We don't - create it.
-                                            //                                    $v = new Volunteering($this->dbhr, $this->dbhm);
-                                            //                                    $vid = $v->create(
-                                            //                                        null,
-                                            //                                        $title,
-                                            //                                        FALSE,
-                                            //                                        $location,
-                                            //                                        NULL,
-                                            //                                        NULL,
-                                            //                                        NULL,
-                                            //                                        $url,
-                                            //                                        $description,
-                                            //                                        $commitment,
-                                            //                                        $externalid
-                                            //                                    );
-                                            //                                    error_log("...created as $vid");
-                                            //
-                                            //                                    $v->addGroup($g->getId());
-                                            //
-                                            //                                    # Get an image if we can.
-                                            //                                    $image = Utils::presdef('Logo url', $opp, NULL);
-                                            //
-                                            //                                    if ($image) {
-                                            //                                        $t = new Tus($this->dbhr, $this->dbhm);
-                                            //                                        $url = $t->upload($image);
-                                            //
-                                            //                                        if ($url) {
-                                            //                                            $uid = 'freegletusd-' . basename($url);
-                                            //                                            $this->dbhm->preExec("INSERT INTO volunteering_images (volunteeringid, externaluid) VALUES (?,?);", [
-                                            //                                                $vid,
-                                            //                                                $uid
-                                            //                                            ]);
-                                            //                                        }
-                                            //                                    }
+                                            $v = new Volunteering($this->dbhr, $this->dbhm);
+                                            $vid = $v->create(
+                                                null,
+                                                $title,
+                                                FALSE,
+                                                $location,
+                                                NULL,
+                                                NULL,
+                                                NULL,
+                                                $url,
+                                                $description,
+                                                $commitment,
+                                                $externalid
+                                            );
+                                            error_log("...created as $vid");
+
+                                            $v->addGroup($g->getId());
+
+                                            # Get an image if we can.
+                                            $image = Utils::presdef('Logo url', $opp, NULL);
+
+                                            if ($image) {
+                                                $t = new Tus($this->dbhr, $this->dbhm);
+                                                $url = $t->upload($image);
+
+                                                if ($url) {
+                                                    $uid = 'freegletusd-' . basename($url);
+                                                    $this->dbhm->preExec("INSERT INTO volunteering_images (opportunityid, externaluid) VALUES (?,?);", [
+                                                        $vid,
+                                                        $uid
+                                                    ]);
+                                                }
+                                            }
                                         }
                                     } else {
                                         error_log("Volunteering not allowed on " . $g->getName());
