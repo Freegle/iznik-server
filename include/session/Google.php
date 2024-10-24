@@ -228,16 +228,18 @@ class Google
             $client = $this->getClient();
             $payload = $client->verifyIdToken($JWT);
 
-            if ($payload)
-            {
+            $status = 'Verify ID token failed';
+
+            if ($payload) {
                 $googleuid = Utils::presdef('sub', $payload, null);
                 $googlemail = Utils::presdef('email', $payload, null);
                 $fullname = Utils::presdef('name', $payload, null);
                 $firstname = Utils::presdef('given_name', $payload, null);
                 $lastname = Utils::presdef('family_name', $payload, null);
 
-                if ($googleuid)
-                {
+                $status = 'No Google UID';
+
+                if ($googleuid) {
                     #error_log("Google id " . var_export($googleuid, TRUE));
 
                     # See if we know this user already.  We might have an entry for them by email, or by Facebook ID.
@@ -246,8 +248,7 @@ class Google
                     $gid = $googleuid ? $u->findByLogin('Google', $googleuid) : null;
                     #error_log("Email $eid  from $googlemail Google $gid, f $firstname, l $lastname, full $fullname");
 
-                    if ($eid && $gid && $eid != $gid)
-                    {
+                    if ($eid && $gid && $eid != $gid) {
                         # This is a duplicate user.  Merge them.
                         $u = User::get($this->dbhr, $this->dbhm);
                         $u->merge($eid, $gid, "Google Login - GoogleID $gid, Email $googlemail = $eid");
@@ -255,9 +256,9 @@ class Google
 
                     $id = $eid ? $eid : $gid;
                     #error_log("Login id $id from $eid and $gid");
+                    $status = 'No user id found';
 
-                    if (!$id)
-                    {
+                    if (!$id) {
                         # We don't know them.  Create a user.
                         #
                         # There's a timing window here, where if we had two first-time logins for the same user,
@@ -265,14 +266,13 @@ class Google
                         #
                         # We don't have the firstname/lastname split, only a single name.  Way two go.
                         $id = $u->create($firstname, $lastname, $fullname, "Google JWT login from $googleuid, $eid, $gid");
+                        $status = 'User create failed';
 
-                        if ($id)
-                        {
+                        if ($id) {
                             # Make sure that we have the email recorded as one of the emails for this user.
                             $u = User::get($this->dbhr, $this->dbhm, $id);
 
-                            if ($googlemail)
-                            {
+                            if ($googlemail) {
                                 $u->addEmail($googlemail, 0, false);
                             }
 
@@ -287,18 +287,15 @@ class Google
 
                             $id = $rc ? $id : null;
                         }
-                    } else
-                    {
+                    } else {
                         # We know them - but we might not have all the details.
                         $u = User::get($this->dbhr, $this->dbhm, $id);
 
-                        if (!$eid)
-                        {
+                        if (!$eid) {
                             $u->addEmail($googlemail, 0, false);
                         }
 
-                        if (!$gid)
-                        {
+                        if (!$gid) {
                             $this->dbhm->preExec(
                                 "INSERT IGNORE INTO users_logins (userid, type, uid) VALUES (?,'Google',?);",
                                 [
@@ -319,15 +316,13 @@ class Google
                     );
 
                     # We might have syncd the membership without a good name.
-                    if (!$u->getPrivate('fullname'))
-                    {
+                    if (!$u->getPrivate('fullname')) {
                         $u->setPrivate('firstname', $firstname);
                         $u->setPrivate('lastname', $lastname);
                         $u->setPrivate('fullname', $fullname);
                     }
 
-                    if ($id)
-                    {
+                    if ($id) {
                         # We are logged in.
                         $s = new Session($this->dbhr, $this->dbhm);
                         $s->create($id);
@@ -347,8 +342,7 @@ class Google
                     }
                 }
             }
-        } catch (\Exception $e)
-        {
+        } catch (\Exception $e) {
             $ret = 2;
             $status = "Didn't manage to get a Google session: " . $e->getMessage();
             error_log("Didn't get a Google session " . $e->getMessage());
