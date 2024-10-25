@@ -14,6 +14,10 @@ class ReachVolunteering {
     }
 
     public function processFeed() {
+        $added = 0;
+        $updated = 0;
+        $deleted = 0;
+
         #error_log("$url");
         $auth = base64_encode(REACH_USER . ":" . REACH_PASSWORD);
         $ctx = stream_context_create(array('http'=> [
@@ -77,22 +81,12 @@ class ReachVolunteering {
                                             # check it hasn't changed.
                                             error_log("...updated existing " . $existing[0]['id']);
                                             $v = new Volunteering($this->dbhr, $this->dbhm, $existing[0]['id']);
-
-                                            $pending = $v->getPrivate('title') != $title ||
-                                                $v->getPrivate('location') != $location ||
-                                                $v->getPrivate('description') != $description;
-
-                                            if ($pending && !$v->getPrivate('pending')) {
-                                                # Return to pending for re-review, in case the mod
-                                                # edited these.
-                                                $v->setPrivate('pending', 1);
-                                            }
-
                                             $v->setPrivate('title', $title);
                                             $v->setPrivate('location', $location);
                                             $v->setPrivate('description', $description);
                                             $v->setPrivate('contacturl', $url);
                                             $v->setPrivate('timecommitment', $commitment);
+                                            $updated++;
                                         } else {
                                             $added++;
 
@@ -111,7 +105,9 @@ class ReachVolunteering {
                                                 $commitment,
                                                 $externalid
                                             );
+
                                             error_log("...created as $vid");
+                                            $added++;
 
                                             $v->addGroup($g->getId());
 
@@ -158,14 +154,17 @@ class ReachVolunteering {
         error_log("Added $added");
 
         # Look for ops which need removing because they aren't on Reach any more.
-        $existings = $this->dbhr->preQuery("SELECT externalid FROM volunteering WHERE externalid LIKE 'reach-%';");
+        $existings = $this->dbhr->preQuery("SELECT id, externalid FROM volunteering WHERE externalid LIKE 'reach-%';");
 
         foreach ($existings as $e) {
             if (!array_key_exists($e['externalid'], $externalsSeen)) {
-                error_log("...deleting old " . $e['externalid']);
+                error_log("...deleting old {$e['id']}, {$e['externalid']}");
                 $cv = new Volunteering($this->dbhr, $this->dbhm, $e['id']);
                 $cv->setPrivate('deleted', 1);
+                $deleted++;
             }
         }
+
+        error_log("Added $added, updated $updated, deleted $deleted");
     }
 }
