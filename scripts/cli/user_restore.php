@@ -53,6 +53,9 @@ if (count($opts) < 1) {
             }
         }
 
+        $ulive->setPrivate('deleted', NULL);
+        $ulive->setPrivate('forgotten', NULL);
+
         # Tables with foreign keys.
         foreach ([
             'memberships' => [ 'userid' ],
