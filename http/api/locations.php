@@ -81,6 +81,12 @@ WHERE ld.lat BETWEEN $swlat AND $nelat AND ld.lng BETWEEN $swlng AND $nelng;";
                         }
 
                         break;
+                    case 'ConvertKML':
+                        $kml = Utils::presdef('kml', $_REQUEST, NULL);
+                        $geom = \geoPHP::load($kml, 'kml');
+                        $wkt = $geom->out('wkt');
+                        $ret = [ 'ret' => 0, 'status' => 'Success', 'wkt' => $wkt ];
+                        break;
                 }
             }
 
