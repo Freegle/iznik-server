@@ -176,7 +176,7 @@ class ModConfig extends Entity
         }
 
         if ($sharedby) {
-            if ($ret['createdby'] == $me->getId()) {
+            if ($me && $ret['createdby'] == $me->getId()) {
                 $ret['cansee'] = ModConfig::CANSEE_CREATED;
             } else if ($ret['default']) {
                 $ret['cansee'] = ModConfig::CANSEE_DEFAULT;
