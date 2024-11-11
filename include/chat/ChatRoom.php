@@ -2579,11 +2579,14 @@ ORDER BY chat_messages.id DESC LIMIT 1;", [
 
     public function referToSupport() {
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
+        $gid = $this->getPrivate('groupid');
+        $g = Group::get($this->dbhr, $this->dbhm, $gid);
+        $modaddr = $g->getModsEmail();
 
         $message = \Swift_Message::newInstance()
             ->setSubject($me->getName() . " asked for help with chat #{$this->id} " . $this->getName($this->id, $me->getId()))
             ->setFrom([NOREPLY_ADDR => SITE_NAME])
-            ->setReplyTo([$me->getEmailPreferred() => $me->getName()])
+            ->setReplyTo([$modaddr => $g->getName() . " Volunteers"])
             ->setTo(explode(',', SUPPORT_ADDR))
             ->setBody('Please review the chat at https://' . MOD_SITE . "/modtools/support/refer/{$this->id} and then reply to this email to contact the mod who requested help.");
 
