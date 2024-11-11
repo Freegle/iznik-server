@@ -53,7 +53,7 @@ do {
             }
         }
     }
-} while (count($ratings) == 100);
+} while ($ratings && count($ratings) == 100);
 
 # Sync the reply time and about me.
 $page = 1;
