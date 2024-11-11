@@ -6626,10 +6626,10 @@ memberships.groupid IN $groupq
         # Show social actions from last 4 days.
         $ctx = NULL;
         $f = new GroupFacebook($this->dbhr, $this->dbhm);
-        $ret['socialactions'] = count($f->listSocialActions($ctx,$this));
+        $ret['socialactions'] = 0; // FB DISABLED = count($f->listSocialActions($ctx,$this));
 
         $g = new Group($this->dbhr, $this->dbhm);
-        $ret['popularposts'] = count($g->getPopularMessages());
+        $ret['popularposts'] = 0; // FB DISABLED count($g->getPopularMessages());
 
         if ($this->hasPermission(User::PERM_GIFTAID)) {
             $d = new Donations($this->dbhr, $this->dbhm);
