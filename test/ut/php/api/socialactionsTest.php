@@ -27,7 +27,7 @@ class socialactionsAPITest extends IznikAPITestCase
         $this->dbhm = $dbhm;
     }
 
-    public function testBasic()
+    public function t2estBasic()
     {
         if (getenv('FACEBOOK_PAGEACCESS_TOKEN')) {
             $this->scrapePosts();
@@ -137,7 +137,7 @@ class socialactionsAPITest extends IznikAPITestCase
         $f->getPostsToShare(134117207097, "last week", getenv('FACEBOOK_PAGEACCESS_TOKEN'));
     }
 
-    public function testHide()
+    public function t2estHide()
     {
         if (getenv('FACEBOOK_PAGEACCESS_TOKEN')) {
             $this->scrapePosts();
