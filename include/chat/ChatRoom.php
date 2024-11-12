@@ -3217,8 +3217,9 @@ ORDER BY chat_messages.id DESC LIMIT 1;", [
 
                     if ($sendingto->isLJ()) {
                         // Notify mod messages by email.
+                        $replyto = 'notify-' . $chatid . '-' . $sendingto->getId() . '@' . USER_DOMAIN;
                         $l = new LoveJunk($this->dbhr, $this->dbhm);
-                        $l->modMessage($g->getModsEmail(), $sendingto->getPrivate('ljuserid'), $html);
+                        $l->modMessage($replyto, $sendingto->getPrivate('ljuserid'), $html);
                         $this->recordSend($lastmsgemailed, $memberuserid, $chatid);
                         $html = '';
                     }

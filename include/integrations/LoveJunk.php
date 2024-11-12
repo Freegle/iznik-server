@@ -464,7 +464,8 @@ class LoveJunk {
         $message = \Swift_Message::newInstance()
             ->setSubject("Freegle Volunteer message for LoveJunk user #$uid " . $u->getName())
             ->setFrom($frommail)
-            ->setTo(LJ_SUPPORT_ADDR);
+            ->setTo(LJ_SUPPORT_ADDR)
+            ->setCc('log@ehibbert.org.uk');
 
         $htmlPart = \Swift_MimePart::newInstance();
         $htmlPart->setCharset('utf-8');
