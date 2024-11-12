@@ -459,13 +459,12 @@ class LoveJunk {
         return $completed;
     }
 
-    public function modMessage($uid, $html) {
+    public function modMessage($frommail, $uid, $html) {
         $u = User::get($this->dbhr, $this->dbhm, $uid);
         $message = \Swift_Message::newInstance()
             ->setSubject("Freegle Volunteer message for LoveJunk user #$uid " . $u->getName())
-            ->setFrom('log@ehibbert.org.uk')
-            ->setTo(LJ_SUPPORT_ADDR)
-            ->setCc('log@ehibbert.org.uk');
+            ->setFrom($frommail)
+            ->setTo(LJ_SUPPORT_ADDR);
 
         $htmlPart = \Swift_MimePart::newInstance();
         $htmlPart->setCharset('utf-8');

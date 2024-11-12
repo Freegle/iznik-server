@@ -3194,6 +3194,7 @@ ORDER BY chat_messages.id DESC LIMIT 1;", [
                             '/modtools/chats/' . $chatid,
                             User::SRC_CHATNOTIF
                         );
+
                         $html = $twig->render('chat_notify.html', [
                             'unsubscribe' => $sendingto->getUnsubLink($site, $memberuserid, User::SRC_CHATNOTIF),
                             'fromname' => $fromname ? $fromname : $sendingfrom->getName(),
@@ -3217,7 +3218,7 @@ ORDER BY chat_messages.id DESC LIMIT 1;", [
                     if ($sendingto->isLJ()) {
                         // Notify mod messages by email.
                         $l = new LoveJunk($this->dbhr, $this->dbhm);
-                        $l->modMessage($sendingto->getPrivate('ljuserid'), $html);
+                        $l->modMessage($g->getModsEmail(), $sendingto->getPrivate('ljuserid'), $html);
                         $this->recordSend($lastmsgemailed, $memberuserid, $chatid);
                         $html = '';
                     }
