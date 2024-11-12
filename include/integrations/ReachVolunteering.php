@@ -43,6 +43,13 @@ class ReachVolunteering {
                 foreach ($opps as $opp) {
                     $opp = $opp['Opportunity'];
                     $loc = $opp['Location'];
+                    $postingDate = $opp['Posting date'];
+                    $postingAgeInDays = (time() - strtotime($postingDate)) / (60 * 60 * 24);
+
+                    if ($postingAgeInDays > Volunteering::EXPIRE_AGE) {
+                        error_log("...skipping as too old $postingDate");
+                        continue;
+                    }
 
                     $externalid = "reach-" . $opp['Job id'];
 

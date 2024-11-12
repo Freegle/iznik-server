@@ -6,6 +6,8 @@ require_once(IZNIK_BASE . '/mailtemplates/volunteerrenew.php');
 
 class Volunteering extends Entity
 {
+    const EXPIRE_AGE = 31;
+
     /** @var  $dbhm LoggedPDO */
     public $publicatts = [ 'id', 'userid', 'pending', 'title', 'location', 'online', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description', 'added', 'askedtorenew', 'renewed', 'timecommitment', 'expired', 'heldby', 'externalid' ];
     public $settableatts = [ 'userid', 'pending', 'title', 'location', 'online', 'contactname', 'contactphone', 'contactemail', 'contacturl', 'description', 'added', 'renewed', 'timecommitment', 'externalid' ];
@@ -264,7 +266,7 @@ class Volunteering extends Entity
 
         # If an opportunity has no dates, and it is older than 31 days, then check that it has been renewed within the
         # last 31 days.  We send out renewal reminders 7 days beforehand.
-        $mysqltime = date("Y-m-d H:i:s", strtotime("Midnight 31 days ago"));
+        $mysqltime = date("Y-m-d H:i:s", strtotime("Midnight " . self::EXPIRE_AGE . " days ago"));
         $ids = $this->dbhr->preQuery("SELECT DISTINCT volunteering.id FROM volunteering LEFT JOIN volunteering_dates ON volunteering.id = volunteering_dates.volunteeringid WHERE `end` IS NULL AND expired = 0 AND added < ? AND (renewed IS NULL OR renewed < ?) $idq;", [
             $mysqltime,
             $mysqltime
