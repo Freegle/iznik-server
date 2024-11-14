@@ -18,7 +18,7 @@ $count = $d->identifyGiftAidHouse();
 # Mark any donations we can as having gift aid consent.
 $d->identifyGiftAidedDonations();
 
-# As of 2020-07-03 we can claim gift aid back to 2020-04-06.  Look for donations from PayPal Donate (which doesn't
+# As of 2020-07-03 we can claim gift aid back to 2020-04-06.  Look for donations from PayPal Donate/Stripe (which don't
 # handle gift aid), where we don't have gift aid consent and where the donation was a couple of days ago (to give
 # the initial ask time to work).
 $start = date('Y-m-d', strtotime("48 hours ago"));
@@ -26,7 +26,7 @@ $end = date('Y-m-d', strtotime("30 days ago"));
 $donations = $dbhr->preQuery("SELECT users_donations.* FROM `users_donations` 
     LEFT JOIN giftaid ON giftaid.userid = users_donations.userid 
     WHERE users_donations.timestamp >= '2016-04-06' AND users_donations.timestamp >= '$end' AND users_donations.timestamp <= '$start' 
-    AND source = 'DonateWithPaypal' AND giftaidconsent = 0 
+    AND source IN ('DonateWithPaypal', 'Stripe') AND giftaidconsent = 0 
     AND giftaid.userid IS NULL AND giftaidchaseup IS NULL AND users_donations.userid IS NOT NULL;");
 
 $sentto = [];

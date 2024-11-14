@@ -45,7 +45,7 @@ switch ($event->type) {
         $amount = $paymentIntent->amount;
 
         // Amount is in pence.
-        $amount = $amount ? $amount / 100 : 0;
+        $amount = $amount ? ($amount / 100) : 0;
 
         if ($amount) {
             $eid = $paymentIntent->metadata->uid;

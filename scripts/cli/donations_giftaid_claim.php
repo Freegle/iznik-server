@@ -20,7 +20,7 @@ $d->identifyGiftAidedDonations();
 $donations = $dbhr->preQuery("SELECT users_donations.*, giftaid.id AS giftaidid, giftaid.fullname, giftaid.postcode, giftaid.housenameornumber FROM `users_donations` 
     INNER JOIN giftaid ON users_donations.userid = giftaid.userid 
     WHERE giftaidconsent = 1 AND giftaidclaimed IS NULL AND giftaid.deleted IS NULL AND giftaid.reviewed IS NOT NULL AND GrossAmount > 0 
-    AND source = 'DonateWithPayPal' ORDER BY users_donations.timestamp ASC;");
+    AND source IN ('DonateWithPayPal', 'Stripe') ORDER BY users_donations.timestamp ASC;");
 
 fputcsv(STDOUT, [
     'Title',
