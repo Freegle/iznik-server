@@ -423,6 +423,9 @@ class API
                         case 'visualise':
                             $ret = visualise();
                             break;
+                        case 'stripecreateintent':
+                            $ret = stripecreateintent();
+                            break;
                         case 'echo':
                             $ret = array_merge($_REQUEST, $_SERVER);
                             break;

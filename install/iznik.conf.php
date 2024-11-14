@@ -193,3 +193,4 @@ define('TUS_UPLOADER', "https://tusd.tusdemo.net/files/");
 define('REACH_FEED', NULL);
 define('REACH_USER', NULL);
 define('REACH_PASSWORD', NULL);
+define('STRIPE_SECRET_KEY', 'zzz');
