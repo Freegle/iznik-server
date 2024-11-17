@@ -47,62 +47,71 @@ switch ($event->type) {
         // Amount is in pence.
         $amount = $amount ? ($amount / 100) : 0;
 
+        // Exclude PayPal because we'll get an IPN from that.
+        $payment_method_details = $paymentIntent->payment_method_details;
+        $payment_method = $payment_method_details ? $payment_method_details->type : NULL;
+
         if ($amount) {
-            $eid = $paymentIntent->metadata->uid;
-            $u = User::get($dbhr, $dbhm, $eid);
+            if ($payment_method != 'paypal') {
+                $eid = $paymentIntent->metadata->uid;
+                $u = User::get($dbhr, $dbhm, $eid);
 
-            $first = FALSE;
+                $first = FALSE;
 
-            if ($eid) {
-                $previous = $dbhr->preQuery("SELECT COUNT(*) AS count FROM users_donations WHERE userid = ?", [
-                    $eid
-                ]);
+                if ($eid) {
+                    $previous = $dbhr->preQuery("SELECT COUNT(*) AS count FROM users_donations WHERE userid = ?", [
+                        $eid
+                    ]);
 
-                $first = $previous[0]['count'] == 0;
-            }
-
-            $d = new Donations($dbhr, $dbhm);
-            $d->add(
-                $eid,
-                $u->getEmailPreferred(),
-                $u->getName(),
-                date("Y-m-d H:i:s"),
-                $paymentIntent->id,
-                $amount,
-                Donations::TYPE_STRIPE,
-                Donations::TYPE_STRIPE,
-            );
-
-            # TODO Recurring
-            $recurring = FALSE;
-
-            $giftaid = $d->getGiftAid($u->getId());
-
-            if (!$giftaid || $giftaid['period'] == Donations::PERIOD_THIS) {
-                # Ask them to complete a gift aid form.
-                $n = new Notifications($dbhr, $dbhm);
-                $n->add(NULL, $u->getId(), Notifications::TYPE_GIFTAID, NULL);
-            }
-
-            # Don't ask for thanks for the PayPal Giving Fund transactions.  Do ask for first recurring or larger one-off.
-            if ((($recurring && $first) || (!$recurring && $amount >= Donations::MANUAL_THANKS))) {
-                $text = $u->getName() . " (" . $u->getEmailPreferred() . ") donated £{$amount} via Stripe.  Please can you thank them?";
-
-                if ($recurring) {
-                    $text .= "\r\n\r\nNB This is a new monthly donation.  We now send this mail for all new recurring donations (since 2023-02-12 10:00).";
+                    $first = $previous[0]['count'] == 0;
                 }
 
-                $message = \Swift_Message::newInstance()
-                    ->setSubject($u->getEmailPreferred() . " donated £{$amount} - please send thanks")
-                    ->setFrom(NOREPLY_ADDR)
-                    ->setTo(INFO_ADDR)
-                    ->setCc('log@ehibbert.org.uk')
-                    ->setBody($text);
+                $d = new Donations($dbhr, $dbhm);
+                $d->add(
+                    $eid,
+                    $u->getEmailPreferred(),
+                    $u->getName(),
+                    date("Y-m-d H:i:s"),
+                    $paymentIntent->id,
+                    $amount,
+                    Donations::TYPE_STRIPE,
+                    NULL,
+                    Donations::TYPE_STRIPE,
+                );
 
-                list ($transport, $mailer) = Mail::getMailer();
-                Mail::addHeaders($dbhr, $dbhm, $message, Mail::DONATE_IPN);
+                # TODO Recurring
+                $recurring = FALSE;
 
-                $mailer->send($message);
+                $giftaid = $d->getGiftAid($u->getId());
+
+                if (!$giftaid || $giftaid['period'] == Donations::PERIOD_THIS) {
+                    # Ask them to complete a gift aid form.
+                    $n = new Notifications($dbhr, $dbhm);
+                    $n->add(NULL, $u->getId(), Notifications::TYPE_GIFTAID, NULL);
+                }
+
+                # Don't ask for thanks for the PayPal Giving Fund transactions.  Do ask for first recurring or larger one-off.
+                if ((($recurring && $first) || (!$recurring && $amount >= Donations::MANUAL_THANKS))) {
+                    $text = $u->getName() . " (" . $u->getEmailPreferred() . ") donated £{$amount} via Stripe.  Please can you thank them?";
+
+                    if ($recurring) {
+                        $text .= "\r\n\r\nNB This is a new monthly donation.  We now send this mail for all new recurring donations (since 2023-02-12 10:00).";
+                    }
+
+                    $message = \Swift_Message::newInstance()
+                        ->setSubject($u->getEmailPreferred() . " donated £{$amount} - please send thanks")
+                        ->setFrom(NOREPLY_ADDR)
+                        ->setTo(INFO_ADDR)
+                        ->setCc('log@ehibbert.org.uk')
+                        ->setBody($text);
+
+                    list ($transport, $mailer) = Mail::getMailer();
+                    Mail::addHeaders($dbhr, $dbhm, $message, Mail::DONATE_IPN);
+
+                    $mailer->send($message);
+                }
+            } else {
+                log("Ignoring PayPal payment");
             }
         }
         break;
