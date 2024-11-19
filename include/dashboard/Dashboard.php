@@ -69,6 +69,8 @@ class Dashboard {
                 }
             }
 
+            # Essex groups.
+            #$groupids = [253556,21316,390665,126641,418675,480463,480460,253574,21594, 506991];
             $usecache = "SELECT * FROM users_dashboard WHERE userid = " . $this->me->getId() . " $typeq $startq;";
         }
 
