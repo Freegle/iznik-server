@@ -556,57 +556,11 @@ class Spam {
         }
 
         if (!$suspect) {
-            # Check if they've replied to multiple posts across a wide area recently.  Ignore any messages outside
-            # a bounding box for the UK, because then it's those messages that are suspicious, and this member the
-            # poor sucker who they are trying to scam.
-            $since = date('Y-m-d', strtotime("midnight 90 days ago"));
-            $dists = $this->dbhm->preQuery("SELECT DISTINCT MAX(messages.lat) AS maxlat, MIN(messages.lat) AS minlat, MAX(messages.lng) AS maxlng, MIN(messages.lng) AS minlng, groups.id AS groupid, groups.nameshort, groups.settings FROM chat_messages 
-    INNER JOIN messages ON messages.id = chat_messages.refmsgid 
-    INNER JOIN messages_groups ON messages_groups.msgid = messages.id
-    INNER JOIN `groups` ON groups.id = messages_groups.groupid
-    WHERE userid = ? AND chat_messages.date >= ? AND chat_messages.type = ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL AND
-     messages.lng >= -7.57216793459 AND messages.lat >= 49.959999905 AND messages.lng <= 1.68153079591 AND messages.lat <= 58.6350001085;", [
+            list($suspect, $reason, $suspectgroups) = $this->checkReplyDistance(
                 $userid,
-                $since,
-                ChatMessage::TYPE_INTERESTED
-            ]);
-
-            if (($dists[0]['maxlat'] || $dists[0]['minlat'] || $dists[0]['maxlng'] || $dists[0]['minlng']) && ($lat || $lng)) {
-                # Add the lat/lng we're interested in into the mix.
-                $maxlat = max($dists[0]['maxlat'], $lat);
-                $minlat = min($dists[0]['minlat'], $lat);
-                $maxlng = max($dists[0]['maxlng'], $lng);
-                $minlng = min($dists[0]['minlng'], $lng);
-
-                $dist = \GreatCircle::getDistance($minlat, $minlng, $maxlat, $maxlng);
-                $dist = round($dist * 0.000621371192);
-                $settings = Utils::pres('settings', $dists[0]) ? json_decode($dists[0]['settings'], TRUE) : [
-                    'spammers' => [
-                        'replydistance' => Spam::DISTANCE_THRESHOLD
-                    ]
-                ];
-
-                $replydist = array_key_exists('spammers', $settings) && array_key_exists('replydistance', $settings['spammers']) ? $settings['spammers']['replydistance'] : Spam::DISTANCE_THRESHOLD;
-
-                if ($replydist > 0 && $dist >= $replydist) {
-                    # Check if it is greater than the current distance, so we don't keep asking for the same user
-                    $rounded = round($dist / 5) * 5;
-                    $existing = $this->dbhr->preQuery("SELECT replyambit FROM users WHERE id = ?;", [
-                        $userid
-                    ]);
-
-                    if ($rounded > $existing[0]['replyambit']) {
-                        $this->dbhm->preExec("UPDATE users SET replyambit = ? WHERE id = ?;", [
-                            $rounded,
-                            $userid
-                        ]);
-
-                        $suspect = TRUE;
-                        $reason = "Replied to posts $dist miles apart (threshold on {$dists[0]['nameshort']} $replydist)";
-                        $suspectgroups[] = $dists[0]['groupid'];
-                    }
-                }
-            }
+                $lat,
+                $lng,
+            );
         }
 
         if ($suspect) {
@@ -1055,5 +1009,74 @@ AND reviewrejected != 1;");
         }
 
         return($ret);
+    }
+
+    public function checkReplyDistance(
+        $userid,
+        $lat,
+        $lng,
+    ) {
+        # Check if they've replied to multiple posts across a wide area recently.  Ignore any messages outside
+        # a bounding box for the UK, because then it's those messages that are suspicious, and this member the
+        # poor sucker who they are trying to scam.
+        $suspect = FALSE;
+        $since = date('Y-m-d', strtotime("midnight 90 days ago"));
+        $dists = $this->dbhm->preQuery(
+            "SELECT DISTINCT MAX(messages.lat) AS maxlat, MIN(messages.lat) AS minlat, MAX(messages.lng) AS maxlng, MIN(messages.lng) AS minlng, groups.id AS groupid, groups.nameshort, groups.settings FROM chat_messages 
+    INNER JOIN messages ON messages.id = chat_messages.refmsgid 
+    INNER JOIN messages_groups ON messages_groups.msgid = messages.id
+    INNER JOIN `groups` ON groups.id = messages_groups.groupid
+    WHERE userid = ? AND chat_messages.date >= ? AND chat_messages.type = ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL AND
+     messages.lng >= -7.57216793459 AND messages.lat >= 49.959999905 AND messages.lng <= 1.68153079591 AND messages.lat <= 58.6350001085;",
+            [
+                $userid,
+                $since,
+                ChatMessage::TYPE_INTERESTED
+            ]
+        );
+
+        if (($dists[0]['maxlat'] || $dists[0]['minlat'] || $dists[0]['maxlng'] || $dists[0]['minlng']) && ($lat || $lng)) {
+            # Add the lat/lng we're interested in into the mix.
+            $maxlat = max($dists[0]['maxlat'], $lat);
+            $minlat = min($dists[0]['minlat'], $lat);
+            $maxlng = max($dists[0]['maxlng'], $lng);
+            $minlng = min($dists[0]['minlng'], $lng);
+
+            $dist = \GreatCircle::getDistance($minlat, $minlng, $maxlat, $maxlng);
+            $dist = round($dist * 0.000621371192);
+            $settings = Utils::pres('settings', $dists[0]) ? json_decode($dists[0]['settings'], true) : [
+                'spammers' => [
+                    'replydistance' => Spam::DISTANCE_THRESHOLD
+                ]
+            ];
+
+            $replydist = array_key_exists('spammers', $settings) && array_key_exists(
+                'replydistance',
+                $settings['spammers']
+            ) ? $settings['spammers']['replydistance'] : Spam::DISTANCE_THRESHOLD;
+
+            error_log("...compare $dist vs $replydist for group {$dists[0]['groupid']} settings " . json_encode($settings['spammers']));
+
+            if ($replydist > 0 && $dist >= $replydist) {
+                # Check if it is greater than the current distance, so we don't keep asking for the same user
+                $rounded = round($dist / 5) * 5;
+                $existing = $this->dbhr->preQuery("SELECT replyambit FROM users WHERE id = ?;", [
+                    $userid
+                ]);
+
+                if ($rounded > $existing[0]['replyambit']) {
+                    $this->dbhm->preExec("UPDATE users SET replyambit = ? WHERE id = ?;", [
+                        $rounded,
+                        $userid
+                    ]);
+
+                    $suspect = true;
+                    $reason = "Replied to posts $dist miles apart (threshold on {$dists[0]['nameshort']} $replydist)";
+                    $suspectgroups[] = $dists[0]['groupid'];
+                }
+            }
+        }
+
+        return [ $suspect, $reason, $suspectgroups ];
     }
 }
