@@ -8,17 +8,9 @@ require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
-$opts = getopt('e:n:p:g:');
+$opts = getopt('e:n:p:g:c:');
 
-if (count($opts) < 2) {
-    echo "Usage: php user_create.php -e <email> -n <full name> (-p <password>) (-g <shortname group to add>) (-f email frequency)\n";
-} else {
-    $email = Utils::presdef('e', $opts, NULL);
-    $name = Utils::presdef('n', $opts, NULL);
-    $password = Utils::presdef('p', $opts, NULL);
-    $group = Utils::presdef('g', $opts, NULL);
-    $emailFrequency = Utils::presdef('f', $opts, '24');
-
+function createUser($dbhr, $dbhm, $email, $password, $name, $group, $emailFrequency) {
     $u = User::get($dbhr, $dbhm);
 
     if (!$password) {
@@ -51,5 +43,34 @@ if (count($opts) < 2) {
                 error_log("Group $group not found");
             }
         }
+    }
+}
+
+if (count($opts) < 2) {
+    echo "Usage: php user_create.php -c <CSV file> -e <email> -n <full name> (-p <password>) (-g <shortname group to add>) (-f email frequency)\n";
+} else {
+    $csv = Utils::presdef('c', $opts, NULL);
+    $group = Utils::presdef('g', $opts, NULL);
+    $emailFrequency = Utils::presdef('f', $opts, '24');
+
+    if ($csv) {
+        $fh = fopen($csv, 'r');
+
+        while ($row = fgetcsv($fh)) {
+            $forename = $row[0];
+            $surname = $row[1];
+            $email = $row[2];
+            $name = "$forename $surname";
+
+            if ($email) {
+                createUser($dbhr, $dbhm, $email, NULL, $name, $group, $emailFrequency);
+            }
+        }
+    } else {
+        $email = Utils::presdef('e', $opts, NULL);
+        $name = Utils::presdef('n', $opts, NULL);
+        $password = Utils::presdef('p', $opts, NULL);
+
+        createUser($dbhr, $dbhm, $email, $password, $name, $group, $emailFrequency);
     }
 }
