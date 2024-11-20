@@ -194,3 +194,4 @@ define('REACH_FEED', NULL);
 define('REACH_USER', NULL);
 define('REACH_PASSWORD', NULL);
 define('STRIPE_SECRET_KEY', 'zzz');
+define('STRIPE_SECRET_KEY_TEST', 'zzz');
