@@ -138,6 +138,7 @@ function group() {
 
             case 'PATCH': {
                 $settings = Utils::presdef('settings', $_REQUEST, NULL);
+                $rules = Utils::presdef('rules', $_REQUEST, NULL);
                 $profile = (Utils::presint('profile', $_REQUEST, NULL));
 
                 $ret = [
@@ -159,6 +160,10 @@ function group() {
 
                         if ($settings) {
                             $g->setSettings($settings);
+                        }
+
+                        if ($rules) {
+                            $g->setRules($rules);
                         }
 
                         if ($profile) {

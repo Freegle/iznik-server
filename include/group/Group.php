@@ -10,7 +10,7 @@ class Group extends Entity
     const PROCESS_CACHE_SIZE = 100;
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'type', 'region', 'logo', 'publish',
+    var $publicatts = array('id', 'nameshort', 'namefull', 'nameabbr', 'namedisplay', 'settings', 'rules', 'type', 'region', 'logo', 'publish',
         'onhere', 'ontn', 'membercount', 'modcount', 'lat', 'lng',
         'profile', 'cover', 'onmap', 'tagline', 'legacyid', 'external', 'welcomemail', 'description',
         'contactmail', 'fundingtarget', 'affiliationconfirmed', 'affiliationconfirmedby', 'mentored', 'privategroup', 'defaultlocation',
@@ -1105,8 +1105,7 @@ HAVING logincount > 0
         return($status);
     }
 
-    public function setSettings($settings)
-    {
+    public function setSettings($settings) {
         $str = json_encode($settings);
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
         $this->dbhm->preExec("UPDATE `groups` SET settings = ? WHERE id = ?;", [ $str, $this->id ]);
@@ -1121,6 +1120,25 @@ HAVING logincount > 0
                 'settings' => $settings
             ])
         ]);
+
+        return(true);
+    }
+
+    public function setRules($rules) {
+        $str = json_encode($rules);
+        $me = Session::whoAmI($this->dbhr, $this->dbhm);
+        $this->dbhm->preExec("UPDATE `groups` SET rules = ? WHERE id = ?;", [ $str, $this->id ]);
+        Group::clearCache($this->id);
+        $this->group['rules'] = $str;
+        $this->log->log([
+                            'type' => Log::TYPE_GROUP,
+                            'subtype' => Log::SUBTYPE_EDIT,
+                            'groupid' => $this->id,
+                            'byuser' => $me ? $me->getId() : NULL,
+                            'text' => $this->getEditLog([
+                                                            'rules' => $rules
+                                                        ])
+                        ]);
 
         return(true);
     }
