@@ -17,7 +17,7 @@ error_log("Start at " . date("Y-m-d H:i:s"));
 
 $n = new Notifications($dbhr, $dbhm);
 
-$count = $n->sendEmails(NULL, '30 minutes ago', '24 hours ago');
+$count = $n->sendEmails(NULL, '5 minutes ago', '24 hours ago');
 error_log("Send $count notification chaseups");
 
 error_log("Finish at " . date("Y-m-d H:i:s"));

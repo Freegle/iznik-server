@@ -6314,10 +6314,14 @@ class User extends Entity
         return($rateds);
     }
 
-    public function getActiveSince($since, $createdbefore) {
+    public function getActiveSince($since, $createdbefore, $uid = NULL) {
         $sincetime = date("Y-m-d H:i:s", strtotime($since));
         $beforetime = date("Y-m-d H:i:s", strtotime($createdbefore));
-        $ids = $this->dbhr->preQuery("SELECT id FROM users WHERE lastaccess >= ? AND added <= ?;", [
+        $ids = $uid ? [
+            [
+                'id' => $uid
+            ]
+        ] : $this->dbhr->preQuery("SELECT id FROM users WHERE lastaccess >= ? AND added <= ?;", [
             $sincetime,
             $beforetime
         ]);

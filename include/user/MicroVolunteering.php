@@ -684,4 +684,107 @@ class MicroVolunteering
             $id
         ]);
     }
+
+    public function notifyForMessages() {
+        $notifiedenough = 0;
+        $notifiednone = 0;
+        $notifiedsome = 0;
+
+        # Find all unheld messages which are pending and where we haven't yet notified anyone to review them.
+        $msgs = $this->dbhr->preQuery(
+            "SELECT messages.id, messages.fromuser, messages_groups.groupid, messages.subject, messages_groups.collection FROM messages 
+            INNER JOIN messages_groups ON messages.id = messages_groups.msgid
+            INNER JOIN `groups` ON messages_groups.groupid = groups.id
+            LEFT JOIN users_notifications ON users_notifications.timestamp >= DATE_SUB(NOW(), INTERVAL 1 DAY) AND users_notifications.url LIKE CONCAT('/microvolunteering/message/', messages.id) AND users_notifications.type = ?
+            WHERE messages_groups.arrival > DATE_SUB(NOW(), INTERVAL 1 DAY) AND messages.deleted IS NULL AND messages.heldby IS NULL 
+            AND users_notifications.id IS NULL
+            AND groups.microvolunteering = 1;",
+            [
+                Notifications::TYPE_EXHORT,
+            ]
+        );
+
+        $notified = [];
+
+        error_log("Consider notifying for " . count($msgs) . " messages");
+
+        foreach ($msgs as $msg) {
+            # Find upto 10 users on the group who have been recently active and who have microvolunteering enabled.
+            if ($msg['collection'] == MessageCollection::PENDING) {
+                // We can't do this for basic trustlevel.
+                $users = $this->dbhr->preQuery(
+                    "SELECT DISTINCT memberships.userid, trustlevel FROM memberships 
+                    INNER JOIN users ON memberships.userid = users.id
+                    WHERE memberships.groupid = ? AND users.lastaccess >= DATE_SUB(NOW(), INTERVAL 31 DAY) AND
+                          users.id != ? AND
+                          (users.trustlevel = ? OR users.trustlevel = ?) ORDER BY RAND() LIMIT 10;",
+                    [
+                        $msg['groupid'],
+                        $msg['fromuser'],
+                        User::TRUST_MODERATE,
+                        User::TRUST_ADVANCED
+                    ]
+                );
+            } else {
+                $users = $this->dbhr->preQuery(
+                    "SELECT DISTINCT memberships.userid, trustlevel FROM memberships 
+                    INNER JOIN users ON memberships.userid = users.id
+                    WHERE memberships.groupid = ? AND users.lastaccess >= DATE_SUB(NOW(), INTERVAL 31 DAY) AND
+                          users.id != ? AND
+                          (users.trustlevel = ? OR users.trustlevel = ? OR users.trustlevel = ?) ORDER BY RAND() LIMIT 10;",
+                    [
+                        $msg['groupid'],
+                        $msg['fromuser'],
+                        User::TRUST_BASIC,
+                        User::TRUST_MODERATE,
+                        User::TRUST_ADVANCED
+                    ]
+                );
+            }
+
+            $count = 0;
+
+            foreach ($users as $user) {
+                $uid = $user['userid'];
+
+                if (!in_array($uid, $notified)) {
+                    // Count the number of recent such notifications.  Then we don't notify the same
+                    // user too often.
+                    $n = $this->dbhr->preQuery(
+                        "SELECT COUNT(*) AS count FROM users_notifications WHERE touser = ? AND timestamp >= DATE_SUB(NOW(), INTERVAL 1 DAY) AND
+                                                      type = ?;",
+                        [
+                            $uid,
+                            Notifications::TYPE_EXHORT
+                        ]
+                    );
+
+                    if ($n[0]['count'] < 5) {
+                        $n = new Notifications($this->dbhr, $this->dbhm);
+                        $n->add(NULL,
+                            $uid,
+                            Notifications::TYPE_EXHORT,
+                            NULL,
+                            NULL,
+                            "/microvolunteering/message/" . $msg['id'],
+                            "Could you review this message to help us keep the site safe?",
+                            "Click here to review: " . $msg['subject']);
+                        $count++;
+                        $notified[] = $uid;
+                    } else {
+                        $notifiedenough++;
+                    }
+                }
+            }
+
+            if ($count) {
+                error_log("...#{$msg['id']} notified $count");
+                $notifiedsome++;
+            } else {
+                $notifiednone++;
+            }
+        }
+
+        error_log("Notified some users for messages $notifiedsome, no users $notifiednone, skipped users enough $notifiedenough");
+    }
 }
