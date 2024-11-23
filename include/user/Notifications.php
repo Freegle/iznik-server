@@ -290,40 +290,43 @@ class Notifications
 
                 $url = $u->loginLink(USER_SITE, $user['touser'], '/chitchat', 'notifemail');
                 $noemail = 'notificationmailsoff-' . $user['touser'] . "@" . USER_DOMAIN;
+                $email = $u->getEmailPreferred();
 
-                try {
-                    $html = $twig->render('notifications/email.html', [
-                        'count' => count($twignotifs),
-                        'notifications'=> $twignotifs,
-                        'settings' => $u->loginLink(USER_SITE, $u->getId(), '/settings', User::SRC_NOTIFICATIONS_EMAIL),
-                        'email' => $u->getEmailPreferred(),
-                        'noemail' => $noemail
-                    ]);
+                if ($email) {
+                    try {
+                        $html = $twig->render('notifications/email.html', [
+                            'count' => count($twignotifs),
+                            'notifications'=> $twignotifs,
+                            'settings' => $u->loginLink(USER_SITE, $u->getId(), '/settings', User::SRC_NOTIFICATIONS_EMAIL),
+                            'email' => $email,
+                            'noemail' => $noemail
+                        ]);
 
-                    $message = \Swift_Message::newInstance()
-                        ->setSubject($subj)
-                        ->setFrom([NOREPLY_ADDR => 'Freegle'])
-                        ->setReturnPath($u->getBounce())
-                        ->setTo([ $u->getEmailPreferred() => $u->getName() ])
-                        ->setBody("\r\n\r\nPlease click here to read them: $url");
+                        $message = \Swift_Message::newInstance()
+                            ->setSubject($subj)
+                            ->setFrom([NOREPLY_ADDR => 'Freegle'])
+                            ->setReturnPath($u->getBounce())
+                            ->setTo([ $u->getEmailPreferred() => $u->getName() ])
+                            ->setBody("\r\n\r\nPlease click here to read them: $url");
 
-                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-                    # Outlook.
-                    $htmlPart = \Swift_MimePart::newInstance();
-                    $htmlPart->setCharset('utf-8');
-                    $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
-                    $htmlPart->setContentType('text/html');
-                    $htmlPart->setBody($html);
-                    $message->attach($htmlPart);
+                        # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                        # Outlook.
+                        $htmlPart = \Swift_MimePart::newInstance();
+                        $htmlPart->setCharset('utf-8');
+                        $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                        $htmlPart->setContentType('text/html');
+                        $htmlPart->setBody($html);
+                        $message->attach($htmlPart);
 
-                    Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::NOTIFICATIONS, $u->getId());
+                        Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::NOTIFICATIONS, $u->getId());
 
-                    list ($transport, $mailer) = Mail::getMailer();
-                    $this->sendIt($mailer, $message);
+                        list ($transport, $mailer) = Mail::getMailer();
+                        $this->sendIt($mailer, $message);
 
-                    $total += count($twignotifs);
-                } catch (\Exception $e) {
-                    error_log("Message failed with " . $e->getMessage());
+                        $total += count($twignotifs);
+                    } catch (\Exception $e) {
+                        error_log("Message failed with " . $e->getMessage());
+                    }
                 }
             }
         }
