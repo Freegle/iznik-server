@@ -245,13 +245,12 @@ class Notifications
         $mailq = $mailed ? " AND mailed = 0 " : '';
         $sql = "SELECT DISTINCT(touser) FROM `users_notifications`
                         LEFT JOIN spam_users ON spam_users.userid = users_notifications.fromuser AND collection IN (?, ?)
-                        WHERE timestamp <= '$mysqltime' AND timestamp >= '$mysqltime2' $seenq $mailq AND `type` NOT IN (?, ?, ?, ?, ?) 
+                        WHERE timestamp <= '$mysqltime' AND timestamp >= '$mysqltime2' $seenq $mailq AND `type` NOT IN (?, ?, ?, ?) 
                                                                             AND spam_users.id IS NULL $userq;";
         $users = $this->dbhr->preQuery($sql, [
             Spam::TYPE_SPAMMER,
             Spam::TYPE_PENDING_ADD,
             Notifications::TYPE_TRY_FEED,
-            Notifications::TYPE_EXHORT,
             Notifications::TYPE_ABOUT_ME,
             Notifications::TYPE_GIFTAID,
             Notifications::TYPE_OPEN_POSTS
