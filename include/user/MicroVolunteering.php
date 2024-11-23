@@ -731,10 +731,12 @@ class MicroVolunteering
                     INNER JOIN users ON memberships.userid = users.id
                     WHERE memberships.groupid = ? AND users.lastaccess >= DATE_SUB(NOW(), INTERVAL 31 DAY) AND
                           users.id != ? AND
+                          memberships.role = ? AND
                           (users.trustlevel = ? OR users.trustlevel = ? OR users.trustlevel = ?) ORDER BY RAND() LIMIT 10;",
                     [
                         $msg['groupid'],
                         $msg['fromuser'],
+                        User::ROLE_MEMBER,
                         User::TRUST_BASIC,
                         User::TRUST_MODERATE,
                         User::TRUST_ADVANCED
@@ -759,7 +761,7 @@ class MicroVolunteering
                         ]
                     );
 
-                    if ($n[0]['count'] < 5) {
+                    if ($n[0]['count'] < 3) {
                         $n = new Notifications($this->dbhr, $this->dbhm);
                         $n->add(NULL,
                             $uid,
