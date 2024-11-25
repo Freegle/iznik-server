@@ -879,7 +879,12 @@ WHERE chat_rooms.id IN $idlist;";
 
         if ($chatids) {
             $idq = implode(',', $chatids);
-            $sql = "SELECT chat_messages.* FROM chat_messages LEFT JOIN chat_roster ON chat_roster.chatid = chat_messages.chatid AND chat_roster.userid = ? WHERE chat_messages.chatid IN ($idq) AND chat_messages.userid != ? AND reviewrequired = 0 AND reviewrejected = 0 AND processingsuccessful = 1 AND chat_messages.id > COALESCE(chat_roster.lastmsgseen, 0);";
+            $sql = "SELECT chat_messages.* FROM chat_messages 
+    LEFT JOIN chat_roster ON chat_roster.chatid = chat_messages.chatid AND chat_roster.userid = ?
+    INNER JOIN users ON users.id = chat_messages.userid                   
+    WHERE chat_messages.chatid IN ($idq) AND chat_messages.userid != ? AND reviewrequired = 0 
+    AND reviewrejected = 0 AND processingsuccessful = 1 AND chat_messages.id > COALESCE(chat_roster.lastmsgseen, 0)
+    AND users.deleted IS NULL;";
             $ret = $this->dbhr->preQuery($sql, [ $userid, $userid]);
         }
 
@@ -895,7 +900,13 @@ WHERE chat_rooms.id IN $idlist;";
         if ($chatids) {
             $activesince = date("Y-m-d", strtotime(ChatRoom::ACTIVELIM));
             $idq = implode(',', $chatids);
-            $sql = "SELECT COUNT(chat_messages.id) AS count FROM chat_messages LEFT JOIN chat_roster ON chat_roster.chatid = chat_messages.chatid AND chat_roster.userid = ? WHERE chat_messages.chatid IN ($idq) AND chat_messages.userid != ? AND reviewrequired = 0 AND reviewrejected = 0 AND processingsuccessful = 1 AND chat_messages.id > COALESCE(chat_roster.lastmsgseen, 0) AND chat_messages.date >= '$activesince';";
+            $sql = "SELECT COUNT(chat_messages.id) AS count FROM chat_messages 
+        LEFT JOIN chat_roster ON chat_roster.chatid = chat_messages.chatid AND chat_roster.userid = ? 
+        INNER JOIN users ON users.id = chat_messages.userid                   
+        WHERE chat_messages.chatid IN ($idq) AND chat_messages.userid != ? AND reviewrequired = 0 
+        AND reviewrejected = 0 AND processingsuccessful = 1 AND chat_messages.id > COALESCE(chat_roster.lastmsgseen, 0) 
+        AND chat_messages.date >= '$activesince'
+        AND users.deleted IS NULL;";
             $ret = $this->dbhr->preQuery($sql, [ $userid, $userid ])[0]['count'];
         }
 
