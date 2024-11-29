@@ -426,6 +426,9 @@ class API
                         case 'stripecreateintent':
                             $ret = stripecreateintent();
                             break;
+                        case 'stripecreatesubscription':
+                            $ret = stripecreatesubscription();
+                            break;
                         case 'echo':
                             $ret = array_merge($_REQUEST, $_SERVER);
                             break;
