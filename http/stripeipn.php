@@ -18,7 +18,7 @@ $input = @file_get_contents("php://input");
 $event = NULL;
 
 function log($str) {
-    file_put_contents('/tmp/stripeipn.out', date("d-m-Y h:i:s") . ':' . $str . "\n", FILE_APPEND);
+    file_put_contents('/var/www/stripeipn.out', date("d-m-Y h:i:s") . ':' . $str . "\n", FILE_APPEND);
 }
 
 log($input);
@@ -51,6 +51,8 @@ switch ($event->type) {
         $payment_method_details = $paymentIntent->payment_method_details;
         $payment_method = $payment_method_details ? $payment_method_details->type : NULL;
 
+        log("Charge succeeded for £$amount, method $payment_method");
+
         if ($amount) {
             if ($payment_method != 'paypal') {
                 $eid = $paymentIntent->metadata->uid;
@@ -59,15 +61,37 @@ switch ($event->type) {
                 $first = FALSE;
 
                 if ($eid) {
-                    $previous = $dbhr->preQuery("SELECT COUNT(*) AS count FROM users_donations WHERE userid = ?", [
+                    $previous = $dbhr->preQuery("SELECT COUNT(*) AS count FROM users_donations WHERE userid = ? AND TransactionType IN ('susbcr_payment', 'recurring_payment')", [
                         $eid
                     ]);
 
                     $first = $previous[0]['count'] == 0;
+                } else {
+                    # This can happen if we have a subscription.  In that case see if we have a customer and if
+                    # so get the user data from that.
+                    log("No user id for donation");
+
+                    if ($paymentIntent->customer) {
+                        $customer = \Stripe\Customer::retrieve($paymentIntent->customer);
+                        $eid = $customer->metadata->uid;
+                        log("User id from customer $eid");
+                        $u = User::get($dbhr, $dbhm, $eid);
+
+                        if ($eid && $u->getId() == $eid) {
+                            log("User id found");
+                        } else {
+                            # Try the customer billing mail.
+                            $email = $customer->email;
+                            $eid = $u->findByEmail($email);
+                            log("User id from email $eid");
+                        }
+                    }
                 }
 
+                $recurring = $paymentIntent->description == 'Subscription creation';
+
                 $d = new Donations($dbhr, $dbhm);
-                $d->add(
+                $did = $d->add(
                     $eid,
                     $u->getEmailPreferred(),
                     $u->getName(),
@@ -75,12 +99,10 @@ switch ($event->type) {
                     $paymentIntent->id,
                     $amount,
                     Donations::TYPE_STRIPE,
-                    NULL,
+                    $recurring ? 'subscr_payment' : NULL,
                     Donations::TYPE_STRIPE,
                 );
-
-                # TODO Recurring
-                $recurring = FALSE;
+                log("Added donation id $did");
 
                 $giftaid = $d->getGiftAid($u->getId());
 
@@ -92,6 +114,7 @@ switch ($event->type) {
 
                 # Don't ask for thanks for the PayPal Giving Fund transactions.  Do ask for first recurring or larger one-off.
                 if ((($recurring && $first) || (!$recurring && $amount >= Donations::MANUAL_THANKS))) {
+                    log('Request thanks');
                     $text = $u->getName() . " (" . $u->getEmailPreferred() . ") donated £{$amount} via Stripe.  Please can you thank them?";
 
                     if ($recurring) {
