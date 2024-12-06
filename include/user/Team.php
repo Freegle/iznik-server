@@ -3,7 +3,7 @@ namespace Freegle\Iznik;
 
 class Team extends Entity
 {
-    var $publicatts = array('id', 'name', 'description', 'type', 'email', 'active', 'wikiurl');
+    var $publicatts = array('id', 'name', 'description', 'type', 'email', 'active', 'wikiurl', 'supporttools');
     var $settableatts = array('name', 'description', 'email', 'wikiurl');
 
     const TEAM_BOARD = 'Board';
