@@ -163,7 +163,7 @@ class Notifications
                 $id = $this->dbhm->lastInsertId();
 
                 $p = new PushNotifications($this->dbhr, $this->dbhm);
-                $p->notify($to, Session::modtools());
+                $p->notify($to, FALSE);
             }
         }
 
