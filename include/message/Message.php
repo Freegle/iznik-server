@@ -5022,9 +5022,10 @@ $mq", [
     }
 
     public function removeExpiryOutcome() {
-        $this->dbhm->preExec("DELETE FROM messages_outcomes WHERE msgid = ? AND outcome = ?;", [
+        $this->dbhm->preExec("DELETE FROM messages_outcomes WHERE msgid = ? AND outcome IN (?, ?);", [
             $this->id,
-            Message::OUTCOME_EXPIRED
+            Message::OUTCOME_EXPIRED,
+            Message::OUTCOME_WITHDRAWN
         ]);
     }
 
