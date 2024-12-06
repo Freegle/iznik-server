@@ -11,7 +11,11 @@ global $dbhr, $dbhm;
 $start = date('Y-m-d', strtotime("midnight 31 days ago"));
 
 error_log("Query");
-$msgs = $dbhr->preQuery("SELECT messages.id, messages.date FROM messages LEFT JOIN messages_attachments ON messages_attachments.msgid = messages.id WHERE date >= '$start' AND fromaddr LIKE '%trashnothing%' AND message IS NOT NULL AND type IN ('Offer', 'Wanted') AND messages_attachments.msgid IS NULL ORDER BY messages.date DESC;");
+$msgs = $dbhr->preQuery("SELECT messages.id, messages.date FROM messages 
+    LEFT JOIN messages_attachments ON messages_attachments.msgid = messages.id
+    INNER JOIN messages_groups ON messages_groups.msgid = messages.id
+    WHERE date >= '$start' AND fromaddr LIKE '%trashnothing%' AND message IS NOT NULL AND type IN ('Offer', 'Wanted') 
+    AND messages_attachments.msgid IS NULL ORDER BY messages.date DESC;");
 $count = count($msgs);
 error_log("Got $count");
 
