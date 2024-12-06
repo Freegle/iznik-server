@@ -287,8 +287,8 @@ class Alert extends Entity
                                 $this->alert['subject'],
                                 $this->alert['html'] ? $this->alert['html'] : nl2br($this->alert['text']),
                                 NULL, # Should be $u->getUnsubLink(USER_SITE, $mod['userid']) once we go live TODO ,
-                                $this->alert['askclick'] ? 'https://' . USER_SITE . "/alert/viewed/$trackid" : NULL,
-                                'https://' . USER_SITE . "/beacon/$trackid",
+                                $this->alert['askclick'] ? 'https://' . MOD_SITE . "/alert/viewed/$trackid" : NULL,
+                                'https://' . MOD_SITE . "/beacon/$trackid",
                                 $global);
 
                             $text = $this->alert['text'];
