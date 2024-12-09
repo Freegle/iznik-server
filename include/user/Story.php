@@ -258,10 +258,13 @@ class Story extends Entity
         return($ret);
     }
 
-    public function askForStories($earliest, $userid = NULL, $outcomethreshold = Story::ASK_OUTCOME_THRESHOLD, $offerthreshold = Story::ASK_OFFER_THRESHOLD, $groupid = NULL) {
+    public function askForStories($earliest, $userid = NULL, $outcomethreshold = Story::ASK_OUTCOME_THRESHOLD, $offerthreshold = Story::ASK_OFFER_THRESHOLD, $groupid = NULL, $force = FALSE) {
         $userq = $userid ? " AND fromuser = $userid " : "";
         $groupq = $groupid ? " INNER JOIN messages_groups ON messages_groups.msgid = messages.id AND messages_groups.groupid = $groupid " : "";
-        $sql = "SELECT DISTINCT fromuser FROM messages $groupq LEFT OUTER JOIN users_stories_requested ON users_stories_requested.userid = messages.fromuser WHERE  messages.arrival > ? AND fromuser IS NOT NULL AND users_stories_requested.date IS NULL $userq;";
+        $forceq = $force ? '' : " AND users_stories_requested.date IS NULL ";
+        $sql = "SELECT DISTINCT fromuser FROM messages $groupq 
+            LEFT OUTER JOIN users_stories_requested ON users_stories_requested.userid = messages.fromuser 
+            WHERE messages.arrival > ? AND fromuser IS NOT NULL $forceq $userq;";
         $users = $this->dbhr->preQuery($sql, [ $earliest ]);
         $asked = 0;
 
