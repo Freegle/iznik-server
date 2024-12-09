@@ -4604,13 +4604,14 @@ FROM messages_groups INNER JOIN messages ON messages.id = messages_groups.msgid
 INNER JOIN users ON messages.fromuser = users.id
 INNER JOIN memberships ON memberships.userid = messages.fromuser AND memberships.groupid = messages_groups.groupid 
 LEFT OUTER JOIN messages_outcomes ON messages.id = messages_outcomes.msgid 
-LEFT OUTER JOIN messages_promises ON messages_promises.msgid = messages.id 
+LEFT OUTER JOIN messages_promises ON messages_promises.msgid = messages.id
 WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_groups.collection = 'Approved' 
   AND messages_outcomes.msgid IS NULL AND messages_promises.msgid IS NULL AND messages.type IN ('Offer', 'Wanted') 
   AND messages.source = ?
   AND messages.deleted IS NULL
   AND (memberships.ourPostingStatus IS NULL OR memberships.ourPostingStatus != ?)
-  AND users.deleted IS NULL $msgq;";
+  AND users.deleted IS NULL $msgq
+  AND (messages.deadline IS NULL OR messages.deadline > DATE(NOW()));";
                 #error_log("$sql, $mindate, {$group['id']}");
                 $messages = $this->dbhr->preQuery($sql, [
                     $mindate,

@@ -1138,5 +1138,39 @@ class messageTest extends IznikTestCase {
             ]
         ], $outcomes);
     }
+
+    public function testDeadlineRepost() {
+        $m = new Message($this->dbhr, $this->dbhm);
+
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $this->user->addEmail($email);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('test@test.com', $email, $msg);
+        $msg = str_replace('Basic test', 'OFFER: Test not due (Tuvalu High Street)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $this->user->addEmail($email);
+        list ($id1, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+        $m = new Message($this->dbhr, $this->dbhm, $id1);
+        $m->setPrivate('source', Message::PLATFORM);
+        $rc = $r->route();
+        $this->assertEquals(MailRouter::APPROVED, $rc);
+
+        $deadline = '2016-01-01';
+        $m->setPrivate('deadline', $deadline);
+
+        $this->log("Expect repost");
+        $mysqltime = date("Y-m-d H:i:s", strtotime('77 hours ago'));
+        $this->dbhm->preExec("UPDATE messages_groups SET arrival = '$mysqltime' WHERE msgid = ?;", [ $id1 ]);
+        $this->dbhm->preExec("UPDATE messages_groups SET lastautopostwarning = '2016-01-01' WHERE msgid = ?;", [ $id1 ]);
+
+        # No autorepost because past deadline.
+        list ($count, $warncount) = $m->autoRepostGroup(Group::GROUP_FREEGLE, '2016-01-01', $this->gid);
+        $this->assertEquals(0, $count);
+        $this->assertEquals(0, $warncount);
+    }
 }
 
