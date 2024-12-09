@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a5cf5607f1c333efc61655eccd212c93",
+    "content-hash": "cc0cfa9999b860aef8169327663bb6f6",
     "packages": [
         {
             "name": "beste/clock",
@@ -6817,6 +6817,46 @@
                 }
             ],
             "time": "2024-03-30T18:03:49+00:00"
+        },
+        {
+            "name": "stajor/perspectiveapi",
+            "version": "2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Stajor/perspectiveapi.git",
+                "reference": "40ab172c1c153b38abf881a41e6c5811b652655d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Stajor/perspectiveapi/zipball/40ab172c1c153b38abf881a41e6c5811b652655d",
+                "reference": "40ab172c1c153b38abf881a41e6c5811b652655d",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "guzzlehttp/guzzle": "^7.0",
+                "php": ">=8.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^11.0",
+                "vlucas/phpdotenv": "^5.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "PerspectiveApi\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "What if technology could help improve conversations online",
+            "support": {
+                "issues": "https://github.com/Stajor/perspectiveapi/issues",
+                "source": "https://github.com/Stajor/perspectiveapi/tree/2.0.0"
+            },
+            "time": "2024-02-14T15:15:18+00:00"
         },
         {
             "name": "stella-maris/clock",

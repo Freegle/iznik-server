@@ -46,7 +46,8 @@
     "prewk/xml-string-streamer": "^1.2",
     "sentry/sdk": "^3.1",
     "cweagans/composer-patches": "^1.7",
-    "stripe/stripe-php": "^16.2"
+    "stripe/stripe-php": "^16.2",
+    "stajor/perspectiveapi": "^2.0"
   },
   "repositories": [
     {

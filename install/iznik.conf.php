@@ -38,6 +38,7 @@ define('GOOGLE_CLIENT_ID', 'zzz');
 define('GOOGLE_CLIENT_SECRET', 'zzz');
 define('GOOGLE_APP_NAME', 'zzz');
 define('GOOGLE_SITE_VERIFICATION', 'zzz');
+define('GOOGLE_PERSPECTIVE_KEY', 'zzz');
 
 # Yahoo App keys
 define('YAHOO_APPID', 'zzz');
