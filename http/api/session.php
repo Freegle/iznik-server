@@ -120,6 +120,8 @@ function session() {
 
                         # The trust level for this user, as used by microvolunteering.
                         $ret['me']['trustlevel'] = $me->getPrivate('trustlevel');
+
+                        $ret['me']['source'] = $me->getPrivate('source');
                     }
 
                     $ret['persistent'] = Utils::presdef('persistent', $_SESSION, NULL);
@@ -602,7 +604,11 @@ function session() {
                 $lastname = Utils::presdef('lastname', $_REQUEST, NULL);
                 $password = Utils::presdef('password', $_REQUEST, NULL);
                 $key = Utils::presdef('key', $_REQUEST, NULL);
+                $source = Utils::presdef('source', $_REQUEST, NULL);
 
+                if ($source) {
+                    $me->setPrivate('source', $source);
+                }
                 if ($firstname) {
                     $me->setPrivate('firstname', $firstname);
                 }
