@@ -115,6 +115,7 @@ function stories() {
 
         case 'PATCH': {
             $ret = ['ret' => 2, 'status' => 'Permission denied'];
+
             if ($s->canMod()) {
                 $newsfeedbefore = $s->getPrivate('reviewed') && $s->getPrivate('public');
                 $s->setAttributes($_REQUEST);
@@ -125,8 +126,8 @@ function stories() {
 
                 $newsfeedafter = $s->getPrivate('reviewed') && $s->getPrivate('public');
 
-                if (!$newsfeedbefore && $newsfeedafter) {
-                    # We have reviewed a public story.  We can push it to the newsfeed.
+                if (!$newsfeedbefore && $newsfeedafter && !$s->getPrivate('fromnewsfeed')) {
+                    # We have reviewed a public story which wasn't originally on the newsfeed.  We can push it to the newsfeed.
                     $n = new Newsfeed($dbhr, $dbhm);
                     $n->create(Newsfeed::TYPE_STORY, $s->getPrivate('userid'), NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, $s->getPrivate('id'));
                 }

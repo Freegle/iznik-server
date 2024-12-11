@@ -1178,7 +1178,14 @@ class Newsfeed extends Entity
     public function convertToStory($newsfeedid) {
         $n = new Newsfeed($this->dbhr, $this->dbhm, $newsfeedid);
         $s = new Story($this->dbhr, $this->dbhm);
-        return $s->create($n->getPrivate('userid'), TRUE, 'My Freegle story', $n->getPrivate('message'), NULL);
+        $id = $s->create($n->getPrivate('userid'), TRUE, 'My Freegle story', $n->getPrivate('message'), NULL);
+
+        if ($id) {
+            $s->setPrivate('fromnewsfeed', TRUE);
+            $n->setPrivate('type', Newsfeed::TYPE_STORY);
+        }
+
+        return $id;
     }
 
     public function hide($newsfeedid) {

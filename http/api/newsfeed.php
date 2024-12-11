@@ -208,7 +208,9 @@ function newsfeed() {
                         'status' => 'Permission denied'
                     ];
                     $me = Session::whoAmI($dbhr, $dbhm);
+                    error_log("Convert to story?");
                     if ($me && $me->isModerator()) {
+                        error_log("Do it");
                         $retid = $n->convertToStory($id);
 
                         $ret = [

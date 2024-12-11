@@ -1033,6 +1033,12 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         $this->assertEquals(0, $ret['ret']);
         $this->assertGreaterThan(0, $ret['id']);
+
+        # Newsfeed entry should now be of type story.
+        $ret = $this->call('newsfeed', 'GET', [
+            'id' => $nid
+        ]);
+        $this->assertEquals(Newsfeed::TYPE_STORY, $ret['newsfeed']['type']);
     }
 //
 //    public function testEH() {

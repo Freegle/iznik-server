@@ -39,6 +39,12 @@ class storiesAPITest extends IznikAPITestCase {
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
         $u->addMembership($this->groupid);
 
+        $u->setSetting('mylocation', [
+            'lng' => 179.2167,
+            'lat' => 8.53333,
+            'name' => 'TV13 1HH'
+        ]);
+
         # Create logged out - should fail
         $ret = $this->call('stories', 'PUT', [
             'headline' => 'Test',
@@ -106,6 +112,12 @@ class storiesAPITest extends IznikAPITestCase {
             'public' => 1
         ]);
         $this->assertEquals(0, $ret['ret']);
+
+        # This should have created a newsfeed entry.
+        $nf = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM newsfeed WHERE storyid = ?", [
+            $id
+        ]);
+        $this->assertEquals(1, $nf[0]['count']);
 
         # Get logged out - should work.
         $_SESSION['id'] = NULL;
