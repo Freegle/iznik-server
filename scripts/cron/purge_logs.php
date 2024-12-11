@@ -243,7 +243,7 @@ $keys = [
 //}
 
 # Src logs.
-$start = date('Y-m-d', strtotime("midnight 30 days ago"));
+$start = date('Y-m-d', strtotime("midnight 365 days ago"));
 error_log("Purge src logs before $start");
 
 try {
