@@ -1183,6 +1183,7 @@ class Newsfeed extends Entity
         if ($id) {
             $s->setPrivate('fromnewsfeed', TRUE);
             $n->setPrivate('type', Newsfeed::TYPE_STORY);
+            $n->setPrivate('storyid', $id);
         }
 
         return $id;
