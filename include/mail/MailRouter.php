@@ -1555,4 +1555,9 @@ class MailRouter
 
         return $ret;
     }
+
+    public function setLatLng($lat, $lng) {
+        $this->msg->setPrivate('lat', $lat);
+        $this->msg->setPrivate('lng', $lng);
+    }
 }

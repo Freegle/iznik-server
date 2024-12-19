@@ -188,11 +188,14 @@ class groupTest extends IznikTestCase
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
-        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
+        $msg = str_replace('Basic test', 'OFFER: Test item (TV13)', $msg);
         $msg = str_replace("Hey", "Hey {{username}}", $msg);
 
         $r = new MailRouter($this->dbhm, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
+
+        $r->setLatLng(8.55, 179.26);
+
         $this->assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
@@ -206,8 +209,6 @@ class groupTest extends IznikTestCase
 
         # Add a message but no Facebook links.
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        $m->setPrivate('lat', 8.55);
-        $m->setPrivate('lng', 179.26);
         $m->like($m->getFromuser(), Message::LIKE_VIEW);
         $this->waitBackground();
         $g->findPopularMessages();
