@@ -80,6 +80,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        $r->setLatLng(8.55, 179.26);
         $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -103,6 +104,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        $r->setLatLng(8.55, 179.26);
         $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -142,6 +144,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        $r->setLatLng(8.55, 179.26);
         $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -165,6 +168,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        $r->setLatLng(8.55, 179.26);
         $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -204,6 +208,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        $r->setLatLng(8.55, 179.26);
         $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -239,6 +244,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        $r->setLatLng(8.55, 179.26);
         $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -264,6 +270,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        $r->setLatLng(8.55, 179.26);
         $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -285,6 +292,7 @@ class chatMessagesTest extends IznikTestCase {
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        $r->setLatLng(8.55, 179.26);
         $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -359,6 +367,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        $r->setLatLng(8.55, 179.26);
         $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -383,6 +392,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        $r->setLatLng(8.55, 179.26);
         $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -402,6 +412,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = str_replace('OFFER: a test item (location)', 'OFFER: A spade and broom handle (Conniburrow MK14', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         list ($refmsgid1, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        $r->setLatLng(8.55, 179.26);
         $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -410,6 +421,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = str_replace('OFFER: a test item (location)', 'Wanted: bike (Conniburrow MK14', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         list ($refmsgid2, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        $r->setLatLng(8.55, 179.26);
         $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -524,6 +536,7 @@ class chatMessagesTest extends IznikTestCase {
        list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $m = new Message($this->dbhr, $this->dbhm, $refmsgid);
         $fromuid = $m->getFromuser();
+        $r->setLatLng(8.55, 179.26);
         $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -588,6 +601,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         list ($refmsgid1, $failok) = $r->received(Message::EMAIL, 'test1@test.com', 'to@test.com', $msg);
+        $r->setLatLng(8.55, 179.26);
         $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -596,6 +610,7 @@ class chatMessagesTest extends IznikTestCase {
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
         list ($refmsgid2, $failok) = $r->received(Message::EMAIL, 'test2@test.com', 'to@test.com', $msg);
+        $r->setLatLng(8.55, 179.26);
         $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -671,6 +686,7 @@ class chatMessagesTest extends IznikTestCase {
         $r = new MailRouter($this->dbhr, $this->dbhm);
         list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
         $m = new Message($this->dbhr, $this->dbhm, $refmsgid);
+        $r->setLatLng(8.55, 179.26);
         $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
