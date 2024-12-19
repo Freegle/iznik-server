@@ -1082,10 +1082,14 @@ class MailRouter
                             $appmemb = $u->isApprovedMember($group['groupid']);
                             $ourPS = $u->getMembershipAtt($group['groupid'], 'ourPostingStatus');
 
-                            if ($ourPS == Group::POSTING_PROHIBITED)
-                            {
-                                if ($log) { error_log("Prohibited, drop"); }
+                            if ($ourPS == Group::POSTING_PROHIBITED) {
+                                if ($log) {
+                                    error_log("Prohibited, drop");
+                                }
                                 $ret = MailRouter::DROPPED;
+                            } else if (!$this->msg->getPrivate('lat') && !$this->msg->getPrivate('lng')) {
+                                if ($log) { error_log("Not mapped, route to Pending"); }
+                                $ret = MailRouter::PENDING;
                             } else if (!$notspam && $appmemb && $worry)
                             {
                                 if ($log) { error_log("Worrying => pending"); }
