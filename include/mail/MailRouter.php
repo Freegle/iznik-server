@@ -1087,7 +1087,7 @@ class MailRouter
                                     error_log("Prohibited, drop");
                                 }
                                 $ret = MailRouter::DROPPED;
-                            } else if (!$this->msg->getPrivate('lat') && !$this->msg->getPrivate('lng')) {
+                            } else if (!getenv('NO_UNMAPPED_TO_PENDING') && !$this->msg->getPrivate('lat') && !$this->msg->getPrivate('lng')) {
                                 if ($log) { error_log("Not mapped, route to Pending"); }
                                 $ret = MailRouter::PENDING;
                             } else if (!$notspam && $appmemb && $worry)

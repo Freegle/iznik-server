@@ -3,6 +3,7 @@ jobs:
   build:
     environment:
       - STANDALONE=TRUE
+      - NO_UNMAPPED_TO_PENDING=TRUE
       - XDEBUG_MODE=coverage
     docker:
       - image: cimg/php:8.1.12-node
