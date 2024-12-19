@@ -8,7 +8,14 @@ global $dbhr, $dbhm;
 
 $l = new Location($dbhm, $dbhm);
 
-$users = $dbhr->preQuery("SELECT DISTINCT(userid) FROM users INNER JOIN chat_messages ON chat_messages.userid = users.id WHERE users.lastaccess < chat_messages.date AND TIMESTAMPDIFF(SECOND, users.lastaccess, chat_messages.date) > 600;");
+# This is a fallback script for setting lastaccess.  Look for recent chat messages or recent memberships.
+$users = $dbhr->preQuery("SELECT DISTINCT(userid) FROM (SELECT DISTINCT(userid) FROM users 
+    INNER JOIN chat_messages ON chat_messages.userid = users.id 
+    WHERE users.lastaccess < chat_messages.date AND TIMESTAMPDIFF(SECOND, users.lastaccess, chat_messages.date) > 600
+    UNION
+    SELECT DISTINCT(userid) FROM memberships
+    INNER JOIN users ON users.id = memberships.userid
+    WHERE TIMESTAMPDIFF(SECOND, users.lastaccess, memberships.added) > 600) t;");
 
 error_log("Got " . count($users));
 
@@ -16,7 +23,11 @@ $count = 0;
 $real = 0;
 
 foreach ($users as $user) {
-    $chats = $dbhr->preQuery("SELECT MAX(date) AS max FROM chat_messages WHERE userid = ?;", [
+    $chats = $dbhr->preQuery("SELECT GREATEST(
+(SELECT MAX(date) AS date FROM chat_messages WHERE userid = ?), 
+(SELECT MAX(added) AS added FROM memberships WHERE userid = ?)
+    ) AS max;", [
+        $user['userid'],
         $user['userid']
     ]);
 
