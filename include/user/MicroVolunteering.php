@@ -477,6 +477,7 @@ class MicroVolunteering
         AND microactions.id IS NULL
         AND (microvolunteeringoptions IS NULL OR JSON_EXTRACT(microvolunteeringoptions, '$.approvedmessages') = 1)
         AND collection = ?
+        AND autoreposts = 0
     ORDER BY messages_groups.arrival ASC LIMIT 1",
             [
                 $userid,
@@ -537,6 +538,7 @@ class MicroVolunteering
         AND microactions.id IS NULL
         AND (microvolunteeringoptions IS NULL OR JSON_EXTRACT(microvolunteeringoptions, '$.approvedmessages') = 1)
         AND collection = ?
+        AND autoreposts = 0
     HAVING approvalcount < ? AND reviewcount < ?
     ORDER BY messages_groups.arrival ASC LIMIT 1",
                 [
