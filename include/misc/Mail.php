@@ -53,6 +53,7 @@ class Mail {
     const REPORTED_NEWSFEED = 50;
     const CALENDAR = 51;
     const FBL_OFF = 52;
+    const PLEDGE_SIGNUP = 53;
 
     const DESCRIPTIONS = [
         Mail::DIGEST => 'Digest',

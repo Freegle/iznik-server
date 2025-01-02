@@ -1,0 +1,60 @@
+<mjml>
+  <mj-head>
+    <mj-preview></mj-preview>
+    <mj-style>a {
+      color: #288c0a;
+      text-decoration: none;
+      font-weight: bold
+      }
+      ol {
+      margin-top: 0; margin-bottom: 0;
+      /* margin-left: 2.2em; For Outlook */
+      padding-left: 2.4em; /* For the rest */
+      }
+      li {
+      margin: 0.5em 0;
+      }</mj-style>
+    <mj-attributes>
+      <mj-all font-family="Trebuchet MS, Helvetica, Arial"></mj-all>
+    </mj-attributes>
+  </mj-head>
+  <mj-body>
+    <mj-wrapper padding="0px" full-width="full-width">
+      <mj-raw>
+        <!-- header section -->
+      </mj-raw>
+      <mj-section background-url="https://www.ilovefreegle.org/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0px">
+        <mj-group>
+          <mj-column vertical-align="middle" width="100%">
+	          <mj-image src="https://www.ilovefreegle.org/pledge2025/signup.jpeg"  alt="" align="center" border="none"></mj-image>
+          </mj-column>
+        </mj-group>
+      </mj-section>
+      <mj-section background-color="#F7F6EC">
+        <mj-column>
+          <mj-text>
+            <h1>Thanks for signing the Freegle pledge!</h1>
+            <p>
+             Happy New Year - and you have made that even more likely by kindly signing up to the Freegle Pledge.
+            </p>
+            <p>
+We will be in touch soon and regularly throughout the year.  Good luck with freegling your unloved things that will go on to be loved again in their next home!
+            </p>
+            <p>
+            But you don't need to wait - you can offer up that first extra item for January now, if you've not already!
+            </p>
+          </mj-text>
+          <mj-button href="https://www.ilovefreegle.org/give" background-color="#325906" color="white" padding="20px 20px 30px 20px" border-radius="20px">POST JANUARY'S OFFER</mj-button>
+        </mj-column>
+      </mj-section>
+        <mj-section background-color="#E0E0E0">
+          <mj-column>
+            <mj-text font-size="9px" color="#707070">This mail was sent to&nbsp;{{ email }}. You can change your settings by clicking <a href="https://www.ilovefreegle.org/settings">here</a>.
+              <hr style="border: 0; border-top: 1px solid #AAA; " />
+              Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.  Registered address: Weaver's Field, Loud Bridge, Chipping PR3 2NX
+            </mj-text>
+          </mj-column>
+        </mj-section>
+    </mj-wrapper>
+  </mj-body>
+</mjml>
