@@ -160,8 +160,13 @@ class Dashboard {
 
         # We also want to get the recent outcomes, where we know them.
         $mysqltime = date("Y-m-d", strtotime("Midnight 30 days ago"));
-        $outcomes = $this->dbhr->preQuery("SELECT msgtype, messages_outcomes.outcome, COUNT(*) AS count FROM messages_groups INNER JOIN messages_outcomes ON messages_outcomes.msgid = messages_groups.msgid WHERE messages_groups.arrival >= ? AND groupid IN (" . implode(',', $groupids) . ") GROUP BY outcome, msgtype;", [
-            $mysqltime
+        $outcomes = $this->dbhr->preQuery("SELECT msgtype, messages_outcomes.outcome, COUNT(*) AS count FROM messages_groups 
+             INNER JOIN messages_outcomes ON messages_outcomes.msgid = messages_groups.msgid 
+            WHERE messages_groups.arrival >= ? AND groupid IN (" . implode(',', $groupids) . ") 
+            AND outcome != ? AND (comments IS NULL OR comments != 'Auto-expired') 
+            GROUP BY outcome, msgtype;", [
+            $mysqltime,
+            Message::OUTCOME_EXPIRED
         ]);
 
         foreach ([Message::TYPE_OFFER, Message::TYPE_WANTED] as $type) {
