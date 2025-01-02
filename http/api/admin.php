@@ -61,6 +61,7 @@ function admin() {
                     $text = Utils::presdef('text', $_REQUEST, NULL);
                     $ctatext = Utils::presdef('ctatext', $_REQUEST, NULL);
                     $ctalink = Utils::presdef('ctalink', $_REQUEST, NULL);
+                    $essential = Utils::presbool('essential', $_REQUEST, FALSE);
 
                     # Admin and Support can create suggested admins, which aren't attached to a group.
                     if ($me->isAdminOrSupport() || $me->isModOrOwner($groupid)) {
@@ -69,7 +70,7 @@ function admin() {
                         # Admins can send to all groups.
                         $groupid = $groupid ? $groupid : ($me->isAdminOrSupport() ? NULL : 0);
 
-                        $aid = $a->create($groupid, $me->getId(), $subject, $text, $ctatext, $ctalink);
+                        $aid = $a->create($groupid, $me->getId(), $subject, $text, $ctatext, $ctalink, NULL, $essential);
 
                         if ($aid) {
                             $ret = [

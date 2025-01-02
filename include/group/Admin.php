@@ -8,8 +8,8 @@ class Admin extends Entity
     const SPOOLNAME = '/spool_admin_';
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'groupid', 'created', 'complete', 'subject', 'text', 'ctatext', 'ctalink', 'createdby', 'pending', 'parentid', 'heldby', 'heldat', 'activeonly', 'sendafter');
-    var $settableatts = [ 'subject', 'text', 'pending', 'ctatext', 'ctalink', 'sendafter' ];
+    var $publicatts = array('id', 'groupid', 'created', 'complete', 'subject', 'text', 'ctatext', 'ctalink', 'createdby', 'pending', 'parentid', 'heldby', 'heldat', 'activeonly', 'sendafter', 'essential');
+    var $settableatts = [ 'subject', 'text', 'pending', 'ctatext', 'ctalink', 'sendafter', 'essential' ];
 
     /** @var  $log Log */
     private $log;
@@ -20,11 +20,11 @@ class Admin extends Entity
         $this->log = new Log($dbhr, $dbhm);
     }
 
-    public function create($groupid, $createdby, $subject, $text, $ctatext = NULL, $ctalink = NULL, $sendafter = NULL) {
+    public function create($groupid, $createdby, $subject, $text, $ctatext = NULL, $ctalink = NULL, $sendafter = NULL, $essential = TRUE) {
         $id = NULL;
 
-        $rc = $this->dbhm->preExec("INSERT INTO admins (`groupid`, `createdby`, `subject`, `text`, `ctatext`, `ctalink`, `sendafter`) VALUES (?,?,?,?,?,?,?);", [
-            $groupid, $createdby, $subject, $text, $ctatext, $ctalink, $sendafter
+        $rc = $this->dbhm->preExec("INSERT INTO admins (`groupid`, `createdby`, `subject`, `text`, `ctatext`, `ctalink`, `sendafter`, `essential`) VALUES (?,?,?,?,?,?,?,?);", [
+            $groupid, $createdby, $subject, $text, $ctatext, $ctalink, $sendafter, $essential
         ]);
 
         if ($rc) {
@@ -33,7 +33,6 @@ class Admin extends Entity
         }
 
         $n = new PushNotifications($this->dbhr, $this->dbhm);
-        error_log("Admin notify $groupid");
         $n->notifyGroupMods($groupid);
 
         return($id);
@@ -59,7 +58,7 @@ class Admin extends Entity
         return($atts);
     }
 
-    public function constructMessage($groupname, $modsmail, $to, $toname, $from, $subject, $text, $sponsors, $ctatext, $ctalink) {
+    public function constructMessage($groupname, $modsmail, $to, $toname, $from, $subject, $text, $sponsors, $ctatext, $ctalink, $essential) {
         $post = "https://" . USER_SITE;
         $unsubscribe = "https://" . USER_SITE . "/unsubscribe";
         $visit = "https://" .  USER_SITE . "/browse";
@@ -82,7 +81,7 @@ class Admin extends Entity
         $html = $twig->render('admin.html', [
             'email' => $to,
             'visit' => $visit,
-            'subject' => "ADMIN: $subject",
+            'subject' => $essential ? "ADMIN: $subject" : "NEWSLETTER: $subject",
             'textbody' => $text,
             'groupname' => $groupname,
             'unsubscribe' => "https://" . USER_SITE . "/unsubscribe",
@@ -156,7 +155,7 @@ class Admin extends Entity
         $modsmail = $atts['modsemail'];
         $userq = $userid ? " AND userid = $userid " : '';
 
-        $sql = "SELECT userid FROM memberships WHERE groupid = ? $userq;";
+        $sql = "SELECT userid, relevantallowed FROM memberships INNER JOIN users ON users.id = memberships.userid WHERE groupid = ? $userq;";
         $members = $this->dbhr->preQuery($sql, [ $groupid ]);
         $skipped = 0;
 
@@ -167,6 +166,12 @@ class Admin extends Entity
 
             if ($this->admin['activeonly'] && strtotime($u->getPrivate('lastaccess')) < $lastaccess) {
                 # Not active recently - we want to skip this one.
+                $skipped++;
+                continue;
+            }
+
+            if (!$this->admin['essential'] && !$member['relevantallowed']) {
+                # Not relevant - we want to skip this one.
                 $skipped++;
                 continue;
             }
@@ -202,7 +207,9 @@ class Admin extends Entity
                                                    $this->admin['text'],
                                                    $g->getSponsorships(),
                                                    $this->admin['ctatext'],
-                                                   $this->admin['ctalink']);
+                                                   $this->admin['ctalink'],
+                                                   $this->admin['essential']
+                    );
 
                     Mail::addHeaders($this->dbhr, $this->dbhm, $msg, Mail::ADMIN, $u->getId());
 
@@ -247,7 +254,7 @@ class Admin extends Entity
         # We have a suggested admin, and we want to create a per-group copy.  This allows local groups to
         # edit/approve/reject as they see fit.
         $a = new Admin($this->dbhr, $this->dbhm);
-        $id = $a->create($groupid, NULL, $this->admin['subject'], $this->admin['text'], $this->admin['ctatext'], $this->admin['ctalink'], $this->admin['sendafter']);
+        $id = $a->create($groupid, NULL, $this->admin['subject'], $this->admin['text'], $this->admin['ctatext'], $this->admin['ctalink'], $this->admin['sendafter'], $this->admin['essential']);
 
         if ($id) {
             $a->setPrivate('parentid', $this->id);

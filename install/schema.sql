@@ -200,6 +200,7 @@ CREATE TABLE `admins` (
   `heldat` timestamp NULL DEFAULT NULL,
   `activeonly` tinyint(1) NOT NULL DEFAULT '0',
   `sendafter` timestamp NULL DEFAULT NULL,
+  `essential` BOOLEAN NOT NULL DEFAULT TRUE,
   PRIMARY KEY (`id`),
   KEY `groupid` (`groupid`),
   KEY `createdby` (`createdby`),
