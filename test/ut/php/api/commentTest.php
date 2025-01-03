@@ -116,6 +116,7 @@ class commentAPITest extends IznikAPITestCase {
         $this->assertEquals(2, $ret['ret']);
 
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
+        $_SESSION['supportAllowed'] = TRUE;
         $ret = $this->call('comment', 'POST', [
             'userid' => $this->uid2,
             'user1' => 'Test comment',

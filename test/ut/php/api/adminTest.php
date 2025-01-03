@@ -179,6 +179,7 @@ class adminAPITest extends IznikAPITestCase
         $this->user2->addMembership($this->groupid2, User::ROLE_MODERATOR);
         $this->user2->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
         $this->assertTrue($this->user2->login('testpw'));
+        $_SESSION['supportAllowed'] = TRUE;
 
         $admindata['dup']++;
         $ret = $this->call('admin', 'POST', $admindata);
@@ -218,6 +219,7 @@ class adminAPITest extends IznikAPITestCase
         $this->user2->addMembership($this->groupid2, User::ROLE_MODERATOR);
         $this->user2->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
         $this->assertTrue($this->user2->login('testpw'));
+        $_SESSION['supportAllowed'] = TRUE;
 
         $admindata['dup']++;
         $ret = $this->call('admin', 'POST', $admindata);
@@ -234,6 +236,7 @@ class adminAPITest extends IznikAPITestCase
         # Now approve it on first group and send - no recently active so none sent.
         $this->user->setPrivate('lastaccess', date("Y-m-d", strtotime("one year ago")));
         $this->assertTrue($this->user2->login('testpw'));
+        $_SESSION['supportAllowed'] = TRUE;
         $ret = $this->call('admin', 'PATCH', [ 'id' => $pergroup1, 'pending' => 0 ]);
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals(0, $a->process($pergroup1, TRUE));

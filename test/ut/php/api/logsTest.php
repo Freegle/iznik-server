@@ -150,6 +150,7 @@ class logsAPITest extends IznikAPITestCase
         $uid2 = $u->create(NULL, NULL, 'Test User');
         $u->setPrivate('systemrole', USer::SYSTEMROLE_ADMIN);
         $_SESSION['id'] = $uid2;
+        $_SESSION['supportAllowed'] = TRUE;
 
         $ret = $this->call('logs', 'GET', [
             'logtype' => 'messages',

@@ -65,6 +65,7 @@ class alertAPITest extends IznikAPITestCase
 
         # Can create as support.
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
+        $_SESSION['supportAllowed'] = TRUE;
         $alertdata['dup'] = 2;
         $ret = $this->call('alert', 'PUT', $alertdata);
         $this->log("Got result " . var_export($ret, TRUE));

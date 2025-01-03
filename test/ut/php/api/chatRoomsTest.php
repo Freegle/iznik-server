@@ -437,6 +437,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         $u1->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
         $this->assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($u1->login('testpw'));
+        $_SESSION['supportAllowed'] = TRUE;
         $ret = $this->call('user', 'GET', [
             'search' => $u1->getId()
         ]);

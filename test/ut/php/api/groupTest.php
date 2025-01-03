@@ -277,6 +277,7 @@ class groupAPITest extends IznikAPITestCase {
         # And again but with support status so it goes through.
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
         $this->assertTrue($this->user->login('testpw'));
+        $_SESSION['supportAllowed'] = TRUE;
 
         $ret = $this->call('group', 'POST', [
             'action' => 'ConfirmKey',
