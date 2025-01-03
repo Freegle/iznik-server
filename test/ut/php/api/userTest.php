@@ -365,6 +365,7 @@ class userAPITest extends IznikAPITestCase {
         $this->assertEquals(2, $ret['ret']);
 
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
+        $_SESSION['supportAllowed'] = TRUE;
 
         $ret = $this->call('user', 'PATCH', [
             'id' => $this->uid,
