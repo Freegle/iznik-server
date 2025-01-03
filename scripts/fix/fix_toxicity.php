@@ -23,6 +23,7 @@ foreach ($newsfeeds as $newsfeed) {
             $commentsClient = new \PerspectiveApi\CommentsClient(GOOGLE_PERSPECTIVE_KEY);
             $commentsClient->comment(['text' => $newsfeed['message']]);
             $commentsClient->languages(['en']);
+            $commentsClient->doNotStore(TRUE);
             $commentsClient->context(['entries' => ['text' => 'off-topic', 'type' => 'PLAIN_TEXT']]);
             $commentsClient->requestedAttributes([
                 'TOXICITY' => ['scoreType' => 'PROBABILITY', 'scoreThreshold' => 0],
@@ -62,7 +63,7 @@ foreach ($newsfeeds as $newsfeed) {
         }
     } while ($sleep);
 
-    if ($tox > 0.3) {
+    if ($tox > 0.4) {
         error_log("$tox for " . $newsfeed['id'] . " " . $newsfeed['message']);
         $results[] = [
             'id' => $newsfeed['id'],
