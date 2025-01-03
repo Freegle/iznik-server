@@ -2731,7 +2731,14 @@ class User extends Entity
 
     public function isAdminOrSupport()
     {
-        return ($this->user['systemrole'] == User::SYSTEMROLE_ADMIN || $this->user['systemrole'] == User::SYSTEMROLE_SUPPORT);
+        $ret = ($this->user['systemrole'] == User::SYSTEMROLE_ADMIN || $this->user['systemrole'] == User::SYSTEMROLE_SUPPORT);
+
+        # Use array_key_exists so that old sessions which predate this fix can continue.  Prevents shock of the new.
+        if ($ret && array_key_exists('supportAllowed', $_SESSION) && !$_SESSION['supportAllowed']) {
+            $ret = FALSE;
+        }
+
+        return $ret;
     }
 
     public function isModerator()

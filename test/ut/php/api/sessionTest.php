@@ -439,6 +439,7 @@ class sessionTest extends IznikAPITestCase
             'password' => 'testpw'
         ]);
         $this->assertEquals(0, $ret['ret']);
+        $_SESSION['supportAllowed'] = TRUE;
 
         $ret = $this->call('session', 'GET', []);
         $this->assertEquals(0, $ret['ret']);
@@ -1099,5 +1100,31 @@ class sessionTest extends IznikAPITestCase
         # But hasn't in fact got a session.
         $ret = $this->call('session', 'GET', []);
         $this->assertEquals(1, $ret['ret']);
+    }
+
+    public function testSupportSecureLogin() {
+        # Create a user with support tools access.
+        $u = User::get($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $this->assertNotNull($u->addEmail('test123@test.com'));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
+
+        # Login native.
+        $ret = $this->call('session', 'POST', [
+            'email' => 'test123@test.com',
+            'password' => 'testpw'
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+
+        $ret = $this->call('session', 'GET', []);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(User::SYSTEMROLE_MODERATOR, $ret['me']['systemrole']);
+        $this->assertTrue($ret['me']['supportdisabled']);
+
+        $_SESSION['supportAllowed'] = TRUE;
+        $ret = $this->call('session', 'GET', []);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(User::SYSTEMROLE_SUPPORT, $ret['me']['systemrole']);
     }
 }

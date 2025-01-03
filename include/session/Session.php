@@ -211,7 +211,7 @@ class Session {
         $this->dbhm = $dbhm;
     }
 
-    public function create($userid) {
+    public function create($userid, $supportAllowed = FALSE) {
         # Spammers can't create sessions, but we make it look as though they did.
         $s = new Spam($this->dbhr, $this->dbhm);
 
@@ -240,6 +240,7 @@ class Session {
             $_SESSION['id'] = $userid;
             #error_log("Created session for $userid in " . session_id());
             $_SESSION['logged_in'] = TRUE;
+            $_SESSION['supportAllowed'] = $supportAllowed;
 
             $_SESSION['persistent'] = [
                 'id' => $id,

@@ -190,7 +190,7 @@ class Google
                 {
                     # We are logged in.
                     $s = new Session($this->dbhr, $this->dbhm);
-                    $s->create($id);
+                    $s->create($id, TRUE);
 
                     User::clearCache($id);
 

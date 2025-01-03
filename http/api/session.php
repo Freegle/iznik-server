@@ -108,6 +108,12 @@ function session() {
                         $ret['me']['lat'] = $loc[1];
                         $ret['me']['lng'] = $loc[2];
 
+                        # If we've not logged in with a secure login mechanism then we can't access Support.
+                        if (!$me->isAdminOrSupport() && ($ret['me']['systemrole'] == User::SYSTEMROLE_SUPPORT || $ret['me']['systemrole'] == User::SYSTEMROLE_ADMIN)) {
+                            $ret['me']['systemrole'] = User::ROLE_MODERATOR;
+                            $ret['me']['supportdisabled'] = TRUE;
+                        }
+
                         if (Utils::pres('profile', $ret['me']) && Utils::pres('url', $ret['me']['profile']) && strpos($ret['me']['profile']['url'], IMAGE_DOMAIN) !== FALSE) {
                             $ret['me']['profile']['ours'] = TRUE;
                         }
