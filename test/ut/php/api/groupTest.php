@@ -180,6 +180,7 @@ class groupAPITest extends IznikAPITestCase {
 
         # Support attributes
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
+        $_SESSION['supportAllowed'] = TRUE;
         $ret = $this->call('group', 'PATCH', [
             'id' => $this->groupid,
             'lat' => 10

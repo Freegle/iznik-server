@@ -489,6 +489,7 @@ class userAPITest extends IznikAPITestCase {
         $this->assertEquals(2, $ret['ret']);
 
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
+        $_SESSION['supportAllowed'] = TRUE;
 
         $ret = $this->call('user', 'DELETE', [
             'id' => $uid
@@ -499,6 +500,7 @@ class userAPITest extends IznikAPITestCase {
 
     public function testSupportSearch() {
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
+        $_SESSION['supportAllowed'] = TRUE;
         $this->assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MEMBER));
 
         # Search across all groups.
@@ -811,6 +813,7 @@ class userAPITest extends IznikAPITestCase {
         $au->setPrivate("systemrole", User::SYSTEMROLE_ADMIN);
         $this->assertGreaterThan(0, $au->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($au->login('testpw'));
+        $_SESSION['supportAllowed'] = TRUE;
 
         $ret = $this->call('user', 'POST', [
             'id' => $this->user->getId(),
@@ -1135,6 +1138,7 @@ class userAPITest extends IznikAPITestCase {
         # Support should be able to.
         $u = new User($this->dbhr, $this->dbhm, $mod);
         $this->assertTrue($u->login('testpw'));
+        $_SESSION['supportAllowed'] = TRUE;
         $ret = $this->call('user', 'POST', [
             'id' => $uid,
             'action' => 'Unsubscribe',

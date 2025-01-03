@@ -188,6 +188,7 @@ class spammersAPITest extends IznikAPITestCase {
 
         # Look at the pending queue
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
+        $_SESSION['supportAllowed'] = TRUE;
 
         # Hold and release.
         $ret = $this->call('spammers', 'PATCH', [

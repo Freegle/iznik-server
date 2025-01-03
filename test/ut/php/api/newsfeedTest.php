@@ -449,6 +449,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
         $_SESSION['id'] = NULL;
         $this->assertTrue($this->user->login('testpw'));
+        $_SESSION['supportAllowed'] = TRUE;
 
         $ret = $this->call('newsfeed', 'POST', [
             'id' => $nid,
