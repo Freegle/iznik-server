@@ -2735,7 +2735,8 @@ class User extends Entity
 
         # Use array_key_exists so that old sessions which predate this fix can continue.  Prevents shock of the new.
         if ($ret && array_key_exists('supportAllowed', $_SESSION) && !$_SESSION['supportAllowed']) {
-            $ret = FALSE;
+            // TODO Disabled for now.
+//            $ret = FALSE;
         }
 
         return $ret;
