@@ -48,9 +48,21 @@
         </mj-column>
       </mj-section>
       <mj-section padding="10px">
+        <mj-raw>
+        {% if extend %}
+        </mj-raw>
+        <mj-column width="185px">
+          <mj-button align="center" href="{{ extend }}" mj-class="secondary">Extend deadline!</mj-button>
+        </mj-column>
+        <mj-raw>
+        {% else %}
+        </mj-raw>
         <mj-column width="185px">
           <mj-button align="center" href="{{ repost }}" mj-class="secondary">Repost please!</mj-button>
         </mj-column>
+        <mj-raw>
+          {% endif %}
+        </mj-raw>
         <mj-column width="185px">
           <mj-button align="center" href="{{ completed }}" mj-class="tertiary">Mark as&nbsp;{{ type }}</mj-button>
         </mj-column>
