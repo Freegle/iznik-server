@@ -12,5 +12,6 @@ $lockh = Utils::lockScript(basename(__FILE__));
 
 $p = new Pledge($dbhr, $dbhm);
 $p->signup();
+$p->checkPosted();
 
 Utils::unlockScript($lockh);

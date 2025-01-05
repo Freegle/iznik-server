@@ -55,6 +55,72 @@ class Pledge extends Entity
         }
     }
 
+    public function checkPosted() {
+        $month = date('m');
+        $users = $this->dbhr->preQuery("SELECT id FROM users WHERE lastaccess >= '2024-12-20' AND JSON_EXTRACT(settings, '$.pledge2025') AND JSON_EXTRACT(settings, '$.pledge2025_freegled_$month') IS NULL;");
+        error_log("Found " . count($users) . " users to check posted");
+
+        foreach ($users as $user) {
+            $u = new User($this->dbhr, $this->dbhm, $user['id']);
+            $email = $u->getEmailPreferred();
+
+            # Get start of month.
+            $start = date('Y-m-01');
+
+            # Get start of next month
+            $end = date('Y-m-01', strtotime('+1 month'));
+
+            $freegles = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages 
+                         INNER JOIN messages_groups ON messages.id = messages_groups.msgid 
+                         WHERE messages_groups.arrival BETWEEN ? AND ? 
+                         AND messages.fromuser = ? AND messages_groups.collection = ?;", [
+                $start,
+                $end,
+                $u->getId(),
+                MessageCollection::APPROVED
+            ]);
+
+            $count = $freegles[0]['count'];
+
+            if ($count) {
+                error_log("User " . $u->getId() . " ($email) has freegled $count items, thank them");
+                $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+                $twig = new \Twig_Environment($loader);
+
+                # Get the month name.
+                $monthName = strtolower(date('F', strtotime($start)));
+                $monthNameUC = ucfirst($monthName);
+
+                $html = $twig->render("pledge2025/{$monthName}_success.html", [
+                    'email' => $email,
+                    'count' => $count,
+                    'month' => $monthNameUC,
+                ]);
+
+                $message = \Swift_Message::newInstance()
+                    ->setSubject("Thanks for freegling in $monthNameUC!")
+                    ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                    ->setTo($email)
+                    ->setBody("Thanks for freegling in January!");
+
+                # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                # Outlook.
+                $htmlPart = \Swift_MimePart::newInstance();
+                $htmlPart->setCharset('utf-8');
+                $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                $htmlPart->setContentType('text/html');
+                $htmlPart->setBody($html);
+                $message->attach($htmlPart);
+
+                Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::PLEDGE_SIGNUP, $this->getId());
+
+                list ($transport, $mailer) = Mail::getMailer();
+                $this->sendIt($mailer, $message);
+                $u->setSetting("pledge2025_freegled_$month", 1);
+            }
+        }
+    }
+
     public function sendIt($mailer, $message)
     {
         $mailer->send($message);
