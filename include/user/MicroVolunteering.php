@@ -711,16 +711,21 @@ class MicroVolunteering
         error_log("Consider notifying for " . count($msgs) . " messages");
 
         foreach ($msgs as $msg) {
-            # Find upto 10 users on the group who have been recently active and who have microvolunteering enabled.
+            # Find upto 10 users on the group who have been recently active, who have microvolunteering enabled and
+            # who we haven't asked today.
             if ($msg['collection'] == MessageCollection::PENDING) {
                 // We can't do this for basic trustlevel.
                 $users = $this->dbhr->preQuery(
                     "SELECT DISTINCT memberships.userid, trustlevel FROM memberships 
                     INNER JOIN users ON memberships.userid = users.id
+                    LEFT JOIN users_notifications ON users_notifications.touser = memberships.userid AND users_notifications.timestamp >= DATE_SUB(NOW(), INTERVAL 1 DAY) AND users_notifications.url LIKE '/microvolunteering/message/%' AND users_notifications.type = ?
                     WHERE memberships.groupid = ? AND users.lastaccess >= DATE_SUB(NOW(), INTERVAL 31 DAY) AND
                           users.id != ? AND
-                          (users.trustlevel = ? OR users.trustlevel = ?) ORDER BY RAND() LIMIT 10;",
+                          (users.trustlevel = ? OR users.trustlevel = ?) AND
+                          users_notifications.id IS NULL
+                    ORDER BY RAND() LIMIT 10;",
                     [
+                        Notifications::TYPE_EXHORT,
                         $msg['groupid'],
                         $msg['fromuser'],
                         User::TRUST_MODERATE,
@@ -731,11 +736,15 @@ class MicroVolunteering
                 $users = $this->dbhr->preQuery(
                     "SELECT DISTINCT memberships.userid, trustlevel FROM memberships 
                     INNER JOIN users ON memberships.userid = users.id
+                    LEFT JOIN users_notifications ON users_notifications.touser = memberships.userid AND users_notifications.timestamp >= DATE_SUB(NOW(), INTERVAL 1 DAY) AND users_notifications.url LIKE '/microvolunteering/message/%' AND users_notifications.type = ?
                     WHERE memberships.groupid = ? AND users.lastaccess >= DATE_SUB(NOW(), INTERVAL 31 DAY) AND
                           users.id != ? AND
                           memberships.role = ? AND
-                          (users.trustlevel = ? OR users.trustlevel = ? OR users.trustlevel = ?) ORDER BY RAND() LIMIT 10;",
+                          (users.trustlevel = ? OR users.trustlevel = ? OR users.trustlevel = ?) AND
+                          users_notifications.id IS NULL
+                    ORDER BY RAND() LIMIT 10;",
                     [
+                        Notifications::TYPE_EXHORT,
                         $msg['groupid'],
                         $msg['fromuser'],
                         User::ROLE_MEMBER,
