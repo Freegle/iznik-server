@@ -6,7 +6,7 @@ namespace Freegle\Iznik;
 class ChatMessage extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'chatid', 'userid', 'date', 'message', 'system', 'refmsgid', 'type', 'seenbyall', 'mailedtoall', 'reviewrequired', 'processingrequired', 'processingsuccessful', 'reviewedby', 'reviewrejected', 'spamscore', 'reportreason', 'refchatid', 'imageid', 'replyexpected', 'replyreceived');
+    var $publicatts = array('id', 'chatid', 'userid', 'date', 'message', 'system', 'refmsgid', 'type', 'seenbyall', 'mailedtoall', 'reviewrequired', 'processingrequired', 'processingsuccessful', 'reviewedby', 'reviewrejected', 'spamscore', 'reportreason', 'refchatid', 'imageid', 'replyexpected', 'replyreceived', 'deleted');
     var $settableatts = array('name');
 
     const TYPE_DEFAULT = 'Default';
@@ -508,6 +508,10 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
         $ret['message'] = trim(preg_replace('/\|.*$/m', "", $ret['message']));
         $ret['message'] = trim(preg_replace('/^\>.*$/m', "", $ret['message']));
         $ret['message'] = trim(preg_replace('/\#yiv.*$/m', "", $ret['message']));
+
+        if ($ret['deleted']) {
+            $ret['message'] = "(Message deleted)";
+        }
 
         return($ret);
     }

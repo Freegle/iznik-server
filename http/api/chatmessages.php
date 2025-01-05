@@ -221,7 +221,7 @@ function chatmessages() {
 
                     if ($id && $m->getPrivate('userid') == $me->getId()) {
                         $m->setPrivate('type', ChatMessage::TYPE_DEFAULT);
-                        $m->setPrivate('message', '(Message deleted)');
+                        $m->setPrivate('deleted', 1);
                         $m->setPrivate('imageid', NULL);
                         $dbhm->preExec("DELETE FROM chat_images WHERE chatmsgid = ?", [$id]);
 

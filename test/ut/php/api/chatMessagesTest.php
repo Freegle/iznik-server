@@ -864,7 +864,7 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $ret = $this->call('chatmessages', 'GET', [ 'roomid' => $rid ]);
         $this->assertEquals(1, count($ret['chatmessages']));
-        $this->assertEquals('(Message deleted)', $ret['chatmessages'][0]['message']);
+        $this->assertEquals(1, $ret['chatmessages'][0]['deleted']);
     }
 
     public function testReviewRecipientOnNoGroups() {
