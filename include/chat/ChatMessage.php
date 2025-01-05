@@ -509,7 +509,7 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
         $ret['message'] = trim(preg_replace('/^\>.*$/m', "", $ret['message']));
         $ret['message'] = trim(preg_replace('/\#yiv.*$/m', "", $ret['message']));
 
-        if ($ret['deleted']) {
+        if (!Session::modtools() && $ret['deleted']) {
             $ret['message'] = "(Message deleted)";
         }
 
