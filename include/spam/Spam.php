@@ -258,15 +258,18 @@ class Spam {
             return (array(true, Spam::REASON_REFERRED_TO_SPAMMER, "Refers to known spammer $spammail"));
         }
 
-        # For messages we want to spot any dubious items.
-        $r = $this->checkSpam($text, [ Spam::ACTION_REVIEW, Spam::ACTION_SPAM ]);
-        if ($r) {
-            return ($r);
-        }
+        # Don't block spam from ourselves.
+        if ($msg->getEnvelopefrom() != SUPPORT_ADDR && $msg->getEnvelopefrom() != INFO_ADDR) {
+            # For messages we want to spot any dubious items.
+            $r = $this->checkSpam($text, [ Spam::ACTION_REVIEW, Spam::ACTION_SPAM ]);
+            if ($r) {
+                return ($r);
+            }
 
-        $r = $this->checkSpam($subj, [ Spam::ACTION_REVIEW, Spam::ACTION_SPAM ]);
-        if ($r) {
-            return ($r);
+            $r = $this->checkSpam($subj, [ Spam::ACTION_REVIEW, Spam::ACTION_SPAM ]);
+            if ($r) {
+                return ($r);
+            }
         }
 
         # It's fine.  So far as we know.
