@@ -54,6 +54,8 @@ class Mail {
     const CALENDAR = 51;
     const FBL_OFF = 52;
     const PLEDGE_SIGNUP = 53;
+    const PLEDGE_SUCCESS = 54;
+    const PLEDGE_REMINDER = 55;
 
     const DESCRIPTIONS = [
         Mail::DIGEST => 'Digest',
@@ -105,7 +107,10 @@ class Mail {
         Mail::CHASEUP => 'Chaseup',
         Mail::REPORTED_NEWSFEED => 'ReportedNewsfeed',
         Mail::CALENDAR => 'Calendar',
-        Mail::FBL_OFF => 'FBLOff'
+        Mail::FBL_OFF => 'FBLOff',
+        Mail::PLEDGE_SIGNUP => 'PledgeSignup',
+        Mail::PLEDGE_SUCCESS => 'PledgeSuccess',
+        Mail::PLEDGE_REMINDER => 'PledgeReminder',
     ];
 
     private static $mailers = [];

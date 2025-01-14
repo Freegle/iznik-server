@@ -64,6 +64,10 @@ class Pledge extends Entity
             $u = new User($this->dbhr, $this->dbhm, $user['id']);
             $email = $u->getEmailPreferred();
 
+            if (!$email) {
+                continue;
+            }
+
             # Get start of month.
             $start = date('Y-m-01');
 
@@ -82,14 +86,15 @@ class Pledge extends Entity
 
             $count = $freegles[0]['count'];
 
+            $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+            $twig = new \Twig_Environment($loader);
+
+            # Get the month name.
+            $monthName = strtolower(date('F', strtotime($start)));
+            $monthNameUC = ucfirst($monthName);
+
             if ($count) {
                 error_log("User " . $u->getId() . " ($email) has freegled $count items, thank them");
-                $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
-                $twig = new \Twig_Environment($loader);
-
-                # Get the month name.
-                $monthName = strtolower(date('F', strtotime($start)));
-                $monthNameUC = ucfirst($monthName);
 
                 $html = $twig->render("pledge2025/{$monthName}_success.html", [
                     'email' => $email,
@@ -112,11 +117,41 @@ class Pledge extends Entity
                 $htmlPart->setBody($html);
                 $message->attach($htmlPart);
 
-                Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::PLEDGE_SIGNUP, $this->getId());
+                Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::PLEDGE_SUCCESS, $this->getId());
 
                 list ($transport, $mailer) = Mail::getMailer();
                 $this->sendIt($mailer, $message);
                 $u->setSetting("pledge2025_freegled_$month", 1);
+            } else {
+                if (intval(date('d')) >= 13 && !$u->getSetting("pledge2025_encouraged_$month", FALSE)) {
+                    error_log("User " . $u->getId() . " ($email) has not freegled anything, remind.");
+                    $html = $twig->render("pledge2025/{$monthName}_reminder.html", [
+                        'email' => $email,
+                        'count' => $count,
+                        'month' => $monthNameUC,
+                    ]);
+
+                    $message = \Swift_Message::newInstance()
+                        ->setSubject("There's still time to fulfill your Freegle Pledge in $monthNameUC!")
+                        ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                        ->setTo($email)
+                        ->setBody("There's still time - freegle something now!");
+
+                    # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                    # Outlook.
+                    $htmlPart = \Swift_MimePart::newInstance();
+                    $htmlPart->setCharset('utf-8');
+                    $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                    $htmlPart->setContentType('text/html');
+                    $htmlPart->setBody($html);
+                    $message->attach($htmlPart);
+
+                    Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::PLEDGE_REMINDER, $this->getId());
+
+                    list ($transport, $mailer) = Mail::getMailer();
+                    $this->sendIt($mailer, $message);
+                    $u->setSetting("pledge2025_encouraged_$month", 1);
+                }
             }
         }
     }
