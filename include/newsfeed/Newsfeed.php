@@ -515,7 +515,7 @@ class Newsfeed extends Entity
         return($dist);
     }
 
-    public function getFeed($userid, $dist = Newsfeed::DISTANCE, $types, &$ctx, $fillin = TRUE) {
+    public function getFeed($userid, $dist = Newsfeed::DISTANCE, $types, &$ctx, $fillin = TRUE, $minhourage = NULL) {
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         $topitems = [];
         $bottomitems = [];
@@ -535,6 +535,7 @@ class Newsfeed extends Entity
             $tq = Utils::pres('timestamp', $ctx) ? ("newsfeed.timestamp < " . $this->dbhr->quote($ctx['timestamp'])) : 'newsfeed.id > 0';
             $first = $dist ? "(MBRContains($box, position) OR `type` IN ('CentralPublicity', 'Alert') OR newsfeed.userid = {$u->getId()}) AND $tq" : $tq;
             $typeq = $types ? (" AND `type` IN ('" . implode("','", $types) . "') ") : '';
+            $ageq = $minhourage ? " AND TIMESTAMPDIFF(HOUR, newsfeed.TIMESTAMP, NOW()) >= $minhourage " : '';
 
             # We might have pinned some posts in a previous call.  Don't show them again.
             $pinq = '';
@@ -558,7 +559,7 @@ class Newsfeed extends Entity
             FROM newsfeed
             LEFT JOIN spam_users ON spam_users.userid = newsfeed.userid AND collection IN (?, ?) 
             LEFT JOIN newsfeed_unfollow ON newsfeed.id = newsfeed_unfollow.newsfeedid AND newsfeed_unfollow.userid = $userid 
-            WHERE $first AND replyto IS NULL AND newsfeed.deleted IS NULL $typeq $pinq ORDER BY pinned DESC, timestamp DESC LIMIT 5;";
+            WHERE $first AND replyto IS NULL AND newsfeed.deleted IS NULL $typeq $pinq $ageq ORDER BY pinned DESC, timestamp DESC LIMIT 5;";
             #error_log("Get feed $sql");
             $entries = $this->dbhr->preQuery($sql, [
                 Spam::TYPE_SPAMMER,
@@ -848,7 +849,7 @@ class Newsfeed extends Entity
 
             # Get the first few user-posted messages within 10 miles.
             $ctx = NULL;
-            list ($users, $feeds) = $this->getFeed($userid, $this->getNearbyDistance($userid, 32187), [ Newsfeed::TYPE_MESSAGE, Newsfeed::TYPE_STORY, Newsfeed::TYPE_ABOUT_ME, Newsfeed::TYPE_NOTICEBOARD ], $ctx, TRUE);
+            list ($users, $feeds) = $this->getFeed($userid, $this->getNearbyDistance($userid, 32187), [ Newsfeed::TYPE_MESSAGE, Newsfeed::TYPE_STORY, Newsfeed::TYPE_ABOUT_ME, Newsfeed::TYPE_NOTICEBOARD ], $ctx, TRUE, 12);
             $textsumm = '';
             $twigitems = [];
             $max = 0;
