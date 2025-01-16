@@ -825,7 +825,7 @@ class Newsfeed extends Entity
         $mailer->send($message);
     }
 
-    public function digest($userid, $unseen = TRUE) {
+    public function digest($userid, $unseen = TRUE, $minhourage = 12) {
         $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
         $twig = new \Twig_Environment($loader);
 
@@ -849,7 +849,7 @@ class Newsfeed extends Entity
 
             # Get the first few user-posted messages within 10 miles.
             $ctx = NULL;
-            list ($users, $feeds) = $this->getFeed($userid, $this->getNearbyDistance($userid, 32187), [ Newsfeed::TYPE_MESSAGE, Newsfeed::TYPE_STORY, Newsfeed::TYPE_ABOUT_ME, Newsfeed::TYPE_NOTICEBOARD ], $ctx, TRUE, 12);
+            list ($users, $feeds) = $this->getFeed($userid, $this->getNearbyDistance($userid, 32187), [ Newsfeed::TYPE_MESSAGE, Newsfeed::TYPE_STORY, Newsfeed::TYPE_ABOUT_ME, Newsfeed::TYPE_NOTICEBOARD ], $ctx, TRUE, $minhourage);
             $textsumm = '';
             $twigitems = [];
             $max = 0;

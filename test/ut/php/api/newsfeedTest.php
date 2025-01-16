@@ -98,7 +98,6 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->assertTrue($this->user->login('testpw'));
         $ret = $this->call('newsfeed', 'GET', []);
         $this->log("Returned " . gettype($ret['newsfeed']));
-        error_log("Returned " . var_export($ret['newsfeed'], true));
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals(0, count($this->stripPublicity($ret['newsfeed'])));
 
@@ -228,9 +227,9 @@ class newsfeedAPITest extends IznikAPITestCase {
             return($this->sendMock($mailer, $message));
         }));
 
-        $this->assertEquals(4, $n->digest($this->uid2));
+        $this->assertEquals(4, $n->digest($this->uid2, TRUE, 0));
         $this->waitBackground();
-        $this->assertEquals(0, $n->digest($this->uid2));
+        $this->assertEquals(0, $n->digest($this->uid2, TRUE, 0));
 
         # Hack it to have a message for coverage
         $g = Group::get($this->dbhr, $this->dbhm);
