@@ -11,7 +11,7 @@ require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
 $start = date('Y-m-d', strtotime("2015-11-13"));
-$msgs = $dbhr->preQuery("SELECT DISTINCT fromuser, refmsgid, lat, lng FROM chat_messages
+$msgs = $dbhr->preQuery("SELECT DISTINCT fromuser, refmsgid, lat, lng, messages.arrival AS offeredat FROM chat_messages
 INNER JOIN messages ON messages.id = chat_messages.refmsgid
 WHERE chat_messages.date > ? AND refmsgid IS NOT NULL AND chat_messages.type = ? AND messages.type = ? AND messages.lat IS NOT NULL AND messages.lng IS NOT NULL", [
     $start,
@@ -19,7 +19,7 @@ WHERE chat_messages.date > ? AND refmsgid IS NOT NULL AND chat_messages.type = ?
     Message::TYPE_OFFER
 ]);
 
-error_log("OfferID,OfferLat,OfferLng,ReplyLat,ReplyLng,MessagesExchanged,KnownSuccessful,PositiveRating,NegativeRating,OfferUID,ReplyUID");
+error_log("OfferID,OfferLat,OfferLng,ReplyLat,ReplyLng,MessagesExchanged,KnownSuccessful,PositiveRating,NegativeRating,OfferUID,ReplyUID,OfferedAt,TakenAt");
 
 foreach ($msgs as $msg) {
     $chats = $dbhr->preQuery("SELECT DISTINCT chatid FROM chat_messages WHERE refmsgid = ?", [
@@ -45,10 +45,13 @@ foreach ($msgs as $msg) {
         list ($lat, $lng, $loc) = $u->getLatLng(FALSE, FALSE);
 
         if ($lat || $lng) {
-            $takenby = $dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_by WHERE msgid = ? AND userid = ?", [
+            $takens = $dbhr->preQuery("SELECT * FROM messages_by WHERE msgid = ? AND userid = ?", [
                 $msg['refmsgid'],
                 $ref[0]['userid']
-            ])[0]['count'];
+            ]);
+
+            $takenby = count($takens) ? 1 : 0;
+            $takenat = $takenby ? $takens[0]['timestamp'] : '';
 
             $r = new ChatRoom($dbhr, $dbhm, $chat['chatid']);
 
@@ -60,7 +63,7 @@ foreach ($msgs as $msg) {
             $ratingup = count($rating) && $rating[0]['rating'] == User::RATING_UP ? '1' : '0';
             $ratingdown = count($rating) && $rating[0]['rating'] == User::RATING_DOWN ? '1' : '0';
 
-            error_log("{$msg['refmsgid']}, {$msg['lat']}, {$msg['lng']}, $lat, $lng, {$exchanged[0]['count']}, $takenby, $ratingup, $ratingdown, {$msg['fromuser']}, {$ref[0]['userid']}");
+            error_log("{$msg['refmsgid']}, {$msg['lat']}, {$msg['lng']}, $lat, $lng, {$exchanged[0]['count']}, $takenby, $ratingup, $ratingdown, {$msg['fromuser']}, {$ref[0]['userid']}, {$msg['offeredat']}, $takenat, ");
         }
     }
 }
