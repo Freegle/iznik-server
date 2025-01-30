@@ -1,5 +1,9 @@
 <?php
 
+// Usage: php authority_create.php -n <name> -p <polyfilename> -a <areacode>
+// php authority_create.php -n "NorthEngland" -p "combined.txt"
+// polyfilename has POLYGON or MULTIPOLYGON on line one only
+
 namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
@@ -14,6 +18,7 @@ $opts = getopt('n:p:a');
 
 $name = $opts['n'];
 $poly = $opts['p'];
+$poly = file($poly)[0];
 $area_code = $opts['a'];
 
 $l = new Authority($dbhr, $dbhm);
