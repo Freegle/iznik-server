@@ -23,6 +23,7 @@ function memberships() {
     $volunteeringallowed = Utils::presint('volunteeringallowed', $_REQUEST, NULL);
     $ourpostingstatus = $g->ourPS(array_key_exists('ourpostingstatus', $_REQUEST) ? $_REQUEST['ourpostingstatus'] : NULL);
     $filter = (Utils::presint('filter', $_REQUEST, Group::FILTER_NONE));
+    $membershipid = Utils::presint('membershipid', $_REQUEST, NULL);
 
     $ban = array_key_exists('ban', $_REQUEST) ? filter_var($_REQUEST['ban'], FILTER_VALIDATE_BOOLEAN) : FALSE;
     $collection = Utils::presdef('collection', $_REQUEST, MembershipCollection::APPROVED);
@@ -296,6 +297,14 @@ function memberships() {
                             break;
                         case 'Unban': {
                             $u->unban($groupid);
+                            break;
+                        }
+                        case 'ReviewHold': {
+                            $u->setMembershipAttId($membershipid, 'heldby', $me->getId());
+                            break;
+                        }
+                        case 'ReviewRelease': {
+                            $u->setMembershipAttId($membershipid, 'heldby', NULL);
                             break;
                         }
                     }

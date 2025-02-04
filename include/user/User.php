@@ -1006,6 +1006,19 @@ class User extends Entity
         return ($rc);
     }
 
+    public function setMembershipAttId($id, $att, $val)
+    {
+        $this->clearMembershipCache();
+        Session::clearSessionCache();
+        $sql = "UPDATE memberships SET $att = ? WHERE id = ?;";
+        $rc = $this->dbhm->preExec($sql, [
+            $val,
+            $id
+        ]);
+
+        return ($rc);
+    }
+
     public function removeMembership($groupid, $ban = FALSE, $spam = FALSE, $byemail = NULL)
     {
         $this->clearMembershipCache();
@@ -1105,7 +1118,7 @@ class User extends Entity
         $modq = $modonly ? " AND role IN ('Owner', 'Moderator') " : "";
         $typeq = $grouptype ? (" AND `type` = " . $this->dbhr->quote($grouptype)) : '';
         $publishq = Session::modtools() ? "" : "AND groups.publish = 1";
-        $sql = "SELECT type, memberships.settings, collection, emailfrequency, eventsallowed, volunteeringallowed, groupid, role, configid, ourPostingStatus, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN `groups` ON groups.id = memberships.groupid $publishq WHERE userid = ? $modq $typeq ORDER BY LOWER(namedisplay) ASC;";
+        $sql = "SELECT type, memberships.heldby, memberships.settings, collection, emailfrequency, eventsallowed, volunteeringallowed, groupid, role, configid, ourPostingStatus, CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END AS namedisplay FROM memberships INNER JOIN `groups` ON groups.id = memberships.groupid $publishq WHERE userid = ? $modq $typeq ORDER BY LOWER(namedisplay) ASC;";
         $groups = $this->dbhr->preQuery($sql, [$id]);
         #error_log("getMemberships $sql {$id} " . var_export($groups, TRUE));
 
