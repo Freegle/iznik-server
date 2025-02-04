@@ -1,5 +1,8 @@
 <?php
 
+// Usage: php authority_combine.php -i <id>,<id>,etc
+// php authority_combine.php -i 72986,73106 2>combined.txt
+
 namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
@@ -17,15 +20,20 @@ $ids = explode(',', $opts['i']);
 $points = [];
 $union = NULL;
 
+$polys = [];
+
 foreach ($ids as $id) {
     $l = new Authority($dbhr, $dbhm, $id);
     $atts = $l->getPublic();
     $geom = \geoPHP::load($atts['polygon'], 'wkt');
 
     $union = $union ? $union->union($geom) : $geom;
-    $points = array_merge($points, $geom->getPoints());
+    if( !is_null($geom)){
+      $polys[] = $geom;
+      //$points = array_merge($points, $geom->getPoints());
+    }
 }
 
-$mp = new \MultiPoint($points);
+$mp = new \MultiPolygon($polys);
 
-error_log($union->asText());
+error_log($mp->asText());
