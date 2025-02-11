@@ -55,8 +55,8 @@ class Pledge extends Entity
         }
     }
 
-    public function checkPosted() {
-        $month = date('m');
+    public function checkPosted($month) {
+        $month = $month ? $month : date('m');
         $users = $this->dbhr->preQuery("SELECT id FROM users WHERE lastaccess >= '2024-12-20' AND JSON_EXTRACT(settings, '$.pledge2025') AND JSON_EXTRACT(settings, '$.pledge2025_freegled_$month') IS NULL;");
         error_log("Found " . count($users) . " users to check posted");
 
@@ -68,23 +68,7 @@ class Pledge extends Entity
                 continue;
             }
 
-            # Get start of month.
-            $start = date('Y-m-01');
-
-            # Get start of next month
-            $end = date('Y-m-01', strtotime('+1 month'));
-
-            $freegles = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages 
-                         INNER JOIN messages_groups ON messages.id = messages_groups.msgid 
-                         WHERE messages_groups.arrival BETWEEN ? AND ? 
-                         AND messages.fromuser = ? AND messages_groups.collection = ?;", [
-                $start,
-                $end,
-                $u->getId(),
-                MessageCollection::APPROVED
-            ]);
-
-            $count = $freegles[0]['count'];
+            list($start, $count) = $this->countPosted($user['id'], $month);
 
             $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
             $twig = new \Twig_Environment($loader);
@@ -159,5 +143,30 @@ class Pledge extends Entity
     public function sendIt($mailer, $message)
     {
         $mailer->send($message);
+    }
+
+    public function countPosted($userid, $month): array {
+        # Get start of month $month using current year.
+        $start = date('Y-m-01', strtotime(date('Y') . '-' . $month . '-01'));
+
+        # Add one month to $start.
+        $end = date('Y-m-d', strtotime($start . ' +1 month'));
+
+        $freegles = $this->dbhr->preQuery(
+            "SELECT COUNT(*) AS count FROM messages 
+                         INNER JOIN messages_groups ON messages.id = messages_groups.msgid 
+                         WHERE messages_groups.arrival BETWEEN ? AND ? 
+                         AND messages.fromuser = ? AND messages_groups.collection = ?;",
+            [
+                $start,
+                $end,
+                $userid,
+                MessageCollection::APPROVED
+            ]
+        );
+
+        $count = $freegles[0]['count'];
+
+        return [$start, $count];
     }
 }
