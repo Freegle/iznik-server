@@ -47,7 +47,8 @@
     "sentry/sdk": "^3.1",
     "cweagans/composer-patches": "^1.7",
     "stripe/stripe-php": "^16.2",
-    "stajor/perspectiveapi": "^2.0"
+    "stajor/perspectiveapi": "^2.0",
+    "johngrogg/ics-parser": "^3.4"
   },
   "repositories": [
     {
