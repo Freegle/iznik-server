@@ -55,7 +55,7 @@ class Pledge extends Entity
         }
     }
 
-    public function checkPosted($month) {
+    public function checkPosted($month = NULL) {
         $month = $month ? $month : date('m');
         $users = $this->dbhr->preQuery("SELECT id FROM users WHERE lastaccess >= '2024-12-20' AND JSON_EXTRACT(settings, '$.pledge2025') AND JSON_EXTRACT(settings, '$.pledge2025_freegled_$month') IS NULL;");
         error_log("Found " . count($users) . " users to check posted");
