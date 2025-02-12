@@ -322,7 +322,12 @@ GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
             }
 
             if (in_array(Dashboard::COMPONENT_MODERATORS_ACTIVE, $components) && $ismod) {
-                $modsql = "SELECT userid, groupid FROM memberships WHERE $groupq AND role IN ('Moderator', 'Owner');";
+                # Get when we last approved a messages as the last moderation active time.  There are other
+                # moderator actions but this is quick to obtain.
+                $modsql = "SELECT userid, memberships.groupid, 
+(SELECT messages_groups.approvedat FROM messages_groups WHERE messages_groups.approvedby = memberships.userid AND messages_groups.groupid = memberships.groupid ORDER BY messages_groups.approvedat DESC LIMIT 1) AS lastactive
+FROM memberships                                                    
+WHERE $groupq AND role IN ('Moderator', 'Owner');";
                 $mods = $this->dbhr->preQuery($modsql, NULL, FALSE, FALSE);
                 $modids = array_filter(array_column($mods, 'userid'));
                 $u = User::get($this->dbhr, $this->dbhm);
@@ -333,12 +338,9 @@ GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
                     foreach ($mods as $mod) {
                         if ($mod['userid'] == $user['id']) {
                             $user['groupid'][] = $mod['groupid'];
+                            $user['lastactive'] = $mod['lastactive'];
                         }
                     }
-
-                    # Say that we were last active when we were last on the platform.  This isn't when we last
-                    # moderated but it's a lot quicker to obtain, and this matters for load on the system.
-                    $user['lastactive'] = $user['lastaccess'];
                 }
 
                 usort($users, function($mod1, $mod2) {
