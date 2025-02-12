@@ -56,7 +56,7 @@ class RepairCafeWales {
                         $groups = $l->groupsNear(Location::QUITENEARBY);
 
                         if (count($groups)) {
-                            $g = Group::get($this->dbhr, $this->dbhm, $groups[0]['id']);
+                            $g = Group::get($this->dbhr, $this->dbhm, $groups[0]);
                             error_log("Nearby group " . $g->getName());
 
                             // If group has community events enabled.
