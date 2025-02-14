@@ -80,7 +80,7 @@ class Pledge extends Entity
             if ($count) {
                 error_log("User " . $u->getId() . " ($email) has freegled $count items, thank them");
 
-                $html = $twig->render("pledge2025/{$monthName}_success.html", [
+                $html = $twig->render("pledge2025/success.html", [
                     'email' => $email,
                     'count' => $count,
                     'month' => $monthNameUC,
@@ -90,6 +90,7 @@ class Pledge extends Entity
                     ->setSubject("Thanks for freegling in $monthNameUC!")
                     ->setFrom([NOREPLY_ADDR => SITE_NAME])
                     ->setTo($email)
+                    #->setTo('log@ehibbert.org.uk')
                     ->setBody("Thanks for freegling in January!");
 
                 # Add HTML in base-64 as default quoted-printable encoding leads to problems on
@@ -107,9 +108,9 @@ class Pledge extends Entity
                 $this->sendIt($mailer, $message);
                 $u->setSetting("pledge2025_freegled_$month", 1);
             } else {
-                if (intval(date('d')) >= 13 && !$u->getSetting("pledge2025_encouraged_$month", FALSE)) {
+                if (intval(date('d')) >= 12 && !$u->getSetting("pledge2025_encouraged_$month", FALSE)) {
                     error_log("User " . $u->getId() . " ($email) has not freegled anything, remind.");
-                    $html = $twig->render("pledge2025/{$monthName}_reminder.html", [
+                    $html = $twig->render("pledge2025/reminder.html", [
                         'email' => $email,
                         'count' => $count,
                         'month' => $monthNameUC,
@@ -118,6 +119,7 @@ class Pledge extends Entity
                     $message = \Swift_Message::newInstance()
                         ->setSubject("There's still time to fulfill your Freegle Pledge in $monthNameUC!")
                         ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                        #->setTo('log@ehibbert.org.uk')
                         ->setTo($email)
                         ->setBody("There's still time - freegle something now!");
 

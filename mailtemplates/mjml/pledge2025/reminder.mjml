@@ -26,7 +26,7 @@
       <mj-section background-url="https://www.ilovefreegle.org/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0px">
         <mj-group>
           <mj-column vertical-align="middle" width="100%">
-	          <mj-image src="https://www.ilovefreegle.org/pledge2025/january_encourage.jpeg"  alt="" align="center" border="none"></mj-image>
+	          <mj-image src="https://www.ilovefreegle.org/pledge2025/{{ month }}_encourage.jpeg"  alt="" align="center" border="none"></mj-image>
           </mj-column>
         </mj-group>
       </mj-section>
