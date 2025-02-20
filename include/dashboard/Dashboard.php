@@ -327,7 +327,7 @@ GROUP BY chat_messages.userid ORDER BY count DESC LIMIT 5";
                 $modsql = "SELECT userid, memberships.groupid, 
 (SELECT messages_groups.approvedat FROM messages_groups WHERE messages_groups.approvedby = memberships.userid AND messages_groups.groupid = memberships.groupid ORDER BY messages_groups.approvedat DESC LIMIT 1) AS lastactive
 FROM memberships                                                    
-WHERE $groupq AND role IN ('Moderator', 'Owner');";
+WHERE $groupq AND role IN ('Moderator', 'Owner') HAVING lastactive IS NOT NULL;";
                 $mods = $this->dbhr->preQuery($modsql, NULL, FALSE, FALSE);
                 $modids = array_filter(array_column($mods, 'userid'));
                 $u = User::get($this->dbhr, $this->dbhm);
