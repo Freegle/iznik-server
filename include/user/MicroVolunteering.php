@@ -207,7 +207,6 @@ class MicroVolunteering
             $this->dbhm->preExec(
                 "UPDATE users_notifications SET seen = 1 WHERE touser = ? AND url LIKE '/microvolunteering/message/$msgid' AND type = ?;", [
                     $userid,
-                    $msgid,
                     Notifications::TYPE_EXHORT
                 ]
             );
