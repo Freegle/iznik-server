@@ -3574,6 +3574,7 @@ ORDER BY lastdate DESC;";
         $textbody = preg_replace('/^Sent from my .*smartphone./ims', '', $textbody);
         $textbody = preg_replace('/^Sent from my iPhone.*/ims', '', $textbody);
         $textbody = preg_replace('/Sent.* from my iPhone/i', '', $textbody);
+        $textbody = preg_replace('/Sent via BT Email App/i', '', $textbody);
         $textbody = preg_replace('/^Sent from EE.*/ims', '', $textbody);
         $textbody = preg_replace('/^Sent from my Samsung device.*/ims', '', $textbody);
         $textbody = preg_replace('/^Sent from my Galaxy.*/ims', '', $textbody);
