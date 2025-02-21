@@ -202,6 +202,16 @@ class MicroVolunteering
     public function responseCheckMessage($userid, $msgid, $result, $msgcategory, $comments)
     {
         if ($result == self::RESULT_APPROVE || $result == self::RESULT_REJECT) {
+            # Mark any notifications regarding this message as read.  This will avoid them getting emailed out
+            # again.
+            $this->dbhm->preExec(
+                "UPDATE users_notifications SET seen = 1 WHERE touser = ? AND url LIKE '/microvolunteering/message/$msgid' AND type = ?;", [
+                    $userid,
+                    $msgid,
+                    Notifications::TYPE_EXHORT
+                ]
+            );
+
             # Insert might fail if message is deleted - timing window.
             $this->dbhm->preExec(
                 "INSERT INTO microactions (actiontype, userid, msgid, result, msgcategory, comments, version) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE result = ?, comments = ?, version = ?, msgcategory = ?;",
