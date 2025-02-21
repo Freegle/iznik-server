@@ -2304,6 +2304,7 @@ class User extends Entity
                             'reviewrequestedat' => $group['reviewrequestedat'] ? Utils::ISODate($group['reviewrequestedat']) : NULL,
                             'reviewreason' => $group['reviewreason'],
                             'reviewedat' => $group['reviewedat'] ? Utils::ISODate($group['reviewedat']) : NULL,
+                            'heldby' => $group['heldby'],
                         ];
 
 
