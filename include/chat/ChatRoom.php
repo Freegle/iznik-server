@@ -2453,8 +2453,11 @@ WHERE chat_messages.id > ? $wideq AND chat_messages_held.id IS NULL AND chat_mes
         $times = $this->dbhr->preQuery("SELECT replytime, userid FROM users_replytime WHERE userid IN (" . implode(',', $uids) . ");", NULL, FALSE, FALSE);
         $ret = [];
         $left = $uids;
+        $oldtimes = [];
 
         foreach ($times as $time) {
+            $oldtimes[$time['userid']] = $time['replytime'];
+
             if (!$force && count($times) > 0 && $time['replytime'] < 30*24*60*60) {
                 $ret[$time['userid']] = $time['replytime'];
 
@@ -2530,7 +2533,12 @@ ORDER BY chat_messages.id DESC LIMIT 1;", [
                 # and this causes a deadlock.
                 $timestr = !is_null($time) ? "'$time'" : 'NULL';
                 $this->dbhm->background("REPLACE INTO users_replytime (userid, replytime) VALUES ($userid, $timestr);");
-                $this->dbhm->background("UPDATE users SET lastupdated = NOW() WHERE id = $userid;");
+
+                # Only set lastupdated if the new time is more than a minute different from the old time.  This
+                # avoids triggering a lot of changes for TN to process.
+                if (abs($time - $oldtimes[$userid]) > 60) {
+                    $this->dbhm->background("UPDATE users SET lastupdated = NOW() WHERE id = $userid;");
+                }
 
                 $ret[$userid] = $time;
             }
