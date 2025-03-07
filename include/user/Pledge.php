@@ -158,7 +158,7 @@ class Pledge extends Entity
             "SELECT COUNT(*) AS count FROM messages 
                          INNER JOIN messages_groups ON messages.id = messages_groups.msgid 
                          WHERE messages_groups.arrival BETWEEN ? AND ? 
-                         AND messages.fromuser = ? AND messages_groups.collection = ?;",
+                         AND messages.fromuser = ? AND messages_groups.collection = ? AND messages_groups.autoreposts = 0;",
             [
                 $start,
                 $end,
