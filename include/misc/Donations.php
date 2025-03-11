@@ -103,7 +103,7 @@ class Donations
 
     public function searchGiftAid($search) {
         $q = $this->dbhr->quote("%$search%");
-        $giftaids = $this->dbhr->preQuery("SELECT * FROM giftaid WHERE fullname LIKE $q OR homeaddress LIKE $q;");
+        $giftaids = $this->dbhr->preQuery("SELECT * FROM giftaid WHERE fullname LIKE $q OR homeaddress LIKE $q OR id LIKE $q;");
 
         foreach ($giftaids as &$giftaid) {
             $giftaid['timestamp'] = Utils::ISODate($giftaid['timestamp']);
