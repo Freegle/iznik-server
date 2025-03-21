@@ -2071,7 +2071,7 @@ WHERE chat_messages.id > ? $wideq AND chat_messages_held.id IS NULL AND chat_mes
         return $thisone;
     }
 
-    public function notifyByEmail($chatid = NULL, $chattype, $emailoverride = NULL, $delay = ChatRoom::DELAY, $since = "4 hours ago", $forceall = FALSE, $sendAndExit = NULL)
+    public function notifyByEmail($chatid = NULL, $chattype, $emailoverride = NULL, $delay = ChatRoom::DELAY, $since = "24 hours ago", $forceall = FALSE, $sendAndExit = NULL)
     {
         # We want to find chatrooms with messages which haven't been mailed to people.
         #
@@ -2086,6 +2086,11 @@ WHERE chat_messages.id > ? $wideq AND chat_messages_held.id IS NULL AND chat_mes
         $twig = new \Twig_Environment($loader);
 
         # We don't need to check too far back.  This keeps it quick.
+        #
+        # Anything before $since won't get spotted and therefore won't get emailed.  This means that if a message
+        # is held for a review for longer than this time, it won't go out by email once it's reviewed.  So
+        # $since should never be set too short.  Longer than a day or so the message is often
+        # no longer worth mailing out anyway.
         $reviewq = $chattype ==  ChatRoom::TYPE_USER2MOD ? '' : " AND reviewrequired = 0 AND processingsuccessful = 1 ";
         $allq = $forceall ? '' : "AND mailedtoall = 0 AND seenbyall = 0 AND reviewrejected = 0";
         $start = date('Y-m-d H:i:s', strtotime($since));
