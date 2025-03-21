@@ -43,7 +43,7 @@ function session() {
             # Mobile app can send its version number, which we can use to determine if it is out of date.
             $appversion = Utils::presdef('appversion', $_REQUEST, NULL);
 
-            if ($appversion == '2') {
+            if (substr($appversion, 0, 1) == '2') {
                 $ret = array('ret' => 123, 'status' => 'App is out of date');
             } else {
                 if (Utils::pres('id', $_SESSION) && $me) {
