@@ -680,7 +680,7 @@ class MicroVolunteering
 
         if (!count($last)) {
             # Recprd a placeholder to ensure we don't ask too often.
-            $this->dbhm->preExec("INSERT INTO microactions (actiontype, userid, version, text) VALUES (?, ?, ?, 'Ask to invite');", [
+            $this->dbhm->preExec("INSERT INTO microactions (actiontype, userid, version, comments) VALUES (?, ?, ?, 'Ask to invite');", [
                 self::CHALLENGE_INVITE,
                 $userid,
                 self::VERSION
