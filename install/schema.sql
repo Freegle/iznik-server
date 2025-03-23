@@ -1971,6 +1971,7 @@ CREATE TABLE `messages_attachments_recognise` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `attid` bigint unsigned NOT NULL,
   `info` json NOT NULL,
+  `rating` enum('Good','Bad') DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `attid` (`attid`),
   CONSTRAINT `messages_attachments_recognise_ibfk_1` FOREIGN KEY (`attid`) REFERENCES `messages_attachments` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
@@ -5446,4 +5447,4 @@ CREATE TABLE `worrywords` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-03-23 11:14:56
+-- Dump completed on 2025-03-23 12:03:45

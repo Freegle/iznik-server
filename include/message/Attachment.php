@@ -689,7 +689,7 @@ class Attachment {
                 'short string for primaryItem,' .
                 'float with an estimated secondhand eBay price in GBP estimatedValueInGBP,' .
                 'the dimensions in wxhxd format in cm of a box which would contain the item for size' .
-                '.  Write the description from the pov of the person who is giving away the item.'
+                '.  Write the description from the pov of the person who is giving away the item, friendly tone but stay factual and only add information that matches the image.'
             )->generateContent(
                 new TextPart("Identify the image."),
                 new ImagePart(MimeType::IMAGE_JPEG, base64_encode($data))

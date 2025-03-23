@@ -110,10 +110,20 @@ function image() {
         case 'POST': {
             $ret = [ 'ret' => 1, 'status' => 'No photo provided' ];
 
-            # This next line is to simplify UT.
             $rotate = Utils::presint('rotate', $_REQUEST, NULL);
+            $raterecognise = Utils::presdef('raterecognise', $_REQUEST, NULL);
 
-            if (array_key_exists('rotate', $_REQUEST)) {
+            if ($raterecognise) {
+                $dbhm->preExec("UPDATE messages_attachments_recognise SET rating = ? WHERE attid = ?", [
+                    $raterecognise,
+                    $id
+                ]);
+
+                $ret = [
+                    'ret' => 0,
+                    'status' => 'Success',
+                ];
+            } else if (array_key_exists('rotate', $_REQUEST)) {
                 if ($id) {
                     # We want to rotate.  Do so.
                     $a = new Attachment($dbhr, $dbhm, $id, $type);
