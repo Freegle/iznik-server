@@ -4,6 +4,11 @@ namespace Freegle\Iznik;
 
 
 use Jenssegers\ImageHash\ImageHash;
+use GeminiAPI\Client;
+use GeminiAPI\Enums\MimeType;
+use GeminiAPI\Resources\ModelName;
+use GeminiAPI\Resources\Parts\TextPart;
+use GeminiAPI\Resources\Parts\ImagePart;
 
 # TODO:
 # - retire archiving
@@ -663,5 +668,46 @@ class Attachment {
 
     public function recordRotate() {
         $this->setPrivate('rotated', 1);
+    }
+
+    public function recognise() {
+        # Get external URL for image.  Use 768x768 as the maximum size because of how Gemini counts tokens..
+        $url = $this->canRedirect(768, 768);
+        $data = file_get_contents($url);
+
+        $client = new Client(GOOGLE_GEMINI_API_KEY);
+        $response = $client->withV1BetaVersion()
+            ->generativeModel('gemini-2.0-flash-lite')
+            ->withSystemInstruction(
+                'Identify the primary item in each image. ' .
+                'All items in images are likely to be second-hand household items.' .
+                'Return all data in JSON format, as either strings or floats, with the following fields:' .
+                'primaryItem, shortDescription, longDescription, approximateWeightInKg, size, condition, colour, estimatedValueInGBP, commonSynonyms, ElectricalItem, clarityOfImage.' .
+                'In the JSON, use:' .
+                'Great/OK/Poor for condition and clarityOfImage,' .
+                'float for approximateWeightInKg,' .
+                'short string for primaryItem,' .
+                'float with an estimated secondhand eBay price in GBP estimatedValueInGBP,' .
+                'the dimensions in wxhxd format in cm of a box which would contain the item for size' .
+                '.  Write the description from the pov of the person who is giving away the item.'
+            )->generateContent(
+                new TextPart("Identify the image."),
+                new ImagePart(MimeType::IMAGE_JPEG, base64_encode($data))
+            );
+
+        $text = $response->text();
+        $json = substr($text, strpos($text, '{'), strrpos($text, '}') - strpos($text, '{') + 1);
+        $jsond = json_decode($json, TRUE);
+
+        if ($json && $jsond) {
+
+            $this->dbhm->preExec("INSERT INTO messages_attachments_recognise (attid, info) VALUES (?, ?) ON DUPLICATE KEY UPDATE info = ?;", [
+                $this->id,
+                $json,
+                $json
+            ]);
+        }
+
+        return $jsond;
     }
 }

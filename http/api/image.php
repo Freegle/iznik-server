@@ -21,6 +21,7 @@ function image() {
     $imgtype = Utils::presdef('imgtype', $_REQUEST, Attachment::TYPE_MESSAGE);
     $externaluid = Utils::presdef('externaluid', $_REQUEST, NULL);
     $externalmods = Utils::presdef('externalmods', $_REQUEST, NULL);
+    $recognise = Utils::presbool('recognise', $_REQUEST, FALSE);
 
     $sizelimit = 800;
     
@@ -127,7 +128,7 @@ function image() {
                 // This is an external image i.e. not in the DB.  Currently this is only uploaded to our own
                 // storage via tusd.
                 $a = new Attachment($dbhr, $dbhm, NULL, $imgtype);
-                list ($id, $uid) = $a->create($msgid, NULL, $externaluid, NULL, TRUE, $externalmods);
+                list ($id, $uid) = $a->create($msgid, NULL, $externaluid, NULL, TRUE, $externalmods, NULL);
 
                 $ret = [
                     'ret' => 0,
@@ -135,6 +136,11 @@ function image() {
                     'id' => $id,
                     'uid' => $uid,
                 ];
+
+                if ($recognise) {
+                    # We'd like to use AI to identify the image.
+                    $ret['info'] = $a->recognise();
+                }
             } else {
                 $photo = Utils::presdef('photo', $_FILES, NULL) ? $_FILES['photo'] : $_REQUEST['photo'];
 

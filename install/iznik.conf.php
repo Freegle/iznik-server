@@ -31,6 +31,7 @@ define('FREEBIE_ALERTS_KEY', NULL);
 # We can use push notifications
 define('GOOGLE_PROJECT', 'zzz');
 define('GOOGLE_PUSH_KEY', 'zzzz');
+define('GOOGLE_GEMINI_API_KEY', 'zzzz');
 
 # Other Google keys
 define('GOOGLE_VISION_KEY', 'zzz');

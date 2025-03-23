@@ -48,7 +48,8 @@
     "cweagans/composer-patches": "^1.7",
     "stripe/stripe-php": "^16.2",
     "stajor/perspectiveapi": "^2.0",
-    "johngrogg/ics-parser": "^3.4"
+    "johngrogg/ics-parser": "^3.4",
+    "gemini-api-php/client": "^1.7"
   },
   "repositories": [
     {
