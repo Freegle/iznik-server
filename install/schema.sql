@@ -1972,8 +1972,10 @@ CREATE TABLE `messages_attachments_recognise` (
   `attid` bigint unsigned NOT NULL,
   `info` json NOT NULL,
   `rating` enum('Good','Bad') DEFAULT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `attid` (`attid`),
+  KEY `timestamp` (`timestamp`),
   CONSTRAINT `messages_attachments_recognise_ibfk_1` FOREIGN KEY (`attid`) REFERENCES `messages_attachments` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -5447,4 +5449,4 @@ CREATE TABLE `worrywords` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-03-23 12:03:45
+-- Dump completed on 2025-03-24  9:07:51
