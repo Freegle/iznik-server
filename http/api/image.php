@@ -149,7 +149,8 @@ function image() {
 
                 if ($recognise) {
                     # We'd like to use AI to identify the image.
-                    $ret['info'] = $a->recognise();
+                    # TODO Not doing this here as slow and sometimes flaky; need to background.
+                    #$ret['info'] = $a->recognise();
                 }
             } else {
                 $photo = Utils::presdef('photo', $_FILES, NULL) ? $_FILES['photo'] : $_REQUEST['photo'];

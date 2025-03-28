@@ -9,9 +9,9 @@ require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
 # Get stats.
-$msgs = $dbhr->preQuery("SELECT msgid, attid, rating FROM messages_attachments_recognise I
+$msgs = $dbhr->preQuery("SELECT msgid, attid, rating FROM messages_attachments_recognise
 INNER JOIN messages_attachments ON messages_attachments.id = attid
-WHERE msgid IS NOT NULL
+WHERE msgid IS NOT NULL AND messages_attachments_recognise.timestamp >= '2025-03-25'
 ORDER BY msgid DESC;");
 
 error_log("Found " . count($msgs) . " messages to process");
@@ -45,9 +45,10 @@ foreach ($msgs as $msg) {
         } else {
             $activebad++;
         }
-    } else {
+    }
+
         if ($aisubject != $finalsubject) {
-            #error_log("https://www.ilovefreegle.org/message/" . $msg['msgid'] . " Subject mismatch: AI: $aisubject, final: $finalsubject");
+            error_log("https://www.ilovefreegle.org/message/" . $msg['msgid'] . " Subject mismatch: AI: $aisubject, final: $finalsubject");
             $passivebad++;
             $passivebadsubject++;
         } else if ($aitextbody != $finaltextbody) {
@@ -57,7 +58,6 @@ foreach ($msgs as $msg) {
         } else {
             $passivegood++;
         }
-    }
 }
 
 if ($activegood + $activebad) {
