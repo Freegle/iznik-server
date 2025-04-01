@@ -229,7 +229,7 @@ class Donations
   WHERE Payer != '' AND giftaid.deleted IS NULL AND giftaid.userid IS NOT NULL                                                           
   GROUP BY Payer;");
 
-        $total = 0;
+        #$total = 0;
 
         foreach ($donations as $donation) {
             $missed = $this->dbhr->preQuery("SELECT users_donations.* FROM users_donations WHERE Payer = ? AND (userid IS NULL OR userid != ?) AND giftaidclaimed IS NULL;", [
@@ -238,12 +238,17 @@ class Donations
             ]);
 
             foreach ($missed as $m) {
-                error_log("Missed donation {$m['timestamp']} {$m['id']} from {$m['Payer']} for {$m['GrossAmount']}, userid in donation {$m['userid']}, gift aid userid {$donation['userid']} type {$donation['period']}");
-                $total += $m['GrossAmount'];
+                #error_log("Missed donation {$m['timestamp']} {$m['id']} from {$m['Payer']} for {$m['GrossAmount']}, userid in donation {$m['userid']}, gift aid userid {$donation['userid']} type {$donation['period']}");
+                $this->dbhm->preExec("UPDATE users_donations SET userid = ? WHERE id = ?;", [
+                    $donation['userid'],
+                    $m['id']
+                ]);
+
+                #$total += $m['GrossAmount'];
             }
         }
 
-        error_log("Possible missed $total");
+        #error_log("Possible missed $total");
     }
     
     public function identifyGiftAidedDonations($id = NULl) {
