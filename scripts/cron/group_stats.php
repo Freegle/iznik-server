@@ -165,9 +165,20 @@ foreach ($totalact as $total) {
             $logs[0]['max']
         ]);
 
-        # Count mods who have been logged in within the last 30 days.
+        # Count owners/mods who have been logged in within the last 30 days.
         $start = date('Y-m-d', strtotime("30 days ago"));
-        $sql = "SELECT COUNT(DISTINCT(users.id)) AS count FROM users INNER JOIN memberships ON memberships.userid = users.id WHERE groupid = ? AND role IN ('Owner', 'Moderator') AND lastaccess > ?;";
+        $sql = "SELECT COUNT(DISTINCT(users.id)) AS count FROM users INNER JOIN memberships ON memberships.userid = users.id WHERE groupid = ? AND role = 'Owner' AND lastaccess > ?;";
+        $actives = $dbhr->preQuery($sql, [
+            $group['id'],
+            $start
+        ]);
+
+        $dbhm->preExec("UPDATE `groups` SET activeownercount = ? WHERE id = ?;", [
+            $actives[0]['count'],
+            $group['id']
+        ]);
+
+        $sql = "SELECT COUNT(DISTINCT(users.id)) AS count FROM users INNER JOIN memberships ON memberships.userid = users.id WHERE groupid = ? AND role = 'Moderator' AND lastaccess > ?;";
         $actives = $dbhr->preQuery($sql, [
             $group['id'],
             $start

@@ -886,6 +886,7 @@ CREATE TABLE `groups` (
   `fundingtarget` int NOT NULL DEFAULT '0',
   `lastmoderated` timestamp NULL DEFAULT NULL COMMENT 'Last moderated inc Yahoo',
   `lastmodactive` timestamp NULL DEFAULT NULL COMMENT 'Last mod active on here',
+  `activeownercount` int DEFAULT NULL COMMENT 'How many currently active owners',
   `activemodcount` int DEFAULT NULL COMMENT 'How many currently active mods',
   `backupownersactive` int NOT NULL DEFAULT '0',
   `backupmodsactive` int NOT NULL DEFAULT '0',

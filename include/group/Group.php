@@ -1188,7 +1188,7 @@ HAVING logincount > 0
     public function listByType($type, $support, $polys = FALSE) {
         $typeq = $type ? "type = ?" : '1=1';
         $showq = $support ? '' : 'AND publish = 1 AND listable = 1';
-        $suppfields = $support ? ", founded, lastmoderated, lastmodactive, lastautoapprove, activemodcount, backupmodsactive, backupownersactive, onmap, affiliationconfirmed, affiliationconfirmedby": '';
+        $suppfields = $support ? ", founded, lastmoderated, lastmodactive, lastautoapprove, activeownercount, activemodcount, backupmodsactive, backupownersactive, onmap, affiliationconfirmed, affiliationconfirmedby": '';
         $polyfields = $polys ? ", CASE WHEN poly IS NULL THEN polyofficial ELSE poly END AS poly, polyofficial" : '';
 
         $sql = "SELECT groups.id, groups.settings, groups_images.id AS attid, nameshort, region, namefull, lat, lng, altlat, altlng, publish $suppfields $polyfields, mentored, onhere, ontn, onmap, external, profile, tagline, contactmail, onlovejunk FROM `groups` LEFT JOIN groups_images ON groups_images.groupid = groups.id WHERE $typeq ORDER BY CASE WHEN namefull IS NOT NULL THEN namefull ELSE nameshort END, groups_images.id DESC;";
