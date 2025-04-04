@@ -25,7 +25,7 @@ class donationsTest extends IznikTestCase {
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM users WHERE firstname = 'Test' AND lastname = 'User';");
         $dbhm->preExec("DELETE FROM users_donations WHERE TransactionID LIKE 'UT%';");
-        $dbhm->preExec("DELETE * FROM giftaid;");
+        $dbhm->preExec("DELETE FROM giftaid;");
     }
 
     public function testRecord() {
