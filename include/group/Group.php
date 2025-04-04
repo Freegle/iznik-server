@@ -799,7 +799,7 @@ HAVING logincount > 0
                 (SELECT id FROM users WHERE yahooid LIKE $q)
                 $namesearch";
             $userids = $this->dbhr->preQuery($sql);
-            $ids = array_column($userids, 'id');
+            $ids = array_unique(array_column($userids, 'id'));
 
             if (count($ids))
             {
