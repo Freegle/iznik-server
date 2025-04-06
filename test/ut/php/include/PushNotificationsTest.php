@@ -60,7 +60,8 @@ class pushNotificationsTest extends IznikTestCase {
 
         # Test notifying mods.
         $this->log("Notify group mods");
-        $n->add($id, PushNotifications::PUSH_GOOGLE, 'test', TRUE);
+        $this->dbhm->preExec("DELETE FROM users_push_notifications WHERE subscription LIKE 'Test%';");
+        $n->add($id, PushNotifications::PUSH_GOOGLE, 'test3', TRUE);
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
@@ -73,7 +74,7 @@ class pushNotificationsTest extends IznikTestCase {
         list ($cm, $banned) = $m->create($rid, $id2, "Testing", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->assertNotNull($cm);
 
-        $this->assertEquals(2, $mock->notifyGroupMods($this->groupid));
+        $this->assertEquals(1, $mock->notifyGroupMods($this->groupid));
 
         $n->remove($id);
         $this->assertEquals([], $n->get($id));

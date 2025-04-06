@@ -35,7 +35,6 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         $this->dbhm->preExec("DELETE FROM messages_history WHERE prunedsubject LIKE ?;", ['Basic test']);
         $this->dbhm->preExec("DELETE FROM messages_history WHERE prunedsubject LIKE 'OFFER: Test%';");
         $this->dbhm->preExec("DELETE FROM messages_history WHERE fromaddr IN (?,?,?) OR fromip = ?;", ['test@test.com', 'GTUBE1.1010101@example.net', 'to@test,com', '1.2.3.4']);
-        $this->dbhm->preExec("DELETE FROM `groups` WHERE nameshort LIKE 'testgroup%';", []);
         $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';", []);
         $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'test@test.com';", []);
         $this->dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE users_emails.backwards LIKE 'moctset%';");
@@ -52,6 +51,9 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         $this->dbhm->preExec("DELETE FROM messages WHERE fromip = '4.3.2.1';");
         $this->dbhm->preExec("DELETE FROM messages where subject LIKE 'OFFER: a double moderation test%';");
         $this->dbhm->preExec("DELETE FROM teams WHERE name = 'Test Team';");
+        $this->dbhm->preExec("DELETE FROM `groups` WHERE nameshort LIKE 'testgroup%';", []);
+        $this->dbhm->preExec("DELETE FROM users_notifications WHERE title LIKE 'Test';");
+        $this->dbhm->preExec("DELETE FROM users_push_notifications WHERE subscription LIKE 'Test%';");
 
         if (defined('_SESSION')) {
             unset($_SESSION['id']);
