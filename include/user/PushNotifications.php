@@ -320,38 +320,40 @@ class PushNotifications
 
                 list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route) = $u->getNotificationPayload($modtools);
 
-                $message = ($total === 0) ? "" : $message;
-                if (is_null($message)) $message = "";
+                if ($title) {
+                    $message = ($total === 0) ? "" : $message;
+                    if (is_null($message)) $message = "";
 
-                # badge and/or count are used by the app, possibly when it isn't running, to set the home screen badge.
-                $payload = [
-                    'badge' => $total,
-                    'count' => $total,
-                    'chatcount' => $chatcount,
-                    'notifcount' => $notifscount,
-                    'title' => $title,
-                    'message' => $message,
-                    'chatids' => $chatids,
-                    'content-available' => $total > 0,
-                    'image' => $modtools ? "www/images/modtools_logo.png" : "www/images/user_logo.png",
-                    'modtools' => $modtools,
-                    'sound' => 'default',
-                    'route' => $route
-                ];
+                    # badge and/or count are used by the app, possibly when it isn't running, to set the home screen badge.
+                    $payload = [
+                        'badge' => $total,
+                        'count' => $total,
+                        'chatcount' => $chatcount,
+                        'notifcount' => $notifscount,
+                        'title' => $title,
+                        'message' => $message,
+                        'chatids' => $chatids,
+                        'content-available' => $total > 0,
+                        'image' => $modtools ? "www/images/modtools_logo.png" : "www/images/user_logo.png",
+                        'modtools' => $modtools,
+                        'sound' => 'default',
+                        'route' => $route
+                    ];
 
-                switch ($notif['type']) {
-                    case PushNotifications::PUSH_GOOGLE:
+                    switch ($notif['type']) {
+                        case PushNotifications::PUSH_GOOGLE:
                         {
                             $params = [
                                 'GCM' => GOOGLE_PUSH_KEY
                             ];
                             break;
                         }
-                }
+                    }
 
-                $this->queueSend($userid, $notif['type'], $params, $notif['subscription'], $payload);
-                #error_log("Queued send {$notif['type']} for $userid");
-                $count++;
+                    $this->queueSend($userid, $notif['type'], $params, $notif['subscription'], $payload);
+                    #error_log("Queued send {$notif['type']} for $userid");
+                    $count++;
+                }
             }
         }
 

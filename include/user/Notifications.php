@@ -393,7 +393,9 @@ class Notifications
             }
         }
 
-        $title = ($count ==  1) ? $title : ("$title +" . ($count - 1) . " more...");
+        if ($count) {
+            $title = ($count ==  1) ? $title : ("$title +" . ($count - 1) . " more...");
+        }
 
         return($title);
     }
