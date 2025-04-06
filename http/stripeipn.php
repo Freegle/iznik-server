@@ -90,17 +90,17 @@ try {
                             // We don't know how to link this donation to a user.  Mail details to Geeks for them to
                             // investigate.  Will get added below.
                             log("No customer id for donation");
-                            $message = \Swift_Message::newInstance()
-                                ->setSubject("Stripe donation {$paymentIntent->id} can't be linked to user - needs investigating")
-                                ->setFrom(NOREPLY_ADDR)
-                                ->setTo(INFO_ADDR)
-                                ->setCc(GEEKS_ADDR)
-                                ->setBody($input);
-
-                            list ($transport, $mailer) = Mail::getMailer();
-                            Mail::addHeaders($dbhr, $dbhm, $message, Mail::DONATE_IPN);
-
-                            $mailer->send($message);
+//                            $message = \Swift_Message::newInstance()
+//                                ->setSubject("Stripe donation {$paymentIntent->id} can't be linked to user - needs investigating")
+//                                ->setFrom(NOREPLY_ADDR)
+//                                ->setTo(INFO_ADDR)
+//                                ->setCc(GEEKS_ADDR)
+//                                ->setBody($input);
+//
+//                            list ($transport, $mailer) = Mail::getMailer();
+//                            Mail::addHeaders($dbhr, $dbhm, $message, Mail::DONATE_IPN);
+//
+//                            $mailer->send($message);
                         }
                     }
 
