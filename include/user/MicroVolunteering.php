@@ -778,12 +778,14 @@ class MicroVolunteering
 
                 if (!in_array($uid, $notified)) {
                     // Count the number of recent such notifications.  Then we don't notify the same
-                    // user too often.
+                    // user too often.  And we don't want to notify for the same message.
+                    $url = "/microvolunteering/message/" . $msg['id'];
                     $n = $this->dbhr->preQuery(
-                        "SELECT COUNT(*) AS count FROM users_notifications WHERE touser = ? AND timestamp >= DATE_SUB(NOW(), INTERVAL 1 DAY) AND
+                        "SELECT COUNT(*) AS count FROM users_notifications WHERE touser = ? AND (url LIKE ? OR timestamp >= DATE_SUB(NOW(), INTERVAL 1 DAY)) AND
                                                       type = ?;",
                         [
                             $uid,
+                            $url,
                             Notifications::TYPE_EXHORT
                         ]
                     );
@@ -795,7 +797,7 @@ class MicroVolunteering
                             Notifications::TYPE_EXHORT,
                             NULL,
                             NULL,
-                            "/microvolunteering/message/" . $msg['id'],
+                            $url,
                             "Could you review this message to help us keep the site safe?",
                             "Click here to review: " . $msg['subject']);
                         $count++;
