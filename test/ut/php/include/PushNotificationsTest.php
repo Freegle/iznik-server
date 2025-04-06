@@ -27,6 +27,7 @@ class pushNotificationsTest extends IznikTestCase {
 
     public function testBasic() {
         $u = User::get($this->dbhr, $this->dbhm);
+        $id2 = $u->create('Test', 'User', NULL);
         $id = $u->create('Test', 'User', NULL);
         $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($u->login('testpw'));
@@ -39,26 +40,44 @@ class pushNotificationsTest extends IznikTestCase {
         $mock->method('uthook')->willThrowException(new \Exception());
 
         $n = new PushNotifications($this->dbhr, $this->dbhm);
-        $this->log("Send Google");
-        $n->add($id, PushNotifications::PUSH_GOOGLE, 'test');
+        $this->log("Send app User.");
+        $n->add($id, PushNotifications::PUSH_FCM_ANDROID, 'test', FALSE);
         $this->assertEquals(1, count($n->get($id)));
-        $this->assertEquals(1, $mock->notify($id, TRUE));
-        $this->log("Send Firefox");
+
+        # Nothing to notify on MT.
+        $this->assertEquals(0, $mock->notify($id, TRUE));
+
+        # Fake an FD notification for the user.
+        $sql = "INSERT INTO users_notifications (`fromuser`, `touser`, `type`, `title`) VALUES (?, ?, ?, 'Test');";
+        $this->dbhm->preExec($sql, [ $id, $id, Notifications::TYPE_EXHORT ]);
+
+        $this->assertEquals(1, $mock->notify($id, FALSE));
+        $this->assertEquals(1, $mock->notify($id, FALSE));
+
         $n->add($id, PushNotifications::PUSH_FIREFOX, 'test2');
         $this->assertEquals(2, count($n->get($id)));
-        $this->assertEquals(2, $n->notify($id, TRUE));
-        $this->log("Send Android");
+        $this->assertEquals(1, $n->notify($id, FALSE));
+
+        # Test notifying mods.
+        $this->log("Notify group mods");
+        $n->add($id, PushNotifications::PUSH_GOOGLE, 'test', TRUE);
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
-        $this->log("Notify group mods");
         $u->addMembership($this->groupid, User::ROLE_MODERATOR);
+
+        # Create a chat message from the user to the mods.
+        $r = new ChatRoom($this->dbhm, $this->dbhm);
+        $rid = $r->createUser2Mod($id2, $this->groupid);
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cm, $banned) = $m->create($rid, $id2, "Testing", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
+        $this->assertNotNull($cm);
+
         $this->assertEquals(2, $mock->notifyGroupMods($this->groupid));
 
         $n->remove($id);
         $this->assertEquals([], $n->get($id));
-
-        }
+    }
 
     public function testExecuteOld() {
         $u = User::get($this->dbhr, $this->dbhm);

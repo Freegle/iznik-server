@@ -389,6 +389,9 @@ class Notifications
                         }
                         $count++;
                         break;
+                    default: {
+                        error_log("Notification type {$notif['type']} not handled");
+                    }
                 }
             }
         }
