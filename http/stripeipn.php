@@ -109,7 +109,7 @@ try {
                     $d = new Donations($dbhr, $dbhm);
                     log("Add donation");
                     $did = $d->add(
-                        $eid,
+                        $eid ? $eid : NULL,
                         $u->getEmailPreferred() ? $u->getEmailPreferred() : '',
                         $u->getName() ? $u->getName() : '',
                         date("Y-m-d H:i:s"),
