@@ -597,6 +597,35 @@ function session() {
             # Don't want to use cached information when looking at our own session.
             $me = Session::whoAmI($dbhm, $dbhm);
 
+            $notifs = Utils::presdef('notifications', $_REQUEST, NULL);
+            $email = array_key_exists('email', $_REQUEST) ? $_REQUEST['email'] : NULL;
+
+            if ($notifs) {
+                $uid = $me->getId();
+
+                if (!$me && Session::modtools()) {
+                    # We allow setting up of a MT push subscription to a user without authentication for testing.
+                    $u = new User($dbhr, $dbhm);
+                    $uid = $u->findByEmail($email);
+                }
+
+                if ($uid) {
+                    $n = new PushNotifications($dbhr, $dbhm);
+                    $push = Utils::presdef('push', $notifs, NULL);
+                    if ($push && Utils::pres('type', $push) && Utils::pres('subscription', $push)) {
+                        switch ($push['type']) {
+                            case PushNotifications::PUSH_GOOGLE:
+                            case PushNotifications::PUSH_FIREFOX:
+                            case PushNotifications::PUSH_FCM_ANDROID:
+                            case PushNotifications::PUSH_FCM_IOS:
+                            case PushNotifications::PUSH_BROWSER_PUSH:
+                                $n->add($uid, $push['type'], $push['subscription']);
+                                break;
+                        }
+                    }
+                }
+            }
+
             if (!$me) {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
             } else {
@@ -637,23 +666,6 @@ function session() {
                     if (Utils::pres('mylocation', $settings)) {
                         # Save this off as the last known location.
                         $me->setPrivate('lastlocation', $settings['mylocation']['id']);
-                    }
-                }
-
-                $notifs = Utils::presdef('notifications', $_REQUEST, NULL);
-                if ($notifs) {
-                    $n = new PushNotifications($dbhr, $dbhm);
-                    $push = Utils::presdef('push', $notifs, NULL);
-                    if ($push && Utils::pres('type', $push) && Utils::pres('subscription', $push)) {
-                        switch ($push['type']) {
-                            case PushNotifications::PUSH_GOOGLE:
-                            case PushNotifications::PUSH_FIREFOX:
-                            case PushNotifications::PUSH_FCM_ANDROID:
-                            case PushNotifications::PUSH_FCM_IOS:
-                            case PushNotifications::PUSH_BROWSER_PUSH:
-                                $n->add($me->getId(), $push['type'], $push['subscription']);
-                                break;
-                        }
                     }
                 }
 
