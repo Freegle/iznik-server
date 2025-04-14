@@ -6129,6 +6129,7 @@ class User extends Entity
                 }
             } catch (\Exception $e) {
                 error_log("Send to {$phone['number']} failed with " . $e->getMessage());
+                \Sentry\captureException($e);
                 $this->dbhr->preExec("UPDATE users_phones SET lastsent = NOW(), lastresponse = ? WHERE id = ?;", [
                     $e->getMessage(),
                     $phone['id']
