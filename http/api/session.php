@@ -600,8 +600,10 @@ function session() {
             $notifs = Utils::presdef('notifications', $_REQUEST, NULL);
             $email = array_key_exists('email', $_REQUEST) ? $_REQUEST['email'] : NULL;
 
+            $ret = ['ret' => 1, 'status' => 'Not logged in'];
+
             if ($notifs) {
-                $uid = $me->getId();
+                $uid = $me ? $me->getId() : NULL;
 
                 if (!$me && Session::modtools()) {
                     # We allow setting up of a MT push subscription to a user without authentication for testing.
@@ -622,13 +624,13 @@ function session() {
                                 $n->add($uid, $push['type'], $push['subscription']);
                                 break;
                         }
+
+                        $ret = ['ret' => 0, 'status' => 'Success'];
                     }
                 }
             }
 
-            if (!$me) {
-                $ret = ['ret' => 1, 'status' => 'Not logged in'];
-            } else {
+            if ($me) {
                 if (array_key_exists('marketingconsent', $_REQUEST)) {
                     // Consent to marketing under PECR.
                     $consent = Utils::presbool('marketingconsent', $_REQUEST, FALSE);
