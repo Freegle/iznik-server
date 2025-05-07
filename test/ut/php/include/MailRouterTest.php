@@ -1884,7 +1884,7 @@ class MailRouterTest extends IznikTestCase {
         $this->assertEquals(MailRouter::TO_SYSTEM, $rc);
 
         $u = new User($this->dbhr, $this->dbhm, $this->uid);
-        $this->assertEquals(NULL, $u->getEmailPreferred());
+        $thos->assertNotNull($u->getPrivate('deleted'));
     }
 
     public function testToOld() {
