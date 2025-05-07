@@ -396,9 +396,16 @@ class MailRouter
         // Find the email address that the FBL was about, in a hacky regex way.
         $handled = FALSE;
         $msg = $this->msg->getMessage();
+        $email = NULL;
 
         if (preg_match('/Original-Rcpt-To:(.*)/', $msg, $matches)) {
             $email = trim($matches[1]);
+        } else if (preg_match('/X-Original-To:(.*);/', $msg, $matches)) {
+            $email = trim($matches[1]);
+        }
+
+        if ($email) {
+            $handled = TRUE;
             if ($this->log) { error_log("FBL report to $email"); }
 
             $u = new User($this->dbhr, $this->dbhm);
@@ -409,11 +416,10 @@ class MailRouter
                 $u = User::get($this->dbhr, $this->dbhm, $uid);
                 $u->setSimpleMail(User::SIMPLE_MAIL_NONE);
                 $u->FBL();
-                $handled = TRUE;
             }
         }
 
-        if (!$handled) {
+        IF (!$handled) {
             if ($this->log) { error_log("FBL report not processed"); }
 
             $this->mail(
@@ -814,7 +820,7 @@ class MailRouter
             $ukey = $u->getUserKey($uid);
 
             if ($key && !strcasecmp($ukey, $key)) {
-                $u->forget("Unsubscribed from $type");
+                $u->limbo("Unsubscribed from $type");
                 $ret = MailRouter::TO_SYSTEM;
             }
         }
