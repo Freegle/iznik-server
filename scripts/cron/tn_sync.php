@@ -10,7 +10,7 @@ global $dbhr, $dbhm;
 
 $lockh = Utils::lockScript(basename(__FILE__));
 
-$donesummat = FALSE;
+$donesummat = TRUE;
 
 # Find the latest TN rating we have - that's what we use to decide the time period for the sync.
 $latest = $dbhr->preQuery("SELECT MAX(timestamp) AS max FROM `ratings` WHERE tn_rating_id IS NOT NULL;");
@@ -26,7 +26,7 @@ do {
     $page++;
 
     foreach ($ratings as $rating) {
-        $donesummat = FALSE;
+        $donesummat = TRUE;
 
         if ($rating['ratee_fd_user_id']) {
             // TN id might be wrong - check the user exists.
@@ -68,7 +68,7 @@ do {
     $page++;
 
     foreach ($changes as $change) {
-        $donesummat = FALSE;
+        $donesummat = TRUE;
 
         if ($change['fd_user_id']) {
             try {
