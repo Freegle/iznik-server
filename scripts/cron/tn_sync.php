@@ -10,6 +10,8 @@ global $dbhr, $dbhm;
 
 $lockh = Utils::lockScript(basename(__FILE__));
 
+$donesummat = FALSE;
+
 # Find the latest TN rating we have - that's what we use to decide the time period for the sync.
 $latest = $dbhr->preQuery("SELECT MAX(timestamp) AS max FROM `ratings` WHERE tn_rating_id IS NOT NULL;");
 $from = Utils::ISODate('@' . strtotime($latest[0]['max']));
@@ -24,6 +26,8 @@ do {
     $page++;
 
     foreach ($ratings as $rating) {
+        $donesummat = FALSE;
+
         if ($rating['ratee_fd_user_id']) {
             // TN id might be wrong - check the user exists.
             $u = User::get($dbhr, $dbhm, $rating['ratee_fd_user_id']);
@@ -64,6 +68,8 @@ do {
     $page++;
 
     foreach ($changes as $change) {
+        $donesummat = FALSE;
+
         if ($change['fd_user_id']) {
             try {
                 $u = User::get($dbhr, $dbhm, $change['fd_user_id']);
@@ -145,7 +151,7 @@ do {
             }
         }
     }
-} while (count($changes) == 100);
+} while ($changes && count($changes) == 100);
 
 # Spot any duplicate FD users we have created for TN users.  This should no longer happen given the locking code in
 # Message::parse and so could be retired once we're convinced it is fixed.
@@ -175,5 +181,8 @@ if (count($users) > 0) {
     }
 }
 
+if (!$donesummat) {
+    \Sentry\CaptureMessage("TN sync did nothing");
+}
 
 Utils::unlockScript($lockh);
