@@ -23,7 +23,7 @@ $d = new Donations($dbhr, $dbhm);
 
 # Find the users who have received things.
 $users = $dbhr->preQuery("SELECT userid FROM memberships WHERE groupid = 126719 AND added >= ?;", [
-    '2023-07-11',
+    '2025-01-15',
 ]);
 
 error_log("Found " . count($users));
@@ -50,13 +50,13 @@ foreach ($users as $user)
                 error_log("Mail $email");
                 list ($transport, $mailer) = Mail::getMailer();
                 $m = \Swift_Message::newInstance()
-                    ->setSubject("Complete this quick survey for the chance to win a £50 voucher!")
+                    ->setSubject("Complete this quick survey for the chance to win a £25 voucher!")
                     ->setFrom([NOREPLY_ADDR => SITE_NAME])
                     ->setReplyTo(NOREPLY_ADDR)
                     ->setTo($u->getEmailPreferred())
-//                    ->setTo(['log@ehibbert.org.uk','councils@ilovefreegle.org','anna@ilovefreegle.org'])
+//                    ->setTo(['log@ehibbert.org.uk'])
                     ->setBody(
-                        "For a chance to win a £50 voucher, please complete the survey at https://ilovefreegle.org/shortlink/WandsworthSurvey"
+                        "For a chance to win a £25 voucher, please complete the survey at https://ilovefreegle.org/shortlink/WandsworthSurvey"
                     );
 
                 Mail::addHeaders($dbhr, $dbhm, $m, Mail::ADMIN, $u->getId());
