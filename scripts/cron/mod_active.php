@@ -39,7 +39,7 @@ foreach ($groups as $group) {
     ]);
 
     if (count($approvals)) {
-        $mods = $g->getMods();
+        $mods = $g->getMods([ User::ROLE_MODERATOR, User::ROLE_OWNER ], $mysqltime);
 
         foreach ($mods as $mod) {
             # Check if we've warned about them recently.
