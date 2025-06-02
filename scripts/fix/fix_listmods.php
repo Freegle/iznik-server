@@ -20,7 +20,8 @@ $csv = [
         'name',
         'lastaccess',
         'activemod',
-        'backupmod'
+        'backupmod',
+        'other known emails'
     ]
 ];
 
@@ -44,13 +45,24 @@ foreach ($mods as $mod) {
         }
     }
 
+    $otheremails = [];
+
+    $emails = $u->getEmails();
+
+    foreach ($emails as $anemail) {
+        if (!$anemail['ourdomain'] && $anemail['email'] != $email) {
+            $otheremails[] = $anemail['email'];
+        }
+    }
+
     $csv[] = [
         $mod['userid'],
         $email,
         $u->getName(),
         $lastaccess,
         implode(',', $active),
-        implode(',', $backup)
+        implode(',', $backup),
+        implode(',', $otheremails)
     ];
 }
 
