@@ -3971,7 +3971,7 @@ class User extends Entity
                     $email = $this->getEmailPreferred();
 
                     if ($email) {
-                        foreach (['firstname', 'lastname', 'fullname', SITE_NAME, 'freegle'] as $att) {
+                        foreach (['firstname', 'lastname', 'fullname'] as $att) {
                             $words = explode(' ', $this->user[$att]);
                             foreach ($words as $word) {
                                 if (strlen($word) && stripos($email, $word) !== FALSE) {
@@ -3983,6 +3983,10 @@ class User extends Entity
 
                         if (stripos($email, '%') !== FALSE) {
                             # This may indicate a case where the real email is encoded on the LHS, eg gtempaccount.com
+                            $email = NULL;
+                        }
+
+                        if (stripos($email, SITE_NAME) !== FALSE || stripos($email, 'freegle') !== FALSE) {
                             $email = NULL;
                         }
                     }
