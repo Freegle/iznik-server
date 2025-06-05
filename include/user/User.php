@@ -3971,7 +3971,7 @@ class User extends Entity
                     $email = $this->getEmailPreferred();
 
                     if ($email) {
-                        foreach (['firstname', 'lastname', 'fullname'] as $att) {
+                        foreach (['firstname', 'lastname', 'fullname', SITE_NAME, 'freegle'] as $att) {
                             $words = explode(' ', $this->user[$att]);
                             foreach ($words as $word) {
                                 if (strlen($word) && stripos($email, $word) !== FALSE) {
