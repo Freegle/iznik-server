@@ -22,7 +22,8 @@ error_log("Look between $start and $end");
 $d = new Donations($dbhr, $dbhm);
 
 # Find the users who have received things.
-$users = $dbhr->preQuery("SELECT userid FROM memberships WHERE groupid = 126719 AND added >= ?;", [
+$users = $dbhr->preQuery("SELECT userid FROM memberships WHERE groupid = 126719 AND added >= ? AND added < ?;", [
+    '2024-09-01',
     '2025-01-15',
 ]);
 
