@@ -218,37 +218,22 @@ class Donations
     }
 
     public function correctUserIdInDonations() {
-        # Look for donations where the payer email belongs to a user who has given gift aid. If we find
-        # one, change the donation to be assigned to that userid.  This handles cases where we have donations from
-        # an email that we didn't know about but is later associated with a user.
+        # Look first for donations not associated with a user at the time of donation, but where we now have a user.
+        # This handles cases like someone making a donation, leaving and rejoining.  It can result in a small amount
+        # of extra gift aid.
         #
-        # First find the donations where the payer email is associated with a user who has given gift aid.
-        $donations = $this->dbhr->preQuery("SELECT DISTINCT giftaid.userid, users_donations.Payer, giftaid.period FROM users_donations             
-  INNER JOIN users_emails ON (users_donations.Payer = users_emails.email OR (users_donations.userid IS NOT NULL AND users_emails.userid = users_donations.userid))    
-  INNER JOIN giftaid ON users_emails.userid = giftaid.userid        
-  WHERE Payer != '' AND giftaid.deleted IS NULL AND giftaid.userid IS NOT NULL                                                           
-  GROUP BY Payer;");
-
-        #$total = 0;
-
-        foreach ($donations as $donation) {
-            $missed = $this->dbhr->preQuery("SELECT users_donations.* FROM users_donations WHERE Payer = ? AND (userid IS NULL OR userid != ?) AND giftaidclaimed IS NULL;", [
-                $donation['Payer'],
-                $donation['userid']
+        # Previously we did this only for donations with a gift aid record, but doing it for any we can match
+        # will result in better records of donations, which helps Support.
+        $missing = $this->dbhr->preQuery("SELECT users_emails.userid AS emailid, users_donations.id AS donationid FROM users_donations 
+    INNER JOIN users_emails ON users_emails.email = users_donations.Payer 
+         WHERE users_donations.userid IS NULL;
+");
+        foreach ($missing as $m) {
+            $this->dbhm->preExec("UPDATE users_donations SET userid = ? WHERE id = ?;", [
+                $m['emailid'],
+                $m['donationid']
             ]);
-
-            foreach ($missed as $m) {
-                #error_log("Missed donation {$m['timestamp']} {$m['id']} from {$m['Payer']} for {$m['GrossAmount']}, userid in donation {$m['userid']}, gift aid userid {$donation['userid']} type {$donation['period']}");
-                $this->dbhm->preExec("UPDATE users_donations SET userid = ? WHERE id = ?;", [
-                    $donation['userid'],
-                    $m['id']
-                ]);
-
-                #$total += $m['GrossAmount'];
-            }
         }
-
-        #error_log("Possible missed $total");
     }
     
     public function identifyGiftAidedDonations($id = NULl) {
