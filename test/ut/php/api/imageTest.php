@@ -207,9 +207,18 @@ class imageAPITest extends IznikAPITestCase
     }
 
     public function testExternal() {
-        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
-        $t = new Tus();
-        $uid = $t->upload(NULL, 'image/jpeg', $data);
+        # When testing we use the demo tus server, which is sometimes flaky.
+        for ($tries = 0; $tries < 5; $tries++) {
+            $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
+            $t = new Tus();
+            $uid = $t->upload(NULL, 'image/jpeg', $data);
+
+            if ($uid) {
+                break;
+            }
+
+            sleep(10);
+        }
 
         $ret = $this->call('image', 'POST', [
             'externaluid' => $uid,
