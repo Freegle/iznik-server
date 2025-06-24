@@ -11,6 +11,6 @@ global $dbhr, $dbhm;
 $lockh = Utils::lockScript(basename(__FILE__));
 
 $r = new ReachVolunteering($dbhr, $dbhm);
-$r->processFeed();
+$r->processFeed(REACH_FEED);
 
 Utils::unlockScript($lockh);
