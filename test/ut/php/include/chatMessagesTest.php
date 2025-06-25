@@ -770,6 +770,146 @@ class chatMessagesTest extends IznikTestCase {
             $this->assertEquals('Refers to https://www.ilovefreegle.org/ which should be expanded', $m->getPrivate('message'));
         }
     }
+
+    private function createTestImageWithText($text, $width = 400, $height = 50) {
+        # Create a simple image with text using GD library
+        $image = imagecreate($width, $height);
+        $bgColor = imagecolorallocate($image, 255, 255, 255); // White background
+        $textColor = imagecolorallocate($image, 0, 0, 0); // Black text
+        
+        # Add text to image
+        imagestring($image, 5, 10, 15, $text, $textColor);
+        
+        # Capture image data
+        ob_start();
+        imagepng($image);
+        $imageData = ob_get_contents();
+        ob_end_clean();
+        
+        imagedestroy($image);
+        return $imageData;
+    }
+
+    /**
+     * Data provider for image text extraction test scenarios
+     */
+    public function imageTextExtractionProvider() {
+        return [
+            'spam_text' => [
+                'text' => 'Buy cheap viagra online now!',
+                'shouldBeReviewed' => true,
+                'expectedReviewReason' => ChatMessage::REVIEW_SPAM,
+                'description' => 'Image with spam text should be flagged for review'
+            ],
+            'email_address' => [
+                'text' => 'Contact me at test@example.com',
+                'shouldBeReviewed' => true,
+                'expectedReviewReason' => ChatMessage::REVIEW_DODGY_IMAGE,
+                'description' => 'Image with email address should be flagged for review'
+            ],
+            'clean_text' => [
+                'text' => 'This is a normal message',
+                'shouldBeReviewed' => false,
+                'expectedReviewReason' => null,
+                'description' => 'Image with clean text should not be flagged'
+            ],
+            'multiple_emails' => [
+                'text' => 'Email me at test@example.com or contact@domain.org',
+                'shouldBeReviewed' => true,
+                'expectedReviewReason' => ChatMessage::REVIEW_DODGY_IMAGE,
+                'description' => 'Image with multiple emails should be flagged'
+            ],
+            'empty_text' => [
+                'text' => '',
+                'shouldBeReviewed' => false,
+                'expectedReviewReason' => null,
+                'description' => 'Image with no text should not be flagged'
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider imageTextExtractionProvider
+     */
+    public function testImageTextExtraction($text, $shouldBeReviewed, $expectedReviewReason, $description) {
+        # Create two users for a chat
+        $u1 = new User($this->dbhr, $this->dbhm);
+        $uid1 = $u1->create('Test', 'User1', 'Test User 1');
+        $u1->addEmail('testuser1@test.com');
+        $u1->addMembership($this->groupid);
+        $u1->setPrivate('chatmodstatus', User::CHAT_MODSTATUS_MODERATED);
+
+        $u2 = new User($this->dbhr, $this->dbhm);
+        $uid2 = $u2->create('Test', 'User2', 'Test User 2');
+        $u2->addEmail('testuser2@test.com');
+        $u2->addMembership($this->groupid);
+
+        # Create a chat room between the users
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($chatid, $blocked) = $r->createConversation($uid1, $uid2);
+        $this->assertNotNull($chatid);
+
+        # Create test image with the provided text
+        $imageData = $this->createTestImageWithText($text);
+        $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_CHAT_MESSAGE);
+        list ($imageId, $dummy) = $a->create(NULL, $imageData);
+        $this->assertNotNull($imageId);
+
+        # Create image message
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($mid, $banned) = $m->create($chatid, $uid1, '', ChatMessage::TYPE_IMAGE, NULL, TRUE, NULL, NULL, NULL, $imageId, NULL, NULL, FALSE, FALSE);
+        $this->assertNotNull($mid);
+        $m->setPrivate('imageid', $imageId);
+
+        $m = new ChatMessage($this->dbhr, $this->dbhm, $mid);
+        $this->assertEquals(1, $m->getPrivate('processingrequired'));
+
+        # Process the message
+        $result = $m->process();
+        $this->assertTrue($result, "Processing should succeed for: $description");
+
+        # Verify processing completed
+        $m = new ChatMessage($this->dbhr, $this->dbhm, $mid);
+        $this->assertEquals(0, $m->getPrivate('processingrequired'));
+        $this->assertEquals(1, $m->getPrivate('processingsuccessful'));
+
+        # Verify review status
+        if ($shouldBeReviewed) {
+            $this->assertEquals(1, $m->getPrivate('reviewrequired'), $description);
+            $this->assertEquals($expectedReviewReason, $m->getPrivate('reportreason'), $description);
+        } else {
+            $this->assertEquals(0, $m->getPrivate('reviewrequired'), $description);
+            $this->assertNull($m->getPrivate('reportreason'), $description);
+        }
+
+        # Clean up
+        $this->dbhm->preExec("DELETE FROM chat_messages WHERE id = ?", [$mid]);
+        $this->dbhm->preExec("DELETE FROM chat_rooms WHERE id = ?", [$chatid]);
+        $this->dbhm->preExec("DELETE FROM chat_images WHERE id = ?", [$imageId]);
+        $u1->forget("Testing");
+        $u2->forget("Testing");
+    }
+
+    public function testImageEmailDetection() {
+        # Test that we can detect email patterns in extracted text
+        # This tests the regex pattern matching part of the feature
+        
+        $testTexts = [
+            'Contact me at test@example.com for more info',
+            'My email is user123@domain.co.uk',
+            'reach out to contact@test.org',
+            'No email here just regular text',
+            'UPPERCASE@EMAIL.COM should also work'
+        ];
+        
+        $expectedMatches = [true, true, true, false, true];
+        
+        for ($i = 0; $i < count($testTexts); $i++) {
+            $hasEmail = preg_match(Message::EMAIL_REGEXP, $testTexts[$i]);
+            $this->assertEquals($expectedMatches[$i] ? 1 : 0, $hasEmail, 
+                "Failed for text: " . $testTexts[$i]);
+        }
+    }
 }
 
 

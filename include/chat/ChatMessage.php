@@ -39,6 +39,7 @@ class ChatMessage extends Entity
     const REVIEW_USER = 'User';
     const REVIEW_UNKNOWN_MESSAGE = 'UnknownMessage';
     const REVIEW_SPAM = 'Spam';
+    const REVIEW_DODGY_IMAGE = 'DodgyImage';
 
     /** @var  $log Log */
     private $log;
@@ -159,6 +160,59 @@ class ChatMessage extends Entity
         ]);
     }
 
+    public function processImageMessage(&$review, &$reviewreason) {
+        try {
+            # Extract text from the image using Tesseract OCR
+            $imageid = $this->chatmessage['imageid'];
+            if (!$imageid) {
+                return;
+            }
+
+            # Get the image attachment
+            $a = new Attachment($this->dbhr, $this->dbhm, $imageid, Attachment::TYPE_CHAT_MESSAGE);
+            $data = $a->getData();
+
+            if (!$data) {
+                return;
+            }
+
+            # Save image data to temporary file for OCR processing
+            $tempFile = tempnam(sys_get_temp_dir(), 'chat_image_');
+            file_put_contents($tempFile, $data);
+
+            # Use Tesseract OCR to extract text
+            $tesseract = new \thiagoalessio\TesseractOCR\TesseractOCR($tempFile);
+            $extractedText = $tesseract->run();
+
+            # Clean up temporary file
+            unlink($tempFile);
+
+            if (!empty($extractedText)) {
+                echo "Got extracted text: $extractedText\n";
+
+                # Check for email addresses using Message::EMAIL_REGEXP
+                if (preg_match(Message::EMAIL_REGEXP, $extractedText)) {
+                    echo "Found email in image text: $extractedText\n";
+                    $review = 1;
+                    $reviewreason = self::REVIEW_DODGY_IMAGE;
+                    return;
+                }
+
+                # Check for spam using Spam::checkReview
+                $s = new Spam($this->dbhr, $this->dbhm);
+                if ($s->checkSpam($extractedText, [ Spam::ACTION_SPAM, Spam::ACTION_REVIEW ]) || $s->checkReview($extractedText, FALSE)) {
+                    $review = 1;
+                    $reviewreason = self::REVIEW_SPAM;
+                    return;
+                }
+            }
+
+        } catch (\Exception $e) {
+            error_log("Error processing image OCR for chat message {$this->id}: " . $e->getMessage());
+            # Don't fail the entire message processing if OCR fails
+        }
+    }
+
     public function process($forcereview = FALSE, $suppressmodnotif = FALSE) {
         # Process a chat message which was created with processingrequired = 1.  By doing this stuff
         # in the background we can keep chat message creation fast.
@@ -263,6 +317,11 @@ class ChatMessage extends Entity
                             $review = 0;
                             $reviewreason = NULL;
                         }
+                    }
+
+                    # Special processing for TYPE_IMAGE messages
+                    if (!$review && $type == ChatMessage::TYPE_IMAGE) {
+                        $this->processImageMessage($review, $reviewreason);
                     }
 
                     if (!$review && $type ==  ChatMessage::TYPE_INTERESTED && $refmsgid) {

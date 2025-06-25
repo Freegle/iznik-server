@@ -63,14 +63,18 @@ class Attachment {
         $url = NULL;
 
         if ($p !== FALSE) {
-            $url = IMAGE_DELIVERY . "?";
-            $mods = json_decode($mods, TRUE);
-            
-            if (Utils::pres('rotate', $mods)) {
-                $url .= 'ro=' . $mods['rotate'] . "&";
-            }
+            if (IMAGE_DELIVERY) {
+                $url = IMAGE_DELIVERY . "?";
+                $mods = json_decode($mods, TRUE);
 
-            $url .= "url=" . TUS_UPLOADER . "/" . substr($uid, $p + strlen('freegletusd-')) . "/";
+                if (Utils::pres('rotate', $mods)) {
+                    $url .= 'ro=' . $mods['rotate'] . "&";
+                }
+
+                $url .= "url=" . TUS_UPLOADER . "/" . substr($uid, $p + strlen('freegletusd-')) . "/";
+            } else {
+                $url = TUS_UPLOADER . "/" . substr($uid, $p + strlen('freegletusd-')) . "/";
+            }
         }
 
         return $url;

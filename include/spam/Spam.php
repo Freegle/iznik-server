@@ -357,7 +357,6 @@ class Spam {
                 if ($word['action'] == 'Review' &&
                     preg_match('/\b' . $w . '\b/i', $message) &&
                     (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
-                    #error_log("Spam keyword {$word['word']}");
                     $check = self::REASON_KNOWN_KEYWORD;
                 }
             }

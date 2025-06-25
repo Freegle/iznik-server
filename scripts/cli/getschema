@@ -1,1 +1,58 @@
-mysqldump -u root -h 127.0.0.1 --no-data --single-transaction=TRUE iznik > ../../install/schema.sql
+#!/bin/bash
+
+# Script to extract database schema using configuration from /etc/iznik.conf
+
+# Check if config file exists
+if [[ ! -f /etc/iznik.conf ]]; then
+    echo "Error: /etc/iznik.conf not found"
+    exit 1
+fi
+
+# Extract database configuration from /etc/iznik.conf
+SQLHOST_RAW=$(grep "define('SQLHOST'" /etc/iznik.conf | sed "s/.*'\([^']*\)'.*/\1/")
+SQLUSER=$(grep "define('SQLUSER'" /etc/iznik.conf | sed "s/.*'\([^']*\)'.*/\1/")
+SQLPASSWORD=$(grep "define('SQLPASSWORD'" /etc/iznik.conf | sed "s/.*'\([^']*\)'.*/\1/")
+SQLDB=$(grep "define('SQLDB'" /etc/iznik.conf | sed "s/.*'\([^']*\)'.*/\1/")
+
+# Parse host and port from SQLHOST (format could be "host" or "host:port")
+if [[ "$SQLHOST_RAW" == *":"* ]]; then
+    SQLHOST=$(echo "$SQLHOST_RAW" | cut -d':' -f1)
+    SQLPORT=$(echo "$SQLHOST_RAW" | cut -d':' -f2)
+else
+    SQLHOST="$SQLHOST_RAW"
+    SQLPORT="3306"  # Default MySQL port
+fi
+
+# Validate required configuration
+if [[ -z "$SQLHOST" || -z "$SQLUSER" || -z "$SQLDB" ]]; then
+    echo "Error: Unable to extract required database configuration from /etc/iznik.conf"
+    echo "SQLHOST: $SQLHOST"
+    echo "SQLPORT: $SQLPORT"
+    echo "SQLUSER: $SQLUSER" 
+    echo "SQLDB: $SQLDB"
+    exit 1
+fi
+
+# Build mysqldump command
+MYSQL_CMD="mysqldump -u $SQLUSER -h $SQLHOST -P $SQLPORT --no-data --single-transaction=TRUE"
+
+# Add password if present
+if [[ -n "$SQLPASSWORD" ]]; then
+    MYSQL_CMD="$MYSQL_CMD -p$SQLPASSWORD"
+fi
+
+# Add database name and output redirection
+MYSQL_CMD="$MYSQL_CMD $SQLDB"
+
+echo "Extracting schema from database: $SQLDB on $SQLHOST:$SQLPORT"
+echo "Command: mysqldump -u $SQLUSER -h $SQLHOST -P $SQLPORT --no-data --single-transaction=TRUE $SQLDB > ../../install/schema.sql"
+
+# Execute the command
+$MYSQL_CMD > ../../install/schema.sql
+
+if [[ $? -eq 0 ]]; then
+    echo "Schema exported successfully to ../../install/schema.sql"
+else
+    echo "Error: Schema export failed"
+    exit 1
+fi
