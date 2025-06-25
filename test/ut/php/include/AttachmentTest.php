@@ -78,10 +78,10 @@ class AttachmentTest extends IznikTestCase {
         $a = new Attachment($this->dbhr, $this->dbhm, $attid);
         # Data length will be zero because this isn't a real uploaded file.
         $this->assertEquals(0, strlen($a->getData()));
-        $this->assertEquals('?url=' . TUS_UPLOADER . '/uid/', $a->getPath());
+        $this->assertEquals(TUS_UPLOADER . '/uid/', $a->getPath());
         $atts = $a->getPublic();
-        $this->assertEquals('?url=' . TUS_UPLOADER . '/uid/', $atts['path']);
-        $this->assertEquals('?url=' . TUS_UPLOADER . '/uid/', $atts['paththumb']);
+        $this->assertEquals(TUS_UPLOADER . '/uid/', $atts['path']);
+        $this->assertEquals(TUS_UPLOADER . '/uid/', $atts['paththumb']);
     }
 }
 
