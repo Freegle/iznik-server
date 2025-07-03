@@ -2,6 +2,7 @@
   <mj-head>
     <mj-style>
       a { color: #288c0a; text-decoration: none; font-weight: bold } ol { margin-top: 0; margin-bottom: 0; /* margin-left: 2.2em; For Outlook */ padding-left: 2.4em; /* For the rest */ } li { margin: 0.5em 0; }
+      .logo img { width: 80px !important; }
     </mj-style>
     <mj-attributes>
       <mj-all font-family="Trebuchet MS, Helvetica, Arial" />
@@ -15,7 +16,7 @@
           <mj-group>
             <mj-column vertical-align="middle" width="65%">
               <mj-text color="#61AE24" font-size="18pt" line-height="1.25em">
-                Member posts on ChitChat</mj-text>
+                Recent conversations on ChitChat</mj-text>
             </mj-column>
             <mj-column vertical-align="middle" width="35%">
               <mj-image css-class="logo" src="https://www.ilovefreegle.org/icon.png" alt="Logo" width="80px" align="right" border-radius="5px" padding="20px" />
@@ -25,9 +26,8 @@
         <mj-section background-color="#F7F6EC">
           <mj-column>
               <mj-text>
-                <p>We mail you when members in your active groups' areas post on the ChitChat.  Replying to these
-                can help your members and makes Freegle look nice and friendly.</p>
-                <p>You can turn these on/off in ModTools->Settings->Personal Settings.</p>
+                <p>You can chat to freeglers near you, or across the UK - share news, ask for advice or recommendations, or just have a blether.</p>
+                <p>Here are some recent topics from freeglers near you. If these aren't nearby, please check your postcode in <a href="{{settings}}">settings</a>!</p>
               </mj-text>
           </mj-column>
         </mj-section>
@@ -63,7 +63,7 @@
         </mj-raw>
         <mj-section background-color="#E0E0E0">
           <mj-column>
-            <mj-text font-size="9pt" color="#707070">You received this automated mail because&nbsp;{{ email }}&nbsp;is a volunteer for Freegle.</a>
+            <mj-text font-size="9pt" color="#707070">You received this automated mail because&nbsp;{{email}}&nbsp;is a member of Freegle. You can turn these newsfeed mails off from <a href="{{settings}}">here</a> or by emailing <a href="mailto:{{noemail}}">{{noemail}}</a>
               <hr style="border: 0; border-top: 1px solid #AAA; " /> Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.  Registered address: Weaver's Field, Loud Bridge, Chipping PR3 2NX
             </mj-text>
           </mj-column>
