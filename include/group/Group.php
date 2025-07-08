@@ -808,8 +808,7 @@ HAVING logincount > 0
             $userids = $this->dbhr->preQuery($sql);
             $ids = array_unique(array_column($userids, 'id'));
 
-            if (count($ids))
-            {
+            if (count($ids)) {
                 $sql = "$sqlpref 
                   INNER JOIN users ON users.id = memberships.userid 
                   LEFT JOIN users_emails ON memberships.userid = users_emails.userid 
@@ -838,6 +837,9 @@ HAVING logincount > 0
         $infousers = [];
 
         if (count($uids)) {
+            # Truncate array at 100 to avoid it returning too many results and potentially constructing a query which
+            # blows limits or times out.
+            $uids = array_slice($uids, 0, 100);
             foreach ($uids as $uid) {
                 $infousers[$uid] = [
                     'id' => $uid
