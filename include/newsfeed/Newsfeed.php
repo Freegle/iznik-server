@@ -895,7 +895,7 @@ class Newsfeed extends Entity
                     }
 
                     # Strip emoji.
-                    $str = preg_replace('/\\\\\\\\u(.*?)\\\\\\\\u/', '', $str);
+                    $str = preg_replace('/\\\\u.*?\\\\u/', ':-)', $str);
 
                     $this->snip($str);
                     $feed['message'] = $str;
