@@ -5973,6 +5973,24 @@ class User extends Entity
         $count = 0;
         $userq = $userid ? " users.id = $userid AND " : '';
         $mysqltime = date("Y-m-d", strtotime("6 months ago"));
+        
+        # First, delete users with @yahoogroups.com emails (test/old emails)
+        $yahoosql = "SELECT DISTINCT users.id FROM users 
+                     INNER JOIN users_emails ON users.id = users_emails.userid 
+                     WHERE $userq users_emails.email LIKE '%@yahoogroups.com' AND users.deleted IS NULL;";
+        $yahooUsers = $this->dbhr->preQuery($yahoosql);
+        
+        foreach ($yahooUsers as $user) {
+            error_log("Deleting Yahoo Groups user #{$user['id']}");
+            $u = new User($this->dbhr, $this->dbhm, $user['id']);
+            $u->delete();
+            $count++;
+            
+            # Prod garbage collection
+            User::clearCache();
+            gc_collect_cycles();
+        }
+        
         $sql = "SELECT users.id FROM users LEFT JOIN memberships ON users.id = memberships.userid LEFT JOIN spam_users ON users.id = spam_users.userid LEFT JOIN users_comments ON users.id = users_comments.userid WHERE $userq memberships.userid IS NULL AND spam_users.userid IS NULL AND users.lastaccess < '$mysqltime' AND systemrole = ? AND users.deleted IS NULL;";
         $users = $this->dbhr->preQuery($sql, [
             User::SYSTEMROLE_USER
