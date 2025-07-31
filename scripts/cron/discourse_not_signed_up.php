@@ -1,6 +1,7 @@
 <?php
 
-// hub/archive scripts/cron/discourse_checkusers.php
+// bulk3  /var/www/iznik/scripts/cron/discourse_not_signed_up.php
+// mail sent out via bulk2
 //
 // Check for groups that are no represented by an active mod in Discourse
 //  active = non-backup and lastaccess in last 6 months
@@ -314,6 +315,8 @@ try{
   $reportTop .= "Mods with TN preferred emails: $modswithTNpreferredemails\r\n\r\n";
 
   $report = $reportTop.$reportMid;
+
+  $report .= "\r\ndiscourse_not_signed_up.php runs on bulk3 with mail sent via bulk2\r\n";
 
   echo $report;
   echo "\r\n";
