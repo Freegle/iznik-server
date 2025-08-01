@@ -7021,6 +7021,8 @@ memberships.groupid IN $groupq
 
         $settings['simplemail'] = $simplemail;
 
+        $this->setPrivate('settings', json_encode($settings));
+
         # Holiday no longer exposed so turn off.
         $this->dbhm->preExec("UPDATE users SET onholidaytill = NULL, settings = ? WHERE id = ?;", [
             json_encode($settings),
