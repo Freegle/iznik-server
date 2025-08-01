@@ -1,6 +1,7 @@
 <?php
 
-// hub/archive scripts/cron/discourse_checkusers.php
+// bulk3  /var/www/iznik/scripts/cron/discourse_checkusers.php
+// mail sent out via bulk2
 //
 // 2019-12-13 Use header auth not query params
 // 2019-12-13 Add bounce reporting
@@ -494,6 +495,8 @@ try{
   $report .= "\r\n";
   $report .= "notreceivingmail: ($notreceivingmail)\r\n";
   $report .= "bioupdatedcount: ($bioupdatedcount)\r\n";
+
+  $report .= "\r\ndiscourse_checkusers.php runs on bulk3 with mail sent via bulk2\r\n";
 
   echo $report;
   echo "\r\n";
