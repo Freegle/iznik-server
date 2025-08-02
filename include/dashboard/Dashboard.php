@@ -194,14 +194,14 @@ class Dashboard {
             # Also get the donations this year.
             $mysqltime = date("Y-m-d H:i:s", strtotime("midnight 1st January this year"));
 
-            $sql = "SELECT SUM(GrossAmount) AS total FROM users_donations INNER JOIN memberships ON users_donations.userid = memberships.userid AND memberships.groupid = ? WHERE users_donations.timestamp > '$mysqltime' AND payer != 'ppgfukpay@paypalgivingfund.org';";
+            $sql = "SELECT SUM(GrossAmount) AS total FROM users_donations INNER JOIN memberships ON users_donations.userid = memberships.userid AND memberships.groupid = ? WHERE users_donations.timestamp > '$mysqltime' AND " . Donations::getExcludedPayersCondition('payer') . ";";
             $donations = $this->dbhr->preQuery($sql, [ $groupid ]);
             $ret['donationsthisyear'] = $donations[0]['total'];
 
             # ...and this month
             $mysqltime = date("Y-m-d H:i:s", strtotime("midnight first day of this month"));
 
-            $sql = "SELECT SUM(GrossAmount) AS total FROM users_donations INNER JOIN memberships ON users_donations.userid = memberships.userid AND memberships.groupid = ? WHERE users_donations.timestamp > '$mysqltime' AND payer != 'ppgfukpay@paypalgivingfund.org';";
+            $sql = "SELECT SUM(GrossAmount) AS total FROM users_donations INNER JOIN memberships ON users_donations.userid = memberships.userid AND memberships.groupid = ? WHERE users_donations.timestamp > '$mysqltime' AND " . Donations::getExcludedPayersCondition('payer') . ";";
             $donations = $this->dbhr->preQuery($sql, [ $groupid ]);
             $ret['donationsthismonth'] = $donations[0]['total'];
         }
@@ -382,14 +382,14 @@ WHERE $groupq AND role IN ('Moderator', 'Owner') HAVING lastactive IS NOT NULL;"
 
             if (in_array(Dashboard::COMPONENTS_DONATIONS, $components)) {
                 if ($systemwide) {
-                    $ret[Dashboard::COMPONENTS_DONATIONS] = $this->dbhr->preQuery("SELECT SUM(GrossAmount) AS count, DATE(timestamp) AS date FROM users_donations WHERE users_donations.timestamp >= ? AND users_donations.timestamp <= ? AND Payer NOT LIKE 'ppgfukpay@paypalgivingfund.org' GROUP BY date ORDER BY date ASC", [
+                    $ret[Dashboard::COMPONENTS_DONATIONS] = $this->dbhr->preQuery("SELECT SUM(GrossAmount) AS count, DATE(timestamp) AS date FROM users_donations WHERE users_donations.timestamp >= ? AND users_donations.timestamp <= ? AND " . Donations::getExcludedPayersCondition('Payer') . " GROUP BY date ORDER BY date ASC", [
                             $start,
                             $end
                     ]);
                 } else {
                     $groupq = (" groupid IN (" . implode(', ', $groupids) . ") ");
 
-                    $ret[Dashboard::COMPONENTS_DONATIONS] = $this->dbhr->preQuery("SELECT SUM(GrossAmount) AS count, DATE(timestamp) AS date FROM users_donations WHERE userid IN (SELECT DISTINCT userid FROM memberships WHERE $groupq) AND users_donations.timestamp >= ? AND users_donations.timestamp <= ? AND Payer NOT LIKE 'ppgfukpay@paypalgivingfund.org' GROUP BY date ORDER BY date ASC", [
+                    $ret[Dashboard::COMPONENTS_DONATIONS] = $this->dbhr->preQuery("SELECT SUM(GrossAmount) AS count, DATE(timestamp) AS date FROM users_donations WHERE userid IN (SELECT DISTINCT userid FROM memberships WHERE $groupq) AND users_donations.timestamp >= ? AND users_donations.timestamp <= ? AND " . Donations::getExcludedPayersCondition('Payer') . " GROUP BY date ORDER BY date ASC", [
                             $start,
                             $end
                         ]

@@ -179,6 +179,7 @@ define('CENTRAL_MAIL_TO', 'discoursereplies+Tech@ilovefreegle.org');
 define('CENTRAL_MAIL_FROM', 'geeks@ilovefreegle.org');
 
 define('DONATION_TARGET', 2000);
+define('DONATIONS_EXCLUDE', 'ppgfukpay@paypalgivingfund.org,paypal.msb@tipalti.com');
 
 # For test scripts
 define('USER_TEST_SITE', 'https://iznik.ilovefreegle.org');

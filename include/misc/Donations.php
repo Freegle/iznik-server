@@ -24,6 +24,21 @@ class Donations
 
     const MANUAL_THANKS = 20;
 
+    public static function getExcludedPayersCondition($field = 'payer') {
+        $excludeList = defined('DONATIONS_EXCLUDE') ? DONATIONS_EXCLUDE : 'ppgfukpay@paypalgivingfund.org';
+        $excludeEmails = array_map('trim', explode(',', $excludeList));
+        $conditions = array_map(function($email) use ($field) {
+            return "$field != '$email'";
+        }, $excludeEmails);
+        return '(' . implode(' AND ', $conditions) . ')';
+    }
+
+    public static function isExcludedPayer($email) {
+        $excludeList = defined('DONATIONS_EXCLUDE') ? DONATIONS_EXCLUDE : 'ppgfukpay@paypalgivingfund.org';
+        $excludeEmails = array_map('trim', explode(',', $excludeList));
+        return in_array($email, $excludeEmails);
+    }
+
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $groupid = NULL)
     {
         $this->dbhr = $dbhr;
@@ -64,7 +79,8 @@ class Donations
         $mysqltime = date("Y-m-d", strtotime('first day of this month'));
         $groupq = $this->groupid ? " INNER JOIN memberships ON users_donations.userid = memberships.userid AND groupid = {$this->groupid} " : '';
 
-        $totals = $this->dbhr->preQuery("SELECT SUM(GrossAmount) AS raised FROM users_donations $groupq WHERE timestamp >= ? AND payer != 'ppgfukpay@paypalgivingfund.org';", [
+        $excludeCondition = self::getExcludedPayersCondition('payer');
+        $totals = $this->dbhr->preQuery("SELECT SUM(GrossAmount) AS raised FROM users_donations $groupq WHERE timestamp >= ? AND $excludeCondition;", [
             $mysqltime
         ]);
         $ret['raised'] = $totals[0]['raised'];

@@ -70,7 +70,7 @@ if (Utils::pres('mc_gross', $transaction)) {
     }
 
     # Don't ask for thanks for the PayPal Giving Fund transactions.  Do ask for first recurring or larger one-off.
-    if ((($recurring && $first) || (!$recurring && $transaction['mc_gross'] >= Donations::MANUAL_THANKS)) && $transaction['payer_email'] != 'ppgfukpay@paypalgivingfund.org') {
+    if ((($recurring && $first) || (!$recurring && $transaction['mc_gross'] >= Donations::MANUAL_THANKS)) && !Donations::isExcludedPayer($transaction['payer_email'])) {
         $text = "{$transaction['first_name']} {$transaction['last_name']} ({$transaction['payer_email']}) donated £{$transaction['mc_gross']} via PayPal Donate.  Please can you thank them?";
 
         if ($recurring) {
