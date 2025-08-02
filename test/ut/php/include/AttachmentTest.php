@@ -46,7 +46,7 @@ class AttachmentTest extends IznikTestCase {
     }
 
     public function testUrl() {
-        $url = 'https://www.ilovefreegle.org/icon.png';
+        $url = 'https://www.ilovefreegle.org/posters/A4.jpg';
 
         $this->dbhm->preExec("INSERT INTO users_images (url) VALUES (?);", [
             $url
@@ -68,6 +68,7 @@ class AttachmentTest extends IznikTestCase {
         $atts = $a->getByImageIds([ $attid1 ]);
         $this->assertEquals($attid1, $atts[0]->getId());
     }
+
 
     public function testExternal() {
         $url = 'https://ilovefreegle.org/icon.png';
