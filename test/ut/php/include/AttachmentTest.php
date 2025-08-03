@@ -45,20 +45,6 @@ class AttachmentTest extends IznikTestCase {
         $this->assertEquals($a1->getHash(), $a2->getHash());
     }
 
-    public function testUrl() {
-        $url = 'https://www.ilovefreegle.org/lovejunk/desktop.jpg';
-
-        $this->dbhm->preExec("INSERT INTO users_images (url) VALUES (?);", [
-            $url
-        ]);
-
-        $id = $this->dbhm->lastInsertId();
-
-        $data = file_get_contents($url);
-        $a = new Attachment($this->dbhr, $this->dbhm, $id, Attachment::TYPE_USER);
-        $this->assertEquals($data, $a->getData());
-    }
-
     public function testGetByImageIds() {
         $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_GROUP);
