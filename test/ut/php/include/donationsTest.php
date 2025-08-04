@@ -272,6 +272,7 @@ class donationsTest extends IznikTestCase {
         $this->assertEquals(1, $count1, "Should send 1 email for first group");
         
         # Check that lastbirthdayappeal was recorded
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $settings = $u->getPrivate('settings');
         $settings = $settings ? json_decode($settings, TRUE) : [];
         $this->assertArrayHasKey('lastbirthdayappeal', $settings, "Should record lastbirthdayappeal");
