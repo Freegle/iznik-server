@@ -208,18 +208,18 @@ class donationsTest extends IznikTestCase {
     }
 
     public function testBirthdayEmails() {
-        # Create two test groups both founded on today's date
-        $today = date('Y-m-d');
+        # Create two test groups both founded 1 year ago on today's date
+        $oneYearAgo = date('Y-m-d', strtotime('-1 year'));
         
         $g1 = Group::get($this->dbhr, $this->dbhm);
         $gid1 = $g1->create("testbirthday1", Group::GROUP_FREEGLE);
-        $g1->setPrivate('founded', $today);
+        $g1->setPrivate('founded', $oneYearAgo);
         $g1->setPrivate('publish', 1);
         $g1->setPrivate('onmap', 1);
         
         $g2 = Group::get($this->dbhr, $this->dbhm);
         $gid2 = $g2->create("testbirthday2", Group::GROUP_FREEGLE);
-        $g2->setPrivate('founded', $today);
+        $g2->setPrivate('founded', $oneYearAgo);
         $g2->setPrivate('publish', 1);
         $g2->setPrivate('onmap', 1);
         
