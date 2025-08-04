@@ -397,4 +397,180 @@ class Donations
 
         return $donations;
     }
+
+    public function sendBirthdayEmails($emailOverride = null, $groupids = null) {
+        # Find groups founded on this date in any year
+        $today = date('m-d'); // Current month-day format
+        error_log("Looking for groups founded on $today");
+
+        # Build the query with optional group ID filtering
+        $groupIdFilter = '';
+        $params = [$today, Group::GROUP_FREEGLE];
+        
+        if ($groupids !== null) {
+            if (is_array($groupids)) {
+                $placeholders = str_repeat('?,', count($groupids) - 1) . '?';
+                $groupIdFilter = " AND id IN ($placeholders)";
+                $params = array_merge($params, $groupids);
+            } else {
+                $groupIdFilter = " AND id = ?";
+                $params[] = $groupids;
+            }
+        }
+        
+        $groups = $this->dbhr->preQuery("SELECT id, nameshort, namefull, founded, YEAR(NOW()) - YEAR(founded) AS age 
+                                      FROM `groups` 
+                                      WHERE DATE_FORMAT(founded, '%m-%d') = ? 
+                                      AND type = ? 
+                                      AND publish = 1 
+                                      AND onmap = 1
+                                      AND YEAR(NOW()) - YEAR(founded) > 0
+                                      $groupIdFilter
+                                      ORDER BY age DESC", $params);
+
+        $count = 0;
+
+        foreach ($groups as $group) {
+            error_log("Processing group {$group['nameshort']} - {$group['age']} years old");
+            
+            # Get group members who are allowed to receive emails
+            # Basic query to get active group members with marketing consent - we'll check email permissions with sendOurMails
+            $members = $this->dbhr->preQuery("SELECT DISTINCT users.id, users.fullname, users.firstname 
+                                           FROM users 
+                                           INNER JOIN memberships ON users.id = memberships.userid 
+                                           WHERE memberships.groupid = ? 
+                                           AND users.deleted IS NULL 
+                                           AND users.marketingconsent = 1
+                                           AND memberships.collection = ?", [
+                $group['id'],
+                MembershipCollection::APPROVED
+            ]);
+            
+            foreach ($members as $member) {
+                $u = new User($this->dbhr, $this->dbhm, $member['id']);
+                $email = $emailOverride ? $emailOverride : $u->getEmailPreferred();
+                
+                # Check if we can send emails to this user using sendOurMails (skip check if overriding email)
+                if (!$email || (!$emailOverride && !$u->sendOurMails())) {
+                    continue;
+                }
+                
+                # Check if we've sent a birthday appeal to this user recently (skip check if overriding email)
+                $canSendBirthdayAppeal = true;
+                if (!$emailOverride) {
+                    $settings = $u->getPrivate('settings');
+                    $settings = $settings ? json_decode($settings, TRUE) : [];
+                    $lastBirthdayAppeal = Utils::presdef('lastbirthdayappeal', $settings, null);
+                    
+                    if ($lastBirthdayAppeal && time() - strtotime($lastBirthdayAppeal) < 31 * 24 * 60 * 60) {
+                        $canSendBirthdayAppeal = false;
+                        $days_since = floor((time() - strtotime($lastBirthdayAppeal)) / (24 * 60 * 60));
+                        error_log("Skipping {$member['id']} - sent birthday appeal $days_since days ago");
+                    }
+                }
+                
+                if ($canSendBirthdayAppeal) {
+                    try {
+                        error_log("Sending birthday email to {$member['id']} " . $u->getName() . " at $email for group {$group['nameshort']}");
+                        
+                        # Use Twig to render the HTML template
+                        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+                        $twig = new \Twig_Environment($loader);
+                        
+                        # Fetch active volunteers for this group
+                        $volunteers = [];
+                        $g = Group::get($this->dbhr, $this->dbhm, $group['id']);
+                        
+                        # Get moderators using the same logic as the API
+                        $ctx = NULL;
+                        $mods = $g->getMembers(100, NULL, $ctx, NULL, MembershipCollection::APPROVED, NULL, NULL, NULL, NULL, Group::FILTER_MODERATORS);
+                        
+                        if ($mods) {
+                            $oneYearAgo = date('Y-m-d H:i:s', strtotime('-1 year'));
+                            foreach ($mods as $mod) {
+                                $modUser = new User($this->dbhr, $this->dbhm, $mod['userid']);
+                                $lastAccess = $modUser->getPrivate('lastaccess');
+                                
+                                # Only include moderators who are active (accessed within last year) and have publish consent
+                                if ($lastAccess && $lastAccess > $oneYearAgo && $modUser->getPrivate('publishconsent')) {
+                                    $displayName = $modUser->getName();
+                                    $firstName = explode(' ', $displayName)[0];
+                                    $volunteers[] = [
+                                        'id' => $mod['userid'],
+                                        'displayname' => $displayName,
+                                        'firstname' => $firstName
+                                    ];
+                                }
+                            }
+                        }
+
+                        $html = $twig->render('birthday.html', [
+                            'groupname' => $group['namefull'],
+                            'groupnameshort' => $group['nameshort'],
+                            'groupage' => $group['age'],
+                            'groupid' => $group['id'],
+                            'email' => $email,
+                            'volunteers' => $volunteers
+                        ]);
+                        
+                        # Set sender info - use group name and moderator email from getModsEmail()
+                        $fromEmail = $g->getModsEmail();
+                        $fromName = $group['namefull'];
+
+                        # Create the email
+                        list ($transport, $mailer) = Mail::getMailer();
+                        $m = \Swift_Message::newInstance()
+                            ->setSubject("Happy Birthday to all us freeglers!")
+                            ->setFrom([$fromEmail => $fromName])
+                            ->setReplyTo($fromEmail)
+                            ->setTo($email)
+                            ->setBody("Happy Birthday to " . $group['namefull'] . "!\n\n" . 
+                                     $group['namefull'] . " is " . $group['age'] . " years old today!\n\n" .
+                                     "Together, we've been saving money, time and the planet for another year.\n\n" .
+                                     "Free to use, but not free to run - help us keep " . $group['namefull'] . " thriving for another year.\n\n" .
+                                     "Donate at: https://www.ilovefreegle.org/donate?groupid=" . $group['id'] . "\n\n" .
+                                     "Thanks for freegling!");
+
+                        # Add HTML version
+                        $htmlPart = \Swift_MimePart::newInstance();
+                        $htmlPart->setCharset('utf-8');
+                        $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                        $htmlPart->setContentType('text/html');
+                        $htmlPart->setBody($html);
+                        $m->attach($htmlPart);
+
+                        Mail::addHeaders($this->dbhr, $this->dbhm, $m, Mail::ASK_DONATION, $u->getId());
+
+                        $mailer->send($m);
+                        $count++;
+                        
+                        # Record that we've sent a birthday appeal to this user (skip if overriding email)
+                        if (!$emailOverride) {
+                            $settings = $u->getPrivate('settings');
+                            $settings = $settings ? json_decode($settings, TRUE) : [];
+                            $settings['lastbirthdayappeal'] = date('Y-m-d H:i:s');
+                            $u->setPrivate('settings', json_encode($settings));
+                        }
+                        
+                        # If using email override, stop after sending one email
+                        if ($emailOverride) {
+                            error_log("Email override used - stopping after one email");
+                            return $count;
+                        }
+                        
+                    } catch (\Exception $e) {
+                        \Sentry\captureException($e);
+                        error_log("Failed to send birthday email to {$member['id']}: " . $e->getMessage());
+                    }
+                } else {
+                    # User was asked recently, skip
+                    $days_since = floor((time() - strtotime($lastask)) / (24 * 60 * 60));
+                    error_log("Skipping {$member['id']} - asked for donation $days_since days ago");
+                }
+            }
+        }
+
+        error_log("Sent $count birthday emails");
+        return $count;
+    }
 }

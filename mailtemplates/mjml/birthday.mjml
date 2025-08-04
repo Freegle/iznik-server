@@ -1,0 +1,185 @@
+<mjml>
+  <mj-head>
+    <mj-preview>Happy Birthday {{ groupname }}!</mj-preview>
+    <mj-style>
+      a {
+        color: #288c0a;
+        text-decoration: none;
+        font-weight: bold;
+      }
+      .balloon {
+        font-size: 1.8rem;
+        display: inline-block;
+      }
+      .balloon-1 {
+        animation: bounce1 2s infinite;
+        animation-delay: 0s;
+      }
+      .balloon-2 {
+        animation: bounce2 2.2s infinite;
+        animation-delay: 0.2s;
+      }
+      .balloon-3 {
+        animation: bounce3 2.4s infinite;
+        animation-delay: 0.4s;
+      }
+      .balloon-4 {
+        animation: bounce4 2.6s infinite;
+        animation-delay: 0.6s;
+      }
+      .balloon-5 {
+        animation: bounce5 2.8s infinite;
+        animation-delay: 0.8s;
+      }
+      .celebration-emoji {
+        font-size: 1.5rem;
+        margin: 0 5px;
+      }
+      .age-badge {
+        background: linear-gradient(45deg, #ff6b9d, #ff8a5c, #ffc83d, #4ecdc4, #45b7d1, #9c88ff);
+        background-size: 300% 300%;
+        animation: rainbow 3s ease-in-out infinite;
+        color: white;
+        font-weight: bold;
+        padding: 20px 40px;
+        border-radius: 50px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        display: inline-block;
+        margin: 20px 0;
+      }
+      @keyframes rainbow {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+      }
+      @keyframes bounce1 {
+        0%, 20%, 50%, 80%, 100% { transform: translateY(0) rotate(-2deg); }
+        40% { transform: translateY(-12px) rotate(2deg); }
+        60% { transform: translateY(-6px) rotate(-1deg); }
+      }
+      @keyframes bounce2 {
+        0%, 25%, 55%, 85%, 100% { transform: translateY(0) rotate(1deg); }
+        42% { transform: translateY(-15px) rotate(-3deg); }
+        68% { transform: translateY(-8px) rotate(2deg); }
+      }
+      @keyframes bounce3 {
+        0%, 30%, 60%, 90%, 100% { transform: translateY(0) rotate(-1deg); }
+        45% { transform: translateY(-18px) rotate(3deg); }
+        75% { transform: translateY(-9px) rotate(-2deg); }
+      }
+      @keyframes bounce4 {
+        0%, 22%, 52%, 82%, 100% { transform: translateY(0) rotate(2deg); }
+        37% { transform: translateY(-14px) rotate(-2deg); }
+        67% { transform: translateY(-7px) rotate(1deg); }
+      }
+      @keyframes bounce5 {
+        0%, 28%, 58%, 88%, 100% { transform: translateY(0) rotate(-3deg); }
+        44% { transform: translateY(-16px) rotate(4deg); }
+        72% { transform: translateY(-10px) rotate(-1deg); }
+      }
+      @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+        40% { transform: translateY(-10px); }
+        60% { transform: translateY(-5px); }
+      }
+      .festive-border {
+        background: linear-gradient(135deg, #f8f9ff, #fff8f0);
+      }
+    </mj-style>
+    <mj-attributes>
+      <mj-all font-family="Trebuchet MS, Helvetica, Arial"></mj-all>
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f8f9ff">
+    <mj-wrapper padding="0px" full-width="full-width">
+      
+
+      <!-- Main celebration content -->
+      <mj-section background-color="#ffffff" padding="40px 20px" css-class="festive-border">
+        <mj-column>
+          
+          <!-- Balloon decorations -->
+          <mj-text align="center" padding="10px 0">
+            <span class="balloon balloon-1" style="filter: hue-rotate(0deg)">🎈</span>
+            <span class="balloon balloon-2" style="filter: hue-rotate(45deg)">🎈</span>
+            <span class="balloon balloon-3" style="filter: hue-rotate(90deg)">🎈</span>
+            <span class="balloon balloon-4" style="filter: hue-rotate(135deg)">🎈</span>
+            <span class="balloon balloon-5" style="filter: hue-rotate(180deg)">🎈</span>
+          </mj-text>
+
+          <!-- Age badge -->
+          <mj-text align="center" padding="10px 0">
+            <div class="age-badge">
+              <div style="font-size: 3rem; margin-bottom: 5px;">{{ groupage }}</div>
+              <div style="font-size: 1rem; letter-spacing: 2px;">YEARS</div>
+            </div>
+          </mj-text>
+
+          <!-- Birthday title -->
+          <mj-text align="center" font-size="36px" font-weight="bold" color="#2d3748" padding="20px 0" line-height="1.2">
+            Happy Birthday to {{ groupname }}!
+          </mj-text>
+
+          <!-- Celebration message -->
+          <mj-text align="center" font-size="18px" color="#4a5568" padding="10px 0">
+            <strong>Together</strong>, we've been saving money, time and the planet. Can you help us keep thriving for another year?
+          </mj-text>
+
+          <!-- Donation buttons -->
+          <mj-text align="center" padding="20px 0">
+            <a href="https://www.ilovefreegle.org/birthday/donate/{{ groupnameshort }}?amount=3" 
+               style="background-color: #325906; color: white; padding: 12px 25px; text-decoration: none; border-radius: 25px; margin: 0 10px; display: inline-block; font-weight: bold;">
+              Donate £3
+            </a>
+            <a href="https://www.ilovefreegle.org/birthday/donate/{{ groupnameshort }}?amount=5" 
+               style="background-color: #ff6b9d; color: white; padding: 12px 25px; text-decoration: none; border-radius: 25px; margin: 0 10px; display: inline-block; font-weight: bold;">
+              Donate £5
+            </a>
+            <a href="https://www.ilovefreegle.org/birthday/donate/{{ groupnameshort }}?amount=10" 
+               style="background-color: #1e40af; color: white; padding: 12px 25px; text-decoration: none; border-radius: 25px; margin: 0 10px; display: inline-block; font-weight: bold;">
+              Donate £10
+            </a>
+          </mj-text>
+
+          <mj-text align="center" font-size="28px" font-weight="bold" color="#2d3748" padding="20px 0 15px 0">
+            We're free to use, but not free to run.
+          </mj-text>
+
+          <!-- Volunteers section (if available) -->
+          {% if volunteers is defined and volunteers is not empty %}
+          <mj-text align="center" font-size="16px" color="#4a5568" font-style="italic" padding="30px 0 10px 0">
+            {% if volunteers|length == 1 %}
+              Your local volunteer is {{ volunteers[0].firstname }}.
+            {% elseif volunteers|length == 2 %}
+              Your local volunteers are {{ volunteers[0].firstname }} and {{ volunteers[1].firstname }}.
+            {% else %}
+              Your local volunteers are {% for volunteer in volunteers[:-1] %}{{ volunteer.firstname }}{% if not loop.last %}, {% endif %}{% endfor %}, and {{ volunteers[-1].firstname }}.
+            {% endif %}
+          </mj-text>
+          {% endif %}
+
+          <!-- Cake and party decorations -->
+          <mj-text align="center" padding="20px 0">
+            <span class="celebration-emoji">🎂</span>
+            <span class="celebration-emoji">🧁</span>
+            <span class="celebration-emoji">🍰</span>
+            <span class="celebration-emoji">🎉</span>
+            <span class="celebration-emoji">🎊</span>
+          </mj-text>
+
+        </mj-column>
+      </mj-section>
+
+      <!-- Standard footer -->
+      <mj-section background-color="#E0E0E0">
+        <mj-column>
+          <mj-text font-size="9px" color="#707070">
+            This mail was sent to {{ email }}. You can change your settings by clicking <a href="https://www.ilovefreegle.org/settings">here</a>.
+            <hr style="border: 0; border-top: 1px solid #AAA;" />
+            Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice. Registered address: Weaver's Field, Loud Bridge, Chipping PR3 2NX
+          </mj-text>
+        </mj-column>
+      </mj-section>
+
+    </mj-wrapper>
+  </mj-body>
+</mjml>
