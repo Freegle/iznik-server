@@ -16,12 +16,45 @@ foreach ($donations as $donation) {
     $summ .= "<tr><td>{$donation['timestamp']}</td><td><b>&pound;{$donation['GrossAmount']}</b></td><td>{$donation['Payer']}</td>";
 
     $recurring = $donation['TransactionType'] == 'recurring_payment' || $donation['TransactionType'] == 'subscr_payment';
-
-    if ($recurring) {
-        $summ .= "<td>Recurring</td>";
-    } else {
-        $summ .= "<td></td>";
+    
+    # Check if donor is member of a group that had a birthday in the last 2 days
+    $birthday = false;
+    if ($donation['userid']) {
+        $twoDaysAgo = date('m-d', strtotime('-2 days'));
+        $yesterday = date('m-d', strtotime('-1 day'));
+        $today = date('m-d');
+        
+        $birthdayGroups = $dbhr->preQuery("SELECT DISTINCT g.id 
+                                         FROM `groups` g
+                                         INNER JOIN memberships m ON g.id = m.groupid
+                                         WHERE m.userid = ?
+                                         AND g.type = ?
+                                         AND g.publish = 1
+                                         AND g.onmap = 1
+                                         AND (DATE_FORMAT(g.founded, '%m-%d') = ? 
+                                              OR DATE_FORMAT(g.founded, '%m-%d') = ?
+                                              OR DATE_FORMAT(g.founded, '%m-%d') = ?)
+                                         AND YEAR(NOW()) - YEAR(g.founded) > 0", [
+            $donation['userid'],
+            Group::GROUP_FREEGLE,
+            $twoDaysAgo,
+            $yesterday,
+            $today
+        ]);
+        
+        $birthday = count($birthdayGroups) > 0;
     }
+
+    $statusCell = '';
+    if ($recurring) {
+        $statusCell .= 'Recurring';
+    }
+    if ($birthday) {
+        if ($statusCell) $statusCell .= ', ';
+        $statusCell .= 'Birthday?';
+    }
+    
+    $summ .= "<td>$statusCell</td>";
 
     $summ .= "</tr>\n";
     $total += $donation['GrossAmount'];
