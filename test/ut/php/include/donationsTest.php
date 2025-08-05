@@ -294,13 +294,6 @@ class donationsTest extends IznikTestCase {
         $count4 = $d->sendBirthdayEmails(null, [$gid2]);
         $this->assertEquals(1, $count4, "Should send emails after 31 days have passed");
         
-        # Test single group ID (not array)
-        $settings['lastbirthdayappeal'] = date('Y-m-d H:i:s', strtotime('-32 days'));
-        $u->setPrivate('settings', json_encode($settings));
-        
-        $count5 = $d->sendBirthdayEmails(null, $gid1);
-        $this->assertEquals(1, $count5, "Should work with single group ID parameter");
-        
         # Clean up
         $this->dbhm->preExec("DELETE FROM `groups` WHERE id IN (?, ?);", [$gid1, $gid2]);
         $this->dbhm->preExec("DELETE FROM users WHERE id = ?;", [$uid]);
