@@ -58,6 +58,12 @@ foreach ($groups as $group) {
             $email = $u->getEmailPreferred();
             $name = $u->getName();
 
+            # Exclude MODBOT_USER from volunteer wellbeing checks.
+            if ($email === MODBOT_USER) {
+                $skipped++;
+                continue;
+            }
+
             if ($u->activeModForGroup($group['id'])) {
                 # We'd expect them to be active on this group.  But it's probably sufficient that they are active on
                 # some group, because then they are still engaged as a volunteer.

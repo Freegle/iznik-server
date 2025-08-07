@@ -8,6 +8,7 @@ define('SQLUSER', 'root');
 define('SQLPASSWORD', '');
 define('PASSWORD_SALT', 'zzzz');
 define('MODERATOR_EMAIL', 'modtools@modtools.org');
+define('MODBOT_USER', 'modbot@modtools.org');
 
 # We use Postgresql for limited purposes.
 define('PGSQLHOST', '127.0.0.1:5432');

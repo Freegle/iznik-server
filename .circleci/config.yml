@@ -99,6 +99,7 @@ jobs:
       - run: sudo sed -ie "s/'PGSQLDB', 'iznik'/'PGSQLDB', 'circle_test'/g" /etc/iznik.conf
       - run: sudo sed -ie "s/LOVE_JUNK_SECRET/$LOVE_JUNK_SECRET/g" /etc/iznik.conf
       - run: sudo sed -ie "s/'TUS_UPLOADER', NULL/'TUS_UPLOADER', '$TUS_UPLOADER'/g" /etc/iznik.conf
+      - run: sudo sed -ie "s/'GOOGLE_GEMINI_API_KEY', 'zzzz'/'GOOGLE_GEMINI_API_KEY', '$GOOGLE_GEMINI_API_KEY'/g" /etc/iznik.conf
 
       - run: echo "define('SQLLOG', TRUE);" >> /etc/iznik.conf
 
@@ -137,6 +138,46 @@ jobs:
 
       # Set up the environment we need for running our UT.
       - run: php install/testenv.php
+
+      # Set up ModBot user with validated email for AI testing
+      - run: |
+          name: Setup ModBot User
+          command: |
+            php -r "
+            require_once 'include/config.php';
+            require_once IZNIK_BASE . '/include/db.php';
+            global \$dbhr, \$dbhm;
+            
+            \$u = new Freegle\Iznik\User(\$dbhr, \$dbhm);
+            \$existingUser = \$u->findByEmail(MODBOT_USER);
+            
+            if (!\$existingUser) {
+                echo 'Creating ModBot user...' . PHP_EOL;
+                \$uid = \$u->create('ModBot', 'AI', 'ModBot AI Assistant');
+                \$u->addEmail(MODBOT_USER, 1, TRUE); // Primary email, validated
+                echo 'ModBot user created with ID: ' . \$uid . PHP_EOL;
+            } else {
+                echo 'ModBot user already exists with ID: ' . \$existingUser['id'] . PHP_EOL;
+                \$u = new Freegle\Iznik\User(\$dbhr, \$dbhm, \$existingUser['id']);
+                // Ensure email is validated
+                \$dbhm->preExec('UPDATE users_emails SET validated = NOW() WHERE userid = ? AND email = ?', [\$existingUser['id'], MODBOT_USER]);
+                echo 'ModBot email validated' . PHP_EOL;
+            }
+            
+            // Add to test groups as moderator for testing
+            \$g = new Freegle\Iznik\Group(\$dbhr, \$dbhm);
+            \$testGroups = ['FreeglePlayground', 'FreeglePlayground2'];
+            
+            foreach (\$testGroups as \$groupName) {
+                \$gid = \$g->findByShortName(\$groupName);
+                if (\$gid) {
+                    \$u->addMembership(\$gid, Freegle\Iznik\User::ROLE_MODERATOR);
+                    echo 'Added ModBot as moderator to group: ' . \$groupName . ' (ID: ' . \$gid . ')' . PHP_EOL;
+                }
+            }
+            
+            echo 'ModBot setup complete' . PHP_EOL;
+            "
 
       # Run the UT.
       - run:
