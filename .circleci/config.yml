@@ -140,7 +140,7 @@ jobs:
       - run: php install/testenv.php
 
       # Set up ModBot user with validated email for AI testing
-      - run: |
+      - run:
           name: Setup ModBot User
           command: |
             php -r "
