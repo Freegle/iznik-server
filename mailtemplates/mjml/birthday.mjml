@@ -152,7 +152,7 @@
             {% elseif volunteers|length == 2 %}
               Your local volunteers are {{ volunteers[0].firstname }} and {{ volunteers[1].firstname }}.
             {% else %}
-              Your local volunteers are {% for volunteer in volunteers[:-1] %}{{ volunteer.firstname }}{% if not loop.last %}, {% endif %}{% endfor %}, and {{ volunteers[-1].firstname }}.
+              Your local volunteers are {{ volunteers|slice(0, -1)|map(v => v.firstname)|join(', ') }}, and {{ volunteers|last.firstname }}.
             {% endif %}
           </mj-text>
           {% endif %}
