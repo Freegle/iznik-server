@@ -1125,6 +1125,32 @@ WHERE chat_rooms.id IN $idlist;";
                 $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
                 if ($me && $me->isAdminOrSupport()) {
+                    if ($this->chatroom['chattype'] == ChatRoom::TYPE_USER2MOD) {
+                        # Check if the user has an email address with the same domain as USER_SITE.  In that case
+                        # it is a system user and we don't want every support user to be able to see it, just
+                        # admins.
+                        $u = User::get($this->dbhr, $this->dbhm, $this->chatroom['user1']);
+
+                        if ($u && $u->getId()) {
+                            $userEmail = $u->getEmailPreferred(TRUE);
+
+                            if ($userEmail) {
+                                # Extract domain from user email
+                                $userDomain = substr($userEmail, strpos($userEmail, '@') + 1);
+
+                                # Get USER_SITE domain and remove www. prefix if present
+                                $siteDomain = str_ireplace('www.', '', USER_SITE);
+
+                                # If domains match, return false (unless admin)
+                                if (strcasecmp($userDomain, $siteDomain) === 0) {
+                                    if (!$me->isAdmin()) {
+                                        return false;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     $cansee = TRUE;
                 } else {
                     # It might be a group chat which we can see.  We reuse the code that lists chats and checks access,

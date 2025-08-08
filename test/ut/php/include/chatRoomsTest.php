@@ -1779,6 +1779,70 @@ class chatRoomsTest extends IznikTestCase {
             $this->assertNull($r->replyTime($u2));
         }
     }
+
+    public function testCanSeeUser2ModWithUserSiteDomain() {
+        # Test User2Mod chat visibility for users with different permission levels
+        
+        # Create a user with USER_SITE domain (minus www.)
+        $u = new User($this->dbhr, $this->dbhm);
+        $siteDomain = str_ireplace('www.', '', USER_SITE);
+        
+        $userWithSiteDomain = $u->create(NULL, NULL, "User Site Domain");
+        $userSiteEmail = "testuser@" . $siteDomain;
+
+        # Delete any existing user with this email to avoid conflicts.
+        $existingUser = $u->findByEmail($userSiteEmail);
+        if ($existingUser) {
+            $u2 = new User($this->dbhr, $this->dbhm, $existingUser);
+            $u2->delete();
+        }
+
+        $this->assertNotNull($u->addEmail($userSiteEmail, 0, TRUE));
+        $this->assertEquals($userSiteEmail, $u->getEmailPreferred(TRUE));
+
+        # Create a separate user with support rights
+        $supportUser = $u->create(NULL, NULL, "Support User");
+        $supportEmail = "support@example.com";
+        $this->assertNotNull($u->addEmail($supportEmail, 0, TRUE));
+        $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw');
+        # Give support rights
+        $this->dbhm->preExec("UPDATE users SET systemrole = ? WHERE id = ?", 
+                            [User::SYSTEMROLE_SUPPORT, $supportUser]);
+
+        # Create a separate user with admin rights  
+        $adminUser = $u->create(NULL, NULL, "Admin User");
+        $adminEmail = "admin@example.com";
+        $this->assertNotNull($u->addEmail($adminEmail, 0, TRUE));
+        $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw');
+        # Give admin rights
+        $this->dbhm->preExec("UPDATE users SET systemrole = ? WHERE id = ?",
+                            [User::SYSTEMROLE_ADMIN, $adminUser]);
+
+        User::clearCache();
+
+        # Create a User2Mod chat between the user and test group mods
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $chatId = $r->createUser2Mod($userWithSiteDomain, $this->groupid);
+
+        # Test: Support user should NOT be able to see the chat (blocked by USER_SITE domain check)
+        $this->log("Log in as support user");
+        $u = new User($this->dbhr, $this->dbhm, $supportUser);
+        $this->assertTrue($u->login($supportEmail, 'testpw'));
+        $this->assertFalse($r->canSee($supportUser, TRUE),
+                          "Support user should not be able to see User2Mod chat due to USER_SITE domain blocking");
+        
+        # Test: Admin user should be able to see the chat (admin overrides domain blocking)
+        $this->log("Log in as admin user");
+        $u = new User($this->dbhr, $this->dbhm, $adminUser);
+        $this->assertTrue($u->login($adminEmail, 'testpw'));
+        $this->assertTrue($r->canSee($adminUser, TRUE),
+                         "Admin user should be able to see User2Mod chat even with domain blocking");
+        
+        # Clean up test data
+        $this->dbhm->preExec("DELETE FROM users WHERE id IN (?, ?, ?)", 
+                            [$userWithSiteDomain, $supportUser, $adminUser]);
+        $this->dbhm->preExec("DELETE FROM chat_rooms WHERE id = ?", [$chatId]);
+    }
 }
 
 

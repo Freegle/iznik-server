@@ -465,7 +465,7 @@ class User extends Entity
         return ($ret);
     }
 
-    public function getEmailPreferred()
+    public function getEmailPreferred($allowOurDomain = FALSE)
     {
         # This gets the email address which we think the user actually uses.  So we pay attention to:
         # - the preferred flag, which gets set by end user action
@@ -476,7 +476,9 @@ class User extends Entity
         $ret = NULL;
 
         foreach ($emails as $email) {
-            if (!Mail::ourDomain($email['email']) && strpos($email['email'], '@yahoogroups.') === FALSE && strpos($email['email'], GROUP_DOMAIN) === FALSE) {
+            if (($allowOurDomain || !Mail::ourDomain($email['email'])) &&
+                strpos($email['email'], '@yahoogroups.') === FALSE &&
+                strpos($email['email'], GROUP_DOMAIN) === FALSE) {
                 $ret = $email['email'];
                 break;
             }
