@@ -8,10 +8,23 @@ require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
-$opts = getopt('g:l:d:mrhv');
+// Set up signal handler for graceful exit
+$gracefulExit = false;
+if (function_exists('pcntl_signal')) {
+    pcntl_signal(SIGINT, function($signal) use (&$gracefulExit) {
+        global $gracefulExit;
+        $gracefulExit = true;
+        echo "\n🛑 Received interrupt signal (Ctrl+C). Finishing current post then showing summary...\n";
+    });
+    
+    // Enable signal handling
+    pcntl_async_signals(true);
+}
+
+$opts = getopt('g:l:d:mrhvt');
 
 if (count($opts) < 1 || isset($opts['h'])) {
-    echo "Usage: php modbot_review.php -g <group_name> [-l <limit>] [-d <days_back>] [-m] [-r] [-v]\n";
+    echo "Usage: php modbot_review.php -g <group_name> [-l <limit>] [-d <days_back>] [-m] [-r] [-v] [-t]\n";
     echo "\n";
     echo "Options:\n";
     echo "  -g <group_name> Group name (short name) or 'all' for all groups (required)\n";
@@ -20,12 +33,16 @@ if (count($opts) < 1 || isset($opts['h'])) {
     echo "  -m              Create microvolunteering entries for each review\n";
     echo "  -r              Search rejected posts instead of approved/pending posts\n";
     echo "  -v              Verbose debug mode - show all rule probabilities from Gemini\n";
+    echo "  -t              Training mode - suggest prompt improvements for AI/human mismatches\n";
     echo "  -h              Show this help message\n";
     echo "\n";
     echo "Examples:\n";
     echo "  php modbot_review.php -g freeglegroup -l 100 -d 7 -m -v\n";
     echo "  php modbot_review.php -g freeglegroup -r -d 3  # Review rejected posts from last 3 days\n";
     echo "  php modbot_review.php -g all -l 20 -d 1 -v      # Review posts from all groups (no actions)\n";
+    echo "  php modbot_review.php -g all -r -t -d 7         # Training mode on rejected posts\n";
+    echo "\n";
+    echo "Note: Press Ctrl+C to gracefully stop processing and show summary.\n";
     exit(0);
 }
 
@@ -35,6 +52,7 @@ $daysBack = Utils::presdef('d', $opts, 30);
 $createMicrovolunteering = isset($opts['m']);
 $searchRejected = isset($opts['r']);
 $debugMode = isset($opts['v']);
+$trainingMode = isset($opts['t']);
 $processAllGroups = ($groupName === 'all');
 
 // Disable actions when processing all groups for safety
@@ -67,7 +85,8 @@ echo "Limit: $limit posts\n";
 echo "Processing posts from last $daysBack days\n";
 echo "Post Collection: " . ($searchRejected ? "Rejected" : "Approved/Pending") . "\n";
 echo "Microvolunteering: " . ($createMicrovolunteering && $hasModRights ? "Enabled" : "Disabled" . ($createMicrovolunteering && !$hasModRights ? " (no mod rights)" : "") . ($processAllGroups ? " (disabled for 'all' groups)" : "")) . "\n";
-echo "Debug Mode: " . ($debugMode ? "Enabled" : "Disabled") . "\n\n";
+echo "Debug Mode: " . ($debugMode ? "Enabled" : "Disabled") . "\n";
+echo "Training Mode: " . ($trainingMode ? "Enabled" : "Disabled") . "\n\n";
 
 if ($processAllGroups) {
     echo "Processing posts from ALL groups (actions disabled for safety)\n\n";
@@ -217,7 +236,166 @@ $totalInputTokens = 0;
 $totalOutputTokens = 0;
 $estimatedCost = 0.0;
 
+// Training mode counters
+$trainingMismatches = 0;
+$contentBasedRejections = 0;
+$proceduralRejections = 0;
+$successfulImprovements = []; // Track successful rule improvements
+
+// Helper function to determine if rejection is content-based vs procedural
+function isContentBasedRejection($rejectionReason) {
+    $proceduralReasons = [
+        'duplicate', 'duplicated', 'already posted', 'cross post', 'crosspost', 
+        'leave longer gap', 'gap', 'blank letter', 'blank', 'empty', 'no text',
+        'out of area', 'wrong area', 'location', 'area mismatch', 'outside area',
+        'too soon requested', 'too soon'
+    ];
+    
+    $reason = strtolower($rejectionReason);
+    foreach ($proceduralReasons as $procedural) {
+        if (strpos($reason, $procedural) !== false) {
+            return false; // It's procedural
+        }
+    }
+    return true; // Assume it's content-based
+}
+
+// Function to perform immediate prompt improvement when mismatch detected
+function performImmediatePromptImprovement($trainingCase, $modbot, $debugMode, &$successfulImprovements) {
+    $maxIterations = 3;
+    $iteration = 0;
+    
+    echo "      📋 Case: Post #{$trainingCase['post_id']} - '{$trainingCase['subject']}'\n";
+    echo "      🚫 Human rejected for: {$trainingCase['rejection_reason']}\n";
+    echo "      ✅ AI approved (disagreement detected)\n";
+    
+    while ($iteration < $maxIterations) {
+        // Check for graceful exit signal even during training
+        global $gracefulExit;
+        if ($gracefulExit) {
+            echo "      🛑 Graceful exit requested during training. Stopping improvement attempts.\n";
+            return false;
+        }
+        
+        $iteration++;
+        echo "      🔧 Iteration $iteration: Generating prompt improvement...\n";
+        
+        try {
+            // Get suggestion from Gemini for how to improve the prompt
+            $suggestion = $modbot->getPromptImprovementSuggestion($trainingCase, $iteration);
+            
+            echo "         💡 Suggestion: " . trim($suggestion) . "\n";
+            
+            // Test the improved prompt
+            echo "      🧪 Testing improved prompt...\n";
+            $testResult = $modbot->testImprovedPrompt($trainingCase, $suggestion);
+            
+            // Show the actual modified rule being tested
+            if (isset($testResult['modified_rule'])) {
+                echo "      📝 Modified rule: {$testResult['modified_rule']}\n";
+            }
+            
+            if ($testResult['improved']) {
+                echo "      ✅ SUCCESS: Improved prompt now detects violation!\n";
+                echo "      📝 Recommended change: " . substr($suggestion, 0, 150) . "...\n";
+                
+                // Store successful improvement for later PHP code generation
+                $successfulImprovements[] = [
+                    'rule' => $trainingCase['related_rule'],
+                    'original_description' => $modbot->getRuleDescriptions()[$trainingCase['related_rule']]['description'] ?? 'Unknown',
+                    'improved_description' => $testResult['modified_rule'],
+                    'case_example' => $trainingCase['subject'],
+                    'rejection_reason' => $trainingCase['rejection_reason'],
+                    'threshold' => $modbot->getRuleDescriptions()[$trainingCase['related_rule']]['threshold'] ?? 0.5,
+                    'post_id' => $trainingCase['post_id'],
+                    'timestamp' => date('Y-m-d H:i:s')
+                ];
+                
+                return true;
+            } else {
+                echo "      ❌ Iteration $iteration failed - still no agreement\n";
+                if ($debugMode && isset($testResult['reason'])) {
+                    echo "         📊 Reason: {$testResult['reason']}\n";
+                }
+            }
+            
+        } catch (Exception $e) {
+            echo "      ⚠️ Error in iteration $iteration: " . $e->getMessage() . "\n";
+        }
+        
+        usleep(500000); // 0.5s delay between iterations
+    }
+    
+    echo "      🏳️ GAVE UP: Could not achieve agreement after $maxIterations iterations\n";
+    return false;
+}
+
+// Helper function to map rejection reasons to rule types
+function getRelatedRule($rejectionReason) {
+    $ruleMapping = [
+        'animal' => 'animalswanted',
+        'pet' => 'animalswanted',
+        'weapon' => 'weapons',
+        'knife' => 'weapons',
+        'dangerous' => 'weapons',
+        'alcohol' => 'alcohol',
+        'drink' => 'alcohol',
+        'ticket' => 'tickets',
+        'event' => 'tickets',
+        'prescription' => 'medicationsprescription',
+        'medicine' => 'medicationsprescription',
+        'drug' => 'medicationsprescription',
+        'contact lens' => 'contactlenses',
+        'tobacco' => 'tobacco',
+        'cigarette' => 'tobacco',
+        'smoking' => 'tobacco',
+        'chinese lantern' => 'chineselanterns',
+        'lantern' => 'chineselanterns',
+        'underwear' => 'underwear',
+        'intimate' => 'underwear',
+        'cosmetic' => 'cosmetics',
+        'makeup' => 'cosmetics',
+        'beauty' => 'cosmetics',
+        'food' => 'food',
+        'business' => 'businessads',
+        'commercial' => 'businessads',
+        'advertising' => 'businessads',
+        'spam' => 'spam',
+        'off topic' => 'offtopic',
+        'personal' => 'personal',
+        'politic' => 'politics',
+        'religion' => 'religion',
+        'charity' => 'charity',
+        'money' => 'money',
+        'payment' => 'money',
+        'service' => 'services',
+        'job' => 'jobs',
+        'employment' => 'jobs',
+        'housing' => 'housing',
+        'accommodation' => 'housing',
+        'transport' => 'transport',
+        'travel' => 'transport',
+        'lost' => 'lost',
+        'found' => 'lost',
+        'stolen' => 'stolen'
+    ];
+    
+    $reason = strtolower($rejectionReason);
+    foreach ($ruleMapping as $keyword => $rule) {
+        if (strpos($reason, $keyword) !== false) {
+            return $rule;
+        }
+    }
+    return 'unknown rule category';
+}
+
 foreach ($posts as $post) {
+    // Check for graceful exit signal
+    if ($gracefulExit) {
+        echo "🛑 Graceful exit requested. Stopping processing and showing summary.\n\n";
+        break;
+    }
+    
     $processedCount++;
     
     $subject = substr($post['subject'], 0, 40) . (strlen($post['subject']) > 40 ? '...' : '');
@@ -338,6 +516,35 @@ foreach ($posts as $post) {
             // Show rejection reason for rejected posts (always show)
             if ($searchRejected && $rejectionReason) {
                 echo "    → Originally rejected: " . $rejectionReason . "\n";
+                
+                // Training mode analysis for content-based rejections
+                if ($trainingMode && isContentBasedRejection($rejectionReason)) {
+                    $contentBasedRejections++;
+                    // This is a mismatch: human rejected for content reasons, AI says OK
+                    $trainingMismatches++;
+                    echo "    🔍 TRAINING MISMATCH: Human rejected for content, AI approved\n";
+                    
+                    // Get the full message body for training
+                    $bodyResult = $dbhr->preQuery("SELECT textbody FROM messages WHERE id = ?", [$post['id']]);
+                    $messageBody = !empty($bodyResult) ? $bodyResult[0]['textbody'] : '';
+                    
+                    // Perform immediate iterative prompt improvement
+                    $trainingCase = [
+                        'post_id' => $post['id'],
+                        'subject' => $post['subject'],
+                        'body' => $messageBody,
+                        'rejection_reason' => $rejectionReason,
+                        'related_rule' => getRelatedRule($rejectionReason),
+                        'ai_result' => 'approved',
+                        'human_result' => 'rejected'
+                    ];
+                    
+                    echo "    🔄 Attempting prompt improvement...\n";
+                    performImmediatePromptImprovement($trainingCase, $modbot, $debugMode, $successfulImprovements);
+                    
+                } elseif ($searchRejected && $rejectionReason) {
+                    $proceduralRejections++;
+                }
             }
             
             // Show debug info for OK posts if verbose mode is on
@@ -382,6 +589,17 @@ foreach ($posts as $post) {
             // Show rejection reason for rejected posts (always show first)
             if ($searchRejected && $rejectionReason) {
                 echo "    → Originally rejected: " . $rejectionReason . "\n";
+                
+                // Training mode analysis for content-based rejections with AI agreement
+                if ($trainingMode && isContentBasedRejection($rejectionReason)) {
+                    $contentBasedRejections++;
+                    echo "    ✅ TRAINING AGREEMENT: Human and AI both detected violations\n";
+                    if ($debugMode) {
+                        echo "    📊 This validates current prompt effectiveness for: " . getRelatedRule($rejectionReason) . "\n";
+                    }
+                } elseif ($searchRejected && $rejectionReason) {
+                    $proceduralRejections++;
+                }
             }
             
             // Show detailed violation info
@@ -475,6 +693,44 @@ if ($violationsFound > 0) {
     } else {
         echo "\nNote: Posts with violations should be reviewed manually by moderators.\n";
     }
+}
+
+if ($trainingMode && $searchRejected) {
+    echo "\n=== Training Summary ===\n";
+    echo "Content-based rejections analyzed: $contentBasedRejections\n";
+    echo "Procedural rejections (skipped): $proceduralRejections\n";
+    echo "AI/Human mismatches found: $trainingMismatches\n";
+    
+    if ($contentBasedRejections > 0) {
+        $agreementRate = (($contentBasedRejections - $trainingMismatches) / $contentBasedRejections) * 100;
+        echo "Agreement rate: " . number_format($agreementRate, 1) . "%\n";
+        
+        if ($trainingMismatches == 0) {
+            echo "\n🎉 Excellent! AI agrees with all human content-based rejections.\n";
+        } else {
+            echo "\n📊 Prompt improvements attempted inline for each mismatch.\n";
+        }
+    }
+}
+
+// Output improved rule descriptions as PHP code for easy copying
+if (!empty($successfulImprovements)) {
+    echo "\n" . str_repeat("=", 60) . "\n";
+    echo "🔧 IMPROVED RULE DESCRIPTIONS - PHP CODE FOR PASTING\n";
+    echo str_repeat("=", 60) . "\n\n";
+    
+    foreach ($successfulImprovements as $improvement) {
+        echo "// Rule: {$improvement['rule']}\n";
+        echo "// Improved on: {$improvement['timestamp']}\n";
+        echo "// Training case: Post #{$improvement['post_id']} - \"{$improvement['case_example']}\"\n";
+        echo "// Human rejection reason: {$improvement['rejection_reason']}\n";
+        echo "// Original: {$improvement['original_description']}\n";
+        echo "'{$improvement['rule']}' => ['description' => '{$improvement['improved_description']}', 'threshold' => {$improvement['threshold']}],\n\n";
+    }
+    
+    echo str_repeat("-", 60) . "\n";
+    echo "📋 Copy the above lines into the getRuleDescriptions() method in ModBot.php\n";
+    echo "💡 Total successful improvements: " . count($successfulImprovements) . "\n";
 }
 
 echo "\nReview completed.\n";

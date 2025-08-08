@@ -425,14 +425,21 @@ class ModBot extends Entity
         }
     }
     
-    private function getRuleDescriptions()
+    public function getRuleDescriptions()
     {
         return [
+            // System rules.
+            'no_loans' => ['description' => 'No loans or borrowing of items allowed', 'threshold' => 0.5],
+            'no_events' => ['description' => 'No events or gatherings allowed', 'threshold' => 0.5],
+            'no_volunteering' => ['description' => 'No volunteering requests or offers allowed', 'threshold' => 0.5],
+            'no_services' => ['description' => 'No service offers or requests allowed', 'threshold' => 0.5],
+
+            // Per-group rules.
 //            'fullymoderated' => ['description' => 'All posts must be approved by moderators before appearing', 'threshold' => 0.5],
 //            'requirefirstpostoffer' => ['description' => 'First post must be an offer, not a wanted', 'threshold' => 0.5],
 //            'limitgroups' => ['description' => 'Limit number of groups a member can join', 'threshold' => 0.5],
 //            'restrictcrossposting' => ['description' => 'Restrict posting the same item to multiple groups', 'threshold' => 0.5],
-            'animalswanted' => ['description' => 'No wanted posts for animals/pets allowed; accessories are fine', 'threshold' => 0.7],
+            'animalswanted' => ['description' => 'No wanted posts for animals/pets allowed; accessories are fine.   Any post with the direct mention of an animal\'s name or species should be considered a likely violation of the rule.', 'threshold' => 0.7],
             'weapons' => ['description' => 'No weapons, knives, or dangerous items allowed.', 'threshold' => 0.8],
             'tickets' => ['description' => 'No ticket sales or transfers allowed', 'threshold' => 0.6],
             'medicationsprescription' => ['description' => 'No prescription medications allowed', 'threshold' => 0.8],
@@ -458,5 +465,192 @@ class ModBot extends Entity
             'lost' => ['description' => 'No lost or found items posts', 'threshold' => 0.8],
             'stolen' => ['description' => 'No posts about stolen items', 'threshold' => 0.9]
         ];
+    }
+    
+    /**
+     * Get a prompt improvement suggestion from Gemini for a training mismatch
+     */
+    public function getPromptImprovementSuggestion($trainingCase, $iteration) {
+        $improvementPrompt = "I'm training an AI moderation system and found a disagreement:\n\n";
+        $improvementPrompt .= "POST SUBJECT: {$trainingCase['subject']}\n";
+        $improvementPrompt .= "POST BODY: {$trainingCase['body']}\n\n";
+        $improvementPrompt .= "HUMAN MODERATOR: Rejected this post for '{$trainingCase['rejection_reason']}'\n";
+        $improvementPrompt .= "AI SYSTEM: Approved this post (found no violations)\n";
+        $improvementPrompt .= "RELATED RULE: {$trainingCase['related_rule']}\n\n";
+        
+        $ruleConfig = $this->getRuleDescriptions();
+        if (isset($ruleConfig[$trainingCase['related_rule']])) {
+            $currentRule = $ruleConfig[$trainingCase['related_rule']];
+            $improvementPrompt .= "CURRENT RULE DESCRIPTION: {$currentRule['description']}\n";
+            $improvementPrompt .= "CURRENT THRESHOLD: " . ($currentRule['threshold'] * 100) . "%\n\n";
+        }
+        
+        $improvementPrompt .= "This is iteration #$iteration of improvement attempts.\n\n";
+        $improvementPrompt .= "Please suggest a GENERIC, PRINCIPLE-BASED modification to either:\n";
+        $improvementPrompt .= "1. The rule description to broaden detection of this violation type\n";
+        $improvementPrompt .= "2. The system instruction to improve sensitivity patterns\n";
+        $improvementPrompt .= "3. Additional contextual guidance for this rule category\n\n";
+        $improvementPrompt .= "AVOID listing specific examples (e.g., 'kittens, puppies'). Instead:\n";
+        $improvementPrompt .= "- Add broader contextual cues or patterns\n";
+        $improvementPrompt .= "- Enhance the conceptual understanding\n";
+        $improvementPrompt .= "- Improve detection of intent or category\n";
+        $improvementPrompt .= "- Strengthen the underlying principle\n\n";
+        $improvementPrompt .= "Focus on making the AI more likely to detect '{$trainingCase['rejection_reason']}' type violations.\n";
+        $improvementPrompt .= "Provide a concrete, implementable change that improves pattern recognition.\n\n";
+        $improvementPrompt .= "IMPORTANT: Respond with ONLY a COMPLETE, IMPROVED rule description.\n";
+        $improvementPrompt .= "You may modify, replace, or enhance the existing rule as needed.\n";
+        $improvementPrompt .= "Do NOT use JSON format, explanations, or analysis.\n";
+        $improvementPrompt .= "Example: 'No business advertising, commercial posts, or items offered for sale with specific prices mentioned.'\n";
+        $improvementPrompt .= "Your improved rule description:";
+        
+        $response = $this->callGeminiWithRetry($improvementPrompt);
+        
+        // Clean up any JSON formatting that might sneak in
+        $response = trim($response);
+        if (strpos($response, '```json') !== false) {
+            $response = preg_replace('/```json\s*/', '', $response);
+            $response = preg_replace('/\s*```/', '', $response);
+        }
+        if (strpos($response, '```') !== false) {
+            $response = preg_replace('/```.*?```/s', '', $response);
+        }
+        
+        // If it's still JSON, try to extract the actual improvement text
+        if (trim($response)[0] === '{') {
+            $decoded = json_decode($response, true);
+            if (isset($decoded['improvement_suggestion'])) {
+                $response = $decoded['improvement_suggestion'];
+            } elseif (isset($decoded['suggestion'])) {
+                $response = $decoded['suggestion'];
+            } elseif (isset($decoded['response'])) {
+                $response = $decoded['response'];
+            }
+        }
+        
+        return trim($response);
+    }
+    
+    /**
+     * Test an improved prompt to see if it fixes the disagreement
+     */
+    public function testImprovedPrompt($trainingCase, $suggestion) {
+        try {
+            // Create a modified version of the rule description based on suggestion
+            $ruleConfig = $this->getRuleDescriptions();
+            $originalDescription = $ruleConfig[$trainingCase['related_rule']]['description'] ?? 'Unknown rule';
+            $modifiedDescription = trim($suggestion); // Use complete replacement, not append
+            
+            $testPrompt = $this->constructTestPrompt(
+                $trainingCase['subject'], 
+                $trainingCase['body'], 
+                $trainingCase['related_rule'],
+                $suggestion
+            );
+            
+            $result = $this->callGeminiWithRetry($testPrompt);
+            
+            // Clean up the response
+            $result = trim($result);
+            if (strpos($result, '```json') !== false) {
+                $result = preg_replace('/```json\s*/', '', $result);
+                $result = preg_replace('/\s*```/', '', $result);
+            }
+            
+            $violations = json_decode($result, true);
+            
+            if (!is_array($violations)) {
+                return [
+                    'improved' => false, 
+                    'reason' => 'Invalid JSON response',
+                    'modified_rule' => $modifiedDescription
+                ];
+            }
+            
+            // Check if the related rule now has a higher probability
+            $ruleConfig = $this->getRuleDescriptions();
+            $threshold = $ruleConfig[$trainingCase['related_rule']]['threshold'] ?? 0.5;
+            
+            foreach ($violations as $violation) {
+                $rule = $violation['rule'] ?? '';
+                $probability = $violation['probability'] ?? 0;
+                
+                if ($rule === $trainingCase['related_rule'] && $probability >= $threshold) {
+                    return [
+                        'improved' => true, 
+                        'probability' => $probability,
+                        'reason' => "Rule '{$rule}' now detects violation with " . number_format($probability * 100, 1) . "% probability",
+                        'modified_rule' => $modifiedDescription
+                    ];
+                }
+            }
+            
+            // Check if any rule detected the violation above threshold
+            foreach ($violations as $violation) {
+                $rule = $violation['rule'] ?? '';
+                $probability = $violation['probability'] ?? 0;
+                $ruleThreshold = $ruleConfig[$rule]['threshold'] ?? 0.5;
+                
+                if ($probability >= $ruleThreshold) {
+                    return [
+                        'improved' => true,
+                        'probability' => $probability,
+                        'reason' => "Alternative rule '{$rule}' now detects violation with " . number_format($probability * 100, 1) . "% probability",
+                        'modified_rule' => $modifiedDescription
+                    ];
+                }
+            }
+            
+            return [
+                'improved' => false, 
+                'reason' => 'No rules detected violation above threshold',
+                'modified_rule' => $modifiedDescription
+            ];
+            
+        } catch (Exception $e) {
+            return [
+                'improved' => false, 
+                'reason' => 'Error: ' . $e->getMessage(),
+                'modified_rule' => $modifiedDescription ?? 'Unknown'
+            ];
+        }
+    }
+    
+    /**
+     * Construct a test prompt with improved rule description
+     */
+    private function constructTestPrompt($subject, $body, $focusRule, $improvement) {
+        $ruleConfig = $this->getRuleDescriptions();
+        
+        // Apply the improvement to the focus rule (complete replacement)
+        $testRules = [];
+        $improvedDescription = trim($improvement); // Use the complete improved description
+        if (isset($ruleConfig[$focusRule])) {
+            $testRules[$focusRule] = [
+                'description' => $improvedDescription,
+                'threshold' => $ruleConfig[$focusRule]['threshold'],
+                'value' => true
+            ];
+        }
+        
+        $prompt = "Please analyze this community post for potential rule violations:\n\n";
+        $prompt .= "SUBJECT: " . $subject . "\n\n";
+        $prompt .= "BODY: " . $body . "\n\n";
+        $prompt .= "COMMUNITY RULES TO CHECK:\n";
+        
+        foreach ($testRules as $ruleKey => $rule) {
+            $thresholdPercent = number_format($rule['threshold'] * 100, 0);
+            $prompt .= "- " . $ruleKey . " (threshold: {$thresholdPercent}%): " . $rule['description'] . "\n";
+        }
+        
+        $prompt .= "\nAnalyze the post and estimate the probability that it violates each of the above rules.\n\n";
+        $prompt .= "Please return a JSON array with one object for EACH rule listed above, containing:\n";
+        $prompt .= "- 'rule': the exact rule key from the list above\n";
+        $prompt .= "- 'probability': a number between 0.0 and 1.0 indicating likelihood of violation\n";
+        $prompt .= "- 'reason': brief explanation of your assessment\n\n";
+        $prompt .= "You must return an entry for every rule listed above, even if the probability is 0.0.\n";
+        $prompt .= "Be thorough but conservative - only assign high probabilities when you're confident there's a violation.\n";
+        $prompt .= "Focus especially on detecting violations that human moderators would catch.";
+        
+        return $prompt;
     }
 }
