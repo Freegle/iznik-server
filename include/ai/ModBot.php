@@ -24,7 +24,6 @@ class ModBot extends Entity
         
         $this->user = User::get($this->dbhr, $this->dbhm);
         $botUserId = $this->user->findByEmail(MODBOT_USER);
-        error_log("ModBot user ID: " . $botUserId);
         if ($botUserId) {
             $this->user = User::get($this->dbhr, $this->dbhm, $botUserId);
         }
@@ -652,5 +651,9 @@ class ModBot extends Entity
         $prompt .= "Focus especially on detecting violations that human moderators would catch.";
         
         return $prompt;
+    }
+    
+    public function callGemini($prompt, $maxRetries = 3) {
+        return $this->callGeminiWithRetry($prompt, $maxRetries);
     }
 }
