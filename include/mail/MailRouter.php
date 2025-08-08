@@ -1096,7 +1096,10 @@ class MailRouter
                             } else if (!getenv('NO_UNMAPPED_TO_PENDING') && !$this->msg->getPrivate('lat') && !$this->msg->getPrivate('lng')) {
                                 # The env variable is used in the tests to avoid this code path.
                                 if ($log) { error_log("Not mapped, route to Pending"); }
-                                $ret = MailRouter::PENDING;
+                                $ret = MailRouter::DROPPED;
+                                if ($this->markPending($notspam)) {
+                                    $ret = MailRouter::PENDING;
+                                }
                             } else if (!$notspam && $appmemb && $worry)
                             {
                                 if ($log) { error_log("Worrying => pending"); }
