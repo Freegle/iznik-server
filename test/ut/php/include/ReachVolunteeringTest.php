@@ -95,6 +95,7 @@ class ReachVolunteeringTest extends IznikTestCase {
     }
 
     public function testNewFieldNameFormat() {
+        // Test with the actual JSON format that has combined location field
         $newFormatData = json_encode([
             [
                 'title' => 'Test New Format Role',
@@ -105,8 +106,7 @@ class ReachVolunteeringTest extends IznikTestCase {
                 'person_description' => 'Test new person spec',
                 'person_impact' => 'Test new impact',
                 'other_details' => 'Test new other details',
-                'town' => 'Test Town',
-                'postcode' => 'EH3 6SS',
+                'location' => 'Test Town, EH3 6SS, United Kingdom',  // Combined location field
                 'skills' => 'Test new skills',
                 'organisation' => 'Test New Organisation',
                 'causes' => 'Test new charity sector',
@@ -127,7 +127,7 @@ class ReachVolunteeringTest extends IznikTestCase {
         $this->assertEquals('Test New Format Role', $opportunity['title']);
         $this->assertEquals('Test new description for volunteer role', $opportunity['description']);
         $this->assertEquals('https://test-new.example.com/apply', $opportunity['contacturl']);
-        $this->assertEquals('Test Town EH3 6SS', $opportunity['location']);
+        $this->assertEquals('Test Town, EH3 6SS, United Kingdom', $opportunity['location']);
         $this->assertEquals('Test new other details', $opportunity['timecommitment']);
     }
 
@@ -207,5 +207,109 @@ class ReachVolunteeringTest extends IznikTestCase {
         $this->assertEquals('job_id', $newMapping['job_id']);
         $this->assertEquals('description', $newMapping['description']);
         $this->assertEquals('url', $newMapping['url']);
+        // Test that location is mapped correctly for town (postcode field not needed in new format)
+        $this->assertEquals('location', $newMapping['town']);
+    }
+
+    public function testActualFeedFormatParsing() {
+        // Test with data structure matching the actual feed format
+        $actualFeedData = json_encode([
+            [
+                "title" => "Community Garden Volunteer",
+                "date_posted" => date('Y-m-d'),
+                "job_id" => "test-garden-123",
+                "summary" => "Help maintain our community garden and grow fresh produce for local families.",
+                "description" => "We are looking for enthusiastic volunteers to help with our community garden project. Tasks include planting, weeding, watering, and harvesting vegetables that are distributed to local food banks.",
+                "person_description" => "Someone who enjoys working outdoors and has an interest in sustainable living.",
+                "person_impact" => "Your work will help provide fresh, healthy food to families in need in our local community.",
+                "other_details" => "Flexible hours, weekends preferred. Training provided.",
+                "location" => "Edinburgh EH3 6SS, United Kingdom",
+                "skills" => "No experience necessary, enthusiasm for gardening helpful",
+                "organisation" => "Green Spaces Community Project",
+                "causes" => "Environment, Community",
+                "activities" => "Gardening, food production",
+                "objectives" => "Reduce food waste and provide fresh produce to those in need",
+                "url" => "https://example.com/volunteer/garden-123"
+            ],
+            [
+                "title" => "Digital Skills Trainer",
+                "date_posted" => date('Y-m-d'),
+                "job_id" => "test-digital-456", 
+                "summary" => "Teach basic computer and internet skills to older adults",
+                "description" => "Help bridge the digital divide by teaching older adults how to use computers, tablets, and smartphones. Sessions cover email, video calls, online shopping, and staying safe online.",
+                "person_description" => "Patient, friendly person with good communication skills and computer knowledge",
+                "person_impact" => "Help older adults stay connected with family and access important services online",
+                "other_details" => "2-3 hours per week, weekday mornings",
+                "location" => "Edinburgh EH3 6SS, United Kingdom",
+                "skills" => "Computer literacy, teaching or training experience helpful but not essential",
+                "organisation" => "Age Friendly Digital Hub",
+                "causes" => "Education, Digital Inclusion",
+                "activities" => "Teaching, mentoring, technology support",
+                "objectives" => "Improve digital skills and reduce social isolation among older adults",
+                "url" => "https://example.com/volunteer/digital-456"
+            ]
+        ]);
+
+        $reach = $this->getMockReachVolunteering(true, $actualFeedData);
+        $reach->processFeed('http://test.example.com/feed');
+
+        // Check both opportunities were created
+        $results = $this->dbhr->preQuery("SELECT * FROM volunteering WHERE externalid IN (?, ?) ORDER BY externalid", 
+                                       ['reach-test-garden-123', 'reach-test-digital-456']);
+        $this->assertEquals(2, count($results));
+        
+        // Check first opportunity (garden)
+        $garden = $results[1]; // reach-test-garden-123 comes second alphabetically
+        $this->assertEquals('Community Garden Volunteer', $garden['title']);
+        $this->assertEquals('Edinburgh EH3 6SS, United Kingdom', $garden['location']);
+        $this->assertEquals('https://example.com/volunteer/garden-123', $garden['contacturl']);
+        
+        // Check second opportunity (digital)
+        $digital = $results[0]; // reach-test-digital-456 comes first alphabetically  
+        $this->assertEquals('Digital Skills Trainer', $digital['title']);
+        $this->assertEquals('Edinburgh EH3 6SS, United Kingdom', $garden['location']);
+        $this->assertEquals('https://example.com/volunteer/digital-456', $digital['contacturl']);
+    }
+
+    public function testLocationFieldHandling() {
+        // Test various location formats that might appear in the feed
+        $testCases = [
+            'Edinburgh, EH3 6SS, United Kingdom',
+            'Edinburh, EH3 6SS, UK',
+            'Edinburgh EH3 6SS',
+            'Edinburgh, EH3 6SS, Scotland',
+        ];
+        
+        foreach ($testCases as $index => $location) {
+            $testData = json_encode([
+                [
+                    "title" => "Test Location $index",
+                    "date_posted" => date('Y-m-d'),
+                    "job_id" => "test-location-$index",
+                    "summary" => "Test summary",
+                    "description" => "Test description", 
+                    "location" => $location,
+                    "url" => "https://example.com/test-$index"
+                ]
+            ]);
+
+            $reach = $this->getMockReachVolunteering(true, $testData);
+            $reach->processFeed('http://test.example.com/feed');
+
+            // Check that opportunity was created with correct location
+            $result = $this->dbhr->preQuery("SELECT * FROM volunteering WHERE externalid = ?", ["reach-test-location-$index"]);
+            
+            if (preg_match(Utils::POSTCODE_PATTERN, $location)) {
+                // Should be created if valid postcode found
+                $this->assertEquals(1, count($result), "Location '$location' should have been processed");
+                $this->assertEquals($location, $result[0]['location'], "Location should match exactly");
+            } else {
+                // Should be skipped if no valid postcode
+                $this->assertEquals(0, count($result), "Location '$location' should have been skipped (no valid postcode)");
+            }
+            
+            // Clean up for next iteration
+            $this->dbhm->preExec("DELETE FROM volunteering WHERE externalid = ?", ["reach-test-location-$index"]);
+        }
     }
 }

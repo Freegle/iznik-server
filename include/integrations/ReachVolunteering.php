@@ -26,8 +26,7 @@ class ReachVolunteering {
                 'person_description' => 'person_description',
                 'person_impact' => 'person_impact',
                 'other_details' => 'other_details',
-                'town' => 'town',
-                'postcode' => 'postcode',
+                'town' => 'location',  // Combined location field contains both town and postcode
                 'skills' => 'skills',
                 'organisation' => 'organisation',
                 'causes' => 'causes',
@@ -70,9 +69,15 @@ class ReachVolunteering {
         $externalsSeen[$externalid] = TRUE;
 
         if ($this->useNewFieldNames) {
-            // New format: get postcode directly from postcode field
-            $pc = $opp[$fieldMap['postcode']];
-            $loc = $opp[$fieldMap['town']] . ' ' . $pc;
+            // New format: location field contains combined "Town, Postcode, Country" format
+            $locationField = $opp[$fieldMap['town']] ?? ''; // 'town' maps to 'location' in new format
+            if (preg_match(Utils::POSTCODE_PATTERN, $locationField, $matches)) {
+                $pc = strtoupper($matches[0]);
+                $loc = $locationField; // Use the full location string
+            } else {
+                error_log("No postcode in $locationField");
+                return;
+            }
         } else {
             // Old format: extract postcode from Location field using regex
             $loc = $opp[$fieldMap['town']]; // This is 'Location' field in old format
