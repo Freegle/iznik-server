@@ -906,6 +906,7 @@ CREATE TABLE `groups` (
   `autofunctionoverride` tinyint(1) NOT NULL DEFAULT '0',
   `postvisibility` polygon DEFAULT NULL,
   `onlovejunk` tinyint(1) NOT NULL DEFAULT '1',
+  `rules` json DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   UNIQUE KEY `nameshort` (`nameshort`),
