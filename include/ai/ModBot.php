@@ -35,7 +35,19 @@ class ModBot extends Entity
     public function reviewPost($postId, $createMicrovolunteering = false, $returnDebugInfo = false, $skipModRightsCheck = false)
     {
         try {
-            // 1) Check if modbot is a mod on a group associated with the post via messages_groups
+            // 1) Get the subject and body of the message
+            $messageSql = "SELECT subject, textbody FROM messages WHERE id = ?";
+            $messageResult = $this->dbhr->preQuery($messageSql, [$postId]);
+
+            if (empty($messageResult)) {
+                return ['error' => 'message_not_found', 'message' => 'Message not found in database'];
+            }
+
+            $message = $messageResult[0];
+            $subject = $message['subject'];
+            $body = $message['textbody'];
+
+            // 2) Check if modbot is a mod on a group associated with the post via messages_groups
             $groupsSql = "SELECT DISTINCT mg.groupid FROM messages_groups mg WHERE mg.msgid = ?";
             $groups = $this->dbhr->preQuery($groupsSql, [$postId]);
             
@@ -61,18 +73,6 @@ class ModBot extends Entity
             if (!$hasModerationRights && $skipModRightsCheck) {
                 $createMicrovolunteering = false; // Force disable microvolunteering when no mod rights
             }
-            
-            // 2) Get the subject and body of the message
-            $messageSql = "SELECT subject, textbody FROM messages WHERE id = ?";
-            $messageResult = $this->dbhr->preQuery($messageSql, [$postId]);
-            
-            if (empty($messageResult)) {
-                return ['error' => 'message_not_found', 'message' => 'Message not found in database'];
-            }
-            
-            $message = $messageResult[0];
-            $subject = $message['subject'];
-            $body = $message['textbody'];
             
             // 3) Get the rules JSON object from the group rules property
             $groupId = $groups[0]['groupid']; // Use first group for rules

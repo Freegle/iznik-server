@@ -56,7 +56,7 @@ class ModBotTest extends IznikTestCase {
         $msg = str_replace('Test test', 'I have some kitchen knives and hunting weapons to give away', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $id = $r->received(Message::EMAIL, MODBOT_USER, 'to@test.com', $msg);
         $rc = $r->route();
         $this->assertEquals(MailRouter::PENDING, $rc);
 
