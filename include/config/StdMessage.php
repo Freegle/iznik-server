@@ -330,7 +330,7 @@ class StdMessage extends Entity
         
         $prompt .= "Please respond with a JSON object containing:\n";
         $prompt .= "- 'analysis': A human-readable paragraph explaining any problems found\n";
-        $prompt .= "- 'suggestion': Either a complete rewritten version that follows Freegle's style (warm opening, empathetic acknowledgment, solution-oriented approach, collaborative language, gentle boundaries, specific guidance, community focus, warm closing), or 'No improvements needed' if the message is fine.\n";
+        $prompt .= "- 'suggestion': Either a complete rewritten version that follows Freegle's style (warm opening, empathetic acknowledgment, solution-oriented approach, collaborative language, gentle boundaries, specific guidance, community focus, warm closing), or 'No improvements needed' if the message is fine. IMPORTANT: Format suggested messages with separate paragraphs for better readability - use double line breaks (\\n\\n) between paragraphs.\n";
         $prompt .= "- 'improvement_score': A decimal number from 0.0 to 1.0 indicating how much improvement is needed (0.0 = perfect, no improvement needed; 1.0 = major improvements required)\n\n";
         $prompt .= "Focus on Freegle's authentic sample message patterns: empathetic first, solution-oriented always, collaborative language, gentle boundary-setting, and community-focused messaging.\n";
         $prompt .= "Be constructive and specific in your feedback. Remember the core principle: 'members appreciate a personal, friendly approach, not a corporate memo!'";

@@ -34,10 +34,11 @@ class ModBotTest extends IznikTestCase {
     public function testReviewPost() {
         $this->log(__METHOD__ );
 
-        # Create a test group
+        # Create a test group (following MailRouterTest pattern)
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_FREEGLE);
         $g = Group::get($this->dbhr, $this->dbhm, $gid);
+        $g->setPrivate('onhere', 1); # Make group active
         $g->setPrivate('rules', json_encode([
             'weapons' => true,
             'alcohol' => true,
@@ -48,7 +49,12 @@ class ModBotTest extends IznikTestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create('ModBot', 'User', 'ModBot User');
         $u->addEmail(MODBOT_USER);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'modbotpw'));
         $u->addMembership($gid, User::ROLE_MODERATOR, $uid);
+        
+        # Clear cache to ensure user is findable by email
+        User::clearCache();
+        $this->log("Created ModBot user $uid with email " . MODBOT_USER . " as moderator of group $gid");
 
         # Create a regular user to post the message
         $testUser = User::get($this->dbhr, $this->dbhm);
@@ -60,22 +66,40 @@ class ModBotTest extends IznikTestCase {
         $testUser->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_MODERATED);
         User::clearCache();
 
-        # Create a test message that should trigger rule violations
+        # Create a test message that should trigger rule violations (using MailRouterTest pattern)
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'Test message about knives and weapons for sale', $msg);
         $msg = str_replace('Test test', 'I have some kitchen knives and hunting weapons to give away', $msg);
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
+        
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'testposter@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+        list ($id, $failok) = $m->save();
 
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        list ($id, $failok) = $r->received(Message::EMAIL, 'testposter@test.com', 'to@test.com', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
         $this->assertEquals(MailRouter::PENDING, $rc);
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
         
+        # Log in as ModBot user before review
+        $this->assertTrue($u->login('modbotpw'));
+        
         # Test ModBot review
+        # Debug: Check if ModBot can find the user
+        $testUser = User::get($this->dbhr, $this->dbhm);
+        $botUserId = $testUser->findByEmail(MODBOT_USER);
+        $this->log("MODBOT_USER email: " . MODBOT_USER);
+        $this->log("Found bot user ID: " . ($botUserId ? $botUserId : 'NULL'));
+        if ($botUserId) {
+            $botUser = User::get($this->dbhr, $this->dbhm, $botUserId);
+            $this->log("Bot user is mod/owner of group $gid: " . ($botUser->isModOrOwner($gid) ? 'YES' : 'NO'));
+        }
+        
         $modbot = new ModBot($this->dbhr, $this->dbhm);
         $result = $modbot->reviewPost($id);
+        
+        $this->log("Initial ModBot result: " . print_r($result, true));
 
         # Should return NULL if no moderation rights (testing with different user first)
         $u2 = User::get($this->dbhr, $this->dbhm);
@@ -86,21 +110,55 @@ class ModBotTest extends IznikTestCase {
         
         # Note: This test requires a valid Google Gemini API key to fully work
         # In a real environment, we would mock the API call for testing
+        $apiKeyDefined = defined('GOOGLE_GEMINI_API_KEY');
+        $apiKeyValue = $apiKeyDefined ? GOOGLE_GEMINI_API_KEY : 'NOT_DEFINED';
+        $this->log("API Key defined: " . ($apiKeyDefined ? 'YES' : 'NO'));
+        $this->log("API Key value: " . (strlen($apiKeyValue) > 10 ? substr($apiKeyValue, 0, 10) . '...' : $apiKeyValue));
+        
         if (defined('GOOGLE_GEMINI_API_KEY') && GOOGLE_GEMINI_API_KEY !== 'zzzz') {
             $this->log("Testing with real API key");
+            # Debug: Log the actual result structure
+            $this->log("ModBot result type: " . gettype($result));
+            $this->log("ModBot result: " . print_r($result, true));
+            
             # If we have a real API key, test should return analysis
             $this->assertNotNull($result);
+            
             if (is_array($result)) {
-                # Should detect weapons rule violation
-                $foundWeapons = false;
-                foreach ($result as $violation) {
-                    if (isset($violation['rule']) && $violation['rule'] === 'weapons') {
-                        $foundWeapons = true;
-                        $this->assertGreaterThan(0.1, $violation['probability']);
-                        break;
+                $this->log("Result is array with keys: " . implode(', ', array_keys($result)));
+                
+                if (isset($result['error'])) {
+                    $this->fail("ModBot returned error: " . $result['error']);
+                } else if (isset($result['violations'])) {
+                    # Should detect weapons rule violation
+                    $foundWeapons = false;
+                    $violations = $result['violations'];
+                    $this->log("Violations array count: " . count($violations));
+                    foreach ($violations as $violation) {
+                        $this->log("Checking violation: " . print_r($violation, true));
+                        if (isset($violation['rule']) && $violation['rule'] === 'weapons') {
+                            $foundWeapons = true;
+                            $this->assertGreaterThan(0.1, $violation['probability']);
+                            break;
+                        }
                     }
+                    $this->assertTrue($foundWeapons, "Should detect weapons rule violation");
+                } else {
+                    # Maybe it's returning violations directly?
+                    $this->log("No 'violations' key found, checking if result is direct violations array");
+                    $foundWeapons = false;
+                    foreach ($result as $violation) {
+                        $this->log("Checking direct violation: " . print_r($violation, true));
+                        if (isset($violation['rule']) && $violation['rule'] === 'weapons') {
+                            $foundWeapons = true;
+                            $this->assertGreaterThan(0.1, $violation['probability']);
+                            break;
+                        }
+                    }
+                    $this->assertTrue($foundWeapons, "Should detect weapons rule violation in direct array");
                 }
-                $this->assertTrue($foundWeapons, "Should detect weapons rule violation");
+            } else {
+                $this->fail("ModBot result is not an array: " . gettype($result));
             }
         } else {
             $this->log("Skipping API test - no valid key");
@@ -124,6 +182,7 @@ class ModBotTest extends IznikTestCase {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup2', Group::GROUP_FREEGLE);
         $g = Group::get($this->dbhr, $this->dbhm, $gid);
+        $g->setPrivate('onhere', 1); # Make group active
         $g->setPrivate('rules', json_encode([
             'weapons' => true,
             'alcohol' => true,
@@ -153,8 +212,11 @@ class ModBotTest extends IznikTestCase {
         $msg = str_replace('Test test', 'I have some kitchen knives and hunting weapons to give away', $msg);
         $msg = str_ireplace("FreeglePlayground", "testgroup2", $msg);
 
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        list ($id, $failok) = $r->received(Message::EMAIL, 'testposter2@test.com', 'to@test.com', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'testposter2@test.com', 'testgroup2@' . GROUP_DOMAIN, $msg);
+        list ($id, $failok) = $m->save();
+
+        $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
         $this->assertEquals(MailRouter::PENDING, $rc);
 
@@ -178,6 +240,7 @@ class ModBotTest extends IznikTestCase {
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup3', Group::GROUP_FREEGLE);
         $g = Group::get($this->dbhr, $this->dbhm, $gid);
+        $g->setPrivate('onhere', 1); # Make group active
         $g->setPrivate('rules', json_encode([
             'weapons' => true,
             'alcohol' => true,
@@ -207,8 +270,11 @@ class ModBotTest extends IznikTestCase {
         $msg = str_replace('Test test', 'Basic message for testing microvolunteering functionality', $msg);
         $msg = str_ireplace("FreeglePlayground", "testgroup3", $msg);
 
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        list ($id, $failok) = $r->received(Message::EMAIL, 'testposter3@test.com', 'to@test.com', $msg);
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'testposter3@test.com', 'testgroup3@' . GROUP_DOMAIN, $msg);
+        list ($id, $failok) = $m->save();
+
+        $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
         $this->assertEquals(MailRouter::PENDING, $rc);
 
