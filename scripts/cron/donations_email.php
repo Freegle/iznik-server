@@ -20,29 +20,50 @@ foreach ($donations as $donation) {
     # Check if donor is member of a group that had a birthday in the last 2 days
     $birthday = false;
     if ($donation['userid']) {
-        $twoDaysAgo = date('m-d', strtotime('-2 days'));
-        $yesterday = date('m-d', strtotime('-1 day'));
-        $today = date('m-d');
+        # For recurring donations, don't flag as birthday if same amount was donated last month
+        $skipBirthdayCheck = false;
+        if ($recurring) {
+            # Check if there was a donation of the same amount from the same user last month
+            $lastMonth = $dbhr->preQuery("SELECT COUNT(*) as count FROM users_donations 
+                                        WHERE userid = ? 
+                                        AND GrossAmount = ?
+                                        AND DATE(timestamp) >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+                                        AND DATE(timestamp) < CURDATE()
+                                        AND (TransactionType = 'recurring_payment' OR TransactionType = 'subscr_payment')", [
+                $donation['userid'],
+                $donation['GrossAmount']
+            ]);
+            
+            if ($lastMonth[0]['count'] > 0) {
+                $skipBirthdayCheck = true;
+            }
+        }
         
-        $birthdayGroups = $dbhr->preQuery("SELECT DISTINCT g.id 
-                                         FROM `groups` g
-                                         INNER JOIN memberships m ON g.id = m.groupid
-                                         WHERE m.userid = ?
-                                         AND g.type = ?
-                                         AND g.publish = 1
-                                         AND g.onmap = 1
-                                         AND (DATE_FORMAT(g.founded, '%m-%d') = ? 
-                                              OR DATE_FORMAT(g.founded, '%m-%d') = ?
-                                              OR DATE_FORMAT(g.founded, '%m-%d') = ?)
-                                         AND YEAR(NOW()) - YEAR(g.founded) > 0", [
-            $donation['userid'],
-            Group::GROUP_FREEGLE,
-            $twoDaysAgo,
-            $yesterday,
-            $today
-        ]);
-        
-        $birthday = count($birthdayGroups) > 0;
+        if (!$skipBirthdayCheck) {
+            $twoDaysAgo = date('m-d', strtotime('-2 days'));
+            $yesterday = date('m-d', strtotime('-1 day'));
+            $today = date('m-d');
+            
+            $birthdayGroups = $dbhr->preQuery("SELECT DISTINCT g.id 
+                                             FROM `groups` g
+                                             INNER JOIN memberships m ON g.id = m.groupid
+                                             WHERE m.userid = ?
+                                             AND g.type = ?
+                                             AND g.publish = 1
+                                             AND g.onmap = 1
+                                             AND (DATE_FORMAT(g.founded, '%m-%d') = ? 
+                                                  OR DATE_FORMAT(g.founded, '%m-%d') = ?
+                                                  OR DATE_FORMAT(g.founded, '%m-%d') = ?)
+                                             AND YEAR(NOW()) - YEAR(g.founded) > 0", [
+                $donation['userid'],
+                Group::GROUP_FREEGLE,
+                $twoDaysAgo,
+                $yesterday,
+                $today
+            ]);
+            
+            $birthday = count($birthdayGroups) > 0;
+        }
     }
 
     $statusCell = '';
