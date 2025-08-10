@@ -4,7 +4,8 @@
       "WebFetch(domain:docs.anthropic.com)",
       "WebFetch(domain:github.com)",
       "Bash(php:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "WebFetch(domain:wiki.ilovefreegle.org)"
     ],
     "deny": []
   }

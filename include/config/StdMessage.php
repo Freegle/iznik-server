@@ -303,22 +303,37 @@ class StdMessage extends Entity
         $prompt .= "CONTEXT: This is for Freegle, a UK-based community reuse network. References to 'Freegle', UK place names (cities, towns, regions), and British terminology are normal and appropriate. ";
         $prompt .= "These should not be flagged as confusing or inappropriate.\n\n";
         $prompt .= "DO NOT suggest including email addresses in messages - these are sent via the platform and email contact is handled separately.\n\n";
+        $prompt .= "FREEGLE MESSAGE STYLE: Follow Freegle's philosophy that 'members appreciate a personal, friendly approach, not a corporate memo!' Based on analysis of actual Freegle sample messages, follow these patterns:\n\n";
+        $prompt .= "OPENINGS: Use warm, informal greetings like 'Hi there', 'Hi \$firstname' - never formal business language\n";
+        $prompt .= "TONE: Be empathetic first - acknowledge member intent/feelings before addressing issues\n";
+        $prompt .= "APPROACH: Always solution-oriented - offer alternatives, next steps, or constructive guidance\n";
+        $prompt .= "LANGUAGE: Use collaborative phrases like 'Would you like us to...' or 'Can I check whether...'\n";
+        $prompt .= "BOUNDARIES: Explain policies gently without being harsh - 'I'm sorry, but...' then explain why\n";
+        $prompt .= "GUIDANCE: Provide specific, actionable advice rather than vague instructions\n";
+        $prompt .= "LANGUAGE SIMPLICITY: Use simple, everyday words that everyone understands - avoid formal or complex words when shorter, common alternatives exist (e.g. 'use' not 'utilize', 'help' not 'assist', 'show' not 'demonstrate')\n";
+        $prompt .= "ACTIVE VOICE: Use active voice and direct requests - say what you're asking the person to do rather than describing abstract rules (e.g. 'Please edit your post' not 'Posts should be edited', 'You can try again tomorrow' not 'Posts may be resubmitted')\n";
+        $prompt .= "COMMUNITY FOCUS: Reference group benefits, use group names, emphasize collective good\n";
+        $prompt .= "CLOSINGS: Professional but warm - 'Kind regards', include volunteer/group names via substitutions\n\n";
         $prompt .= "Analyze this message for communication quality issues including:\n";
         $prompt .= "a) Too long for an email to a member of the public\n";
         $prompt .= "b) Confusingly worded or unclear language\n";
-        $prompt .= "c) Not friendly or appropriate tone for community members (consider substitution strings for personalization)\n";
-        $prompt .= "d) Uses jargon or technical terms members might not understand\n";
-        $prompt .= "e) Lacks clear next steps or actionable guidance\n";
-        $prompt .= "f) Too formal or impersonal for a community setting (substitution strings help with personalization)\n";
-        $prompt .= "g) Contains grammatical errors or typos\n";
-        $prompt .= "h) Structure makes it hard to scan or understand quickly\n\n";
+        $prompt .= "c) Missing empathetic acknowledgment of member intent before addressing issues\n";
+        $prompt .= "d) Uses jargon, technical terms, or unnecessarily complex words when simpler alternatives exist\n";
+        $prompt .= "e) Lacks solution-oriented approach - no alternatives, next steps, or constructive guidance\n";
+        $prompt .= "f) Missing collaborative language like 'Would you like us to...' or 'Can I check...'\n";
+        $prompt .= "g) Too harsh when explaining boundaries - should be gentle with 'I'm sorry, but...' approach\n";
+        $prompt .= "h) Vague guidance instead of specific, actionable advice\n";
+        $prompt .= "i) Uses passive voice or abstract rules instead of direct requests (e.g. 'Posts should be...' instead of 'Please...')\n";
+        $prompt .= "j) Doesn't emphasize community benefit or collective good\n";
+        $prompt .= "k) Contains grammatical errors or typos\n";
+        $prompt .= "l) Structure makes it hard to scan or understand quickly\n\n";
         
         $prompt .= "Please respond with a JSON object containing:\n";
         $prompt .= "- 'analysis': A human-readable paragraph explaining any problems found\n";
-        $prompt .= "- 'suggestion': Either a complete rewritten version of the message that addresses the issues, or 'No improvements needed' if the message is fine\n";
+        $prompt .= "- 'suggestion': Either a complete rewritten version that follows Freegle's style (warm opening, empathetic acknowledgment, solution-oriented approach, collaborative language, gentle boundaries, specific guidance, community focus, warm closing), or 'No improvements needed' if the message is fine.\n";
         $prompt .= "- 'improvement_score': A decimal number from 0.0 to 1.0 indicating how much improvement is needed (0.0 = perfect, no improvement needed; 1.0 = major improvements required)\n\n";
-        $prompt .= "Focus on plain English principles and effective community communication.\n";
-        $prompt .= "Be constructive and specific in your feedback.";
+        $prompt .= "Focus on Freegle's authentic sample message patterns: empathetic first, solution-oriented always, collaborative language, gentle boundary-setting, and community-focused messaging.\n";
+        $prompt .= "Be constructive and specific in your feedback. Remember the core principle: 'members appreciate a personal, friendly approach, not a corporate memo!'";
         
         return $prompt;
     }

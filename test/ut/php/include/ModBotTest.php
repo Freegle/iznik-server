@@ -23,11 +23,11 @@ class ModBotTest extends IznikTestCase {
         $this->dbhm = $dbhm;
 
         # Clean up test data
-        $this->dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE users_emails.email IN (?, 'test@test.com');", [
+        $this->dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE users_emails.email IN (?, 'test@test.com', 'testposter@test.com', 'testposter2@test.com', 'testposter3@test.com');", [
             MODBOT_USER
         ]);
-        $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
-        $this->dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup';");
+        $this->dbhm->preExec("DELETE FROM users WHERE fullname IN ('Test User', 'Test Posting User', 'Test Posting User 2', 'Test Posting User 3');");
+        $this->dbhm->preExec("DELETE FROM `groups` WHERE nameshort LIKE 'testgroup%';");
         $this->dbhm->preExec("DELETE FROM messages WHERE subject LIKE 'Test message%';");
     }
 
@@ -50,6 +50,16 @@ class ModBotTest extends IznikTestCase {
         $u->addEmail(MODBOT_USER);
         $u->addMembership($gid, User::ROLE_MODERATOR, $uid);
 
+        # Create a regular user to post the message
+        $testUser = User::get($this->dbhr, $this->dbhm);
+        $testUserId = $testUser->create('Test', 'Poster', 'Test Posting User');
+        $testUser->addEmail('testposter@test.com');
+        $testUser->addMembership($gid, User::ROLE_MEMBER);
+        
+        # Set user to moderated posting status to ensure message goes to PENDING
+        $testUser->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_MODERATED);
+        User::clearCache();
+
         # Create a test message that should trigger rule violations
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'Test message about knives and weapons for sale', $msg);
@@ -57,7 +67,7 @@ class ModBotTest extends IznikTestCase {
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        $id = $r->received(Message::EMAIL, MODBOT_USER, 'to@test.com', $msg);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'testposter@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         $this->assertEquals(MailRouter::PENDING, $rc);
 
@@ -127,6 +137,16 @@ class ModBotTest extends IznikTestCase {
         # Add as member only, not moderator
         $u->addMembership($gid, User::ROLE_MEMBER, $uid);
 
+        # Create a regular user to post the message
+        $testUser = User::get($this->dbhr, $this->dbhm);
+        $testUserId = $testUser->create('Test', 'Poster2', 'Test Posting User 2');
+        $testUser->addEmail('testposter2@test.com');
+        $testUser->addMembership($gid, User::ROLE_MEMBER);
+        
+        # Set user to moderated posting status to ensure message goes to PENDING
+        $testUser->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_MODERATED);
+        User::clearCache();
+
         # Create a test message (based on working test pattern)
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'Test message about knives and weapons for sale', $msg);
@@ -134,7 +154,7 @@ class ModBotTest extends IznikTestCase {
         $msg = str_ireplace("FreeglePlayground", "testgroup2", $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        list ($id, $failok) = $r->received(Message::EMAIL, MODBOT_USER, 'to@test.com', $msg);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'testposter2@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         $this->assertEquals(MailRouter::PENDING, $rc);
 
@@ -168,7 +188,18 @@ class ModBotTest extends IznikTestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create('ModBot', 'User', 'ModBot User');
         $u->addEmail(MODBOT_USER);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'modbotpw'));
         $u->addMembership($gid, User::ROLE_MODERATOR, $uid);
+
+        # Create a regular user to post the message
+        $testUser = User::get($this->dbhr, $this->dbhm);
+        $testUserId = $testUser->create('Test', 'Poster3', 'Test Posting User 3');
+        $testUser->addEmail('testposter3@test.com');
+        $testUser->addMembership($gid, User::ROLE_MEMBER);
+        
+        # Set user to moderated posting status to ensure message goes to PENDING
+        $testUser->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_MODERATED);
+        User::clearCache();
 
         # Create a test message (based on working test pattern)
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -177,7 +208,7 @@ class ModBotTest extends IznikTestCase {
         $msg = str_ireplace("FreeglePlayground", "testgroup3", $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
-        list ($id, $failok) = $r->received(Message::EMAIL, MODBOT_USER, 'to@test.com', $msg);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'testposter3@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         $this->assertEquals(MailRouter::PENDING, $rc);
 
@@ -185,6 +216,9 @@ class ModBotTest extends IznikTestCase {
 
         # Clear any existing microvolunteering entries for this message
         $this->dbhm->preExec("DELETE FROM microactions WHERE msgid = ?", [$id]);
+        
+        # Log in as ModBot user so that microvolunteering entries can be created
+        $this->assertTrue($u->login('modbotpw'));
         
         # Test ModBot review WITH microvolunteering enabled
         $modbot = new ModBot($this->dbhr, $this->dbhm);

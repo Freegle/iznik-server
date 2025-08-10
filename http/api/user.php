@@ -195,7 +195,7 @@ function user() {
                     'status' => 'Permission denied'
                 ];
 
-                if ($me->isModerator()) {
+                if ($me->isModerator() && $u->getId()) {
                     # Can set any trust level
                     $u->setPrivate('trustlevel', $trustlevel);
 
