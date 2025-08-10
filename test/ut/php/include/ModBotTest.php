@@ -105,6 +105,7 @@ class ModBotTest extends IznikTestCase {
         $u2 = User::get($this->dbhr, $this->dbhm);
         $uid2 = $u2->create('Test', 'User', 'Test User');
         $u2->addEmail('test@test.com');
+        $u2->addMembership($gid, User::ROLE_MEMBER); # Add as member to prevent message drops
         $modbot2 = new ModBot($this->dbhr, $this->dbhm);
         $result2 = $modbot2->reviewPost($id);
         
@@ -238,7 +239,7 @@ class ModBotTest extends IznikTestCase {
 
         # Create a test group (using different name to avoid conflicts)
         $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup3', Group::GROUP_FREEGLE);
+        $gid = $g->create('testgroup', Group::GROUP_FREEGLE);
         $g = Group::get($this->dbhr, $this->dbhm, $gid);
         $g->setPrivate('onhere', 1); # Make group active
         $g->setPrivate('rules', json_encode([
