@@ -457,6 +457,8 @@ class Donations
                 
                 # Check if we've sent a birthday appeal to this user recently (skip check if overriding email)
                 $canSendBirthdayAppeal = true;
+                $days_since = NULL;
+
                 if (!$emailOverride) {
                     $settings = $u->getPrivate('settings');
                     $settings = $settings ? json_decode($settings, TRUE) : [];
@@ -564,7 +566,6 @@ class Donations
                     }
                 } else {
                     # User was asked recently, skip
-                    $days_since = floor((time() - strtotime($lastask)) / (24 * 60 * 60));
                     error_log("Skipping {$member['id']} - asked for donation $days_since days ago");
                 }
             }
