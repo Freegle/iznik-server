@@ -5,7 +5,12 @@
       "WebFetch(domain:github.com)",
       "Bash(php:*)",
       "Bash(rm:*)",
-      "WebFetch(domain:wiki.ilovefreegle.org)"
+      "WebFetch(domain:wiki.ilovefreegle.org)",
+      "WebFetch(domain:docs.google.com)",
+      "Bash(chmod:*)",
+      "WebFetch(domain:docs.netlify.com)",
+      "Bash(mv:*)",
+      "WebFetch(domain:www.sslshopper.com)"
     ],
     "deny": []
   }
