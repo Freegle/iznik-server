@@ -28,9 +28,9 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $dbhm->preExec("DELETE FROM chat_rooms WHERE name = 'test';");
 
-        list($this->user, $this->uid) = $this->createTestUser();
-        list($this->user2, $this->uid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test2@test.com');
-        list($this->user3, $this->uid3) = $this->createTestUser(NULL, NULL, 'Test User', 'test3@test.com');
+        list($this->user, $this->uid, $emailid1) = $this->createTestUser();
+        list($this->user2, $this->uid2, $emailid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test2@test.com');
+        list($this->user3, $this->uid3, $emailid3) = $this->createTestUser(NULL, NULL, 'Test User', 'test3@test.com');
 
         list($g, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
 

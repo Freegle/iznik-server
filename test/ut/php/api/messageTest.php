@@ -35,7 +35,7 @@ class messageAPITest extends IznikAPITestCase
         list($this->group, $this->gid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
         $this->group->setPrivate('onhere', 1);
 
-        list($this->user, $this->uid) = $this->createTestUser('Test', 'User', 'Test User');
+        list($this->user, $this->uid, $emailid) = $this->createTestUser('Test', 'User', 'Test User');
         $this->user->addEmail('sender@example.net');
         $this->user->addMembership($this->gid);
     }
