@@ -324,7 +324,7 @@ class PushNotifications
 
                 list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route) = $u->getNotificationPayload($modtools);
 
-                if ($title) {
+                if ($title || $modtools) {
                     $message = ($total === 0) ? "" : $message;
                     if (is_null($message)) $message = "";
 
