@@ -67,27 +67,21 @@ class RelevantTest extends IznikTestCase
         $areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))');
         $fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)');
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup", Group::GROUP_FREEGLE);
+        list($g, $gid) = $this->createTestGroup("testgroup", Group::GROUP_FREEGLE);
         $g->setPrivate('lat', 8.53333);
         $g->setPrivate('lng', 179.2167);
         $g->setPrivate('poly', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))');
         $g->setPrivate('onhere', 1);
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $u->create(NULL, NULL, 'Test User');
-        $u->addEmail('test@test.com', 0, FALSE);
+        list($u, $uid_temp, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $u->addMembership($gid);
         $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         # Create a user
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        $email = 'test1@test.com';
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', $email, 'testpw');
         $this->log("Created user $uid");
-        $email = 'ut-' . rand() . '@test.com';
-        $u->addEmail($email, 0, FALSE);
         $u->addEmail('ut-' . rand() . '@' . USER_DOMAIN, 0, FALSE);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($u->login('testpw'));
         $this->log("Emails before first " . var_export($u->getEmails(), TRUE));
 
@@ -210,11 +204,9 @@ class RelevantTest extends IznikTestCase
         $this->assertEquals(0, count($msgs));
 
         # Now another user who has viewed $id2 and therefore should get notified about it.
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        $email = 'test2@test.com';
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', $email, 'testpw');
         $this->log("Created user $uid");
-        $email = 'ut-' . rand() . '@test.com';
-        $u->addEmail($email, 0, FALSE);
         $u->addEmail('ut-' . rand() . '@' . USER_DOMAIN, 0, FALSE);
         $u->addMembership($gid);
         $m->like($uid, Message::LIKE_VIEW);
@@ -240,11 +232,9 @@ class RelevantTest extends IznikTestCase
     }
 
     public function testOff() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        $email = 'test3@test.com';
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', $email, 'testpw');
         $this->log("Created user $uid");
-        $email = 'ut-' . rand() . '@test.com';
-        $u->addEmail($email);
 
         $mock = $this->getMockBuilder('Freegle\Iznik\Relevant')
             ->setConstructorArgs([$this->dbhr, $this->dbhm, NULL, TRUE])

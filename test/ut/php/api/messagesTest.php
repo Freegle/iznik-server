@@ -26,30 +26,21 @@ class messagesTest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup';");
         $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
         
-        $this->group = Group::get($this->dbhr, $this->dbhm);
-        $this->gid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
-        $this->group = Group::get($this->dbhr, $this->dbhm, $this->gid);
+        list($this->group, $this->gid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
         $this->group->setPrivate('onhere', 1);
 
-        $u = new User($this->dbhr, $this->dbhm);
-        $this->uid = $u->create('Test', 'User', 'Test User');
-        $u->addEmail('test@test.com');
-        $u->addEmail('sender@example.net');
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $u->addMembership($this->gid);
-        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
-        $this->user = $u;
+        list($this->user, $this->uid, $emailid) = $this->createTestUser('Test', 'User', 'Test User', 'test@test.com', 'testpw');
+        $this->user->addEmail('sender@example.net');
+        $this->user->addMembership($this->gid);
+        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
     }
 
     public function testApproved() {
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Subject: Basic test', 'Subject: OFFER: sofa (Place)', $msg);
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
+        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid);
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $this->log("Approved id $id");
 
@@ -86,12 +77,9 @@ class messagesTest extends IznikAPITestCase {
         $this->assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
 
         # Now join and check we can see see it.
-        $u = User::get($this->dbhr, $this->dbhm);
-        $id = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $id);
+        list($u, $id, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test1@test.com', 'testpw');
         $rc = $u->addMembership($this->gid, User::ROLE_MEMBER);
         $this->assertEquals(1, $rc);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($u->login('testpw'));
 
         # Omit groupid - should use groups for currently logged in user.
@@ -262,9 +250,7 @@ class messagesTest extends IznikAPITestCase {
         $this->assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to see a spam message
-        $u = User::get($this->dbhr, $this->dbhm);
-        $id = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $id);
+        list($u, $id, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
         $u->addMembership($this->gid);
 
         $ret = $this->call('messages', 'GET', [
@@ -308,10 +294,7 @@ class messagesTest extends IznikAPITestCase {
         # Create a group with a message on it
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_MODERATED);
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
+        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid);
         $this->assertEquals(MailRouter::PENDING, $rc);
 
         $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::PENDING);
@@ -324,10 +307,7 @@ class messagesTest extends IznikAPITestCase {
         ]);
         self::assertEquals(2, $ret['ret']);
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $id = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $id);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($u, $id, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test3@test.com', 'testpw');
         $this->assertTrue($u->login('testpw'));
 
         # Shouldn't be able to see pending logged in but not a member.
@@ -340,11 +320,8 @@ class messagesTest extends IznikAPITestCase {
         $this->assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to see a pending message
-        $u = User::get($this->dbhr, $this->dbhm);
-        $id = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $id);
+        list($u, $id, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test4@test.com', 'testpw');
         $u->addMembership($this->gid);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('messages', 'GET', [
@@ -632,11 +609,8 @@ class messagesTest extends IznikAPITestCase {
         }
 
     public function testAttachment() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
         $email = 'ut-' . rand() . '@test.com';
-        $u->addEmail($email, 0, FALSE);
-
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', $email, 'testpw');
         $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_UNMODERATED);
 
@@ -665,11 +639,8 @@ class messagesTest extends IznikAPITestCase {
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid);
         $this->assertNotNull($id);
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $this->log("Approved id $id");
 
@@ -749,10 +720,7 @@ class messagesTest extends IznikAPITestCase {
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
+        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid);
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $this->log("Approved id $id");
 

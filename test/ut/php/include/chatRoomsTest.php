@@ -26,8 +26,7 @@ class chatRoomsTest extends IznikTestCase {
         $dbhm->preExec("DELETE FROM users_emails WHERE email LIKE 'test2@user.trashnothing.com';");
         $dbhm->preExec("DELETE FROM users_replytime;");
 
-        $g = Group::get($dbhr, $dbhm);
-        $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
+        list($g, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
     }
 
     protected function tearDown(): void
@@ -36,12 +35,8 @@ class chatRoomsTest extends IznikTestCase {
 
     public function testPromoteRead() {
         # Create an unread chat message between a user and a mod on a group.
-        $u = new User($this->dbhr, $this->dbhm);
-        $mod = $u->create(NULL, NULL, "Test User 1");
-        $u->addMembership($this->groupid, User::ROLE_MODERATOR);
-
-        $member = $u->create(NULL, NULL, "Test User 2");
-        $u->addMembership($this->groupid, User::ROLE_MEMBER);
+        list($u1, $mod) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MODERATOR, 'Test User 1', 'test1@test.com', 'testpw');
+        list($u2, $member) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User 2', 'test2@test.com', 'testpw');
 
         $r = new ChatRoom($this->dbhm, $this->dbhm);
         $id = $r->createUser2Mod($member, $this->groupid);
@@ -59,9 +54,8 @@ class chatRoomsTest extends IznikTestCase {
         ]));
 
         # Create a new user and promote to mod.
-        $newmod = $u->create(NULL, NULL, "Test User 3");
-        $u->addMembership($this->groupid, User::ROLE_MEMBER);
-        $u->setRole(User::ROLE_MODERATOR, $this->groupid);
+        list($u3, $newmod) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User 3', 'test3@test.com', 'testpw');
+        $u3->setRole(User::ROLE_MODERATOR, $this->groupid);
 
         # The chat message should have been marked as read for this user to avoid flooding them with unread old chat
         # messages.
@@ -83,11 +77,8 @@ class chatRoomsTest extends IznikTestCase {
     }
 
     public function testConversation() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $u1 = $u->create(NULL, NULL, "Test User 1");
-        $u->addEmail('test1@test.com');
-        $u2 = $u->create(NULL, NULL, "Test User 2");
-        $u->addEmail('test2@test.com');
+        list($u1_obj, $u1) = $this->createTestUser(NULL, NULL, 'Test User 1', 'test1@test.com', 'testpw');
+        list($u2_obj, $u2) = $this->createTestUser(NULL, NULL, 'Test User 2', 'test2@test.com', 'testpw');
 
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         list ($id, $blocked) = $r->createConversation($u1, $u2);

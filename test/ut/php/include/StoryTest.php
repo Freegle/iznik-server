@@ -36,8 +36,7 @@ class StoryTest extends IznikTestCase {
             ->getMock();
         $s->method('sendIt')->willReturn(TRUE);
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
         $sid = $s->create($uid, 1, "Freecycle", "Test");
         $sid = $s->create($uid, 1, "Test", "Test");
@@ -52,8 +51,7 @@ class StoryTest extends IznikTestCase {
     public function testNewsletter() {
         $s = new Story($this->dbhr, $this->dbhm);
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
 
         $sid = $s->create($uid, 1, "Freecycle", "Test");
         $sid = $s->create($uid, 1, "Test", "Test");

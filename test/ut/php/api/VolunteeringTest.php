@@ -26,25 +26,15 @@ class volunteeringAPITest extends IznikAPITestCase {
         $this->dbhr = $dbhm;
         $this->dbhm = $dbhm;
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
+        list($g, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
+        
+        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test1@test.com', 'testpw');
         $this->user->addMembership($this->groupid);
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid2 = $u->create(NULL, NULL, 'Test User');
-        $this->user2 = User::get($this->dbhr, $this->dbhm, $this->uid2);
-        $this->user2->addMembership($this->groupid, User::ROLE_MODERATOR);
-        $this->assertGreaterThan(0, $this->user2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($this->user2, $this->uid2) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MODERATOR, 'Test User', 'test2@test.com', 'testpw');
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid3 = $u->create(NULL, NULL, 'Test User');
-        $this->user3 = User::get($this->dbhr, $this->dbhm, $this->uid2);
+        list($this->user3, $this->uid3, $emailid3) = $this->createTestUser(NULL, NULL, 'Test User', 'test3@test.com', 'testpw');
         $this->user3->addMembership($this->groupid);
-        $this->assertGreaterThan(0, $this->user3->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         $dbhm->preExec("DELETE FROM volunteering WHERE title = 'Test vacancy' OR title = 'UTTest';");
     }

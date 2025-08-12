@@ -29,24 +29,14 @@ class membershipsAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM users WHERE yahooid LIKE '-testid%';");
         $dbhm->preExec("DELETE FROM users_emails WHERE backwards LIKE 'moctset%';");
 
-        $this->group = Group::get($this->dbhr, $this->dbhm);
-        $this->groupid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
+        list($this->group, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
         $this->group->setPrivate('onhere', TRUE);
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->assertNotNull($this->uid);
-        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
-        $this->user->addEmail('test@test.com');
+        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $this->user->addMembership($this->groupid);
         $this->user->setMembershipAtt($this->groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-        $this->uid2 = $u->create(NULL, NULL, 'Test User');
-        $this->assertNotNull($this->uid);
-        $this->user2 = User::get($this->dbhr, $this->dbhm, $this->uid2);
-        $this->user2->addEmail('tes2t@test.com');
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertGreaterThan(0, $this->user2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($this->user2, $this->uid2, $emailid2) = $this->createTestUser(NULL, NULL, 'Test User', 'tes2t@test.com', 'testpw');
         $this->assertTrue($this->user->login('testpw'));
     }
 
@@ -345,8 +335,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $this->assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
 
         # Join ourselves - should work
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test5@test.com', 'testpw');
 
         $ret = $this->call('memberships', 'PUT', [
             'groupid' => $this->groupid,
@@ -494,9 +483,7 @@ class membershipsAPITest extends IznikAPITestCase {
     }
 
     public function testDelete() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $this->assertNotNull($uid);
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test6@test.com', 'testpw');
         $this->assertTrue($u->addMembership($this->groupid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED));
 
         # Shouldn't be able to do this as a non-member.
@@ -576,8 +563,7 @@ class membershipsAPITest extends IznikAPITestCase {
         ]);
         $this->assertEquals(0, $ret['ret']);
 
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
+        list($u, $id, $emailid) = $this->createTestUser('Test', 'User', 'Test User', 'test7@test.com', 'testpw');
         $u->addMembership($this->groupid);
 
         $ret = $this->call('memberships', 'GET', [
@@ -625,11 +611,8 @@ class membershipsAPITest extends IznikAPITestCase {
 
     function testHappiness() {
         # Create the sending user
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $this->log("Created user $uid");
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $this->assertEquals(0, $u->addEmail('test@test.com'));
 
         # Send a message.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -873,11 +856,8 @@ class membershipsAPITest extends IznikAPITestCase {
         $this->assertNotNull($id);
 
         // Create user with email test@partner.com
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create('Test', 'User', 'Test User');
-        $u->addEmail('test@partner.com');
-        $uid2 = $u->create('Test', 'User', 'Test User');
-        $u->addEmail('test@partner2.com');
+        list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', 'Test User', 'test@partner.com', 'testpw');
+        list($u2, $uid2, $emailid2) = $this->createTestUser('Test', 'User', 'Test User', 'test@partner2.com', 'testpw');
 
         // Without key = should fail.
         $GLOBALS['sessionPrepared'] = FALSE;
@@ -953,11 +933,8 @@ class membershipsAPITest extends IznikAPITestCase {
         $this->assertNotNull($id);
 
         // Create user with email test@partner.com
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create('Test', 'User', 'Test User');
-        $u->addEmail('test@partner.com');
-        $uid2 = $u->create('Test', 'User', 'Test User');
-        $u->addEmail('test@partner2.com');
+        list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', 'Test User', 'test@partner.com', 'testpw');
+        list($u2, $uid2, $emailid2) = $this->createTestUser('Test', 'User', 'Test User', 'test@partner2.com', 'testpw');
 
         // Invalid groupid
         $GLOBALS['sessionPrepared'] = FALSE;

@@ -28,16 +28,8 @@ class chatMessagesTest extends IznikTestCase {
             $dbhm->preExec("DELETE FROM users WHERE id = ?;", [ $user['userid']]);
         }
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
-
-        $this->user->addMembership($this->groupid);
-        $this->user->addEmail('test@test.com');
+        list($g, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
+        list($this->user, $this->uid) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User', 'test@test.com', 'testpw');
         $this->user->setMembershipAtt($this->groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $this->dbhm->preExec("DELETE FROM locations WHERE name = 'TV13 1HH';");
@@ -130,8 +122,7 @@ class chatMessagesTest extends IznikTestCase {
         $this->assertEquals(0, $m->getReviewCount($this->user)['chatreview']);
         $this->assertEquals(1, $m->getReviewCount($this->user)['chatreviewother']);
 
-        $g = new Group($this->dbhr, $this->dbhm);
-        $gid2 = $g->create('testgroup1', Group::GROUP_UT);
+        list($g2, $gid2) = $this->createTestGroup('testgroup1', Group::GROUP_UT);
         $this->user->addMembership($gid2, User::ROLE_MODERATOR);
         $this->assertEquals(0, $m->getReviewCount($this->user)['chatreview']);
         $this->assertEquals(1, $m->getReviewCount($this->user)['chatreviewother']);
@@ -173,9 +164,7 @@ class chatMessagesTest extends IznikTestCase {
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Now create a sender on the spammer list.
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create('Spam', 'User', 'Spam User');
-        $u->addEmail('test2@test.com');
+        list($u, $uid) = $this->createTestUser('Spam', 'User', 'Spam User', 'test2@test.com', 'testpw');
         $s = new Spam($this->dbhr, $this->dbhm);
         $s->addSpammer($uid, Spam::TYPE_SPAMMER, 'UT Test');
 
@@ -183,9 +172,7 @@ class chatMessagesTest extends IznikTestCase {
         $u = new User($this->dbhr, $this->dbhm, $uid);
         $atts = $u->getPublic();
         $this->assertEquals('boolean', gettype($atts['spammer']));
-        $u2 = new User($this->dbhr, $this->dbhm);
-        $uid2 = $u2->create('Test', 'User', 'Test User');
-        $this->assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($u2, $uid2) = $this->createTestUserWithLogin('Test User', 'testpw');
         $this->assertTrue($u2->login('testpw'));
         $u2->setPrivate('systemrole', User::ROLE_MODERATOR);
         $u = new User($this->dbhr, $this->dbhm, $uid);
@@ -212,9 +199,7 @@ class chatMessagesTest extends IznikTestCase {
         $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create('Test', 'User', 'Test User');
-        $u->addEmail('test2@test.com');
+        list($u, $uid) = $this->createTestUser('Test', 'User', 'Test User', 'test2@test.com', 'testpw');
 
         # Now reply from them.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/ourfooter'));
@@ -577,11 +562,9 @@ class chatMessagesTest extends IznikTestCase {
     public function testUser2ModSpam() {
         $gid = $this->groupid;
         $this->log("Created group $gid");
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid1 = $u->create("Test", "User", "Test User");
-        $u->addMembership($gid, User::ROLE_MODERATOR);
-        $uid2 = $u->create("Test", "User", "Test User");
-        $u->addMembership($gid);
+        list($u1, $uid1) = $this->createTestUserWithMembership($gid, User::ROLE_MODERATOR, 'Test User', 'test1@test.com', 'testpw');
+        list($u2, $uid2) = $this->createTestUserWithMembership($gid, User::ROLE_MEMBER, 'Test User', 'test2@test.com', 'testpw');
+        $u = $u1;
         $r = new ChatRoom($this->dbhm, $this->dbhm);
         $rid = $r->createUser2Mod($uid2, $gid);
 

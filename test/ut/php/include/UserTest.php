@@ -37,8 +37,7 @@ class userTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
+        list($u, $id) = $this->createTestUserWithLogin('Test User', 'testpw');
         $this->log("Created $id");
 
         $this->log("Get - not cached");
@@ -70,8 +69,7 @@ class userTest extends IznikTestCase {
         $_SESSION['id'] = NULL;
         $this->assertGreaterThan(0, $u->delete());
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $id = $u->create(NULL, NULL, 'Test User');
+        list($u, $id) = $this->createTestUserWithLogin('Test User', 'testpw');
         $atts = $u->getPublic();
         $this->assertNull($atts['firstname']);
         $this->assertNull($atts['lastname']);
@@ -83,8 +81,7 @@ class userTest extends IznikTestCase {
 
     public function testInfos()
     {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $id = $u->create('Test', 'User', null);
+        list($u, $id) = $this->createTestUserWithLogin('Test User', 'testpw');
         $this->log("Created $id");
 
         $this->assertNotNull($u->setAboutMe('UT'));
@@ -101,8 +98,7 @@ class userTest extends IznikTestCase {
     }
 
     public function testLinkLogin() {
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
+        list($u, $id) = $this->createTestUserWithLogin('Test User', 'testpw');
 
         $url1 = $u->loginLink(USER_SITE, $id, '/', NULL, TRUE);
         $this->log("Login url $url1");
@@ -130,8 +126,12 @@ class userTest extends IznikTestCase {
     }
 
     public function testEmails() {
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
+        list($u, $id) = $this->createTestUserWithLogin('Test User', 'testpw');
+        // Remove the default email for this test
+        $emails = $u->getEmails();
+        foreach ($emails as $email) {
+            $u->removeEmail($email['id']);
+        }
         $this->assertEquals(0, count($u->getEmails()));
 
         # Add an email - should work.
@@ -201,8 +201,12 @@ class userTest extends IznikTestCase {
     }
 
     public function testLogins() {
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
+        list($u, $id) = $this->createTestUserWithLogin('Test User', 'testpw');
+        // Remove the default email for this test
+        $emails = $u->getEmails();
+        foreach ($emails as $email) {
+            $u->removeEmail($email['id']);
+        }
         $this->assertEquals(0, count($u->getEmails()));
 
         # Add a login - should work.
@@ -254,8 +258,7 @@ class userTest extends IznikTestCase {
         $group1 = $g->create('testgroup1', Group::GROUP_FREEGLE);
         $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
 
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create(NULL, NULL, 'Test User');
+        list($u, $id) = $this->createTestUserWithLogin('Test User', 'testpw');
         User::clearCache($id);
         $eid = $u->addEmail('test@test.com');
         $this->assertGreaterThan(0, $eid);

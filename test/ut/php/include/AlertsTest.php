@@ -32,8 +32,7 @@ class AlertTest extends IznikTestCase {
     }
 
     public function testMultiple() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_UT);
+        list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_UT);
 
         $g->setPrivate('contactmail', 'test@test.com');
 
@@ -51,13 +50,9 @@ class AlertTest extends IznikTestCase {
     }
 
     public function testErrors() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_UT);
+        list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_UT);
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
-        $this->user->addEmail('test@test.com');
+        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $this->user->addMembership($gid, User::ROLE_MODERATOR);
 
         $a = new Alert($this->dbhr, $this->dbhm);

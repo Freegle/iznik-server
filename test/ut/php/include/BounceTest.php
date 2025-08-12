@@ -29,9 +29,7 @@ class BounceTest extends IznikTestCase
 
     public function testBasic()
     {
-        $u = new User($this->dbhr, $this->dbhm);
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail('test@test.com');
+        list($u, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/bounce');
         $b = new Bounce($this->dbhr, $this->dbhm);

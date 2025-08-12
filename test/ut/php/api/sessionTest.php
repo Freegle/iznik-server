@@ -143,13 +143,9 @@ class sessionTest extends IznikAPITestCase
     public function testNative()
     {
         # Create a user so that the confirm will trigger a merge.
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
-        $this->assertNotNull($u->addEmail('test2@test.com'));
+        list($u, $id, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test2@test.com', 'testpw');
 
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
-        $this->assertNotNull($u->addEmail('test@test.com'));
+        list($u, $id, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
 
         # Mock the group ("your hair looks terrible") to check the welcome mail is sent.
         $g = $this->getMockBuilder('Freegle\Iznik\Group')
@@ -174,7 +170,6 @@ class sessionTest extends IznikAPITestCase
         $u->addMembership($group1);
         self::assertEquals(1, count($this->msgsSent));
 
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $ret = $this->call('session', 'POST', [
             'email' => 'test@test.com',
             'password' => 'testpw'
@@ -285,8 +280,7 @@ class sessionTest extends IznikAPITestCase
 
     public function testUidAndKey()
     {
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
+        list($u, $id, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
         $l = $u->loginLink(USER_SITE, $id, '/', 'test', TRUE);
 
         if (preg_match('/.*k=(.*)\&/', $l, $matches)) {
@@ -315,10 +309,7 @@ class sessionTest extends IznikAPITestCase
 
     public function testPatch()
     {
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
-        $this->assertNotNull($u->addEmail('test@test.com'));
-        $u = User::get($this->dbhm, $this->dbhm, $id);
+        list($u, $id, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
 
         $ret = $this->call('session', 'PATCH', [
             'firstname' => 'Test2',
@@ -326,7 +317,6 @@ class sessionTest extends IznikAPITestCase
         ]);
         $this->assertEquals(1, $ret['ret']);
 
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $ret = $this->call('session', 'POST', [
             'email' => 'test@test.com',
             'password' => 'testpw'
@@ -345,9 +335,7 @@ class sessionTest extends IznikAPITestCase
         $this->assertEquals('User2', $ret['me']['lastname']);
 
         # Set to an email already in use
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
-        $this->assertNotNull($u->addEmail('test3@test.com'));
+        list($u, $id, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test3@test.com', 'testpw');
         $ret = $this->call('session', 'PATCH', [
             'settings' => json_encode(['test' => 1]),
             'email' => 'test3@test.com'
@@ -355,8 +343,6 @@ class sessionTest extends IznikAPITestCase
         $this->assertEquals(10, $ret['ret']);
 
         # Change password and check it works.
-        $u = User::get($this->dbhm, $this->dbhm, $id);
-        $u->addLogin(User::LOGIN_NATIVE, $u->getId(), 'testpw');
         $ret = $this->call('session', 'POST', [
             'email' => 'test3@test.com',
             'password' => 'testpw'
@@ -376,9 +362,7 @@ class sessionTest extends IznikAPITestCase
     }
 
     public function testConfigs() {
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($u, $id, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
         $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('session', 'GET', []);
@@ -396,11 +380,8 @@ class sessionTest extends IznikAPITestCase
 
     public function testWork()
     {
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
+        list($u, $id, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
         $this->log("Created user $id");
-        $this->assertNotNull($u->addEmail('test@test.com'));
-        $u = User::get($this->dbhm, $this->dbhm, $id);
         $u->setPrivate('permissions', json_encode([ User::PERM_NATIONAL_VOLUNTEERS, User::PERM_GIFTAID ]));
         $u->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
 
@@ -433,7 +414,6 @@ class sessionTest extends IznikAPITestCase
         $rc = $r->route();
         $this->assertEquals(MailRouter::PENDING, $rc);
 
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $ret = $this->call('session', 'POST', [
             'email' => 'test@test.com',
             'password' => 'testpw'
@@ -493,8 +473,7 @@ class sessionTest extends IznikAPITestCase
 
     public function testPushCreds()
     {
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
+        list($u, $id, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
         $this->log("Created user $id");
 
         $n = new PushNotifications($this->dbhr, $this->dbhm);
@@ -522,8 +501,7 @@ class sessionTest extends IznikAPITestCase
     {
         $email = 'test-' . rand() . '@blackhole.io';
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'temp@test.com', 'testpw');
 
         $ret = $this->call('session', 'POST', [
             'email' => $email,
@@ -543,9 +521,7 @@ class sessionTest extends IznikAPITestCase
 
     public function testConfirmUnsubscribe()
     {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail('test@test.com');
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
         $ret = $this->call('session', 'POST', [
             'action' => 'Unsubscribe'
@@ -587,7 +563,6 @@ class sessionTest extends IznikAPITestCase
         $u->setPrivate('yahooid', -1);
         self::assertTrue($u->sendOurMails());
         self::assertTrue($u->notifsOn(User::NOTIFS_PUSH));
-
         $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $ret = $this->call('session', 'POST', [
             'email' => 'test@test.com',
@@ -640,9 +615,7 @@ class sessionTest extends IznikAPITestCase
 
     public function testAboutMe()
     {
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
-        $this->assertNotNull($u->addEmail('test@test.com'));
+        list($u, $id, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
 
         # Set a location otherwise we won't add to the newsfeed.
         $u->setSetting('mylocation', [
@@ -650,7 +623,6 @@ class sessionTest extends IznikAPITestCase
             'lat' => 8.5
         ]);
 
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $ret = $this->call('session', 'POST', [
             'email' => 'test@test.com',
             'password' => 'testpw'
@@ -916,9 +888,7 @@ class sessionTest extends IznikAPITestCase
     }
 
     public function testVersion() {
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
-        $u->addLogin(User::LOGIN_NATIVE, $u->getId(), 'testpw');
+        list($u, $id, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
         $u->login('testpw');
 
         $ret = $this->call('session', 'GET', [
@@ -945,9 +915,7 @@ class sessionTest extends IznikAPITestCase
     }
 
     public function testDiscourseCookie() {
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($u, $id, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
         $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('session', 'GET', []);
@@ -975,15 +943,12 @@ class sessionTest extends IznikAPITestCase
     }
 
     public function testSimpleEmail() {
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
-        $this->assertNotNull($u->addEmail('test@test.com'));
+        list($u, $id, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
         $u->addMembership($group1);
 
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('session', 'PATCH', [
@@ -1032,11 +997,7 @@ class sessionTest extends IznikAPITestCase
 
     public function testConfirmTwice() {
         # Setting the email twice in quick successsion should
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
-        $this->assertNotNull($u->addEmail('test123@test.com'));
-
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($u, $id, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test123@test.com', 'testpw');
         $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('session', 'PATCH', [
@@ -1064,11 +1025,7 @@ class sessionTest extends IznikAPITestCase
     }
 
     public function testPECR() {
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
-        $this->assertNotNull($u->addEmail('test123@test.com'));
-
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($u, $id, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test123@test.com', 'testpw');
         $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('session', 'PATCH', [
@@ -1080,11 +1037,7 @@ class sessionTest extends IznikAPITestCase
     }
 
     public function testSpammerLogin() {
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
-        $this->assertNotNull($u->addEmail('test123@test.com'));
-
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($u, $id, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test123@test.com', 'testpw');
 
         # Add to the spammer list.
         $s = new Spam($this->dbhr, $this->dbhm);

@@ -26,12 +26,9 @@ class searchTest extends IznikTestCase
 
         $this->dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup';");
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $this->gid = $g->create('testgroup', Group::GROUP_REUSE);
+        list($g, $this->gid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $u->create(NULL, NULL, 'Test User');
-        $u->addEmail('test@test.com', 0, FALSE);
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
     }

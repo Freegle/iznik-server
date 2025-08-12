@@ -22,8 +22,7 @@ class volunteeringTest extends IznikTestCase {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
-        $g = Group::get($dbhr, $dbhm);
-        $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
+        list($g, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
         $this->dbhm->preExec("DELETE FROM volunteering WHERE title = 'Test opp';");
         $dbhm->preExec("DELETE FROM volunteering WHERE title = 'Test vacancy';");
         $dbhm->preExec("DELETE FROM volunteering WHERE title LIKE 'Test volunteering%';");
@@ -57,8 +56,7 @@ class volunteeringTest extends IznikTestCase {
         $this->assertEquals($start, $atts['dates'][0]['end']);
 
         # Check that a user sees what we want them to see.
-        $u = User::get($this->dbhm, $this->dbhm);
-        $uid = $u->create('Test', 'User', 'Test User');
+        list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', 'Test User', 'test@test.com', 'testpw');
 
         # Not in the right group - shouldn't see.
         $ctx = NULL;
@@ -101,10 +99,7 @@ class volunteeringTest extends IznikTestCase {
         # Test one with a date.
         $c = new Volunteering($this->dbhr, $this->dbhm);
 
-        $u = new User($this->dbhr, $this->dbhm);
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
-        $this->user->addEmail('test@test.com');
+        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
         $id = $c->create($this->uid, 'Test vacancy', FALSE, 'Test location', NULL, NULL, NULL, NULL, NULL, NULL);
         $this->assertNotNull($id);
@@ -119,8 +114,7 @@ class volunteeringTest extends IznikTestCase {
         $c->setPrivate('pending', 0);
 
         # Should see it as not yet expired.
-        $u = User::get($this->dbhm, $this->dbhm);
-        $uid = $u->create('Test', 'User', 'Test User');
+        list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', 'Test User', 'test1@test.com', 'testpw');
         $u->addMembership($this->groupid);
         $ctx = NULL;
         $volunteerings = $c->listForUser($uid, FALSE, FALSE, $ctx);
@@ -144,8 +138,7 @@ class volunteeringTest extends IznikTestCase {
         $c->setPrivate('pending', 0);
 
         # Should see it as not yet expired.
-        $u = User::get($this->dbhm, $this->dbhm);
-        $uid = $u->create('Test', 'User', 'Test User');
+        list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', 'Test User', 'test1@test.com', 'testpw');
         $u->addMembership($this->groupid);
         $ctx = NULL;
         $volunteerings = $c->listForUser($uid, FALSE, FALSE, $ctx);
@@ -166,10 +159,7 @@ class volunteeringTest extends IznikTestCase {
     public function testSystemWide() {
         $c = new Volunteering($this->dbhr, $this->dbhm);
 
-        $u = new User($this->dbhr, $this->dbhm);
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
-        $this->user->addEmail('test@test.com');
+        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
         $id = $c->create($this->uid, 'Test vacancy', FALSE, 'Test location', NULL, NULL, NULL, NULL, NULL, NULL);
         $this->assertNotNull($id);
@@ -179,8 +169,7 @@ class volunteeringTest extends IznikTestCase {
         $c->setPrivate('pending', 0);
 
         # Should see it as not yet expired.
-        $u = User::get($this->dbhm, $this->dbhm);
-        $uid = $u->create('Test', 'User', 'Test User');
+        list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', 'Test User', 'test1@test.com', 'testpw');
         $ctx = NULL;
         $volunteerings = $c->listForUser($uid, FALSE, TRUE, $ctx);
         $this->assertEquals(1, count($volunteerings));

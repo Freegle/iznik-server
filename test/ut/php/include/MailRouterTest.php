@@ -30,20 +30,13 @@ class MailRouterTest extends IznikTestCase {
         $this->dbhm->preExec("DELETE FROM spam_whitelist_subjects WHERE subject LIKE 'Test spam subject%';");
         $this->dbhm->preExec("DELETE FROM worrywords WHERE keyword LIKE 'UTtest%';");
 
-        $this->group = Group::get($this->dbhr, $this->dbhm);
-        $this->gid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
+        list($this->group, $this->gid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
         $this->assertNotNull($this->gid);
-        $this->group = Group::get($this->dbhr, $this->dbhm, $this->gid);
         $this->group->setPrivate('onhere', 1);
 
-        $u = new User($this->dbhr, $this->dbhm);
-        $this->uid = $u->create('Test', 'User', 'Test User');
-        $u->addEmail('test@test.com');
-        $u->addEmail('sender@example.net');
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertEquals(1, $u->addMembership($this->gid));
-        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
-        $this->user = $u;
+        list($this->user, $this->uid) = $this->createTestUserWithMembership($this->gid, User::ROLE_MEMBER, 'Test User', 'test@test.com', 'testpw');
+        $this->user->addEmail('sender@example.net');
+        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
     }
 
     public function mailer($to, $from, $subject, $body) {

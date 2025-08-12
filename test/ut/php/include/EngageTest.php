@@ -27,9 +27,7 @@ class engageTest extends IznikTestCase {
 
         $this->tidy();
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $this->gid = $g->create("testgroup", Group::GROUP_FREEGLE);
-        $this->group = Group::get($this->dbhr, $this->dbhm, $this->gid);
+        list($this->group, $this->gid) = $this->createTestGroup("testgroup", Group::GROUP_FREEGLE);
     }
 
     public function sendMock($mailer, $message) {
@@ -47,9 +45,7 @@ class engageTest extends IznikTestCase {
      * @dataProvider enabled
      */
     public function testAtRisk($enabled) {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create('Test', 'User', NULL);
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', 'Test User', 'test@test.com', 'testpw');
         $sqltime =  date("Y-m-d", strtotime("@" . (time() - Engage::USER_INACTIVE + 24 * 60 * 60)));
         $u->setPrivate('lastaccess', $sqltime);
 
@@ -83,9 +79,7 @@ class engageTest extends IznikTestCase {
     }
 
     public function testEngagement() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create('Test', 'User', NULL);
-        $u->addEmail('test@test.com');
+        list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', 'Test User', 'test@test.com', 'testpw');
         $u->addMembership($this->gid);
 
         $this->assertEquals(NULL, $u->getPrivate('engagement'));
