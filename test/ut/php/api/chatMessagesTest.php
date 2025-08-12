@@ -28,33 +28,16 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $dbhm->preExec("DELETE FROM chat_rooms WHERE name = 'test';");
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        self::assertNotNull($this->uid);
-        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
-        $this->assertEquals($this->user->getId(), $this->uid);
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($this->user, $this->uid) = $this->createTestUser();
+        list($this->user2, $this->uid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test2@test.com');
+        list($this->user3, $this->uid3) = $this->createTestUser(NULL, NULL, 'Test User', 'test3@test.com');
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid2 = $u->create(NULL, NULL, 'Test User');
-        self::assertNotNull($this->uid2);
-        $this->user2 = User::get($this->dbhr, $this->dbhm, $this->uid2);
-        $this->assertGreaterThan(0, $this->user2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid3 = $u->create(NULL, NULL, 'Test User');
-        self::assertNotNull($this->uid3);
-        $this->user3 = User::get($this->dbhr, $this->dbhm, $this->uid3);
-        $this->assertGreaterThan(0, $this->user3->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
+        list($g, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
 
         # Recipient must be a member of at least one group
         $this->user2->addMembership($this->groupid);
 
-        $c = new ChatRoom($this->dbhr, $this->dbhm);
-        $this->cid = $c->createGroupChat('test', $this->groupid);
+        list($c, $this->cid) = $this->createTestChatRoom($this->groupid);
 
         $this->dbhm->preExec("DELETE FROM spam_whitelist_links WHERE domain LIKE '%google.co';");
         $this->dbhm->preExec("DELETE FROM spam_whitelist_links WHERE domain LIKE '%microsoft.co%';");

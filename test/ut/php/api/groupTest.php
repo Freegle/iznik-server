@@ -29,18 +29,9 @@ class groupAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup';");
         $dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup2';");
 
-        # Create a moderator
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $this->group = $g;
-
-        $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
-
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
-        $emailid = $this->user->addEmail('test@test.com');
-        $this->user->addMembership($this->groupid, User::ROLE_MEMBER, $emailid);
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        # Create a moderator using utility function
+        list($this->group, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
+        list($this->user, $this->uid) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER);
     }
 
     protected function tearDown() : void {

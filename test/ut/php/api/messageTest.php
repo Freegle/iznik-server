@@ -32,18 +32,12 @@ class messageAPITest extends IznikAPITestCase
         $dbhm->preExec("DELETE FROM worrywords WHERE keyword LIKE 'UTtest%';");
         $dbhm->preExec("DELETE FROM messages WHERE messageid LIKE 'GTUBE1.1010101@example.net';");
 
-        $this->group = Group::get($this->dbhr, $this->dbhm);
-        $this->gid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
-        $this->group = Group::get($this->dbhr, $this->dbhm, $this->gid);
+        list($this->group, $this->gid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
         $this->group->setPrivate('onhere', 1);
 
-        $u = new User($this->dbhr, $this->dbhm);
-        $this->uid = $u->create('Test', 'User', 'Test User');
-        $u->addEmail('test@test.com');
-        $u->addEmail('sender@example.net');
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $u->addMembership($this->gid);
-        $this->user = $u;
+        list($this->user, $this->uid) = $this->createTestUser('Test', 'User', 'Test User');
+        $this->user->addEmail('sender@example.net');
+        $this->user->addMembership($this->gid);
     }
 
     protected function tearDown() : void

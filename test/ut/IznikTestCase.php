@@ -215,5 +215,97 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
             [ FALSE ]
         ];
     }
+
+    /**
+     * Create a test group with standard settings
+     */
+    protected function createTestGroup($name = 'testgroup', $type = Group::GROUP_FREEGLE) {
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $groupid = $g->create($name, $type);
+        return [$g, $groupid];
+    }
+
+    /**
+     * Create a test user with email and login
+     */
+    protected function createTestUser($firstname = NULL, $lastname = NULL, $fullname = 'Test User', $email = 'test@test.com', $password = 'testpw') {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create($firstname, $lastname, $fullname);
+        $user = User::get($this->dbhr, $this->dbhm, $uid);
+        $user->addEmail($email);
+        $user->addLogin(User::LOGIN_NATIVE, NULL, $password);
+        return [$user, $uid];
+    }
+
+    /**
+     * Create a test message using MailRouter
+     */
+    protected function createTestMessage($content = null, $groupname = 'testgroup', $fromEmail = 'from@test.com', $toEmail = 'to@test.com') {
+        if ($content === null) {
+            $content = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        }
+        $content = str_ireplace('freegleplayground', $groupname, $content);
+        
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        list ($id, $failok) = $r->received(Message::EMAIL, $fromEmail, $toEmail, $content);
+        return [$r, $id, $failok];
+    }
+
+    /**
+     * Create a test chat room
+     * @param mixed $groupid_or_userid For group chats: groupid. For user2mod: userid. For user2user: array of [userid1, userid2]
+     * @param string $type ChatRoom::TYPE_GROUP, ChatRoom::TYPE_USER2MOD, or ChatRoom::TYPE_USER2USER
+     */
+    protected function createTestChatRoom($groupid_or_userid = null, $type = ChatRoom::TYPE_GROUP) {
+        $c = new ChatRoom($this->dbhr, $this->dbhm);
+        
+        switch ($type) {
+            case ChatRoom::TYPE_GROUP:
+                $groupid = $groupid_or_userid;
+                if ($groupid === null) {
+                    list($g, $groupid) = $this->createTestGroup();
+                }
+                
+                // Get the group name to use as chat room name
+                $group = Group::get($this->dbhr, $this->dbhm, $groupid);
+                $groupName = $group->getPrivate('nameshort');
+                
+                $cid = $c->createGroupChat($groupName, $groupid);
+                break;
+                
+            case ChatRoom::TYPE_USER2MOD:
+                $userid = $groupid_or_userid;
+                if ($userid === null) {
+                    list($user, $userid) = $this->createTestUser();
+                }
+                $cid = $c->createUser2Mod($userid);
+                break;
+                
+            case ChatRoom::TYPE_USER2USER:
+                $userids = $groupid_or_userid;
+                if ($userids === null) {
+                    list($user1, $uid1) = $this->createTestUser();
+                    list($user2, $uid2) = $this->createTestUser(NULL, NULL, 'Test User 2', 'test2@test.com');
+                    $userids = [$uid1, $uid2];
+                }
+                $cid = $c->createConversation($userids[0], $userids[1]);
+                break;
+                
+            default:
+                throw new \InvalidArgumentException("Invalid chat room type: $type");
+        }
+        
+        return [$c, $cid];
+    }
+
+    /**
+     * Create a test user with membership and moderator role
+     */
+    protected function createTestUserWithMembership($groupid, $role = User::ROLE_MEMBER, $fullname = 'Test User', $email = 'test@test.com', $password = 'testpw') {
+        list($user, $uid) = $this->createTestUser(NULL, NULL, $fullname, $email, $password);
+        $emailid = $user->findEmail($email)['id'];
+        $user->addMembership($groupid, $role, $emailid);
+        return [$user, $uid];
+    }
 }
 
