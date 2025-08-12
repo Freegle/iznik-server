@@ -215,5 +215,253 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
             [ FALSE ]
         ];
     }
+
+    /**
+     * Create a test user with login credentials
+     * @param string $fullname User's full name
+     * @param string $password Login password
+     * @return array [User instance, user ID]
+     */
+    protected function createTestUserWithLogin($fullname, $password) {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, $fullname);
+        self::assertNotNull($uid);
+        $user = User::get($this->dbhr, $this->dbhm, $uid);
+        $this->assertEquals($user->getId(), $uid);
+        $this->assertGreaterThan(0, $user->addLogin(User::LOGIN_NATIVE, NULL, $password));
+        return [$user, $uid];
+    }
+
+    /**
+     * Create a test group with standard settings
+     */
+    protected function createTestGroup($name, $type) {
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $this->assertNotNull($g, "Failed to get Group instance");
+        
+        $groupid = $g->create($name, $type);
+        $this->assertGreaterThan(0, $groupid, "Failed to create group '$name'");
+        
+        // Verify the group was created correctly
+        $createdGroup = Group::get($this->dbhr, $this->dbhm, $groupid);
+        $this->assertNotNull($createdGroup, "Failed to retrieve created group");
+        $this->assertEquals($name, $createdGroup->getPrivate('nameshort'), "Group name mismatch");
+        $this->assertEquals($type, $createdGroup->getPrivate('type'), "Group type mismatch");
+        
+        return [$g, $groupid];
+    }
+
+    /**
+     * Create a test user with email and login
+     */
+    protected function createTestUser($firstname, $lastname, $fullname, $email, $password) {
+        $u = User::get($this->dbhr, $this->dbhm);
+        $this->assertNotNull($u, "Failed to get User instance");
+        
+        $uid = $u->create($firstname, $lastname, $fullname);
+        $this->assertGreaterThan(0, $uid, "Failed to create user '$fullname'");
+        
+        $user = User::get($this->dbhr, $this->dbhm, $uid);
+        $this->assertNotNull($user, "Failed to retrieve created user");
+        $this->assertEquals($uid, $user->getId(), "User ID mismatch");
+        
+        $emailid = $user->addEmail($email);
+        $this->assertGreaterThan(0, $emailid, "Failed to add email '$email' to user");
+        
+        $loginid = $user->addLogin(User::LOGIN_NATIVE, NULL, $password);
+        $this->assertGreaterThan(0, $loginid, "Failed to add login for user");
+        
+        // Verify email was added correctly
+        $emails = $user->getEmails();
+        $emailFound = false;
+        foreach ($emails as $userEmail) {
+            if ($userEmail['email'] === $email) {
+                $emailFound = true;
+                break;
+            }
+        }
+        $this->assertTrue($emailFound, "Email '$email' not found for user");
+        
+        return [$user, $uid, $emailid];
+    }
+
+    /**
+     * Create a test message using MailRouter
+     * @param string|null $content Message content (uses basic test message if null)
+     * @param string $groupname Group name to replace in message
+     * @param string $fromEmail From email address
+     * @param string $toEmail To email address  
+     * @param int|null $groupid Group ID for user membership (needed for approval)
+     * @param int|null $userid User ID to set up membership for (creates user if null)
+     */
+    protected function createTestMessage($content, $groupname, $fromEmail, $toEmail, $groupid, $userid) {
+        if ($content === null) {
+            $basicMsgPath = IZNIK_BASE . '/test/ut/php/msgs/basic';
+            $this->assertFileExists($basicMsgPath, "Basic message file not found");
+            $content = $this->unique(file_get_contents($basicMsgPath));
+        }
+        $this->assertNotEmpty($content, "Message content is empty");
+        
+        $content = str_ireplace('freegleplayground', $groupname, $content);
+        $content = str_ireplace('Subject: Basic test', 'Subject: OFFER: Test item (Edinburgh EH3)', $content);
+        $this->assertStringContainsString($groupname, $content, "Group name replacement failed");
+        
+        // Set up user membership for message approval if group and user provided
+        if ($groupid !== null && $userid !== null) {
+            $user = User::get($this->dbhr, $this->dbhm, $userid);
+            $this->assertNotNull($user, "User not found for message creation");
+            
+            // Ensure the user has the fromEmail - this is crucial for message routing
+            $userEmails = $user->getEmails();
+            $hasFromEmail = false;
+            foreach ($userEmails as $email) {
+                if ($email['email'] === $fromEmail) {
+                    $hasFromEmail = true;
+                    break;
+                }
+            }
+            
+            if (!$hasFromEmail) {
+                $user->addEmail($fromEmail);
+            }
+            
+            // Add user to group if not already a member
+            if ($user->isApprovedMember($groupid) === null) {
+                $user->addMembership($groupid);
+            }
+            
+            // Set posting status to default for approval
+            $user->setMembershipAtt($groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        }
+        
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        $this->assertNotNull($r, "Failed to create MailRouter instance");
+        
+        list ($id, $failok) = $r->received(Message::EMAIL, $fromEmail, $toEmail, $content);
+        $this->assertGreaterThan(0, $id, "Failed to create message via MailRouter");
+        $this->assertTrue($failok, "MailRouter received() returned failure");
+        
+        // Route the message
+        $rc = $r->route();
+        
+        // Verify the message was created
+        $message = new Message($this->dbhr, $this->dbhm, $id);
+        $this->assertNotNull($message, "Failed to retrieve created message");
+        $this->assertEquals($id, $message->getId(), "Message ID mismatch");
+        
+        return [$r, $id, $failok, $rc];
+    }
+
+    /**
+     * Create a test message that gets automatically approved
+     */
+    protected function createApprovedTestMessage($groupname, $content, $fromEmail, $toEmail) {
+        // Create group and user for approval
+        list($group, $groupid) = $this->createTestGroup($groupname, Group::GROUP_FREEGLE);
+        list($user, $userid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', $fromEmail);
+        
+        // Ensure user is properly set up for message approval
+        $user->addMembership($groupid);
+        $user->setMembershipAtt($groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        
+        // Create approved message
+        list($r, $id, $failok, $rc) = $this->createTestMessage($content, $groupname, $fromEmail, $toEmail, $groupid, $userid);
+        
+        // Assert it was approved
+        $this->assertEquals(MailRouter::APPROVED, $rc, "Message was not approved - got: $rc");
+        
+        return [$r, $id, $failok, $rc, $groupid, $userid];
+    }
+
+    /**
+     * Create a test chat room
+     * @param mixed $groupid_or_userid For group chats: groupid. For user2mod: userid. For user2user: array of [userid1, userid2]
+     * @param string $type ChatRoom::TYPE_GROUP (creates mod2mod), ChatRoom::TYPE_USER2MOD, or ChatRoom::TYPE_USER2USER
+     */
+    protected function createTestChatRoom($groupid_or_userid, $type) {
+        $c = new ChatRoom($this->dbhr, $this->dbhm);
+        $this->assertNotNull($c, "Failed to create ChatRoom instance");
+        
+        switch ($type) {
+            case ChatRoom::TYPE_GROUP:
+                $groupid = $groupid_or_userid;
+                if ($groupid === null) {
+                    list($g, $groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
+                }
+                $this->assertGreaterThan(0, $groupid, "Invalid group ID for group chat");
+                
+                // Get the group name to use as chat room name
+                $group = Group::get($this->dbhr, $this->dbhm, $groupid);
+                $this->assertNotNull($group, "Failed to retrieve group for chat room");
+                $groupName = $group->getPrivate('nameshort');
+                $this->assertNotEmpty($groupName, "Group name is empty");
+                
+                $cid = $c->createGroupChat($groupName, $groupid);
+                $this->assertGreaterThan(0, $cid, "Failed to create group chat room");
+                // Note: createGroupChat() actually creates TYPE_MOD2MOD, not TYPE_GROUP
+                $type = ChatRoom::TYPE_MOD2MOD;
+                break;
+                
+            case ChatRoom::TYPE_USER2MOD:
+                $userid = $groupid_or_userid;
+                if ($userid === null) {
+                    list($user, $userid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+                }
+                $this->assertGreaterThan(0, $userid, "Invalid user ID for user2mod chat");
+                
+                $cid = $c->createUser2Mod($userid);
+                $this->assertGreaterThan(0, $cid, "Failed to create user2mod chat room");
+                break;
+                
+            case ChatRoom::TYPE_USER2USER:
+                $userids = $groupid_or_userid;
+                if ($userids === null) {
+                    list($user1, $uid1, $emailid1) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+                    list($user2, $uid2, $emailid2) = $this->createTestUser(NULL, NULL, 'Test User 2', 'test2@test.com', 'testpw');
+                    $userids = [$uid1, $uid2];
+                }
+                $this->assertIsArray($userids, "User IDs must be an array for user2user chat");
+                $this->assertCount(2, $userids, "User2user chat requires exactly 2 user IDs");
+                $this->assertGreaterThan(0, $userids[0], "First user ID is invalid");
+                $this->assertGreaterThan(0, $userids[1], "Second user ID is invalid");
+                $this->assertNotEquals($userids[0], $userids[1], "User IDs must be different for user2user chat");
+                
+                $cid = $c->createConversation($userids[0], $userids[1]);
+                $this->assertGreaterThan(0, $cid, "Failed to create user2user chat room");
+                break;
+                
+            default:
+                throw new \InvalidArgumentException("Invalid chat room type: $type");
+        }
+        
+        // Verify the chat room was created correctly
+        $createdRoom = new ChatRoom($this->dbhr, $this->dbhm, $cid);
+        $this->assertNotNull($createdRoom, "Failed to retrieve created chat room");
+        $this->assertEquals($cid, $createdRoom->getId(), "Chat room ID mismatch");
+        $this->assertEquals($type, $createdRoom->getPrivate('chattype'), "Chat room type mismatch");
+        
+        return [$c, $cid];
+    }
+
+    /**
+     * Create a test user with membership and moderator role
+     */
+    protected function createTestUserWithMembership($groupid, $role, $fullname, $email, $password) {
+        $this->assertGreaterThan(0, $groupid, "Invalid group ID for user membership");
+        
+        list($user, $uid, $emailid) = $this->createTestUser(NULL, NULL, $fullname, $email, $password);
+        
+        $membershipId = $user->addMembership($groupid, $role, $emailid);
+        $this->assertGreaterThan(0, $membershipId, "Failed to add user membership to group");
+        
+        // Verify membership was created correctly
+        $this->assertNotNull($user->isApprovedMember($groupid), "User is not an approved member after creation");
+        
+        // Verify the group exists
+        $group = Group::get($this->dbhr, $this->dbhm, $groupid);
+        $this->assertNotNull($group, "Group does not exist for membership");
+        
+        return [$user, $uid];
+    }
 }
 
