@@ -28,13 +28,11 @@ class communityEventAPITest extends IznikAPITestCase {
 
         list($g, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
         
-        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test1@test.com', 'testpw');
-        $this->user->addMembership($this->groupid);
+        list($this->user, $this->uid, $emailid) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User', 'test1@test.com', 'testpw');
 
         list($this->user2, $this->uid2) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MODERATOR, 'Test User', 'test2@test.com', 'testpw');
 
-        list($this->user3, $this->uid3, $emailid3) = $this->createTestUser(NULL, NULL, 'Test User', 'test3@test.com', 'testpw');
-        $this->user3->addMembership($this->groupid);
+        list($this->user3, $this->uid3, $emailid3) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User', 'test3@test.com', 'testpw');
 
         $dbhm->preExec("DELETE FROM communityevents WHERE title = 'Test event' OR title = 'UTTest';");
     }
@@ -103,7 +101,6 @@ class communityEventAPITest extends IznikAPITestCase {
         $this->assertEquals(0, count($ret['communityevents']));
 
         # Log in as the mod
-        $this->user2->addMembership($this->groupid, User::ROLE_MODERATOR);
         $this->assertTrue($this->user2->login('testpw'));
 
         # Edit it
@@ -133,7 +130,6 @@ class communityEventAPITest extends IznikAPITestCase {
         $dateid = $ret['communityevent']['dates'][0]['id'];
 
         # Shouldn't be editable for someone else.
-        $this->user3->addMembership($this->groupid, User::ROLE_MEMBER);
         $this->assertTrue($this->user3->login('testpw'));
         $ret = $this->call('communityevent', 'GET', [
             'id' => $id

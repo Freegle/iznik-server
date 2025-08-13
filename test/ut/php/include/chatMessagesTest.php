@@ -626,12 +626,9 @@ class chatMessagesTest extends IznikTestCase {
     }
 
     public function testBannedInCommon() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid2 = $u->create(NULL, NULL, 'Test User');
-        $u->addMembership($this->groupid);
+        list($u, $uid2, $emailid2) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User', 'test2@test.com', 'testpw2');
 
-        $r = new ChatRoom($this->dbhr, $this->dbhm);
-        list ($rid, $banned) = $r->createConversation($this->uid, $uid2);
+        list ($rid, $banned) = $this->createTestConversation($this->uid, $uid2);
         $this->assertNotNull($rid);
         $this->assertFalse($banned);
 

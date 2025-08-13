@@ -133,19 +133,14 @@ class chatRoomsTest extends IznikTestCase {
         $this->log(__METHOD__ );
 
         # Set up a chatroom
-        $u = User::get($this->dbhr, $this->dbhm);
-        $u1 = $u->create(NULL, NULL, "Test User 1");
-        $u->addMembership($this->groupid);
-        $u->addEmail('test1@test.com');
+        list($u, $u1, $emailid1) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User 1', 'test1@test.com', 'testpw');
         $u->addEmail('test1@' . USER_DOMAIN);
 
         # The "please introduce yourself" one.
         list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route) = $u->getNotificationPayload(FALSE);
         $this->assertEquals("Why not introduce yourself to other freeglers?  You'll get a better response.", $title);
 
-        $u2 = $u->create(NULL, NULL, "Test User 2");
-        $u->addMembership($this->groupid);
-        $u->addEmail('test2@test.com');
+        list($u, $u2, $emailid2) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User 2', 'test2@test.com', 'testpw');
         $u->addEmail('test2@' . USER_DOMAIN);
 
         list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);

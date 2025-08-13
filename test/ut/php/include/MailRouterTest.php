@@ -517,7 +517,9 @@ class MailRouterTest extends IznikTestCase {
         for ($i = 0; $i < Spam::USER_THRESHOLD + 2; $i++) {
             $this->log("User $i");
 
-            list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', 'Test User', "test$i@test.com", 'testpw');
+            $u = new User($this->dbhr, $this->dbhm);
+            $u->create('Test', 'User', 'Test User');
+            $u->addEmail("test$i@test.com");
             $u->addMembership($this->gid);
             $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
