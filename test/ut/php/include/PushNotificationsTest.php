@@ -159,7 +159,7 @@ class pushNotificationsTest extends IznikTestCase {
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->enableProxyingToOriginalMethods()
             ->getMock();
-        $this->assertEquals(TRUE, $mock->poke($id, [ 'ut' => 1 ]));
+        $this->assertEquals(TRUE, $mock->poke($id, [ 'ut' => 1 ], FALSE));
 
         $mock = $this->getMockBuilder('Freegle\Iznik\PushNotifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
@@ -167,7 +167,7 @@ class pushNotificationsTest extends IznikTestCase {
             ->setMethods(array('uthook'))
             ->getMock();
         $mock->method('uthook')->willThrowException(new \Exception());
-        $this->assertEquals(FALSE, $mock->poke($id, [ 'ut' => 1 ]));
+        $this->assertEquals(FALSE, $mock->poke($id, [ 'ut' => 1 ], FALSE));
 
         }
 
@@ -181,28 +181,28 @@ class pushNotificationsTest extends IznikTestCase {
             ->setMethods(array('fsockopen'))
             ->getMock();
         $mock->method('fsockopen')->willThrowException(new \Exception());
-        $mock->executePoke($id, [ 'ut' => 1 ]);
+        $mock->executePoke($id, [ 'ut' => 1 ], FALSE);
 
         $mock = $this->getMockBuilder('Freegle\Iznik\PushNotifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('fputs'))
             ->getMock();
         $mock->method('fputs')->willThrowException(new \Exception());
-        $mock->executePoke($id, [ 'ut' => 1 ]);
+        $mock->executePoke($id, [ 'ut' => 1 ], FALSE);
 
         $mock = $this->getMockBuilder('Freegle\Iznik\PushNotifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('fsockopen'))
             ->getMock();
         $mock->method('fsockopen')->willReturn(NULL);
-        $mock->executePoke($id, [ 'ut' => 1 ]);
+        $mock->executePoke($id, [ 'ut' => 1 ], FALSE);
 
         $mock = $this->getMockBuilder('Freegle\Iznik\PushNotifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('puts'))
             ->getMock();
         $mock->method('puts')->willReturn(NULL);
-        $mock->executePoke($id, [ 'ut' => 1 ]);
+        $mock->executePoke($id, [ 'ut' => 1 ], FALSE);
 
         $this->assertTrue(TRUE);
     }

@@ -672,7 +672,7 @@ class userAPITest extends IznikAPITestCase {
         $id3 = $u3->create('Test', 'User', NULL);
         $u3->addEmail('test3@test.com', 0);
         $u3->addMembership($this->groupid);
-        $u3->setSetting('canmerge');
+        $u3->setSetting('canmerge', FALSE);
         $u4 = User::get($this->dbhm, $this->dbhm);
         $id4 = $u4->create('Test', 'User', NULL);
         $u4->addMembership($this->groupid, User::ROLE_MODERATOR);

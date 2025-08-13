@@ -331,8 +331,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
                 $user->addMembership($groupid);
             }
             
-            // Set posting status to default for approval
-            $user->setMembershipAtt($groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+            // Note: Not setting ourPostingStatus automatically as tests may expect different behaviors
         }
         
         $r = new MailRouter($this->dbhr, $this->dbhm);

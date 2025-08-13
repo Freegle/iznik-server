@@ -6,19 +6,16 @@ jobs:
       - NO_UNMAPPED_TO_PENDING=TRUE
       - XDEBUG_MODE=coverage
     docker:
-      - image: cimg/php:8.1.12-node
-      - image: circleci/redis
+      - image: cimg/php:8.1-node
+      - image: cimg/redis:7.0
       - image: schickling/beanstalkd
-      - image: circleci/mysql:8.0.25
+      - image: cimg/mysql:8.0
         environment:
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
           MYSQL_ROOT_PASSWORD: ''
           MYSQL_DATABASE: iznik
           MYSQL_ROOT_HOST: 127.0.0.1
-      - image: circleci/postgres:12-postgis
-        auth:
-          username: mydockerhub-user
-          password: $DOCKERHUB_PASSWORD
+      - image: cimg/postgres:15.1-postgis
         environment:
           POSTGRES_USER: iznik
           POSTGRES_PASSWORD: iznik

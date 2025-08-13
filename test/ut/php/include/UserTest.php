@@ -1037,7 +1037,7 @@ class userTest extends IznikTestCase {
         $uid = $u->create("Test", "User", "Test User");
         $this->log("Created user $uid");
         $eid = $u->addEmail('test@gmail.com');
-        $u->setSetting('useprofile');
+        $u->setSetting('useprofile', FALSE);
         User::clearCache();
         $u = new User($this->dbhr, $this->dbhm, $uid);
         $atts = $u->getPublic();

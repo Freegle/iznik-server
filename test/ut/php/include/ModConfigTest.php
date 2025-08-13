@@ -53,7 +53,7 @@ class ModConfigTest extends IznikTestCase {
 
         # Another mod on this group with no config set up should pick this one up as shared.
         $this->log("Another mod");
-        $c->setPrivate('default');
+        $c->setPrivate('default', FALSE);
         list($u2, $uid2, $emailid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
         $u2->addMembership($group1, User::ROLE_OWNER);
         $this->assertEquals($id, $c->getForGroup($uid, $group1));
