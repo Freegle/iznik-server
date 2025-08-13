@@ -691,15 +691,10 @@ class sessionTest extends IznikAPITestCase
     }
 
     public function testRelated() {
-        $u1 = User::get($this->dbhm, $this->dbhm);
-        $id1 = $u1->create('Test', 'User', NULL);
-        $this->assertNotNull($u1->addEmail('test1@test.com'));
-        $this->assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u1->login('testpw'));
+        list($u1, $id1, $emailid1) = $this->createTestUserAndLogin('Test', 'User', NULL, 'test1@test.com', 'testpw');
 
-        $u2 = User::get($this->dbhm, $this->dbhm);
-        $id2 = $u1->create('Test', 'User', NULL);
-        $this->assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($u2, $id2, $emailid2) = $this->createTestUser('Test', 'User', NULL, 'test2@test.com', 'testpw');
+        $this->assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         # Need to ensure that there is a log from the IP that we're about to check.
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
@@ -720,11 +715,8 @@ class sessionTest extends IznikAPITestCase
         $related = $u2->getRelated($id2);
         $this->assertEquals($id1, $related[0]['user2']);
 
-        $u3 = User::get($this->dbhm, $this->dbhm);
-        $id3 = $u3->create('Test', 'User', NULL);
+        list($u3, $id3, $emailid3) = $this->createTestUserAndLogin('Test', 'User', NULL, 'test3@test.com', 'testpw');
         $u3->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
-        $this->assertGreaterThan(0, $u3->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u3->login('testpw'));
 
         $ret = $this->call('memberships', 'GET', [
             'collection' => MembershipCollection::RELATED,
@@ -780,19 +772,12 @@ class sessionTest extends IznikAPITestCase
 
     public function testRelatedWork() {
         // Create two related members on a group.
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup1', Group::GROUP_REUSE);
+        list($g, $gid) = $this->createTestGroup('testgroup1', Group::GROUP_REUSE);
 
-        $u1 = User::get($this->dbhm, $this->dbhm);
-        $id1 = $u1->create('Test', 'User', NULL);
-        $u1->addMembership($gid);
-        $this->assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u1->login('testpw'));
+        list($u1, $id1, $emailid1) = $this->createTestUserWithMembershipAndLogin($gid, User::ROLE_MEMBER, 'Test', 'User', NULL, 'test1@test.com', 'testpw');
 
-        $u2 = User::get($this->dbhm, $this->dbhm);
-        $id2 = $u1->create('Test', 'User', NULL);
-        $u1->addMembership($gid);
-        $this->assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($u2, $id2, $emailid2) = $this->createTestUserWithMembership($gid, User::ROLE_MEMBER, 'Test', 'User', NULL, 'test2@test.com', 'testpw');
+        $this->assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         # Need to ensure that there is a log from the IP that we're about to check.
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
@@ -809,11 +794,7 @@ class sessionTest extends IznikAPITestCase
         $this->waitBackground();
 
         // Create a mod.
-        $u3 = User::get($this->dbhm, $this->dbhm);
-        $id3 = $u3->create('Test', 'User', NULL);
-        $u3->addMembership($gid, User::ROLE_MODERATOR);
-        $this->assertGreaterThan(0, $u3->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u3->login('testpw'));
+        list($u3, $id3, $emailid3) = $this->createTestUserWithMembershipAndLogin($gid, User::ROLE_MODERATOR, 'Test', 'User', NULL, 'test3@test.com', 'testpw');
 
         $ret = $this->call('session', 'GET', [
             'components' => [

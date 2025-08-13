@@ -31,9 +31,7 @@ class ModBotTest extends IznikTestCase {
         $this->dbhm->preExec("DELETE FROM messages WHERE subject LIKE 'Test message%';");
         
         # Set up group and user following MessageTest pattern
-        $this->group = Group::get($this->dbhr, $this->dbhm);
-        $this->gid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
-        $this->group = Group::get($this->dbhr, $this->dbhm, $this->gid);
+        list($this->group, $this->gid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
         $this->group->setPrivate('onhere', 1);
         $this->group->setPrivate('rules', json_encode([
             'weapons' => TRUE,
@@ -41,23 +39,15 @@ class ModBotTest extends IznikTestCase {
             'businessads' => FALSE
         ]));
 
-        $u = new User($this->dbhr, $this->dbhm);
-        $this->uid = $u->create('Test', 'User', 'Test User');
-        $u->addEmail('test@test.com');
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertEquals(1, $u->addMembership($this->gid));
-        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_MODERATED);
+        list($this->user, $this->uid, $emailid) = $this->createTestUserWithMembership($this->gid, User::ROLE_MEMBER, 'Test', 'User', 'Test User', 'test@test.com', 'testpw');
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_MODERATED);
         User::clearCache();
-        $this->user = $u;
         
         # Create ModBot user
-        $modBotUser = new User($this->dbhr, $this->dbhm);
-        $this->modBotUid = $modBotUser->create('ModBot', 'User', 'ModBot User');
-        $modBotUser->addEmail(MODBOT_USER);
-        $this->assertGreaterThan(0, $modBotUser->addLogin(User::LOGIN_NATIVE, NULL, 'modbotpw'));
-        $modBotUser->addMembership($this->gid, User::ROLE_MODERATOR);
+        list($this->modBotUser, $this->modBotUid, $emailid2) = $this->createTestUserWithMembership($this->gid, User::ROLE_MODERATOR, 'ModBot', 'User', 'ModBot User', MODBOT_USER, 'modbotpw');
+        $this->assertGreaterThan(0, $this->modBotUser->addLogin(User::LOGIN_NATIVE, NULL, 'modbotpw'));
         User::clearCache();
-        $this->modBotUser = $modBotUser;
     }
 
     public function testReviewPost() {

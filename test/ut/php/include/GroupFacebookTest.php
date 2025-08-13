@@ -66,12 +66,8 @@ class groupFacebookTest extends IznikTestCase {
         'TestID'
             );
 
-        $u = new User($this->dbhr, $this->dbhm);
-        $this->uid = $u->create('Test', 'User', 'Test User');
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $u->addMembership($gid, User::ROLE_MODERATOR);
+        list($u, $this->uid, $emailid) = $this->createTestUserWithMembershipAndLogin($gid, User::ROLE_MODERATOR, 'Test', 'User', 'Test User', 'test@test.com', 'testpw');
         $this->user = $u;
-        $u->login('testpw');
 
         $this->assertEquals(1, $t->getPostsToShare(1, "last week"));
 

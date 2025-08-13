@@ -486,8 +486,7 @@ class userTest extends IznikTestCase {
 
     public function testMergeReal() {
         # Simulates processing from real emails migration script.
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group = $g->create('testgroup', Group::GROUP_REUSE);
+        list($g, $group) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
 
         $u = User::get($this->dbhr, $this->dbhm);
         $id1 = $u->create(NULL, NULL, 'Test User');
@@ -945,8 +944,7 @@ class userTest extends IznikTestCase {
         }
 
     public function testNativeWelcome() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+        list($g_temp, $gid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
 
         # Mock the group ("your hair looks terrible") to check the welcome mail is sent.
         $g = $this->getMockBuilder('Freegle\Iznik\Group')
@@ -1183,8 +1181,7 @@ class userTest extends IznikTestCase {
         $this->assertEquals('Somewhere', $u->getPublic()['settings']['mylocation']['area']['name']);
 
         # Get blurred location.
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_UT);
+        list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_UT);
         $u->addMembership($gid);
         $atts = $u->getPublic();
         $latlngs = $u->getLatLngs([ $atts ], TRUE, TRUE, TRUE, NULL, Utils::BLUR_1K);

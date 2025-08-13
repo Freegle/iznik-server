@@ -47,9 +47,7 @@ class engageTest extends IznikTestCase {
      * @dataProvider enabled
      */
     public function testAtRisk($enabled) {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create('Test', 'User', NULL);
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
         $sqltime =  date("Y-m-d", strtotime("@" . (time() - Engage::USER_INACTIVE + 24 * 60 * 60)));
         $u->setPrivate('lastaccess', $sqltime);
 
@@ -83,10 +81,7 @@ class engageTest extends IznikTestCase {
     }
 
     public function testEngagement() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create('Test', 'User', NULL);
-        $u->addEmail('test@test.com');
-        $u->addMembership($this->gid);
+        list($u, $uid, $emailid) = $this->createTestUserWithMembership($this->gid, User::ROLE_MEMBER, 'Test', 'User', NULL, 'test@test.com', 'testpw');
 
         $this->assertEquals(NULL, $u->getPrivate('engagement'));
 

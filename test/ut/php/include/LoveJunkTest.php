@@ -39,8 +39,8 @@ class LoveJunkTest extends IznikTestCase
      */
     public function testSend($promise)
     {
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create(null, null, 'Test User');
+        $email = 'test-' . rand() . '@blackhole.io';
+        list($u, $uid, $emailid) = $this->createTestUser(null, null, 'Test User', $email, 'testpw');
 
         $settings = [
             'mylocation' => [
@@ -51,14 +51,9 @@ class LoveJunkTest extends IznikTestCase
         ];
 
         $u->setPrivate('settings', json_encode($settings));
+        $this->addLoginAndLogin($u, 'testpw');
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
-
-        $email = 'test-' . rand() . '@blackhole.io';
-        $u->addEmail($email);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, null, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        list($g, $group1) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
 
         $u->addEmail('test@test.com');
         $u->addMembership($group1);

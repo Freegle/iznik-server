@@ -345,11 +345,7 @@ class MailRouterTest extends IznikTestCase {
         $this->log("Pending id $id");
 
         # Approve
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $u->addMembership($this->gid, User::ROLE_OWNER);
-        $this->assertTrue($u->login('testpw'));
+        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_OWNER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $m->approve($this->gid, NULL, NULL, NULL);
@@ -1169,13 +1165,8 @@ class MailRouterTest extends IznikTestCase {
 
     public function testNotificationOff() {
         # Create the sending user
-        $u = User::get($this->dbhm, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid, $emailid) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $this->log("Created user $uid");
-
-        # Can only see settings logged in.
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
         $atts = $u->getPublic();
         $this->assertTrue($atts['settings']['notificationmails']);
 
