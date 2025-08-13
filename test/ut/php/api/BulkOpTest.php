@@ -207,13 +207,9 @@ class bulkOpAPITest extends IznikAPITestCase {
 
         # Try as a mod, but the wrong one.
         $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup2', Group::GROUP_REUSE);
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $user = User::get($this->dbhr, $this->dbhm, $uid);
-        $user->addEmail('test2@test.com');
+        list($g2, $gid) = $this->createTestGroup('testgroup2', Group::GROUP_REUSE);
+        list($user, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
         $user->addMembership($gid, User::ROLE_OWNER);
-        $this->assertGreaterThan(0, $user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($user->login('testpw'));
 
         $ret = $this->call('bulkop', 'PATCH', [
@@ -257,13 +253,9 @@ class bulkOpAPITest extends IznikAPITestCase {
 
         # Try as a mod, but the wrong one.
         $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup2', Group::GROUP_REUSE);
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $user = User::get($this->dbhr, $this->dbhm, $uid);
-        $user->addEmail('test2@test.com');
+        list($g3, $gid) = $this->createTestGroup('testgroup2', Group::GROUP_REUSE);
+        list($user, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
         $user->addMembership($gid, User::ROLE_OWNER);
-        $this->assertGreaterThan(0, $user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($user->login('testpw'));
 
         $ret = $this->call('bulkop', 'DELETE', [

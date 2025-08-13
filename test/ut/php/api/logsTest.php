@@ -32,14 +32,10 @@ class logsAPITest extends IznikAPITestCase
     public function testBasic()
     {
         # Create a group, put a message on it.
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_REUSE);
-        $this->assertNotNull($gid);
+        list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
 
         # Put a message on the group.
-        $u = User::get($this->dbhr, $this->dbhr);
-        $uid1 = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail('test@test.com');
+        list($u, $uid1, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $u->addMembership($gid);
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/approved'));
         $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
@@ -57,10 +53,7 @@ class logsAPITest extends IznikAPITestCase
         $this->assertEquals(2, $ret['ret']);
 
         # User shouldn't be able to see the logs.
-        $u = User::get($this->dbhr, $this->dbhr);
-        $uid2 = $u->create(NULL, NULL, 'Test User');
-        $this->assertNotNull($uid2);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($u, $uid2, $emailid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
         $u->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED);
         $this->assertTrue($u->login('testpw'));
 
@@ -147,7 +140,7 @@ class logsAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhr, $uid1);
         $u->delete();
 
-        $uid2 = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid2, $emailid3) = $this->createTestUser(NULL, NULL, 'Test User', 'test3@test.com', 'testpw');
         $u->setPrivate('systemrole', USer::SYSTEMROLE_ADMIN);
         $_SESSION['id'] = $uid2;
         $_SESSION['supportAllowed'] = TRUE;

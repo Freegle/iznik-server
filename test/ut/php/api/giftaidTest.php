@@ -43,9 +43,7 @@ class giftaidAPITest extends IznikAPITestCase
         $this->assertEquals(1, $ret['ret']);
 
         # Create user
-        $u = User::get($this->dbhm, $this->dbhm);
-        $uid = $u->create('Test', 'User', NULL);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
         $this->assertTrue($u->login('testpw'));
 
         # Give them an address we will recognise the postcode for
@@ -153,9 +151,7 @@ class giftaidAPITest extends IznikAPITestCase
         $pafid = $pafadds[0]['id'];
 
         # Create user
-        $u = User::get($this->dbhm, $this->dbhm);
-        $uid = $u->create('Test', 'User', NULL);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test2@test.com', 'testpw');
         $this->assertTrue($u->login('testpw'));
 
         # Give them an address we will recognise the postcode for

@@ -11,6 +11,7 @@ require_once(UT_DIR . '/../../include/db.php');
 /**
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
+ * Test change to trigger sync
  */
 class activityAPITest extends IznikAPITestCase
 {
@@ -32,13 +33,9 @@ class activityAPITest extends IznikAPITestCase
         # Ensure there is a message.
         $email = 'test-' . rand() . '@blackhole.io';
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_REUSE);
+        list($g, $group1) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail($email);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', $email, 'testpw');
         $this->assertTrue($u->login('testpw'));
 
         $u->addEmail('test@test.com');

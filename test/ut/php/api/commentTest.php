@@ -30,13 +30,19 @@ class commentAPITest extends IznikAPITestCase {
 
         $dbhm->preExec("DELETE FROM mod_configs WHERE name LIKE 'UTTest%';");
 
-        list($g, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
-        list($g2, $this->groupid2) = $this->createTestGroup('testgroup2', Group::GROUP_REUSE);
-        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
+        $this->groupid2 = $g->create('testgroup2', Group::GROUP_REUSE);
+        $u = User::get($this->dbhr, $this->dbhm);
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
+        $this->user->addEmail('test@test.com');
         $this->user->addMembership($this->groupid, User::ROLE_OWNER);
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($this->user->login('testpw'));
 
-        list($this->user2, $this->uid2) = $this->createTestUserWithLogin('Test User', 'testpw');
+        $this->uid2 = $u->create(NULL, NULL, 'Test User');
+        $this->user2 = User::get($this->dbhr, $this->dbhm, $this->uid2);
     }
 
     public function testBasic() {

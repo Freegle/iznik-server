@@ -23,7 +23,14 @@ RUN apt-get update && apt-get install -y dnsutils openssl zip unzip git libxml2-
     php8.1-xdebug php8.1-mbstring php8.1-simplexml php8.1-curl php8.1-zip postgresql-client php8.1-gd  \
     php8.1-xmlrpc php8.1-redis php8.1-pgsql curl libpq-dev php-pear php-dev libgeoip-dev libcurl4-openssl-dev wget \
     php-mbstring php-mailparse geoip-bin geoip-database php8.1-pdo-mysql cron rsyslog net-tools php8.1-fpm nginx telnet \
-    tesseract-ocr
+    tesseract-ocr ca-certificates gnupg lsb-release
+
+# Install Node.js and npm
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs
+
+# Install Claude Code
+RUN npm install -g @anthropic-ai/claude-code
 
 RUN apt-get remove -y apache2* sendmail* mlocate php-ssh2
 

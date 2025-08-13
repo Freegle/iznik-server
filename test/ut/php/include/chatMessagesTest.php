@@ -495,10 +495,8 @@ class chatMessagesTest extends IznikTestCase {
     }
 
     public function testReferToSpammer() {
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create("Test", "User", "Test User");
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-        $u->addEmail($email);
+        list($u, $uid, $emailid) = $this->createTestUser("Test", "User", "Test User", $email, 'testpw');
 
         $this->dbhm->preExec("INSERT INTO spam_users (userid, collection, reason) VALUES (?, ?, ?);", [
             $uid,
@@ -840,9 +838,8 @@ class chatMessagesTest extends IznikTestCase {
 
         # Create image message
         $m = new ChatMessage($this->dbhr, $this->dbhm);
-        list ($mid, $banned) = $m->create($chatid, $uid1, '', ChatMessage::TYPE_IMAGE, NULL, TRUE, NULL, NULL, NULL, $imageId, NULL, NULL, FALSE);
+        list ($mid, $banned) = $m->create($chatid, $uid1, '', ChatMessage::TYPE_IMAGE, NULL, TRUE, NULL, NULL, NULL, $imageId, NULL, FALSE, FALSE, TRUE);
         $this->assertNotNull($mid);
-        $m->setPrivate('imageid', $imageId);
 
         $m = new ChatMessage($this->dbhr, $this->dbhm, $mid);
         $this->assertEquals(1, $m->getPrivate('processingrequired'));

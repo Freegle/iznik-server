@@ -144,10 +144,9 @@ class chatRoomsTest extends IznikTestCase {
         list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route) = $u->getNotificationPayload(FALSE);
         $this->assertEquals("Why not introduce yourself to other freeglers?  You'll get a better response.", $title);
 
-        $u2 = $u->create(NULL, NULL, "Test User 2");
-        $u->addMembership($this->groupid);
-        $u->addEmail('test2@test.com');
-        $u->addEmail('test2@' . USER_DOMAIN);
+        list($u2_obj, $u2, $emailid2) = $this->createTestUser(NULL, NULL, "Test User 2", 'test2@test.com', 'testpw');
+        $u2_obj->addMembership($this->groupid);
+        $u2_obj->addEmail('test2@' . USER_DOMAIN);
 
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         list ($id, $blocked) = $r->createConversation($u1, $u2);
@@ -1513,7 +1512,7 @@ class chatRoomsTest extends IznikTestCase {
         $msgs = $this->dbhr->preQuery("SELECT * FROM `chat_messages` WHERE chat_messages.processingrequired = 1 ORDER BY id ASC;");
         foreach ($msgs as $msg) {
             $cm = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
-            $cm->process($forcereview);
+            $cm->process($forcereview, FALSE);
         }
     }
 

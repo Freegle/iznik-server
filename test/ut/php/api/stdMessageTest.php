@@ -29,14 +29,9 @@ class stdMessageAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM mod_configs WHERE name LIKE 'UTTest%';");
 
         # Create a moderator and log in as them
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
-        $this->user->addEmail('test@test.com');
+        list($g, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
+        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $this->user->addMembership($this->groupid);
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         # Create an empty config
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);

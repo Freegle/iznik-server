@@ -295,7 +295,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
      * @param bool $expectSuccess Whether message creation should succeed (default: TRUE)
      * @param bool $expectFailok Whether MailRouter should return failok=TRUE (default: TRUE)
      */
-    protected function createTestMessage($content, $groupname, $fromEmail, $toEmail, $groupid, $userid, $expectSuccess = TRUE, $expectFailok = TRUE) {
+    protected function createTestMessage($content, $groupname, $fromEmail, $toEmail, $groupid, $userid, $expectSuccess = TRUE, $expectFailok = FALSE) {
         if ($content === null) {
             $basicMsgPath = IZNIK_BASE . '/test/ut/php/msgs/basic';
             $this->assertFileExists($basicMsgPath, "Basic message file not found");

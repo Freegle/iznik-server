@@ -12,7 +12,8 @@
       "Bash(mv:*)",
       "WebFetch(domain:www.sslshopper.com)",
       "Bash(sed:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(del \"C:\\Users\\edwar\\PhpstormProjects\\iznik-server\\nul\")"
     ],
     "deny": []
   }

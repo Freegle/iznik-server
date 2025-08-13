@@ -15,10 +15,7 @@ require_once(UT_DIR . '/../../include/db.php');
 class dashboardTest extends IznikAPITestCase {
     public function testAdmin() {
         # Use a full pathname.  This is a test of our autoloader for coverage.
-        $u = \Freegle\Iznik\User::get($this->dbhr, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
-        $u = User::get($this->dbhr, $this->dbhm, $id);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($u, $id, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
         $this->assertTrue($u->login('testpw'));
         $this->log("After login {$_SESSION['id']}");
 
@@ -121,12 +118,8 @@ class dashboardTest extends IznikAPITestCase {
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setPrivate('onhere', 1);
 
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $this->assertNotNull($uid);
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $this->assertTrue($u->addMembership($gid, User::ROLE_OWNER));
-        $u->addEmail('test@test.com');
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($u->login('testpw'));
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
