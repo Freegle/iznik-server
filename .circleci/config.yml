@@ -15,7 +15,10 @@ jobs:
           MYSQL_ROOT_PASSWORD: ''
           MYSQL_DATABASE: iznik
           MYSQL_ROOT_HOST: 127.0.0.1
-      - image: cimg/postgres:15.1-postgis
+      - image: circleci/postgres:12-postgis
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD
         environment:
           POSTGRES_USER: iznik
           POSTGRES_PASSWORD: iznik
@@ -31,8 +34,7 @@ jobs:
       - run: sudo pecl install igbinary
       - run: sudo sh -c "echo Y | pecl install redis"
 
-      # We now need Node 14 for Playwright.
-      - run: sudo curl -sL https://deb.nodesource.com/setup_14.x | sudo bash -
+      - run: sudo curl -sL https://deb.nodesource.com/setup_22.x | sudo bash -
       - run: sudo apt update
       - run: sudo apt -y install nodejs
       - run: sudo rm /usr/local/bin/node
