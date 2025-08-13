@@ -471,5 +471,85 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         
         return [$user, $uid];
     }
+
+    /**
+     * Add login to existing user and call login() method
+     * @param User $user The user object to add login to
+     * @param string $password The password for login
+     * @param string|null $uid Optional external user ID for login
+     * @return int Login ID
+     */
+    protected function addLoginAndLogin($user, $password, $uid = NULL) {
+        $this->assertNotNull($user, "User object cannot be null");
+        $this->assertNotEmpty($password, "Password cannot be empty");
+        
+        $loginid = $user->addLogin(User::LOGIN_NATIVE, $uid, $password);
+        $this->assertGreaterThan(0, $loginid, "Failed to add login for user");
+        
+        $loginResult = $user->login($password);
+        $this->assertTrue($loginResult, "Failed to login user with password");
+        
+        return $loginid;
+    }
+
+    /**
+     * Create a test user, add login credentials, and call login() method
+     * @param string|null $firstname User's first name  
+     * @param string|null $lastname User's last name
+     * @param string|null $fullname User's full name (if not using first/last)
+     * @param string|null $email User's email address (optional, defaults to test@test.com)
+     * @param string|null $password Login password (optional, defaults to testpw)
+     * @return array [User instance, user ID, email ID]
+     */
+    protected function createTestUserAndLogin($firstname = NULL, $lastname = NULL, $fullname = NULL, $email = NULL, $password = NULL) {
+        // Set default values if not provided
+        if ($fullname === NULL && $firstname === NULL && $lastname === NULL) {
+            $fullname = 'Test User';
+        }
+        if ($email === NULL) {
+            $email = 'test@test.com';
+        }
+        if ($password === NULL) {
+            $password = 'testpw';
+        }
+        
+        list($user, $uid, $emailid) = $this->createTestUser($firstname, $lastname, $fullname, $email, $password);
+        
+        // Login the user using the login() method
+        $loginResult = $user->login($password);
+        $this->assertTrue($loginResult, "Failed to login user with password");
+        
+        return [$user, $uid, $emailid];
+    }
+
+    /**
+     * Create a test user with membership and login
+     * @param int $groupid Group ID to add membership to
+     * @param string $role User role (default: ROLE_MEMBER)
+     * @param string $firstname User's first name  
+     * @param string $lastname User's last name
+     * @param string $fullname User's full name (if not using first/last)
+     * @param string $email User's email address
+     * @param string $password Login password
+     * @return array [User instance, user ID, email ID]
+     */
+    protected function createTestUserWithMembershipAndLogin($groupid, $role = User::ROLE_MEMBER, $firstname = NULL, $lastname = NULL, $fullname = NULL, $email = NULL, $password = NULL) {
+        // Set default values if not provided
+        if ($fullname === NULL && $firstname === NULL && $lastname === NULL) {
+            $fullname = 'Test User';
+        }
+        if ($email === NULL) {
+            $email = 'test@test.com';
+        }
+        if ($password === NULL) {
+            $password = 'testpw';
+        }
+        
+        list($user, $uid, $emailid) = $this->createTestUser($firstname, $lastname, $fullname, $email, $password);
+        $user->addMembership($groupid, $role);
+        $this->addLoginAndLogin($user, $password);
+        
+        return [$user, $uid, $emailid];
+    }
 }
 

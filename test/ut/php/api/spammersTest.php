@@ -105,8 +105,7 @@ class spammersAPITest extends IznikAPITestCase {
         $this->assertEquals(1, $ret['ret']);
 
         # Anyone logged in can report
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $ret = $this->call('spammers', 'POST', [
             'userid' => $uid,

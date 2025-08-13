@@ -13,7 +13,10 @@
       "WebFetch(domain:www.sslshopper.com)",
       "Bash(sed:*)",
       "Bash(find:*)",
-      "Bash(del \"C:\\Users\\edwar\\PhpstormProjects\\iznik-server\\nul\")"
+      "Bash(del \"C:\\Users\\edwar\\PhpstormProjects\\iznik-server\\nul\")",
+      "Bash(\"[sshConfig://IZNIK Docker]:/usr/bin/php\" /var/www/iznik/composer/vendor/phpunit/phpunit/phpunit --bootstrap /var/www/iznik/composer/vendor/autoload.php --configuration /var/www/iznik/test/ut/php/phpunit.xml /var/www/iznik/test/ut/php/include/UserTest.php::testLogins)",
+      "Bash(/c/php/php composer/vendor/phpunit/phpunit/phpunit --bootstrap composer/vendor/autoload.php --configuration test/ut/php/phpunit.xml test/ut/php/include/UserTest.php::testLogins)",
+      "Bash(/c/php/php phpunit.phar:*)"
     ],
     "deny": []
   }

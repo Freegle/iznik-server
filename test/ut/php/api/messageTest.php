@@ -108,8 +108,7 @@ class messageAPITest extends IznikAPITestCase
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
         $this->assertTrue($u->addMembership($this->gid));
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $ret = $this->call('message', 'GET', [
             'id' => $id,
@@ -186,8 +185,7 @@ class messageAPITest extends IznikAPITestCase
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($this->gid);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $ret = $this->call('message', 'GET', [
             'id' => $id,
@@ -198,8 +196,7 @@ class messageAPITest extends IznikAPITestCase
 
         # Promote to mod - should be able to see it.
         $u->setRole(User::ROLE_MODERATOR, $this->gid);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $ret = $this->call('message', 'GET', [
             'id' => $id,
             'groupid' => $this->gid,
@@ -243,8 +240,7 @@ class messageAPITest extends IznikAPITestCase
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($this->gid);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $ret = $this->call('message', 'GET', [
             'id' => $id,
@@ -255,8 +251,7 @@ class messageAPITest extends IznikAPITestCase
 
         # Promote to owner - should be able to see it.
         $u->setRole(User::ROLE_OWNER, $this->gid);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $ret = $this->call('message', 'GET', [
             'id' => $id,
             'groupid' => $this->gid,
@@ -434,8 +429,7 @@ class messageAPITest extends IznikAPITestCase
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($this->gid);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -540,8 +534,7 @@ class messageAPITest extends IznikAPITestCase
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($this->gid);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,

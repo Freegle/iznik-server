@@ -127,8 +127,7 @@ class ModConfigAPITest extends IznikAPITestCase {
         $user = User::get($this->dbhr, $this->dbhm, $uid);
         $user->addEmail('test2@test.com');
         $user->addMembership($gid, User::ROLE_OWNER);
-        $this->assertGreaterThan(0, $user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($user->login('testpw'));
+        $this->addLoginAndLogin($user, 'testpw');
 
         $ret = $this->call('modconfig', 'PATCH', [
             'id' => $id,
@@ -175,8 +174,7 @@ class ModConfigAPITest extends IznikAPITestCase {
         $user = User::get($this->dbhr, $this->dbhm, $uid);
         $user->addEmail('test2@test.com');
         $user->addMembership($gid, User::ROLE_OWNER);
-        $this->assertGreaterThan(0, $user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($user->login('testpw'));
+        $this->addLoginAndLogin($user, 'testpw');
 
         $ret = $this->call('modconfig', 'DELETE', [
             'id' => $id

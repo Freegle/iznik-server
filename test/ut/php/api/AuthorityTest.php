@@ -70,9 +70,7 @@ class authorityAPITest extends IznikAPITestCase
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
 
-        $this->user = User::get($this->dbhr, $this->dbhm);
-        $this->user->create(NULL, NULL, 'Test User');
-        $this->user->addEmail('test@test.com');
+        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $this->user->addMembership($this->groupid);
         $this->user->setMembershipAtt($this->groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
@@ -151,8 +149,7 @@ class authorityAPITest extends IznikAPITestCase
         $id = $a->create("UTAuth", 'GLA', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
 
         # Create a user within that authority.
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $u->setSetting('mylocation', [
             'lng' => 179.2167,
             'lat' => 8.53333,

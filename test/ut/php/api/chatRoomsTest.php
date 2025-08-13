@@ -412,8 +412,7 @@ class chatRoomsAPITest extends IznikAPITestCase
 
         # Ban should show in support tools.
         $u1->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
-        $this->assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u1->login('testpw'));
+        $this->addLoginAndLogin($u1, 'testpw');
         $_SESSION['supportAllowed'] = TRUE;
         $ret = $this->call('user', 'GET', [
             'search' => $u1->getId()

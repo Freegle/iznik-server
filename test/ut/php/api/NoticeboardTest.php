@@ -43,11 +43,7 @@ class noticeboardAPITest extends IznikAPITestCase {
     }
 
     public function testBasic() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail('test@test.com');
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        list($u, $this->uid, $emailid) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
         # Invalid parameters
         $ret = $this->call('noticeboard', 'POST', [ 'dup' => 1]);
@@ -172,11 +168,7 @@ class noticeboardAPITest extends IznikAPITestCase {
     }
 
     public function testAuthority() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail('test@test.com');
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        list($u, $this->uid, $emailid) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
         # Valid create
         $ret = $this->call('noticeboard', 'POST', [

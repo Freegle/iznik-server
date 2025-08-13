@@ -232,8 +232,7 @@ class userTest extends IznikTestCase {
         $this->assertNull($u->findByLogin(User::LOGIN_YAHOO, 'testinvalid'));
 
         # Test native
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $this->assertFalse($u->login('testpwbad'));
     }
 
@@ -292,8 +291,7 @@ class userTest extends IznikTestCase {
         $this->assertEquals(1, count($modships));
 
         # Should be able to see the applied history.
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $atts = $u->getPublic();
         $this->log("Applied " . var_export($atts['applied'], TRUE));
         $this->assertEquals(1, count($atts['applied']));
@@ -331,8 +329,7 @@ class userTest extends IznikTestCase {
         $this->assertEquals($group2, $hist[0]['group']['id']);
 
         // Support and admin users have a mod role on the group even if not a member
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test item (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
@@ -643,8 +640,7 @@ class userTest extends IznikTestCase {
         ->getMock();
         $u->method('mailer')->willReturn(FALSE);
         $this->assertGreaterThan(0, $u->addEmail('test@test.com'));
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $c = new ModConfig($this->dbhr, $this->dbhm);
         $cid = $c->create('Test');

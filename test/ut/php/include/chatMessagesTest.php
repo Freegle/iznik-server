@@ -422,8 +422,7 @@ class chatMessagesTest extends IznikTestCase {
         # Can only see replies logged in.
         $fromu = $m->getFromuser();
         $u = new User($this->dbhr, $this->dbhm, $fromu);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $atts = $m->getPublic(FALSE, TRUE, TRUE);
         $this->log("Message 1 " . var_export($atts, TRUE));

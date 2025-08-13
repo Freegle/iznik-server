@@ -539,8 +539,7 @@ class userAPITest extends IznikAPITestCase {
         $d->setGiftAid($this->uid2, Donations::PERIOD_PAST_4_YEARS_AND_FUTURE, "Test User", "Test Address");
 
         # Can't merge not a mod
-        $this->assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u1->login('testpw'));
+        $this->addLoginAndLogin($u1, 'testpw');
 
         $ret = $this->call('user', 'POST', [
             'action' => 'Merge',
@@ -559,8 +558,7 @@ class userAPITest extends IznikAPITestCase {
         $this->assertEquals(3, $ret['ret']);
 
         # As mod should work
-        $this->assertGreaterThan(0, $u4->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u4->login('testpw'));
+        $this->addLoginAndLogin($u4, 'testpw');
 
         $ret = $this->call('user', 'POST', [
             'action' => 'Merge',
@@ -619,8 +617,7 @@ class userAPITest extends IznikAPITestCase {
         $u5->addMembership($this->groupid);
 
         # Can't merge not a mod
-        $this->assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u1->login('testpw'));
+        $this->addLoginAndLogin($u1, 'testpw');
 
         $ret = $this->call('user', 'POST', [
             'action' => 'Merge',
@@ -641,8 +638,7 @@ class userAPITest extends IznikAPITestCase {
         $this->assertEquals(4, $ret['ret']);
 
         # As mod should work
-        $this->assertGreaterThan(0, $u4->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u4->login('testpw'));
+        $this->addLoginAndLogin($u4, 'testpw');
 
         $ret = $this->call('user', 'POST', [
             'action' => 'Merge',
@@ -678,8 +674,7 @@ class userAPITest extends IznikAPITestCase {
         $u4->addMembership($this->groupid, User::ROLE_MODERATOR);
         $u4->addEmail('test4@test.com', 0);
 
-        $this->assertGreaterThan(0, $u4->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u4->login('testpw'));
+        $this->addLoginAndLogin($u4, 'testpw');
 
         User::clearCache();
 
@@ -952,8 +947,7 @@ class userAPITest extends IznikAPITestCase {
         # The rating should be visible to a mod on the rater and ratee's group.
         $modid = $u->create('Test', 'User', 'Test User');
         $u->addMembership($this->groupid, User::ROLE_MODERATOR);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $ret = $this->call('memberships', 'GET', [
             'collection' => MembershipCollection::HAPPINESS,
             'groupid' => $this->groupid
@@ -994,8 +988,7 @@ class userAPITest extends IznikAPITestCase {
 
     public function testActive() {
         $this->assertEquals(1, $this->user->addMembership($this->groupid));
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # Trigger a notification check - should mark this as active.
         $ret = $this->call('notification', 'GET', [
