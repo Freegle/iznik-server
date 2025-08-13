@@ -41,7 +41,7 @@ class pushNotificationsTest extends IznikTestCase {
 
         $n = new PushNotifications($this->dbhr, $this->dbhm);
         $this->log("Send app User.");
-        $n->add($id, PushNotifications::PUSH_FCM_ANDROID, 'test');
+        $n->add($id, PushNotifications::PUSH_FCM_ANDROID, 'test', FALSE);
         $this->assertEquals(1, count($n->get($id)));
 
         # Nothing to notify on MT.
@@ -51,12 +51,12 @@ class pushNotificationsTest extends IznikTestCase {
         $sql = "INSERT INTO users_notifications (`fromuser`, `touser`, `type`, `title`) VALUES (?, ?, ?, 'Test');";
         $this->dbhm->preExec($sql, [ $id, $id, Notifications::TYPE_EXHORT ]);
 
-        $this->assertEquals(1, $mock->notify($id));
-        $this->assertEquals(1, $mock->notify($id));
+        $this->assertEquals(1, $mock->notify($id, FALSE));
+        $this->assertEquals(1, $mock->notify($id, FALSE));
 
         $n->add($id, PushNotifications::PUSH_FIREFOX, 'test2');
         $this->assertEquals(2, count($n->get($id)));
-        $this->assertEquals(1, $n->notify($id));
+        $this->assertEquals(1, $n->notify($id, FALSE));
 
         # Test notifying mods.
         $this->log("Notify group mods");

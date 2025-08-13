@@ -1605,7 +1605,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
 
         $m = new Message($this->dbhr, $this->dbhm, $mid);
-        $this->assertEquals(MessageCollection::REJECTED, $m->getGroups(FALSE)[0]['collection']);
+        $this->assertEquals(MessageCollection::REJECTED, $m->getGroups(FALSE, FALSE)[0]['collection']);
 
         # Now log in as the member and edit the message.
         $this->assertTrue($member->login('testpw'));
@@ -1617,7 +1617,7 @@ class messageAPITest extends IznikAPITestCase
             'textbody' => 'Another text body'
         ]);
         $this->assertEquals(0, $ret['ret']);
-        $this->assertEquals(MessageCollection::PENDING, $m->getGroups(FALSE)[0]['collection']);
+        $this->assertEquals(MessageCollection::PENDING, $m->getGroups(FALSE, FALSE)[0]['collection']);
     }
 
     public function testEditGroupModerated() {
@@ -2665,7 +2665,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(0, count($atts['outcomes']));
 
         # The arrival time should have been bumped.
-        $groups = $m->getGroups(FALSE);
+        $groups = $m->getGroups(FALSE, FALSE);
         $arrival2 = strtotime($groups[0]['arrival']);
         $this->assertGreaterThan($arrival, $arrival2);
 
@@ -4060,7 +4060,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        $this->assertEquals(MessageCollection::PENDING, $m->getGroups(FALSE)[0]['collection']);
+        $this->assertEquals(MessageCollection::PENDING, $m->getGroups(FALSE, FALSE)[0]['collection']);
     }
 
     public function testMarkUnpromised() {

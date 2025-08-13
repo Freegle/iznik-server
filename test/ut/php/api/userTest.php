@@ -805,8 +805,9 @@ class userAPITest extends IznikAPITestCase {
         ]);
 
         $this->assertEquals(0, $ret['ret']);
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $this->assertNull($u->getEmailPreferred());
+        User::clearCache($this->user->getId());
+        $u = User::get($this->dbhr, $this->dbhm, $this->user->getId());
+        $this->assertEquals('test@test.com', $u->getEmailPreferred());
     }
 
     public function testRating() {
@@ -1086,6 +1087,8 @@ class userAPITest extends IznikAPITestCase {
             'bump' => TRUE
         ]);
         $this->assertEquals(0, $ret['ret']);
+        User::clearCache($uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $this->assertNotNull($u->getPrivate('deleted'));
     }
 

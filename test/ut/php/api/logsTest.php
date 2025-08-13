@@ -140,7 +140,7 @@ class logsAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhr, $uid1);
         $u->delete();
 
-        list($u, $uid2, $emailid3) = $this->createTestUser(NULL, NULL, 'Test User', 'test3@test.com', 'testpw');
+        $uid2 = $u->create(NULL, NULL, 'Test User');
         $u->setPrivate('systemrole', USer::SYSTEMROLE_ADMIN);
         $_SESSION['id'] = $uid2;
         $_SESSION['supportAllowed'] = TRUE;

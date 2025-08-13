@@ -69,7 +69,8 @@ class userTest extends IznikTestCase {
         $_SESSION['id'] = NULL;
         $this->assertGreaterThan(0, $u->delete());
 
-        list($u, $id) = $this->createTestUserWithLogin('Test User', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id = $u->create(NULL, NULL, 'Test User');
         $atts = $u->getPublic();
         $this->assertNull($atts['firstname']);
         $this->assertNull($atts['lastname']);

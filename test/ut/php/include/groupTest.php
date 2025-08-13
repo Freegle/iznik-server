@@ -145,8 +145,12 @@ class groupTest extends IznikTestCase
         $this->assertEquals(0, $g->welcomeReview($gid, 1));
         $g->setPrivate('welcomemail', 'UT');
 
-        list($u, $uid) = $this->createTestUserWithMembership($gid, User::ROLE_MODERATOR, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(null, null, 'Test User');
+        $u->addMembership($gid, User::ROLE_MODERATOR);
         $this->assertEquals(0, $g->welcomeReview($gid, 1));
+
+        $u->addEmail('test@test.com');
         $this->assertEquals(1, $g->welcomeReview($gid, 1));
     }
 
