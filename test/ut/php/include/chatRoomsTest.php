@@ -1112,7 +1112,7 @@ class chatRoomsTest extends IznikTestCase {
         $this->assertNotNull($id);
         $r = new ChatRoom($this->dbhr, $this->dbhm, $id);
         $_SESSION['id'] = $uid3;
-        $this->assertFalse($r->canSee($uid3));
+        $this->assertFalse($r->canSee($uid3, FALSE));
         $this->assertTrue($r->canSee($uid3, TRUE));
 
         $r = new ChatRoom($this->dbhr, $this->dbhm);
@@ -1120,7 +1120,7 @@ class chatRoomsTest extends IznikTestCase {
         $this->assertNotNull($id);
         $r = new ChatRoom($this->dbhr, $this->dbhm, $id);
         $_SESSION['id'] = $uid3;
-        $this->assertFalse($r->canSee($uid2));
+        $this->assertFalse($r->canSee($uid2, FALSE));
         $this->assertTrue($r->canSee($uid3, TRUE));
     }
 
