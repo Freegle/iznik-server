@@ -131,7 +131,9 @@ class FacebookTest extends IznikTestCase {
         $this->assertEquals('Test User', $me->getPrivate('fullname'));
 
         # Log in again with a different email, triggering a merge.
-        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, "Test User2", 'test2@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, "Test User2");
+        $u->addEmail('test2@test.com');
 
         $this->facebookEmail = 'test2@test.com';
         list($session, $ret) = $mock->login();
@@ -155,8 +157,6 @@ class FacebookTest extends IznikTestCase {
         list($session, $ret) = $mock->login();
         $this->assertEquals(0, $ret['ret']);
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        User::clearCache($me->getId());
-        $me = User::get($this->dbhr, $this->dbhm, $me->getId());
         $emails = $me->getEmails();
         $this->log("Emails " . var_export($emails, TRUE));
         $this->assertEquals(2, count($emails));

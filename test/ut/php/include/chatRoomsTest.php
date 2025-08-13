@@ -144,9 +144,10 @@ class chatRoomsTest extends IznikTestCase {
         list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route) = $u->getNotificationPayload(FALSE);
         $this->assertEquals("Why not introduce yourself to other freeglers?  You'll get a better response.", $title);
 
-        list($u2_obj, $u2, $emailid2) = $this->createTestUser(NULL, NULL, "Test User 2", 'test2@test.com', 'testpw');
-        $u2_obj->addMembership($this->groupid);
-        $u2_obj->addEmail('test2@' . USER_DOMAIN);
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
 
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         list ($id, $blocked) = $r->createConversation($u1, $u2);
@@ -1289,9 +1290,9 @@ class chatRoomsTest extends IznikTestCase {
         $m = new ChatMessage($this->dbhr, $this->dbhm);
         list ($cm, $banned) = $m->create($id, $u2, "test1", ChatMessage::TYPE_DEFAULT, NULL, TRUE);
         $this->assertNotNull($cm);
-        list ($cm, $banned) = $m->create($id, $u1, "test2", ChatMessage::TYPE_DEFAULT, NULL);
+        list ($cm, $banned) = $m->create($id, $u1, "test2", ChatMessage::TYPE_DEFAULT, NULL, FALSE);
         $this->assertNotNull($cm);
-        list ($cm, $banned) = $m->create($id, $u1, "test3", ChatMessage::TYPE_PROMISED, NULL);
+        list ($cm, $banned) = $m->create($id, $u1, "test3", ChatMessage::TYPE_PROMISED, NULL, FALSE);
         $this->assertNotNull($cm);
 
         $r = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
@@ -1539,9 +1540,9 @@ class chatRoomsTest extends IznikTestCase {
         # Two messages from FD user. Don't process inline - we're testing a case where the user would be using the Go API.
         $m = new ChatMessage($this->dbhr, $this->dbhm);
 
-        list ($cmid2, $banned) = $m->create($id, $u1, "test2", ChatMessage::TYPE_DEFAULT, NULL, FALSE, NULL, NULL, NULL, NULL, NULL, FALSE, FALSE);
+        list ($cmid2, $banned) = $m->create($id, $u1, "test2", ChatMessage::TYPE_DEFAULT, NULL, FALSE, NULL, NULL, NULL, NULL, NULL, FALSE, FALSE, FALSE);
         $this->assertNotNull($cmid2);
-        list ($cmid3, $banned) = $m->create($id, $u1, "test3", ChatMessage::TYPE_DEFAULT, NULL, FALSE, NULL, NULL, NULL, NULL, NULL, FALSE, FALSE);
+        list ($cmid3, $banned) = $m->create($id, $u1, "test3", ChatMessage::TYPE_DEFAULT, NULL, FALSE, NULL, NULL, NULL, NULL, NULL, FALSE, FALSE, FALSE);
         $this->assertNotNull($cmid3);
 
         $r = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
@@ -1557,7 +1558,7 @@ class chatRoomsTest extends IznikTestCase {
         $this->processChats(TRUE);
 
         # Add mod note.  This will be processed inline and should be held for review since the previous ones are.
-        list ($cmid4, $banned) = $m->create($id, $u3, "test3", ChatMessage::TYPE_MODMAIL, NULL);
+        list ($cmid4, $banned) = $m->create($id, $u3, "test3", ChatMessage::TYPE_MODMAIL, NULL, FALSE);
         $this->assertNotNull($cmid4);
 
         $cm = new ChatMessage($this->dbhr, $this->dbhm, $cmid2);
