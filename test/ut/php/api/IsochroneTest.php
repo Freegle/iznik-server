@@ -32,8 +32,7 @@ class isochroneAPITest extends IznikAPITestCase
 
     public function testBasic()
     {
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
         $settings = [
             'mylocation' => [
@@ -44,8 +43,7 @@ class isochroneAPITest extends IznikAPITestCase
         ];
 
         $u->setPrivate('settings', json_encode($settings));
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $ret = $this->call('isochrone', 'GET', []);
 
@@ -107,8 +105,7 @@ class isochroneAPITest extends IznikAPITestCase
 
         $email = 'test-' . rand() . '@blackhole.io';
         $u->addEmail($email);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $u->addEmail('test@test.com');
         $u->addMembership($group1);
@@ -176,8 +173,7 @@ class isochroneAPITest extends IznikAPITestCase
         ];
 
         $u->setPrivate('settings', json_encode($settings));
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $ret = $this->call('isochrone', 'GET', []);
 
@@ -239,8 +235,7 @@ class isochroneAPITest extends IznikAPITestCase
 
         $email = 'test-' . rand() . '@blackhole.io';
         $u->addEmail($email);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $u->addEmail('test@test.com');
         $u->addMembership($group1);
@@ -278,8 +273,7 @@ class isochroneAPITest extends IznikAPITestCase
         $u->addMembership($group1, User::ROLE_MODERATOR);
         $email = 'test-' . rand() . '@blackhole.io';
         $u->addEmail($email);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $poly = 'POLYGON((-3.18 55.99,-3.1 55.99,-3.1 56.1,-3.18 56.1,-3.18 55.99))';
 

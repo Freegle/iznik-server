@@ -26,9 +26,7 @@ class teamAPITest extends IznikAPITestCase {
         $this->dbhr = $dbhm;
         $this->dbhm = $dbhm;
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
+        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         $dbhm->preExec("DELETE FROM teams WHERE name = 'UTTest';");

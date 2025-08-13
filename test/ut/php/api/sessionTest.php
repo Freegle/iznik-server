@@ -847,8 +847,7 @@ class sessionTest extends IznikAPITestCase
     }
 
     public function testFacebookPage() {
-        $g = new Group($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_UT);
+        list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_UT);
 
         $f = new GroupFacebook($this->dbhr, $this->dbhm, $gid);
         $f->add($gid, '123', 'test', 123, GroupFacebook::TYPE_PAGE);

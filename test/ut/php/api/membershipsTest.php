@@ -640,8 +640,7 @@ class membershipsAPITest extends IznikAPITestCase {
 
         # Should get as mod.
         $this->assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $ret = $this->call('memberships', 'GET', [
             'collection' => MembershipCollection::HAPPINESS,
@@ -708,8 +707,7 @@ class membershipsAPITest extends IznikAPITestCase {
     }
 
     public function testNearby() {
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $ret = $this->call('memberships', 'GET', [
             'collection' => MembershipCollection::NEARBY

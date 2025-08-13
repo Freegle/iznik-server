@@ -171,15 +171,8 @@ class stdMessageAPITest extends IznikAPITestCase {
         $this->assertEquals('UTTest2', $ret['stdmsg']['title']);
 
         # Try as a mod, but the wrong one.
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup2', Group::GROUP_REUSE);
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $user = User::get($this->dbhr, $this->dbhm, $uid);
-        $user->addEmail('test2@test.com');
-        $user->addMembership($gid, User::ROLE_OWNER);
-        $this->assertGreaterThan(0, $user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($user->login('testpw'));
+        list($g, $gid) = $this->createTestGroup('testgroup2', Group::GROUP_REUSE);
+        list($user, $uid, $emailid_user) = $this->createTestUserWithMembershipAndLogin($gid, User::ROLE_OWNER, NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
 
         $ret = $this->call('stdmsg', 'PATCH', [
             'id' => $id,
@@ -221,15 +214,8 @@ class stdMessageAPITest extends IznikAPITestCase {
         $this->assertEquals(4, $ret['ret']);
 
         # Try as a mod, but the wrong one.
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup2', Group::GROUP_REUSE);
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $user = User::get($this->dbhr, $this->dbhm, $uid);
-        $user->addEmail('test2@test.com');
-        $user->addMembership($gid, User::ROLE_OWNER);
-        $this->assertGreaterThan(0, $user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($user->login('testpw'));
+        list($g, $gid) = $this->createTestGroup('testgroup2', Group::GROUP_REUSE);
+        list($user, $uid, $emailid_user) = $this->createTestUserWithMembershipAndLogin($gid, User::ROLE_OWNER, NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
 
         $ret = $this->call('stdmsg', 'DELETE', [
             'id' => $id

@@ -62,8 +62,7 @@ class exportAPITest extends IznikAPITestCase {
         $this->assertEquals(1, $ret['ret']);
 
         # Now log in
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $ret = $this->call('export', 'POST', [
             'dup' => 1

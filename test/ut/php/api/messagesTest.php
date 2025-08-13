@@ -262,8 +262,7 @@ class messagesTest extends IznikAPITestCase {
         # Promote to owner - should be able to see it.
         $u->setRole(User::ROLE_OWNER, $this->gid);
         $this->assertEquals(User::ROLE_OWNER, $u->getRoleForGroup($this->gid));
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $ret = $this->call('messages', 'GET', [
             'groupid' => $this->gid,
             'collection' => MessageCollection::PENDING,

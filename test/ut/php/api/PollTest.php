@@ -38,10 +38,7 @@ class pollAPITest extends IznikAPITestCase {
         $c = new Polls($this->dbhr, $this->dbhm);
         $id = $c->create('UTTest', 1, 'Test');
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        list($u, $this->uid, $emailid) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
         # Get invalid id
         $ret = $this->call('poll', 'GET', [
@@ -93,10 +90,7 @@ class pollAPITest extends IznikAPITestCase {
         }
 
     public function testLogin() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        list($u, $this->uid, $emailid) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
 
         # Fake FB login.
         $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_FACEBOOK, NULL, 'testpw'));

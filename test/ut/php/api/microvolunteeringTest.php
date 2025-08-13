@@ -31,8 +31,7 @@ class microvolunteeringAPITest extends IznikAPITestCase
 
     public function testBasic()
     {
-        $g = new Group($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup1', Group::GROUP_FREEGLE);
+        list($g, $gid) = $this->createTestGroup('testgroup1', Group::GROUP_FREEGLE);
         $g->setPrivate('microvolunteering', 1);
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
@@ -62,14 +61,8 @@ class microvolunteeringAPITest extends IznikAPITestCase
         ]);
         $this->assertEquals(1, $ret['ret']);
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create('Test', 'User', NULL);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($gid, User::ROLE_MEMBER, 'Test', 'User', NULL, 'test2@test.com', 'testpw');
         $u->setPrivate('trustlevel', User::TRUST_BASIC);
-
-        # Ask again - logged in with membership.
-        $u->addMembership($gid);
         $ret = $this->call('microvolunteering', 'GET', [
             'groupid' => $gid
         ]);
