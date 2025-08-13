@@ -5,3 +5,5 @@ scripts/cli/test_results/
 scripts/cli/status/
 sync_status.txt
 test_status.txt 
+/test/ut/php/.phpunit.result.cache
+/nul

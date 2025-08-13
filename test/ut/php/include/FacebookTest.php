@@ -155,6 +155,8 @@ class FacebookTest extends IznikTestCase {
         list($session, $ret) = $mock->login();
         $this->assertEquals(0, $ret['ret']);
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
+        User::clearCache($me->getId());
+        $me = User::get($this->dbhr, $this->dbhm, $me->getId());
         $emails = $me->getEmails();
         $this->log("Emails " . var_export($emails, TRUE));
         $this->assertEquals(2, count($emails));

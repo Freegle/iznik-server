@@ -838,8 +838,9 @@ class chatMessagesTest extends IznikTestCase {
 
         # Create image message
         $m = new ChatMessage($this->dbhr, $this->dbhm);
-        list ($mid, $banned) = $m->create($chatid, $uid1, '', ChatMessage::TYPE_IMAGE, NULL, TRUE, NULL, NULL, NULL, $imageId, NULL, FALSE, FALSE, TRUE);
+        list ($mid, $banned) = $m->create($chatid, $uid1, '', ChatMessage::TYPE_IMAGE, NULL, TRUE, NULL, NULL, NULL, $imageId, NULL, NULL, FALSE, FALSE);
         $this->assertNotNull($mid);
+        $m->setPrivate('imageid', $imageId);
 
         $m = new ChatMessage($this->dbhr, $this->dbhm, $mid);
         $this->assertEquals(1, $m->getPrivate('processingrequired'));
