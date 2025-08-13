@@ -226,10 +226,8 @@ class MailRouterTest extends IznikTestCase {
             ->getMock();
         $r->method('mail')->willReturn(FALSE);
 
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create("Test", "User", "Test User");
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-        $u->addEmail($email);
+        list($u, $uid, $emailid) = $this->createTestUser("Test", "User", "Test User", $email, 'testpw');
 
         $this->dbhm->preExec("INSERT INTO spam_users (userid, collection, reason) VALUES (?, ?, ?);", [
             $uid,
@@ -519,9 +517,7 @@ class MailRouterTest extends IznikTestCase {
         for ($i = 0; $i < Spam::USER_THRESHOLD + 2; $i++) {
             $this->log("User $i");
 
-            $u = new User($this->dbhr, $this->dbhm);
-            $u->create('Test', 'User', 'Test User');
-            $u->addEmail("test$i@test.com");
+            list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', 'Test User', "test$i@test.com", 'testpw');
             $u->addMembership($this->gid);
             $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
@@ -1437,11 +1433,9 @@ class MailRouterTest extends IznikTestCase {
         }
 
     public function testApproved() {
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create("Test", "User", "Test User");
+        list($u, $uid, $emailid) = $this->createTestUser("Test", "User", "Test User", 'test@test.com', 'testpw');
         $u->setPrivate('yahooid', 'testid');
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup1", Group::GROUP_REUSE);
+        list($g, $gid) = $this->createTestGroup("testgroup1", Group::GROUP_REUSE);
         $u->addMembership($gid, User::ROLE_MODERATOR);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/approved'));
@@ -1459,11 +1453,9 @@ class MailRouterTest extends IznikTestCase {
         }
 
     public function testOldYahoo() {
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create("Test", "User", "Test User");
+        list($u, $uid, $emailid) = $this->createTestUser("Test", "User", "Test User", 'test@test.com', 'testpw');
         $u->setPrivate('yahooid', 'testid');
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup1", Group::GROUP_REUSE);
+        list($g, $gid) = $this->createTestGroup("testgroup1", Group::GROUP_REUSE);
         $u->addMembership($gid, User::ROLE_MODERATOR);
 
         $msg = str_replace('test@test.com', 'from@yahoogroups.com', $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/approved')));
@@ -1479,11 +1471,10 @@ class MailRouterTest extends IznikTestCase {
         $uid = $u->findByEmail(MODERATOR_EMAIL);
 
         if (!$uid) {
-            $uid = $u->create("Test", "User", "Test User");
-            $u->addEmail(MODERATOR_EMAIL);
+            list($u, $uid, $emailid) = $this->createTestUser("Test", "User", "Test User", MODERATOR_EMAIL, 'testpw');
+        } else {
+            $u = new User($this->dbhr, $this->dbhm, $uid);
         }
-
-        $u = new User($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($this->gid, User::ROLE_MEMBER);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -1725,15 +1716,11 @@ class MailRouterTest extends IznikTestCase {
 
     public function testConfused() {
         # Set up two users, each with an OFFER.
-        $u1 = new User($this->dbhr, $this->dbhm);
-        $uid1 = $u1->create('Test', 'User', 'Test User');
-        $u1->addEmail('test1@test.com');
+        list($u1, $uid1, $emailid1) = $this->createTestUser('Test', 'User', 'Test User', 'test1@test.com', 'testpw1');
         $u1->addMembership($this->gid);
         $u1->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         error_log("ADded {$this->gid}, {$u1->getId()}");
-        $u2 = new User($this->dbhr, $this->dbhm);
-        $uid2 = $u2->create('Test', 'User', 'Test User');
-        $u2->addEmail('test2@test.com');
+        list($u2, $uid2, $emailid2) = $this->createTestUser('Test', 'User', 'Test User', 'test2@test.com', 'testpw2');
         $u2->addMembership($this->gid);
         $u2->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 

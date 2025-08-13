@@ -232,10 +232,8 @@ class locationTest extends IznikTestCase {
         }
 
     public function testSearch() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+        list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
         $this->log("Created group $gid");
-        $g = Group::get($this->dbhr, $this->dbhm, $gid);
 
         $g->setPrivate('lng', 179.15);
         $g->setPrivate('lat', 8.4);
@@ -298,10 +296,8 @@ class locationTest extends IznikTestCase {
         }
 
     public function testGroupsNear() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+        list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
         $this->log("Created group $gid");
-        $g = Group::get($this->dbhr, $this->dbhm, $gid);
 
         $g->setPrivate('lng', 179.15);
         $g->setPrivate('lat', 8.4);

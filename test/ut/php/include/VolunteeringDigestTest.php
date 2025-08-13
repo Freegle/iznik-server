@@ -46,11 +46,11 @@ class volunteeringDigestTest extends IznikTestCase {
         list($g, $gid) = $this->createTestGroup("testgroup", Group::GROUP_REUSE);
 
         # And two users, one who wants them and one who doesn't.
-        list($u1, $uid1, $eid1) = $this->createTestUser(NULL, NULL, "Test User", 'test1@test.com');
+        list($u1, $uid1, $eid1) = $this->createTestUser(NULL, NULL, "Test User", 'test1@test.com', 'testpw1');
         $u1->addEmail('test1@' . USER_DOMAIN);
         $u1->addMembership($gid, User::ROLE_MEMBER, $eid1);
         $u1->setMembershipAtt($gid, 'volunteeringallowed', 0);
-        list($u2, $uid2, $eid2) = $this->createTestUser(NULL, NULL, "Test User", 'test2@test.com');
+        list($u2, $uid2, $eid2) = $this->createTestUser(NULL, NULL, "Test User", 'test2@test.com', 'testpw2');
         $u2->addEmail('test2@' . USER_DOMAIN);
         $u2->addMembership($gid, User::ROLE_MEMBER, $eid2);
 
@@ -90,7 +90,7 @@ class volunteeringDigestTest extends IznikTestCase {
         $this->assertEquals(0, $mock->send($gid));
 
         # Invalid email
-        list($u3, $uid3) = $this->createTestUser(NULL, NULL, "Test User", 'test.com');
+        list($u3, $uid3, $eid3) = $this->createTestUser(NULL, NULL, "Test User", 'test3@test.com', 'testpw3');
         $u3->addMembership($gid);
         $this->assertEquals(0, $mock->send($gid));
 

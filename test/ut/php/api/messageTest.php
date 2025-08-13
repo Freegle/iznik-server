@@ -104,9 +104,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertFalse(array_key_exists('fromuser', $ret['message']));
 
         # When logged in should be able to see message history.
-        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User');
-        $this->assertTrue($u->addMembership($this->gid));
-        $this->addLoginAndLogin($u, 'testpw');
+        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
         $ret = $this->call('message', 'GET', [
             'id' => $id,
@@ -2625,7 +2623,7 @@ class messageAPITest extends IznikAPITestCase
 
     public function testChatSource()
     {
-        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User');
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $u->addMembership($this->gid);
 
         # Put a message on the group.
@@ -2786,7 +2784,7 @@ class messageAPITest extends IznikAPITestCase
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list ($id, $failok) = $m->save();
 
-        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User');
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $this->addLoginAndLogin($u, 'testpw');
 
         $this->assertEquals(0, $m->getLikes(Message::LIKE_LOVE));
@@ -2909,7 +2907,7 @@ class messageAPITest extends IznikAPITestCase
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list ($id, $failok) = $m->save();
 
-        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User');
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $this->addLoginAndLogin($u, 'testpw');
 
         $this->assertEquals(0, $m->getLikes(Message::LIKE_VIEW));

@@ -74,7 +74,7 @@ class LoveJunkTest extends IznikTestCase
 
         if ($promise) {
             # Promise this to a LoveJunk user.
-            list($u2, $uid2, $emailid2) = $this->createTestUser(null, null, 'Test User');
+            list($u2, $uid2, $emailid2) = $this->createTestUser(null, null, 'Test User', 'test2@test.com', 'testpw2');
             $u2->setPrivate('ljuserid', 1);
             $m->promise($uid2);
 
@@ -96,8 +96,8 @@ class LoveJunkTest extends IznikTestCase
     }
 
     public function testChatMessage() {
-        list($u1, $uid1, $emailid1) = $this->createTestUser(null, null, 'Test User');
-        list($u2, $uid2, $emailid2) = $this->createTestUser(null, null, 'Test User');
+        list($u1, $uid1, $emailid1) = $this->createTestUser(null, null, 'Test User', 'test1@test.com', 'testpw1');
+        list($u2, $uid2, $emailid2) = $this->createTestUser(null, null, 'Test User', 'test2@test.com', 'testpw2');
         $u2->setPrivate('ljuserid', 456);
 
         // u1 is FD user who created a message.
@@ -135,8 +135,8 @@ class LoveJunkTest extends IznikTestCase
     }
 
     public function testPromise() {
-        list($u1, $uid1, $emailid1) = $this->createTestUser(null, null, 'Test User');
-        list($u2, $uid2, $emailid2) = $this->createTestUser(null, null, 'Test User');
+        list($u1, $uid1, $emailid1) = $this->createTestUser(null, null, 'Test User', 'test1@test.com', 'testpw1');
+        list($u2, $uid2, $emailid2) = $this->createTestUser(null, null, 'Test User', 'test2@test.com', 'testpw2');
         $u2->setPrivate('ljuserid', 456);
 
         // u1 is FD user who created a message.
