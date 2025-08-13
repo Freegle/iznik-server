@@ -419,7 +419,7 @@ class messageAPITest extends IznikAPITestCase
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
             ->setMethods(array('sendOne'))
             ->getMock();
-        $m->method('sendOne')->willReturn(false);
+        $m->method('sendOne')->willReturn(FALSE);
 
         # Shouldn't be able to approve logged out
         $ret = $this->call('message', 'POST', [
@@ -519,7 +519,7 @@ class messageAPITest extends IznikAPITestCase
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
             ->setMethods(array('sendOne'))
             ->getMock();
-        $m->method('sendOne')->willReturn(false);
+        $m->method('sendOne')->willReturn(FALSE);
 
         $this->assertEquals(Message::TYPE_OFFER, $m->getType());
         $senduser = $m->getFromUser();
@@ -722,7 +722,7 @@ class messageAPITest extends IznikAPITestCase
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
             ->setMethods(array('sendOne'))
             ->getMock();
-        $m->method('sendOne')->willReturn(false);
+        $m->method('sendOne')->willReturn(FALSE);
         $senduser = $m->getFromUser();
 
         $this->assertEquals(Message::TYPE_OTHER, $m->getType());
@@ -1069,7 +1069,7 @@ class messageAPITest extends IznikAPITestCase
             'attachments' => []
         ]);
 
-        $this->log(var_export($ret, true));
+        $this->log(var_export($ret, TRUE));
         $this->assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to edit as a member
@@ -1209,7 +1209,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => true,
+            'ignoregroupoverride' => TRUE,
             'email' => $email
         ]);
 
@@ -1518,7 +1518,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => true,
+            'ignoregroupoverride' => TRUE,
             'email' => $email
         ]);
 
@@ -1572,7 +1572,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => true,
+            'ignoregroupoverride' => TRUE,
             'email' => $email
         ]);
 
@@ -1605,7 +1605,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
 
         $m = new Message($this->dbhr, $this->dbhm, $mid);
-        $this->assertEquals(MessageCollection::REJECTED, $m->getGroups(FALSE, FALSE)[0]['collection']);
+        $this->assertEquals(MessageCollection::REJECTED, $m->getGroups(FALSE)[0]['collection']);
 
         # Now log in as the member and edit the message.
         $this->assertTrue($member->login('testpw'));
@@ -1617,7 +1617,7 @@ class messageAPITest extends IznikAPITestCase
             'textbody' => 'Another text body'
         ]);
         $this->assertEquals(0, $ret['ret']);
-        $this->assertEquals(MessageCollection::PENDING, $m->getGroups(FALSE, FALSE)[0]['collection']);
+        $this->assertEquals(MessageCollection::PENDING, $m->getGroups(FALSE)[0]['collection']);
     }
 
     public function testEditGroupModerated() {
@@ -1657,7 +1657,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => true,
+            'ignoregroupoverride' => TRUE,
             'email' => $email
         ]);
 
@@ -1870,7 +1870,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id,
             'action' => 'JoinAndPost',
             'email' => $email,
-            'ignoregroupoverride' => true
+            'ignoregroupoverride' => TRUE
         ]);
 
         $this->log("Message #$id should be pending " . var_export($ret, TRUE));
@@ -1952,7 +1952,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id,
             'action' => 'JoinAndPost',
             'email' => $email,
-            'ignoregroupoverride' => true
+            'ignoregroupoverride' => TRUE
         ]);
 
         $this->log("Message #$id should not be pending " . var_export($ret, TRUE));
@@ -2648,7 +2648,7 @@ class messageAPITest extends IznikAPITestCase
             'outcome' => Message::OUTCOME_REPOST
         ]);
 
-        $groups = $m->getGroups(FALSE, FALSE);
+        $groups = $m->getGroups(FALSE);
         $arrival = strtotime($groups[0]['arrival']);
 
         # Too soon.
@@ -2665,7 +2665,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(0, count($atts['outcomes']));
 
         # The arrival time should have been bumped.
-        $groups = $m->getGroups(FALSE, FALSE);
+        $groups = $m->getGroups(FALSE);
         $arrival2 = strtotime($groups[0]['arrival']);
         $this->assertGreaterThan($arrival, $arrival2);
 
@@ -2782,7 +2782,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id,
             'action' => 'JoinAndPost',
             'email' => $email,
-            'ignoregroupoverride' => true
+            'ignoregroupoverride' => TRUE
         ]);
 
         $this->log("Message #$id should be spam " . var_export($ret, TRUE));
@@ -2837,7 +2837,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id,
             'action' => 'JoinAndPost',
             'email' => $email,
-            'ignoregroupoverride' => true
+            'ignoregroupoverride' => TRUE
         ]);
 
         $this->log("Message #$id is worrying " . var_export($ret, TRUE));
@@ -3042,7 +3042,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id,
             'action' => 'JoinAndPost',
             'email' => $email,
-            'ignoregroupoverride' => true
+            'ignoregroupoverride' => TRUE
         ]);
 
         $this->assertEquals(0, $ret['ret']);
@@ -3101,7 +3101,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => true,
+            'ignoregroupoverride' => TRUE,
             'email' => $email
         ]);
 
@@ -3135,7 +3135,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => true,
+            'ignoregroupoverride' => TRUE,
             'email' => 'test2@test.com'
         ]);
 
@@ -3251,7 +3251,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => true,
+            'ignoregroupoverride' => TRUE,
             'email' => $email
         ]);
 
@@ -3464,7 +3464,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id,
             'action' => 'JoinAndPost',
             'email' => $email2,
-            'ignoregroupoverride' => true
+            'ignoregroupoverride' => TRUE
         ]);
 
         $this->log("Message #$id should be pending " . var_export($ret, TRUE));
@@ -3506,7 +3506,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => true
+            'ignoregroupoverride' => TRUE
         ]);
 
         $this->log("Message #$id should be pending " . var_export($ret, TRUE));
@@ -3592,7 +3592,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id,
             'action' => 'JoinAndPost',
             'email' => $email1,
-            'ignoregroupoverride' => true
+            'ignoregroupoverride' => TRUE
         ]);
 
         $this->assertEquals(0, $ret['ret']);
@@ -3618,7 +3618,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id,
             'action' => 'JoinAndPost',
             'email' => $email1,
-            'ignoregroupoverride' => true
+            'ignoregroupoverride' => TRUE
         ]);
 
         $this->assertEquals(0, $ret['ret']);
@@ -3719,7 +3719,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => true,
+            'ignoregroupoverride' => TRUE,
             'email' => 'test@test.com'
         ]);
 
@@ -3825,7 +3825,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id,
             'action' => 'JoinAndPost',
             'email' => $email2,
-            'ignoregroupoverride' => true
+            'ignoregroupoverride' => TRUE
         ]);
 
         $this->assertEquals(11, $ret['ret']);
@@ -3870,7 +3870,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => true,
+            'ignoregroupoverride' => TRUE,
             'email' => $email
         ]);
 
@@ -3947,7 +3947,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => true,
+            'ignoregroupoverride' => TRUE,
             'email' => $email . "2"
         ]);
 
@@ -4060,7 +4060,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
-        $this->assertEquals(MessageCollection::PENDING, $m->getGroups(FALSE, FALSE)[0]['collection']);
+        $this->assertEquals(MessageCollection::PENDING, $m->getGroups(FALSE)[0]['collection']);
     }
 
     public function testMarkUnpromised() {
@@ -4177,7 +4177,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => true,
+            'ignoregroupoverride' => TRUE,
             'email' => $email
         ]);
 

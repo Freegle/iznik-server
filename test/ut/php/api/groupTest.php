@@ -115,7 +115,7 @@ class groupAPITest extends IznikAPITestCase {
             'id' => $this->groupid,
             'members' => TRUE
         ]);
-        $this->log(var_export($ret, true));
+        $this->log(var_export($ret, TRUE));
         $this->assertEquals(0, $ret['ret']);
         $this->assertFalse(Utils::pres('members', $ret['group']));
 
@@ -125,7 +125,7 @@ class groupAPITest extends IznikAPITestCase {
             'id' => $this->groupid,
             'members' => TRUE
         ]);
-        $this->log("Members " . var_export($ret, true));
+        $this->log("Members " . var_export($ret, TRUE));
         $this->assertEquals(0, $ret['ret']);
 
         $this->assertEquals(1, count($ret['group']['members']));
@@ -237,7 +237,7 @@ class groupAPITest extends IznikAPITestCase {
 
         $ret = $this->call('group', 'GET', [
             'id' => $this->groupid,
-            'pending' => true
+            'pending' => TRUE
         ]);
         $this->assertNotFalse(strpos($ret['group']['profile'], $attid));
         $this->assertEquals('Test slogan', $ret['group']['tagline']);
@@ -262,7 +262,7 @@ class groupAPITest extends IznikAPITestCase {
             'action' => 'ConfirmKey',
             'id' => $this->groupid
         ]);
-        $this->log(var_export($ret, true));
+        $this->log(var_export($ret, TRUE));
         $this->assertEquals(0, $ret['ret']);
         $key = $ret['key'];
 
@@ -276,7 +276,7 @@ class groupAPITest extends IznikAPITestCase {
             'dup' => TRUE,
             'id' => $this->groupid
         ]);
-        $this->log(var_export($ret, true));
+        $this->log(var_export($ret, TRUE));
         $this->assertEquals(100, $ret['ret']);
 
         }

@@ -198,7 +198,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $ret = $this->call('memberships', 'DELETE', [
             'groupid' => $this->groupid,
             'userid' => $this->uid2,
-            'dedup' => true
+            'dedup' => TRUE
         ]);
         $this->assertEquals(0, $ret['ret']);
 
@@ -275,7 +275,7 @@ class membershipsAPITest extends IznikAPITestCase {
             'groupid' => $this->groupid,
             'search' => 'wibble'
         ]);
-        $this->log("wibble search " . var_export($ret, true));
+        $this->log("wibble search " . var_export($ret, TRUE));
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals(0, count($ret['members']));
 
@@ -315,7 +315,7 @@ class membershipsAPITest extends IznikAPITestCase {
             'groupid' => $this->groupid,
             'userid' => $this->uid,
             'role' => 'Member',
-            'manual' => true
+            'manual' => TRUE
         ]);
         $this->assertEquals(0, $ret['ret']);
 
@@ -364,7 +364,7 @@ class membershipsAPITest extends IznikAPITestCase {
 
     public function testSettings() {
         # Shouldn't be able to set as a different member.
-        $settings = [ 'test' => true ];
+        $settings = [ 'test' => TRUE ];
 
         $ret = $this->call('memberships', 'PATCH', [
             'groupid' => $this->groupid,
@@ -955,7 +955,7 @@ class membershipsAPITest extends IznikAPITestCase {
 //
 //        $ret = $this->call('memberships', 'POST', [
 //
-//            "action" => "Leave Approved Member","userid" => 37462787,"groupid" => 21662,"subject" => "Testing 2","stdmsgid" => 158574,"body" => "Testing again","modtools" => true
+//            "action" => "Leave Approved Member","userid" => 37462787,"groupid" => 21662,"subject" => "Testing 2","stdmsgid" => 158574,"body" => "Testing again","modtools" => TRUE
 //        ]);
 //    }
 }

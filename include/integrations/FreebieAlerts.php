@@ -18,14 +18,14 @@ class FreebieAlerts
         try {
             $curl = curl_init();
             curl_setopt($curl, CURLOPT_URL, $url);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
             curl_setopt($curl, CURLOPT_TIMEOUT, 60);
             curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 60);
             curl_setopt($curl, CURLOPT_HTTPHEADER, [
                 "Content-type: application/json",
                 "Key: " . FREEBIE_ALERTS_KEY
             ]);
-            curl_setopt($curl, CURLOPT_POST, true);
+            curl_setopt($curl, CURLOPT_POST, TRUE);
             curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($fields));
 
             $json_response = FREEBIE_ALERTS_KEY ? curl_exec($curl) : NULL;
@@ -34,7 +34,7 @@ class FreebieAlerts
             $msg = date("Y-m-d H:i:s") . " post to freebies returned $status $json_response";
             error_log($msg);
 
-            if ($status != 200 || $json_response != '{"success":true}') {
+            if ($status != 200 || $json_response != '{"success":TRUE}') {
                 \Sentry\captureMessage($msg);
             }
         } catch (\Exception $e) {

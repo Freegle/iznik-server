@@ -21,7 +21,7 @@ foreach ($msgs as $msg) {
     # Dispatch the message on its way.
     $r = new MailRouter($dbhr, $dbhm);
     $m = new Message($dbhr, $dbhm, $msgid);
-    $mgroups = $m->getGroups(true, false);
+    $mgroups = $m->getGroups(TRUE, FALSE);
 
     if (count($mgroups) == 0) {
         # Will be a chat.

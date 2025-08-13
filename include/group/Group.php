@@ -214,7 +214,7 @@ class Group extends Entity
                     }
                 }
             } catch(\Exception $e) {
-                # Drop through with ret false.
+                # Drop through with ret FALSE.
             }
         } else  if ($att == 'poly' || $att == 'polyofficial') {
             # Check validity of spatial data
@@ -253,7 +253,7 @@ class Group extends Entity
                     }
                 }
             } catch(\Exception $e) {
-                # Drop through with ret false.
+                # Drop through with ret FALSE.
                 #error_log("Failed to set $att " . $e->getMessage());
             }
         } else {
@@ -658,7 +658,7 @@ HAVING logincount > 0
 
         # Add in derived properties.
         $atts['namedisplay'] = $atts['namefull'] ? $atts['namefull'] : $atts['nameshort'];
-        $settings = json_decode($atts['settings'], true);
+        $settings = json_decode($atts['settings'], TRUE);
 
         if ($settings) {
             $atts['settings'] = array_replace_recursive($this->defaultSettings, $settings);
@@ -1130,7 +1130,7 @@ HAVING logincount > 0
             ])
         ]);
 
-        return(true);
+        return(TRUE);
     }
 
     public function setRules($rules) {
@@ -1149,7 +1149,7 @@ HAVING logincount > 0
                                                         ])
                         ]);
 
-        return(true);
+        return(TRUE);
     }
 
     public function getSetting($key, $def, $settings = NULL) {
@@ -1159,7 +1159,7 @@ HAVING logincount > 0
             $settings = $this->defaultSettings;
         }
 
-        $settings = $this->id ? json_decode($settings, true) : NULL;
+        $settings = $this->id ? json_decode($settings, TRUE) : NULL;
         return($settings && array_key_exists($key, $settings) ? $settings[$key] : $def);
     }
 

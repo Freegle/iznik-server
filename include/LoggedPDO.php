@@ -111,7 +111,7 @@ class LoggedPDO {
             # need it.
             #
             # Try a few times to get a connection to make us resilient to errors.
-            $start = microtime(true);
+            $start = microtime(TRUE);
             $gotit = FALSE;
             $count = 0;
             $hostindex = 0;
@@ -197,7 +197,7 @@ class LoggedPDO {
                 }
             } while (!$gotit && $count < $this->allDownRetries);
 
-            $this->dbwaittime += microtime(true) - $start;
+            $this->dbwaittime += microtime(TRUE) - $start;
 
             if ($gotit) {
                 $this->connected = TRUE;
@@ -268,8 +268,8 @@ class LoggedPDO {
         $try = 0;
         $ret = NULL;
         $msg = '';
-        $worked = false;
-        $start = microtime(true);
+        $worked = FALSE;
+        $start = microtime(TRUE);
 
         do {
             try {
@@ -302,12 +302,12 @@ class LoggedPDO {
                 if ($rc) {
                     # For selects we return all the rows found; for updates we return the return value.
                     $ret = $select ? $sth->fetchAll() : $rc;
-                    $worked = true;
+                    $worked = TRUE;
 
                     # Close the statement so we can reuse it later.
                     $sth->closeCursor();
                 } else {
-                    $msg = var_export($this->getErrorInfo($sth), true);
+                    $msg = var_export($this->getErrorInfo($sth), TRUE);
                     if ($this->retryable($msg)) {
                         $try++;
                     } else {
@@ -369,14 +369,14 @@ class LoggedPDO {
         if ($worked && $try > 1) {
             error_log("prex succeeded after $try for $sql");
         } else if (!$worked) {
-            $this->giveUp($msg . " for $sql " . var_export($params, true) . " " . ($this->_db ? var_export($this->_db->errorInfo(), true) : ''));
+            $this->giveUp($msg . " for $sql " . var_export($params, TRUE) . " " . ($this->_db ? var_export($this->_db->errorInfo(), TRUE) : ''));
         }
 
-        $this->dbwaittime += microtime(true) - $start;
+        $this->dbwaittime += microtime(TRUE) - $start;
 
         if ($log && $this->sqllog) {
             $mysqltime = date("Y-m-d H:i:s", time());
-            $duration = microtime(true) - $start;
+            $duration = microtime(TRUE) - $start;
             $logret = $select ? count($ret) : ("$ret:" . $this->lastInsert);
 
             if (isset($_SESSION)) {
@@ -393,7 +393,7 @@ class LoggedPDO {
         }
 
         if ($this->errorLog) {
-            error_log(Utils::presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $start) * 1000), 2) . "ms for "  . substr($sql, 0, 256) . " " . var_export($params, TRUE));
+            error_log(Utils::presdef('call',$_REQUEST, ''). " " . round(((microtime(TRUE) - $start) * 1000), 2) . "ms for "  . substr($sql, 0, 256) . " " . var_export($params, TRUE));
         }
 
         return($ret);
@@ -409,8 +409,8 @@ class LoggedPDO {
         $try = 0;
         $ret = NULL;
         $msg = '';
-        $worked = false;
-        $start = microtime(true);
+        $worked = FALSE;
+        $start = microtime(TRUE);
 
         # Make sure we have a connection.
         $this->doConnect();
@@ -420,9 +420,9 @@ class LoggedPDO {
                 $ret = $this->parentExec($sql);
 
                 if ($ret !== FALSE) {
-                    $worked = true;
+                    $worked = TRUE;
                 } else {
-                    $msg = var_export($this->errorInfo(), true);
+                    $msg = var_export($this->errorInfo(), TRUE);
                     if ($this->retryable($msg)) {
                         $try++;
                     } else {
@@ -445,10 +445,10 @@ class LoggedPDO {
         } else if (!$worked)
             $this->giveUp($msg);
 
-        $this->dbwaittime += microtime(true) - $start;
+        $this->dbwaittime += microtime(TRUE) - $start;
 
         if ($this->errorLog) {
-            error_log(Utils::presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $start) * 1000), 2) . "ms for " . substr($sql, 0, 256));
+            error_log(Utils::presdef('call',$_REQUEST, ''). " " . round(((microtime(TRUE) - $start) * 1000), 2) . "ms for " . substr($sql, 0, 256));
         }
 
         return($ret);
@@ -463,8 +463,8 @@ class LoggedPDO {
         $this->doConnect();
         $try = 0;
         $ret = NULL;
-        $worked = false;
-        $start = microtime(true);
+        $worked = FALSE;
+        $start = microtime(TRUE);
         $msg = '';
 
         # Make sure we have a connection.
@@ -475,10 +475,10 @@ class LoggedPDO {
                 $ret = $this->parentQuery($sql);
 
                 if ($ret !== FALSE) {
-                    $worked = true;
+                    $worked = TRUE;
                 } else {
                     $try++;
-                    $msg = var_export($this->errorInfo(), true);
+                    $msg = var_export($this->errorInfo(), TRUE);
                 }
             } catch (\Exception $e) {
                 if ($this->retryable($e)) {
@@ -496,11 +496,11 @@ class LoggedPDO {
         } else if (!$worked)
             $this->giveUp($msg); // No brace because of coverage oddity
 
-        #error_log("Query took " . (microtime(true) - $start) . " $sql" );
-        $this->dbwaittime += microtime(true) - $start;
+        #error_log("Query took " . (microtime(TRUE) - $start) . " $sql" );
+        $this->dbwaittime += microtime(TRUE) - $start;
 
         if ($this->errorLog) {
-            error_log(Utils::presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $start) * 1000), 2) . "ms for " . substr($sql, 0, 256) . " ");
+            error_log(Utils::presdef('call',$_REQUEST, ''). " " . round(((microtime(TRUE) - $start) * 1000), 2) . "ms for " . substr($sql, 0, 256) . " ");
         }
 
         return($ret);
@@ -524,12 +524,12 @@ class LoggedPDO {
     public function rollBack() {
         $this->doConnect();
 
-        $time = microtime(true);
+        $time = microtime(TRUE);
         if ($this->inTransaction()) {
             $rc = $this->_db->rollBack();
         }
 
-        $duration = microtime(true) - $time;
+        $duration = microtime(TRUE) - $time;
         $mysqltime = date("Y-m-d H:i:s", time());
 
         if ($this->sqllog) {
@@ -539,7 +539,7 @@ class LoggedPDO {
         }
 
         if ($this->errorLog) {
-            error_log(Utils::presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $time) * 1000), 2) . "ms for rollback");
+            error_log(Utils::presdef('call',$_REQUEST, ''). " " . round(((microtime(TRUE) - $time) * 1000), 2) . "ms for rollback");
         }
 
         return($rc);
@@ -547,13 +547,13 @@ class LoggedPDO {
 
     public function beginTransaction() {
         $this->doConnect();
-        $this->transactionStart = microtime(true);
+        $this->transactionStart = microtime(TRUE);
         $ret = $this->_db->beginTransaction();
-        $duration = microtime(true) - $this->transactionStart;
+        $duration = microtime(TRUE) - $this->transactionStart;
         $this->dbwaittime += $duration;
 
         if ($this->errorLog) {
-            error_log(Utils::presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $this->transactionStart) * 1000), 2) . "ms for beginTransaction");
+            error_log(Utils::presdef('call',$_REQUEST, ''). " " . round(((microtime(TRUE) - $this->transactionStart) * 1000), 2) . "ms for beginTransaction");
         }
 
         if ($this->sqllog) {
@@ -568,10 +568,10 @@ class LoggedPDO {
 
     function commit() {
         $this->doConnect();
-        $time = microtime(true);
+        $time = microtime(TRUE);
 
         if ($this->inTransaction()) {
-            # PDO's commit() isn't reliable, at least in some versions - it can return true.
+            # PDO's commit() isn't reliable, at least in some versions - it can return TRUE.
             $this->_db->query('COMMIT;');
             $rc = $this->_db->errorCode() == '0000';
 
@@ -582,12 +582,12 @@ class LoggedPDO {
             }
         }
 
-        $duration = microtime(true) - $time;
+        $duration = microtime(TRUE) - $time;
 
         $this->dbwaittime += $duration;
 
         if ($this->errorLog) {
-            error_log(Utils::presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $time) * 1000), 2) . "ms for commit");
+            error_log(Utils::presdef('call',$_REQUEST, ''). " " . round(((microtime(TRUE) - $time) * 1000), 2) . "ms for commit");
         }
 
         if ($this->sqllog) {
@@ -600,15 +600,15 @@ class LoggedPDO {
         return($rc);
     }
 
-    public function exec ($sql, $log = true)    {
+    public function exec ($sql, $log = TRUE)    {
         $this->doConnect();
-        $time = microtime(true);
+        $time = microtime(TRUE);
         $ret = $this->retryExec($sql);
         if ($this->variant != 'pgsql') {
             $this->lastInsert = $this->_db->lastInsertId();
         }
 
-        $duration = microtime(true) - $time;
+        $duration = microtime(TRUE) - $time;
 
         if ($log && $this->sqllog) {
             $mysqltime = date("Y-m-d H:i:s", time());
@@ -620,7 +620,7 @@ class LoggedPDO {
         $this->dbwaittime += $duration;
 
         if ($this->errorLog) {
-            error_log(Utils::presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $time) * 1000), 2) . "ms for exec $sql");
+            error_log(Utils::presdef('call',$_REQUEST, ''). " " . round(((microtime(TRUE) - $time) * 1000), 2) . "ms for exec $sql");
         }
 
         return($ret);
@@ -645,7 +645,7 @@ class LoggedPDO {
     public function background($sql) {
         $count = 0;
         $fn = NULL;
-        $time = microtime(true);
+        $time = microtime(TRUE);
 
         do {
             $done = FALSE;
@@ -688,7 +688,7 @@ class LoggedPDO {
         } while (!$done && $count < 10);
 
         if ($this->errorLog) {
-            error_log(Utils::presdef('call',$_REQUEST, ''). " " . round(((microtime(true) - $time) * 1000), 2) . "ms for background " . substr($sql, 0, 256));
+            error_log(Utils::presdef('call',$_REQUEST, ''). " " . round(((microtime(TRUE) - $time) * 1000), 2) . "ms for background " . substr($sql, 0, 256));
         }
 
         return($fn);

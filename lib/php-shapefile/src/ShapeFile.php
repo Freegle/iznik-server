@@ -189,7 +189,7 @@ class ShapeFile implements \Iterator
     public function getRecord($geometry_format = self::GEOMETRY_BOTH)
     {
         $ret = $this->readSHPRecord($geometry_format);
-        if ($ret !== false) {
+        if ($ret !== FALSE) {
             $this->next();
         }
         return $ret;
@@ -268,7 +268,7 @@ class ShapeFile implements \Iterator
     }
     
     
-    private function readData($handle, $type, $length, $invert_endianness = false)
+    private function readData($handle, $type, $length, $invert_endianness = FALSE)
     {
         $data = fread($handle, $length);
         if (!$data) {
@@ -366,7 +366,7 @@ class ShapeFile implements \Iterator
     private function readSHPRecord($geometry_format = self::GEOMETRY_BOTH)
     {
         if (!$this->valid()) {
-            return false;
+            return FALSE;
         }
         
         // Read SHP offset from SHX
@@ -427,7 +427,7 @@ class ShapeFile implements \Iterator
             switch ($field['type']) {
                 case 'D':   // Date
                     $DateTime = \DateTime::createFromFormat('Ymd', $value);
-                    if ($DateTime !== false) {
+                    if ($DateTime !== FALSE) {
                         $value = $DateTime->format('Y-m-d');
                     }
                     break;
@@ -470,7 +470,7 @@ class ShapeFile implements \Iterator
     
     private function parseM($value)
     {
-        return ($value < -pow(10, 38)) ? false : $value;
+        return ($value < -pow(10, 38)) ? FALSE : $value;
     }
     
     
@@ -708,7 +708,7 @@ class ShapeFile implements \Iterator
     {
         $num_points = count($points);
         if ($num_points < 2) {
-            return true;
+            return TRUE;
         }
         
         $num_points--;
@@ -741,17 +741,17 @@ class ShapeFile implements \Iterator
         $ret        = null;
         switch ($geom_type) {
             case 1:
-                $m   = (!$this->flags[self::FLAG_SUPPRESS_M] && $coord_type > 0) ? $this->checkPointsM(array($data)) : false;
+                $m   = (!$this->flags[self::FLAG_SUPPRESS_M] && $coord_type > 0) ? $this->checkPointsM(array($data)) : FALSE;
                 $ret = 'POINT'.($z ? 'Z' : '').($m ? 'M' : '').$this->implodePoints(array($data), $z, $m);
                 break;
             
             case 8:
-                $m   = (!$this->flags[self::FLAG_SUPPRESS_M] && $coord_type > 0) ? $this->checkPointsM($data['points']) : false;
+                $m   = (!$this->flags[self::FLAG_SUPPRESS_M] && $coord_type > 0) ? $this->checkPointsM($data['points']) : FALSE;
                 $ret = 'MULTIPOINT'.($z ? 'Z' : '').($m ? 'M' : '').$this->implodePoints($data['points'], $z, $m);
                 break;
             
             case 3:
-                $m = (!$this->flags[self::FLAG_SUPPRESS_M] && $coord_type > 0) ? $this->checkPartsM($data['parts']) : false;
+                $m = (!$this->flags[self::FLAG_SUPPRESS_M] && $coord_type > 0) ? $this->checkPartsM($data['parts']) : FALSE;
                 if ($data['numparts'] == 1) {
                     $ret = 'LINESTRING'.($z ? 'Z' : '').($m ? 'M' : '').$this->implodeParts($data['parts'], $z, $m);
                 } else {
@@ -760,11 +760,11 @@ class ShapeFile implements \Iterator
                 break;
             
             case 5:
-                $m = false;
+                $m = FALSE;
                 if (!$this->flags[self::FLAG_SUPPRESS_M] && $coord_type > 0) {
                     foreach ($data['parts'] as $part) {
                         if ($this->checkPartsM($part['rings'])) {
-                            $m = true;
+                            $m = TRUE;
                             break;
                         }
                     }
@@ -787,20 +787,20 @@ class ShapeFile implements \Iterator
     {
         foreach ($parts as $part) {
             if ($this->checkPointsM($part['points'])) {
-                return true;
+                return TRUE;
             }
         }
-        return false;
+        return FALSE;
     }
     
     private function checkPointsM($points)
     {
         foreach ($points as $point) {
-            if ($point['m'] !== false) {
-                return true;
+            if ($point['m'] !== FALSE) {
+                return TRUE;
             }
         }
-        return false;
+        return FALSE;
     }
     
     private function implodeParts($parts, $flagZ, $flagM)

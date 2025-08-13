@@ -19,7 +19,7 @@ use PayPal\Service\PayPalAPIInterfaceServiceService;
 
 $config = array(
     "mode" => "live",
-    'log.LogEnabled' => true,
+    'log.LogEnabled' => TRUE,
     'log.FileName' => '/tmp/PayPalIPN.log',
     'log.LogLevel' => 'FINE',
     "acct1.UserName" => PAYPAL_USERNAME,

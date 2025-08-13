@@ -536,14 +536,14 @@ function message() {
                                                         $u->delete();
                                                         $newuser = null;
                                                         $pw = null;
-                                                        $hitwindow = true;
+                                                        $hitwindow = TRUE;
 
                                                         $u = User::get($dbhr, $dbhm, $uid2);
                                                         $eid = $u->getIdForEmail($email)['id'];
 
                                                         if ($u->getEmailPreferred() != $email) {
                                                             # The email specified is the one they currently want to use - make sure it's
-                                                            $u->addEmail($email, 1, true);
+                                                            $u->addEmail($email, 1, TRUE);
                                                         }
                                                     }
                                                 } else {

@@ -45,7 +45,7 @@ class GoogleGeocode extends GeoAdapter
     $url = "http://maps.googleapis.com/maps/api/geocode/json";
     $url .= '?address='. urlencode($address);
     $url .= $bounds_string;
-    $url .= '&sensor=false';
+    $url .= '&sensor=FALSE';
     $this->result = json_decode(@file_get_contents($url));
 
     if ($this->result->status == 'OK') {
@@ -96,7 +96,7 @@ class GoogleGeocode extends GeoAdapter
 
     $url = "http://maps.googleapis.com/maps/api/geocode/json";
     $url .= '?latlng='.$lat.','.$lon;
-    $url .= '&sensor=false';
+    $url .= '&sensor=FALSE';
     $this->result = json_decode(@file_get_contents($url));
 
     if ($this->result->status == 'OK') {

@@ -11,8 +11,8 @@ class Image {
     }
 
     public function fillTransparent() {
-        imagealphablending($this->img, false);
-        imagesavealpha($this->img, true);
+        imagealphablending($this->img, FALSE);
+        imagesavealpha($this->img, TRUE);
         $transparent = imagecolorallocatealpha($this->img, 255, 255, 255, 127);
         imagefill($this->img, 0, 0, $transparent);
         imagecolortransparent($this->img, $transparent);

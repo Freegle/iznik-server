@@ -32,7 +32,7 @@ class ModBot extends Entity
         $this->geminiClient = new Client(GOOGLE_GEMINI_API_KEY);
     }
 
-    public function reviewPost($postId, $createMicrovolunteering = false, $returnDebugInfo = false, $skipModRightsCheck = false)
+    public function reviewPost($postId, $createMicrovolunteering = FALSE, $returnDebugInfo = FALSE, $skipModRightsCheck = FALSE)
     {
         try {
             // 1) Get the subject and body of the message
@@ -56,10 +56,10 @@ class ModBot extends Entity
             }
             
             // Check if modbot has moderator privileges on any of these groups
-            $hasModerationRights = false;
+            $hasModerationRights = FALSE;
             foreach ($groups as $group) {
                 if ($this->user->isModOrOwner($group['groupid'])) {
-                    $hasModerationRights = true;
+                    $hasModerationRights = TRUE;
                     break;
                 }
             }
@@ -71,14 +71,14 @@ class ModBot extends Entity
             
             // If we don't have mod rights but are skipping the check, disable microvolunteering
             if (!$hasModerationRights && $skipModRightsCheck) {
-                $createMicrovolunteering = false; // Force disable microvolunteering when no mod rights
+                $createMicrovolunteering = FALSE; // Force disable microvolunteering when no mod rights
             }
             
             // 3) Get the rules JSON object from the group rules property
             $groupId = $groups[0]['groupid']; // Use first group for rules
             $g = Group::get($this->dbhr, $this->dbhm, $groupId);
             $groupData = $g->getPublic();
-            $rules = json_decode($groupData['rules'], true);
+            $rules = json_decode($groupData['rules'], TRUE);
             
             if (!$rules) {
                 $rules = [];
@@ -95,13 +95,13 @@ class ModBot extends Entity
             
             // Clean up the response to extract JSON
             $result = trim($result);
-            if (strpos($result, '```json') !== false) {
+            if (strpos($result, '```json') !== FALSE) {
                 $result = preg_replace('/```json\s*/', '', $result);
                 $result = preg_replace('/\s*```/', '', $result);
             }
             
             // 6) Return array of possible rules breached with probability for each
-            $violations = json_decode($result, true);
+            $violations = json_decode($result, TRUE);
             
             if (!is_array($violations)) {
                 return [];
@@ -178,16 +178,16 @@ class ModBot extends Entity
             $errorMessage = $e->getMessage();
             
             // Log quota exhaustion errors clearly
-            if (strpos($errorMessage, 'exceeded your current quota') !== false) {
+            if (strpos($errorMessage, 'exceeded your current quota') !== FALSE) {
                 error_log("ModBot: Daily API quota exhausted for post $postId");
             } else {
                 error_log("ModBot exception for post $postId (returnDebugInfo=$returnDebugInfo): " . $errorMessage);
             }
             
             // Don't log verbose rate limit errors
-            $isRateLimit = strpos($errorMessage, '429') !== false || 
-                          strpos($errorMessage, 'RESOURCE_EXHAUSTED') !== false ||
-                          strpos($errorMessage, 'quota') !== false;
+            $isRateLimit = strpos($errorMessage, '429') !== FALSE || 
+                          strpos($errorMessage, 'RESOURCE_EXHAUSTED') !== FALSE ||
+                          strpos($errorMessage, 'quota') !== FALSE;
             
             if (!$isRateLimit) {
                 error_log("ModBot error: " . $errorMessage);
@@ -275,14 +275,14 @@ class ModBot extends Entity
                 $errorMessage = $e->getMessage();
                 
                 // Check if it's a rate limit error (429)
-                $isRateLimit = strpos($errorMessage, '429') !== false || 
-                              strpos($errorMessage, 'RESOURCE_EXHAUSTED') !== false ||
-                              strpos($errorMessage, 'quota') !== false;
+                $isRateLimit = strpos($errorMessage, '429') !== FALSE || 
+                              strpos($errorMessage, 'RESOURCE_EXHAUSTED') !== FALSE ||
+                              strpos($errorMessage, 'quota') !== FALSE;
                 
                 if ($isRateLimit && $attempt < $maxRetries) {
                     // Check if it's a quota exhaustion (permanent until reset) vs rate limit (temporary)
-                    if (strpos($errorMessage, 'exceeded your current quota') !== false || 
-                        strpos($errorMessage, 'FreeTier') !== false) {
+                    if (strpos($errorMessage, 'exceeded your current quota') !== FALSE || 
+                        strpos($errorMessage, 'FreeTier') !== FALSE) {
                         // Daily quota exhausted - no point retrying
                         error_log("ModBot: Daily API quota exhausted. No retries will help until quota resets.");
                         throw $e;
@@ -356,7 +356,7 @@ class ModBot extends Entity
     {
         try {
             // Determine result based on violations found
-            $hasHighProbabilityViolations = false;
+            $hasHighProbabilityViolations = FALSE;
             $maxProbability = 0;
             $primaryViolation = '';
             
@@ -367,7 +367,7 @@ class ModBot extends Entity
                     $primaryViolation = $violation['rule'] ?? '';
                 }
                 if ($probability > 0.5) {
-                    $hasHighProbabilityViolations = true;
+                    $hasHighProbabilityViolations = TRUE;
                 }
             }
             
@@ -506,17 +506,17 @@ class ModBot extends Entity
         
         // Clean up any JSON formatting that might sneak in
         $response = trim($response);
-        if (strpos($response, '```json') !== false) {
+        if (strpos($response, '```json') !== FALSE) {
             $response = preg_replace('/```json\s*/', '', $response);
             $response = preg_replace('/\s*```/', '', $response);
         }
-        if (strpos($response, '```') !== false) {
+        if (strpos($response, '```') !== FALSE) {
             $response = preg_replace('/```.*?```/s', '', $response);
         }
         
         // If it's still JSON, try to extract the actual improvement text
         if (trim($response)[0] === '{') {
-            $decoded = json_decode($response, true);
+            $decoded = json_decode($response, TRUE);
             if (isset($decoded['improvement_suggestion'])) {
                 $response = $decoded['improvement_suggestion'];
             } elseif (isset($decoded['suggestion'])) {
@@ -550,16 +550,16 @@ class ModBot extends Entity
             
             // Clean up the response
             $result = trim($result);
-            if (strpos($result, '```json') !== false) {
+            if (strpos($result, '```json') !== FALSE) {
                 $result = preg_replace('/```json\s*/', '', $result);
                 $result = preg_replace('/\s*```/', '', $result);
             }
             
-            $violations = json_decode($result, true);
+            $violations = json_decode($result, TRUE);
             
             if (!is_array($violations)) {
                 return [
-                    'improved' => false, 
+                    'improved' => FALSE, 
                     'reason' => 'Invalid JSON response',
                     'modified_rule' => $modifiedDescription
                 ];
@@ -575,7 +575,7 @@ class ModBot extends Entity
                 
                 if ($rule === $trainingCase['related_rule'] && $probability >= $threshold) {
                     return [
-                        'improved' => true, 
+                        'improved' => TRUE, 
                         'probability' => $probability,
                         'reason' => "Rule '{$rule}' now detects violation with " . number_format($probability * 100, 1) . "% probability",
                         'modified_rule' => $modifiedDescription
@@ -591,7 +591,7 @@ class ModBot extends Entity
                 
                 if ($probability >= $ruleThreshold) {
                     return [
-                        'improved' => true,
+                        'improved' => TRUE,
                         'probability' => $probability,
                         'reason' => "Alternative rule '{$rule}' now detects violation with " . number_format($probability * 100, 1) . "% probability",
                         'modified_rule' => $modifiedDescription
@@ -600,14 +600,14 @@ class ModBot extends Entity
             }
             
             return [
-                'improved' => false, 
+                'improved' => FALSE, 
                 'reason' => 'No rules detected violation above threshold',
                 'modified_rule' => $modifiedDescription
             ];
             
         } catch (Exception $e) {
             return [
-                'improved' => false, 
+                'improved' => FALSE, 
                 'reason' => 'Error: ' . $e->getMessage(),
                 'modified_rule' => $modifiedDescription ?? 'Unknown'
             ];
@@ -627,7 +627,7 @@ class ModBot extends Entity
             $testRules[$focusRule] = [
                 'description' => $improvedDescription,
                 'threshold' => $ruleConfig[$focusRule]['threshold'],
-                'value' => true
+                'value' => TRUE
             ];
         }
         

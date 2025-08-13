@@ -115,7 +115,7 @@ class Spam {
         if ($ip && $this->reader) {
             if (!$fromTN) {
                 # We have an IP, we reckon.  It's unlikely that someone would fake an IP which gave a spammer match, so
-                # we don't have to worry too much about false positives.
+                # we don't have to worry too much about FALSE positives.
                 try {
                     $record = $this->reader->country($ip);
                     $country = $record->country->name;
@@ -131,7 +131,7 @@ class Spam {
                 $countries = $this->dbhr->preQuery("SELECT * FROM spam_countries WHERE country = ?;", [$country]);
                 foreach ($countries as $country) {
                     # Gotcha.
-                    return(array(true, Spam::REASON_COUNTRY_BLOCKED, "Blocking IP $ip as it's in {$country['country']}"));
+                    return(array(TRUE, Spam::REASON_COUNTRY_BLOCKED, "Blocking IP $ip as it's in {$country['country']}"));
                 }
             }
 
@@ -146,7 +146,7 @@ class Spam {
                 foreach ($users as $user) {
                     $list[] = $user['fromname'];
                 }
-                return(array(true, Spam::REASON_IP_USED_FOR_DIFFERENT_USERS, "IP $ip " . ($host ? "($host)" : "") . " recently used for $numusers different users (" . implode(', ', $list) . ")"));
+                return(array(TRUE, Spam::REASON_IP_USED_FOR_DIFFERENT_USERS, "IP $ip " . ($host ? "($host)" : "") . " recently used for $numusers different users (" . implode(', ', $list) . ")"));
             }
 
             # Now see if this IP has been used for too many different groups.  That's likely to
@@ -160,7 +160,7 @@ class Spam {
                 foreach ($groups as $group) {
                     $list[] = $group['nameshort'];
                 }
-                return(array(true, Spam::REASON_IP_USED_FOR_DIFFERENT_GROUPS, "IP $ip ($host) recently used for $numgroups different groups (" . implode(', ', $list) . ")"));
+                return(array(TRUE, Spam::REASON_IP_USED_FOR_DIFFERENT_GROUPS, "IP $ip ($host) recently used for $numgroups different groups (" . implode(', ', $list) . ")"));
             }
         }
 
@@ -186,7 +186,7 @@ class Spam {
                     }
 
                     if (!$found) {
-                        return (array(true, Spam::REASON_SUBJECT_USED_FOR_DIFFERENT_GROUPS, "Warning - subject $subj recently used on {$count['count']} groups"));
+                        return (array(TRUE, Spam::REASON_SUBJECT_USED_FOR_DIFFERENT_GROUPS, "Warning - subject $subj recently used on {$count['count']} groups"));
                     }
                 }
             }
@@ -200,7 +200,7 @@ class Spam {
 
         foreach ($counts as $count) {
             if ($count['count'] >= Spam::GROUP_THRESHOLD) {
-                return (array(true, Spam::REASON_BULK_VOLUNTEER_MAIL, "Warning - " . $msg->getEnvelopefrom() . " mailed {$count['count']} group volunteer addresses recently"));
+                return (array(TRUE, Spam::REASON_BULK_VOLUNTEER_MAIL, "Warning - " . $msg->getEnvelopefrom() . " mailed {$count['count']} group volunteer addresses recently"));
             }
         }
 
@@ -213,7 +213,7 @@ class Spam {
         foreach ($counts as $count) {
             if ($count['count'] >= Spam::GROUP_THRESHOLD) {
 //                mail("log@ehibbert.org.uk", "Spam subject " . $msg->getSubject(), "Warning - subject " . $msg->getSubject() . " mailed to {$count['count']} group volunteer addresses recently", [], '-fnoreply@modtools.org');
-                return (array(true, Spam::REASON_BULK_VOLUNTEER_MAIL, "Warning - subject " . $msg->getSubject() . " mailed to {$count['count']} group volunteer addresses recently"));
+                return (array(TRUE, Spam::REASON_BULK_VOLUNTEER_MAIL, "Warning - subject " . $msg->getSubject() . " mailed to {$count['count']} group volunteer addresses recently"));
             }
         }
 
@@ -248,14 +248,14 @@ class Spam {
             }
 
             if ($subjgreeting && $line1greeting || $line1greeting && $line3greeting) {
-                return (array(true, Spam::REASON_GREETING, "Message looks like a greetings spam"));
+                return (array(TRUE, Spam::REASON_GREETING, "Message looks like a greetings spam"));
             }
         }
 
         $spammail = $this->checkReferToSpammer($text);
 
         if ($spammail) {
-            return (array(true, Spam::REASON_REFERRED_TO_SPAMMER, "Refers to known spammer $spammail"));
+            return (array(TRUE, Spam::REASON_REFERRED_TO_SPAMMER, "Refers to known spammer $spammail"));
         }
 
         # Don't block spam from ourselves.
@@ -434,7 +434,7 @@ class Spam {
                 if (in_array($word['action'], $actions) &&
                     preg_match($exp, $message) &&
                     (!$word['exclude'] || !preg_match('/' . $word['exclude'] . '/i', $message))) {
-                    $ret = array(true, Spam::REASON_KNOWN_KEYWORD, "Refers to keyword '{$word['word']}'");
+                    $ret = array(TRUE, Spam::REASON_KNOWN_KEYWORD, "Refers to keyword '{$word['word']}'");
                 }
             }
         }
@@ -552,7 +552,7 @@ class Spam {
             }
 
             if ($count > Spam::SEEN_THRESHOLD) {
-                $suspect = true;
+                $suspect = TRUE;
                 $reason = "Seen on many groups";
             }
         }
@@ -1046,7 +1046,7 @@ AND reviewrejected != 1;");
 
             $dist = \GreatCircle::getDistance($minlat, $minlng, $maxlat, $maxlng);
             $dist = round($dist * 0.000621371192);
-            $settings = Utils::pres('settings', $dists[0]) ? json_decode($dists[0]['settings'], true) : [
+            $settings = Utils::pres('settings', $dists[0]) ? json_decode($dists[0]['settings'], TRUE) : [
                 'spammers' => [
                     'replydistance' => Spam::DISTANCE_THRESHOLD
                 ]
@@ -1072,7 +1072,7 @@ AND reviewrejected != 1;");
                         $userid
                     ]);
 
-                    $suspect = true;
+                    $suspect = TRUE;
                     $reason = "Replied to posts $dist miles apart (threshold on {$dists[0]['nameshort']} $replydist)";
                     $suspectgroups[] = $dists[0]['groupid'];
                 }

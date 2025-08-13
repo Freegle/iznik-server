@@ -486,7 +486,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         # Get the messages for review.
         $ret = $this->call('chatmessages', 'GET', []);
         $this->assertEquals(0, $ret['ret']);
-        error_log(var_export($ret['chatmessages'], true));
+        error_log(var_export($ret['chatmessages'], TRUE));
         $this->log("Messages for review " . var_export($ret, TRUE));
         $this->assertEquals(3, count($ret['chatmessages']));
         $this->assertEquals($mid1, $ret['chatmessages'][0]['id']);

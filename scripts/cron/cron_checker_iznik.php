@@ -38,12 +38,12 @@ function get_all_lines($file_handle) {
 
 function grep($path, $find, $andnot){ // Has "crontab" but not "(root) LIST (root)"
   $fh = fopen($path, 'r');
-  if( $fh===false) return $path." not found";
+  if( $fh===FALSE) return $path." not found";
 
   $rv = "";
 
   foreach (get_all_lines($fh) as $line) {
-    if ((strpos($line, $find)!==false) && (strpos($line, $andnot)===false)) {
+    if ((strpos($line, $find)!==FALSE) && (strpos($line, $andnot)===FALSE)) {
       $rv .= $path.": ".$line; // Has \r\n
     }
   }
@@ -54,11 +54,11 @@ function grep($path, $find, $andnot){ // Has "crontab" but not "(root) LIST (roo
 function checkFileChanges($srcDir,$lastDir,$checkfilename,$from){
   $msg = null;
   $lastPath = $lastDir.$checkfilename;
-  $lastFile = file_exists($lastPath) ? file_get_contents($lastPath) : false;
-  $lastFileLen = $lastFile!==false ? strlen($lastFile) : 0;
-  if( $lastFile===false || (strlen($from) !== $lastFileLen)){
+  $lastFile = file_exists($lastPath) ? file_get_contents($lastPath) : FALSE;
+  $lastFileLen = $lastFile!==FALSE ? strlen($lastFile) : 0;
+  if( $lastFile===FALSE || (strlen($from) !== $lastFileLen)){
     $msg = $srcDir.$checkfilename.": CHANGED: FROM length ".$lastFileLen." to ".strlen($from);
-    if( $lastFile!==false){
+    if( $lastFile!==FALSE){
       rename($lastPath,$lastPath."-last");
       $msg .= ". Previous file at ".$lastPath."-last";
     }
@@ -133,13 +133,13 @@ $statusfile = fopen("/var/lib/cron-check-required", "w"); // Overwrite
 
 if( strlen($report)===0) {
   $report = "No cron changes to report on ".gethostname()."\r\nMail not sent\r\n";
-  if( $statusfile!==false){
+  if( $statusfile!==FALSE){
     fwrite($statusfile, "cron check OK\r\n");
     fclose($statusfile);
   }
 } else {
   $report .= "\r\n Previous cron files at ".$cronlast."\r\n";
-  if( $statusfile!==false){
+  if( $statusfile!==FALSE){
     fwrite($statusfile, "cron check required\r\n");
     fclose($statusfile);
   }

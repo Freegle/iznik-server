@@ -73,7 +73,7 @@ class ModConfigAPITest extends IznikAPITestCase {
         $ret = $this->call('modconfig', 'GET', [
             'id' => $id
         ]);
-        $this->log("Returned " . var_export($ret, true));
+        $this->log("Returned " . var_export($ret, TRUE));
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals($id, $ret['config']['id']);
         $this->assertEquals($this->uid, $ret['config']['createdby']);

@@ -425,13 +425,13 @@ class Address
     protected function assembleAddressLines()
     {
         $this->assembleDebugFlags = array('errors' => array());
-        $processed = false;
-        $processingError = false;
+        $processed = FALSE;
+        $processingError = FALSE;
         $addressLines = array();
 
         // Take copies of the building name and number
         // This allows us to manipulate their values (specifically for the split building name rules)
-        // without affecting the object "true" values, while making later processing within this method simpler
+        // without affecting the object "TRUE" values, while making later processing within this method simpler
         $buildingName = $this->buildingName;
         $buildingNumber = $this->buildingNumber;
         if ($buildingNumber == 0) {
@@ -460,13 +460,13 @@ class Address
 
         if (strlen($buildingName)) {
             if (preg_match($ex4Regex, $buildingName)) {
-                $this->assembleDebugFlags['ex4BuildingName'] = true;
+                $this->assembleDebugFlags['ex4BuildingName'] = TRUE;
             }
         }
 
         if (strlen($this->subBuildingName)) {
             if (preg_match($ex4Regex, $this->subBuildingName)) {
-                $this->assembleDebugFlags['ex4SubBuildingName'] = true;
+                $this->assembleDebugFlags['ex4SubBuildingName'] = TRUE;
             }
         }
 
@@ -477,7 +477,7 @@ class Address
                 || preg_match('/\s[0-9]+\-[0-9]+$/', $buildingName)
             ) {
                 if (! preg_match($ex4Regex, $buildingName)) {
-                    $this->assembleDebugFlags['splitBuildingName'] = true;
+                    $this->assembleDebugFlags['splitBuildingName'] = TRUE;
                     $parts = explode(' ', $buildingName);
                     $buildingNumber = array_pop($parts);
                     $buildingName = join(' ', $parts);
@@ -505,7 +505,7 @@ class Address
         // Rule 1 - Organisation name only
         if (empty($this->subBuildingName) && empty($buildingName) && empty($buildingNumber)) {
             if (!empty($this->organizationName)) {
-                $processed = true;
+                $processed = TRUE;
                 $this->assembleDebugFlags['rule'] = 1;
 
                 // No actual manipulation code as the organization name is handled above
@@ -515,16 +515,16 @@ class Address
         // The following code is based on Table 20
         // Rule 2 - Building number only
         if (empty($this->subBuildingName) && empty($buildingName) && (! empty($buildingNumber))) {
-            $processed = true;
+            $processed = TRUE;
             $this->assembleDebugFlags['rule'] = 2;
 
-            $this->assembleDebugFlags['nlpBuildingNumber'] = true;
+            $this->assembleDebugFlags['nlpBuildingNumber'] = TRUE;
             $nextLinePrefix = $buildingNumber . ' ';
         }
 
         // Rule 3 - Building Name only
         if (empty($this->subBuildingName) && (! empty($buildingName)) && empty($buildingNumber)) {
-            $processed = true;
+            $processed = TRUE;
             $this->assembleDebugFlags['rule'] = 3;
 
             // Exceptions:
@@ -535,13 +535,13 @@ class Address
                 || preg_match('/^[0-9].*[0-9][a-zA-Z]$/', $buildingName)
                 || (strlen($buildingName) == 1)
             ) {
-                $this->assembleDebugFlags['exceptionBuildingName'] = true;
+                $this->assembleDebugFlags['exceptionBuildingName'] = TRUE;
                 if (!is_null($nextLinePrefix)) {
                     $this->assembleDebugFlags['errors'][] = 'NLP ' . __LINE__;
-                    $processingError = true;
+                    $processingError = TRUE;
                 }
 
-                $this->assembleDebugFlags['nlpBuildingName'] = true;
+                $this->assembleDebugFlags['nlpBuildingName'] = TRUE;
                 $nextLinePrefix = $buildingName;
                 if ((strlen($buildingName) == 1) && (! is_numeric($buildingName))) {
                     $nextLinePrefix .= ',';
@@ -554,10 +554,10 @@ class Address
 
         // Rule 4 - Building Name & Building Number
         if (empty($this->subBuildingName) && (! empty($buildingName) && (! empty($buildingNumber)))) {
-            $processed = true;
+            $processed = TRUE;
             $this->assembleDebugFlags['rule'] = 4;
 
-            $this->assembleDebugFlags['nlpBuildingNumber'] = true;
+            $this->assembleDebugFlags['nlpBuildingNumber'] = TRUE;
             $addressLines[] = $buildingName;
             $nextLinePrefix = $buildingNumber . ' ';
         }
@@ -566,20 +566,20 @@ class Address
         // The programmers guide talks about an exception involving the 'concatenation indicator',
         // But as far as I can see this field doesn't exist in the CSV format files
         if ((! empty($this->subBuildingName) && empty($buildingName) && (! empty($buildingNumber)))) {
-            $processed = true;
+            $processed = TRUE;
             $this->assembleDebugFlags['rule'] = 5;
 
-            $this->assembleDebugFlags['nlpBuildingNumber'] = true;
+            $this->assembleDebugFlags['nlpBuildingNumber'] = TRUE;
             $addressLines[] = $this->subBuildingName;
             $nextLinePrefix = $buildingNumber . ' ';
         }
 
         // Rule 6 - Sub Building Name & Building Name
         if ((! empty($this->subBuildingName)) && (! empty($buildingName)) && empty($buildingNumber)) {
-            $processed = true;
+            $processed = TRUE;
             $this->assembleDebugFlags['rule'] = 6;
 
-            $exceptionSubBuildingName = false;
+            $exceptionSubBuildingName = FALSE;
             // Exceptions:
             // i) First and last characters of the building name are numeric (eg. '1to1' or '100:1')
             // ii) First and penultimate characters are numeric, last character is alphabetic
@@ -588,15 +588,15 @@ class Address
                 || preg_match('/^[0-9].*[0-9][a-zA-Z]$/', $this->subBuildingName)
                 || (strlen($this->subBuildingName) == 1)
             ) {
-                $this->assembleDebugFlags['exceptionSubBuildingName'] = true;
-                $exceptionSubBuildingName = true;
+                $this->assembleDebugFlags['exceptionSubBuildingName'] = TRUE;
+                $exceptionSubBuildingName = TRUE;
 
                 if (!is_null($nextLinePrefix)) {
                     $this->assembleDebugFlags['errors'][] = 'NLP ' . __LINE__;
-                    $processingError = true;
+                    $processingError = TRUE;
                 }
 
-                $this->assembleDebugFlags['nlpSubBuildingName'] = true;
+                $this->assembleDebugFlags['nlpSubBuildingName'] = TRUE;
                 $nextLinePrefix = $this->subBuildingName;
                 if ((strlen($this->subBuildingName) == 1) && (! is_numeric($this->subBuildingName))) {
                     $nextLinePrefix .= ',';
@@ -615,14 +615,14 @@ class Address
                 || preg_match('/^[0-9].*[0-9][a-zA-Z]$/', $buildingName)
                 || (strlen($buildingName) == 1)
             ) {
-                $this->assembleDebugFlags['exceptionBuildingName'] = true;
+                $this->assembleDebugFlags['exceptionBuildingName'] = TRUE;
 
                 if ((strlen($nextLinePrefix)) && (!$exceptionSubBuildingName)) {
                     $addressLines[] = trim($nextLinePrefix);
                     $nextLinePrefix = null;
                 }
 
-                $this->assembleDebugFlags['nlpBuildingName'] = true;
+                $this->assembleDebugFlags['nlpBuildingName'] = TRUE;
                 $nextLinePrefix = trim(trim($nextLinePrefix) .' '. $buildingName);
                 if ((strlen($buildingName) == 1) && (! is_numeric($buildingName))) {
                     $nextLinePrefix .= ',';
@@ -636,7 +636,7 @@ class Address
 
         // Rule 7 - Sub building name, building name & building number
         if (! (empty($this->subBuildingName) || empty($buildingName) || (empty($buildingNumber)))) {
-            $processed = true;
+            $processed = TRUE;
             $this->assembleDebugFlags['rule'] = 7;
 
             // Exceptions:
@@ -647,13 +647,13 @@ class Address
                 || preg_match('/^[0-9].*[0-9][a-zA-Z]$/', $this->subBuildingName)
                 || (strlen($this->subBuildingName) == 1)
             ) {
-                $this->assembleDebugFlags['exceptionSubBuildingName'] = true;
+                $this->assembleDebugFlags['exceptionSubBuildingName'] = TRUE;
                 if (!is_null($nextLinePrefix)) {
                     $this->assembleDebugFlags['errors'][] = 'NLP ' . __LINE__;
-                    $processingError = true;
+                    $processingError = TRUE;
                 }
 
-                $this->assembleDebugFlags['nlpSubBuildingName'] = true;
+                $this->assembleDebugFlags['nlpSubBuildingName'] = TRUE;
                 $nextLinePrefix = $this->subBuildingName;
                 if ((strlen($this->subBuildingName) == 1) && (! is_numeric($this->subBuildingName))) {
                     $nextLinePrefix .= ',';
@@ -667,7 +667,7 @@ class Address
             $addressLines[] = (strlen($nextLinePrefix) ? trim($nextLinePrefix) . ' ' : '') . $buildingName;
             $nextLinePrefix = null;
 
-            $this->assembleDebugFlags['nlpBuildingNumber'] = true;
+            $this->assembleDebugFlags['nlpBuildingNumber'] = TRUE;
             $nextLinePrefix = (strlen($nextLinePrefix) ? trim($nextLinePrefix) . ' ' : '') . $buildingNumber;
         }
 
@@ -676,7 +676,7 @@ class Address
         // This occurred in the Y14M09 update - 8350793 / EH12 5DD (15Gf Eglinton Crescent)
         // And was still the same on the Royal Mail Postcode Lookup website data as of 2014-10-21
         if (empty($buildingName) && empty($buildingNumber) && (! empty($this->subBuildingName))) {
-            $processed = true;
+            $processed = TRUE;
             $this->assembleDebugFlags['rule'] = 'c1';
             $nextLinePrefix = $this->subBuildingName;
 
@@ -711,7 +711,7 @@ class Address
         // Yup, apparently there's addresses in the database with no locality / thoroughfare. Just a number.
         // UDPRNs affected as of 2014-02-06: 2431986 and 328392
         if (!is_null($nextLinePrefix)) {
-            $this->assembleDebugFlags['nlpAlone'] = true;
+            $this->assembleDebugFlags['nlpAlone'] = TRUE;
             $addressLines[] = $nextLinePrefix;
         }
 

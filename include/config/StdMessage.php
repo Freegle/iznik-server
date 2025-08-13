@@ -102,7 +102,7 @@ class StdMessage extends Entity
         return($rc);
     }
 
-    public function analyzeStandardMessages($daysBack = 90, $showProgress = false, $verbose = false, $threshold = 0.3) {
+    public function analyzeStandardMessages($daysBack = 90, $showProgress = FALSE, $verbose = FALSE, $threshold = 0.3) {
         require_once(IZNIK_BASE . '/include/ai/ModBot.php');
         
         $cutoffDate = date('Y-m-d H:i:s', strtotime("-{$daysBack} days"));
@@ -246,7 +246,7 @@ class StdMessage extends Entity
         return $groupedResults;
     }
 
-    private function analyzeMessageWithGemini($messageBody, $verbose = false) {
+    private function analyzeMessageWithGemini($messageBody, $verbose = FALSE) {
         $modBot = new \Freegle\Iznik\ModBot($this->dbhr, $this->dbhm);
         
         $prompt = $this->constructQualityAnalysisPrompt($messageBody);
@@ -255,12 +255,12 @@ class StdMessage extends Entity
             $rawResponse = $modBot->callGemini($prompt);
             
             $response = trim($rawResponse);
-            if (strpos($response, '```json') !== false) {
+            if (strpos($response, '```json') !== FALSE) {
                 $response = preg_replace('/```json\s*/', '', $response);
                 $response = preg_replace('/\s*```/', '', $response);
             }
             
-            $analysis = json_decode($response, true);
+            $analysis = json_decode($response, TRUE);
             
             if (!$analysis || !isset($analysis['analysis']) || !isset($analysis['suggestion'])) {
                 $result = [
@@ -348,7 +348,7 @@ class StdMessage extends Entity
         return $user->getEmailPreferred();
     }
 
-    private function analyzeMessagesInParallel($messages, $verbose = false, $threshold = 0.3, $showProgress = false) {
+    private function analyzeMessagesInParallel($messages, $verbose = FALSE, $threshold = 0.3, $showProgress = FALSE) {
         $batchSize = 10;
         $results = [];
         $totalMessages = count($messages);
@@ -383,7 +383,7 @@ class StdMessage extends Entity
         return $results;
     }
 
-    private function processBatchWithCurl($messages, $verbose = false) {
+    private function processBatchWithCurl($messages, $verbose = FALSE) {
         $modBot = new \Freegle\Iznik\ModBot($this->dbhr, $this->dbhm);
         $results = [];
         

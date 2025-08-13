@@ -16,10 +16,10 @@ function parse_signed_request($signed_request) {
 
     // decode the data
     $sig = base64_url_decode($encoded_sig);
-    $data = json_decode(base64_url_decode($payload), true);
+    $data = json_decode(base64_url_decode($payload), TRUE);
 
     // confirm the signature
-    $expected_sig = hash_hmac('sha256', $payload, $secret, $raw = true);
+    $expected_sig = hash_hmac('sha256', $payload, $secret, $raw = TRUE);
     if ($sig !== $expected_sig) {
         error_log('Bad Signed JSON signature!');
         return null;

@@ -50,7 +50,7 @@ class Utils {
         foreach($array as $key => $val){
             #error_log("$key type ". gettype($val) . " null? " . is_null($val) . " is_numeric ");
 
-            if ($skip && (array_search($key, $skip) !== false)) {
+            if ($skip && (array_search($key, $skip) !== FALSE)) {
                 # Asked to do nothing
             } else if (is_int($val)) {
                 # We don't want to filter out ints, even if they are 0 i.e. null.
@@ -538,7 +538,7 @@ class Utils {
         return "POLYGON(($swlng $swlat, $swlng $nelat, $nelng $nelat, $nelng $swlat, $swlng $swlat))";
     }
 
-    public static function levensteinSubstringContains($needle, $haystack, $maximalDistance = 2, $caseInsensitive = true)  {
+    public static function levensteinSubstringContains($needle, $haystack, $maximalDistance = 2, $caseInsensitive = TRUE)  {
         $lengthNeedle = strlen($needle);
         $lengthHaystack = strlen($haystack);
 
@@ -548,12 +548,12 @@ class Utils {
         }
 
         if ($lengthNeedle > $lengthHaystack) {
-            return false;
+            return FALSE;
         }
 
-        if (false !== strpos($haystack, $needle)) {
+        if (FALSE !== strpos($haystack, $needle)) {
 
-            return true;
+            return TRUE;
         }
 
         $i = 0;
@@ -563,11 +563,11 @@ class Utils {
             $levenshteinDistance = levenshtein($needle, $comparePart);
             if ($levenshteinDistance <= $maximalDistance) {
 
-                return true;
+                return TRUE;
             }
             $i++;
         }
 
-        return false;
+        return FALSE;
     }
 }

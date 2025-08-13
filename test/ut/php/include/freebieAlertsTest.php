@@ -50,7 +50,7 @@ class freebieAlertsTest extends IznikAPITestCase {
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => true,
+            'ignoregroupoverride' => TRUE,
             'email' => $email
         ]);
 

@@ -150,7 +150,7 @@ class Polygon extends Collection
    * @param boolean $pointOnVertex - whether a vertex should be considered "in" or not
    * @return boolean
    */
-  public function pointInPolygon($point, $pointOnBoundary = true, $pointOnVertex = true) {
+  public function pointInPolygon($point, $pointOnBoundary = TRUE, $pointOnVertex = TRUE) {
     $vertices = $this->getPoints();
 
     // Check if the point sits exactly on a vertex
@@ -201,7 +201,7 @@ class Polygon extends Collection
   public function pointOnVertex($point) {
     foreach($this->getPoints() as $vertex) {
       if ($point->equals($vertex)) {
-        return true;
+        return TRUE;
       }
     }
   }

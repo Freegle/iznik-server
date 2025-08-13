@@ -40,7 +40,7 @@ foreach ($users as $user)
 
     if (!$u->getPrivate('bouncing') && !$u->getPrivate('deleted') && $email)
     {
-        if (strpos($email, 'trashnothing') !== false)
+        if (strpos($email, 'trashnothing') !== FALSE)
         {
             $tn++;
         } else

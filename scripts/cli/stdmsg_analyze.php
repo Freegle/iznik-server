@@ -47,7 +47,7 @@ echo "Showing messages with improvement score >= $threshold\n\n";
 
 try {
     $stdMsg = new StdMessage($dbhr, $dbhm);
-    $results = $stdMsg->analyzeStandardMessages($daysBack, true, $verbose, $threshold);
+    $results = $stdMsg->analyzeStandardMessages($daysBack, TRUE, $verbose, $threshold);
     
     if (empty($results)) {
         echo "No standard message usage found in the specified time period.\n";

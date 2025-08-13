@@ -13,7 +13,7 @@ $ips = [];
 $logs = $dbhr->preQuery("SELECT request, ip FROM logs_api");
 
 foreach ($logs as $log) {
-    $request = json_decode($log['request'], true);
+    $request = json_decode($log['request'], TRUE);
     $headers = Utils::presdef('headers', $request, []);
     $ua = Utils::pres('User-Agent', $headers);
     $ip = $log['ip'];

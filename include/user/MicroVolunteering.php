@@ -59,7 +59,7 @@ class MicroVolunteering
             $u = new User($this->dbhr, $this->dbhm);
             $a = new Attachment($this->dbhr, $this->dbhm);
 
-            $users = $u->getPublicsById(array_unique(array_filter(array_column($items, 'userid'))), null, false, false, false, false);
+            $users = $u->getPublicsById(array_unique(array_filter(array_column($items, 'userid'))), null, FALSE, FALSE, FALSE, FALSE);
             $msgids = array_unique(array_filter(array_column($items, 'msgid')));
             $msgs = count($msgids) ? $this->dbhr->preQuery(
                 "SELECT id, subject FROM messages WHERE id IN (" . implode(',', $msgids) . ")"
@@ -110,7 +110,7 @@ class MicroVolunteering
                 if ($items[$itemind]['rotatedimage']) {
                     $items[$itemind]['rotatedimage'] = [
                         'id' => $items[$itemind]['rotatedimage'],
-                        'thumb' => $a->getPath(true, $items[$itemind]['rotatedimage'])
+                        'thumb' => $a->getPath(TRUE, $items[$itemind]['rotatedimage'])
                     ];
 
                     foreach ($imagemsgs as $imagemsg) {
@@ -146,7 +146,7 @@ class MicroVolunteering
 //                if (!$asked[0]['count']) {
 //                    $ret = [
 //                        'type' => self::CHALLENGE_SURVEY,
-//                        'url' => "https://docs.google.com/forms/d/e/1FAIpQLSfhO0f3MuyKIgJsAwsjEa6r_bzaEMqSgqA3H6P39ZflzQOS1w/viewform?embedded=true"
+//                        'url' => "https://docs.google.com/forms/d/e/1FAIpQLSfhO0f3MuyKIgJsAwsjEa6r_bzaEMqSgqA3H6P39ZflzQOS1w/viewform?embedded=TRUE"
 //                    ];
 //
 //                    $this->dbhm->preExec("INSERT INTO microactions (actiontype, userid, version) VALUES (?, ?, ?);", [
@@ -167,7 +167,7 @@ class MicroVolunteering
 
                 if (!$groupid) {
                     # Get all their groups.
-                    $groupids = $u->getMembershipGroupIds(false, Group::GROUP_FREEGLE, $userid);
+                    $groupids = $u->getMembershipGroupIds(FALSE, Group::GROUP_FREEGLE, $userid);
                 }
 
                 if (count($groupids)) {
@@ -300,7 +300,7 @@ class MicroVolunteering
 
     public function responsePhotoRotate($userid, $photoid, $result, $deg)
     {
-        $ret = false;
+        $ret = FALSE;
 
         try {
             $this->dbhm->preExec(
@@ -330,7 +330,7 @@ class MicroVolunteering
             $a = new Attachment($this->dbhr, $this->dbhm, $photoid, Attachment::TYPE_MESSAGE);
             $a->rotate($deg);
             $a->recordRotate();
-            $ret = true;
+            $ret = TRUE;
         }
 
         return $ret;
@@ -627,7 +627,7 @@ class MicroVolunteering
             {
                 $photos[] = [
                     'id' => $att['id'],
-                    'path' => $a->getPath(true, $att['id'])
+                    'path' => $a->getPath(TRUE, $att['id'])
                 ];
             }
 

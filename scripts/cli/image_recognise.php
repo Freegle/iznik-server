@@ -29,7 +29,7 @@ foreach ($msgs as $msg) {
         $msg['attid']
     ]);
 
-    $json = json_decode($recognise[0]['info'], true);
+    $json = json_decode($recognise[0]['info'], TRUE);
     $aisubject = $json['shortDescription'];
 
     // Remove trailing punctuation

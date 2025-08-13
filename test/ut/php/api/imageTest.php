@@ -60,7 +60,7 @@ class imageAPITest extends IznikAPITestCase
         $ret = $this->call('image', 'GET', [
             'id' => $img1,
             'w' => 100
-        ], FALSE);
+        ]);
 
         $a->delete();
         $g->delete();
@@ -225,7 +225,7 @@ class imageAPITest extends IznikAPITestCase
         // Get it back.  Will redirect but we don't have a good way to capture that in a test.
         $ret = $this->call('image', 'GET', [
             'id' => $id,
-        ], FALSE);
+        ]);
 
         $ret = $this->call('image', 'DELETE', [
             'id' => $id

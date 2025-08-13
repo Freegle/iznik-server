@@ -10,7 +10,7 @@ global $dbhr, $dbhm;
 
 // Parse command line arguments
 $feedUrl = REACH_FEED;
-$useNewFieldNames = false;
+$useNewFieldNames = FALSE;
 
 if ($argc > 1) {
     $feedUrl = $argv[1];

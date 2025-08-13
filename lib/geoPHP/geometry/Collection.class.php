@@ -244,7 +244,7 @@ abstract class Collection extends Geometry
     // To test for equality we check to make sure that there is a matching point
     // in the other geometry for every point in this geometry.
     // This is slightly more strict than the standard, which
-    // uses Within(A,B) = true and Within(B,A) = true
+    // uses Within(A,B) = TRUE and Within(B,A) = TRUE
     // @@TODO: Eventually we could fix this by using some sort of simplification
     // method that strips redundant vertices (that are all in a row)
 

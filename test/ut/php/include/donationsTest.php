@@ -34,7 +34,7 @@ class donationsTest extends IznikTestCase {
 
     public function sendMock($mailer, $message) {
         $this->msgsSent[] = $message->toString();
-        return true;
+        return TRUE;
     }
 
     public function testRecord() {
@@ -82,7 +82,7 @@ class donationsTest extends IznikTestCase {
 
         # Add consent.
         $gid = $d->setGiftAid($id, Donations::PERIOD_SINCE, 'Test User', 'Nowheresville');
-        $d->editGiftAid($gid, NULL, NULL, NULL, NULL, NULL, TRUE, FALSE);
+        $d->editGiftAid($gid, NULL, NULL, NULL, NULL, NULL, TRUE);
 
         $_SESSION['id'] = $id;
         $this->assertTrue($u->getPublic()['donor']);
@@ -128,7 +128,7 @@ class donationsTest extends IznikTestCase {
 
         # Add consent.
         $gid = $d->setGiftAid($id, Donations::PERIOD_PAST_4_YEARS_AND_FUTURE, 'Test User', 'Nowheresville');
-        $d->editGiftAid($gid, NULL, NULL, NULL, NULL, NULL, TRUE, FALSE);
+        $d->editGiftAid($gid, NULL, NULL, NULL, NULL, NULL, TRUE);
 
         $_SESSION['id'] = $id;
         $this->assertTrue($u->getPublic()['donor']);
@@ -162,7 +162,7 @@ class donationsTest extends IznikTestCase {
 
         # Add consent.
         $gid = $d->setGiftAid($id, Donations::PERIOD_THIS, 'Test User', 'Nowheresville');
-        $d->editGiftAid($gid, NULL, NULL, NULL, NULL, NULL, TRUE, FALSE);
+        $d->editGiftAid($gid, NULL, NULL, NULL, NULL, NULL, TRUE);
 
         $this->assertEquals(1, $d->identifyGiftAidedDonations($gid));
 
@@ -194,7 +194,7 @@ class donationsTest extends IznikTestCase {
 
         # Add consent.
         $gid = $d->setGiftAid($id, Donations::PERIOD_FUTURE, 'Test User', 'Nowheresville');
-        $d->editGiftAid($gid, NULL, NULL, NULL, NULL, NULL, TRUE, FALSE);
+        $d->editGiftAid($gid, NULL, NULL, NULL, NULL, NULL, TRUE);
 
         $this->assertEquals(2, $d->identifyGiftAidedDonations($gid));
 
@@ -255,7 +255,7 @@ class donationsTest extends IznikTestCase {
             $settings['lastbirthdayappeal'] = date('Y-m-d H:i:s');
             $u->setPrivate('settings', json_encode($settings));
             
-            return true;
+            return TRUE;
         }));
         
         $d = new Donations($this->dbhr, $this->dbhm);

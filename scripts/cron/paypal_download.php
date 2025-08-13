@@ -19,7 +19,7 @@ use PayPal\Service\PayPalAPIInterfaceServiceService;
 
 $config = array(
     "mode" => "live",
-    'log.LogEnabled' => true,
+    'log.LogEnabled' => TRUE,
     'log.FileName' => '/tmp/PayPal.log',
     'log.LogLevel' => 'FINE',
     "acct1.UserName" => PAYPAL_USERNAME,
@@ -46,7 +46,7 @@ try {
             $tranSearchReq = new TransactionSearchReq();
             $tranSearchReq->TransactionSearchRequest = $transactionSearchRequest;
             $transactionSearchResponse = $paypalService->TransactionSearch($tranSearchReq);
-            $transactions = json_decode(json_encode($transactionSearchResponse->PaymentTransactions), true);
+            $transactions = json_decode(json_encode($transactionSearchResponse->PaymentTransactions), TRUE);
 
             if (gettype($transactions) == 'array') {
                 foreach ($transactions as $transaction) {

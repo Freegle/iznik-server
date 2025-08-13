@@ -97,7 +97,7 @@ class bulkOpAPITest extends IznikAPITestCase {
         $ret = $this->call('bulkop', 'GET', [
             'id' => $id
         ]);
-        $this->log("Returned " . var_export($ret, true));
+        $this->log("Returned " . var_export($ret, TRUE));
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals($id, $ret['bulkop']['id']);
 

@@ -98,7 +98,7 @@ class stdMessageAPITest extends IznikAPITestCase {
         $ret = $this->call('stdmsg', 'GET', [
             'id' => $id
         ]);
-        $this->log("Returned " . var_export($ret, true));
+        $this->log("Returned " . var_export($ret, TRUE));
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals($id, $ret['stdmsg']['id']);
         $this->assertEquals('Reject', $ret['stdmsg']['action']);

@@ -53,7 +53,7 @@ class ModConfigTest extends IznikTestCase {
 
         # Another mod on this group with no config set up should pick this one up as shared.
         $this->log("Another mod");
-        $c->setPrivate('default', FALSE);
+        $c->setPrivate('default');
         list($u2, $uid2, $emailid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
         $u2->addMembership($group1, User::ROLE_OWNER);
         $this->assertEquals($id, $c->getForGroup($uid, $group1));
@@ -172,9 +172,9 @@ class ModConfigTest extends IznikTestCase {
         $c = new ModConfig($this->dbhr, $this->dbhm, $id);
         $c2 = new ModConfig($this->dbhr, $this->dbhm, $id2);
         $oldatts = $c->getPublic();
-        $this->log("Old " . var_export($oldatts, true));
+        $this->log("Old " . var_export($oldatts, TRUE));
         $newatts = $c2->getPublic();
-        $this->log("New " . var_export($newatts, true));
+        $this->log("New " . var_export($newatts, TRUE));
 
         # Should have created a message order during the copy.
         $this->assertNull($oldatts['messageorder']);

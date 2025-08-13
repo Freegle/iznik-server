@@ -337,7 +337,7 @@ try{
     }
 
     // Get external_id from Discourse ie MT user id - and last_emailed_at 
-    $external_id = false;
+    $external_id = FALSE;
     $fulluser = GetUser($user->id,$user->username);
     //echo "fulluser: ".print_r($fulluser)."\r\n";
     if( $fulluser->bounce_score>=400) {
@@ -401,8 +401,8 @@ try{
       usleep(250000);
       $user2 = GetUser2($user->id,$user->username);
 
-      $gettingAnyMails = false;
-      //echo print_r($user2->watched_category_ids,true)."\r\n";
+      $gettingAnyMails = FALSE;
+      //echo print_r($user2->watched_category_ids,TRUE)."\r\n";
       //echo "watched_category_ids: ".count($user2->watched_category_ids)."\r\n";
       //echo "watched_first_post_category_ids: ".count($user2->watched_first_post_category_ids)."\r\n";
       //echo "tracked_category_ids: ".count($user2->tracked_category_ids)."\r\n";
@@ -411,21 +411,21 @@ try{
       $trackedGroups = count($user2->tracked_category_ids);
       if( ($watchedGroups+$watchedGroupsFirstPost+$trackedGroups)>0) {
         $watchingcount++;
-        $gettingAnyMails = true;
+        $gettingAnyMails = TRUE;
       }
 
-      $mlm = false;
+      $mlm = FALSE;
       if (property_exists($user2, 'user_option')){
         $mlm2 = $user2->user_option->mailing_list_mode;
         if( is_bool($mlm2) && $mlm2) {
-          $mlm = true;
+          $mlm = TRUE;
           $mailinglistmode++;
-          $gettingAnyMails = true;
+          $gettingAnyMails = TRUE;
         }
         $eg = $user2->user_option->email_digests;
         if( is_bool($eg) && $eg) {
           $email_digests++;
-          $gettingAnyMails = true;
+          $gettingAnyMails = TRUE;
         }
       
       } else echo "NO USER OPTIONS\r\n";
@@ -501,7 +501,7 @@ try{
   echo $report;
   echo "\r\n";
 
-  $mailedcentralmods = false;
+  $mailedcentralmods = FALSE;
   $subject = 'Discourse checkuser OK';
   
   if( $notmod || $notuser){
@@ -517,7 +517,7 @@ try{
     //$sent = mail(CENTRALMODS_ADDR, $subject, $report,$headers);
     echo "Mail sent to centralmods: ".$numSent."\r\n";
     $report = "Mail sent to centralmods: ".$numSent."\r\n".$report;
-    $mailedcentralmods = true;
+    $mailedcentralmods = TRUE;
   }
 
   if( !$mailedcentralmods && (date('w')==6)){

@@ -38,7 +38,7 @@ foreach ($donations as $donation) {
     $key = "{$donation['TransactionID']}";
 
     if (!Utils::pres($key, $dups)) {
-        $dups[$key] = true;
+        $dups[$key] = TRUE;
 
         $u = User::get($dbhr, $dbhm, $donation['userid']);
 

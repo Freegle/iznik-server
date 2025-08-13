@@ -10,15 +10,15 @@ class Tus {
 
         $url = TUS_UPLOADER;
         $chkAlgo = "crc32";
-        $fileChk = base64_encode(hash($chkAlgo, $data, true));
+        $fileChk = base64_encode(hash($chkAlgo, $data, TRUE));
         $fileLen = strlen($data);
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_NOBODY, true);
-        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_NOBODY, TRUE);
+        curl_setopt($ch, CURLOPT_HEADER, TRUE);
         $headers = [
             "Tus-Resumable" => "1.0.0",
             "Content-Type" => "application/offset+octet-stream",
@@ -60,8 +60,8 @@ class Tus {
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "HEAD");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_NOBODY, true);
-        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_NOBODY, TRUE);
+        curl_setopt($ch, CURLOPT_HEADER, TRUE);
         $headers = [
             "Tus-Resumable" => "1.0.0",
             "Content-Type" => "application/offset+octet-stream",
@@ -85,7 +85,7 @@ class Tus {
         }, $headers);
         $header = array_filter($headers, function ($value) {
             if ($value[0] === "Upload-Offset") {
-                return true;
+                return TRUE;
             }
         });
 
@@ -102,7 +102,7 @@ class Tus {
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PATCH");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_HEADER, TRUE);
         $headers = [
             "Content-Type" => "application/offset+octet-stream",
             "Tus-Resumable" => "1.0.0",

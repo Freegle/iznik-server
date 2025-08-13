@@ -36,9 +36,9 @@ class ModBotTest extends IznikTestCase {
         $this->group = Group::get($this->dbhr, $this->dbhm, $this->gid);
         $this->group->setPrivate('onhere', 1);
         $this->group->setPrivate('rules', json_encode([
-            'weapons' => true,
-            'alcohol' => true,
-            'businessads' => false
+            'weapons' => TRUE,
+            'alcohol' => TRUE,
+            'businessads' => FALSE
         ]));
 
         $u = new User($this->dbhr, $this->dbhm);
@@ -89,10 +89,10 @@ class ModBotTest extends IznikTestCase {
             
             if (is_array($result) && isset($result['violations'])) {
                 # Should detect weapons rule violation
-                $foundWeapons = false;
+                $foundWeapons = FALSE;
                 foreach ($result['violations'] as $violation) {
                     if (isset($violation['rule']) && $violation['rule'] === 'weapons') {
-                        $foundWeapons = true;
+                        $foundWeapons = TRUE;
                         $this->assertGreaterThan(0.1, $violation['probability']);
                         break;
                     }

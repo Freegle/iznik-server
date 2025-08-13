@@ -56,7 +56,7 @@ try {
 
         if ($job) {
             try {
-                $data = json_decode($job->getData(), true);
+                $data = json_decode($job->getData(), TRUE);
 
                 if ($data) {
                     switch ($data['type']) {

@@ -35,7 +35,7 @@ if ($uid) {
             'chatids' => [],
             'content-available' => 1,
             'image' => "www/images/user_logo.png",
-            'modtools' => false,
+            'modtools' => FALSE,
             'sound' => 'default',
             'route' => '/give'
         ]);

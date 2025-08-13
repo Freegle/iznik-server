@@ -42,7 +42,7 @@ class XmppPrebind {
 	protected $boshUri    = '';
 	protected $resource   = '';
 
-	protected $debug = false;
+	protected $debug = FALSE;
 	/**
 	 * FirePHP Instance
 	 *
@@ -50,8 +50,8 @@ class XmppPrebind {
 	 */
 	protected $firePhp = null;
 
-	protected $useGzip = false;
-	protected $useSsl = false;
+	protected $useGzip = FALSE;
+	protected $useSsl = FALSE;
 	protected $encryption = self::ENCRYPTION_PLAIN;
 
 	protected $jid = '';
@@ -60,8 +60,8 @@ class XmppPrebind {
 	protected $rid = '';
 	protected $sid = '';
 
-	protected $doSession = false;
-	protected $doBind    = false;
+	protected $doSession = FALSE;
+	protected $doBind    = FALSE;
 
 	protected $mechanisms = array();
 
@@ -93,7 +93,7 @@ class XmppPrebind {
 	 * @param bool   $useSsl     Use SSL (not working yet, TODO)
 	 * @param bool   $debug      Enable debug
 	 */
-	public function __construct($jabberHost, $boshUri, $resource, $useSsl = false, $debug = false) {
+	public function __construct($jabberHost, $boshUri, $resource, $useSsl = FALSE, $debug = FALSE) {
 		$this->jabberHost = $jabberHost;
 		$this->boshUri    = $boshUri;
 		$this->resource   = $resource;
@@ -101,14 +101,14 @@ class XmppPrebind {
 		$this->useSsl = $useSsl;
 
 		$this->debug = $debug;
-		if ($this->debug ==  true) {
-			$this->firePhp = FirePHP::getInstance(true);
-			$this->firePhp->setEnabled(true);
+		if ($this->debug ==  TRUE) {
+			$this->firePhp = FirePHP::getInstance(TRUE);
+			$this->firePhp->setEnabled(TRUE);
 		}
 
 		/* TODO: Not working
 		 if (function_exists('gzinflate')) {
-			$this->useGzip = true;
+			$this->useGzip = TRUE;
 		}*/
 
 		/*
@@ -134,7 +134,7 @@ class XmppPrebind {
 	 * @param string $password Password
 	 * @param string $route Route
 	 */
-	public function connect($username, $password, $route = false) {
+	public function connect($username, $password, $route = FALSE) {
 		$this->jid      = $username . '@' . $this->jabberHost;
 
 		if($this->resource) {
@@ -223,7 +223,7 @@ class XmppPrebind {
 		$this->sendBindIfRequired();
 		$this->sendSessionIfRequired();
 
-		return true;
+		return TRUE;
 	}
 
 	/**
@@ -278,7 +278,7 @@ class XmppPrebind {
 		$body = self::getBodyFromDomDocument($domDocument);
 		$body->appendChild(self::getNewTextAttribute($domDocument, 'to', $this->jabberHost));
 		$body->appendChild(self::getNewTextAttribute($domDocument, 'xmlns:xmpp', self::XMLNS_BOSH));
-		$body->appendChild(self::getNewTextAttribute($domDocument, 'xmpp:restart', 'true'));
+		$body->appendChild(self::getNewTextAttribute($domDocument, 'xmpp:restart', 'TRUE'));
 
 		$restartResponse = $this->send($domDocument->saveXML());
 
@@ -287,9 +287,9 @@ class XmppPrebind {
 			if ($bodyChildNodes->nodeName ==  'stream:features') {
 				foreach ($bodyChildNodes->childNodes as $streamFeatures) {
 					if ($streamFeatures->nodeName ==  'bind') {
-						$this->doBind = true;
+						$this->doBind = TRUE;
 					} elseif ($streamFeatures->nodeName ==  'session') {
-						$this->doSession = true;
+						$this->doSession = TRUE;
 					}
 				}
 			}
@@ -325,7 +325,7 @@ class XmppPrebind {
 
 			return $this->send($domDocument->saveXML());
 		}
-		return false;
+		return FALSE;
 	}
 
 	/**
@@ -349,7 +349,7 @@ class XmppPrebind {
 
 			return $this->send($domDocument->saveXML());
 		}
-		return false;
+		return FALSE;
 	}
 
 	/**
@@ -358,7 +358,7 @@ class XmppPrebind {
 	 * @param string $route
 	 * @return string Response
 	 */
-	protected function sendInitialConnection($route = false) {
+	protected function sendInitialConnection($route = FALSE) {
 		$domDocument = $this->buildBody();
 		$body = self::getBodyFromDomDocument($domDocument);
 
@@ -512,7 +512,7 @@ class XmppPrebind {
 		curl_setopt($ch, CURLOPT_HEADER, 0);
 		curl_setopt($ch, CURLOPT_POST, 1);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $xml);
-		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
 
 		$header = array('Content-Type: ' . self::CONTENT_TYPE);
 		if ($this->useGzip) {
@@ -568,7 +568,7 @@ class XmppPrebind {
 			}
 			return gzinflate( substr($gzData, $i, -8) );
 		} else {
-			return false;
+			return FALSE;
 		}
 	}
 

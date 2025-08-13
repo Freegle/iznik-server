@@ -118,7 +118,7 @@ class adminAPITest extends IznikAPITestCase
         # Send again with an email present - still none as pending.
         $this->user->addEmail('test@blackhole.io', 1, TRUE);
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-        $eid = $this->user->addEmail($email, 0, FALSE);
+        $eid = $this->user->addEmail($email, 0);
         $this->user->addMembership($this->groupid, User::ROLE_MODERATOR, $eid);
         $this->assertEquals(0, $a->process($id, TRUE));
 

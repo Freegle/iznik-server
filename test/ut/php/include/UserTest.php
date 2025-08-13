@@ -201,12 +201,9 @@ class userTest extends IznikTestCase {
     }
 
     public function testLogins() {
-        list($u, $id) = $this->createTestUserWithLogin('Test User', 'testpw');
-        // Remove the default email for this test
-        $emails = $u->getEmails();
-        foreach ($emails as $email) {
-            $u->removeEmail($email['id']);
-        }
+        // Create user without login to match original test pattern
+        $u = User::get($this->dbhm, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
         $this->assertEquals(0, count($u->getEmails()));
 
         # Add a login - should work.
@@ -434,8 +431,8 @@ class userTest extends IznikTestCase {
         $this->assertTrue($u1->merge($id1, $id2, "UT"));
 
         # Pick up new settings.
-        $u1 = new User($this->dbhm, $this->dbhm, $id1, FALSE);
-        $u2 = new User($this->dbhm, $this->dbhm, $id2, FALSE);
+        $u1 = new User($this->dbhm, $this->dbhm, $id1);
+        $u2 = new User($this->dbhm, $this->dbhm, $id2);
 
         $this->log("Check post merge $id1 on $group2");
         $this->assertEquals(1, $u1->getGroupSettings($group2)['test'] );
@@ -457,7 +454,7 @@ class userTest extends IznikTestCase {
         $this->assertEquals(User::ROLE_MODERATOR, $membs[2]['role']);
 
         $emails = $u1->getEmails();
-        $this->log("Emails " . var_export($emails, true));
+        $this->log("Emails " . var_export($emails, TRUE));
         $this->assertEquals(2, count($emails));
         $this->assertEquals('test1@test.com', $emails[0]['email']);
         $this->assertEquals(1, $emails[0]['preferred']);
@@ -643,7 +640,7 @@ class userTest extends IznikTestCase {
         ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
         ->setMethods(array('mailer'))
         ->getMock();
-        $u->method('mailer')->willReturn(false);
+        $u->method('mailer')->willReturn(FALSE);
         $this->assertGreaterThan(0, $u->addEmail('test@test.com'));
         $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($u->login('testpw'));
@@ -764,7 +761,7 @@ class userTest extends IznikTestCase {
             $u2->addMembership($gid, $mod ? User::ROLE_MODERATOR : User::ROLE_MEMBER);
             $u1->processMemberships();
 
-            $u2 = User::get($this->dbhr, $this->dbhm, $id2, FALSE);
+            $u2 = User::get($this->dbhr, $this->dbhm, $id2);
             $this->waitBackground();
             $atts = $u2->getPublic();
 
@@ -1040,7 +1037,7 @@ class userTest extends IznikTestCase {
         $uid = $u->create("Test", "User", "Test User");
         $this->log("Created user $uid");
         $eid = $u->addEmail('test@gmail.com');
-        $u->setSetting('useprofile', FALSE);
+        $u->setSetting('useprofile');
         User::clearCache();
         $u = new User($this->dbhr, $this->dbhm, $uid);
         $atts = $u->getPublic();
@@ -1137,13 +1134,13 @@ class userTest extends IznikTestCase {
 
     public function exportParams() {
         return([
-            [ true, 24, 24 ],
-            [ false, 12, 12 ],
-            [ false, 4, 4 ],
-            [ false, 2, 2 ],
-            [ false, 1, 1 ],
-            [ false, 0, 0 ],
-            [ false, -1, -1 ]
+            [ TRUE, 24, 24 ],
+            [ FALSE, 12, 12 ],
+            [ FALSE, 4, 4 ],
+            [ FALSE, 2, 2 ],
+            [ FALSE, 1, 1 ],
+            [ FALSE, 0, 0 ],
+            [ FALSE, -1, -1 ]
         ]);
     }
 
@@ -1561,9 +1558,9 @@ class userTest extends IznikTestCase {
             Utils::randstr(32),
             Utils::randstr(32),
             Utils::randstr(32)
-        ], FALSE);
+        ]);
 
-        $atts = $u->getPublic(NULL, TRUE, TRUE, TRUE, TRUE, FALSE, TRUE, [ MessageCollection::APPROVED ], FALSE);
+        $atts = $u->getPublic(NULL, TRUE, TRUE, TRUE, TRUE, FALSE, TRUE, [ MessageCollection::APPROVED ]);
         $this->assertEquals(1, count($atts['emailhistory']));
     }
 

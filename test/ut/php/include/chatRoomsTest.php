@@ -949,8 +949,8 @@ class chatRoomsTest extends IznikTestCase {
         $this->assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
 
         # Chat still shouldn't show in the list for this user.
-        $this->assertNull($r->listForUser(FALSE, $u1, NULL, NULL, FALSE));
-        self::assertEquals(1, count($r->listForUser(FALSE, $u2, NULL, NULL, FALSE)));
+        $this->assertNull($r->listForUser(FALSE, $u1, NULL, NULL));
+        self::assertEquals(1, count($r->listForUser(FALSE, $u2, NULL, NULL)));
  }
 
     public function testBlockAndView() {
@@ -987,8 +987,8 @@ class chatRoomsTest extends IznikTestCase {
         $this->assertEquals($id2, $id);
 
         # Chat still shouldn't show in the list for this user.
-        $this->assertNull($r->listForUser(FALSE, $u1, NULL, NULL, FALSE));
-        self::assertEquals(1, count($r->listForUser(FALSE, $u2, NULL, NULL, FALSE)));
+        $this->assertNull($r->listForUser(FALSE, $u1, NULL, NULL));
+        self::assertEquals(1, count($r->listForUser(FALSE, $u2, NULL, NULL)));
     }
 
     public function testReadReceipt() {
@@ -1093,7 +1093,7 @@ class chatRoomsTest extends IznikTestCase {
         $this->assertNotNull($id);
         $r = new ChatRoom($this->dbhr, $this->dbhm, $id);
         $_SESSION['id'] = $uid3;
-        $this->assertTrue($r->canSee($uid3, FALSE));
+        $this->assertTrue($r->canSee($uid3));
     }
 
     public function testCanSeeAsMod() {
@@ -1113,7 +1113,7 @@ class chatRoomsTest extends IznikTestCase {
         $this->assertNotNull($id);
         $r = new ChatRoom($this->dbhr, $this->dbhm, $id);
         $_SESSION['id'] = $uid3;
-        $this->assertFalse($r->canSee($uid3, FALSE));
+        $this->assertFalse($r->canSee($uid3));
         $this->assertTrue($r->canSee($uid3, TRUE));
 
         $r = new ChatRoom($this->dbhr, $this->dbhm);
@@ -1121,7 +1121,7 @@ class chatRoomsTest extends IznikTestCase {
         $this->assertNotNull($id);
         $r = new ChatRoom($this->dbhr, $this->dbhm, $id);
         $_SESSION['id'] = $uid3;
-        $this->assertFalse($r->canSee($uid2, FALSE));
+        $this->assertFalse($r->canSee($uid2));
         $this->assertTrue($r->canSee($uid3, TRUE));
     }
 
@@ -1290,9 +1290,9 @@ class chatRoomsTest extends IznikTestCase {
         $m = new ChatMessage($this->dbhr, $this->dbhm);
         list ($cm, $banned) = $m->create($id, $u2, "test1", ChatMessage::TYPE_DEFAULT, NULL, TRUE);
         $this->assertNotNull($cm);
-        list ($cm, $banned) = $m->create($id, $u1, "test2", ChatMessage::TYPE_DEFAULT, NULL, FALSE);
+        list ($cm, $banned) = $m->create($id, $u1, "test2", ChatMessage::TYPE_DEFAULT, NULL);
         $this->assertNotNull($cm);
-        list ($cm, $banned) = $m->create($id, $u1, "test3", ChatMessage::TYPE_PROMISED, NULL, FALSE);
+        list ($cm, $banned) = $m->create($id, $u1, "test3", ChatMessage::TYPE_PROMISED, NULL);
         $this->assertNotNull($cm);
 
         $r = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
@@ -1355,7 +1355,7 @@ class chatRoomsTest extends IznikTestCase {
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
         $mr = new MailRouter($this->dbhm, $this->dbhm);
-//        $this->dbhm->errorLog = true;
+//        $this->dbhm->errorLog = TRUE;
         list ($mid, $failok) = $mr->received(Message::EMAIL, 'from2@test.com', "notify-$id-$u2@" . USER_DOMAIN, $msg);
         $rc = $mr->route();
         $this->assertEquals(MailRouter::TO_USER, $rc);
@@ -1426,14 +1426,14 @@ class chatRoomsTest extends IznikTestCase {
         # u2 sends two replies.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
         $mr = new MailRouter($this->dbhm, $this->dbhm);
-//        $this->dbhm->errorLog = true;
+//        $this->dbhm->errorLog = TRUE;
         list ($mid, $failok) = $mr->received(Message::EMAIL, 'from2@test.com', "notify-$id-$u2@" . USER_DOMAIN, $msg);
         $rc = $mr->route();
         $this->assertEquals(MailRouter::TO_USER, $rc);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
         $mr = new MailRouter($this->dbhm, $this->dbhm);
-//        $this->dbhm->errorLog = true;
+//        $this->dbhm->errorLog = TRUE;
         list ($mid, $failok) = $mr->received(Message::EMAIL, 'from2@test.com', "notify-$id-$u2@" . USER_DOMAIN, $msg);
         $rc = $mr->route();
         $this->assertEquals(MailRouter::TO_USER, $rc);
@@ -1466,7 +1466,7 @@ class chatRoomsTest extends IznikTestCase {
         # u2 sends a reply.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
         $mr = new MailRouter($this->dbhm, $this->dbhm);
-//        $this->dbhm->errorLog = true;
+//        $this->dbhm->errorLog = TRUE;
         list ($mid, $failok) = $mr->received(Message::EMAIL, 'from2@test.com', "notify-$id-$u2@" . USER_DOMAIN, $msg);
         $rc = $mr->route();
         $this->assertEquals(MailRouter::TO_USER, $rc);
@@ -1540,9 +1540,9 @@ class chatRoomsTest extends IznikTestCase {
         # Two messages from FD user. Don't process inline - we're testing a case where the user would be using the Go API.
         $m = new ChatMessage($this->dbhr, $this->dbhm);
 
-        list ($cmid2, $banned) = $m->create($id, $u1, "test2", ChatMessage::TYPE_DEFAULT, NULL, FALSE, NULL, NULL, NULL, NULL, NULL, FALSE, FALSE, FALSE);
+        list ($cmid2, $banned) = $m->create($id, $u1, "test2", ChatMessage::TYPE_DEFAULT, NULL, FALSE, NULL, NULL, NULL, NULL, NULL, FALSE, FALSE);
         $this->assertNotNull($cmid2);
-        list ($cmid3, $banned) = $m->create($id, $u1, "test3", ChatMessage::TYPE_DEFAULT, NULL, FALSE, NULL, NULL, NULL, NULL, NULL, FALSE, FALSE, FALSE);
+        list ($cmid3, $banned) = $m->create($id, $u1, "test3", ChatMessage::TYPE_DEFAULT, NULL, FALSE, NULL, NULL, NULL, NULL, NULL, FALSE, FALSE);
         $this->assertNotNull($cmid3);
 
         $r = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
@@ -1558,7 +1558,7 @@ class chatRoomsTest extends IznikTestCase {
         $this->processChats(TRUE);
 
         # Add mod note.  This will be processed inline and should be held for review since the previous ones are.
-        list ($cmid4, $banned) = $m->create($id, $u3, "test3", ChatMessage::TYPE_MODMAIL, NULL, FALSE);
+        list ($cmid4, $banned) = $m->create($id, $u3, "test3", ChatMessage::TYPE_MODMAIL, NULL);
         $this->assertNotNull($cmid4);
 
         $cm = new ChatMessage($this->dbhr, $this->dbhm, $cmid2);

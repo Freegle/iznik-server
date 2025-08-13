@@ -632,7 +632,7 @@ class Message
 
     public function mailer($user, $modmail, $toname, $to, $bcc, $fromname, $from, $subject, $text) {
         try {
-            #error_log(session_id() . " mail " . microtime(true));
+            #error_log(session_id() . " mail " . microtime(TRUE));
 
             list ($transport, $mailer) = Mail::getMailer();
             
@@ -662,7 +662,7 @@ class Message
             # Stop the transport, otherwise the message doesn't get sent until the UT script finishes.
             $transport->stop();
 
-            #error_log(session_id() . " mailed " . microtime(true));
+            #error_log(session_id() . " mailed " . microtime(TRUE));
         } catch (\Exception $e) {
             # Not much we can do - shouldn't really happen given the failover transport.
             // @codeCoverageIgnoreStart
@@ -1790,8 +1790,8 @@ ORDER BY lastdate DESC;";
                 $msgs[0]['attachments'] = [
                     [
                         'id' => $atts[0]['attachmentid'],
-                        'path' => $a->getpath(false, $atts[0]['attachmentid'], $atts[0]['archived']),
-                        'paththumb' => $a->getpath(true, $atts[0]['attachmentid'], $atts[0]['archived'])
+                        'path' => $a->getpath(FALSE, $atts[0]['attachmentid'], $atts[0]['archived']),
+                        'paththumb' => $a->getpath(TRUE, $atts[0]['attachmentid'], $atts[0]['archived'])
                     ]
                 ];
             }
@@ -2342,7 +2342,7 @@ ORDER BY lastdate DESC;";
                         )
                     ));
 
-                    $data = @file_get_contents($src, false, $ctx);
+                    $data = @file_get_contents($src, FALSE, $ctx);
 
                     if ($data) {
                         # Try to convert to an image.  If it's not an image, this will fail.
@@ -2492,7 +2492,7 @@ ORDER BY lastdate DESC;";
                     )
                 ));
 
-                $data = @file_get_contents($url, false, $ctx);
+                $data = @file_get_contents($url, FALSE, $ctx);
 
                 if ($data) {
                     # Now get the link to the actual images.
@@ -3225,7 +3225,7 @@ ORDER BY lastdate DESC;";
     function delete($reason = NULL, $groupid = NULL, $subject = NULL, $body = NULL, $stdmsgid = NULL, $localonly = FALSE)
     {
         $me = Session::whoAmI($this->dbhr, $this->dbhm);
-        $rc = true;
+        $rc = TRUE;
 
         if ($this->attach_dir) {
             $this->rrmdir($this->attach_dir);
@@ -5256,13 +5256,13 @@ $mq", [
 
     public function isReceipt()
     {
-        $ret = false;
+        $ret = FALSE;
 
         foreach ($this->receipt_subjects as $subj)
         {
-            if (stripos($this->subject, $subj) !== false)
+            if (stripos($this->subject, $subj) !== FALSE)
             {
-                $ret = true;
+                $ret = TRUE;
             }
         }
 
@@ -5318,7 +5318,7 @@ $mq", [
     public function quickDelete($schema, $id) {
         # This bypasses referential integrity checks, but honours them by querying the schema.  It's intended for
         # when we are deleting large numbers of messages and want to avoid blocking the server because of
-        # cascaded deletes.  This is particularly true on a Percona cluster where a stream of DELETE ops tends
+        # cascaded deletes.  This is particularly TRUE on a Percona cluster where a stream of DELETE ops tends
         # to cripple things.
         $this->dbhm->preExec("SET FOREIGN_KEY_CHECKS=0;", NULL, FALSE);
 

@@ -23,7 +23,7 @@ define('MAILPARSE_EXTRACT_RETURN', 2);
  * @param string $filename Path to the file holding the message. The file is opened
  *                         and streamed through the parser
  *
- * @return resource Returns a MIME resource representing the structure, or false on error
+ * @return resource Returns a MIME resource representing the structure, or FALSE on error
  */
 function mailparse_msg_parse_file($filename)
 {
@@ -96,9 +96,9 @@ function mailparse_msg_extract_part($mimemail, $msgbody, $callbackfunc)
  *                               will be passed the extracted section, or null to make this function return the
  *                               extracted section
  *
- * @return string If $callbackfunc is not null returns true on success
+ * @return string If $callbackfunc is not null returns TRUE on success
  */
-function mailparse_msg_extract_part_file($mimemail, $filename, $callbackfunc = false)
+function mailparse_msg_extract_part_file($mimemail, $filename, $callbackfunc = FALSE)
 {
 }
 
@@ -166,7 +166,7 @@ function mailparse_msg_parse($mimemail, $data)
  * @return array Returns an array of associative arrays with the following keys for each
  *         recipient: display The recipient name, for display purpose. If this part is not
  *         set for a recipient, this key will hold the same value as address. address The
- *         email address is_group true if the recipient is a newsgroup, false otherwise
+ *         email address is_group TRUE if the recipient is a newsgroup, FALSE otherwise
  */
 function mailparse_rfc822_parse_addresses($addresses)
 {

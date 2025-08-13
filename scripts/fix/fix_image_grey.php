@@ -44,6 +44,6 @@ if (imageistruecolor($im))
     }
 } else
 {
-    error_log("Not true colour.");
+    error_log("Not TRUE colour.");
     exit(1);
 }

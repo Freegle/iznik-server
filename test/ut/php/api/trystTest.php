@@ -120,7 +120,7 @@ class trystTest extends IznikAPITestCase {
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
             ->setMethods(array('sendIt'))
             ->getMock();
-        $t->method('sendIt')->willReturn(false);
+        $t->method('sendIt')->willReturn(FALSE);
         $this->assertEquals(1, $t->sendCalendarsDue($id));
 
         # Send an accept

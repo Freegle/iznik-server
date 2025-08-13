@@ -11,7 +11,7 @@ require_once(IZNIK_BASE . '/include/message/Message.php');
 $groups = [];
 
 $handle = fopen("/tmp/a.b", "r");
-while (($line = fgets($handle)) !== false) {
+while (($line = fgets($handle)) !== FALSE) {
     if (preg_match('/\[(.*?)\].*/', $line, $matches)) {
         error_log("Time {$matches[1]}");
         $time = strtotime($matches[1]);

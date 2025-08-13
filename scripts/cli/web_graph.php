@@ -43,7 +43,7 @@ function drawGraph($graph) {
     $latest_filename = '';
 
     $d = dir($path);
-    while (false !== ($entry = $d->read())) {
+    while (FALSE !== ($entry = $d->read())) {
         $filepath = "{$path}/{$entry}";
         // could do also other checks than just checking whether the entry is a file
         if (is_file($filepath) && strpos($filepath, "png") !== FALSE && filectime($filepath) > $latest_ctime) {
@@ -59,10 +59,10 @@ function drawGraph($graph) {
 function addWeightedEdge($lastvert, $vert) {
     # See if there is already an edge between these two.
     $edges = $lastvert->getEdgesTo($vert);
-    $got = false;
+    $got = FALSE;
 
     foreach ($edges as $edge) {
-        $got = true;
+        $got = TRUE;
         $label = $edge->getAttribute('graphviz.label');
         $label++;
         $edge->setAttribute('graphviz.label', $label);

@@ -26,7 +26,7 @@ class Session {
 
         # Backbone may send requests wrapped insode a model; extract them.
         if (array_key_exists ( 'model', $_REQUEST )) {
-            $_REQUEST = array_merge ( $_REQUEST, json_decode ( $_REQUEST ['model'], true ) );
+            $_REQUEST = array_merge ( $_REQUEST, json_decode ( $_REQUEST ['model'], TRUE ) );
         }
 
         if (!Utils::pres('sessionPrepared', $GLOBALS)) {
@@ -307,7 +307,7 @@ class Session {
     public function destroy($userid, $series) {
         # Deleting the cookie will mean that we can no longer use this cookie to sign in on any device - which means
         # that if you log out on one device, the others will get logged out too (once the PHP session goes, anyway).
-        #error_log(var_export($this->dbhr, true));
+        #error_log(var_export($this->dbhr, TRUE));
         if ($userid) {
             # If we're doing an explicit logout we're called with a null $series and want to zap all sessions for this
             # user.  Otherwise we only want to delete the session with this series, otherwise a failed login for this

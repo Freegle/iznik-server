@@ -59,4 +59,4 @@ do {
             exit(0);
         }
     }
-} while (true);
+} while (TRUE);

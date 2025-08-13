@@ -35,7 +35,7 @@ if (count($opts) < 1) {
             error_log("Name spam: $reason $text");
         } else
         {
-            $reason = $s->checkReview($m->getPrivate('message'), true, true);
+            $reason = $s->checkReview($m->getPrivate('message'), TRUE, TRUE);
 
             if ($reason)
             {

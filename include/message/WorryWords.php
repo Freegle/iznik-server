@@ -72,11 +72,11 @@ class WorryWords {
             # Check for literal occurrences of worrywords with spaces, which are phrases.
             foreach ($this->words as $worryword) {
                 if ($worryword['type'] !== WorryWords::TYPE_ALLOWED &&
-                    strpos($worryword['keyword'], ' ') !== false &&
-                    (stripos($subject, $worryword['keyword']) !== false || stripos(
+                    strpos($worryword['keyword'], ' ') !== FALSE &&
+                    (stripos($subject, $worryword['keyword']) !== FALSE || stripos(
                             $textbody,
                             $worryword['keyword']
-                        ) !== false)
+                        ) !== FALSE)
                 ) {
                     if ($log) {
                         $this->log->log(
@@ -99,7 +99,7 @@ class WorryWords {
                         'worryword' => $worryword,
                     ];
 
-                    $foundword[$worryword['keyword']] = true;
+                    $foundword[$worryword['keyword']] = TRUE;
                 }
             }
 

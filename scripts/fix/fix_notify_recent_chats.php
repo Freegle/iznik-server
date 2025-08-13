@@ -27,8 +27,8 @@ foreach ($chatids as $chatid) {
     $u1 = $u1id ? new User($dbhr, $dbhm, $u1id) : null;
     $u2 = $u2id ? new User($dbhr, $dbhm, $u2id) : null;
 
-    $payload1 = $u1 ? $u1->getNotificationPayload(false) : null;
-    $payload2 = $u2 ? $u2->getNotificationPayload(false) : null;
+    $payload1 = $u1 ? $u1->getNotificationPayload(FALSE) : null;
+    $payload2 = $u2 ? $u2->getNotificationPayload(FALSE) : null;
 
     if ($payload1 && $payload1[1] > 0) {
         error_log("...notify members of {$r->getId()} because of user1 $u1id count {$payload1[1]} {$payload1[3]}");

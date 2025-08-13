@@ -64,10 +64,10 @@ class locationTest extends IznikTestCase {
         $this->assertEquals($id, $l->findByName('Tuvalu High Street'));
         $l = new Location($this->dbhr, $this->dbhm, $id);
         $atts = $l->getPublic();
-        $this->log("Created loc " . var_export($atts, true));
+        $this->log("Created loc " . var_export($atts, TRUE));
         $gridid = $atts['gridid'];
         $grid = $l->getGrid();
-        $this->log("Grid " . var_export($grid, true));
+        $this->log("Grid " . var_export($grid, TRUE));
         $this->assertEquals($gridid, $grid['id']);
         $this->assertEquals(8.5, $grid['swlat']);
         $this->assertEquals(179.2, $grid['swlng']);
@@ -247,7 +247,7 @@ class locationTest extends IznikTestCase {
         $l = new Location($this->dbhr, $this->dbhm, $id);
 
         $res = $l->search("Tuvalu", $gid);
-        $this->log(var_export($res, true));
+        $this->log(var_export($res, TRUE));
         $this->assertEquals(1, count($res));
         $this->assertEquals($id, $res[0]['id']);
 

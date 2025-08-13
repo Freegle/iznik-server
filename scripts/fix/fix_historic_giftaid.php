@@ -10,7 +10,7 @@ global $dbhr, $dbhm;
 
 if (($handle = fopen("/tmp/giftaid.csv", "r")) !== FALSE)
 {
-    while (($data = fgetcsv($handle, 1000, ",")) !== false)
+    while (($data = fgetcsv($handle, 1000, ",")) !== FALSE)
     {
         $date = $data[0];
         $type = $data[1];

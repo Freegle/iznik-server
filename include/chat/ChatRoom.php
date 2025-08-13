@@ -259,11 +259,11 @@ WHERE chat_rooms.id IN $idlist;";
 
             for ($i = 0; $i < count($ret); $i++) {
                 if (Utils::pres('user1id', $ret[$i])) {
-                    $users[$ret[$i]['user1id']]['supporter'] = false;
+                    $users[$ret[$i]['user1id']]['supporter'] = FALSE;
                 }
 
                 if (Utils::pres('user2id', $ret[$i])) {
-                    $users[$ret[$i]['user2id']]['supporter'] = false;
+                    $users[$ret[$i]['user2id']]['supporter'] = FALSE;
                 }
             }
 
@@ -1141,10 +1141,10 @@ WHERE chat_rooms.id IN $idlist;";
                                 # Get USER_SITE domain and remove www. prefix if present
                                 $siteDomain = str_ireplace('www.', '', USER_SITE);
 
-                                # If domains match, return false (unless admin)
+                                # If domains match, return FALSE (unless admin)
                                 if (strcasecmp($userDomain, $siteDomain) === 0) {
                                     if (!$me->isAdmin()) {
-                                        return false;
+                                        return FALSE;
                                     }
                                 }
                             }
@@ -2971,7 +2971,7 @@ ORDER BY chat_messages.id DESC LIMIT 1;", [
             }
 
             # Have we got any messages from someone else?
-            $justmine = ($unmailedmsg['userid'] != $sendingto->getId()) ? false : $justmine;
+            $justmine = ($unmailedmsg['userid'] != $sendingto->getId()) ? FALSE : $justmine;
             #error_log("From {$unmailedmsg['userid']} $thisone justmine? $justmine");
 
             if (!$lastmsg || $lastmsg != $thisone) {
@@ -3147,11 +3147,11 @@ ORDER BY chat_messages.id DESC LIMIT 1;", [
 
         $jobads = $sendingto->getJobAds();
 
-        $replyexpected = false;
+        $replyexpected = FALSE;
         foreach ($twigmessages as $t) {
-            if (Utils::presbool('replyexpected', $t, false))
+            if (Utils::presbool('replyexpected', $t, FALSE))
             {
-                $replyexpected = true;
+                $replyexpected = TRUE;
             }
         }
 
@@ -3315,7 +3315,7 @@ ORDER BY chat_messages.id DESC LIMIT 1;", [
         $replyto = 'notify-' . $chatid1 . '-' . $sendtoid . '@' . $domain;
 
         # ModTools users should never get notified.
-        if ($to && strpos($to, MOD_SITE) === false) {
+        if ($to && strpos($to, MOD_SITE) === FALSE) {
             error_log(
                 "Notify chat #{$chatid1} $to for {$sendtoid} $subject last mailed will be $lastmsgemailed lastmax $lastmaxmailed"
             );
@@ -3372,7 +3372,7 @@ ORDER BY chat_messages.id DESC LIMIT 1;", [
                         exit(0);
                     }
 
-                    $sentsome = true;
+                    $sentsome = TRUE;
 
                     if ($recordsend) {
                         $this->recordSend($lastmsgemailed, $sendtoid, $chatid1);

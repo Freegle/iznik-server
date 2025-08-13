@@ -25,7 +25,7 @@ class API
         // Access-Control-Allow-Origin not now added by nginx.
         @header('Access-Control-Allow-Origin: *');
         @header('Access-Control-Allow-Headers: ' . (array_key_exists('HTTP_ACCESS_CONTROL_REQUEST_HEADERS', $_SERVER) ? $_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'] : "Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Iznik-PHP-Session")); // X-HTTP-Method-Override not needed
-        @header('Access-Control-Allow-Credentials: true');
+        @header('Access-Control-Allow-Credentials: TRUE');
         @header('P3P:CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT"');
     }
 
@@ -40,12 +40,12 @@ class API
             exit(0);
         }
 
-        $scriptstart = microtime(true);
+        $scriptstart = microtime(TRUE);
 
         $entityBody = file_get_contents('php://input');
 
         if ($entityBody) {
-            $parms = json_decode($entityBody, true);
+            $parms = json_decode($entityBody, TRUE);
             if (json_last_error() == JSON_ERROR_NONE) {
                 # We have been passed parameters in JSON.
                 foreach ($parms as $parm => $val) {
@@ -95,7 +95,7 @@ class API
         }
         // @codeCoverageIgnoreEnd
 
-        $includetime = microtime(true) - $scriptstart;
+        $includetime = microtime(TRUE) - $scriptstart;
 
         # All API calls come through here.
         #error_log("Request " . var_export($_REQUEST, TRUE));
@@ -109,7 +109,7 @@ class API
         if (array_key_exists('model', $_REQUEST)) {
             # Used by Backbone's emulateJSON to work around servers which don't handle requests encoded as
             # application/json.
-            $_REQUEST = array_merge($_REQUEST, json_decode($_REQUEST['model'], true));
+            $_REQUEST = array_merge($_REQUEST, json_decode($_REQUEST['model'], TRUE));
             unset($_REQUEST['model']);
         }
 
@@ -131,7 +131,7 @@ class API
         } else {
             # Actual API calls
             $ret = array('ret' => 1000, 'status' => 'Invalid API call');
-            $t = microtime(true);
+            $t = microtime(TRUE);
 
             # We wrap the whole request in a retry handler.  This is so that we can deal with errors caused by
             # conflicts within the Percona cluster.
@@ -157,7 +157,7 @@ class API
                             # Failed to look it up.
                             $countries = $dbhr->preQuery("SELECT * FROM spam_countries WHERE country = ?;", [$country]);
                             foreach ($countries as $country) {
-                                error_log("Block post from {$country['country']} " . var_export($_REQUEST, true));
+                                error_log("Block post from {$country['country']} " . var_export($_REQUEST, TRUE));
                                 $encoded_ret = json_encode(array('ret' => 0, 'status' => 'Success'));
                                 echo $encoded_ret;
                                 break 2;
@@ -177,7 +177,7 @@ class API
                     # using information stored in the session because when Redis is used as the session handler, there is
                     # no session locking, and therefore two requests in quick succession could be allowed.  So instead
                     # we use Redis directly with a roll-your-own mutex.  We use the IP address as a key - if there are
-                    # multiple sessions from the same IP then we might get false positives/negatives.
+                    # multiple sessions from the same IP then we might get FALSE positives/negatives.
                     $reqData = $_REQUEST;
                     unset($reqData['requestid']);
                     $reqData['call'] = preg_replace('/(\?|&)requestid=[0-9]+?/', '', $reqData['call']);
@@ -186,7 +186,7 @@ class API
                     $ip = Utils::presdef('REMOTE_ADDR', $_SERVER, NULL);
                     $lockkey = "POST_LOCK_$ip";
                     $datakey = "POST_DATA_$ip";
-                    $uid = uniqid('', true);
+                    $uid = uniqid('', TRUE);
                     $predis = new \Redis();
                     $predis->pconnect(REDIS_CONNECT);
 
@@ -455,7 +455,7 @@ class API
                         # Output is handled within the lib.
                     } else {
                         if (Utils::pres('redirectto', $ret)) {
-                            header("Location: {$ret['redirectto']}", true, 302);
+                            header("Location: {$ret['redirectto']}", TRUE, 302);
                         } else if (Utils::pres('img', $ret)) {
                             # This is an image we want to output.  Can cache forever - if an image changes it would get a new id
                             @header('Content-Type: image/jpeg');
@@ -464,7 +464,7 @@ class API
                             print $ret['img'];
                         } else {
                             # This is a normal API call.  Add profiling info.
-                            $duration = (microtime(true) - $scriptstart);
+                            $duration = (microtime(TRUE) - $scriptstart);
                             $ret['call'] = $call;
                             $ret['type'] = Utils::presdef('type', $_REQUEST, null);
                             $ret['session'] = session_id();
@@ -482,9 +482,9 @@ class API
 
                             if ($duration > 5000) {
                                 # Slow call.
-                                $stamp = microtime(true);
+                                $stamp = microtime(TRUE);
                                 error_log("Slow API call for user " . Utils::presdef('id', $_SESSION, NULL) . " $call stamp $stamp");
-                                file_put_contents("/tmp/iznik.slowapi.$stamp", "User # " . Utils::presdef('id', $_SESSION, NULL) . " request " . var_export($_REQUEST, true) . " response " . var_export($ret, TRUE));
+                                file_put_contents("/tmp/iznik.slowapi.$stamp", "User # " . Utils::presdef('id', $_SESSION, NULL) . " request " . var_export($_REQUEST, TRUE) . " response " . var_export($ret, TRUE));
                             }
                         }
                     }
@@ -535,7 +535,7 @@ class API
                     }
 
                     # Make sure the duplicate POST detection doesn't throw us.
-                    $_REQUEST['retry'] = uniqid('', true);
+                    $_REQUEST['retry'] = uniqid('', TRUE);
                 }
             } while ($apicallretries < API_RETRIES);
 
@@ -591,13 +591,13 @@ class API
 
     public static function requestStart() {
         $dat = getrusage();
-        return ([ microtime(true), $dat["ru_utime.tv_sec"]*1e6+$dat["ru_utime.tv_usec"] ]);
+        return ([ microtime(TRUE), $dat["ru_utime.tv_sec"]*1e6+$dat["ru_utime.tv_usec"] ]);
     }
 
     public static function getCpuUsage($tusage, $rusage) {
         $dat = getrusage();
         $dat["ru_utime.tv_usec"] = ($dat["ru_utime.tv_sec"]*1e6 + $dat["ru_utime.tv_usec"]) - $rusage;
-        $time = (microtime(true) - $tusage) * 1000000;
+        $time = (microtime(TRUE) - $tusage) * 1000000;
 
         // cpu per request
         $cpu = $time > 0 ? $dat["ru_utime.tv_usec"] / $time / 1000 : 0;

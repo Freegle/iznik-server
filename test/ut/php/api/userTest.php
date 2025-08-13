@@ -428,7 +428,7 @@ class userAPITest extends IznikAPITestCase {
         $ctx = NULL;
         $logs = [ $this->uid => [ 'id' => $this->uid ] ];
         $u = new User($this->dbhr, $this->dbhm);
-        $u->getPublicLogs($u, $logs, FALSE, $ctx, FALSE, FALSE);
+        $u->getPublicLogs($u, $logs, FALSE, $ctx, FALSE);
         $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_JOINED, $logs[$this->uid]['logs']);
 
         $this->assertNull($log);
@@ -501,7 +501,7 @@ class userAPITest extends IznikAPITestCase {
         $this->assertEquals($this->uid, $ret['users'][0]['id']);
 
         # Test a phone number.
-        $this->user->addEmail('+44794000000@mediamessaging.o2.co.uk', 0, FALSE);
+        $this->user->addEmail('+44794000000@mediamessaging.o2.co.uk', 0);
         $ret = $this->call('user', 'GET', [
             'search' => '+44794000000@mediamessaging.o2.co.uk'
         ]);
@@ -580,7 +580,7 @@ class userAPITest extends IznikAPITestCase {
             'email1' => 'test2@test.com',
             'email2' => 'test3@test.com',
             'reason' => 'UT',
-            'dup' => true
+            'dup' => TRUE
         ]);
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals('Already the same user', $ret['status']);
@@ -672,7 +672,7 @@ class userAPITest extends IznikAPITestCase {
         $id3 = $u3->create('Test', 'User', NULL);
         $u3->addEmail('test3@test.com', 0);
         $u3->addMembership($this->groupid);
-        $u3->setSetting('canmerge', FALSE);
+        $u3->setSetting('canmerge');
         $u4 = User::get($this->dbhm, $this->dbhm);
         $id4 = $u4->create('Test', 'User', NULL);
         $u4->addMembership($this->groupid, User::ROLE_MODERATOR);

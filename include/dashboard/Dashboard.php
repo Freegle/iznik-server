@@ -434,7 +434,7 @@ WHERE $groupq AND role IN ('Moderator', 'Owner') HAVING lastactive IS NOT NULL;"
                 )
             );
 
-            $ret[Dashboard::COMPONENTS_DISCOURSE_TOPICS] = @file_get_contents(DISCOURSE_API . '/posts.json', false, $ctx);
+            $ret[Dashboard::COMPONENTS_DISCOURSE_TOPICS] = @file_get_contents(DISCOURSE_API . '/posts.json', FALSE, $ctx);
         }
 
         return($ret);

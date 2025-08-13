@@ -9,7 +9,7 @@ class ReachVolunteering {
     private $dbhm;
     private $useNewFieldNames;
 
-    public function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $useNewFieldNames = false) {
+    public function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $useNewFieldNames = FALSE) {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
         $this->useNewFieldNames = $useNewFieldNames;

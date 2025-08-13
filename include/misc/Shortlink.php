@@ -215,7 +215,7 @@ class Shortlink extends Entity
                 foreach ($val as $url) {
                     // If url contains ] then use everything before it.  This seems common and wrong, and the regex is
                     // impenetrable.
-                    $url = strstr($url, ']', true) ?: $url;
+                    $url = strstr($url, ']', TRUE) ?: $url;
                     $urls[] = $url;
                 }
             }

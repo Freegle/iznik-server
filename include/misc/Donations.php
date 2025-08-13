@@ -456,7 +456,7 @@ class Donations
                 }
                 
                 # Check if we've sent a birthday appeal to this user recently (skip check if overriding email)
-                $canSendBirthdayAppeal = true;
+                $canSendBirthdayAppeal = TRUE;
                 $days_since = NULL;
 
                 if (!$emailOverride) {
@@ -465,7 +465,7 @@ class Donations
                     $lastBirthdayAppeal = Utils::presdef('lastbirthdayappeal', $settings, null);
                     
                     if ($lastBirthdayAppeal && time() - strtotime($lastBirthdayAppeal) < 31 * 24 * 60 * 60) {
-                        $canSendBirthdayAppeal = false;
+                        $canSendBirthdayAppeal = FALSE;
                         $days_since = floor((time() - strtotime($lastBirthdayAppeal)) / (24 * 60 * 60));
                         error_log("Skipping {$member['id']} - sent birthday appeal $days_since days ago");
                     }

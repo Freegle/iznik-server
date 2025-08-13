@@ -7,7 +7,7 @@ require_once(IZNIK_BASE . '/include/db.php');
 
 $logs = $dbhr->preQuery("SELECT * FROM logs_api where request like '%user%' AND request LIKE '%trustlevel%' ORDER BY id ASC");
 foreach ($logs as $log) {
-    $req = json_decode($log['request'], true);
+    $req = json_decode($log['request'], TRUE);
 
     $trustlevel = $req['trustlevel'];
     error_log("{$req['id']} trust {$trustlevel}");

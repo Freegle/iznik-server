@@ -7,7 +7,7 @@ $groupname = $opts['g'];
 $url = "https://groups.yahoo.com/api/v1/groups/$groupname/history";
 error_log($url);
 $html = file_get_contents($url);
-$data = json_decode($html, true);
+$data = json_decode($html, TRUE);
 $history = $data['ygData']['messageHistory'];
 foreach ($history as $year) {
     $theyear = $year['year'];

@@ -9,9 +9,9 @@ require_once(IZNIK_BASE . '/lib/wordle/functions.php');
 
 $users = $dbhr->preQuery("SELECT id, yahooid FROM users WHERE LENGTH( yahooid ) = 32 AND fullname = yahooid;");
 
-$lengths  = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/distinct_word_lengths.json'), true);
-$bigrams  = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/word_start_bigrams.json'), true);
-$trigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/trigrams.json'), true);
+$lengths  = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/distinct_word_lengths.json'), TRUE);
+$bigrams  = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/word_start_bigrams.json'), TRUE);
+$trigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/trigrams.json'), TRUE);
 
 foreach ($users as $user) {
     if (ctype_xdigit($user['yahooid'])) {

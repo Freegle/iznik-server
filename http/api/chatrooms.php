@@ -131,7 +131,7 @@ function chatrooms() {
                     $ret = ['ret' => 0, 'status' => 'Success', 'count' => $count ];
                 } else if ($action == ChatRoom::ACTION_REFER_TO_SUPPORT) {
                     $r->referToSupport();
-                    $ret = ['ret' => 0, 'status' => 'Success', 'referred' => true ];
+                    $ret = ['ret' => 0, 'status' => 'Success', 'referred' => TRUE ];
                 } else if ($id) {
                     # Single roster update.
                     $ret = ['ret' => 2, 'status' => "$id Not visible to you"];

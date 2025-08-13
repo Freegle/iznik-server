@@ -84,7 +84,7 @@ foreach ($tnemails as $tnemail)
 
     if (!strlen($tnname)) {
         $bademail++;
-        $gotvalid = false;
+        $gotvalid = FALSE;
 
         $otheremails = $dbhr->preQuery("SELECT email FROM users_emails WHERE userid = ?;", [
             $uid
@@ -99,14 +99,14 @@ foreach ($tnemails as $tnemail)
                 error_log(
                     "WARNING: ...{$tnemail['email']} invalid format but found valid {$tnname2} for {$otheremail['email']}"
                 );
-                $gotvalid = true;
+                $gotvalid = TRUE;
                 break;
             }
         }
 
         if (!$gotvalid)
         {
-            if (strpos($tnemail['email'], '+g') !== false)
+            if (strpos($tnemail['email'], '+g') !== FALSE)
             {
                 # Old TN format - convert.
                 $tnname2 = substr($tnemail['email'], 0, strrpos($tnemail['email'], '+g'));
@@ -120,7 +120,7 @@ foreach ($tnemails as $tnemail)
                     $u->addEmail($email);
                     $gotvalid = TRUE;
                 }
-            } else if (strpos($tnemail['email'], '-x') !== false)
+            } else if (strpos($tnemail['email'], '-x') !== FALSE)
             {
                 $tnname2 = substr($tnemail['email'], 0, strrpos($tnemail['email'], '-x'));
 

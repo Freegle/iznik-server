@@ -56,9 +56,9 @@ class Yahoo
         # access Yahoo after login has completed.
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, 'https://api.login.yahoo.com/oauth2/get_token');
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
         curl_setopt($curl, CURLOPT_TIMEOUT, 60);
-        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_POST, TRUE);
         curl_setopt($curl, CURLOPT_HTTPHEADER, [
             "Authorization: Basic " . base64_encode(YAHOO_CLIENT_ID . ':' . YAHOO_CLIENT_SECRET),
             "Content-type: application/x-www-form-urlencoded"
@@ -80,7 +80,7 @@ class Yahoo
                 $curl = curl_init();
                 curl_setopt($curl, CURLOPT_URL, 'https://api.login.yahoo.com/openid/v1/userinfo');
                 curl_setopt($curl, CURLOPT_TIMEOUT, 60);
-                curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
                 curl_setopt($curl, CURLOPT_HTTPHEADER, [
                     "Authorization: Bearer $token"
                 ]);

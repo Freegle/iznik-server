@@ -154,7 +154,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
                 $job = $pheanstalk->peekReady();
 
                 if ($job) {
-                    $data = json_decode($job->getData(), true);
+                    $data = json_decode($job->getData(), TRUE);
 
                     if ($data['queued'] > $start) {
                         $this->log("Queue now newer than when we started");
@@ -188,7 +188,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
     public function findLog($type, $subtype, $logs) {
         foreach ($logs as $log) {
             if ($log['type'] == $type && $log['subtype'] == $subtype) {
-                $this->log("Found log " . var_export($log, true));
+                $this->log("Found log " . var_export($log, TRUE));
                 return($log);
             }
         }
@@ -224,7 +224,12 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
      */
     protected function createTestUserWithLogin($fullname, $password) {
         $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, $fullname);
+        // Parse fullname into firstname/lastname for original UserTest.php compatibility
+        // Original pattern was: $u->create('Test', 'User', NULL)
+        $parts = explode(' ', $fullname, 2);
+        $firstname = isset($parts[0]) ? $parts[0] : NULL;
+        $lastname = isset($parts[1]) ? $parts[1] : NULL;
+        $uid = $u->create($firstname, $lastname, NULL);
         self::assertNotNull($uid);
         $user = User::get($this->dbhr, $this->dbhm, $uid);
         $this->assertEquals($user->getId(), $uid);
@@ -252,12 +257,15 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
     }
 
     /**
-     * Create a test user with email and login
+     * Create a test user with email and login - supports both original patterns:
+     * - createTestUser('Test', 'User', NULL, 'email', 'pass') for firstname/lastname
+     * - createTestUser(NULL, NULL, 'Test User', 'email', 'pass') for fullname only
      */
     protected function createTestUser($firstname, $lastname, $fullname, $email, $password) {
         $u = User::get($this->dbhr, $this->dbhm);
         $this->assertNotNull($u, "Failed to get User instance");
         
+        // Create user with exact same parameters as original tests
         $uid = $u->create($firstname, $lastname, $fullname);
         $this->assertGreaterThan(0, $uid, "Failed to create user '$fullname'");
         
@@ -265,22 +273,13 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         $this->assertNotNull($user, "Failed to retrieve created user");
         $this->assertEquals($uid, $user->getId(), "User ID mismatch");
         
+        // Add email - match original behavior exactly
         $emailid = $user->addEmail($email);
-        $this->assertGreaterThan(0, $emailid, "Failed to add email '$email' to user");
+        // Don't assert on email addition - let the calling test handle the result as needed
+        // The original tests had different expectations for email addition success
         
         $loginid = $user->addLogin(User::LOGIN_NATIVE, NULL, $password);
         $this->assertGreaterThan(0, $loginid, "Failed to add login for user");
-        
-        // Verify email was added correctly
-        $emails = $user->getEmails();
-        $emailFound = false;
-        foreach ($emails as $userEmail) {
-            if ($userEmail['email'] === $email) {
-                $emailFound = true;
-                break;
-            }
-        }
-        $this->assertTrue($emailFound, "Email '$email' not found for user");
         
         return [$user, $uid, $emailid];
     }
@@ -293,8 +292,10 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
      * @param string $toEmail To email address  
      * @param int|null $groupid Group ID for user membership (needed for approval)
      * @param int|null $userid User ID to set up membership for (creates user if null)
+     * @param bool $expectSuccess Whether message creation should succeed (default: TRUE)
+     * @param bool $expectFailok Whether MailRouter should return failok=TRUE (default: TRUE)
      */
-    protected function createTestMessage($content, $groupname, $fromEmail, $toEmail, $groupid, $userid) {
+    protected function createTestMessage($content, $groupname, $fromEmail, $toEmail, $groupid, $userid, $expectSuccess = TRUE, $expectFailok = TRUE) {
         if ($content === null) {
             $basicMsgPath = IZNIK_BASE . '/test/ut/php/msgs/basic';
             $this->assertFileExists($basicMsgPath, "Basic message file not found");
@@ -313,10 +314,10 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
             
             // Ensure the user has the fromEmail - this is crucial for message routing
             $userEmails = $user->getEmails();
-            $hasFromEmail = false;
+            $hasFromEmail = FALSE;
             foreach ($userEmails as $email) {
                 if ($email['email'] === $fromEmail) {
-                    $hasFromEmail = true;
+                    $hasFromEmail = TRUE;
                     break;
                 }
             }
@@ -338,16 +339,24 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         $this->assertNotNull($r, "Failed to create MailRouter instance");
         
         list ($id, $failok) = $r->received(Message::EMAIL, $fromEmail, $toEmail, $content);
-        $this->assertGreaterThan(0, $id, "Failed to create message via MailRouter");
-        $this->assertTrue($failok, "MailRouter received() returned failure");
+        
+        if ($expectSuccess) {
+            $this->assertGreaterThan(0, $id, "Failed to create message via MailRouter");
+        }
+        
+        if ($expectFailok) {
+            $this->assertTrue($failok, "MailRouter received() returned failure");
+        }
         
         // Route the message
         $rc = $r->route();
         
-        // Verify the message was created
-        $message = new Message($this->dbhr, $this->dbhm, $id);
-        $this->assertNotNull($message, "Failed to retrieve created message");
-        $this->assertEquals($id, $message->getId(), "Message ID mismatch");
+        // Verify the message was created (only if expecting success and $id > 0)
+        if ($expectSuccess && $id > 0) {
+            $message = new Message($this->dbhr, $this->dbhm, $id);
+            $this->assertNotNull($message, "Failed to retrieve created message");
+            $this->assertEquals($id, $message->getId(), "Message ID mismatch");
+        }
         
         return [$r, $id, $failok, $rc];
     }

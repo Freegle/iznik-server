@@ -783,7 +783,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->user2->addMembership($gid, User::ROLE_MODERATOR);
 
         # uid2 doesn't want them - nothing to do.
-        $this->user2->setSetting('modnotifnewsfeed', FALSE);
+        $this->user2->setSetting('modnotifnewsfeed');
         $this->assertEquals(0, $n->modnotif($this->uid2));
 
         # uid2 does want them - send 1.

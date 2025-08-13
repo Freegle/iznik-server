@@ -304,7 +304,7 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
         $swlng = $swlat = $nelng = $nelat = $geom = $area = NULL;
 
         if ($geocode) {
-            $results = json_decode($geocode, true);
+            $results = json_decode($geocode, TRUE);
 
             if (Utils::pres('features', $results) && count($results['features'])) {
                 foreach ($results['features'] as $feature) {

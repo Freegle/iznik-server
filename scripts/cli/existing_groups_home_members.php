@@ -26,7 +26,7 @@ foreach ($users as $user) {
     $u = new User($dbhr, $dbhm, $user['id']);
 
     # Get location where we have one.
-    list($lat, $lng, $loc) = $u->getLatLng(false, false, Utils::BLUR_NONE);
+    list($lat, $lng, $loc) = $u->getLatLng(FALSE, FALSE, Utils::BLUR_NONE);
 
     if (!is_null($loc)) {
         #error_log("User #{$user['id']} at $loc");

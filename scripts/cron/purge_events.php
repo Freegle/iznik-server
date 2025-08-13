@@ -16,7 +16,7 @@ $lockh = Utils::lockScript(basename(__FILE__));
 error_log("Purge " . IZNIK_BASE . "/events");
 
 if ($handle = opendir(IZNIK_BASE . "/events")) {
-    while (false !== ($file = readdir($handle))) {
+    while (FALSE !== ($file = readdir($handle))) {
         $fn = IZNIK_BASE . "/events/$file";
 
         $modified = filemtime($fn);

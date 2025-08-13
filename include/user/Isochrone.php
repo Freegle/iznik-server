@@ -195,15 +195,15 @@ class Isochrone extends Entity
                 break;
         }
 
-        $url = "https://api.mapbox.com/isochrone/v1/mapbox/$mapTrans/$lng,$lat.json?polygons=true&contours_minutes=$minutes&access_token=" . MAPBOX_TOKEN;
+        $url = "https://api.mapbox.com/isochrone/v1/mapbox/$mapTrans/$lng,$lat.json?polygons=TRUE&contours_minutes=$minutes&access_token=" . MAPBOX_TOKEN;
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
         curl_setopt($curl, CURLOPT_TIMEOUT, 60);
         $json_response = curl_exec($curl);
 
         # This returns GeoJSON - we need to convert to WKT.
-        $resp = json_decode($json_response, true);
+        $resp = json_decode($json_response, TRUE);
 
         if (Utils::pres('features', $resp) && count($resp['features']) == 1) {
             $geom = $resp['features'][0];

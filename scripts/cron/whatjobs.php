@@ -39,7 +39,7 @@ try {
 
 try
 {
-    $j->scanToCSV('/tmp/feed2.xml', '/tmp/feed2.csv', 7, false, 0.0005, 1000, 2);
+    $j->scanToCSV('/tmp/feed2.xml', '/tmp/feed2.csv', 7, FALSE, 0.0005, 1000, 2);
 } catch (\Exception $e) {
     \Sentry\captureException($e);
 }

@@ -23,7 +23,7 @@ foreach ($ips as $ip) {
         }
 
         $ip = $log['ip'];
-        $req = json_decode($log['request'], true);
+        $req = json_decode($log['request'], TRUE);
 
         if ($ip && $req && array_key_exists('headers', $req) && array_key_exists('User-Agent', $req['headers'])) {
             $ua = $req['headers']['User-Agent'];

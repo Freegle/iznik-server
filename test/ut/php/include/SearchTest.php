@@ -89,7 +89,7 @@ class searchTest extends IznikTestCase
         $ctx = NULL;
         $this->log("Test fuzzy");
         $ret = $m->search("tuesday", $ctx);
-        $this->log("Fuzzy " . var_export($ctx, true));
+        $this->log("Fuzzy " . var_export($ctx, TRUE));
         $this->assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
             return $a['id'] == $id1;
         })));
@@ -97,7 +97,7 @@ class searchTest extends IznikTestCase
         # Test typo
         $ctx = NULL;
         $ret = $m->search("Tess", $ctx);
-        $this->log("Typo " . var_export($ctx, true));
+        $this->log("Typo " . var_export($ctx, TRUE));
         $this->assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
             return $a['id'] == $id1;
         })));
@@ -121,7 +121,7 @@ class searchTest extends IznikTestCase
         })));
 
         # Search again using the same context - will find starts with
-        $this->log("CTX " . var_export($ctx, true));
+        $this->log("CTX " . var_export($ctx, TRUE));
         $ret = $m->search("zzzutzzz", $ctx);
         $this->assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
             return $a['id'] == $id1;

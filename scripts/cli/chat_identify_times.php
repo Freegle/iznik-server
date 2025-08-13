@@ -57,15 +57,15 @@ foreach ($msgs as $msg) {
     $url = 'http://localhost:9123?properties=' . urlencode(    json_encode(
                                                                    [
                                                                        'annotators' => "tokenize,ssplit,pos,ner",
-                                                                       "ner.docdate.usePresent" => "true",
+                                                                       "ner.docdate.usePresent" => "TRUE",
                                                                        "outputFormat" => "json"
                                                                    ]
                                                                )
         );
     curl_setopt($curl, CURLOPT_URL, $url);
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
     curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-type: application/json"));
-    curl_setopt($curl, CURLOPT_POST, true);
+    curl_setopt($curl, CURLOPT_POST, TRUE);
     curl_setopt(
         $curl,
         CURLOPT_POSTFIELDS,

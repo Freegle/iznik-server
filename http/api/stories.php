@@ -33,7 +33,7 @@ function stories() {
                 }
             } else if ($reviewnewsletter) {
                 # This is for mods reviewing stories for inclusion in the newsletter.
-                $stories = $s->getStories($groupid, $authorityid, $story, $limit, true);
+                $stories = $s->getStories($groupid, $authorityid, $story, $limit, TRUE);
 
                 $ret = [
                     'ret' => 0,

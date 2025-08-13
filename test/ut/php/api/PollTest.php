@@ -68,7 +68,7 @@ class pollAPITest extends IznikAPITestCase {
         # Shown
         $ret = $this->call('poll', 'POST', [
             'id' => $id,
-            'shown' => true
+            'shown' => TRUE
         ]);
         $this->assertEquals(0, $ret['ret']);
 
@@ -124,7 +124,7 @@ class pollAPITest extends IznikAPITestCase {
             $ret = $this->call('poll', 'POST', [
                 'id' => $id,
                 'response' => [
-                    'test' => true
+                    'test' => TRUE
                 ]
             ]);
             $this->assertEquals(0, $ret['ret']);

@@ -111,7 +111,7 @@ class Team extends Entity
         $ret = [];
 
         foreach ($vols as $vol) {
-            $settings = json_decode($vol['settings'], true);
+            $settings = json_decode($vol['settings'], TRUE);
 
             # We want people who are happy to be shown as a mod, and also have a non-default profile.
             if (Utils::pres('showmod', $settings) && (!array_key_exists('useprofile', $settings) || $settings['useprofile'])) {

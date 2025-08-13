@@ -11,7 +11,7 @@ global $dbhr, $dbhm;
 $oldnames = [];
 if (($handle = fopen("/tmp/tn-user-to-fd-user-id-old-usernames", "r")) !== FALSE)
 {
-    while (($data = fgetcsv($handle, 1000, "\t")) !== false)
+    while (($data = fgetcsv($handle, 1000, "\t")) !== FALSE)
     {
         $tnid = $data[0];
         $tnusername = $data[1];

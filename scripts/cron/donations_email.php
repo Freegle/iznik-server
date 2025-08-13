@@ -18,10 +18,10 @@ foreach ($donations as $donation) {
     $recurring = $donation['TransactionType'] == 'recurring_payment' || $donation['TransactionType'] == 'subscr_payment';
     
     # Check if donor is member of a group that had a birthday in the last 2 days
-    $birthday = false;
+    $birthday = FALSE;
     if ($donation['userid']) {
         # For recurring donations, don't flag as birthday if same amount was donated last month
-        $skipBirthdayCheck = false;
+        $skipBirthdayCheck = FALSE;
         if ($recurring) {
             # Check if there was a donation of the same amount from the same user last month
             $lastMonth = $dbhr->preQuery("SELECT COUNT(*) as count FROM users_donations 
@@ -35,7 +35,7 @@ foreach ($donations as $donation) {
             ]);
             
             if ($lastMonth[0]['count'] > 0) {
-                $skipBirthdayCheck = true;
+                $skipBirthdayCheck = TRUE;
             }
         }
         

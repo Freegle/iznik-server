@@ -142,7 +142,7 @@ class Attachment
 
     /**
      * Read the contents a few bytes at a time until completed
-     * Once read to completion, it always returns false
+     * Once read to completion, it always returns FALSE
      *
      * @param int $bytes (default: 2082)
      *
@@ -150,7 +150,7 @@ class Attachment
      */
     public function read($bytes = 2082)
     {
-        return feof($this->stream) ? false : fread($this->stream, $bytes);
+        return feof($this->stream) ? FALSE : fread($this->stream, $bytes);
     }
 
     /**
@@ -163,7 +163,7 @@ class Attachment
     {
         if (is_null($this->content)) {
             fseek($this->stream, 0);
-            while (($buf = $this->read()) !== false) {
+            while (($buf = $this->read()) !== FALSE) {
                 $this->content .= $buf;
             }
         }

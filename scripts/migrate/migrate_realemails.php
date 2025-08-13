@@ -64,7 +64,7 @@ if (flock($lockh, LOCK_EX | LOCK_NB, $block)) {
     //    $url = "https://trashnothing.com/modtools/api/subscriptions?key=" . TNKEY . "&email=" . urlencode($user['email']);
     //    error_log($url);
     //    $rsp = file_get_contents($url);
-    //    error_log(var_export($rsp, true));
+    //    error_log(var_export($rsp, TRUE));
     //    exit(0);
     //    #handle($dbhr, $dbhm, $u, $realmail, $user);
     //}

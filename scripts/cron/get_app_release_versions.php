@@ -20,14 +20,14 @@ $debug = "\r\n\r\n";
 try{
   $headers = 'From: geeks@ilovefreegle.org';
 
-  $FD_iOS_currentVersionReleaseDate = false;
-  $FD_iOS_version = false;
-  $MT_iOS_currentVersionReleaseDate = false;
-  $MT_iOS_version = false;
-  $FD_Android_currentVersionReleaseDate = false;
-  $FD_Android_version = false;
-  $MT_Android_currentVersionReleaseDate = false;
-  $MT_Android_version = false;
+  $FD_iOS_currentVersionReleaseDate = FALSE;
+  $FD_iOS_version = FALSE;
+  $MT_iOS_currentVersionReleaseDate = FALSE;
+  $MT_iOS_version = FALSE;
+  $FD_Android_currentVersionReleaseDate = FALSE;
+  $FD_Android_version = FALSE;
+  $MT_Android_currentVersionReleaseDate = FALSE;
+  $MT_Android_version = FALSE;
 
   // iOS
   //        const FD_LOOKUP = 'https://itunes.apple.com/gb/lookup?bundleId=org.ilovefreegle.iphone'
@@ -37,7 +37,7 @@ try{
   $url = "https://itunes.apple.com/gb/lookup?bundleId=org.ilovefreegle.iphone";
   $data = file_get_contents($url);
   $iOSfreegle = json_decode($data);
-  //echo print_r($iOSfreegle, true);
+  //echo print_r($iOSfreegle, TRUE);
   if( $iOSfreegle->resultCount==1){
     $FD_iOS_currentVersionReleaseDate = $iOSfreegle->results[0]->currentVersionReleaseDate;
     $FD_iOS_version = $iOSfreegle->results[0]->version;
@@ -48,7 +48,7 @@ try{
   $url = "https://itunes.apple.com/lookup?bundleId=org.ilovefreegle.modtools";
   $data = file_get_contents($url);
   $iOSmodtools = json_decode($data);
-  //echo print_r($iOSmodtools, true);
+  //echo print_r($iOSmodtools, TRUE);
   if( $iOSmodtools->resultCount==1){
     $MT_iOS_currentVersionReleaseDate = $iOSmodtools->results[0]->currentVersionReleaseDate;
     $MT_iOS_version = $iOSmodtools->results[0]->version;
@@ -76,7 +76,7 @@ try{
   // ANDROID FREEGLE
   $url = "https://play.google.com/store/apps/details?id=org.ilovefreegle.direct&hl=en";
   $data = file_get_contents($url);
-  $savefilenamefr = false;
+  $savefilenamefr = FALSE;
 
   $pos = strpos($data,$lookfor);
   if( $pos!==FALSE){
@@ -105,7 +105,7 @@ try{
   // ANDROID MODTOOLS
   $url = "https://play.google.com/store/apps/details?id=org.ilovefreegle.modtools&hl=en";
   $data = file_get_contents($url);
-  $savefilenamefr = false;
+  $savefilenamefr = FALSE;
 
   $pos = strpos($data,$lookfor);
   if( $pos!==FALSE){
@@ -138,7 +138,7 @@ try{
   
   $url = "https://play.google.com/store/apps/details?id=org.ilovefreegle.direct&hl=en";
   $data = file_get_contents($url);
-  $savefilenamefr = false;
+  $savefilenamefr = FALSE;
 
   $spancount = substr_count($data,$lookfor);
   //echo "Android FD spancount: ".$spancount."\r\n";
@@ -167,7 +167,7 @@ try{
   // ANDROID MODTOOLS
   $url = "https://play.google.com/store/apps/details?id=org.ilovefreegle.modtools&hl=en";
   $data = file_get_contents($url);
-  $savefilenamemt = false;
+  $savefilenamemt = FALSE;
 
   $spancount = substr_count($data,$lookfor);
   //echo "Android MT spancount: ".$spancount."\r\n";
@@ -195,10 +195,10 @@ try{
   */
 
   $subject = 'get_app_release_versions: ';
-  $gotIOS_FD = $FD_iOS_version !== false;
-  $gotIOS_MT = $MT_iOS_version !== false;
-  $gotAndroid_FD = $FD_Android_version !== false;
-  $gotAndroid_MT = $MT_Android_version !== false;
+  $gotIOS_FD = $FD_iOS_version !== FALSE;
+  $gotIOS_MT = $MT_iOS_version !== FALSE;
+  $gotAndroid_FD = $FD_Android_version !== FALSE;
+  $gotAndroid_MT = $MT_Android_version !== FALSE;
   
   if( $gotIOS_FD){
     $dbhm->preExec("UPDATE config SET value = ? WHERE `key` = 'app_fd_version_ios_latest';", [ $FD_iOS_version ]);

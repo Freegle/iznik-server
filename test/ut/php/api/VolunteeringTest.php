@@ -95,7 +95,7 @@ class volunteeringAPITest extends IznikAPITestCase {
 
         # Shouldn't show for us as pending.
         $ret = $this->call('volunteering', 'GET', [
-            'pending' => true
+            'pending' => TRUE
         ]);
         $this->log("Result of get all " . var_export($ret, TRUE));
         $this->assertEquals(0, $ret['ret']);

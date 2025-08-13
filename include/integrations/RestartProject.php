@@ -13,11 +13,11 @@ class RestartProject {
 
     private function request($url) {
         #error_log("$url");
-        $context = stream_context_create(['http' => ['ignore_errors' => true]]);
+        $context = stream_context_create(['http' => ['ignore_errors' => TRUE]]);
 
         do {
-            $ret = file_get_contents($url, false, $context);
-            $throttle = strpos($ret, '<title>Too Many Requests</title>') !== false;
+            $ret = file_get_contents($url, FALSE, $context);
+            $throttle = strpos($ret, '<title>Too Many Requests</title>') !== FALSE;
 
             if ($throttle) {
                 error_log("Throttled on $url, sleeping");
@@ -26,7 +26,7 @@ class RestartProject {
         } while ($throttle);
 
         if ($ret) {
-            $ret2 = json_decode($ret, true);
+            $ret2 = json_decode($ret, TRUE);
             if ($ret2 && array_key_exists('data', $ret2)) {
                 return $ret2['data'];
             } else {
@@ -51,7 +51,7 @@ class RestartProject {
 
             if (count($groups)) {
                 foreach ($groups as $group) {
-                    if (strpos($group['name'], "[INACTIVE]") === false) {
+                    if (strpos($group['name'], "[INACTIVE]") === FALSE) {
                         $group_details = $this->request("https://restarters.net/api/v2/groups/" . $group['id']);
 
                         if ($group_details) {
@@ -98,7 +98,7 @@ class RestartProject {
                                                         $title = $event['title'];
 
                                                         # Add Repair Cafe if not there
-                                                        if (strpos($title, "Repair Cafe") === false) {
+                                                        if (strpos($title, "Repair Cafe") === FALSE) {
                                                             $title = "Repair Cafe: " . $title;
                                                         }
 

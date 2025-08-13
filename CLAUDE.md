@@ -1,0 +1,1 @@
+- true/false should always be TRUE/FALSE in PHP code.

@@ -1,3 +1,3 @@
 ?php
 
-echo var_export($_REQUEST, true);
+echo var_export($_REQUEST, TRUE);

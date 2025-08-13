@@ -93,7 +93,7 @@ class Attachment {
         return $url;
     }
 
-    public function getPath($thumb = false, $id = null, $archived = false, $mods = NULL) {
+    public function getPath($thumb = FALSE, $id = null, $archived = FALSE, $mods = NULL) {
         if ($this->externaluid) {
             return $this->getImageDeliveryUrl($this->externaluid, $mods ? $mods : $this->externalmods);
         }
@@ -152,8 +152,8 @@ class Attachment {
             $this->idatt => $this->{$this->idatt}
         );
 
-        $ret['path'] = $this->getPath(false);
-        $ret['paththumb'] = $this->getPath(true);
+        $ret['path'] = $this->getPath(FALSE);
+        $ret['paththumb'] = $this->getPath(TRUE);
         $ret['mods'] = $this->externalmods;
 
         return ($ret);
@@ -164,7 +164,7 @@ class Attachment {
         $this->dbhm = $dbhm;
         $this->id = $id;
         $this->type = $type;
-        $this->archived = false;
+        $this->archived = FALSE;
         $url = '';
         $this->uidname = 'externaluid';
         $this->modsname = 'externalmods';
@@ -250,7 +250,7 @@ class Attachment {
                 ]
              ]);
 
-            $data = @file_get_contents($url, false, $ctx);
+            $data = @file_get_contents($url, FALSE, $ctx);
         }
 
         if (!$uid && $data) {
@@ -457,7 +457,7 @@ class Attachment {
             }
         }
 
-        return false;
+        return FALSE;
     }
 
     public function getData() {
@@ -484,7 +484,7 @@ class Attachment {
                 )
             );
 
-            $ret = $this->fgc($url, false, $ctx);
+            $ret = $this->fgc($url, FALSE, $ctx);
         } else {
             $sql = "SELECT * FROM {$this->table} WHERE id = ?;";
             $datas = $this->dbhr->preQuery($sql, [$this->id]);
@@ -527,17 +527,17 @@ class Attachment {
                 CURLOPT_URL,
                 'https://vision.googleapis.com/v1/images:annotate?key=' . GOOGLE_VISION_KEY
             );
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
             curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-type: application/json"));
-            curl_setopt($curl, CURLOPT_POST, true);
+            curl_setopt($curl, CURLOPT_POST, TRUE);
             curl_setopt($curl, CURLOPT_POSTFIELDS, $r_json);
             $json_response = curl_exec($curl);
             $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
             if ($status) {
-                $rsp = json_decode($json_response, true);
+                $rsp = json_decode($json_response, TRUE);
                 #error_log("Identified {$this->id} by Google $json_response for $r_json");
-                error_log("Matching " . var_export($rsp, true));
+                error_log("Matching " . var_export($rsp, TRUE));
 
                 if ($rsp &&
                     array_key_exists('responses', $rsp) &&
@@ -547,7 +547,7 @@ class Attachment {
                     $rsps = $rsp['responses'][0]['webDetection']['pagesWithMatchingImages'];
 
                     foreach ($rsps as $r) {
-                        if (array_key_exists('fullMatchingImages', $r) && strpos($r['url'], USER_SITE) === false) {
+                        if (array_key_exists('fullMatchingImages', $r) && strpos($r['url'], USER_SITE) === FALSE) {
                             $ret = $r['url'];
                         }
                     }
@@ -560,7 +560,7 @@ class Attachment {
         return ($ret);
     }
 
-    public function ocr($data = null, $returnfull = false, $video = false) {
+    public function ocr($data = null, $returnfull = FALSE, $video = FALSE) {
         # Identify text in an attachment using Google Vision API.
         $base64 = $data ? $data : base64_encode($this->getData());
 
@@ -599,9 +599,9 @@ class Attachment {
         $url = 'https://vision.googleapis.com/v1/images:annotate?key=' . GOOGLE_VISION_KEY;
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
         curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-type: application/json"));
-        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_POST, TRUE);
         curl_setopt($curl, CURLOPT_POSTFIELDS, $r_json);
 
         if ($video) {
@@ -616,7 +616,7 @@ class Attachment {
 
         if ($status) {
             error_log("Rsp $json_response");
-            $rsp = json_decode($json_response, true);
+            $rsp = json_decode($json_response, TRUE);
 
             if ($rsp && array_key_exists('responses', $rsp) && count($rsp['responses']) > 0 && array_key_exists(
                     'textAnnotations',

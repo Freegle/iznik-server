@@ -16,7 +16,7 @@ $rules = [];
 
 foreach ($groups as $group) {
     if ($group['rules']) {
-        $thisrules = json_decode($group['rules'], true);
+        $thisrules = json_decode($group['rules'], TRUE);
 
         foreach ($thisrules as $key => $value) {
             #error_log("{$group['nameshort']} rule $key is $value");
@@ -32,15 +32,15 @@ foreach ($groups as $group) {
             } else {
                 if (!isset($rules[$key])) {
                     $rules[$key] = [
-                        'true' => 0,
-                        'false' => 0
+                        'TRUE' => 0,
+                        'FALSE' => 0
                     ];
                 }
 
-                if ($value == 'true' || $value == '1') {
-                    $rules[$key]['true']++;
-                } else if (!$value || $value == 'false' || $value == '0') {
-                    $rules[$key]['false']++;
+                if ($value == 'TRUE' || $value == '1') {
+                    $rules[$key]['TRUE']++;
+                } else if (!$value || $value == 'FALSE' || $value == '0') {
+                    $rules[$key]['FALSE']++;
                 }
             }
         }
@@ -49,7 +49,7 @@ foreach ($groups as $group) {
 
 foreach ($rules as $key => $counts) {
     if ($key != 'other') {
-        error_log("$key, {$counts['true']}, {$counts['false']}");
+        error_log("$key, {$counts['TRUE']}, {$counts['FALSE']}");
     } else {
         foreach ($counts as $count) {
             if ($count != 'None') {

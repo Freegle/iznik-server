@@ -133,7 +133,7 @@ class Google
 
                         if ($googlemail)
                         {
-                            $u->addEmail($googlemail, 0, false);
+                            $u->addEmail($googlemail, 0, FALSE);
                         }
 
                         # Now Set up a login entry.  Use IGNORE as there is a timing window here.
@@ -154,7 +154,7 @@ class Google
 
                     if (!$eid)
                     {
-                        $u->addEmail($googlemail, 0, false);
+                        $u->addEmail($googlemail, 0, FALSE);
                     }
 
                     if (!$gid)
@@ -273,7 +273,7 @@ class Google
                             $u = User::get($this->dbhr, $this->dbhm, $id);
 
                             if ($googlemail) {
-                                $u->addEmail($googlemail, 0, false);
+                                $u->addEmail($googlemail, 0, FALSE);
                             }
 
                             # Now Set up a login entry.  Use IGNORE as there is a timing window here.
@@ -292,7 +292,7 @@ class Google
                         $u = User::get($this->dbhr, $this->dbhm, $id);
 
                         if (!$eid) {
-                            $u->addEmail($googlemail, 0, false);
+                            $u->addEmail($googlemail, 0, FALSE);
                         }
 
                         if (!$gid) {

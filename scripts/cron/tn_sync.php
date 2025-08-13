@@ -146,7 +146,7 @@ do {
                     }
                 }
             } catch (\Exception $e) {
-                error_log("Ratings sync failed " . $e->getMessage() . " " . var_export($rating, true));
+                error_log("Ratings sync failed " . $e->getMessage() . " " . var_export($rating, TRUE));
                 \Sentry\captureException($e);
             }
         }

@@ -302,8 +302,8 @@ class MessageCollection
                     $msg['attachments'] = [
                         [
                             'id' => $msg['attachmentid'],
-                            'path' => $a->getpath(false, $msg['attachmentid']),
-                            'paththumb' => $a->getpath(true, $msg['attachmentid'])
+                            'path' => $a->getpath(FALSE, $msg['attachmentid']),
+                            'paththumb' => $a->getpath(TRUE, $msg['attachmentid'])
                         ]
                     ];
                 }

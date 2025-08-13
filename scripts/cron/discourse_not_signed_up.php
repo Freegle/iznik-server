@@ -176,7 +176,7 @@ try{
   $reportTop .= "Published groups: ".count($allgroups)."\r\n";
   $groups = array();
   foreach ($allgroups as $group) {
-    $groups[$group['id']] = false;
+    $groups[$group['id']] = FALSE;
   }
 
   $sql = "SELECT DISTINCT users.*,groups.id as groupid,memberships.settings as settings FROM users INNER JOIN memberships ON users.id = memberships.userid ".
@@ -196,7 +196,7 @@ try{
   $reportMid = "\r\nList of these volunteers not on Discourse:\r\n";
 
   foreach ($allDusers as $duser) {
-    $duser->external_id = false;
+    $duser->external_id = FALSE;
   }
 
   foreach ($allDusers as $duser) {
@@ -206,7 +206,7 @@ try{
     //echo "duser: ".$duser->id." ".$duser->username."\r\n";
    
     // Get external_id from Discourse ie MT user id - and last_emailed_at 
-    $duser->external_id = false;
+    $duser->external_id = FALSE;
     $fulluser = GetUser($duser->id,$duser->username);
     if (property_exists($fulluser, 'single_sign_on_record')){
       if( is_object ($fulluser->single_sign_on_record)){
@@ -214,10 +214,10 @@ try{
         echo "external_id: ".$duser->external_id."\r\n";
 
         // See if this external_id is an active mod:
-        $found = false;
+        $found = FALSE;
         foreach ($allactivemodsgroups as $activemod) {
           if( $duser->external_id==$activemod['id']){
-            $found = true;
+            $found = TRUE;
           }
         }
         if( !$found){
@@ -263,11 +263,11 @@ try{
     $modfirstseen = $lastmodid != $activemod['id'];
     $lastmodid = $activemod['id'];
     $count++;
-    $found = false;
+    $found = FALSE;
     foreach ($allDusers as $duser) {
       if( $duser->external_id==$activemod['id']){
         //echo "FOUND\r\n";
-        $found = true;
+        $found = TRUE;
         break;
       }
     }
@@ -279,12 +279,12 @@ try{
       $groupid = $activemod['groupid'];
       // {"showmessages":1,"showmembers":1,"pushnotify":1,"active":1,"showchat":1,"eventsallowed":1,"volunteeringallowed":1,"emailfrequency":24}
       if( isset($activemod['settings'])){
-        if( strpos($activemod['settings'],'"active":0')!==false){
-          $found = false;
+        if( strpos($activemod['settings'],'"active":0')!==FALSE){
+          $found = FALSE;
         }
       }
       if( $found){
-        $groups[$groupid] = true;
+        $groups[$groupid] = TRUE;
       }
     }
     //if( $count>10) break;
@@ -327,13 +327,13 @@ try{
   if( $notondiscourse>0) $subject .= "$notondiscourse volunteers not signed up. ";
   if( $notrepresentedcount==0 && $notondiscourse==0) $subject .= 'all active volunteers on here';
 
-  $mailedcentralmods = false;
+  $mailedcentralmods = FALSE;
   /*if( $notmod || $notuser){
     $subject = 'Discourse checkuser USERS TO CHECK';
     $sent = mail(CENTRALMODS_ADDR, $subject, $report,$headers);
     echo "Mail sent to centralmods: ".$sent."\r\n";
     $report = "Mail sent to centralmods: ".$sent."\r\n".$report;
-    $mailedcentralmods = true;
+    $mailedcentralmods = TRUE;
   }*/
 
   $weeklySendToday = date('w')==6; // Saturday

@@ -241,7 +241,7 @@ class GeoHash extends GeoAdapter{
     $last = substr($hash, -1);
     $type = (strlen($hash) % 2)? 'odd': 'even';
     $base = substr($hash, 0, strlen($hash) - 1);
-    if(strpos(($this->borders[$direction][$type]), $last) !== false){
+    if(strpos(($this->borders[$direction][$type]), $last) !== FALSE){
         $base = $this->adjacent($base, $direction);
     }
     return $base.$this->table[strpos($this->neighbours[$direction][$type], $last)];

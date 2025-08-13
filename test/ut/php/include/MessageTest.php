@@ -224,7 +224,7 @@ class messageTest extends IznikTestCase {
         list ($mid, $failok) = $m->save();
         $m = new Message($this->dbhr, $this->dbhm, $mid);
         $atts = $m->getPublic();
-        $this->log("Public " . var_export($atts, true));
+        $this->log("Public " . var_export($atts, TRUE));
 
         # Shouldn't be able to see actual location
         $this->assertFalse(array_key_exists('locationid', $atts));
@@ -1012,7 +1012,7 @@ class messageTest extends IznikTestCase {
 
         # Check logs.
         $this->waitBackground();
-        $groups = $g->listByType(Group::GROUP_UT, TRUE, FALSE);
+        $groups = $g->listByType(Group::GROUP_UT, TRUE);
 
         $found = FALSE;
         foreach ($groups as $group) {

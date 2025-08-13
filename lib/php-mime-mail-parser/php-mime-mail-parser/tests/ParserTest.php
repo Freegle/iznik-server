@@ -31,11 +31,11 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                 // Subject Expected
                 'Mail avec fichier attaché de 1ko',
                 // From Expected (array)
-                array(array('display' => 'Name','address' => 'name@company.com','is_group' => false)),
+                array(array('display' => 'Name','address' => 'name@company.com','is_group' => FALSE)),
                 // From Expected
                 'Name <name@company.com>',
                 // To Expected (array)
-                array(array('display' => 'Name','address' => 'name@company.com','is_group' => false)),
+                array(array('display' => 'Name','address' => 'name@company.com','is_group' => FALSE)),
                 // To Expected
                 'name@company2.com',
                 // Text Expected (MATCH = exact match, COUNT = Count the number of substring occurrences )
@@ -55,7 +55,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Name',
                             'address' => 'name@company.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'Name <name@company.com>',
@@ -63,7 +63,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'name@company2.com',
                             'address' => 'name@company2.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'name@company2.com',
@@ -89,7 +89,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Name',
                             'address' => 'name@company.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'Name <name@company.com>',
@@ -97,7 +97,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'name@company2.com',
                             'address' => 'name@company2.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'name@company2.com',
@@ -123,7 +123,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Name',
                             'address' => 'name@company.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'Name <name@company.com>',
@@ -131,7 +131,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'name@company2.com',
                             'address' => 'name@company2.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'name@company2.com',
@@ -157,7 +157,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Name',
                             'address' => 'name@company.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'Name <name@company.com>',
@@ -165,7 +165,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'name@company2.com',
                             'address' => 'name@company2.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'name@company2.com',
@@ -191,7 +191,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Name',
                             'address' => 'name@company.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'Name <name@company.com>',
@@ -199,7 +199,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'name@company2.com',
                             'address' => 'name@company2.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'name@company2.com',
@@ -225,7 +225,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Name',
                             'address' => 'name@company.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'Name <name@company.com>',
@@ -233,7 +233,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'name@company2.com',
                             'address' => 'name@company2.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'name@company2.com',
@@ -259,7 +259,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Name',
                             'address' => 'name@company.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'Name <name@company.com>',
@@ -267,7 +267,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'name@company2.com',
                             'address' => 'name@company2.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'name@company2.com',
@@ -293,7 +293,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Name',
                             'address' => 'name@company.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'Name <name@company.com>',
@@ -301,7 +301,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Name',
                             'address' => 'name@company2.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'Name <name@company2.com>',
@@ -347,7 +347,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Ogone',
                             'address' => 'noreply@ogone.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     '"Ogone" <noreply@ogone.com>',
@@ -355,7 +355,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'info@testsite.com',
                             'address' => 'info@testsite.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'info@testsite.com',
@@ -370,7 +370,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Name',
                             'address' => 'name@company.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'Name <name@company.com>',
@@ -378,7 +378,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'name@company2.com',
                             'address' => 'name@company2.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'name@company2.com',
@@ -404,7 +404,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Name',
                             'address' => 'name@company.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'Name <name@company.com>',
@@ -412,7 +412,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Name',
                             'address' => 'name@company.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'Name <name@company.com>',
@@ -438,7 +438,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Name',
                             'address' => 'name@company.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'Name <name@company.com>',
@@ -446,7 +446,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Name',
                             'address' => 'name@company.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'Name <name@company.com>',
@@ -472,7 +472,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'NAME Firstname',
                             'address' => 'firstname.name@groupe-company.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'NAME Firstname <firstname.name@groupe-company.com>',
@@ -480,7 +480,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'paul.dupont@company.com',
                             'address' => 'paul.dupont@company.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     '"paul.dupont@company.com" <paul.dupont@company.com>',
@@ -506,7 +506,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Doug Sauder',
                             'address' => 'dwsauder@example.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'Doug Sauder <dwsauder@example.com>',
@@ -514,7 +514,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Joe Blow',
                             'address' => 'blow@example.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'Joe Blow <blow@example.com>',
@@ -540,7 +540,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Vitamart.ca',
                             'address' => 'service@vitamart.ca',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     '"Vitamart.ca" <service@vitamart.ca>',
@@ -548,7 +548,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'me@somewhere.com',
                             'address' => 'me@somewhere.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'me@somewhere.com',
@@ -584,7 +584,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Doug Sauder',
                             'address' => 'dwsauder@example.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'Doug Sauder <dwsauder@example.com>',
@@ -592,7 +592,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Joe Blow',
                             'address' => 'blow@example.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'Joe Blow <blow@example.com>',
@@ -618,7 +618,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'name@company.com',
                             'address' => 'name@company.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     '<name@company.com>',
@@ -626,7 +626,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'name@company2.com',
                             'address' => 'name@company2.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     '"name@company2.com" <name@company2.com>',
@@ -662,7 +662,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'sendeär',
                             'address' => 'sender@test.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'sendeär <sender@test.com>',
@@ -670,7 +670,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'test',
                             'address' => 'test@asdasd.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     '"test" <test@asdasd.com>',
@@ -685,7 +685,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Finntack Newsletter',
                             'address' => 'newsletter@finntack.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'Finntack Newsletter <newsletter@finntack.com>',
@@ -693,7 +693,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Clement Wong',
                             'address' => 'clement.wong@finntack.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'Clement Wong <clement.wong@finntack.com>',
@@ -719,7 +719,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'mail@exemple.com',
                             'address' => 'mail@exemple.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             )
                     ),
                     'mail@exemple.com',
@@ -727,17 +727,17 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'mail@exemple.com',
                             'address' => 'mail@exemple.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             ),
                         array(
                             'display' => 'mail2@exemple3.com',
                             'address' => 'mail2@exemple3.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             ),
                         array(
                             'display' => 'mail3@exemple2.com',
                             'address' => 'mail3@exemple2.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             ),
                     ),
                     'mail@exemple.com, mail2@exemple3.com, mail3@exemple2.com',
@@ -752,7 +752,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'sendeär',
                             'address' => 'sender@test.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             ),
                     ),
                     'sendeär <sender@test.com>',
@@ -760,7 +760,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'test',
                             'address' => 'test@asdasd.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             ),
                     ),
                     '"test" <test@asdasd.com>',
@@ -775,7 +775,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Keith Moore',
                             'address' => 'moore@cs.utk.edu',
-                            'is_group' => false
+                            'is_group' => FALSE
                             ),
                     ),
                     'Keith Moore <moore@cs.utk.edu>',
@@ -783,7 +783,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Keld Jørn Simonsen',
                             'address' => 'keld@dkuug.dk',
-                            'is_group' => false
+                            'is_group' => FALSE
                             ),
                     ),
                     'Keld Jørn Simonsen <keld@dkuug.dk>',
@@ -799,7 +799,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'John DOE',
                             'address' => 'blablafakeemail@provider.fr',
-                            'is_group' => false
+                            'is_group' => FALSE
                             ),
                     ),
                     'John DOE <blablafakeemail@provider.fr>',
@@ -807,7 +807,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'list-name',
                             'address' => 'list-name@list-domain.org',
-                            'is_group' => false
+                            'is_group' => FALSE
                             ),
                     ),
                     'list-name <list-name@list-domain.org>',
@@ -833,7 +833,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Name',
                             'address' => 'name@company.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             ),
                     ),
                     'Name <name@company.com>',
@@ -841,7 +841,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
                         array(
                             'display' => 'Name',
                             'address' => 'name@company2.com',
-                            'is_group' => false
+                            'is_group' => FALSE
                             ),
                     ),
                     'Name <name@company2.com>',

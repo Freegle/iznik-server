@@ -183,7 +183,7 @@ class Parser
         if (isset($this->parts[1])) {
             $headers = $this->getPart('headers', $this->parts[1]);
 
-            return (isset($headers[$name])) ? $headers[$name] : false;
+            return (isset($headers[$name])) ? $headers[$name] : FALSE;
         } else {
             throw new \Exception(
                 'setPath() or setText() or setStream() must be called before retrieving email headers.'
@@ -202,7 +202,7 @@ class Parser
     {
         $rawHeader = $this->getRawHeader($name);
         if ($rawHeader === FALSE) {
-            return false;
+            return FALSE;
         }
 
         return $this->decodeHeader($rawHeader);
@@ -325,11 +325,11 @@ class Parser
         foreach ($this->parts as $partId => $part) {
             if ($this->getPart('content-disposition', $part) == 'attachment') {
                 if ($this->partIdIsChildOfPart($checkPartId, $partId)) {
-                    return true;
+                    return TRUE;
                 }
             }
         }
-        return false;
+        return FALSE;
     }
 
     /**
@@ -337,12 +337,12 @@ class Parser
      *
      * @param string $type text, html or htmlEmbedded
      *
-     * @return false|string Body or False if not found
+     * @return FALSE|string Body or False if not found
      * @throws Exception
      */
     public function getMessageBody($type = 'text')
     {
-        $body = false;
+        $body = FALSE;
         $mime_types = [
         'text'         => 'text/plain',
         'html'         => 'text/html',
@@ -442,14 +442,14 @@ class Parser
                 // we simulate the presence of an attachment disposition with a disposition filename
                 $filename = $this->decodeHeader($part['content-name']);
                 $disposition = 'attachment';
-            } elseif (!in_array($part['content-type'], $non_attachment_types, true)
+            } elseif (!in_array($part['content-type'], $non_attachment_types, TRUE)
                 && substr($part['content-type'], 0, 10) !== 'multipart/'
                 ) {
                 // if we cannot get it by getMessageBody(), we assume it is an attachment
                 $disposition = 'attachment';
             }
 
-            if (in_array($disposition, $dispositions) ==  true && isset($filename) ==  true) {
+            if (in_array($disposition, $dispositions) ==  TRUE && isset($filename) ==  TRUE) {
                 if ($filename == 'noname') {
                     $nonameIter++;
                     $filename = 'noname'.$nonameIter;
@@ -487,7 +487,7 @@ class Parser
     {
         $attachments = $this->getAttachments();
         if (empty($attachments)) {
-            return false;
+            return FALSE;
         }
 
         if (!is_dir($attach_dir)) {
@@ -636,14 +636,14 @@ class Parser
      *
      * @param array $part
      *
-     * @return string|false
+     * @return string|FALSE
      */
     protected function getPartCharset($part)
     {
         if (isset($part['charset'])) {
             return $this->charset->getCharsetAlias($part['charset']);
         } else {
-            return false;
+            return FALSE;
         }
     }
 
@@ -657,7 +657,7 @@ class Parser
      */
     protected function getPart($type, $parts)
     {
-        return (isset($parts[$type])) ? $parts[$type] : false;
+        return (isset($parts[$type])) ? $parts[$type] : FALSE;
     }
 
     /**

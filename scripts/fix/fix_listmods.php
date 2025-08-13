@@ -31,7 +31,7 @@ foreach ($mods as $mod) {
     $lastaccess = $u->getPrivate('lastaccess');
     $lastaccess = $lastaccess ? date('Y-m-d', strtotime($lastaccess)) : null;
 
-    $modships = $u->getMemberships(true);
+    $modships = $u->getMemberships(TRUE);
     $active = [];
     $backup = [];
 

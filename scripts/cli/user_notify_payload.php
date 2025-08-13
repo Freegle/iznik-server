@@ -20,7 +20,7 @@ if (count($opts) < 1) {
 
     if ($uid) {
         $u = new User($dbhr, $dbhm, $uid);
-        error_log(var_export($u->getNotificationPayload(false), TRUE));
+        error_log(var_export($u->getNotificationPayload(FALSE), TRUE));
     } else {
         error_log("User not found");
     }

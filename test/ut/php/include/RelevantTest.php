@@ -81,7 +81,7 @@ class RelevantTest extends IznikTestCase
         $email = 'test1@test.com';
         list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', $email, 'testpw');
         $this->log("Created user $uid");
-        $u->addEmail('ut-' . rand() . '@' . USER_DOMAIN, 0, FALSE);
+        $u->addEmail('ut-' . rand() . '@' . USER_DOMAIN, 0);
         $this->assertTrue($u->login('testpw'));
         $this->log("Emails before first " . var_export($u->getEmails(), TRUE));
 
@@ -207,7 +207,7 @@ class RelevantTest extends IznikTestCase
         $email = 'test2@test.com';
         list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', $email, 'testpw');
         $this->log("Created user $uid");
-        $u->addEmail('ut-' . rand() . '@' . USER_DOMAIN, 0, FALSE);
+        $u->addEmail('ut-' . rand() . '@' . USER_DOMAIN, 0);
         $u->addMembership($gid);
         $m->like($uid, Message::LIKE_VIEW);
         $this->waitBackground();

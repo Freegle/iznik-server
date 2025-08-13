@@ -10,7 +10,9 @@
       "Bash(chmod:*)",
       "WebFetch(domain:docs.netlify.com)",
       "Bash(mv:*)",
-      "WebFetch(domain:www.sslshopper.com)"
+      "WebFetch(domain:www.sslshopper.com)",
+      "Bash(sed:*)",
+      "Bash(find:*)"
     ],
     "deny": []
   }

@@ -9,16 +9,16 @@ require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
 // Set up signal handler for graceful exit
-$gracefulExit = false;
+$gracefulExit = FALSE;
 if (function_exists('pcntl_signal')) {
     pcntl_signal(SIGINT, function($signal) use (&$gracefulExit) {
         global $gracefulExit;
-        $gracefulExit = true;
+        $gracefulExit = TRUE;
         echo "\n🛑 Received interrupt signal (Ctrl+C). Finishing current post then showing summary...\n";
     });
     
     // Enable signal handling
-    pcntl_async_signals(true);
+    pcntl_async_signals(TRUE);
 }
 
 $opts = getopt('g:l:d:mrhvt');
@@ -57,7 +57,7 @@ $processAllGroups = ($groupName === 'all');
 
 // Disable actions when processing all groups for safety
 if ($processAllGroups) {
-    $createMicrovolunteering = false;
+    $createMicrovolunteering = FALSE;
 }
 
 if (!$groupName) {
@@ -135,7 +135,7 @@ $modbot = new ModBot($dbhr, $dbhm);
 
 // Check if modbot has moderation rights (skip for 'all' groups)
 if ($processAllGroups) {
-    $hasModRights = false; // Always false for all groups to disable actions
+    $hasModRights = FALSE; // Always FALSE for all groups to disable actions
 } else {
     $modbotUser = User::get($dbhr, $dbhm);
     $botUserId = $modbotUser->findByEmail(MODBOT_USER);
@@ -253,11 +253,11 @@ function isContentBasedRejection($rejectionReason) {
     
     $reason = strtolower($rejectionReason);
     foreach ($proceduralReasons as $procedural) {
-        if (strpos($reason, $procedural) !== false) {
-            return false; // It's procedural
+        if (strpos($reason, $procedural) !== FALSE) {
+            return FALSE; // It's procedural
         }
     }
-    return true; // Assume it's content-based
+    return TRUE; // Assume it's content-based
 }
 
 // Function to perform immediate prompt improvement when mismatch detected
@@ -274,7 +274,7 @@ function performImmediatePromptImprovement($trainingCase, $modbot, $debugMode, &
         global $gracefulExit;
         if ($gracefulExit) {
             echo "      🛑 Graceful exit requested during training. Stopping improvement attempts.\n";
-            return false;
+            return FALSE;
         }
         
         $iteration++;
@@ -311,7 +311,7 @@ function performImmediatePromptImprovement($trainingCase, $modbot, $debugMode, &
                     'timestamp' => date('Y-m-d H:i:s')
                 ];
                 
-                return true;
+                return TRUE;
             } else {
                 echo "      ❌ Iteration $iteration failed - still no agreement\n";
                 if ($debugMode && isset($testResult['reason'])) {
@@ -327,7 +327,7 @@ function performImmediatePromptImprovement($trainingCase, $modbot, $debugMode, &
     }
     
     echo "      🏳️ GAVE UP: Could not achieve agreement after $maxIterations iterations\n";
-    return false;
+    return FALSE;
 }
 
 // Helper function to map rejection reasons to rule types
@@ -382,7 +382,7 @@ function getRelatedRule($rejectionReason) {
     
     $reason = strtolower($rejectionReason);
     foreach ($ruleMapping as $keyword => $rule) {
-        if (strpos($reason, $keyword) !== false) {
+        if (strpos($reason, $keyword) !== FALSE) {
             return $rule;
         }
     }
@@ -632,8 +632,8 @@ foreach ($posts as $post) {
         $errorMessage = $e->getMessage();
         
         // Check for quota exhaustion - this is a fatal error
-        if (strpos($errorMessage, 'exceeded your current quota') !== false || 
-            strpos($errorMessage, 'FreeTier') !== false) {
+        if (strpos($errorMessage, 'exceeded your current quota') !== FALSE || 
+            strpos($errorMessage, 'FreeTier') !== FALSE) {
             echo $statusLine . "✗ FATAL: API QUOTA EXHAUSTED\n";
             echo "    → Google Gemini daily quota limit reached\n";
             echo "    → Cannot safely continue - posts would be incorrectly marked as OK\n";
@@ -646,9 +646,9 @@ foreach ($posts as $post) {
         }
         
         // Check for other rate limit errors (temporary)
-        $isRateLimit = strpos($errorMessage, '429') !== false || 
-                      strpos($errorMessage, 'RESOURCE_EXHAUSTED') !== false ||
-                      strpos($errorMessage, 'quota') !== false;
+        $isRateLimit = strpos($errorMessage, '429') !== FALSE || 
+                      strpos($errorMessage, 'RESOURCE_EXHAUSTED') !== FALSE ||
+                      strpos($errorMessage, 'quota') !== FALSE;
         
         if ($isRateLimit) {
             echo $statusLine . "✗ RATE LIMIT (waiting 5s...)\n";

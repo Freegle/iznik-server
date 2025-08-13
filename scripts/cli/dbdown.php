@@ -15,7 +15,7 @@ if (count($opts) < 1) {
 } else {
     $host = "db{$opts['h']}-internal";
 
-    while (true) {
+    while (TRUE) {
         touch("/tmp/iznik.dbstatus.$host:3306.down");
         sleep(10);
     }

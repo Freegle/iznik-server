@@ -206,7 +206,7 @@ ORDER BY groups_facebook_toshare.id DESC;";
                             # Create the iframe version of the Facebook plugin.
                             $pageid = $matches[1];
                             $postid = $matches[2];
-                            $remaining[$post['id']]['iframe'] = '<iframe src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2F' . $pageid . '%2Fposts%2F' . $postid . '%2F&width=auto&show_text=true&appId=' . FBGRAFFITIAPP_ID . '&height=500" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>';
+                            $remaining[$post['id']]['iframe'] = '<iframe src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2F' . $pageid . '%2Fposts%2F' . $postid . '%2F&width=auto&show_text=TRUE&appId=' . FBGRAFFITIAPP_ID . '&height=500" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="TRUE"></iframe>';
                         }
                     }
 
@@ -266,7 +266,7 @@ ORDER BY groups_facebook_toshare.id DESC;";
                                 # these.
                                 error_log("Like failed with " . $e->getMessage());
                             }
-                            #error_log("Like returned " . var_export($res, true));
+                            #error_log("Like returned " . var_export($res, TRUE));
                         }
 
                         try {

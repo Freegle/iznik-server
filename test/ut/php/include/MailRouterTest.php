@@ -102,7 +102,7 @@ class MailRouterTest extends IznikTestCase {
         $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $groups = $m->getGroups();
-        $this->log("Groups " . var_export($groups, true));
+        $this->log("Groups " . var_export($groups, TRUE));
         $this->assertEquals($gid, $groups[0]);
         $this->assertTrue($m->isApproved($gid));
     }
@@ -205,7 +205,7 @@ class MailRouterTest extends IznikTestCase {
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('mail'))
             ->getMock();
-        $r->method('mail')->willReturn(false);
+        $r->method('mail')->willReturn(FALSE);
 
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/greetingsspam');
        list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
@@ -224,7 +224,7 @@ class MailRouterTest extends IznikTestCase {
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('mail'))
             ->getMock();
-        $r->method('mail')->willReturn(false);
+        $r->method('mail')->willReturn(FALSE);
 
         $u = new User($this->dbhr, $this->dbhm);
         $uid = $u->create("Test", "User", "Test User");
@@ -319,7 +319,7 @@ class MailRouterTest extends IznikTestCase {
         $this->assertEquals($pend->getSubject(), $pend->getHeader('subject'));
         $this->assertEquals('testgroup@yahoogroups.com', $pend->getTo()[0]['address']);
         $this->assertEquals('Test User', $pend->getFromname());
-        $this->log("Delete $id from " . var_export($pend->getGroups(), true));
+        $this->log("Delete $id from " . var_export($pend->getGroups(), TRUE));
         $pend->delete(NULL, $pend->getGroups()[0]);
 
         }
@@ -401,7 +401,7 @@ class MailRouterTest extends IznikTestCase {
             ->disableOriginalConstructor()
             ->setMethods(array('filter'))
             ->getMock();
-        $mock->method('filter')->willReturn(true);
+        $mock->method('filter')->willReturn(TRUE);
         $mock->result['SCORE'] = 100;
         $r->setSpamc($mock);
         $rc = $r->route();
@@ -442,7 +442,7 @@ class MailRouterTest extends IznikTestCase {
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('markAsSpam'))
             ->getMock();
-        $r->method('markAsSpam')->willReturn(false);
+        $r->method('markAsSpam')->willReturn(FALSE);
 
         $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
         $rc = $r->route();
@@ -454,7 +454,7 @@ class MailRouterTest extends IznikTestCase {
             ->disableOriginalConstructor()
             ->setMethods(array('filter'))
             ->getMock();
-        $mock->method('filter')->willReturn(false);
+        $mock->method('filter')->willReturn(FALSE);
         $r->setSpamc($mock);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam'));
@@ -487,8 +487,8 @@ class MailRouterTest extends IznikTestCase {
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('markApproved', 'markPending'))
             ->getMock();
-        $r->method('markApproved')->willReturn(false);
-        $r->method('markPending')->willReturn(false);
+        $r->method('markApproved')->willReturn(FALSE);
+        $r->method('markPending')->willReturn(FALSE);
 
         $this->log("Expect markApproved fail");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -509,7 +509,7 @@ class MailRouterTest extends IznikTestCase {
             ->disableOriginalConstructor()
             ->setMethods(array('filter'))
             ->getMock();
-        $mock->method('filter')->willReturn(false);
+        $mock->method('filter')->willReturn(FALSE);
         $r->setSpamc($mock);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -738,8 +738,8 @@ class MailRouterTest extends IznikTestCase {
             ->setMethods(array('preExec', 'rollBack', 'beginTransaction'))
             ->getMock();
         $mock->method('preExec')->will($this->throwException(new \Exception()));
-        $mock->method('rollBack')->willReturn(true);
-        $mock->method('beginTransaction')->willReturn(true);
+        $mock->method('rollBack')->willReturn(TRUE);
+        $mock->method('beginTransaction')->willReturn(TRUE);
         $r->setDbhm($mock);
         $r->routeAll();
 
@@ -766,7 +766,7 @@ class MailRouterTest extends IznikTestCase {
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('mail'))
             ->getMock();
-        $r->method('mail')->willReturn(false);
+        $r->method('mail')->willReturn(FALSE);
 
         # A request to confirm an application
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext');
@@ -872,11 +872,11 @@ class MailRouterTest extends IznikTestCase {
 
         # The reply should be visible in the message, but only when logged in as the recipient.
         $m = new Message($this->dbhr, $this->dbhm, $origid);
-        $atts = $m->getPublic(FALSE, FALSE, FALSE);
+        $atts = $m->getPublic(FALSE, FALSE);
         $this->assertEquals(0, count($atts['replies']));
         $this->assertTrue($this->user->login('testpw'));
         $m = new Message($this->dbhr, $this->dbhm, $origid);
-        $atts = $m->getPublic(FALSE, FALSE, FALSE);
+        $atts = $m->getPublic(FALSE, FALSE);
         $this->assertEquals(1, count($atts['replies']));
 
         # Now send another reply, but in HTML with no text body.
@@ -986,7 +986,7 @@ class MailRouterTest extends IznikTestCase {
             $uid2
         ]);
         $this->assertEquals(1, count($msgs));
-        error_log(var_export($msgs, true));
+        error_log(var_export($msgs, TRUE));
         $this->assertEquals(1, $msgs[0]['reviewrejected']);
     }
 

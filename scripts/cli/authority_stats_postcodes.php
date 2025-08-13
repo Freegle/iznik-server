@@ -11,10 +11,10 @@ global $dbhr, $dbhm;
 $opts = getopt('i:f:');
 
 if (count($opts) < 1) {
-    echo "Usage: php authority_stats_postcode -i <authority IDs in a CSL> -f (true for full postcodes, false for summary)\n";
+    echo "Usage: php authority_stats_postcode -i <authority IDs in a CSL> -f (TRUE for full postcodes, FALSE for summary)\n";
 } else {
     $ids = explode(',', $opts['i']);
-    $full = $opts['f'] == 'true' ? true : false;
+    $full = $opts['f'] == 'TRUE' ? TRUE : FALSE;
 
     $s = new Stats($dbhr, $dbhm);
     $stats = $s->getByAuthority($ids, "365 days ago", "today", $full);

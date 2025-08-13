@@ -37,7 +37,7 @@ class AlertTest extends IznikTestCase {
         $g->setPrivate('contactmail', 'test@test.com');
 
         $a = new Alert($this->dbhr, $this->dbhm);
-        $id = $a->create(NULL, 'geeks', Alert::MODS, 'UT - please ignore', 'UT', 'UT', FALSE, FALSE);
+        $id = $a->create(NULL, 'geeks', Alert::MODS, 'UT - please ignore', 'UT', 'UT', FALSE);
 
         # Send - one external.
         self::assertEquals(1, $a->process($id, Group::GROUP_UT));
@@ -56,7 +56,7 @@ class AlertTest extends IznikTestCase {
         $this->user->addMembership($gid, User::ROLE_MODERATOR);
 
         $a = new Alert($this->dbhr, $this->dbhm);
-        $id = $a->create(NULL, 'UT', Alert::MODS, 'UT - please ignore', 'UT', 'UT', FALSE, FALSE);
+        $id = $a->create(NULL, 'UT', Alert::MODS, 'UT - please ignore', 'UT', 'UT', FALSE);
 
         global $dbconfig;
 
@@ -76,7 +76,7 @@ class AlertTest extends IznikTestCase {
         $mock->method('lastInsertId')->willThrowException(new \Exception());
         $a->setDbhm($mock);
 
-        self::assertEquals(0, $a->mailMods($id, $gid, FALSE));
+        self::assertEquals(0, $a->mailMods($id, $gid));
     }
 }
 

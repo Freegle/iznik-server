@@ -248,7 +248,7 @@ class User extends Entity
                                     'text' => 'Using email/password'
                                 ]);
 
-                        return (true);
+                        return (TRUE);
                     }
                 }
             }
@@ -408,9 +408,9 @@ class User extends Entity
             $spamwords[] = strtolower($w['word']);
         }
 
-        $lengths = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/distinct_word_lengths.json'), true);
-        $bigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/word_start_bigrams.json'), true);
-        $trigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/trigrams.json'), true);
+        $lengths = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/distinct_word_lengths.json'), TRUE);
+        $bigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/word_start_bigrams.json'), TRUE);
+        $trigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/trigrams.json'), TRUE);
 
         $pw = '';
 
@@ -1056,7 +1056,7 @@ class User extends Entity
                 $meid
             ]);
 
-            # Mark any messages on this group as withdrawn.  Not strictly true, but it will stop people replying
+            # Mark any messages on this group as withdrawn.  Not strictly TRUE, but it will stop people replying
             # while keeping the messages around for stats purposes and in case we want to look at them.
             $msgs = $this->dbhr->preQuery("SELECT messages_groups.msgid FROM messages_groups 
     INNER JOIN messages ON messages_groups.msgid = messages.id 
@@ -2230,7 +2230,7 @@ class User extends Entity
                     ',',
                     $idsleft
                 ) . ") AND groupid IN (" . implode(',', $modships) . ") GROUP BY userid;";
-            $modmails = $this->dbhr->preQuery($sql, null, false, false);
+            $modmails = $this->dbhr->preQuery($sql, null, FALSE, FALSE);
 
             foreach ($idsleft as $userid) {
                 $rets[$userid]['modmails'] = 0;
@@ -2644,7 +2644,7 @@ class User extends Entity
                             # The message has been deleted.
                             $log['message'] = [
                                 'id' => $log['msgid'],
-                                'deleted' => true
+                                'deleted' => TRUE
                             ];
 
                             # See if we can find out why.
@@ -2952,7 +2952,7 @@ class User extends Entity
                             $rc = $this->dbhm->preExec($sql);
                         }
 
-                        #error_log("Emails now " . var_export($this->dbhm->preQuery("SELECT * FROM users_emails WHERE userid = $id1;"), true));
+                        #error_log("Emails now " . var_export($this->dbhm->preQuery("SELECT * FROM users_emails WHERE userid = $id1;"), TRUE));
                         #error_log("Email merge returned $rc");
                     }
 
@@ -3236,7 +3236,7 @@ class User extends Entity
 
     public function mailer($user, $modmail, $toname, $to, $bcc, $fromname, $from, $subject, $text) {
         try {
-            #error_log(session_id() . " mail " . microtime(true));
+            #error_log(session_id() . " mail " . microtime(TRUE));
 
             list ($transport, $mailer) = Mail::getMailer();
 
@@ -3266,7 +3266,7 @@ class User extends Entity
             # Stop the transport, otherwise the message doesn't get sent until the UT script finishes.
             $transport->stop();
 
-            #error_log(session_id() . " mailed " . microtime(true));
+            #error_log(session_id() . " mailed " . microtime(TRUE));
         } catch (\Exception $e) {
             # Not much we can do - shouldn't really happen given the failover transport.
             // @codeCoverageIgnoreStart
@@ -3825,7 +3825,7 @@ class User extends Entity
         $this->sendIt($mailer, $message);
     }
 
-    public function verifyEmail($email, $force = false)
+    public function verifyEmail($email, $force = FALSE)
     {
         # If this is one of our current emails, then we can just make it the primary.
         $emails = $this->getEmails();
@@ -4000,9 +4000,9 @@ class User extends Entity
                     $email = str_replace(' ', '', $p > 0 ? substr($email, 0, $p) : $email) . '-' . $this->id . '@' . USER_DOMAIN;
                 } else {
                     # We can't make up something similar to their existing email address so invent from scratch.
-                    $lengths = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/distinct_word_lengths.json'), true);
-                    $bigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/word_start_bigrams.json'), true);
-                    $trigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/trigrams.json'), true);
+                    $lengths = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/distinct_word_lengths.json'), TRUE);
+                    $bigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/word_start_bigrams.json'), TRUE);
+                    $trigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/trigrams.json'), TRUE);
 
                     do {
                         $length = \Wordle\array_weighted_rand($lengths);
@@ -6975,10 +6975,10 @@ memberships.groupid IN $groupq
                     $this->id
                 ]);
 
-                $settings['notifications']['email'] = false;
-                $settings['notifications']['emailmine'] = false;
-                $settings['notificationmails']= false;
-                $settings['engagement'] = false;
+                $settings['notifications']['email'] = FALSE;
+                $settings['notifications']['emailmine'] = FALSE;
+                $settings['notificationmails']= FALSE;
+                $settings['engagement'] = FALSE;
                 break;
             }
             case User::SIMPLE_MAIL_BASIC: {
@@ -6994,10 +6994,10 @@ memberships.groupid IN $groupq
                     $this->id
                 ]);
 
-                $settings['notifications']['email'] = true;
-                $settings['notifications']['emailmine'] = false;
-                $settings['notificationmails']= false;
-                $settings['engagement']= false;
+                $settings['notifications']['email'] = TRUE;
+                $settings['notifications']['emailmine'] = FALSE;
+                $settings['notificationmails']= FALSE;
+                $settings['engagement']= FALSE;
                 break;
             }
             case User::SIMPLE_MAIL_FULL: {
@@ -7013,10 +7013,10 @@ memberships.groupid IN $groupq
                     $this->id
                 ]);
 
-                $settings['notifications']['email'] = true;
-                $settings['notifications']['emailmine'] = false;
-                $settings['notificationmails']= true;
-                $settings['engagement']= true;
+                $settings['notifications']['email'] = TRUE;
+                $settings['notifications']['emailmine'] = FALSE;
+                $settings['notificationmails']= TRUE;
+                $settings['engagement']= TRUE;
                 break;
             }
         }
@@ -7059,7 +7059,7 @@ memberships.groupid IN $groupq
                 # They are now approved.  We need to send a per-group welcome mail.
                 try {
                     error_log(date("Y-m-d H:i:s") . "Send welcome to $userid for membership $id\n");
-                    $g->sendWelcome($userid, false);
+                    $g->sendWelcome($userid, FALSE);
                 } catch (Exception $e) {
                     error_log("Welcome failed: " . $e->getMessage());
                     \Sentry\captureException($e);
@@ -7078,7 +7078,7 @@ memberships.groupid IN $groupq
             );
 
             if ($comments[0]['count'] > 0) {
-                $this->memberReview($groupid, true, 'Note flagged to other groups');
+                $this->memberReview($groupid, TRUE, 'Note flagged to other groups');
             }
 
             $this->dbhm->preExec("UPDATE memberships_history SET processingrequired = 0 WHERE id = ?", [

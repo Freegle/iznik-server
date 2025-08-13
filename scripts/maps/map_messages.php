@@ -14,10 +14,10 @@ do {
     $sql = "SELECT messages.id, groups.id AS groupid, groups.nameshort FROM messages INNER JOIN messages_groups ON messages.id = messages_groups.msgid AND messages_groups.deleted = 0 AND messages.locationid IS NULL INNER JOIN `groups` ON groups.id = messages_groups.groupid AND groups.type = 'Freegle' AND subject IS NOT NULL ORDER BY id DESC;";
 
     $msgs = $dbhr->query($sql);
-    $found = false;
+    $found = FALSE;
 
     foreach ($msgs as $msg) {
-        $found = true;
+        $found = TRUE;
         $i = new Message($dbhr, $dbhm, $msg['id']);
         $atts = $i->getPublic();
         if (Utils::pres('lat', $atts)) {

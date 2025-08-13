@@ -67,7 +67,7 @@ if ($fh) {
                             #error_log("Found FD {$emails[0]['userid']} for #$tnid $tnname");
                             $u = new User($dbhr, $dbhm, $emails[0]['userid']);
                             $u->setPrivate('tnuserid', $tnid);
-                            $found = true;
+                            $found = TRUE;
                         }
                     }
                 }

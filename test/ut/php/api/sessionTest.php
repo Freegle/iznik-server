@@ -71,7 +71,7 @@ class sessionTest extends IznikAPITestCase
             ->disableOriginalConstructor()
             ->setMethods(array('validate', 'getAttributes'))
             ->getMock();
-        $mock->method('validate')->willReturn(true);
+        $mock->method('validate')->willReturn(TRUE);
         $mock->method('getAttributes')->willReturn([
             'contact/email' => $email,
             'name' => 'Test User'
@@ -202,11 +202,11 @@ class sessionTest extends IznikAPITestCase
         ]);
         $this->assertEquals(10, $ret['ret']);
         $ret = $this->call('session', 'GET', []);
-        $this->log(var_export($ret, true));
+        $this->log(var_export($ret, TRUE));
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals([
             "test" => 1,
-            'notificationmails' => true,
+            'notificationmails' => TRUE,
             'modnotifs' => 4,
             'backupmodnotifs' => 12,
             'notifications' => [

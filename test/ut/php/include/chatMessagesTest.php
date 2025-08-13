@@ -237,7 +237,7 @@ class chatMessagesTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $refmsgid);
         $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
         $email = $u->inventEmail();
-        $u->addEmail($email, FALSE, FALSE);
+        $u->addEmail($email, FALSE);
 
         $this->log("Reply with to self $email");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
@@ -284,7 +284,7 @@ class chatMessagesTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $refmsgid);
         $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
         $email = $u->inventEmail();
-        $u->addEmail($email, FALSE, FALSE);
+        $u->addEmail($email, FALSE);
 
         # Send a reply direct to the user - should go to spam but marked for review, as this will fail Spam Assassin
         # via the GTUBE string.
@@ -360,7 +360,7 @@ class chatMessagesTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $refmsgid);
         $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
         $email = $u->inventEmail();
-        $u->addEmail($email, FALSE, FALSE);
+        $u->addEmail($email, FALSE);
 
         error_log("Spam reply.");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply7'));
@@ -737,7 +737,7 @@ class chatMessagesTest extends IznikTestCase {
         }
 
         $m = new ChatMessage($this->dbhr, $this->dbhm);
-        list ($mid, $banned) = $m->create($id, $this->uid, 'Refers to https://tinyurl.com/2u4ax3c8 which should be expanded', ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL, NULL, NULL, FALSE, FALSE, FALSE);
+        list ($mid, $banned) = $m->create($id, $this->uid, 'Refers to https://tinyurl.com/2u4ax3c8 which should be expanded', ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL, NULL, NULL, FALSE, FALSE);
         $this->assertNotNull($mid);
 
         $m = new ChatMessage($this->dbhr, $this->dbhm, $mid);
@@ -780,31 +780,31 @@ class chatMessagesTest extends IznikTestCase {
         return [
             'spam_text' => [
                 'text' => 'Buy cheap viagra online now!',
-                'shouldBeReviewed' => true,
+                'shouldBeReviewed' => TRUE,
                 'expectedReviewReason' => ChatMessage::REVIEW_SPAM,
                 'description' => 'Image with spam text should be flagged for review'
             ],
             'email_address' => [
                 'text' => 'Contact me at test@example.com',
-                'shouldBeReviewed' => true,
+                'shouldBeReviewed' => TRUE,
                 'expectedReviewReason' => ChatMessage::REVIEW_DODGY_IMAGE,
                 'description' => 'Image with email address should be flagged for review'
             ],
             'clean_text' => [
                 'text' => 'This is a normal message',
-                'shouldBeReviewed' => false,
+                'shouldBeReviewed' => FALSE,
                 'expectedReviewReason' => null,
                 'description' => 'Image with clean text should not be flagged'
             ],
             'multiple_emails' => [
                 'text' => 'Email me at test@example.com or contact@domain.org',
-                'shouldBeReviewed' => true,
+                'shouldBeReviewed' => TRUE,
                 'expectedReviewReason' => ChatMessage::REVIEW_DODGY_IMAGE,
                 'description' => 'Image with multiple emails should be flagged'
             ],
             'empty_text' => [
                 'text' => '',
-                'shouldBeReviewed' => false,
+                'shouldBeReviewed' => FALSE,
                 'expectedReviewReason' => null,
                 'description' => 'Image with no text should not be flagged'
             ]
@@ -840,7 +840,7 @@ class chatMessagesTest extends IznikTestCase {
 
         # Create image message
         $m = new ChatMessage($this->dbhr, $this->dbhm);
-        list ($mid, $banned) = $m->create($chatid, $uid1, '', ChatMessage::TYPE_IMAGE, NULL, TRUE, NULL, NULL, NULL, $imageId, NULL, NULL, FALSE, FALSE);
+        list ($mid, $banned) = $m->create($chatid, $uid1, '', ChatMessage::TYPE_IMAGE, NULL, TRUE, NULL, NULL, NULL, $imageId, NULL, NULL, FALSE);
         $this->assertNotNull($mid);
         $m->setPrivate('imageid', $imageId);
 
@@ -885,7 +885,7 @@ class chatMessagesTest extends IznikTestCase {
             'UPPERCASE@EMAIL.COM should also work'
         ];
         
-        $expectedMatches = [true, true, true, false, true];
+        $expectedMatches = [TRUE, TRUE, TRUE, FALSE, TRUE];
         
         for ($i = 0; $i < count($testTexts); $i++) {
             $hasEmail = preg_match(Message::EMAIL_REGEXP, $testTexts[$i]);

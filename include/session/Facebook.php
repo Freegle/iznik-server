@@ -353,7 +353,7 @@ class Facebook
                 $u = User::get($this->dbhr, $this->dbhm, $id);
 
                 if ($fbemail) {
-                    $u->addEmail($fbemail, 0, false);
+                    $u->addEmail($fbemail, 0, FALSE);
                 }
 
                 # Now Set up a login entry.  Use IGNORE as there is a timing window here.
@@ -372,7 +372,7 @@ class Facebook
             $u = User::get($this->dbhr, $this->dbhm, $id);
 
             if (!$eid) {
-                $u->addEmail($fbemail, 0, false);
+                $u->addEmail($fbemail, 0, FALSE);
             }
 
             if (!$fid) {

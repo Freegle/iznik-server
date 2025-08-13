@@ -83,7 +83,7 @@ class ModConfig extends Entity
                     $order[] = $sid;
                 }
 
-                $cto->setPrivate('messageorder', json_encode($order, true));
+                $cto->setPrivate('messageorder', json_encode($order, TRUE));
 
                 # Now copy the existing bulk ops
                 $bulkops = $cfrom->getPublic()['bulkops'];
@@ -381,7 +381,7 @@ class ModConfig extends Entity
                 }
             }
 
-            $this->setPrivate('messageorder', json_encode($order, true));
+            $this->setPrivate('messageorder', json_encode($order, TRUE));
         }
 
         return($c);

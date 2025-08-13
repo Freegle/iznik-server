@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-$scriptstart = microtime(false);
+$scriptstart = microtime(FALSE);
 date_default_timezone_set('UTC');
 if (session_status() == PHP_SESSION_NONE) {
     @session_start();
@@ -45,7 +45,7 @@ try {
 
     if (!$fp) {
         error_log("Failed to post request back to paypal");
-        mail("log@ehibbert.org.uk", "Error: Payment failed to contact PayPal", $sql . "\r\n\r\n" . var_export($_REQUEST, true) . "\r\n\r\n$res", [], '-fnoreply@modtools.org');
+        mail("log@ehibbert.org.uk", "Error: Payment failed to contact PayPal", $sql . "\r\n\r\n" . var_export($_REQUEST, TRUE) . "\r\n\r\n$res", [], '-fnoreply@modtools.org');
     } else {
         error_log("put data");
         fputs($fp, $header . $req);
@@ -74,7 +74,7 @@ try {
 //                if (strcmp($res, "INVALID") == 0)
 
                 // log for manual investigation
-                mail("log@ehibbert.org.uk", "Error: Payment failed validation", var_export($_REQUEST, true), [], '-fnoreply@modtools.org');
+                mail("log@ehibbert.org.uk", "Error: Payment failed validation", var_export($_REQUEST, TRUE), [], '-fnoreply@modtools.org');
             }
         }
         error_log("Close");
@@ -82,8 +82,8 @@ try {
         fclose($fp);
     }
 } catch (\Exception $e) {
-    mail("log@ehibbert.org.uk", "Error: Payment exception", var_export($e, TRUE) . "\n\n" . var_export($_REQUEST, true), [], '-fnoreply@modtools.org');
-    error_log("Exception during purchase " . var_export($e, true));
+    mail("log@ehibbert.org.uk", "Error: Payment exception", var_export($e, TRUE) . "\n\n" . var_export($_REQUEST, TRUE), [], '-fnoreply@modtools.org');
+    error_log("Exception during purchase " . var_export($e, TRUE));
     \Sentry\captureException($e);
 }
 ?>

@@ -76,7 +76,7 @@ class itemAPITest extends IznikAPITestCase {
         $ret = $this->call('item', 'GET', [
             'id' => $id
         ]);
-        $this->log("Returned " . var_export($ret, true));
+        $this->log("Returned " . var_export($ret, TRUE));
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals($id, $ret['item']['id']);
 

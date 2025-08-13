@@ -10,9 +10,9 @@ $dsn = "mysql:host={$dbconfig['host']};dbname=republisher;charset=utf8";
 $dbh = new \PDO($dsn, $dbconfig['user'], $dbconfig['pass']);
 
 # We can't make up something similar to their existing email address.
-$lengths  = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/distinct_word_lengths.json'), true);
-$bigrams  = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/word_start_bigrams.json'), true);
-$trigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/trigrams.json'), true);
+$lengths  = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/distinct_word_lengths.json'), TRUE);
+$bigrams  = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/word_start_bigrams.json'), TRUE);
+$trigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/trigrams.json'), TRUE);
 
 $users = $dbh->query("SELECT * FROM facebook WHERE hidename = 1;");
 $u = User::get($dbhr, $dbhm);

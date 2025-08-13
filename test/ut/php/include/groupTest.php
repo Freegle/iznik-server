@@ -71,7 +71,7 @@ class groupTest extends IznikTestCase
 
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
             ->setConstructorArgs(
-                [$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], true]
+                [$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE]
             )
             ->setMethods(array('lastInsertId'))
             ->getMock();
@@ -104,7 +104,7 @@ class groupTest extends IznikTestCase
         }
 
         # Might not be any legacy groups in the DB.
-        $this->assertTrue(true);
+        $this->assertTrue(TRUE);
     }
 
     public function testOurPS()
@@ -126,12 +126,12 @@ class groupTest extends IznikTestCase
         $g->setPrivate('contactmail', 'test@test.com');
         $this->assertEquals('test@test.com', $g->getModsEmail());
         $this->assertEquals('test@test.com', $g->getAutoEmail());
-        $groups = $g->listByType(Group::GROUP_UT, true, false);
+        $groups = $g->listByType(Group::GROUP_UT, TRUE);
 
-        $found = false;
+        $found = FALSE;
         foreach ($groups as $group) {
             if (strcmp($group['modsmail'], 'test@test.com') === 0) {
-                $found = true;
+                $found = TRUE;
             }
         }
 

@@ -118,7 +118,7 @@ class Relevant {
                 # We only bother with messages with standard subject line formats.
                 list ($type, $item, $location ) = Message::parseSubject($view['subject']);
                 if ($item && !array_key_exists($item, $terms)) {
-                    $terms[$item] = true;
+                    $terms[$item] = TRUE;
 
                     $interested[] = [
                         'item' => $item,

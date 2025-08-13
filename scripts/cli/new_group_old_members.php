@@ -35,7 +35,7 @@ if (count($opts) < 1) {
         $u = new User($dbhr, $dbhm, $user['id']);
 
         # Get location where we have one.
-        list($lat, $lng, $loc) = $u->getLatLng(false, false, Utils::BLUR_NONE);
+        list($lat, $lng, $loc) = $u->getLatLng(FALSE, FALSE, Utils::BLUR_NONE);
 
         $g2 = new \geoPHP();
         $userloc = $g2::load("POINT($lng $lat)", 'wkt');

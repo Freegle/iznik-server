@@ -22,7 +22,7 @@ $nooffer = 0;
 $faraway = 0;
 $nostreet = 0;
 
-function levensteinSubstringContains($needle, $haystack, $maximalDistance = 2, $caseInsensitive = true)
+function levensteinSubstringContains($needle, $haystack, $maximalDistance = 2, $caseInsensitive = TRUE)
 {
     $lengthNeedle = strlen($needle);
     $lengthHaystack = strlen($haystack);
@@ -33,12 +33,12 @@ function levensteinSubstringContains($needle, $haystack, $maximalDistance = 2, $
     }
 
     if ($lengthNeedle > $lengthHaystack) {
-        return false;
+        return FALSE;
     }
 
-    if (false !== strpos($haystack, $needle)) {
+    if (FALSE !== strpos($haystack, $needle)) {
 
-        return true;
+        return TRUE;
     }
 
     $i = 0;
@@ -48,12 +48,12 @@ function levensteinSubstringContains($needle, $haystack, $maximalDistance = 2, $
         $levenshteinDistance = levenshtein($needle, $comparePart);
         if ($levenshteinDistance <= $maximalDistance) {
 
-            return true;
+            return TRUE;
         }
         $i++;
     }
 
-    return false;
+    return FALSE;
 }
 
 /**
@@ -106,13 +106,13 @@ function extracted(mixed $msg, $matches, $dbhr, $dbhm, int $faraway, int $found,
 
                 error_log("...check streets");
 
-                $foundIt = false;
+                $foundIt = FALSE;
 
                 foreach ($streets as $street)
                 {
                     if (levensteinSubstringContains($street['thoroughfaredescriptor'], $msg['message'], 3))
                     {
-                        $foundIt = true;
+                        $foundIt = TRUE;
                         break;
                     }
                 }

@@ -13,14 +13,14 @@ $lockh = Utils::lockScript(basename(__FILE__));
 $now = date("Y-m-d H:i:s", time());
 
 $handle = fopen("/tmp/pflogsumm.out", "r");
-while (($line = fgets($handle)) !== false) {
+while (($line = fgets($handle)) !== FALSE) {
     if (strpos($line, "Message Delivery") != FALSE) {
         error_log("Found delivery");
         $line = fgets($handle);
         $line = fgets($handle);
         $line = fgets($handle);
 
-        while (($line = fgets($handle)) !== false && strlen(trim($line)) > 0) {
+        while (($line = fgets($handle)) !== FALSE && strlen(trim($line)) > 0) {
             # Line is of format:
             #
             # 173200    25544m       0    44.6 s    7.2 m  user.trashnothing.com

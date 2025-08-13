@@ -7,8 +7,8 @@ namespace {
     use PhpMimeMailParser\Exception;
 
     // This allow us to configure the behavior of the "global mock"
-    $mockTmpFile = false;
-    $mockFopen = false;
+    $mockTmpFile = FALSE;
+    $mockFopen = FALSE;
 }
 
 namespace PhpMimeMailParser {
@@ -16,8 +16,8 @@ namespace PhpMimeMailParser {
     function tmpfile()
     {
         global $mockTmpFile;
-        if (isset($mockTmpFile) && $mockTmpFile ==  true) {
-            return false;
+        if (isset($mockTmpFile) && $mockTmpFile ==  TRUE) {
+            return FALSE;
         } else {
             return call_user_func_array('\tmpfile', func_get_args());
         }
@@ -26,8 +26,8 @@ namespace PhpMimeMailParser {
     function fopen()
     {
         global $mockFopen;
-        if (isset($mockFopen) && $mockFopen ==  true) {
-            return false;
+        if (isset($mockFopen) && $mockFopen ==  TRUE) {
+            return FALSE;
         } else {
             return call_user_func_array('\fopen', func_get_args());
         }
@@ -45,10 +45,10 @@ namespace PhpMimeMailParser {
         public function setUp()
         {
             global $mockTmpFile;
-            $mockTmpFile = false;
+            $mockTmpFile = FALSE;
 
             global $mockFopen;
-            $mockFopen = false;
+            $mockFopen = FALSE;
         }
 
         /**
@@ -98,7 +98,7 @@ namespace PhpMimeMailParser {
         public function testSetStreamWithoutTmpPermissions()
         {
             global $mockTmpFile;
-            $mockTmpFile = true;
+            $mockTmpFile = TRUE;
 
             $file = __DIR__.'/mails/m0001';
 
@@ -119,7 +119,7 @@ namespace PhpMimeMailParser {
             $Parser->setStream(fopen($file, 'r'));
 
             global $mockTmpFile;
-            $mockTmpFile = true;
+            $mockTmpFile = TRUE;
 
             $attachments = $Parser->getAttachments();
         }
@@ -150,7 +150,7 @@ namespace PhpMimeMailParser {
             $Parser->setStream(fopen($file, 'r'));
 
             global $mockFopen;
-            $mockFopen = true;
+            $mockFopen = TRUE;
 
             $Parser->saveAttachments($attach_dir, $attach_url);
         }

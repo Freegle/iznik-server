@@ -55,7 +55,7 @@ if (count($opts) < 1) {
             $order[] = $sid;
         }
 
-        $clive->setPrivate('messageorder', json_encode($order, true));
+        $clive->setPrivate('messageorder', json_encode($order, TRUE));
 
         # Now copy the existing bulk ops
         $bulkops = $cback->getPublic()['bulkops'];

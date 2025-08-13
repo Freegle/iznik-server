@@ -53,12 +53,12 @@ if(!class_exists('FirePHP')) {
  * 
  * @see http://www.firephp.org/Wiki/Reference/Fb
  * @param mixed $Object
- * @return true
+ * @return TRUE
  * @throws Exception
  */
 function fb()
 {
-    $instance = FirePHP::getInstance(true);
+    $instance = FirePHP::getInstance(TRUE);
   
     $args = func_get_args();
     return call_user_func_array(array($instance,'fb'),$args);
@@ -76,7 +76,7 @@ class FB
      */
     public static function setEnabled($Enabled)
     {
-        $instance = FirePHP::getInstance(true);
+        $instance = FirePHP::getInstance(TRUE);
         $instance->setEnabled($Enabled);
     }
   
@@ -88,7 +88,7 @@ class FB
      */
     public static function getEnabled()
     {
-        $instance = FirePHP::getInstance(true);
+        $instance = FirePHP::getInstance(TRUE);
         return $instance->getEnabled();
     }  
   
@@ -104,7 +104,7 @@ class FB
      */
     public static function setObjectFilter($Class, $Filter)
     {
-      $instance = FirePHP::getInstance(true);
+      $instance = FirePHP::getInstance(TRUE);
       $instance->setObjectFilter($Class, $Filter);
     }
   
@@ -117,7 +117,7 @@ class FB
      */
     public static function setOptions($Options)
     {
-        $instance = FirePHP::getInstance(true);
+        $instance = FirePHP::getInstance(TRUE);
         $instance->setOptions($Options);
     }
 
@@ -129,7 +129,7 @@ class FB
      */
     public static function getOptions()
     {
-        $instance = FirePHP::getInstance(true);
+        $instance = FirePHP::getInstance(TRUE);
         return $instance->getOptions();
     }
 
@@ -138,12 +138,12 @@ class FB
      * 
      * @see http://www.firephp.org/Wiki/Reference/Fb
      * @param mixed $Object
-     * @return true
+     * @return TRUE
      * @throws Exception
      */
     public static function send()
     {
-        $instance = FirePHP::getInstance(true);
+        $instance = FirePHP::getInstance(TRUE);
         $args = func_get_args();
         return call_user_func_array(array($instance,'fb'),$args);
     }
@@ -152,23 +152,23 @@ class FB
      * Start a group for following messages
      * 
      * Options:
-     *   Collapsed: [true|false]
+     *   Collapsed: [TRUE|FALSE]
      *   Color:     [#RRGGBB|ColorName]
      *
      * @param string $Name
      * @param array $Options OPTIONAL Instructions on how to log the group
-     * @return true
+     * @return TRUE
      */
     public static function group($Name, $Options=null)
     {
-        $instance = FirePHP::getInstance(true);
+        $instance = FirePHP::getInstance(TRUE);
         return $instance->group($Name, $Options);
     }
 
     /**
      * Ends a group you have started before
      *
-     * @return true
+     * @return TRUE
      * @throws Exception
      */
     public static function groupEnd()
@@ -182,7 +182,7 @@ class FB
      * @see FirePHP::LOG
      * @param mixes $Object
      * @param string $Label
-     * @return true
+     * @return TRUE
      * @throws Exception
      */
     public static function log($Object, $Label=null)
@@ -196,7 +196,7 @@ class FB
      * @see FirePHP::INFO
      * @param mixes $Object
      * @param string $Label
-     * @return true
+     * @return TRUE
      * @throws Exception
      */
     public static function info($Object, $Label=null)
@@ -210,7 +210,7 @@ class FB
      * @see FirePHP::WARN
      * @param mixes $Object
      * @param string $Label
-     * @return true
+     * @return TRUE
      * @throws Exception
      */
     public static function warn($Object, $Label=null)
@@ -224,7 +224,7 @@ class FB
      * @see FirePHP::ERROR
      * @param mixes $Object
      * @param string $Label
-     * @return true
+     * @return TRUE
      * @throws Exception
      */
     public static function error($Object, $Label=null)
@@ -238,7 +238,7 @@ class FB
      * @see FirePHP::DUMP
      * @param string $Key
      * @param mixed $Variable
-     * @return true
+     * @return TRUE
      * @throws Exception
      */
     public static function dump($Key, $Variable)
@@ -251,7 +251,7 @@ class FB
      *
      * @see FirePHP::TRACE
      * @param string $Label
-     * @return true
+     * @return TRUE
      * @throws Exception
      */
     public static function trace($Label)
@@ -265,7 +265,7 @@ class FB
      * @see FirePHP::TABLE
      * @param string $Label
      * @param string $Table
-     * @return true
+     * @return TRUE
      * @throws Exception
      */
     public static function table($Label, $Table)

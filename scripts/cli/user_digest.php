@@ -24,7 +24,7 @@ if (count($opts) < 3) {
     if ($gid && $uid) {
         $groups = $dbhr->preQuery("SELECT id, nameshort FROM `groups` WHERE id = ?;", [ $gid ]);
         $d = new Digest($dbhr, $dbhm, FALSE, TRUE);
-        $d->errorLog = true;
+        $d->errorLog = TRUE;
 
         foreach ($groups as $group) {
             # Force

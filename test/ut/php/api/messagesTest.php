@@ -58,7 +58,7 @@ class messagesTest extends IznikAPITestCase {
         $ret = $this->call('messages', 'GET', [
             'groupid' => $this->gid
         ]);
-        $this->log("Get when logged out with permission" . var_export($ret, true));
+        $this->log("Get when logged out with permission" . var_export($ret, TRUE));
         $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
         $this->assertEquals(1, count($msgs));
@@ -69,7 +69,7 @@ class messagesTest extends IznikAPITestCase {
         $ret = $this->call('messages', 'GET', [
             'groupids' => [ $this->gid ]
         ]);
-        $this->log("Get when logged out using groupids " . var_export($ret, true));
+        $this->log("Get when logged out using groupids " . var_export($ret, TRUE));
         $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
         $this->assertEquals(1, count($msgs));
@@ -273,7 +273,7 @@ class messagesTest extends IznikAPITestCase {
         $msgs = $ret['messages'];
         $this->assertEquals(1, count($msgs));
         $this->assertEquals($a->getID(), $msgs[0]['id']);
-        $this->log(var_export($msgs, true));
+        $this->log(var_export($msgs, TRUE));
         $this->assertTrue(array_key_exists('source', $msgs[0])); # An owner, should see mod att
 
         $a->delete();
@@ -384,7 +384,7 @@ class messagesTest extends IznikAPITestCase {
             'subaction' => 'searchmess',
             'nearlocation' => $lid
         ]);
-        $this->log("Get near " . var_export($ret, true));
+        $this->log("Get near " . var_export($ret, TRUE));
         $this->assertEquals(0, $ret['ret']);
         $msgs = $ret['messages'];
         $this->assertEquals(1, count($msgs));

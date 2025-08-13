@@ -25,7 +25,7 @@ function session() {
             @session_destroy();
             @session_unset();
             @session_start();
-            @session_regenerate_id(true);
+            @session_regenerate_id(TRUE);
         } catch (\Exception $e) {
         }
 
@@ -67,8 +67,8 @@ function session() {
                                'expires' => 0,
                                'path' => '/',
                                'domain' => 'ilovefreegle.org',
-                               'secure' => 'true',
-                               'httponly' => 'false',
+                               'secure' => 'TRUE',
+                               'httponly' => 'FALSE',
                                'samesite' => 'None'
                            ]);
                         }
@@ -81,8 +81,8 @@ function session() {
                                 'expires' => 0,
                                 'path' => '/',
                                 'domain' => 'modtools.org',
-                                'secure' => 'true',
-                                'httponly' => 'false',
+                                'secure' => 'TRUE',
+                                'httponly' => 'FALSE',
                                 'samesite' => 'None'
                             ]);
                         }

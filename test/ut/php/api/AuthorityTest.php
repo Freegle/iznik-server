@@ -104,7 +104,7 @@ class authorityAPITest extends IznikAPITestCase
         $this->assertTrue($u->login('testpw'));
         $m = new Message($this->dbhr, $this->dbhm);
         $ctx = NULL;
-        $m->search("Test", $ctx, Search::Limit, NULL, NULL, $fullpcid, FALSE);
+        $m->search("Test", $ctx, Search::Limit, NULL, NULL, $fullpcid);
 
         # Create an authority which covers that group.
         $a = new Authority($this->dbhr, $this->dbhm);

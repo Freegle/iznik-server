@@ -963,11 +963,11 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
                         ]
                     );
 
-                    $foundIt = false;
+                    $foundIt = FALSE;
 
                     foreach ($streets as $street) {
                         if (Utils::levensteinSubstringContains($street['thoroughfaredescriptor'], $msg, 3)) {
-                            $foundIt = true;
+                            $foundIt = TRUE;
                             break;
                         }
                     }
