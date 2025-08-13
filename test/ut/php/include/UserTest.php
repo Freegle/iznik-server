@@ -401,14 +401,12 @@ class userTest extends IznikTestCase {
         $this->assertEquals([ 'active' => 1, 'pushnotify' => 1, 'showchat' => 1, 'eventsallowed' => 1, 'volunteeringallowed' => 1], $u1->getGroupSettings($group2));
 
         # Set up some chats
-        $c = new ChatRoom($this->dbhr, $this->dbhm);
-        list ($cid1, $blocked) = $c->createConversation($id1, $id3);
-        list ($cid2, $blocked) = $c->createConversation($id2, $id3);
+        list ($c, $cid1, $blocked) = $this->createTestConversation($id1, $id3);
+        list ($c2, $cid2, $blocked) = $this->createTestConversation($id2, $id3);
         $cid3 = $c->createUser2Mod($id2, $group1);
         $this->log("Created to mods $cid3");
-        $cm = new ChatMessage($this->dbhr, $this->dbhm);
         $str = "Test from $id1 to $id3 in $cid1";
-        list ($mid1, $banned) = $cm->create($cid1, $id1, $str);
+        list ($cm, $mid1, $banned) = $this->createTestChatMessage($cid1, $id1, $str);
         $this->log("Created $mid1 $str");
         $str = "Test from $id2 to $id3 in $cid2";
         list ($mid2, $banned) = $cm->create($cid2, $id2, $str);
@@ -460,7 +458,7 @@ class userTest extends IznikTestCase {
         $this->assertEquals(0, $emails[1]['preferred']);
 
         # Check chats
-        list ($cid1a, $blocked) = $c->createConversation($id1, $id3);
+        list ($c3, $cid1a, $blocked) = $this->createTestConversation($id1, $id3);
         self::assertEquals($cid1a, $cid1);
         $c = new ChatRoom($this->dbhr, $this->dbhm, $cid1);
         list ($msgs, $users) = $c->getMessages();
@@ -1156,8 +1154,7 @@ class userTest extends IznikTestCase {
 
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         list ($rid, $blocked) = $r->createConversation($uid, $uid2);
-        $m = new ChatMessage($this->dbhr, $this->dbhm);
-        $mid = $m->create($rid, $uid, "Test");
+        list ($m, $mid, $banned) = $this->createTestChatMessage($rid, $uid, "Test");
 
         $settings = [
             'mylocation' => [

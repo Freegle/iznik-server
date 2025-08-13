@@ -39,14 +39,16 @@ class ModBotTest extends IznikTestCase {
             'businessads' => FALSE
         ]));
 
-        list($this->user, $this->uid, $emailid) = $this->createTestUserWithMembership($this->gid, User::ROLE_MEMBER, 'Test', 'User', 'Test User', 'test@test.com', 'testpw');
+        list($this->user, $this->uid, $emailid) = $this->createTestUser('Test', 'User', 'Test User', 'test@test.com', 'testpw');
         $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->user->addMembership($this->gid, User::ROLE_MEMBER);
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_MODERATED);
         User::clearCache();
         
         # Create ModBot user
-        list($this->modBotUser, $this->modBotUid, $emailid2) = $this->createTestUserWithMembership($this->gid, User::ROLE_MODERATOR, 'ModBot', 'User', 'ModBot User', MODBOT_USER, 'modbotpw');
+        list($this->modBotUser, $this->modBotUid, $emailid2) = $this->createTestUser('ModBot', 'User', 'ModBot User', MODBOT_USER, 'modbotpw');
         $this->assertGreaterThan(0, $this->modBotUser->addLogin(User::LOGIN_NATIVE, NULL, 'modbotpw'));
+        $this->modBotUser->addMembership($this->gid, User::ROLE_MODERATOR);
         User::clearCache();
     }
 
@@ -54,15 +56,7 @@ class ModBotTest extends IznikTestCase {
         $this->log(__METHOD__ );
 
         # Create a test message that should trigger rule violations
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Basic test', 'Test message about knives and weapons for sale', $msg);
-        $msg = str_replace('Test test', 'I have some kitchen knives and hunting weapons to give away', $msg);
-        $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
-        
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
-        $this->assertEquals(MailRouter::PENDING, $rc);
+        list ($r, $id, $failok, $rc) = $this->createCustomTestMessage('Test message about knives and weapons for sale', 'testgroup', 'test@test.com', 'to@test.com', 'I have some kitchen knives and hunting weapons to give away', MailRouter::PENDING);
 
         # Log in as ModBot user before review
         $this->assertTrue($this->modBotUser->login('modbotpw'));

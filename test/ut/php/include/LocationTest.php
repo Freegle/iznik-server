@@ -58,8 +58,7 @@ class locationTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        $l = new Location($this->dbhr, $this->dbhm);
-        $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
+        list($l, $id) = $this->createTestLocation(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
         $this->assertNotNull($id);
         $this->assertEquals($id, $l->findByName('Tuvalu High Street'));
         $l = new Location($this->dbhr, $this->dbhm, $id);
@@ -241,8 +240,7 @@ class locationTest extends IznikTestCase {
         $g->setPrivate('lng', 179.15);
         $g->setPrivate('lat', 8.4);
 
-        $l = new Location($this->dbhr, $this->dbhm);
-        $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
+        list($l, $id) = $this->createTestLocation(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
 
         $l = new Location($this->dbhr, $this->dbhm, $id);
 
@@ -309,8 +307,7 @@ class locationTest extends IznikTestCase {
         $g->setPrivate('lat', 8.4);
         $g->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
 
-        $l = new Location($this->dbhr, $this->dbhm);
-        $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
+        list($l, $id) = $this->createTestLocation(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
 
         $groups = $l->groupsNear(50);
         $this->log("Found groups near " . var_export($groups, TRUE));

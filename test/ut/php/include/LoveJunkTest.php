@@ -59,16 +59,7 @@ class LoveJunkTest extends IznikTestCase
         $u->addMembership($group1);
         $u->setMembershipAtt($group1, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-        $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
-        $msg = $this->unique($origmsg);
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $msg = str_replace('Basic test', 'OFFER: sofa (EH3 6SS)', $msg);
-        $msg = str_replace('test@test.com', $email, $msg);
-        $msg = str_replace('Hey.', 'Testing', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
-        $rc = $r->route();
-        $this->assertEquals(MailRouter::APPROVED, $rc);
+        list ($r, $id, $failok, $rc) = $this->createCustomTestMessage('OFFER: sofa (EH3 6SS)', 'testgroup', $email, 'to@test.com', 'Testing', MailRouter::APPROVED);
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $m->setPrivate('lat', 55.957571);
@@ -83,8 +74,7 @@ class LoveJunkTest extends IznikTestCase
 
         if ($promise) {
             # Promise this to a LoveJunk user.
-            $u2 = new User($this->dbhr, $this->dbhm);
-            $uid2 = $u2->create(null, null, 'Test User');
+            list($u2, $uid2, $emailid2) = $this->createTestUser(null, null, 'Test User');
             $u2->setPrivate('ljuserid', 1);
             $m->promise($uid2);
 
@@ -93,8 +83,7 @@ class LoveJunkTest extends IznikTestCase
             $r = new ChatRoom($this->dbhr, $this->dbhm, $rid);
             $r->setPrivate('ljofferid', 1);
             $this->assertNotNull($rid);
-            $cm = new ChatMessage($this->dbhr, $this->dbhm);
-            list ($mid, $banned) = $cm->create($rid, $uid2, NULL, ChatMessage::TYPE_PROMISED, $m->getID());
+            list ($cm, $mid, $banned) = $this->createTestChatMessage($rid, $uid2, NULL, ChatMessage::TYPE_PROMISED, $m->getID());
             $this->assertNotNull($mid);
             error_log("Created conversation $rid between $uid2 and " . $m->getFromuser() . " with message $mid");
 
@@ -107,18 +96,14 @@ class LoveJunkTest extends IznikTestCase
     }
 
     public function testChatMessage() {
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid1 = $u->create(null, null, 'Test User');
-        $u1 = new User($this->dbhr, $this->dbhm, $uid1);
-        $uid2 = $u->create(null, null, 'Test User');
-        $u2 = new User($this->dbhr, $this->dbhm, $uid2);
+        list($u1, $uid1, $emailid1) = $this->createTestUser(null, null, 'Test User');
+        list($u2, $uid2, $emailid2) = $this->createTestUser(null, null, 'Test User');
         $u2->setPrivate('ljuserid', 456);
 
         // u1 is FD user who created a message.
         // u2 is LJ user who replied to a message.
         // Create a chat between them and set an ljofferid on the room.  That setting is done in live by the Go API.
-        $r = new ChatRoom($this->dbhr, $this->dbhm);
-        list ($rid, $blocked) = $r->createConversation($uid1, $uid2);
+        list ($r, $rid, $blocked) = $this->createTestConversation($uid1, $uid2);
         $r->setPrivate('ljofferid', 1234);
 
         $cm = new ChatMessage($this->dbhr, $this->dbhm);
@@ -150,22 +135,17 @@ class LoveJunkTest extends IznikTestCase
     }
 
     public function testPromise() {
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid1 = $u->create(null, null, 'Test User');
-        $u1 = new User($this->dbhr, $this->dbhm, $uid1);
-        $uid2 = $u->create(null, null, 'Test User');
-        $u2 = new User($this->dbhr, $this->dbhm, $uid2);
+        list($u1, $uid1, $emailid1) = $this->createTestUser(null, null, 'Test User');
+        list($u2, $uid2, $emailid2) = $this->createTestUser(null, null, 'Test User');
         $u2->setPrivate('ljuserid', 456);
 
         // u1 is FD user who created a message.
         // u2 is LJ user who replied to a message.
         // Create a chat between them and set an ljofferid on the room.  That setting is done in live by the Go API.
-        $r = new ChatRoom($this->dbhr, $this->dbhm);
-        list ($rid, $blocked) = $r->createConversation($uid1, $uid2);
+        list ($r, $rid, $blocked) = $this->createTestConversation($uid1, $uid2);
         $r->setPrivate('ljofferid', 1234);
 
-        $cm = new ChatMessage($this->dbhr, $this->dbhm);
-        $cm->create($rid, $uid1, NULL, ChatMessage::TYPE_PROMISED);
+        list ($cm, $cmid, $banned) = $this->createTestChatMessage($rid, $uid1, NULL, ChatMessage::TYPE_PROMISED);
 
         // Now send the digest.  This will send the message to the LJ API.
         $l = new LoveJunk($this->dbhr, $this->dbhm);

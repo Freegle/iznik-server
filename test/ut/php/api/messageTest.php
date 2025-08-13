@@ -104,9 +104,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertFalse(array_key_exists('fromuser', $ret['message']));
 
         # When logged in should be able to see message history.
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User');
         $this->assertTrue($u->addMembership($this->gid));
         $this->addLoginAndLogin($u, 'testpw');
 
@@ -2627,9 +2625,7 @@ class messageAPITest extends IznikAPITestCase
 
     public function testChatSource()
     {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User');
         $u->addMembership($this->gid);
 
         # Put a message on the group.
@@ -2790,9 +2786,7 @@ class messageAPITest extends IznikAPITestCase
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list ($id, $failok) = $m->save();
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User');
         $this->addLoginAndLogin($u, 'testpw');
 
         $this->assertEquals(0, $m->getLikes(Message::LIKE_LOVE));
@@ -2915,9 +2909,7 @@ class messageAPITest extends IznikAPITestCase
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list ($id, $failok) = $m->save();
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User');
         $this->addLoginAndLogin($u, 'testpw');
 
         $this->assertEquals(0, $m->getLikes(Message::LIKE_VIEW));

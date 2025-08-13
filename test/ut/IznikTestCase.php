@@ -361,6 +361,267 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
     }
 
     /**
+     * Helper to create a simple test message with custom subject 
+     * @param string $subject The subject/title for the message
+     * @param string $groupname The group name to use
+     * @param string $fromEmail The from email address
+     * @param string $toEmail The to email address  
+     * @param int $expectedRC Expected routing result (default: PENDING)
+     * @return array [MailRouter, message_id, failok, routing_result]
+     */
+    protected function createSimpleTestMessage($subject, $groupname, $fromEmail, $toEmail, $expectedRC = MailRouter::PENDING) {
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', $subject, $msg);
+        $msg = str_ireplace('freegleplayground', $groupname, $msg);
+        
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        list ($id, $failok) = $r->received(Message::EMAIL, $fromEmail, $toEmail, $msg);
+        $rc = $r->route();
+        
+        if ($expectedRC !== null) {
+            $this->assertEquals($expectedRC, $rc);
+        }
+        
+        return [$r, $id, $failok, $rc];
+    }
+
+    /**
+     * Helper to create a test message with full customization options
+     * @param string $subject The subject/title for the message  
+     * @param string $groupname The group name to use
+     * @param string $fromEmail The from email address
+     * @param string $toEmail The to email address
+     * @param string|null $bodyReplacement Optional replacement for message body content
+     * @param int|null $expectedRC Expected routing result (null = no assertion)
+     * @return array [MailRouter, message_id, failok, routing_result]
+     */
+    protected function createCustomTestMessage($subject, $groupname, $fromEmail, $toEmail, $bodyReplacement = NULL, $expectedRC = NULL) {
+        $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
+        $msg = $this->unique($origmsg);
+        $msg = str_ireplace('freegleplayground', $groupname, $msg);
+        $msg = str_replace('Basic test', $subject, $msg);
+        $msg = str_replace('test@test.com', $fromEmail, $msg);
+        
+        if ($bodyReplacement !== NULL) {
+            $msg = str_replace('Test test', $bodyReplacement, $msg);
+        }
+        
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        list ($id, $failok) = $r->received(Message::EMAIL, $fromEmail, $toEmail, $msg);
+        $rc = $r->route();
+        
+        if ($expectedRC !== NULL) {
+            $this->assertEquals($expectedRC, $rc);
+        }
+        
+        return [$r, $id, $failok, $rc];
+    }
+
+    /**
+     * Create a conversation between two users
+     * @param int $user1 First user ID
+     * @param int $user2 Second user ID
+     * @return array [ChatRoom, conversation_id, blocked_status]
+     */
+    protected function createTestConversation($user1, $user2) {
+        $this->assertGreaterThan(0, $user1, "User 1 ID must be valid");
+        $this->assertGreaterThan(0, $user2, "User 2 ID must be valid");
+        
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($user1, $user2);
+        $this->assertNotNull($id, "Failed to create conversation");
+        
+        return [$r, $id, $blocked];
+    }
+
+    /**
+     * Create a test location
+     * @param string|null $parent Parent location ID (optional)
+     * @param string $name Location name
+     * @param string $type Location type (default: 'Road') 
+     * @param string $geometry Geometry string (default: UK point)
+     * @return array [Location, location_id]
+     */
+    protected function createTestLocation($parent = NULL, $name = 'Test Location', $type = 'Road', $geometry = 'POINT(-1.0 52.0)') {
+        $l = new Location($this->dbhr, $this->dbhm);
+        $id = $l->create($parent, $name, $type, $geometry);
+        $this->assertNotNull($id, "Failed to create location");
+        
+        return [$l, $id];
+    }
+
+    /**
+     * Create a test attachment with an image
+     * @param string $imageFile Image file path (default: chair.jpg)
+     * @param string $type Attachment type (default: TYPE_CHAT_MESSAGE)
+     * @return array [Attachment, attachment_id, uid]
+     */
+    protected function createTestImageAttachment($imageFile = '/test/ut/php/images/chair.jpg', $type = Attachment::TYPE_CHAT_MESSAGE) {
+        $data = file_get_contents(IZNIK_BASE . $imageFile);
+        $this->assertNotFalse($data, "Failed to read image file: $imageFile");
+        
+        $a = new Attachment($this->dbhr, $this->dbhm, NULL, $type);
+        list ($attid, $uid) = $a->create(NULL, $data);
+        $this->assertNotNull($attid, "Failed to create attachment");
+        
+        return [$a, $attid, $uid];
+    }
+
+    /**
+     * Create a test community event
+     * @param string $title Event title (default: 'Test Event')
+     * @param string $location Event location (default: 'Test Location')
+     * @param int|null $userid User ID who creates the event (optional)
+     * @param int|null $groupid Group ID for the event (optional)
+     * @return array [CommunityEvent, event_id]
+     */
+    protected function createTestCommunityEvent($title = 'Test Event', $location = 'Test Location', $userid = NULL, $groupid = NULL) {
+        $c = new CommunityEvent($this->dbhr, $this->dbhm);
+        $id = $c->create($userid, $title, $location, NULL, NULL, NULL, $groupid, NULL);
+        $this->assertNotNull($id, "Failed to create community event");
+        
+        return [$c, $id];
+    }
+
+    /**
+     * Create a message object with parsing and saving
+     * @param string $subject The subject/title for the message
+     * @param string $fromEmail From email address
+     * @param string $toEmail To email address
+     * @param string|null $bodyReplacement Optional body replacement
+     * @return array [Message, message_id, save_result]
+     */
+    protected function createParsedTestMessage($subject = 'Test Message', $fromEmail = 'from@test.com', $toEmail = 'to@test.com', $bodyReplacement = NULL) {
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', $subject, $msg);
+        
+        if ($bodyReplacement !== NULL) {
+            $msg = str_replace('Test test', $bodyReplacement, $msg);
+        }
+        
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, $fromEmail, $toEmail, $msg);
+        list ($id, $failok) = $m->save();
+        
+        return [$m, $id, $failok];
+    }
+
+    /**
+     * Create a chat message in a chat room
+     * @param int $chatRoomId Chat room ID
+     * @param int $userId User ID sending the message
+     * @param string $message Message content
+     * @param string $type Message type (default: TYPE_DEFAULT)
+     * @param int|null $refMsgId Referenced message ID (optional)
+     * @return array [ChatMessage, message_id, banned_status]
+     */
+    protected function createTestChatMessage($chatRoomId, $userId, $message = 'Test message', $type = ChatMessage::TYPE_DEFAULT, $refMsgId = NULL) {
+        $this->assertGreaterThan(0, $chatRoomId, "Chat room ID must be valid");
+        $this->assertGreaterThan(0, $userId, "User ID must be valid");
+        
+        $cm = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($mid, $banned) = $cm->create($chatRoomId, $userId, $message, $type, $refMsgId);
+        $this->assertNotNull($mid, "Failed to create chat message");
+        
+        return [$cm, $mid, $banned];
+    }
+
+    /**
+     * Create and route a message via MailRouter (most common pattern)
+     * @param string $content Message content (or null for basic message)
+     * @param string $fromEmail From email address
+     * @param string $toEmail To email address  
+     * @param int|null $expectedRC Expected routing result (null = no assertion)
+     * @return array [MailRouter, message_id, failok, routing_result]
+     */
+    protected function createAndRouteMessage($content = NULL, $fromEmail = 'from@test.com', $toEmail = 'to@test.com', $expectedRC = NULL) {
+        if ($content === NULL) {
+            $content = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        }
+        
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        list ($id, $failok) = $r->received(Message::EMAIL, $fromEmail, $toEmail, $content);
+        $rc = $r->route();
+        
+        if ($expectedRC !== NULL) {
+            $this->assertEquals($expectedRC, $rc);
+        }
+        
+        return [$r, $id, $failok, $rc];
+    }
+
+    /**
+     * Create a test volunteering opportunity
+     * @param int|null $userid User ID creating the opportunity
+     * @param string $title Opportunity title
+     * @param string $location Location
+     * @param string $contactName Contact name
+     * @param string $contactPhone Contact phone
+     * @param string $contactEmail Contact email
+     * @param string $description Description
+     * @param string $timeCommitment Time commitment
+     * @return array [Volunteering, opportunity_id]
+     */
+    protected function createTestVolunteering($userid = NULL, $title = 'Test Volunteering', $location = 'Test Location', $contactName = 'Test Contact', $contactPhone = '000 000 000', $contactEmail = 'test@test.com', $description = 'A test volunteering opportunity', $timeCommitment = 'Some time') {
+        $e = new Volunteering($this->dbhr, $this->dbhm);
+        $id = $e->create($userid, $title, 0, $location, $contactName, $contactPhone, $contactEmail, 'http://ilovefreegle.org', $description, $timeCommitment);
+        $this->assertNotNull($id, "Failed to create volunteering opportunity");
+        
+        return [$e, $id];
+    }
+
+    /**
+     * Create a test volunteering opportunity with automatic group assignment and approval
+     * @param int|null $userid User ID creating the opportunity
+     * @param string $title Opportunity title
+     * @param int $groupid Group ID to assign to
+     * @param bool $approve Whether to approve immediately (default: TRUE)
+     * @return array [Volunteering, opportunity_id]
+     */
+    protected function createTestVolunteeringWithGroup($userid = NULL, $title = 'Test Volunteering', $groupid = NULL, $approve = TRUE) {
+        list($e, $id) = $this->createTestVolunteering($userid, $title);
+        
+        if ($groupid !== NULL) {
+            $e->addGroup($groupid);
+        }
+        
+        if ($approve) {
+            $e->setPrivate('pending', 0);
+        }
+        
+        return [$e, $id];
+    }
+
+    /**
+     * Create a test user and automatically log them in
+     * @param int|null $facebookId Facebook ID (optional)
+     * @param string|null $yahooId Yahoo ID (optional) 
+     * @param string $fullname Full name
+     * @param string $email Email address
+     * @param string $password Password
+     * @return array [User, user_id, email_id]
+     */
+    protected function createTestUserAndLogin($facebookId = NULL, $yahooId = NULL, $fullname = 'Test User', $email = 'test@test.com', $password = 'testpw') {
+        list($user, $uid, $emailid) = $this->createTestUser($facebookId, $yahooId, $fullname, $email, $password);
+        $this->assertTrue($user->login($password), "Failed to login created user");
+        return [$user, $uid, $emailid];
+    }
+
+    /**
+     * Create a test authority with polygon boundary
+     * @param string $name Authority name
+     * @param string $abbreviation Authority abbreviation
+     * @param string $polygon Polygon boundary (WKT format)
+     * @return array [Authority, authority_id]
+     */
+    protected function createTestAuthority($name = 'UTAuth', $abbreviation = 'GLA', $polygon = 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))') {
+        $a = new Authority($this->dbhr, $this->dbhm);
+        $aid = $a->create($name, $abbreviation, $polygon);
+        $this->assertNotNull($aid, "Failed to create authority");
+        return [$a, $aid];
+    }
+
+    /**
      * Create a test message that gets automatically approved
      */
     protected function createApprovedTestMessage($groupname, $content, $fromEmail, $toEmail) {
@@ -492,35 +753,6 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         return $loginid;
     }
 
-    /**
-     * Create a test user, add login credentials, and call login() method
-     * @param string|null $firstname User's first name  
-     * @param string|null $lastname User's last name
-     * @param string|null $fullname User's full name (if not using first/last)
-     * @param string|null $email User's email address (optional, defaults to test@test.com)
-     * @param string|null $password Login password (optional, defaults to testpw)
-     * @return array [User instance, user ID, email ID]
-     */
-    protected function createTestUserAndLogin($firstname = NULL, $lastname = NULL, $fullname = NULL, $email = NULL, $password = NULL) {
-        // Set default values if not provided
-        if ($fullname === NULL && $firstname === NULL && $lastname === NULL) {
-            $fullname = 'Test User';
-        }
-        if ($email === NULL) {
-            $email = 'test@test.com';
-        }
-        if ($password === NULL) {
-            $password = 'testpw';
-        }
-        
-        list($user, $uid, $emailid) = $this->createTestUser($firstname, $lastname, $fullname, $email, $password);
-        
-        // Login the user using the login() method
-        $loginResult = $user->login($password);
-        $this->assertTrue($loginResult, "Failed to login user with password");
-        
-        return [$user, $uid, $emailid];
-    }
 
     /**
      * Create a test user with membership and login

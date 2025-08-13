@@ -34,16 +34,16 @@ class noticeboardAPITest extends IznikAPITestCase {
         $this->dbhr = $dbhm;
         $this->dbhm = $dbhm;
 
-        $dbhm->preExec("DELETE FROM noticeboards WHERE name LIKE 'UTTest%';");
+        $dbhm->preExec("DELETE FROM noticeboards WHERE name LIKE 'UTTest%' OR description = 'Test description';");
     }
 
     protected function tearDown() : void {
-        $this->dbhm->preExec("DELETE FROM noticeboards WHERE name LIKE 'UTTest%';");
+        $this->dbhm->preExec("DELETE FROM noticeboards WHERE name LIKE 'UTTest%' OR description = 'Test description';");
         parent::tearDown ();
     }
 
     public function testBasic() {
-        list($u, $this->uid, $emailid) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        list($u, $this->uid, $emailid) = $this->createTestUserAndLogin();
 
         # Invalid parameters
         $ret = $this->call('noticeboard', 'POST', [ 'dup' => 1]);
@@ -85,9 +85,7 @@ class noticeboardAPITest extends IznikAPITestCase {
         $this->assertEquals(0, $ret['ret']);
 
         # Add a photo
-        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
-        $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_NOTICEBOARD);
-        list ($photoid, $uid) = $a->create(NULL, $data);
+        list ($a, $photoid, $uid) = $this->createTestImageAttachment('/test/ut/php/images/chair.jpg', Attachment::TYPE_NOTICEBOARD);
 
         $ret = $this->call('noticeboard', 'PATCH', [
             'id' => $id,
@@ -168,7 +166,7 @@ class noticeboardAPITest extends IznikAPITestCase {
     }
 
     public function testAuthority() {
-        list($u, $this->uid, $emailid) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        list($u, $this->uid, $emailid) = $this->createTestUserAndLogin();
 
         # Valid create
         $ret = $this->call('noticeboard', 'POST', [
@@ -179,9 +177,7 @@ class noticeboardAPITest extends IznikAPITestCase {
         $this->assertEquals(0, $ret['ret']);
         $id = $ret['id'];
 
-        $a = new Authority($this->dbhr, $this->dbhm);
-        $aid = $a->create("UTAuth", 'GLA', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
-
+        list($a, $aid) = $this->createTestAuthority();
 
         $ret = $this->call('noticeboard', 'GET', [
             'authorityid' => $aid

@@ -28,8 +28,7 @@ class communityEventTest extends IznikTestCase {
 
     public function testBasic() {
         # Create an event and check we can read it back.
-        $c = new CommunityEvent($this->dbhm, $this->dbhm);
-        $id = $c->create(NULL, 'Test event', 'Test location', NULL, NULL, NULL, NULL, NULL);
+        list($c, $id) = $this->createTestCommunityEvent('Test event', 'Test location');
         $this->assertNotNull($id);
 
         $c->addGroup($this->groupid);

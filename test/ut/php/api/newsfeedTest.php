@@ -492,9 +492,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $g->setPrivate('lng', 179.15);
         $g->setPrivate('lat', 8.5);
 
-        $e = new CommunityEvent($this->dbhr, $this->dbhm);
-        $eid = $e->create($this->uid, 'Test event', 'Test location', NULL, NULL, NULL, NULL, NULL);
-        $e->addGroup($gid);
+        list($e, $eid) = $this->createTestCommunityEvent('Test event', 'Test location', $this->uid, $gid);
         $e->setPrivate('pending', 0);
 
         $ret = $this->call('newsfeed', 'GET', [
@@ -518,11 +516,8 @@ class newsfeedAPITest extends IznikAPITestCase {
         $g->setPrivate('lng', 179.15);
         $g->setPrivate('lat', 8.5);
 
-        $e = new Volunteering($this->dbhr, $this->dbhm);
-        $eid = $e->create($this->uid, 'Test opp', FALSE, 'Test location', NULL, NULL, NULL, NULL, NULL, NULL);
+        list($e, $eid) = $this->createTestVolunteeringWithGroup($this->uid, 'Test opp', $gid);
         $this->log("Created $eid");
-        $e->addGroup($gid);
-        $e->setPrivate('pending', 0);
 
         $ret = $this->call('newsfeed', 'GET', [
             'types' => [

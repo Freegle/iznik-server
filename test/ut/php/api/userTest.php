@@ -468,8 +468,7 @@ class userAPITest extends IznikAPITestCase {
         }
 
     public function testDelete() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User');
 
         $ret = $this->call('user', 'DELETE', [
             'id' => $uid
