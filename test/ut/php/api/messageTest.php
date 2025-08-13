@@ -181,11 +181,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(1, $ret['ret']);
 
         # Now join - shouldn't be able to see a pending message as user
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($this->gid);
-        $this->addLoginAndLogin($u, 'testpw');
+        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
         $ret = $this->call('message', 'GET', [
             'id' => $id,
@@ -236,11 +232,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(1, $ret['ret']);
 
         # Now join - shouldn't be able to see a spam message as user
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($this->gid);
-        $this->addLoginAndLogin($u, 'testpw');
+        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
         $ret = $this->call('message', 'GET', [
             'id' => $id,
@@ -305,12 +297,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals($id, $a->getID());
         $this->assertTrue(array_key_exists('subject', $a->getPublic()));
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($this->gid, User::ROLE_OWNER);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_OWNER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
         $ret = $this->call('message', 'GET', [
             'id' => $id,
@@ -357,12 +344,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals($id, $a->getID());
         $this->assertTrue(array_key_exists('subject', $a->getPublic()));
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($this->gid, User::ROLE_OWNER);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_OWNER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
         $ret = $this->call('message', 'GET', [
             'id' => $id,
@@ -425,11 +407,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to approve as a member
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($this->gid);
-        $this->addLoginAndLogin($u, 'testpw');
+        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -530,11 +508,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to reject as a member
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($this->gid);
-        $this->addLoginAndLogin($u, 'testpw');
+        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -610,8 +584,7 @@ class messageAPITest extends IznikAPITestCase
         $uid = $m->getFromuser();
         $this->log("Found sender as $uid");
         $u = User::get($this->dbhm, $this->dbhm, $uid);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $this->log("Message $id should now be rejected");
         $ret = $this->call('messages', 'GET', [
@@ -729,12 +702,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to mail as a member
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($this->gid);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -802,12 +770,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to delete as a member
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($this->gid);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -874,12 +837,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to do this as a member
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($this->gid);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -970,12 +928,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to hold as a member
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($this->gid);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -1066,12 +1019,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to edit as a member
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($this->gid);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
         $ret = $this->call('message', 'PATCH', [
             'id' => $id,
@@ -2120,8 +2068,7 @@ class messageAPITest extends IznikAPITestCase
 
         # Check we can't promise on someone else's message.
         $u = User::get($this->dbhr, $this->dbhm, $uid3);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -2224,8 +2171,7 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail($email);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
@@ -2336,8 +2282,7 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail($email);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
@@ -2356,8 +2301,7 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail($email);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $u->addMembership($this->gid, User::ROLE_MEMBER);
 
         $ret = $this->call('message', 'POST', [
@@ -2390,8 +2334,7 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail($email);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
@@ -2453,8 +2396,7 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail($email);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
@@ -2496,8 +2438,7 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail($email);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
@@ -2533,8 +2474,7 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail($email);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
@@ -2576,8 +2516,7 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail($email);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
@@ -2619,8 +2558,7 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail($email);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
@@ -2721,8 +2659,7 @@ class messageAPITest extends IznikAPITestCase
 
         # Try to get not as a mod.
         $this->log("Logged in");
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $ret = $this->call('message', 'GET', [
             'id' => $replyid,
             'collection' => 'Chat'
@@ -2856,8 +2793,7 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $this->assertEquals(0, $m->getLikes(Message::LIKE_LOVE));
         $this->assertEquals(0, $m->getLikes(Message::LIKE_LAUGH));
@@ -2956,8 +2892,7 @@ class messageAPITest extends IznikAPITestCase
 
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'action' => 'View',
@@ -2983,8 +2918,7 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $this->assertEquals(0, $m->getLikes(Message::LIKE_VIEW));
 
@@ -3361,8 +3295,7 @@ class messageAPITest extends IznikAPITestCase
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
         $u->addEmail($email);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
@@ -3422,8 +3355,7 @@ class messageAPITest extends IznikAPITestCase
         # Create a user with email1
         $u = new User($this->dbhr, $this->dbhm);
         $uid1 = $u->create('Test', 'User', 'Test User');
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $u->addEmail($email1);
 
         # Create a user who is already using email2.
@@ -3470,8 +3402,7 @@ class messageAPITest extends IznikAPITestCase
         # Create a user with email1
         $u = new User($this->dbhr, $this->dbhm);
         $uid1 = $u->create('Test', 'User', 'Test User');
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $u->addEmail($email1);
 
         $this->group->setPrivate('lat', 8.5);
@@ -3550,8 +3481,7 @@ class messageAPITest extends IznikAPITestCase
         # Create a user with email1
         $u = new User($this->dbhr, $this->dbhm);
         $uid1 = $u->create('Test', 'User', 'Test User');
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $u->addEmail($email1);
 
         $this->group->setPrivate('lat', 8.5);
@@ -3685,8 +3615,7 @@ class messageAPITest extends IznikAPITestCase
     public function testPromiseMultipleTimes() {
         $u = $this->user;
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $uid2 = $u->create(NULL, NULL, 'Test User');
         $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
@@ -4038,12 +3967,7 @@ class messageAPITest extends IznikAPITestCase
         $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addMembership($this->gid, User::ROLE_MODERATOR);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MODERATOR, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -4223,8 +4147,7 @@ class messageAPITest extends IznikAPITestCase
         $u = new User($this->dbhr, $this->dbhm);
         $this->uid = $u->create('Test', 'User', 'Test User');
         $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         # Set the deadline to the future - should no longer have an outcome.
         $ret = $this->call('message', 'PATCH', [

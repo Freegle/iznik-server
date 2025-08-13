@@ -672,8 +672,7 @@ class userTest extends IznikTestCase {
         $id1 = $u1->create('Test', 'User', NULL);
         $u2 = User::get($this->dbhr, $this->dbhm);
         $id2 = $u2->create('Test', 'User', NULL);
-        $this->assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u1->login('testpw'));
+        $this->addLoginAndLogin($u1, 'testpw');
 
         # Reset u1 to match what Session::whoAmI will give so that when we change the role in u1, the role
         # returned by Session::whoAmI will have changed.
@@ -741,8 +740,7 @@ class userTest extends IznikTestCase {
     public function testCheck($mod) {
         $u1 = User::get($this->dbhr, $this->dbhm);
         $id1 = $u1->create('Test', 'User', NULL);
-        $this->assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u1->login('testpw'));
+        $this->addLoginAndLogin($u1, 'testpw');
         $u2 = User::get($this->dbhr, $this->dbhm);
         $id2 = $u2->create('Test', 'User', NULL);
 
@@ -822,8 +820,7 @@ class userTest extends IznikTestCase {
         $this->assertFalse($u2->verifyEmail('bit-bucket@test.smtp.org'));
 
         # Now confirm that- should trigger a merge.
-        $this->assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u2->login('testpw'));
+        $this->addLoginAndLogin($u2, 'testpw');
         $emails = $this->dbhr->preQuery("SELECT * FROM users_emails WHERE email = 'bit-bucket@test.smtp.org';");
         $this->assertEquals(1, count($emails));
         foreach ($emails as $email) {
@@ -1487,8 +1484,7 @@ class userTest extends IznikTestCase {
         $name = $u->getName();
         $this->assertNotFalse(strpos($name, 'Deleted User'));
 
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $name = $u->getName();
         $this->assertFalse(strpos($name, 'Deleted User'));
     }
@@ -1564,8 +1560,7 @@ class userTest extends IznikTestCase {
     public function testDeletedUserLogs() {
         $u = User::get($this->dbhr, $this->dbhm);
         $id1 = $u->create('Test', 'User', NULL);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $u->forget("UT");
         $this->waitBackground();
         $ctx = NULL;

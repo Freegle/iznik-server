@@ -478,8 +478,7 @@ class spammersAPITest extends IznikAPITestCase {
 
     public function testPerf() {
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_PENDING_ADD,
@@ -494,8 +493,7 @@ class spammersAPITest extends IznikAPITestCase {
         $this->assertGreaterThan(0, $u->addEmail('test3@' . GROUP_DOMAIN));
 
         # Log in and report.
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $ret = $this->call('spammers', 'POST', [
             'userid' => $uid1,
