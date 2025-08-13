@@ -56,6 +56,10 @@ jobs:
           -c "CREATE DATABASE iznik;"
       - run: |
           psql \
+          -h 127.0.0.1 -U iznik -d iznik \
+          -c "CREATE EXTENSION IF NOT EXISTS postgis;"
+      - run: |
+          psql \
           -h 127.0.0.1 -U iznik -d circle_test \
           -c "CREATE TYPE location_type AS ENUM('Road','Polygon','Line','Point','Postcode');"
       - run: |
