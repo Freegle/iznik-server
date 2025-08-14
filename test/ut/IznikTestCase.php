@@ -302,18 +302,26 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
      * @param int|null $expectedRC Expected routing result (default: null, no assertion)
      */
     protected function createTestMessage($sourceFile = 'basic', $groupname = 'testgroup', $fromEmail = 'from@test.com', $toEmail = 'to@test.com', $groupid = NULL, $userid = NULL, $substitutions = []) {
-        // Load source file
-        if ($sourceFile === null || $sourceFile === 'basic') {
-            $msgPath = IZNIK_BASE . '/test/ut/php/msgs/basic';
-        } elseif (strpos($sourceFile, '/') !== FALSE) {
-            // Full path provided
-            $msgPath = $sourceFile;
+        // Check if first parameter is already message content (contains newlines and headers)
+        if (is_string($sourceFile) && (strpos($sourceFile, "\n") !== FALSE || strpos($sourceFile, "From:") !== FALSE || strpos($sourceFile, "Subject:") !== FALSE)) {
+            // First parameter is already message content, use it directly
+            $content = $sourceFile;
+            // Don't apply the unique() method again as it was likely already applied
         } else {
-            // Source file name provided
-            $msgPath = IZNIK_BASE . '/test/ut/php/msgs/' . $sourceFile;
+            // Load source file
+            if ($sourceFile === null || $sourceFile === 'basic') {
+                $msgPath = IZNIK_BASE . '/test/ut/php/msgs/basic';
+            } elseif (strpos($sourceFile, '/') !== FALSE) {
+                // Full path provided
+                $msgPath = $sourceFile;
+            } else {
+                // Source file name provided
+                $msgPath = IZNIK_BASE . '/test/ut/php/msgs/' . $sourceFile;
+            }
+            
+            $content = $this->unique(file_get_contents($msgPath));
         }
         
-        $content = $this->unique(file_get_contents($msgPath));
         $this->assertNotEmpty($content, "Message content is empty");
         
         // Apply default substitutions

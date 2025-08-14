@@ -484,9 +484,7 @@ class spammersAPITest extends IznikAPITestCase {
     }
 
     public function testReportOwnDomain() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid1 = $u->create(NULL, NULL, 'Test User');
-        $this->assertGreaterThan(0, $u->addEmail('test3@' . GROUP_DOMAIN));
+        list($u, $uid1) = $this->createTestUser(NULL, NULL, 'Test User', 'test3@' . GROUP_DOMAIN, 'testpw');
 
         # Log in and report.
         $this->addLoginAndLogin($this->user, 'testpw');
@@ -504,15 +502,14 @@ class spammersAPITest extends IznikAPITestCase {
 
     public function testSpammerStartsChat() {
         $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail($u->inventEmail());
+        $inventedEmail = $u->inventEmail();
+        list($u, $uid) = $this->createTestUser(NULL, NULL, 'Test User', $inventedEmail, 'testpw');
         $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         $s = new Spam($this->dbhr, $this->dbhm);
         $s->addSpammer($uid, Spam::TYPE_SPAMMER, 'Test reason');
 
-        $u2 = User::get($this->dbhr, $this->dbhm);
-        $uid2 = $u2->create(NULL, NULL, 'Test User');
+        list($u2, $uid2) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
 
         $c = new ChatRoom($this->dbhr, $this->dbhm);
         list ($rid, $blocked) = $c->createConversation($uid, $uid2);
@@ -521,12 +518,11 @@ class spammersAPITest extends IznikAPITestCase {
 
     public function testSpammerSendsChat() {
         $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail($u->inventEmail());
+        $inventedEmail = $u->inventEmail();
+        list($u, $uid) = $this->createTestUser(NULL, NULL, 'Test User', $inventedEmail, 'testpw');
         $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
-        $u2 = User::get($this->dbhr, $this->dbhm);
-        $uid2 = $u2->create(NULL, NULL, 'Test User');
+        list($u2, $uid2) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
 
         $c = new ChatRoom($this->dbhr, $this->dbhm);
         list ($rid, $blocked) = $c->createConversation($uid, $uid2);

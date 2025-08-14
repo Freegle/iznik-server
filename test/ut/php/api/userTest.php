@@ -655,20 +655,13 @@ class userAPITest extends IznikAPITestCase {
 
     public function testCantMerge() {
         $u1 = User::get($this->dbhm, $this->dbhm);
-        $id1 = $u1->create('Test', 'User', NULL);
-        $u1->addMembership($this->groupid);
-        $u2 = User::get($this->dbhm, $this->dbhm);
-        $id2 = $u2->create('Test', 'User', NULL);
-        $u2->addMembership($this->groupid);
+        list($u1, $id1) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test', 'User', NULL, 'test1@test.com', 'testpw');
+        list($u2, $id2) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test', 'User', NULL, 'test2@test.com', 'testpw');
         $u2->addEmail('test2@test.com', 0);
-        $u3 = User::get($this->dbhm, $this->dbhm);
-        $id3 = $u3->create('Test', 'User', NULL);
+        list($u3, $id3) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test', 'User', NULL, 'test3@test.com', 'testpw');
         $u3->addEmail('test3@test.com', 0);
-        $u3->addMembership($this->groupid);
         $u3->setSetting('canmerge', FALSE);
-        $u4 = User::get($this->dbhm, $this->dbhm);
-        $id4 = $u4->create('Test', 'User', NULL);
-        $u4->addMembership($this->groupid, User::ROLE_MODERATOR);
+        list($u4, $id4) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MODERATOR, 'Test', 'User', NULL, 'test4@test.com', 'testpw');
         $u4->addEmail('test4@test.com', 0);
 
         $this->addLoginAndLogin($u4, 'testpw');
@@ -942,9 +935,7 @@ class userAPITest extends IznikAPITestCase {
         self::assertEquals(1, $ret['user']['info']['ratings'][User::RATING_DOWN]);
 
         # The rating should be visible to a mod on the rater and ratee's group.
-        $modid = $u->create('Test', 'User', 'Test User');
-        $u->addMembership($this->groupid, User::ROLE_MODERATOR);
-        $this->addLoginAndLogin($u, 'testpw');
+        list($u, $modid) = $this->createTestUserWithMembershipAndLogin($this->groupid, User::ROLE_MODERATOR, 'Test', 'User', 'Test User', 'test@test.com', 'testpw');
         $ret = $this->call('memberships', 'GET', [
             'collection' => MembershipCollection::HAPPINESS,
             'groupid' => $this->groupid

@@ -775,13 +775,8 @@ class MailRouterTest extends IznikTestCase {
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_UNMODERATED);
         User::clearCache();
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/poundsign'));
-        $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
-
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list($r, $id, $failok, $rc) = $this->createTestMessage('poundsign', 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid);
         $this->assertNotNull($id);
-        $rc = $r->route();
         $this->assertEquals(MailRouter::PENDING, $rc);
     }
     
@@ -794,13 +789,8 @@ class MailRouterTest extends IznikTestCase {
         $uid2 = $u->create(NULL, NULL, 'Test User');
 
         # Send a message.
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($origid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list($r, $origid, $failok, $rc) = $this->createTestMessage('basic', 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid, ['Subject: Basic test' => 'Subject: [Group-tag] Offer: thing (place)']);
         $this->assertNotNull($origid);
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Mark the message as promised - this should suppress the email notification.
@@ -1117,11 +1107,8 @@ class MailRouterTest extends IznikTestCase {
         $u->setMembershipAtt($gid, 'emailfrequency', 24);
 
         # Turn off by email
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', "digestoff-$uid-$gid@" . USER_DOMAIN, $msg);
+        list($r, $id, $failok, $rc) = $this->createTestMessage('basic', 'testgroup', 'from@test.com', "digestoff-$uid-$gid@" . USER_DOMAIN, NULL, NULL);
         $this->assertNotNull($id);
-        $rc = $r->route();
         $this->assertEquals($rc, MailRouter::TO_SYSTEM);
 
         }
@@ -1137,11 +1124,8 @@ class MailRouterTest extends IznikTestCase {
         $u->addMembership($gid);
 
         # Turn events off by email
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', "eventsoff-$uid-$gid@" . USER_DOMAIN, $msg);
+        list($r, $id, $failok, $rc) = $this->createTestMessage('basic', 'testgroup', 'from@test.com', "eventsoff-$uid-$gid@" . USER_DOMAIN, NULL, NULL);
         $this->assertNotNull($id);
-        $rc = $r->route();
         $this->assertEquals($rc, MailRouter::TO_SYSTEM);
 
         }
@@ -1158,11 +1142,8 @@ class MailRouterTest extends IznikTestCase {
         $u->addMembership($gid);
 
         # Turn off by email
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', "notificationmailsoff-$uid@" . USER_DOMAIN, $msg);
+        list($r, $id, $failok, $rc) = $this->createTestMessage('basic', 'testgroup', 'from@test.com', "notificationmailsoff-$uid@" . USER_DOMAIN, NULL, NULL);
         $this->assertNotNull($id);
-        $rc = $r->route();
         $this->assertEquals($rc, MailRouter::TO_SYSTEM);
 
         $u = User::get($this->dbhm, $this->dbhm, $uid);
@@ -1182,11 +1163,8 @@ class MailRouterTest extends IznikTestCase {
         $u->addMembership($gid);
 
         # Turn events off by email
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', "relevantoff-$uid@" . USER_DOMAIN, $msg);
+        list($r, $id, $failok, $rc) = $this->createTestMessage('basic', 'testgroup', 'from@test.com', "relevantoff-$uid@" . USER_DOMAIN, NULL, NULL);
         $this->assertNotNull($id);
-        $rc = $r->route();
         $this->assertEquals($rc, MailRouter::TO_SYSTEM);
     }
 
@@ -1201,11 +1179,8 @@ class MailRouterTest extends IznikTestCase {
         $u->addMembership($gid);
 
         # Turn events off by email
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', "newslettersoff-$uid@" . USER_DOMAIN, $msg);
+        list($r, $id, $failok, $rc) = $this->createTestMessage('basic', 'testgroup', 'from@test.com', "newslettersoff-$uid@" . USER_DOMAIN, NULL, NULL);
         $this->assertNotNull($id);
-        $rc = $r->route();
         $this->assertEquals($rc, MailRouter::TO_SYSTEM);
 
         }

@@ -90,7 +90,8 @@ class volunteeringDigestTest extends IznikTestCase {
         $this->assertEquals(0, $mock->send($gid));
 
         # Invalid email
-        list($u3, $uid3, $eid3) = $this->createTestUser(NULL, NULL, "Test User", 'test3@test.com', 'testpw3');
+        list($u3, $uid3, $eid3) = $this->createTestUser(NULL, NULL, "Test User", NULL, 'testpw3');
+        $u3->addEmail('test.com'); # Invalid email (no @ symbol)
         $u3->addMembership($gid);
         $this->assertEquals(0, $mock->send($gid));
 

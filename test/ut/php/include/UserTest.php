@@ -68,8 +68,7 @@ class userTest extends IznikTestCase {
         $_SESSION['id'] = NULL;
         $this->assertGreaterThan(0, $u->delete());
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $id = $u->create(NULL, NULL, 'Test User');
+        list($u, $id) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
         $atts = $u->getPublic();
         $this->assertNull($atts['firstname']);
         $this->assertNull($atts['lastname']);
@@ -375,9 +374,9 @@ class userTest extends IznikTestCase {
         list($g3, $group3) = $this->createTestGroup('testgroup3', Group::GROUP_REUSE);
 
         $u = User::get($this->dbhr, $this->dbhm);
-        $id1 = $u->create(NULL, NULL, 'Test User');
-        $id2 = $u->create(NULL, NULL, 'Test User');
-        $id3 = $u->create(NULL, NULL, 'Test User');
+        list($u1, $id1) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
+        list($u2, $id2) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
+        list($u3, $id3) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
         $u1 = User::get($this->dbhr, $this->dbhm, $id1);
         $u2 = User::get($this->dbhr, $this->dbhm, $id2);
         $this->assertGreaterThan(0, $u1->addEmail('test1@test.com'));
@@ -483,8 +482,8 @@ class userTest extends IznikTestCase {
         list($g, $group) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
 
         $u = User::get($this->dbhr, $this->dbhm);
-        $id1 = $u->create(NULL, NULL, 'Test User');
-        $id2 = $u->create(NULL, NULL, 'Test User');
+        list($u1, $id1) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
+        list($u2, $id2) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
         $u1 = User::get($this->dbhr, $this->dbhm, $id1);
         $u2 = User::get($this->dbhr, $this->dbhm, $id2);
         $eid1 = $u1->addEmail('test1@test.com');
@@ -511,8 +510,8 @@ class userTest extends IznikTestCase {
         list($g3, $group3) = $this->createTestGroup('testgroup3', Group::GROUP_REUSE);
 
         $u = User::get($this->dbhr, $this->dbhm);
-        $id1 = $u->create(NULL, NULL, 'Test User');
-        $id2 = $u->create(NULL, NULL, 'Test User');
+        list($u1, $id1) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
+        list($u2, $id2) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
         $u1 = User::get($this->dbhr, $this->dbhm, $id1);
         $u2 = User::get($this->dbhr, $this->dbhm, $id2);
         $this->assertGreaterThan(0, $u1->addEmail('test1@test.com'));
@@ -552,8 +551,8 @@ class userTest extends IznikTestCase {
         $g = Group::get($this->dbhr, $this->dbhm);
 
         $u = User::get($this->dbhr, $this->dbhm);
-        $id1 = $u->create(NULL, NULL, 'Test User');
-        $id2 = $u->create(NULL, NULL, 'Test User');
+        list($u1, $id1) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
+        list($u2, $id2) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
         $u1 = User::get($this->dbhr, $this->dbhm, $id1);
         $u2 = User::get($this->dbhr, $this->dbhm, $id2);
         $settings = $u1->getPublic()['settings'];
@@ -566,55 +565,64 @@ class userTest extends IznikTestCase {
         $this->assertEquals($id2, $u2->getId());
     }
 
-    public function testSystemRoleMax() {
+    public function systemRoleMaxProvider() {
+        return [
+            'moderator_vs_admin' => [User::SYSTEMROLE_MODERATOR, User::SYSTEMROLE_ADMIN, User::SYSTEMROLE_ADMIN],
+            'admin_vs_support' => [User::SYSTEMROLE_ADMIN, User::SYSTEMROLE_SUPPORT, User::SYSTEMROLE_ADMIN],
+            'moderator_vs_support' => [User::SYSTEMROLE_MODERATOR, User::SYSTEMROLE_SUPPORT, User::SYSTEMROLE_SUPPORT],
+            'support_vs_user' => [User::SYSTEMROLE_SUPPORT, User::SYSTEMROLE_USER, User::SYSTEMROLE_SUPPORT],
+            'moderator_vs_moderator' => [User::SYSTEMROLE_MODERATOR, User::SYSTEMROLE_MODERATOR, User::SYSTEMROLE_MODERATOR],
+            'moderator_vs_user' => [User::SYSTEMROLE_MODERATOR, User::SYSTEMROLE_USER, User::SYSTEMROLE_MODERATOR],
+            'user_vs_user' => [User::SYSTEMROLE_USER, User::SYSTEMROLE_USER, User::SYSTEMROLE_USER]
+        ];
+    }
 
+    /**
+     * @dataProvider systemRoleMaxProvider
+     */
+    public function testSystemRoleMax($role1, $role2, $expected) {
         $u = User::get($this->dbhr, $this->dbhm);
-
-        $this->assertEquals(User::SYSTEMROLE_ADMIN, $u->systemRoleMax(User::SYSTEMROLE_MODERATOR, User::SYSTEMROLE_ADMIN));
-        $this->assertEquals(User::SYSTEMROLE_ADMIN, $u->systemRoleMax(User::SYSTEMROLE_ADMIN, User::SYSTEMROLE_SUPPORT));
-
-        $this->assertEquals(User::SYSTEMROLE_SUPPORT, $u->systemRoleMax(User::SYSTEMROLE_MODERATOR, User::SYSTEMROLE_SUPPORT));
-        $this->assertEquals(User::SYSTEMROLE_SUPPORT, $u->systemRoleMax(User::SYSTEMROLE_SUPPORT, User::SYSTEMROLE_USER));
-
-        $this->assertEquals(User::SYSTEMROLE_MODERATOR, $u->systemRoleMax(User::SYSTEMROLE_MODERATOR, User::SYSTEMROLE_MODERATOR));
-        $this->assertEquals(User::SYSTEMROLE_MODERATOR, $u->systemRoleMax(User::SYSTEMROLE_MODERATOR, User::SYSTEMROLE_USER));
-
-        $this->assertEquals(User::SYSTEMROLE_USER, $u->systemRoleMax(User::SYSTEMROLE_USER, User::SYSTEMROLE_USER));
-
+        $this->assertEquals($expected, $u->systemRoleMax($role1, $role2));
         }
 
-    public function testRoleMax() {
+    public function roleMaxProvider() {
+        return [
+            'member_vs_owner' => [User::ROLE_MEMBER, User::ROLE_OWNER, User::ROLE_OWNER],
+            'owner_vs_moderator' => [User::ROLE_OWNER, User::ROLE_MODERATOR, User::ROLE_OWNER],
+            'member_vs_moderator' => [User::ROLE_MEMBER, User::ROLE_MODERATOR, User::ROLE_MODERATOR],
+            'moderator_vs_nonmember' => [User::ROLE_MODERATOR, User::ROLE_NONMEMBER, User::ROLE_MODERATOR],
+            'member_vs_member' => [User::ROLE_MEMBER, User::ROLE_MEMBER, User::ROLE_MEMBER],
+            'member_vs_nonmember' => [User::ROLE_MEMBER, User::ROLE_NONMEMBER, User::ROLE_MEMBER],
+            'nonmember_vs_nonmember' => [User::ROLE_NONMEMBER, User::ROLE_NONMEMBER, User::ROLE_NONMEMBER]
+        ];
+    }
 
+    /**
+     * @dataProvider roleMaxProvider
+     */
+    public function testRoleMax($role1, $role2, $expected) {
         $u = User::get($this->dbhr, $this->dbhm);
-
-        $this->assertEquals(User::ROLE_OWNER, $u->roleMax(User::ROLE_MEMBER, User::ROLE_OWNER));
-        $this->assertEquals(User::ROLE_OWNER, $u->roleMax(User::ROLE_OWNER, User::ROLE_MODERATOR));
-
-        $this->assertEquals(User::ROLE_MODERATOR, $u->roleMax(User::ROLE_MEMBER, User::ROLE_MODERATOR));
-        $this->assertEquals(User::ROLE_MODERATOR, $u->roleMax(User::ROLE_MODERATOR, User::ROLE_NONMEMBER));
-
-        $this->assertEquals(User::ROLE_MEMBER, $u->roleMax(User::ROLE_MEMBER, User::ROLE_MEMBER));
-        $this->assertEquals(User::ROLE_MEMBER, $u->roleMax(User::ROLE_MEMBER, User::ROLE_NONMEMBER));
-
-        $this->assertEquals(User::ROLE_NONMEMBER, $u->roleMax(User::ROLE_NONMEMBER, User::ROLE_NONMEMBER));
-
+        $this->assertEquals($expected, $u->roleMax($role1, $role2));
         }
 
-    public function testRoleMin() {
+    public function roleMinProvider() {
+        return [
+            'member_vs_owner' => [User::ROLE_MEMBER, User::ROLE_OWNER, User::ROLE_MEMBER],
+            'owner_vs_moderator' => [User::ROLE_OWNER, User::ROLE_MODERATOR, User::ROLE_MODERATOR],
+            'member_vs_moderator' => [User::ROLE_MEMBER, User::ROLE_MODERATOR, User::ROLE_MEMBER],
+            'moderator_vs_nonmember' => [User::ROLE_MODERATOR, User::ROLE_NONMEMBER, User::ROLE_NONMEMBER],
+            'member_vs_member' => [User::ROLE_MEMBER, User::ROLE_MEMBER, User::ROLE_MEMBER],
+            'member_vs_nonmember' => [User::ROLE_MEMBER, User::ROLE_NONMEMBER, User::ROLE_NONMEMBER],
+            'nonmember_vs_nonmember' => [User::ROLE_NONMEMBER, User::ROLE_NONMEMBER, User::ROLE_NONMEMBER]
+        ];
+    }
 
+    /**
+     * @dataProvider roleMinProvider
+     */
+    public function testRoleMin($role1, $role2, $expected) {
         $u = User::get($this->dbhr, $this->dbhm);
-
-        $this->assertEquals(User::ROLE_MEMBER, $u->roleMin(User::ROLE_MEMBER, User::ROLE_OWNER));
-        $this->assertEquals(User::ROLE_MODERATOR, $u->roleMin(User::ROLE_OWNER, User::ROLE_MODERATOR));
-
-        $this->assertEquals(User::ROLE_MEMBER, $u->roleMin(User::ROLE_MEMBER, User::ROLE_MODERATOR));
-        $this->assertEquals(User::ROLE_NONMEMBER, $u->roleMin(User::ROLE_MODERATOR, User::ROLE_NONMEMBER));
-
-        $this->assertEquals(User::ROLE_MEMBER, $u->roleMin(User::ROLE_MEMBER, User::ROLE_MEMBER));
-        $this->assertEquals(User::ROLE_NONMEMBER, $u->roleMin(User::ROLE_MEMBER, User::ROLE_NONMEMBER));
-
-        $this->assertEquals(User::ROLE_NONMEMBER, $u->roleMax(User::ROLE_NONMEMBER, User::ROLE_NONMEMBER));
-
+        $this->assertEquals($expected, $u->roleMin($role1, $role2));
         }
 
     public function testMail() {
@@ -1496,8 +1504,8 @@ class userTest extends IznikTestCase {
         $rc = $r->route();
         $this->assertEquals(MailRouter::PENDING, $rc);
 
-        $id2 = $u->create('Test', 'User', NULL);
-        $id3 = $u->create('Test', 'User', NULL);
+        list($u2, $id2) = $this->createTestUser('Test', 'User', NULL, NULL, 'testpw');
+        list($u3, $id3) = $this->createTestUser('Test', 'User', NULL, NULL, 'testpw');
 
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         list ($rid1, $blocked) = $r->createConversation($id1, $id2);
@@ -1548,8 +1556,7 @@ class userTest extends IznikTestCase {
     }
 
     public function testMailer() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $id = $u->create(NULL, NULL, 'Test User');
+        list($u, $id) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
         $u->addEmail('test@test.com');
 
         $mock = $this->getMockBuilder('Freegle\Iznik\User')
@@ -1580,12 +1587,12 @@ class userTest extends IznikTestCase {
         $u->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
         $u->addMembership($gid, User::ROLE_MODERATOR);
 
-        $id2 = $u->create(NULL, NULL, 'Test User');
-        $u->addMembership($gid);
-        $id3 = $u->create(NULL, NULL, 'Test User');
-        $u->addMembership($gid);
-        $id4 = $u->create(NULL, NULL, 'Test User');
-        $u->addMembership($gid);
+        list($u2, $id2) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
+        $u2->addMembership($gid);
+        list($u3, $id3) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
+        $u3->addMembership($gid);
+        list($u4, $id4) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
+        $u4->addMembership($gid);
 
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         list ($r1, $blocked) = $r->createConversation($id1, $id2);
@@ -1705,8 +1712,7 @@ class userTest extends IznikTestCase {
     }
 
     public function testGmailVariants() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $id = $u->create(NULL, NULL, 'Test User');
+        list($u, $id) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
         $u->addEmail('test.user@gmail.com');
         $this->assertTrue($u->verifyEmail('testuser@gmail.com'));
     }
@@ -1717,9 +1723,9 @@ class userTest extends IznikTestCase {
         list($g3, $group3) = $this->createTestGroup('testgroup3', Group::GROUP_REUSE);
 
         $u = User::get($this->dbhr, $this->dbhm);
-        $id1 = $u->create(NULL, NULL, 'Test User');
-        $id2 = $u->create(NULL, NULL, 'Test User');
-        $id3 = $u->create(NULL, NULL, 'Test User');
+        list($u1, $id1) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
+        list($u2, $id2) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
+        list($u3, $id3) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
         $u1 = User::get($this->dbhr, $this->dbhm, $id1);
         $u2 = User::get($this->dbhr, $this->dbhm, $id2);
         $this->assertGreaterThan(0, $u1->addEmail('test1@test.com'));
@@ -1750,9 +1756,9 @@ class userTest extends IznikTestCase {
         list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
 
         $u = User::get($this->dbhr, $this->dbhm);
-        $id1 = $u->create(NULL, NULL, 'Test User');
-        $id2 = $u->create(NULL, NULL, 'Test User');
-        $id3 = $u->create(NULL, NULL, 'Test User');
+        list($u1, $id1) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
+        list($u2, $id2) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
+        list($u3, $id3) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
         $u1 = User::get($this->dbhr, $this->dbhm, $id1);
         $u2 = User::get($this->dbhr, $this->dbhm, $id2);
         $this->assertGreaterThan(0, $u1->addEmail('test@test.com'));

@@ -557,13 +557,11 @@ class sessionTest extends IznikAPITestCase
             return ($this->sendMock($mailer, $message));
         }));
 
-        $id = $u->create('Test', 'User', NULL);
-        $this->assertNotNull($u->addEmail('test@test.com'));
+        list($u, $id) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
         $u->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
         $u->setPrivate('yahooid', -1);
         self::assertTrue($u->sendOurMails());
         self::assertTrue($u->notifsOn(User::NOTIFS_PUSH));
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $ret = $this->call('session', 'POST', [
             'email' => 'test@test.com',
             'password' => 'testpw'
@@ -834,9 +832,8 @@ class sessionTest extends IznikAPITestCase
         $f->add($gid, '123', 'test', 123, GroupFacebook::TYPE_PAGE);
 
         $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid) = $this->createTestUserWithMembership($gid, User::ROLE_MODERATOR, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $_SESSION['id'] = $uid;
-        $u->addMembership($gid, User::ROLE_MODERATOR);
 
         $ret = $this->call('session', 'GET', []);
         $this->assertEquals(0, $ret['ret']);
@@ -846,7 +843,7 @@ class sessionTest extends IznikAPITestCase
 
     public function testPhone() {
         $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
+        list($u, $id) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
         $_SESSION['id'] = $id;
 
         $ret = $this->call('session', 'PATCH', [
@@ -1039,7 +1036,7 @@ class sessionTest extends IznikAPITestCase
 //    public function testSupportSecureLogin() {
 //        # Create a user with support tools access.
 //        $u = User::get($this->dbhm, $this->dbhm);
-//        $id = $u->create('Test', 'User', NULL);
+//        list($u, $id) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
 //        $this->assertNotNull($u->addEmail('test123@test.com'));
 //        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 //        $u->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
