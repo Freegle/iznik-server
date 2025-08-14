@@ -32,11 +32,18 @@ class messageAPITest extends IznikAPITestCase
         $dbhm->preExec("DELETE FROM worrywords WHERE keyword LIKE 'UTtest%';");
         $dbhm->preExec("DELETE FROM messages WHERE messageid LIKE 'GTUBE1.1010101@example.net';");
 
-        list($this->group, $this->gid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
+        $this->group = Group::get($this->dbhr, $this->dbhm);
+        $this->gid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
+        $this->group = Group::get($this->dbhr, $this->dbhm, $this->gid);
         $this->group->setPrivate('onhere', 1);
 
-        list($this->user, $this->uid) = $this->createTestUserWithMembership($this->gid, User::ROLE_MEMBER, 'Test User', 'test@test.com', 'testpw');
-        $this->user->addEmail('sender@example.net');
+        $u = new User($this->dbhr, $this->dbhm);
+        $this->uid = $u->create('Test', 'User', 'Test User');
+        $u->addEmail('test@test.com');
+        $u->addEmail('sender@example.net');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u->addMembership($this->gid);
+        $this->user = $u;
     }
 
     protected function tearDown() : void
@@ -49,7 +56,10 @@ class messageAPITest extends IznikAPITestCase
         # Create a group with a message on it
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $a = new Message($this->dbhr, $this->dbhm, $id);
@@ -82,7 +92,10 @@ class messageAPITest extends IznikAPITestCase
         # Create a group with a message on it
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $a = new Message($this->dbhr, $this->dbhm, $id);
@@ -98,7 +111,12 @@ class messageAPITest extends IznikAPITestCase
         $this->assertFalse(array_key_exists('fromuser', $ret['message']));
 
         # When logged in should be able to see message history.
-        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $this->assertTrue($u->addMembership($this->gid));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'GET', [
             'id' => $id,
@@ -136,7 +154,9 @@ class messageAPITest extends IznikAPITestCase
     {
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         $this->assertEquals(MailRouter::PENDING, $rc);
 
@@ -153,7 +173,10 @@ class messageAPITest extends IznikAPITestCase
     {
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
         $this->assertEquals(MailRouter::PENDING, $rc);
 
         $a = new Message($this->dbhr, $this->dbhm, $id);
@@ -166,7 +189,12 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(1, $ret['ret']);
 
         # Now join - shouldn't be able to see a pending message as user
-        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($this->gid);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'GET', [
             'id' => $id,
@@ -177,7 +205,8 @@ class messageAPITest extends IznikAPITestCase
 
         # Promote to mod - should be able to see it.
         $u->setRole(User::ROLE_MODERATOR, $this->gid);
-        $this->addLoginAndLogin($u, 'testpw');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
         $ret = $this->call('message', 'GET', [
             'id' => $id,
             'groupid' => $this->gid,
@@ -198,8 +227,10 @@ class messageAPITest extends IznikAPITestCase
         # Create a group with a message on it
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
-        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from1@test.com', 'to@test.com', $this->gid, $this->uid, TRUE, FALSE, MailRouter::INCOMING_SPAM);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
         $this->log("Created spam message $id");
+        $rc = $r->route();
         $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
         $a = new Message($this->dbhr, $this->dbhm, $id);
@@ -215,7 +246,12 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(1, $ret['ret']);
 
         # Now join - shouldn't be able to see a spam message as user
-        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($this->gid);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'GET', [
             'id' => $id,
@@ -226,7 +262,8 @@ class messageAPITest extends IznikAPITestCase
 
         # Promote to owner - should be able to see it.
         $u->setRole(User::ROLE_OWNER, $this->gid);
-        $this->addLoginAndLogin($u, 'testpw');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
         $ret = $this->call('message', 'GET', [
             'id' => $id,
             'groupid' => $this->gid,
@@ -280,7 +317,12 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals($id, $a->getID());
         $this->assertTrue(array_key_exists('subject', $a->getPublic()));
 
-        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_OWNER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($this->gid, User::ROLE_OWNER);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'GET', [
             'id' => $id,
@@ -327,7 +369,12 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals($id, $a->getID());
         $this->assertTrue(array_key_exists('subject', $a->getPublic()));
 
-        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_OWNER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($this->gid, User::ROLE_OWNER);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'GET', [
             'id' => $id,
@@ -379,7 +426,7 @@ class messageAPITest extends IznikAPITestCase
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
             ->setMethods(array('sendOne'))
             ->getMock();
-        $m->method('sendOne')->willReturn(FALSE);
+        $m->method('sendOne')->willReturn(false);
 
         # Shouldn't be able to approve logged out
         $ret = $this->call('message', 'POST', [
@@ -390,7 +437,12 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to approve as a member
-        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($this->gid);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -474,7 +526,7 @@ class messageAPITest extends IznikAPITestCase
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
             ->setMethods(array('sendOne'))
             ->getMock();
-        $m->method('sendOne')->willReturn(FALSE);
+        $m->method('sendOne')->willReturn(false);
 
         $this->assertEquals(Message::TYPE_OFFER, $m->getType());
         $senduser = $m->getFromUser();
@@ -491,7 +543,12 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to reject as a member
-        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($this->gid);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -502,7 +559,9 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(2, $ret['ret']);
 
         # Create another mod.
-        list($othermod, $othermoduid) = $this->createTestUserWithMembership($this->gid, User::ROLE_MODERATOR, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $othermod = User::get($this->dbhr, $this->dbhm);
+        $othermoduid = $othermod->create(NULL, NULL, 'Test User');
+        $othermod->addMembership($this->gid, User::ROLE_MODERATOR);
 
         # Promote to owner - should be able to reject it.  Suppress the mail.
         $u->setRole(User::ROLE_OWNER, $this->gid);
@@ -565,7 +624,8 @@ class messageAPITest extends IznikAPITestCase
         $uid = $m->getFromuser();
         $this->log("Found sender as $uid");
         $u = User::get($this->dbhm, $this->dbhm, $uid);
-        $this->addLoginAndLogin($u, 'testpw');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $this->log("Message $id should now be rejected");
         $ret = $this->call('messages', 'GET', [
@@ -669,7 +729,7 @@ class messageAPITest extends IznikAPITestCase
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
             ->setMethods(array('sendOne'))
             ->getMock();
-        $m->method('sendOne')->willReturn(FALSE);
+        $m->method('sendOne')->willReturn(false);
         $senduser = $m->getFromUser();
 
         $this->assertEquals(Message::TYPE_OTHER, $m->getType());
@@ -683,7 +743,12 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to mail as a member
-        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($this->gid);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -694,7 +759,9 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(2, $ret['ret']);
 
         # Create another mod.
-        list($othermod, $othermoduid) = $this->createTestUserWithMembership($this->gid, User::ROLE_MODERATOR, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $othermod = User::get($this->dbhr, $this->dbhm);
+        $othermoduid = $othermod->create(NULL, NULL, 'Test User');
+        $othermod->addMembership($this->gid, User::ROLE_MODERATOR);
 
         # Promote to owner - should be able to reply.  Suppress the mail.
         $u->setRole(User::ROLE_OWNER, $this->gid);
@@ -749,7 +816,12 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to delete as a member
-        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($this->gid);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -816,7 +888,12 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to do this as a member
-        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($this->gid);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -907,7 +984,12 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to hold as a member
-        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($this->gid);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -994,11 +1076,16 @@ class messageAPITest extends IznikAPITestCase
             'attachments' => []
         ]);
 
-        $this->log(var_export($ret, TRUE));
+        $this->log(var_export($ret, true));
         $this->assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to edit as a member
-        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($this->gid);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'PATCH', [
             'id' => $id,
@@ -1094,13 +1181,20 @@ class messageAPITest extends IznikAPITestCase
         # Create member and mod.
         $u = User::get($this->dbhr, $this->dbhm);
 
-        list($u1, $u1id) = $this->createTestUser('Test', 'User', 'Test User', NULL, 'testpw');
-        list($u2, $u2id) = $this->createTestUser('Test', 'User', 'Test User', NULL, 'testpw');
+        $u1id = $u->create('Test','User', 'Test User');
+        $u2id = $u->create('Test','User', 'Test User');
 
+        $memberid = $u->create('Test','User', 'Test User');
+        $member = User::get($this->dbhr, $this->dbhm, $memberid);
+        $this->assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $member->addMembership($this->gid, User::ROLE_MEMBER);
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-        list($member, $memberid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, 'Test', 'User', 'Test User', $email, 'testpw');
+        $member->addEmail($email);
 
-        list($mod, $modid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MODERATOR, 'Test', 'User', 'Test User', 'test@test.com', 'testpw');
+        $modid = $u->create('Test','User', 'Test User');
+        $mod = User::get($this->dbhr, $this->dbhm, $modid);
+        $this->assertGreaterThan(0, $mod->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $mod->addMembership($this->gid, User::ROLE_MODERATOR);
 
         $this->log("Created member $memberid and mod $modid");
 
@@ -1122,7 +1216,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => TRUE,
+            'ignoregroupoverride' => true,
             'email' => $email
         ]);
 
@@ -1404,8 +1498,12 @@ class messageAPITest extends IznikAPITestCase
         # Create member and mod.
         $u = User::get($this->dbhr, $this->dbhm);
 
+        $memberid = $u->create('Test','User', 'Test User');
+        $member = User::get($this->dbhr, $this->dbhm, $memberid);
+        $this->assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $member->addMembership($this->gid, User::ROLE_MEMBER);
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-        list($member, $memberid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, 'Test', 'User', 'Test User', $email, 'testpw');
+        $member->addEmail($email);
 
         $this->log("Created member $memberid");
 
@@ -1427,7 +1525,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => TRUE,
+            'ignoregroupoverride' => true,
             'email' => $email
         ]);
 
@@ -1454,8 +1552,12 @@ class messageAPITest extends IznikAPITestCase
         # Create member and mod.
         $u = User::get($this->dbhr, $this->dbhm);
 
+        $memberid = $u->create('Test','User', 'Test User');
+        $member = User::get($this->dbhr, $this->dbhm, $memberid);
+        $this->assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $member->addMembership($this->gid, User::ROLE_MEMBER);
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-        list($member, $memberid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, 'Test', 'User', 'Test User', $email, 'testpw');
+        $member->addEmail($email);
 
         $this->log("Created member $memberid");
 
@@ -1477,14 +1579,16 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => TRUE,
+            'ignoregroupoverride' => true,
             'email' => $email
         ]);
 
         $this->assertEquals(0, $ret['ret']);
 
         # Reject as mod.
-        list($othermod, $othermoduid) = $this->createTestUserWithMembership($this->gid, User::ROLE_MODERATOR, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $othermod = User::get($this->dbhr, $this->dbhm);
+        $othermoduid = $othermod->create(NULL, NULL, 'Test User');
+        $othermod->addMembership($this->gid, User::ROLE_MODERATOR);
 
         $c = new ModConfig($this->dbhr, $this->dbhm);
         $cid = $c->create('Test');
@@ -1533,8 +1637,12 @@ class messageAPITest extends IznikAPITestCase
         # Create member and mod.
         $u = User::get($this->dbhr, $this->dbhm);
 
+        $memberid = $u->create('Test','User', 'Test User');
+        $member = User::get($this->dbhr, $this->dbhm, $memberid);
+        $this->assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $member->addMembership($this->gid, User::ROLE_MEMBER);
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-        list($member, $memberid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, 'Test', 'User', 'Test User', $email, 'testpw');
+        $member->addEmail($email);
 
         $this->log("Created member $memberid");
 
@@ -1556,7 +1664,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => TRUE,
+            'ignoregroupoverride' => true,
             'email' => $email
         ]);
 
@@ -1769,7 +1877,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id,
             'action' => 'JoinAndPost',
             'email' => $email,
-            'ignoregroupoverride' => TRUE
+            'ignoregroupoverride' => true
         ]);
 
         $this->log("Message #$id should be pending " . var_export($ret, TRUE));
@@ -1824,7 +1932,8 @@ class messageAPITest extends IznikAPITestCase
         $uid = $u->findByEmail($email);
 
         if (!$uid) {
-            list($u, $uid) = $this->createTestUser("Test", "User", "Test User", $email, 'testpw');
+            $uid = $u->create("Test", "User", "Test User");
+            $u->addEmail($email);
         }
 
         $u = new User($this->dbhr, $this->dbhm, $uid);
@@ -1850,7 +1959,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id,
             'action' => 'JoinAndPost',
             'email' => $email,
-            'ignoregroupoverride' => TRUE
+            'ignoregroupoverride' => true
         ]);
 
         $this->log("Message #$id should not be pending " . var_export($ret, TRUE));
@@ -1897,8 +2006,10 @@ class messageAPITest extends IznikAPITestCase
         $u = $this->user;
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-        list($u2, $uid2) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
-        list($u3, $uid3) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $uid3 = $u->create(NULL, NULL, 'Test User');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
@@ -2023,7 +2134,8 @@ class messageAPITest extends IznikAPITestCase
 
         # Check we can't promise on someone else's message.
         $u = User::get($this->dbhr, $this->dbhm, $uid3);
-        $this->addLoginAndLogin($u, 'testpw');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -2123,7 +2235,12 @@ class messageAPITest extends IznikAPITestCase
     {
         $email = 'test-' . rand() . '@blackhole.io';
 
-        list($u, $uid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', $email, 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail($email);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+        $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
@@ -2230,7 +2347,12 @@ class messageAPITest extends IznikAPITestCase
     {
         $email = 'test-' . rand() . '@blackhole.io';
 
-        list($u, $uid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', $email, 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail($email);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+        $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
@@ -2245,7 +2367,12 @@ class messageAPITest extends IznikAPITestCase
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
         # Create a member on the group and check we can can't mark.
-        list($u, $uid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', $email, 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail($email);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+        $u->addMembership($this->gid, User::ROLE_MEMBER);
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -2274,7 +2401,12 @@ class messageAPITest extends IznikAPITestCase
     {
         $email = 'test-' . rand() . '@blackhole.io';
 
-        list($u, $uid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', $email, 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail($email);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+        $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
@@ -2304,7 +2436,8 @@ class messageAPITest extends IznikAPITestCase
         # ...but add a recent chat referencing it.
         $cr = new ChatRoom($this->dbhr, $this->dbhm);
         $cm = new ChatMessage($this->dbhr, $this->dbhm);
-        list($u2, $uid2) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
+        $u2 = User::get($this->dbhr, $this->dbhm);
+        $uid2 = $u2->create(NULL, NULL, 'Test User');
         list ($cid, $banned) = $cr->createConversation($uid, $uid2);
         list ($cmid, $banned) = $cm->create($cid, $uid2, 'Please', ChatMessage::TYPE_INTERESTED, $id);
 
@@ -2331,7 +2464,12 @@ class messageAPITest extends IznikAPITestCase
     {
         $email = 'test-' . rand() . '@blackhole.io';
 
-        list($u, $uid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', $email, 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail($email);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+        $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
@@ -2369,7 +2507,12 @@ class messageAPITest extends IznikAPITestCase
     {
         $email = 'test-' . rand() . '@blackhole.io';
 
-        list($u, $uid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', $email, 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail($email);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+        $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
@@ -2401,7 +2544,12 @@ class messageAPITest extends IznikAPITestCase
     {
         $email = 'test-' . rand() . '@blackhole.io';
 
-        list($u, $uid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', $email, 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail($email);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+        $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
@@ -2439,7 +2587,12 @@ class messageAPITest extends IznikAPITestCase
     {
         $email = 'test-' . rand() . '@blackhole.io';
 
-        list($u, $uid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', $email, 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail($email);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+        $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
@@ -2477,7 +2630,12 @@ class messageAPITest extends IznikAPITestCase
     {
         $email = 'test-' . rand() . '@blackhole.io';
 
-        list($u, $uid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', $email, 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail($email);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+        $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
@@ -2497,7 +2655,7 @@ class messageAPITest extends IznikAPITestCase
             'outcome' => Message::OUTCOME_REPOST
         ]);
 
-        $groups = $m->getGroups(FALSE);
+        $groups = $m->getGroups(FALSE, FALSE);
         $arrival = strtotime($groups[0]['arrival']);
 
         # Too soon.
@@ -2545,7 +2703,9 @@ class messageAPITest extends IznikAPITestCase
 
     public function testChatSource()
     {
-        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($this->gid);
 
         # Put a message on the group.
@@ -2575,7 +2735,8 @@ class messageAPITest extends IznikAPITestCase
 
         # Try to get not as a mod.
         $this->log("Logged in");
-        $this->addLoginAndLogin($u, 'testpw');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
         $ret = $this->call('message', 'GET', [
             'id' => $replyid,
             'collection' => 'Chat'
@@ -2628,7 +2789,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id,
             'action' => 'JoinAndPost',
             'email' => $email,
-            'ignoregroupoverride' => TRUE
+            'ignoregroupoverride' => true
         ]);
 
         $this->log("Message #$id should be spam " . var_export($ret, TRUE));
@@ -2683,7 +2844,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id,
             'action' => 'JoinAndPost',
             'email' => $email,
-            'ignoregroupoverride' => TRUE
+            'ignoregroupoverride' => true
         ]);
 
         $this->log("Message #$id is worrying " . var_export($ret, TRUE));
@@ -2706,8 +2867,11 @@ class messageAPITest extends IznikAPITestCase
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list ($id, $failok) = $m->save();
 
-        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
-        $this->addLoginAndLogin($u, 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $this->assertEquals(0, $m->getLikes(Message::LIKE_LOVE));
         $this->assertEquals(0, $m->getLikes(Message::LIKE_LAUGH));
@@ -2806,7 +2970,8 @@ class messageAPITest extends IznikAPITestCase
 
         $uid = $u->create(NULL, NULL, 'Test User');
         $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $this->addLoginAndLogin($u, 'testpw');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'action' => 'View',
@@ -2829,8 +2994,11 @@ class messageAPITest extends IznikAPITestCase
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list ($id, $failok) = $m->save();
 
-        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
-        $this->addLoginAndLogin($u, 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $this->assertEquals(0, $m->getLikes(Message::LIKE_VIEW));
 
@@ -2881,7 +3049,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id,
             'action' => 'JoinAndPost',
             'email' => $email,
-            'ignoregroupoverride' => TRUE
+            'ignoregroupoverride' => true
         ]);
 
         $this->assertEquals(0, $ret['ret']);
@@ -2910,8 +3078,12 @@ class messageAPITest extends IznikAPITestCase
         # Create member and mod.
         $u = User::get($this->dbhr, $this->dbhm);
 
+        $memberid = $u->create('Test','User', 'Test User');
+        $member = User::get($this->dbhr, $this->dbhm, $memberid);
+        $this->assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $member->addMembership($this->gid, User::ROLE_MEMBER);
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-        list($member, $memberid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, 'Test', 'User', 'Test User', $email, 'testpw');
+        $member->addEmail($email);
 
         # Forbid us from posting.
         $member->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_PROHIBITED);
@@ -2936,7 +3108,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => TRUE,
+            'ignoregroupoverride' => true,
             'email' => $email
         ]);
 
@@ -2948,7 +3120,9 @@ class messageAPITest extends IznikAPITestCase
         $this->gid = $this->group->create('testgroup1', Group::GROUP_REUSE);
 
         $u = User::get($this->dbhm, $this->dbhm);
-        list($u1, $id1) = $this->createTestUser(NULL, NULL, 'Test User', 'test1@test.com', 'testpw');
+        $id1 = $u->create(NULL, NULL, 'Test User');
+        $u1 = User::get($this->dbhm, $this->dbhm, $id1);
+        $this->assertGreaterThan(0, $u1->addEmail('test1@test.com'));
 
         $l = new Location($this->dbhm, $this->dbhm);
         $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)');
@@ -2968,7 +3142,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => TRUE,
+            'ignoregroupoverride' => true,
             'email' => 'test2@test.com'
         ]);
 
@@ -3048,14 +3222,21 @@ class messageAPITest extends IznikAPITestCase
         # Create member and mod.
         $u = User::get($this->dbhr, $this->dbhm);
 
-        list($u1, $u1id) = $this->createTestUser('Test', 'User', 'Test User', NULL, 'testpw');
-        list($u2, $u2id) = $this->createTestUser('Test', 'User', 'Test User', NULL, 'testpw');
+        $u1id = $u->create('Test','User', 'Test User');
+        $u2id = $u->create('Test','User', 'Test User');
 
+        $memberid = $u->create('Test','User', 'Test User');
+        $member = User::get($this->dbhr, $this->dbhm, $memberid);
+        $this->assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $member->addMembership($this->gid, User::ROLE_MEMBER);
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-        list($member, $memberid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, 'Test', 'User', 'Test User', $email, 'testpw');
+        $member->addEmail($email);
         $member->addEmail('test@test.com');
 
-        list($mod, $modid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MODERATOR, 'Test', 'User', 'Test User', 'test@test.com', 'testpw');
+        $modid = $u->create('Test','User', 'Test User');
+        $mod = User::get($this->dbhr, $this->dbhm, $modid);
+        $this->assertGreaterThan(0, $mod->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $mod->addMembership($this->gid, User::ROLE_MODERATOR);
 
         $this->log("Created member $memberid and mod $modid");
 
@@ -3077,7 +3258,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => TRUE,
+            'ignoregroupoverride' => true,
             'email' => $email
         ]);
 
@@ -3191,7 +3372,12 @@ class messageAPITest extends IznikAPITestCase
     public function testTidyOutcomes() {
         $email = 'test-' . rand() . '@blackhole.io';
 
-        list($u, $uid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', $email, 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail($email);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+        $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
@@ -3248,10 +3434,16 @@ class messageAPITest extends IznikAPITestCase
         $email2 = 'test-' . rand() . '@blackhole.io';
 
         # Create a user with email1
-        list($u, $uid1) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', $email1, 'testpw');
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid1 = $u->create('Test', 'User', 'Test User');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+        $u->addEmail($email1);
 
         # Create a user who is already using email2.
-        list($u2, $uid2) = $this->createTestUser('Test', 'User', 'Test User', $email2, 'testpw');
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid2 = $u->create('Test', 'User', 'Test User');
+        $u->addEmail($email2);
 
         $this->group->setPrivate('lat', 8.5);
         $this->group->setPrivate('lng', 179.3);
@@ -3279,7 +3471,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id,
             'action' => 'JoinAndPost',
             'email' => $email2,
-            'ignoregroupoverride' => TRUE
+            'ignoregroupoverride' => true
         ]);
 
         $this->log("Message #$id should be pending " . var_export($ret, TRUE));
@@ -3290,7 +3482,11 @@ class messageAPITest extends IznikAPITestCase
         $email1 = 'test-' . rand() . '@blackhole.io';
 
         # Create a user with email1
-        list($u, $uid1) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', $email1, 'testpw');
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid1 = $u->create('Test', 'User', 'Test User');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+        $u->addEmail($email1);
 
         $this->group->setPrivate('lat', 8.5);
         $this->group->setPrivate('lng', 179.3);
@@ -3317,7 +3513,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => TRUE
+            'ignoregroupoverride' => true
         ]);
 
         $this->log("Message #$id should be pending " . var_export($ret, TRUE));
@@ -3366,7 +3562,11 @@ class messageAPITest extends IznikAPITestCase
         $email1 = 'test-' . rand() . '@blackhole.io';
 
         # Create a user with email1
-        list($u, $uid1) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', $email1, 'testpw');
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid1 = $u->create('Test', 'User', 'Test User');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+        $u->addEmail($email1);
 
         $this->group->setPrivate('lat', 8.5);
         $this->group->setPrivate('lng', 179.3);
@@ -3399,7 +3599,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id,
             'action' => 'JoinAndPost',
             'email' => $email1,
-            'ignoregroupoverride' => TRUE
+            'ignoregroupoverride' => true
         ]);
 
         $this->assertEquals(0, $ret['ret']);
@@ -3425,7 +3625,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id,
             'action' => 'JoinAndPost',
             'email' => $email1,
-            'ignoregroupoverride' => TRUE
+            'ignoregroupoverride' => true
         ]);
 
         $this->assertEquals(0, $ret['ret']);
@@ -3444,9 +3644,11 @@ class messageAPITest extends IznikAPITestCase
         $this->assertNotNull($id);
 
         $u = new User($this->dbhr, $this->dbhm);
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+        $u->addMembership($this->gid);
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         $email = 'test-' . rand() . '@blackhole.io';
-        list($u2, $uid2) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', $email, 'testpw');
-        $u2->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        $u->addEmail($email);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
@@ -3497,10 +3699,13 @@ class messageAPITest extends IznikAPITestCase
     public function testPromiseMultipleTimes() {
         $u = $this->user;
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
-        $this->addLoginAndLogin($u, 'testpw');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
-        list($u2, $uid2) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
-        list($u3, $uid3) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $uid3 = $u->create(NULL, NULL, 'Test User');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         $l = new Location($this->dbhr, $this->dbhm);
         $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)');
@@ -3521,7 +3726,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => TRUE,
+            'ignoregroupoverride' => true,
             'email' => 'test@test.com'
         ]);
 
@@ -3597,7 +3802,10 @@ class messageAPITest extends IznikAPITestCase
 
         # Create a user with a validated and an unvalidated email
         $u = new User($this->dbhr, $this->dbhm);
-        list($u, $uid) = $this->createTestUserAndLogin(NULL, NULL, "Test User", $email, 'testpw');
+        $uid = $u->create("Test", "User", "Test User");
+        $u->addEmail($email);
+        $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw');
+        $this->assertTrue($u->login('testpw'));
 
         $email2 = 'test-' . rand() . '@blackhole.io';
         $ret = $this->call('session', 'PATCH', [
@@ -3624,7 +3832,7 @@ class messageAPITest extends IznikAPITestCase
             'id' => $id,
             'action' => 'JoinAndPost',
             'email' => $email2,
-            'ignoregroupoverride' => TRUE
+            'ignoregroupoverride' => true
         ]);
 
         $this->assertEquals(11, $ret['ret']);
@@ -3638,10 +3846,17 @@ class messageAPITest extends IznikAPITestCase
 
         $u = User::get($this->dbhr, $this->dbhm);
 
+        $memberid = $u->create('Test','User', 'Test User');
+        $member = User::get($this->dbhr, $this->dbhm, $memberid);
+        $this->assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $member->addMembership($this->gid, User::ROLE_MEMBER);
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-        list($member, $memberid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, 'Test', 'User', 'Test User', $email, 'testpw');
+        $member->addEmail($email);
 
-        list($mod, $modid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MODERATOR, 'Test', 'User', 'Test User', 'test@test.com', 'testpw');
+        $modid = $u->create('Test','User', 'Test User');
+        $mod = User::get($this->dbhr, $this->dbhm, $modid);
+        $this->assertGreaterThan(0, $mod->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $mod->addMembership($this->gid, User::ROLE_MODERATOR);
 
         $this->log("Created member $memberid and mod $modid");
 
@@ -3662,15 +3877,15 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => TRUE,
+            'ignoregroupoverride' => true,
             'email' => $email
         ]);
 
         $this->assertEquals(0, $ret['ret']);
 
         # Reply to it from two other users.
-        list($u1, $u1id) = $this->createTestUser('Test', 'User', 'Test User', NULL, 'testpw');
-        list($u2, $u2id) = $this->createTestUser('Test', 'User', 'Test User', NULL, 'testpw');
+        $u1id = $u->create('Test','User', 'Test User');
+        $u2id = $u->create('Test','User', 'Test User');
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         list ($rid1, $blocked) = $r->createConversation($u1id, $memberid);
         list ($rid2, $blocked) = $r->createConversation($u2id, $memberid);
@@ -3707,10 +3922,17 @@ class messageAPITest extends IznikAPITestCase
 
         # Create member and mod.
         $u = User::get($this->dbhr, $this->dbhm);
+        $memberid = $u->create('Test','User', 'Test User');
+        $member = User::get($this->dbhr, $this->dbhm, $memberid);
+        $this->assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $member->addMembership($this->gid, User::ROLE_MEMBER);
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-        list($member, $memberid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, 'Test', 'User', 'Test User', $email, 'testpw');
+        $member->addEmail($email);
 
-        list($mod, $modid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MODERATOR, 'Test', 'User', 'Test User', 'test@test.com', 'testpw');
+        $modid = $u->create('Test','User', 'Test User');
+        $mod = User::get($this->dbhr, $this->dbhm, $modid);
+        $this->assertGreaterThan(0, $mod->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $mod->addMembership($this->gid, User::ROLE_MODERATOR);
 
         $this->log("Created member $memberid and mod $modid");
 
@@ -3732,7 +3954,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => TRUE,
+            'ignoregroupoverride' => true,
             'email' => $email . "2"
         ]);
 
@@ -3815,7 +4037,9 @@ class messageAPITest extends IznikAPITestCase
     {
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
         $u = new User($this->dbhr, $this->dbhm);
-        list($u, $uid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, 'Test', 'User', 'Test User', $email, 'testpw');
+        $u->create('Test', 'User', 'Test User');
+        $this->assertNotNull($u->addEmail($email));
+        $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         # Create a message at this location on this group.
@@ -3828,7 +4052,12 @@ class messageAPITest extends IznikAPITestCase
         $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
-        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MODERATOR, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        $u->addMembership($this->gid, User::ROLE_MODERATOR);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -3845,8 +4074,10 @@ class messageAPITest extends IznikAPITestCase
         $u = $this->user;
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-        list($u2, $uid2) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
-        list($u3, $uid3) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $uid3 = $u->create(NULL, NULL, 'Test User');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
@@ -3926,8 +4157,12 @@ class messageAPITest extends IznikAPITestCase
         # Create member and mod.
         $u = User::get($this->dbhr, $this->dbhm);
 
+        $memberid = $u->create('Test','User', 'Test User');
+        $member = User::get($this->dbhr, $this->dbhm, $memberid);
+        $this->assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $member->addMembership($this->gid, User::ROLE_MEMBER);
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-        list($member, $memberid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, 'Test', 'User', 'Test User', $email, 'testpw');
+        $member->addEmail($email);
 
         $this->log("Created member $memberid");
 
@@ -3949,7 +4184,7 @@ class messageAPITest extends IznikAPITestCase
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => TRUE,
+            'ignoregroupoverride' => true,
             'email' => $email
         ]);
 
@@ -4000,8 +4235,10 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals($deadline, $m->getPublic()['deadline']);
 
         $u = new User($this->dbhr, $this->dbhm);
-        list($u, $this->uid) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $this->uid = $u->create('Test', 'User', 'Test User');
         $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         # Set the deadline to the future - should no longer have an outcome.
         $ret = $this->call('message', 'PATCH', [

@@ -31,32 +31,48 @@ class ModBotTest extends IznikTestCase {
         $this->dbhm->preExec("DELETE FROM messages WHERE subject LIKE 'Test message%';");
         
         # Set up group and user following MessageTest pattern
-        list($this->group, $this->gid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
+        $this->group = Group::get($this->dbhr, $this->dbhm);
+        $this->gid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
+        $this->group = Group::get($this->dbhr, $this->dbhm, $this->gid);
         $this->group->setPrivate('onhere', 1);
         $this->group->setPrivate('rules', json_encode([
-            'weapons' => TRUE,
-            'alcohol' => TRUE,
-            'businessads' => FALSE
+            'weapons' => true,
+            'alcohol' => true,
+            'businessads' => false
         ]));
 
-        list($this->user, $this->uid, $emailid) = $this->createTestUser('Test', 'User', 'Test User', 'test@test.com', 'testpw');
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->user->addMembership($this->gid, User::ROLE_MEMBER);
-        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_MODERATED);
+        $u = new User($this->dbhr, $this->dbhm);
+        $this->uid = $u->create('Test', 'User', 'Test User');
+        $u->addEmail('test@test.com');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertEquals(1, $u->addMembership($this->gid));
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_MODERATED);
         User::clearCache();
+        $this->user = $u;
         
         # Create ModBot user
-        list($this->modBotUser, $this->modBotUid, $emailid2) = $this->createTestUser('ModBot', 'User', 'ModBot User', MODBOT_USER, 'modbotpw');
-        $this->assertGreaterThan(0, $this->modBotUser->addLogin(User::LOGIN_NATIVE, NULL, 'modbotpw'));
-        $this->modBotUser->addMembership($this->gid, User::ROLE_MODERATOR);
+        $modBotUser = new User($this->dbhr, $this->dbhm);
+        $this->modBotUid = $modBotUser->create('ModBot', 'User', 'ModBot User');
+        $modBotUser->addEmail(MODBOT_USER);
+        $this->assertGreaterThan(0, $modBotUser->addLogin(User::LOGIN_NATIVE, NULL, 'modbotpw'));
+        $modBotUser->addMembership($this->gid, User::ROLE_MODERATOR);
         User::clearCache();
+        $this->modBotUser = $modBotUser;
     }
 
     public function testReviewPost() {
         $this->log(__METHOD__ );
 
         # Create a test message that should trigger rule violations
-        list ($r, $id, $failok, $rc) = $this->createCustomTestMessage('Test message about knives and weapons for sale', 'testgroup', 'test@test.com', 'to@test.com', 'I have some kitchen knives and hunting weapons to give away', MailRouter::PENDING);
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', 'Test message about knives and weapons for sale', $msg);
+        $msg = str_replace('Test test', 'I have some kitchen knives and hunting weapons to give away', $msg);
+        $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
+        
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        $this->assertEquals(MailRouter::PENDING, $rc);
 
         # Log in as ModBot user before review
         $this->assertTrue($this->modBotUser->login('modbotpw'));
@@ -73,10 +89,10 @@ class ModBotTest extends IznikTestCase {
             
             if (is_array($result) && isset($result['violations'])) {
                 # Should detect weapons rule violation
-                $foundWeapons = FALSE;
+                $foundWeapons = false;
                 foreach ($result['violations'] as $violation) {
                     if (isset($violation['rule']) && $violation['rule'] === 'weapons') {
-                        $foundWeapons = TRUE;
+                        $foundWeapons = true;
                         $this->assertGreaterThan(0.1, $violation['probability']);
                         break;
                     }

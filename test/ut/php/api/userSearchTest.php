@@ -7,7 +7,6 @@ if (!defined('UT_DIR')) {
 
 require_once(UT_DIR . '/../../include/config.php');
 require_once(UT_DIR . '/../../include/db.php');
-require_once(UT_DIR . '/IznikAPITestCase.php');
 
 /**
  * @backupGlobals disabled
@@ -29,8 +28,12 @@ class userSearchAPITest extends IznikAPITestCase {
     }
 
     public function testSpecial() {
-        list($this->user, $this->uid, $emailid) = $this->createTestUserAndLogin(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($this->user->login('testpw'));
         $ret = $this->call('user', 'GET', [
             'search' => 'hellsauntie@uwclub.net'
         ]);
@@ -39,7 +42,10 @@ class userSearchAPITest extends IznikAPITestCase {
     }
 
     public function testCreateDelete() {
-        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         $s = new UserSearch($this->dbhr, $this->dbhm);
         $id = $s->create($this->uid, NULL, 'testsearch');

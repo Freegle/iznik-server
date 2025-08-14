@@ -55,8 +55,12 @@ class MailRouter
         $this->dbhm = $dbhm;
         $this->log = new Log($this->dbhr, $this->dbhm);
         $this->spamc = new spamc;
-        $this->spamc->host = SPAMD_HOST;
-        $this->spamc->port = SPAMD_PORT;
+        if (defined('SPAMD_HOST')) {
+            $this->spamc->host = SPAMD_HOST;
+        }
+        if (defined('SPAMD_PORT')) {
+            $this->spamc->port = SPAMD_PORT;
+        }
         $this->spam = new Spam($this->dbhr, $this->dbhm);
 
         if ($id) {
@@ -465,7 +469,7 @@ class MailRouter
         # The receipt has seen this message, and the message has been seen by all people in the chat (because
         # we only generate these for user 2 user.
         $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
-        if ($r->canSee($userid, FALSE))
+        if ($r->canSee($userid, false))
         {
             $r->updateRoster($userid, $msgid);
             $r->seenByAll($msgid);
@@ -494,12 +498,12 @@ class MailRouter
             {
                 # We don't do a proper parse
                 $vcal = strtolower($att->getContent());
-                if (strpos($vcal, 'status:confirmed') !== FALSE || strpos($vcal, 'status:tentative') !== FALSE)
+                if (strpos($vcal, 'status:confirmed') !== false || strpos($vcal, 'status:tentative') !== false)
                 {
                     $rsp = Tryst::ACCEPTED;
                 } else
                 {
-                    if (strpos($vcal, 'status:cancelled') !== FALSE)
+                    if (strpos($vcal, 'status:cancelled') !== false)
                     {
                         $rsp = Tryst::DECLINED;
                     }
@@ -510,12 +514,12 @@ class MailRouter
         if ($rsp == Tryst::OTHER)
         {
             # Maybe they didn't put the VCALENDAR in.
-            if (stripos($this->msg->getSubject(), 'accepted') !== FALSE)
+            if (stripos($this->msg->getSubject(), 'accepted') !== false)
             {
                 $rsp = Tryst::ACCEPTED;
             } else
             {
-                if (stripos($this->msg->getSubject(), 'declined') !== FALSE)
+                if (stripos($this->msg->getSubject(), 'declined') !== false)
                 {
                     $rsp = Tryst::DECLINED;
                 }
@@ -718,13 +722,13 @@ class MailRouter
                                                 $textbody,
                                                 ChatMessage::TYPE_DEFAULT,
                                                 null,
-                                                FALSE,
+                                                false,
                                                 null,
                                                 null,
                                                 null,
                                                 null,
                                                 null,
-                                                TRUE
+                                                true
                                             );
 
                                             $r->updateRoster($uid, $mid);
@@ -853,7 +857,7 @@ class MailRouter
 
                 if (!$u->isModOrOwner($gid))
                 {
-                    $u->removeMembership($gid, FALSE, FALSE, $envfrom);
+                    $u->removeMembership($gid, false, false, $envfrom);
 
                     # Remove any email logs for this message - no point wasting space on keeping those.
                     $this->log->deleteLogsForMessage($this->msg->getID());
@@ -871,9 +875,9 @@ class MailRouter
         # would otherwise get flagged - so this improves overall reliability.
         $contentcheck = !$notspam && !preg_match('/.*?\:(.*)\(.*\)/', $this->msg->getSubject());
         $spamscore = null;
-        $spamfound = FALSE;
+        $spamfound = false;
 
-        $groups = $this->msg->getGroups(FALSE, FALSE);
+        $groups = $this->msg->getGroups(false, false);
         #error_log("Got groups " . var_export($groups, TRUE));
 
         # Check if the group wants us to check for spam.
@@ -886,7 +890,7 @@ class MailRouter
                 'messagereview',
                 $spammers
             ) ? $spammers['messagereview'] : $defs['spammers']['messagereview'];
-            $notspam = $check ? $notspam : TRUE;
+            $notspam = $check ? $notspam : true;
             #error_log("Consider spam review $notspam from $check, " . var_export($spammers, TRUE));
         }
 
@@ -923,7 +927,7 @@ class MailRouter
 
                 if ($this->markAsSpam($rc[1], $rc[2]))
                 {
-                    $groups = $this->msg->getGroups(FALSE, FALSE);
+                    $groups = $this->msg->getGroups(false, false);
 
                     if (count($groups) > 0)
                     {
@@ -944,7 +948,7 @@ class MailRouter
                     if ($ret != MailRouter::DROPPED)
                     {
                         $ret = MailRouter::INCOMING_SPAM;
-                        $spamfound = TRUE;
+                        $spamfound = true;
                     }
                 }
             } else {
@@ -954,7 +958,7 @@ class MailRouter
                     #
                     # Need to cope with SpamAssassin being unavailable.
                     $this->spamc->command = 'CHECK';
-                    $spamret = TRUE;
+                    $spamret = true;
                     $spamscore = 0;
 
                     try
@@ -972,7 +976,7 @@ class MailRouter
                             # This might be spam.  We'll mark it as such, then it will get reviewed.
                             #
                             # Hacky if test to stop our UT messages getting flagged as spam unless we want them to be.
-                            $groups = $this->msg->getGroups(FALSE, FALSE);
+                            $groups = $this->msg->getGroups(false, false);
 
                             if (count($groups) > 0)
                             {
@@ -1002,7 +1006,7 @@ class MailRouter
                             ))
                             {
                                 $ret = MailRouter::INCOMING_SPAM;
-                                $spamfound = TRUE;
+                                $spamfound = true;
                             } else
                             {
                                 error_log("Failed to mark as spam");
@@ -1208,14 +1212,14 @@ class MailRouter
             $fromid = intval($matches[2]);
 
             $m = new Message($this->dbhr, $this->dbhm, $msgid);
-            $groups = $m->getGroups(FALSE, TRUE);
-            $closed = FALSE;
+            $groups = $m->getGroups(false, true);
+            $closed = false;
             foreach ($groups as $gid) {
                 $g = Group::get($this->dbhr, $this->dbhm, $gid);
 
-                if ($g->getSetting('closed', FALSE))
+                if ($g->getSetting('closed', false))
                 {
-                    $closed = TRUE;
+                    $closed = true;
                 }
             }
 
@@ -1256,7 +1260,7 @@ class MailRouter
                         # The email address that we replied from might not currently be attached to the
                         # other user, for example if someone has email forwarding set up.  So make sure we
                         # have it.
-                        $u->addEmail($this->msg->getEnvelopefrom(), 0, FALSE);
+                        $u->addEmail($this->msg->getEnvelopefrom(), 0, false);
 
                         # The sender of this reply will always be on our platform, because otherwise we
                         # wouldn't have generated a What's New mail to them.  So we want to set up a chat
@@ -1289,7 +1293,7 @@ class MailRouter
                                     $textbody,
                                     ChatMessage::TYPE_INTERESTED,
                                     $msgid,
-                                    FALSE,
+                                    false,
                                     null,
                                     null,
                                     null,
@@ -1396,7 +1400,7 @@ class MailRouter
                                 $ret = MailRouter::DROPPED;
                             } else {
                                 # It's probably not spam, so add the email address.
-                                $u->addEmail($this->msg->getEnvelopefrom(), 0, FALSE);
+                                $u->addEmail($this->msg->getEnvelopefrom(), 0, false);
                                 $found = TRUE;
                             }
                         }
@@ -1417,7 +1421,7 @@ class MailRouter
                                     $textbody,
                                     ChatMessage::TYPE_DEFAULT,
                                     null,
-                                    FALSE,
+                                    false,
                                     null,
                                     null,
                                     null,
@@ -1525,7 +1529,7 @@ class MailRouter
                     $textbody,
                     $this->msg->getModmail() ? ChatMessage::TYPE_MODMAIL : ChatMessage::TYPE_INTERESTED,
                     $original,
-                    FALSE,
+                    false,
                     $spamscore,
                     null,
                     null,

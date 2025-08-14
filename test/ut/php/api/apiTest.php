@@ -80,7 +80,7 @@ class apiTest extends IznikAPITestCase {
             ])
         ]);
 
-        $this->log(var_export($ret, TRUE));
+        $this->log(var_export($ret, true));
 
         $this->assertEquals('echo', $ret['call']);
 

@@ -28,10 +28,18 @@ class alertAPITest extends IznikAPITestCase
 
         $dbhm->preExec("DELETE FROM alerts WHERE subject LIKE 'UT %';");
 
-        list($this->user, $this->uid) = $this->createTestUserWithLogin('Test User', 'testpw');
-        list($this->user2, $this->uid2) = $this->createTestUserWithLogin('Test User', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
-        list($g, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
+        $u = User::get($this->dbhr, $this->dbhm);
+        $this->uid2 = $u->create(NULL, NULL, 'Test User');
+        $this->user2 = User::get($this->dbhr, $this->dbhm, $this->uid2);
+        $this->assertGreaterThan(0, $this->user2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
     }
 
     public function testBasic()

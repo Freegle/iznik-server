@@ -67,7 +67,7 @@ abstract class IznikAPITestCase extends IznikTestCase {
         }
 
         if ($decode) {
-            $ret = json_decode($op, TRUE);
+            $ret = json_decode($op, true);
         } else {
             $ret = $op;
         }

@@ -32,7 +32,8 @@ class isochroneAPITest extends IznikAPITestCase
 
     public function testBasic()
     {
-        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
 
         $settings = [
             'mylocation' => [
@@ -43,6 +44,7 @@ class isochroneAPITest extends IznikAPITestCase
         ];
 
         $u->setPrivate('settings', json_encode($settings));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('isochrone', 'GET', []);
@@ -105,6 +107,7 @@ class isochroneAPITest extends IznikAPITestCase
 
         $email = 'test-' . rand() . '@blackhole.io';
         $u->addEmail($email);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($u->login('testpw'));
 
         $u->addEmail('test@test.com');
@@ -161,7 +164,8 @@ class isochroneAPITest extends IznikAPITestCase
     }
 
     public function testPostVisibility() {
-        list($u, $uid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
 
         $settings = [
             'mylocation' => [
@@ -172,6 +176,7 @@ class isochroneAPITest extends IznikAPITestCase
         ];
 
         $u->setPrivate('settings', json_encode($settings));
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('isochrone', 'GET', []);
@@ -234,6 +239,7 @@ class isochroneAPITest extends IznikAPITestCase
 
         $email = 'test-' . rand() . '@blackhole.io';
         $u->addEmail($email);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($u->login('testpw'));
 
         $u->addEmail('test@test.com');
@@ -268,10 +274,12 @@ class isochroneAPITest extends IznikAPITestCase
         $this->assertEquals($id, $msgs[0]['id']);
 
         # Add a postvisibility which excludes this user.
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+        $u->addMembership($group1, User::ROLE_MODERATOR);
         $email = 'test-' . rand() . '@blackhole.io';
-        list($u2, $uid2) = $this->createTestUser(NULL, NULL, 'Test User', $email, 'testpw');
-        $u2->addMembership($group1, User::ROLE_MODERATOR);
-        $this->assertTrue($u2->login('testpw'));
+        $u->addEmail($email);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $poly = 'POLYGON((-3.18 55.99,-3.1 55.99,-3.1 56.1,-3.18 56.1,-3.18 55.99))';
 

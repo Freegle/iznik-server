@@ -31,10 +31,18 @@ class chatRoomsAPITest extends IznikAPITestCase
 
         $dbhm->preExec("DELETE FROM chat_rooms WHERE name = 'test';");
 
-        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+        $this->assertNotNull($this->uid);
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
+        $this->assertEquals($this->uid, $this->user->getId());
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
-        list($g, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
+        $this->assertNotNull($this->groupid);
 
+        $this->user->addEmail('test@test.com');
         $this->user->addMembership($this->groupid);
         $this->user->setMembershipAtt($this->groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
@@ -48,7 +56,8 @@ class chatRoomsAPITest extends IznikAPITestCase
         $this->assertEquals(1, $ret['ret']);
         $this->assertFalse(Utils::pres('chatrooms', $ret));
 
-        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'testuser2@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
 
         $c = new ChatRoom($this->dbhr, $this->dbhm);
         list ($rid, $blocked) = $c->createConversation($this->uid, $uid);
@@ -212,7 +221,9 @@ class chatRoomsAPITest extends IznikAPITestCase
         $this->assertEquals($rid, $ret['chatrooms'][0]['id']);
 
         # Now create a group mod
-        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'testmod@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $u->addMembership($this->groupid);
         $this->assertTrue($u->login('testpw'));
 
@@ -244,7 +255,8 @@ class chatRoomsAPITest extends IznikAPITestCase
 
     public function testAllSeen()
     {
-        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'testallseen@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
         $this->assertNotNull($uid);
         $this->assertNotNull($this->uid);
 
@@ -311,9 +323,11 @@ class chatRoomsAPITest extends IznikAPITestCase
     }
 
     public function testNudge() {
-        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'testnudge@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhr);
+        $uid = $u->create(NULL, NULL, 'Test User');
         $this->assertNotNull($uid);
         $this->assertNotNull($this->uid);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         # Create an unseen message
         $c = new ChatRoom($this->dbhr, $this->dbhr);
@@ -359,9 +373,11 @@ class chatRoomsAPITest extends IznikAPITestCase
     }
 
     public function testInvalidId() {
-        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'testinvalid@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhr);
+        $uid = $u->create(NULL, NULL, 'Test User');
         $this->assertNotNull($uid);
         $this->assertNotNull($this->uid);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         # Create an unseen message
         $c = new ChatRoom($this->dbhr, $this->dbhr);
@@ -378,10 +394,14 @@ class chatRoomsAPITest extends IznikAPITestCase
     }
 
     public function testBanned() {
-        list($u1, $uid1, $emailid1) = $this->createTestUser(NULL, NULL, 'Test User', 'testbanned1@test.com', 'testpw');
+        $u1 = User::get($this->dbhr, $this->dbhr);
+        $uid1 = $u1->create(NULL, NULL, 'Test User');
         $this->assertNotNull($uid1);
-        list($u2, $uid2, $emailid2) = $this->createTestUser(NULL, NULL, 'Test User', 'testbanned2@test.com', 'testpw');
+        $this->assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u2 = User::get($this->dbhr, $this->dbhr);
+        $uid2 = $u2->create(NULL, NULL, 'Test User');
         $this->assertNotNull($uid2);
+        $this->assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         # Ban u1
         $gid = $this->groupid;
@@ -393,7 +413,10 @@ class chatRoomsAPITest extends IznikAPITestCase
 
         # Put a message on the group.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
-        list($r, $msgid, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'test@test.com', 'to@test.com', $gid, null);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+       list ($msgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # u1 should not be able to open a chat to u2 as they are banned on all groups in common.
@@ -412,7 +435,8 @@ class chatRoomsAPITest extends IznikAPITestCase
 
         # Ban should show in support tools.
         $u1->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
-        $this->addLoginAndLogin($u1, 'testpw');
+        $this->assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u1->login('testpw'));
         $_SESSION['supportAllowed'] = TRUE;
         $ret = $this->call('user', 'GET', [
             'search' => $u1->getId()
@@ -422,10 +446,15 @@ class chatRoomsAPITest extends IznikAPITestCase
     }
 
     public function testMark() {
-        list($u1, $uid1, $emailid1) = $this->createTestUser(NULL, NULL, 'Test User', 'test3@test.com', 'testpw');
+        $u1 = User::get($this->dbhr, $this->dbhr);
+        $uid1 = $u1->create(NULL, NULL, 'Test User');
+        $u1->addEmail('test3@test.com');
         $this->assertNotNull($uid1);
-        list($u2, $uid2, $emailid2) = $this->createTestUser(NULL, NULL, 'Test User', 'testmark2@test.com', 'testpw');
+        $this->assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u2 = User::get($this->dbhr, $this->dbhr);
+        $uid2 = $u2->create(NULL, NULL, 'Test User');
         $this->assertNotNull($uid2);
+        $this->assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         $gid = $this->groupid;
         $u1->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED);
@@ -433,8 +462,11 @@ class chatRoomsAPITest extends IznikAPITestCase
 
         # Put a message on the group.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_ireplace('test@test.com', 'test3@test.com', $msg);
-        list($r, $msgid, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'test3@test.com', 'to@test.com', $gid, $uid1);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+       list ($msgid, $failok) = $r->received(Message::EMAIL, 'test3@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
         $this->assertEquals(MailRouter::PENDING, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $msgid);
         $this->assertEquals($uid1, $m->getFromuser());
@@ -500,7 +532,10 @@ class chatRoomsAPITest extends IznikAPITestCase
         $this->assertNotNull($rid);
 
         # Now create a group mod
-        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u->addEmail('test2@test.com');
         $u->addMembership($this->groupid);
         $this->assertTrue($u->login('testpw'));
 

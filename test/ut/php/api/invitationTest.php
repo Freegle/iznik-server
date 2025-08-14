@@ -33,11 +33,12 @@ class invitationAPITest extends IznikAPITestCase
 
     public function testAccept()
     {
-        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'user@test.com', 'testpw');
-        $this->addLoginAndLogin($this->user, 'testpw');
+        $u = new User($this->dbhr, $this->dbhm);
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         # Invite logged out - should fail
-        unset($_SESSION['id']);
         $ret = $this->call('invitation', 'PUT', [
             'email' => 'test@test.com'
         ]);

@@ -11,7 +11,6 @@ require_once(UT_DIR . '/../../include/db.php');
 /**
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
- * Testing final automation
  */
 class donationsAPITest extends IznikAPITestCase
 {
@@ -47,8 +46,11 @@ class donationsAPITest extends IznikAPITestCase
 
         $this->assertEquals(1, $ret['ret']);
 
-        list($u, $id, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
         $u->setPrivate('permissions', User::PERM_GIFTAID);
+        $u->addEmail('test@test.com');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('donations', 'PUT', [

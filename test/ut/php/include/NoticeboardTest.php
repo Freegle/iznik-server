@@ -28,7 +28,9 @@ class NoticeboardTest extends IznikTestCase {
     }
 
     public function testChaseupOwner() {
-        list($u, $id, $emailid) = $this->createTestUser('Test', 'User', 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $u->addEmail('test@test.com');
 
         $n = new Noticeboard($this->dbhr, $this->dbhm);
 
@@ -61,9 +63,14 @@ class NoticeboardTest extends IznikTestCase {
     }
 
     public function testChaseupOther() {
-        list($u, $id, $emailid) = $this->createTestUser('Test', 'User', 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $u->addEmail('test@test.com');
+        $u = User::get($this->dbhr, $this->dbhm, $id);
 
-        list($u2, $id2, $emailid2) = $this->createTestUser('Test', 'User', 'Test User 2', 'test2@test.com', 'testpw');
+        $id2 = $u->create('Test', 'User', NULL);
+        $u2 = User::get($this->dbhr, $this->dbhm, $id2);
+        $u2->addEmail('test@test2.com');
 
         $n = new Noticeboard($this->dbhr, $this->dbhm);
 
@@ -82,7 +89,8 @@ class NoticeboardTest extends IznikTestCase {
         # Make it old.
         $this->dbhm->preExec("UPDATE noticeboards SET lastcheckedat = DATE_SUB(added, INTERVAL 31 DAY) WHERE id = $id");
 
-        list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_FREEGLE);
         $g->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.6, 179.1 8.6, 179.1 8.3))');
 
         # Should be nobody yet.

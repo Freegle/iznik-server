@@ -26,7 +26,8 @@ class chatRoomsTest extends IznikTestCase {
         $dbhm->preExec("DELETE FROM users_emails WHERE email LIKE 'test2@user.trashnothing.com';");
         $dbhm->preExec("DELETE FROM users_replytime;");
 
-        list($g, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
+        $g = Group::get($dbhr, $dbhm);
+        $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
     }
 
     protected function tearDown(): void
@@ -35,8 +36,12 @@ class chatRoomsTest extends IznikTestCase {
 
     public function testPromoteRead() {
         # Create an unread chat message between a user and a mod on a group.
-        list($u1, $mod) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MODERATOR, 'Test User 1', 'test1@test.com', 'testpw');
-        list($u2, $member) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User 2', 'test2@test.com', 'testpw');
+        $u = new User($this->dbhr, $this->dbhm);
+        $mod = $u->create(NULL, NULL, "Test User 1");
+        $u->addMembership($this->groupid, User::ROLE_MODERATOR);
+
+        $member = $u->create(NULL, NULL, "Test User 2");
+        $u->addMembership($this->groupid, User::ROLE_MEMBER);
 
         $r = new ChatRoom($this->dbhm, $this->dbhm);
         $id = $r->createUser2Mod($member, $this->groupid);
@@ -54,8 +59,9 @@ class chatRoomsTest extends IznikTestCase {
         ]));
 
         # Create a new user and promote to mod.
-        list($u3, $newmod) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User 3', 'test3@test.com', 'testpw');
-        $u3->setRole(User::ROLE_MODERATOR, $this->groupid);
+        $newmod = $u->create(NULL, NULL, "Test User 3");
+        $u->addMembership($this->groupid, User::ROLE_MEMBER);
+        $u->setRole(User::ROLE_MODERATOR, $this->groupid);
 
         # The chat message should have been marked as read for this user to avoid flooding them with unread old chat
         # messages.
@@ -77,10 +83,14 @@ class chatRoomsTest extends IznikTestCase {
     }
 
     public function testConversation() {
-        list($u1_obj, $u1) = $this->createTestUser(NULL, NULL, 'Test User 1', 'test1@test.com', 'testpw');
-        list($u2_obj, $u2) = $this->createTestUser(NULL, NULL, 'Test User 2', 'test2@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addEmail('test1@test.com');
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addEmail('test2@test.com');
 
-        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
         $this->assertNotNull($id);
 
         # Counts coverage.
@@ -133,17 +143,23 @@ class chatRoomsTest extends IznikTestCase {
         $this->log(__METHOD__ );
 
         # Set up a chatroom
-        list($u, $u1, $emailid1) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User 1', 'test1@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test1@test.com');
         $u->addEmail('test1@' . USER_DOMAIN);
 
         # The "please introduce yourself" one.
         list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route) = $u->getNotificationPayload(FALSE);
         $this->assertEquals("Why not introduce yourself to other freeglers?  You'll get a better response.", $title);
 
-        list($u, $u2, $emailid2) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User 2', 'test2@test.com', 'testpw');
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test2@test.com');
         $u->addEmail('test2@' . USER_DOMAIN);
 
-        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
         $this->assertNotNull($id);
         $this->log("Chat room $id for $u1 <-> $u2");
         $this->assertEquals('Test User 1', $r->getPublic()['name']);
@@ -168,7 +184,9 @@ class chatRoomsTest extends IznikTestCase {
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list ($msgid, $failok) = $m->save();
 
-        list ($a, $attid, $uid) = $this->createTestImageAttachment();
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
+        $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_CHAT_MESSAGE);
+        list ($attid, $uid) = $a->create(NULL, $data);
         $this->assertNotNull($attid);
 
         # Messages from u1 -> u2.
@@ -275,7 +293,8 @@ class chatRoomsTest extends IznikTestCase {
         $u->addEmail('test2@test.com');
         $u->addEmail('test2@' . USER_DOMAIN);
 
-        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
         $this->assertNotNull($id);
 
         # u1 promises to u2.
@@ -311,7 +330,8 @@ class chatRoomsTest extends IznikTestCase {
         $u->addEmail('test2@test.com');
         $u->addEmail('test2@' . USER_DOMAIN);
 
-        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
         $this->assertNotNull($id);
 
         # Make the first user block the second.
@@ -374,7 +394,8 @@ class chatRoomsTest extends IznikTestCase {
         $u->addEmail('test2@test.com');
         $u->addEmail('test2@' . USER_DOMAIN);
 
-        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
         $this->log("Chat room $id for $u1 <-> $u2");
         $this->assertNotNull($id);
 
@@ -448,7 +469,8 @@ class chatRoomsTest extends IznikTestCase {
             User::NOTIFS_EMAIL_MINE => TRUE
         ]);
 
-        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
 
         $r = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
@@ -457,7 +479,8 @@ class chatRoomsTest extends IznikTestCase {
 
         $r->method('mailer')->willReturn(TRUE);
 
-        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
         $this->log("Chat room $id for $u1 <-> $u2");
         $this->assertNotNull($id);
 
@@ -506,7 +529,8 @@ class chatRoomsTest extends IznikTestCase {
             User::NOTIFS_EMAIL_MINE => TRUE
         ]);
 
-        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
 
         $r = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
@@ -515,7 +539,8 @@ class chatRoomsTest extends IznikTestCase {
 
         $r->method('mailer')->willReturn(TRUE);
 
-        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
         $this->log("Chat room $id for $u1 <-> $u2");
         $this->assertNotNull($id);
 
@@ -565,7 +590,8 @@ class chatRoomsTest extends IznikTestCase {
             $aid = $a->create($u1, $paf['id'], "Test desc");
         }
 
-        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
         $this->log("Chat room $id for $u1 <-> $u2");
         $this->assertNotNull($id);
 
@@ -892,7 +918,8 @@ class chatRoomsTest extends IznikTestCase {
         $u->addEmail('test2@test.com');
         $u->addEmail('test2@' . USER_DOMAIN);
 
-        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
         $this->log("Chat room $id for $u1 <-> $u2");
         $this->assertNotNull($id);
 
@@ -931,8 +958,8 @@ class chatRoomsTest extends IznikTestCase {
         $this->assertEquals(0, $r->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
 
         # Chat still shouldn't show in the list for this user.
-        $this->assertNull($r->listForUser(FALSE, $u1, NULL, NULL));
-        self::assertEquals(1, count($r->listForUser(FALSE, $u2, NULL, NULL)));
+        $this->assertNull($r->listForUser(FALSE, $u1, NULL, NULL, FALSE));
+        self::assertEquals(1, count($r->listForUser(FALSE, $u2, NULL, NULL, FALSE)));
  }
 
     public function testBlockAndView() {
@@ -952,7 +979,8 @@ class chatRoomsTest extends IznikTestCase {
         $u->addEmail('test2@test.com');
         $u->addEmail('test2@' . USER_DOMAIN);
 
-        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
         $this->log("Chat room $id for $u1 <-> $u2");
         $this->assertNotNull($id);
 
@@ -968,8 +996,8 @@ class chatRoomsTest extends IznikTestCase {
         $this->assertEquals($id2, $id);
 
         # Chat still shouldn't show in the list for this user.
-        $this->assertNull($r->listForUser(FALSE, $u1, NULL, NULL));
-        self::assertEquals(1, count($r->listForUser(FALSE, $u2, NULL, NULL)));
+        $this->assertNull($r->listForUser(FALSE, $u1, NULL, NULL, FALSE));
+        self::assertEquals(1, count($r->listForUser(FALSE, $u2, NULL, NULL, FALSE)));
     }
 
     public function testReadReceipt() {
@@ -986,7 +1014,8 @@ class chatRoomsTest extends IznikTestCase {
         $u->addEmail('test2@test.com');
         $u->addEmail('test2@' . USER_DOMAIN);
 
-        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
         $this->log("Chat room $id for $u1 <-> $u2");
         $this->assertNotNull($id);
 
@@ -1073,7 +1102,7 @@ class chatRoomsTest extends IznikTestCase {
         $this->assertNotNull($id);
         $r = new ChatRoom($this->dbhr, $this->dbhm, $id);
         $_SESSION['id'] = $uid3;
-        $this->assertTrue($r->canSee($uid3));
+        $this->assertTrue($r->canSee($uid3, FALSE));
     }
 
     public function testCanSeeAsMod() {
@@ -1162,7 +1191,8 @@ class chatRoomsTest extends IznikTestCase {
         $u->addEmail('test2@test.com');
         $u->addEmail('test2@' . USER_DOMAIN);
 
-        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
         $this->assertNotNull($id);
         $this->log("Chat room $id for $u1 <-> $u2");
 
@@ -1215,10 +1245,13 @@ class chatRoomsTest extends IznikTestCase {
         $u->addEmail('test2@test.com');
         $u->addEmail('test2@' . USER_DOMAIN);
 
-        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
         $this->assertNotNull($id);
 
-        list ($a, $attid, $uid) = $this->createTestImageAttachment();
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/chair.jpg');
+        $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_CHAT_MESSAGE);
+        list ($attid, $uid) = $a->create(NULL, $data);
         $this->assertNotNull($attid);
 
         $m = new ChatMessage($this->dbhr, $this->dbhm);
@@ -1256,7 +1289,8 @@ class chatRoomsTest extends IznikTestCase {
         $ub->addMembership($this->groupid);
         $this->assertNotNull($ub->addEmail('test2@user.trashnothing.com'));
 
-        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
         $this->assertNotNull($id);
 
         # Three messages:
@@ -1320,7 +1354,8 @@ class chatRoomsTest extends IznikTestCase {
         $ub->addMembership($this->groupid);
         $this->assertNotNull($ub->addEmail('test2@user.trashnothing.com'));
 
-        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
         $this->assertNotNull($id);
 
         $m = new ChatMessage($this->dbhr, $this->dbhm);
@@ -1329,7 +1364,7 @@ class chatRoomsTest extends IznikTestCase {
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
         $mr = new MailRouter($this->dbhm, $this->dbhm);
-//        $this->dbhm->errorLog = TRUE;
+//        $this->dbhm->errorLog = true;
         list ($mid, $failok) = $mr->received(Message::EMAIL, 'from2@test.com', "notify-$id-$u2@" . USER_DOMAIN, $msg);
         $rc = $mr->route();
         $this->assertEquals(MailRouter::TO_USER, $rc);
@@ -1373,7 +1408,8 @@ class chatRoomsTest extends IznikTestCase {
         $ub->addMembership($this->groupid);
         $this->assertNotNull($ub->addEmail('test2@user.trashnothing.com'));
 
-        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
         $this->assertNotNull($id);
 
         $m = new ChatMessage($this->dbhr, $this->dbhm);
@@ -1399,14 +1435,14 @@ class chatRoomsTest extends IznikTestCase {
         # u2 sends two replies.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
         $mr = new MailRouter($this->dbhm, $this->dbhm);
-//        $this->dbhm->errorLog = TRUE;
+//        $this->dbhm->errorLog = true;
         list ($mid, $failok) = $mr->received(Message::EMAIL, 'from2@test.com', "notify-$id-$u2@" . USER_DOMAIN, $msg);
         $rc = $mr->route();
         $this->assertEquals(MailRouter::TO_USER, $rc);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
         $mr = new MailRouter($this->dbhm, $this->dbhm);
-//        $this->dbhm->errorLog = TRUE;
+//        $this->dbhm->errorLog = true;
         list ($mid, $failok) = $mr->received(Message::EMAIL, 'from2@test.com', "notify-$id-$u2@" . USER_DOMAIN, $msg);
         $rc = $mr->route();
         $this->assertEquals(MailRouter::TO_USER, $rc);
@@ -1439,7 +1475,7 @@ class chatRoomsTest extends IznikTestCase {
         # u2 sends a reply.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
         $mr = new MailRouter($this->dbhm, $this->dbhm);
-//        $this->dbhm->errorLog = TRUE;
+//        $this->dbhm->errorLog = true;
         list ($mid, $failok) = $mr->received(Message::EMAIL, 'from2@test.com', "notify-$id-$u2@" . USER_DOMAIN, $msg);
         $rc = $mr->route();
         $this->assertEquals(MailRouter::TO_USER, $rc);
@@ -1461,7 +1497,8 @@ class chatRoomsTest extends IznikTestCase {
         $u->addEmail('test2@test.com');
         $u->addEmail('test2@' . USER_DOMAIN);
 
-        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
         $this->assertNotNull($id);
 
         # Add a message.
@@ -1485,7 +1522,7 @@ class chatRoomsTest extends IznikTestCase {
         $msgs = $this->dbhr->preQuery("SELECT * FROM `chat_messages` WHERE chat_messages.processingrequired = 1 ORDER BY id ASC;");
         foreach ($msgs as $msg) {
             $cm = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
-            $cm->process($forcereview, FALSE);
+            $cm->process($forcereview);
         }
     }
 
@@ -1505,7 +1542,8 @@ class chatRoomsTest extends IznikTestCase {
         $u3 = $uc->create(NULL, NULL, "Test Mod");
         $uc->addMembership($this->groupid, User::ROLE_MODERATOR);
 
-        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
         $this->assertNotNull($id);
 
         # Two messages from FD user. Don't process inline - we're testing a case where the user would be using the Go API.
@@ -1591,7 +1629,8 @@ class chatRoomsTest extends IznikTestCase {
         $u->addEmail('test2@test.com');
         $u->addEmail('test2@' . USER_DOMAIN);
 
-        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
         $this->assertNotNull($id);
 
         # Messages from u1 -> u2.
@@ -1708,7 +1747,8 @@ class chatRoomsTest extends IznikTestCase {
         $u->addEmail('test2@test.com');
         $u->addEmail('test2@' . USER_DOMAIN);
 
-        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
         $this->assertNotNull($id);
 
         # Create a message from u2 -> u1, then a message from u1 -> u2 with reply expected.  That sets us up

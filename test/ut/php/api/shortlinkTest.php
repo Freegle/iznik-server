@@ -27,7 +27,8 @@ class shortlinkAPITest extends IznikAPITestCase {
     }
 
     public function testBasic() {
-        list($g, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
+        $g = new Group($this->dbhr, $this->dbhm);
+        $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
         $g->setPrivate('onhere', 1);
 
         # Get logged out - should work
@@ -35,7 +36,11 @@ class shortlinkAPITest extends IznikAPITestCase {
         $this->assertEquals(0, $ret['ret']);
 
         # Get logged in as member - should work
-        list($this->user, $this->uid, $emailid) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = new User($this->dbhr, $this->dbhm);
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($this->user->login('testpw'));
 
         $ret = $this->call('shortlink', 'GET', []);
         $this->assertEquals(0, $ret['ret']);
@@ -59,7 +64,8 @@ class shortlinkAPITest extends IznikAPITestCase {
         }
 
     public function testCreate() {
-        list($g, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
+        $g = new Group($this->dbhr, $this->dbhm);
+        $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
         $g->setPrivate('onhere', 1);
 
         # Should create a shortlink automatically

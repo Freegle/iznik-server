@@ -29,9 +29,14 @@ class stdMessageAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM mod_configs WHERE name LIKE 'UTTest%';");
 
         # Create a moderator and log in as them
-        list($g, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
-        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
+        $u = User::get($this->dbhr, $this->dbhm);
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
+        $this->user->addEmail('test@test.com');
         $this->user->addMembership($this->groupid);
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         # Create an empty config
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
@@ -93,7 +98,7 @@ class stdMessageAPITest extends IznikAPITestCase {
         $ret = $this->call('stdmsg', 'GET', [
             'id' => $id
         ]);
-        $this->log("Returned " . var_export($ret, TRUE));
+        $this->log("Returned " . var_export($ret, true));
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals($id, $ret['stdmsg']['id']);
         $this->assertEquals('Reject', $ret['stdmsg']['action']);
@@ -171,8 +176,15 @@ class stdMessageAPITest extends IznikAPITestCase {
         $this->assertEquals('UTTest2', $ret['stdmsg']['title']);
 
         # Try as a mod, but the wrong one.
-        list($g, $gid) = $this->createTestGroup('testgroup2', Group::GROUP_REUSE);
-        list($user, $uid, $emailid_user) = $this->createTestUserWithMembershipAndLogin($gid, User::ROLE_OWNER, NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup2', Group::GROUP_REUSE);
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $user = User::get($this->dbhr, $this->dbhm, $uid);
+        $user->addEmail('test2@test.com');
+        $user->addMembership($gid, User::ROLE_OWNER);
+        $this->assertGreaterThan(0, $user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($user->login('testpw'));
 
         $ret = $this->call('stdmsg', 'PATCH', [
             'id' => $id,
@@ -214,8 +226,15 @@ class stdMessageAPITest extends IznikAPITestCase {
         $this->assertEquals(4, $ret['ret']);
 
         # Try as a mod, but the wrong one.
-        list($g, $gid) = $this->createTestGroup('testgroup2', Group::GROUP_REUSE);
-        list($user, $uid, $emailid_user) = $this->createTestUserWithMembershipAndLogin($gid, User::ROLE_OWNER, NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup2', Group::GROUP_REUSE);
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $user = User::get($this->dbhr, $this->dbhm, $uid);
+        $user->addEmail('test2@test.com');
+        $user->addMembership($gid, User::ROLE_OWNER);
+        $this->assertGreaterThan(0, $user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($user->login('testpw'));
 
         $ret = $this->call('stdmsg', 'DELETE', [
             'id' => $id

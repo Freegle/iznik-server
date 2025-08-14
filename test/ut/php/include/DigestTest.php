@@ -29,13 +29,19 @@ class digestTest extends IznikTestCase {
         
         $this->tidy();
 
-        list($this->group, $this->gid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
+        $this->group = Group::get($this->dbhr, $this->dbhm);
+        $this->gid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
+        $this->group = Group::get($this->dbhr, $this->dbhm, $this->gid);
         $this->group->setPrivate('onhere', 1);
 
-        list($this->user, $this->uid, $emailid) = $this->createTestUser('Test', 'User', 'Test User', 'test@test.com', 'testpw');
-        $this->user->addEmail('sender@example.net');
-        $this->user->addMembership($this->gid);
-        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        $u = new User($this->dbhr, $this->dbhm);
+        $this->uid = $u->create('Test', 'User', 'Test User');
+        $u->addEmail('test@test.com');
+        $u->addEmail('sender@example.net');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u->addMembership($this->gid);
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        $this->user = $u;
     }
 
     public function sendMock($mailer, $message) {
@@ -67,7 +73,9 @@ class digestTest extends IznikTestCase {
 
         # Create a user on that group who wants immediate delivery.  They need two emails; one for our membership,
         # and a real one to get the digest.
-        list($u, $uid, $eid1) = $this->createTestUser(NULL, NULL, 'Test User', 'test@blackhole.io', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test@blackhole.io');
         $eid = $u->addEmail('test@' . USER_DOMAIN);
         $this->log("Created user $uid email $eid");
         $this->assertGreaterThan(0, $eid);
@@ -100,7 +108,9 @@ class digestTest extends IznikTestCase {
 
         # Create a user on that group who wants immediate delivery.  They need two emails; one for our membership,
         # and a real one to get the digest.
-        list($u, $uid, $eid1) = $this->createTestUser(NULL, NULL, 'Test User', 'test@blackhole.io', 'testpw');
+        $u = User::get($this->dbhm, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test@blackhole.io');
         $eid = $u->addEmail('test@' . USER_DOMAIN);
         $this->log("Created user $uid email $eid");
         $this->assertGreaterThan(0, $eid);
@@ -108,7 +118,9 @@ class digestTest extends IznikTestCase {
         $u->setMembershipAtt($this->gid, 'emailfrequency', Digest::IMMEDIATE);
 
         # And another who only has a membership on Yahoo and therefore shouldn't get one.
-        list($u2, $uid2, $eid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test2@blackhole.io', 'testpw');
+        $u2 = User::get($this->dbhm, $this->dbhm);
+        $uid2 = $u2->create(NULL, NULL, 'Test User');
+        $u2->addEmail('test2@blackhole.io');
         $this->log("Created user $uid2");
         $u2->addMembership($this->gid, User::ROLE_MEMBER);
         $u2->setMembershipAtt($this->gid, 'emailfrequency', Digest::IMMEDIATE);
@@ -152,7 +164,9 @@ class digestTest extends IznikTestCase {
 
         # Create a user on that group who wants immediate delivery, but who is a TN user and therefore
         # shouldn't get one.
-        list($u, $uid, $eid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@user.trashnothing.com', 'testpw');
+        $u = User::get($this->dbhm, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $eid = $u->addEmail('test@user.trashnothing.com');
         $this->log("Created user $uid email $eid");
         $this->assertGreaterThan(0, $eid);
         $u->addMembership($this->gid, User::ROLE_MEMBER, $eid);
@@ -178,7 +192,9 @@ class digestTest extends IznikTestCase {
 
         # Create a user on that group who wants immediate delivery.  They need two emails; one for our membership,
         # and a real one to get the digest.
-        list($u, $uid, $eid1) = $this->createTestUser(NULL, NULL, 'Test User', 'test@blackhole.io', 'testpw');
+        $u = User::get($this->dbhm, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test@blackhole.io');
         $eid = $u->addEmail('test@' . USER_DOMAIN);
         $this->log("Created user $uid email $eid");
         $this->assertGreaterThan(0, $eid);
@@ -186,7 +202,9 @@ class digestTest extends IznikTestCase {
         $u->setMembershipAtt($this->gid, 'emailfrequency', Digest::IMMEDIATE);
 
         # And another who only has a membership on Yahoo and therefore shouldn't get one.
-        list($u2, $uid2, $eid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test2@blackhole.io', 'testpw');
+        $u2 = User::get($this->dbhm, $this->dbhm);
+        $uid2 = $u2->create(NULL, NULL, 'Test User');
+        $u2->addEmail('test2@blackhole.io');
         $this->log("Created user $uid2");
         $u2->addMembership($this->gid, User::ROLE_MEMBER);
         $u2->setMembershipAtt($this->gid, 'emailfrequency', Digest::IMMEDIATE);
@@ -244,7 +262,9 @@ class digestTest extends IznikTestCase {
 
         # Create a user on that group who wants immediate delivery.  They need two emails; one for our membership,
         # and a real one to get the digest.
-        list($u, $uid, $eid1) = $this->createTestUser(NULL, NULL, 'Test User', 'test@blackhole.io', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test@blackhole.io');
         $eid = $u->addEmail('test@' . USER_DOMAIN);
         $this->log("Created user $uid email $eid");
         $this->assertGreaterThan(0, $eid);
@@ -311,7 +331,9 @@ class digestTest extends IznikTestCase {
         }));
 
         # Create a user on the first group.
-        list($u, $uid, $eid1) = $this->createTestUser(NULL, NULL, 'Test User', 'test@blackhole.io', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test@blackhole.io');
         $eid = $u->addEmail('test@' . USER_DOMAIN);
         $this->log("Created user $uid email $eid");
         $this->assertGreaterThan(0, $eid);
@@ -390,7 +412,9 @@ class digestTest extends IznikTestCase {
         $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
-        list($u, $uid, $eid1) = $this->createTestUser(NULL, NULL, 'Test User', 'test@blackhole.io', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u->addEmail('test@blackhole.io');
         $eid = $u->addEmail('test@' . USER_DOMAIN);
         $this->log("Created user $uid email $eid");
         $this->assertGreaterThan(0, $eid);

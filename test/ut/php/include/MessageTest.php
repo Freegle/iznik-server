@@ -58,13 +58,20 @@ class messageTest extends IznikTestCase {
             }
         }
 
-        list($this->group, $this->gid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
+        $this->group = Group::get($this->dbhr, $this->dbhm);
+        $this->gid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
+        $this->group = Group::get($this->dbhr, $this->dbhm, $this->gid);
         $this->group->setPrivate('onhere', 1);
 
-        list($this->user, $this->uid) = $this->createTestUserWithMembership($this->gid, User::ROLE_MEMBER, 'Test User', 'test@test.com', 'testpw');
-        $this->user->addEmail('sender@example.net');
-        $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+        $u = new User($this->dbhr, $this->dbhm);
+        $this->uid = $u->create('Test', 'User', 'Test User');
+        $u->addEmail('test@test.com');
+        $u->addEmail('sender@example.net');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertEquals(1, $u->addMembership($this->gid));
+        $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         User::clearCache();
+        $this->user = $u;
     }
 
     public function testSetFromIP() {
@@ -147,8 +154,10 @@ class messageTest extends IznikTestCase {
 
     public function testRelated3() {
         # Post a message to two groups, mark it as taken on both, make sure that is handled correctly.
-        list($g1, $gid1) = $this->createTestGroup('testgroup1', Group::GROUP_REUSE);
-        list($g2, $gid2) = $this->createTestGroup('testgroup2', Group::GROUP_REUSE);
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid1 = $g->create('testgroup1', Group::GROUP_REUSE);
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid2 = $g->create('testgroup2', Group::GROUP_REUSE);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test (Location)', $msg);
@@ -209,7 +218,9 @@ class messageTest extends IznikTestCase {
         $l = new Location($this->dbhr, $this->dbhm);
         $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
 
-        list($g, $gid) = $this->createTestGroup('testgroup1', Group::GROUP_REUSE);
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup1', Group::GROUP_REUSE);
+        $g = Group::get($this->dbhr, $this->dbhm, $gid);
 
         $g->setPrivate('lng', 179.15);
         $g->setPrivate('lat', 8.4);
@@ -224,7 +235,7 @@ class messageTest extends IznikTestCase {
         list ($mid, $failok) = $m->save();
         $m = new Message($this->dbhr, $this->dbhm, $mid);
         $atts = $m->getPublic();
-        $this->log("Public " . var_export($atts, TRUE));
+        $this->log("Public " . var_export($atts, true));
 
         # Shouldn't be able to see actual location
         $this->assertFalse(array_key_exists('locationid', $atts));
@@ -259,7 +270,9 @@ class messageTest extends IznikTestCase {
     }
 
     public function testMerge() {
-        list($g, $gid) = $this->createTestGroup('testgroup1', Group::GROUP_REUSE);
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup1', Group::GROUP_REUSE);
+        $g = Group::get($this->dbhr, $this->dbhm, $gid);
 
         $this->user->addMembership($gid);
         $this->user->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
@@ -274,7 +287,10 @@ class messageTest extends IznikTestCase {
 
         # Now from a different email but the same Yahoo UID.  This shouldn't trigger a merge as we should identify
         # them by the UID.
-        list($u, $uid) = $this->createTestUserWithMembership($gid, User::ROLE_MEMBER, 'Test User', 'test2@test.com', 'testpw');
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', 'Test User');
+        $u->addEmail('test2@test.com');
+        $u->addMembership($gid);
         $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -300,8 +316,12 @@ class messageTest extends IznikTestCase {
         $msg = str_replace('Basic test', '=?windows-1255?B?UkU6IE1hdGFub3MgTGFFdnlvbmltIFB1cmltIDIwMTYg7sf6yMzw5Q==?=
 =?windows-1255?B?yfog7MjgxuHA6cnwxOnt?=', $msg);
 
-        list($u, $this->uid) = $this->createTestUserWithMembership($this->gid, User::ROLE_MEMBER, 'Test User', 'test@test.com', 'testpw');
+        $u = new User($this->dbhr, $this->dbhm);
+        $this->uid = $u->create('Test', 'User', 'Test User');
+        $u->addEmail('test@test.com');
         $u->addEmail('sender@example.net');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u->addMembership($this->gid);
         $this->user = $u;
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
@@ -337,7 +357,9 @@ class messageTest extends IznikTestCase {
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $this->assertEquals('TAKEN: Ninky nonk train and night garden characters St NIcks', $m->reverseSubject());
 
-        list($g, $gid) = $this->createTestGroup('testgroup1', Group::GROUP_REUSE);
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup1', Group::GROUP_REUSE);
+        $g = Group::get($this->dbhr, $this->dbhm, $gid);
 
         $this->user->addMembership($gid);
         $this->user->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
@@ -891,7 +913,10 @@ class messageTest extends IznikTestCase {
         $fullpcid = $l->create(NULL, 'TV13 1HH', 'Postcode', 'POINT(179.2167 8.53333)');
         $locid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
 
-        list($u, $uid, $emailid) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
         $m = new Message($this->dbhr, $this->dbhm);
         $id = $m->createDraft();
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -1009,7 +1034,7 @@ class messageTest extends IznikTestCase {
 
         # Check logs.
         $this->waitBackground();
-        $groups = $g->listByType(Group::GROUP_UT, TRUE);
+        $groups = $g->listByType(Group::GROUP_UT, TRUE, FALSE);
 
         $found = FALSE;
         foreach ($groups as $group) {

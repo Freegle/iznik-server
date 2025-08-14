@@ -15,7 +15,11 @@ require_once(UT_DIR . '/../../include/db.php');
 class dashboardTest extends IznikAPITestCase {
     public function testAdmin() {
         # Use a full pathname.  This is a test of our autoloader for coverage.
-        list($u, $id, $emailid) = $this->createTestUserAndLogin('Test', 'User', NULL, 'test@test.com', 'testpw');
+        $u = \Freegle\Iznik\User::get($this->dbhr, $this->dbhm);
+        $id = $u->create('Test', 'User', NULL);
+        $u = User::get($this->dbhr, $this->dbhm, $id);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
         $this->log("After login {$_SESSION['id']}");
 
         # Shouldn't get anything as a user
@@ -37,12 +41,17 @@ class dashboardTest extends IznikAPITestCase {
     }
 
     public function testGroups() {
-        list($u, $id1, $emailid1) = $this->createTestUserAndLogin('Test', 'User', NULL, 'test@test.com', 'testpw');
-        list($u2, $id2, $emailid2) = $this->createTestUser('Test', 'User', NULL, 'test2@test.com', 'testpw2');
-        $u1 = $u;
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id1 = $u->create('Test', 'User', NULL);
+        $id2 = $u->create('Test', 'User', NULL);
+        $u1 = User::get($this->dbhr, $this->dbhm, $id1);
+        $u2 = User::get($this->dbhr, $this->dbhm, $id2);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
-        list($g1, $group1) = $this->createTestGroup('testgroup1', Group::GROUP_OTHER);
-        list($g2, $group2) = $this->createTestGroup('testgroup2', Group::GROUP_OTHER);
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup1', Group::GROUP_OTHER);
+        $group2 = $g->create('testgroup2', Group::GROUP_OTHER);
         $u1->addMembership($group1);
         $u1->addMembership($group2, User::ROLE_MODERATOR);
         $u2->addMembership($group2, User::ROLE_MODERATOR);
@@ -112,13 +121,23 @@ class dashboardTest extends IznikAPITestCase {
         $gid = $g->create("testgroup", Group::GROUP_REUSE);
         $g->setPrivate('onhere', 1);
 
-        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($gid, User::ROLE_OWNER, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $this->assertNotNull($uid);
+        $this->assertTrue($u->addMembership($gid, User::ROLE_OWNER));
+        $u->addEmail('test@test.com');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
-        list($r, $mid, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'testgroup@groups.ilovefreegle.org', $gid, $uid);
+
+        $r = new MailRouter($this->dbhm, $this->dbhm);
+       list ($mid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'testgroup@groups.ilovefreegle.org', $msg, $gid);
         $this->assertNotNull($mid);
         $this->log("Created message $mid");
+        $rc = $r->route();
         $this->assertEquals(MailRouter::PENDING, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $mid);
 

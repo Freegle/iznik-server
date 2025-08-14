@@ -31,17 +31,25 @@ class microvolunteeringAPITest extends IznikAPITestCase
 
     public function testBasic()
     {
-        list($g, $gid) = $this->createTestGroup('testgroup1', Group::GROUP_FREEGLE);
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup1', Group::GROUP_FREEGLE);
         $g->setPrivate('microvolunteering', 1);
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace("FreeglePlayground", "testgroup1", $msg);
+        $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $msg = str_replace("Hey", "Hey {{username}}", $msg);
 
-        list($u, $uid, $emailid) = $this->createTestUserWithMembership($gid, User::ROLE_MEMBER, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
+        $u->addEmail('test@test.com');
+        $u->addMembership($gid);
         $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup1', 'from@test.com', 'to@test.com', $gid, $uid, TRUE, FALSE);
+        $r = new MailRouter($this->dbhm, $this->dbhm);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
+        $this->assertNotNull($id);
+        $this->log("Created message $id");
+        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $m->setPrivate('lat', 8.5);
@@ -54,8 +62,14 @@ class microvolunteeringAPITest extends IznikAPITestCase
         ]);
         $this->assertEquals(1, $ret['ret']);
 
-        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($gid, User::ROLE_MEMBER, 'Test', 'User', NULL, 'test2@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
         $u->setPrivate('trustlevel', User::TRUST_BASIC);
+
+        # Ask again - logged in with membership.
+        $u->addMembership($gid);
         $ret = $this->call('microvolunteering', 'GET', [
             'groupid' => $gid
         ]);
@@ -87,7 +101,12 @@ class microvolunteeringAPITest extends IznikAPITestCase
         ]);
         $this->assertEquals(MessageCollection::APPROVED, $ret['message']['groups'][0]['collection']);
 
-        list($u, $uid_mod, $emailid_mod) = $this->createTestUserWithMembershipAndLogin($gid, User::ROLE_MODERATOR, 'Test', 'User', 'Test User', 'testmod@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u->create('Test', 'User', NULL);
+        $u->addEmail('test@test.com');
+        $u->addMembership($gid, User::ROLE_MODERATOR);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
         $u->setPrivate('trustlevel', User::TRUST_BASIC);
 
         $ret = $this->call('microvolunteering', 'POST', [
@@ -127,10 +146,10 @@ class microvolunteeringAPITest extends IznikAPITestCase
         $this->assertEquals(3, count($ret['microvolunteerings']));
 
         # Create two other users and a difference of opinion.
-        list($u2, $uid2) = $this->createTestUser('Test', 'User', NULL, 'test2@test.com', 'testpw');
-        $this->assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u2->login('testpw'));
-        $u2->setPrivate('trustlevel', User::TRUST_BASIC);
+        $uid2 = $u->create('Test', 'User', NULL);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+        $u->setPrivate('trustlevel', User::TRUST_BASIC);
         $ret = $this->call('microvolunteering', 'POST', [
             'msgid' => $id,
             'response' => MicroVolunteering::RESULT_REJECT,
@@ -138,10 +157,10 @@ class microvolunteeringAPITest extends IznikAPITestCase
             'comments' => 'Fish with another bad face2'
         ]);
 
-        list($u3, $uid3) = $this->createTestUser('Test', 'User', NULL, 'test3@test.com', 'testpw');
-        $this->assertGreaterThan(0, $u3->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u3->login('testpw'));
-        $u3->setPrivate('trustlevel', User::TRUST_BASIC);
+        $uid3 = $u->create('Test', 'User', NULL);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
+        $u->setPrivate('trustlevel', User::TRUST_BASIC);
         $ret = $this->call('microvolunteering', 'POST', [
             'msgid' => $id,
             'response' => MicroVolunteering::RESULT_APPROVE
@@ -168,18 +187,20 @@ class microvolunteeringAPITest extends IznikAPITestCase
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $msg = str_replace("Hey", "Hey {{username}}", $msg);
 
-        list($u, $uid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
         $u->addEmail('test@test.com');
         $u->addMembership($gid);
 
         $r = new MailRouter($this->dbhm, $this->dbhm);
-        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
         $this->assertNotNull($id);
         $this->log("Created message $id");
         $rc = $r->route();
         $this->assertEquals(MailRouter::PENDING, $rc);
 
-        list($u, $uid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
         $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($u->login('testpw'));
         $u->setPrivate('trustlevel', User::TRUST_BASIC);
@@ -212,19 +233,25 @@ class microvolunteeringAPITest extends IznikAPITestCase
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $msg = str_replace("Hey", "Hey {{username}}", $msg);
 
-        list($u, $uid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
         $u->addEmail('test@test.com');
         $u->addMembership($gid);
         $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup1', 'from@test.com', 'to@test.com', $gid, $uid, TRUE, FALSE);
+        $r = new MailRouter($this->dbhm, $this->dbhm);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
+        $this->assertNotNull($id);
+        $this->log("Created message $id");
+        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $m->setPrivate('lat', 8.5);
         $m->setPrivate('lng', 179.3);
         $m->addToSpatialIndex();
 
-        list($u, $uid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
         $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($u->login('testpw'));
         $u->setPrivate('trustlevel', User::TRUST_BASIC);
@@ -246,7 +273,8 @@ class microvolunteeringAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
 
         # Log in as a mod.
-        list($u, $uid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u->create('Test', 'User', NULL);
         $u->addMembership($gid, User::ROLE_MODERATOR);
         $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($u->login('testpw'));
@@ -281,7 +309,8 @@ class microvolunteeringAPITest extends IznikAPITestCase
         $gid = $g->create('testgroup1', Group::GROUP_FREEGLE);
         $g->setPrivate('microvolunteering', 1);
 
-        list($u, $uid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
         $u->addMembership($gid);
 
         $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_FACEBOOK, NULL, 'testpw'));
@@ -359,12 +388,17 @@ class microvolunteeringAPITest extends IznikAPITestCase
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $msg = str_replace("Hey", "Hey {{username}}", $msg);
 
-        list($u, $uid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
         $u->addEmail('test@test.com');
         $u->addMembership($gid);
         $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup1', 'from@test.com', 'to@test.com', $gid, $uid, TRUE, FALSE);
+        $r = new MailRouter($this->dbhm, $this->dbhm);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
+        $this->assertNotNull($id);
+        $this->log("Created message $id");
+        $rc = $r->route();
 
         $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($u->login('testpw'));
@@ -387,7 +421,8 @@ class microvolunteeringAPITest extends IznikAPITestCase
         $this->assertFalse($ret['rotated']);
 
         # Again to trigger actual rotate.
-        list($u, $uid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
         $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($u->login('testpw'));
 

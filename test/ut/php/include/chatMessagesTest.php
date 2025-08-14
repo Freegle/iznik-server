@@ -28,8 +28,16 @@ class chatMessagesTest extends IznikTestCase {
             $dbhm->preExec("DELETE FROM users WHERE id = ?;", [ $user['userid']]);
         }
 
-        list($g, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
-        list($this->user, $this->uid) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
+
+        $this->user->addMembership($this->groupid);
+        $this->user->addEmail('test@test.com');
         $this->user->setMembershipAtt($this->groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $this->dbhm->preExec("DELETE FROM locations WHERE name = 'TV13 1HH';");
@@ -122,7 +130,8 @@ class chatMessagesTest extends IznikTestCase {
         $this->assertEquals(0, $m->getReviewCount($this->user)['chatreview']);
         $this->assertEquals(1, $m->getReviewCount($this->user)['chatreviewother']);
 
-        list($g2, $gid2) = $this->createTestGroup('testgroup1', Group::GROUP_UT);
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid2 = $g->create('testgroup1', Group::GROUP_UT);
         $this->user->addMembership($gid2, User::ROLE_MODERATOR);
         $this->assertEquals(0, $m->getReviewCount($this->user)['chatreview']);
         $this->assertEquals(1, $m->getReviewCount($this->user)['chatreviewother']);
@@ -164,7 +173,9 @@ class chatMessagesTest extends IznikTestCase {
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Now create a sender on the spammer list.
-        list($u, $uid) = $this->createTestUser('Spam', 'User', 'Spam User', 'test2@test.com', 'testpw');
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create('Spam', 'User', 'Spam User');
+        $u->addEmail('test2@test.com');
         $s = new Spam($this->dbhr, $this->dbhm);
         $s->addSpammer($uid, Spam::TYPE_SPAMMER, 'UT Test');
 
@@ -172,7 +183,9 @@ class chatMessagesTest extends IznikTestCase {
         $u = new User($this->dbhr, $this->dbhm, $uid);
         $atts = $u->getPublic();
         $this->assertEquals('boolean', gettype($atts['spammer']));
-        list($u2, $uid2) = $this->createTestUserWithLogin('Test User', 'testpw');
+        $u2 = new User($this->dbhr, $this->dbhm);
+        $uid2 = $u2->create('Test', 'User', 'Test User');
+        $this->assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($u2->login('testpw'));
         $u2->setPrivate('systemrole', User::ROLE_MODERATOR);
         $u = new User($this->dbhr, $this->dbhm, $uid);
@@ -199,7 +212,9 @@ class chatMessagesTest extends IznikTestCase {
         $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
-        list($u, $uid) = $this->createTestUser('Test', 'User', 'Test User', 'test2@test.com', 'testpw');
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', 'Test User');
+        $u->addEmail('test2@test.com');
 
         # Now reply from them.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/ourfooter'));
@@ -237,7 +252,7 @@ class chatMessagesTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $refmsgid);
         $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
         $email = $u->inventEmail();
-        $u->addEmail($email, FALSE);
+        $u->addEmail($email, FALSE, FALSE);
 
         $this->log("Reply with to self $email");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
@@ -284,7 +299,7 @@ class chatMessagesTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $refmsgid);
         $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
         $email = $u->inventEmail();
-        $u->addEmail($email, FALSE);
+        $u->addEmail($email, FALSE, FALSE);
 
         # Send a reply direct to the user - should go to spam but marked for review, as this will fail Spam Assassin
         # via the GTUBE string.
@@ -360,7 +375,7 @@ class chatMessagesTest extends IznikTestCase {
         $m = new Message($this->dbhr, $this->dbhm, $refmsgid);
         $u = new User($this->dbhr, $this->dbhm, $m->getFromuser());
         $email = $u->inventEmail();
-        $u->addEmail($email, FALSE);
+        $u->addEmail($email, FALSE, FALSE);
 
         error_log("Spam reply.");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply7'));
@@ -422,7 +437,8 @@ class chatMessagesTest extends IznikTestCase {
         # Can only see replies logged in.
         $fromu = $m->getFromuser();
         $u = new User($this->dbhr, $this->dbhm, $fromu);
-        $this->addLoginAndLogin($u, 'testpw');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         $atts = $m->getPublic(FALSE, TRUE, TRUE);
         $this->log("Message 1 " . var_export($atts, TRUE));
@@ -494,8 +510,10 @@ class chatMessagesTest extends IznikTestCase {
     }
 
     public function testReferToSpammer() {
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid = $u->create("Test", "User", "Test User");
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-        list($u, $uid, $emailid) = $this->createTestUser("Test", "User", "Test User", $email, 'testpw');
+        $u->addEmail($email);
 
         $this->dbhm->preExec("INSERT INTO spam_users (userid, collection, reason) VALUES (?, ?, ?);", [
             $uid,
@@ -559,9 +577,11 @@ class chatMessagesTest extends IznikTestCase {
     public function testUser2ModSpam() {
         $gid = $this->groupid;
         $this->log("Created group $gid");
-        list($u1, $uid1) = $this->createTestUserWithMembership($gid, User::ROLE_MODERATOR, 'Test User', 'test1@test.com', 'testpw');
-        list($u2, $uid2) = $this->createTestUserWithMembership($gid, User::ROLE_MEMBER, 'Test User', 'test2@test.com', 'testpw');
-        $u = $u1;
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid1 = $u->create("Test", "User", "Test User");
+        $u->addMembership($gid, User::ROLE_MODERATOR);
+        $uid2 = $u->create("Test", "User", "Test User");
+        $u->addMembership($gid);
         $r = new ChatRoom($this->dbhm, $this->dbhm);
         $rid = $r->createUser2Mod($uid2, $gid);
 
@@ -734,7 +754,7 @@ class chatMessagesTest extends IznikTestCase {
         }
 
         $m = new ChatMessage($this->dbhr, $this->dbhm);
-        list ($mid, $banned) = $m->create($id, $this->uid, 'Refers to https://tinyurl.com/2u4ax3c8 which should be expanded', ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL, NULL, NULL, FALSE, FALSE);
+        list ($mid, $banned) = $m->create($id, $this->uid, 'Refers to https://tinyurl.com/2u4ax3c8 which should be expanded', ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL, NULL, NULL, FALSE, FALSE, FALSE);
         $this->assertNotNull($mid);
 
         $m = new ChatMessage($this->dbhr, $this->dbhm, $mid);
@@ -777,31 +797,31 @@ class chatMessagesTest extends IznikTestCase {
         return [
             'spam_text' => [
                 'text' => 'Buy cheap viagra online now!',
-                'shouldBeReviewed' => TRUE,
+                'shouldBeReviewed' => true,
                 'expectedReviewReason' => ChatMessage::REVIEW_SPAM,
                 'description' => 'Image with spam text should be flagged for review'
             ],
             'email_address' => [
                 'text' => 'Contact me at test@example.com',
-                'shouldBeReviewed' => TRUE,
+                'shouldBeReviewed' => true,
                 'expectedReviewReason' => ChatMessage::REVIEW_DODGY_IMAGE,
                 'description' => 'Image with email address should be flagged for review'
             ],
             'clean_text' => [
                 'text' => 'This is a normal message',
-                'shouldBeReviewed' => FALSE,
+                'shouldBeReviewed' => false,
                 'expectedReviewReason' => null,
                 'description' => 'Image with clean text should not be flagged'
             ],
             'multiple_emails' => [
                 'text' => 'Email me at test@example.com or contact@domain.org',
-                'shouldBeReviewed' => TRUE,
+                'shouldBeReviewed' => true,
                 'expectedReviewReason' => ChatMessage::REVIEW_DODGY_IMAGE,
                 'description' => 'Image with multiple emails should be flagged'
             ],
             'empty_text' => [
                 'text' => '',
-                'shouldBeReviewed' => FALSE,
+                'shouldBeReviewed' => false,
                 'expectedReviewReason' => null,
                 'description' => 'Image with no text should not be flagged'
             ]
@@ -882,7 +902,7 @@ class chatMessagesTest extends IznikTestCase {
             'UPPERCASE@EMAIL.COM should also work'
         ];
         
-        $expectedMatches = [TRUE, TRUE, TRUE, FALSE, TRUE];
+        $expectedMatches = [true, true, true, false, true];
         
         for ($i = 0; $i < count($testTexts); $i++) {
             $hasEmail = preg_match(Message::EMAIL_REGEXP, $testTexts[$i]);

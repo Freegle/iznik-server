@@ -38,7 +38,10 @@ class pollAPITest extends IznikAPITestCase {
         $c = new Polls($this->dbhr, $this->dbhm);
         $id = $c->create('UTTest', 1, 'Test');
 
-        list($u, $this->uid, $emailid) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         # Get invalid id
         $ret = $this->call('poll', 'GET', [
@@ -65,7 +68,7 @@ class pollAPITest extends IznikAPITestCase {
         # Shown
         $ret = $this->call('poll', 'POST', [
             'id' => $id,
-            'shown' => TRUE
+            'shown' => true
         ]);
         $this->assertEquals(0, $ret['ret']);
 
@@ -90,7 +93,10 @@ class pollAPITest extends IznikAPITestCase {
         }
 
     public function testLogin() {
-        list($u, $this->uid, $emailid) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         # Fake FB login.
         $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_FACEBOOK, NULL, 'testpw'));
@@ -118,7 +124,7 @@ class pollAPITest extends IznikAPITestCase {
             $ret = $this->call('poll', 'POST', [
                 'id' => $id,
                 'response' => [
-                    'test' => TRUE
+                    'test' => true
                 ]
             ]);
             $this->assertEquals(0, $ret['ret']);
