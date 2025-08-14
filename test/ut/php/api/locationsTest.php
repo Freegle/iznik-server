@@ -53,9 +53,15 @@ class locationsAPITest extends IznikAPITestCase
             }
         }
 
-        list($this->group, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
+        $this->group = Group::get($this->dbhr, $this->dbhm);
+        $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
 
-        list($this->user, $this->uid, $emailid) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
+        $this->user->addEmail('test@test.com');
+        $this->assertEquals(1, $this->user->addMembership($this->groupid));
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
     }
 
     public function testPost()
@@ -71,13 +77,17 @@ class locationsAPITest extends IznikAPITestCase
 
         # Create a message which should have the first subject suggested.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_ireplace('Basic test', 'OFFER: Test (Tuvalu High Street)', $msg);
-        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->groupid, $this->uid);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
         $this->assertEquals(MailRouter::PENDING, $rc);
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $this->assertEquals('OFFER: Test (Tuvalu High Street)', $m->getSubject());
-        $atts = $m->getPublic(FALSE);
+        $atts = $m->getPublic(FALSE, FALSE);
         $this->assertEquals('OFFER: Test (Tuvalu High Street)', $atts['suggestedsubject']);
 
         # Now block that subject from this group.
@@ -89,7 +99,7 @@ class locationsAPITest extends IznikAPITestCase
             'groupid' => $this->groupid,
             'messageid' => $id,
             'action' => 'Exclude',
-            'byname' => TRUE
+            'byname' => true
         ]);
         $this->assertEquals(2, $ret['ret']);
 
@@ -99,7 +109,7 @@ class locationsAPITest extends IznikAPITestCase
             'groupid' => $this->groupid,
             'messageid' => $id,
             'action' => 'Exclude',
-            'byname' => TRUE,
+            'byname' => true,
             'dup' => 2
         ]);
         $this->assertEquals(0, $ret['ret']);
@@ -107,7 +117,7 @@ class locationsAPITest extends IznikAPITestCase
         # Get the message back - should have suggested the other one this time.
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $this->assertEquals('OFFER: Test (Tuvalu High Street)', $m->getSubject());
-        $atts = $m->getPublic(FALSE);
+        $atts = $m->getPublic(FALSE, FALSE);
         $this->assertEquals('OFFER: Test (Tuvalu Hugh Street)', $atts['suggestedsubject']);
 
         }
@@ -135,8 +145,12 @@ class locationsAPITest extends IznikAPITestCase
         $this->assertEquals($fullpcid, $this->group->getPublic()['defaultlocation']['id']);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_ireplace('Basic test', 'OFFER: Test (TV13 1HH)', $msg);
-        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->groupid, $this->uid);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
         $this->assertEquals(MailRouter::PENDING, $rc);
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -366,12 +380,12 @@ class locationsAPITest extends IznikAPITestCase
     }
 
 //    public function testEH() {
-//        $this->dbhr->errorLog = TRUE;
-//        $this->dbhm->errorLog = TRUE;
+//        $this->dbhr->errorLog = true;
+//        $this->dbhm->errorLog = true;
 //        $_SESSION['id'] = 35909200;
 //        $ret = $this->call('locations', 'PATCH', [
 //            'id' => 1859090,
-//            'modtools' => TRUE,
+//            'modtools' => true,
 //            'name' => "Lewisham",
 //            'polygon' => "POLYGON((-0.010475500000000084 51.45525100000438,-0.010719301644712688 51.454809171198306,-0.010865 51.455231,-0.019265 51.459698,-0.022577 51.461679,-0.024963 51.46376,-0.03075599495787174 51.46780389354294,-0.03192901611328126 51.47234849795365,-0.02085685729980469 51.471359416711145,-0.01452622842524676 51.472431927983514,-0.012531280517578127 51.46983565499583,-0.007553100585937501 51.47168911392899,-0.0022315979003906254 51.467590018653155,0.000593 51.459532,0.000961 51.458734,-0.006703 51.455951,-0.010086 51.455271,-0.010475500000000084 51.45525100000438))",
 //            'typeahead' => 'NP26 4AD'

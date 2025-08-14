@@ -47,9 +47,9 @@ class engageTest extends IznikTestCase {
      * @dataProvider enabled
      */
     public function testAtRisk($enabled) {
-        list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
-        # Add the from@test.com email for message routing to work
-        $u->addEmail('from@test.com');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
+        $u = new User($this->dbhr, $this->dbhm, $uid);
         $sqltime =  date("Y-m-d", strtotime("@" . (time() - Engage::USER_INACTIVE + 24 * 60 * 60)));
         $u->setPrivate('lastaccess', $sqltime);
 
@@ -86,8 +86,6 @@ class engageTest extends IznikTestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create('Test', 'User', NULL);
         $u->addEmail('test@test.com');
-        # Add the from@test.com email for message routing to work
-        $u->addEmail('from@test.com');
         $u->addMembership($this->gid);
 
         $this->assertEquals(NULL, $u->getPrivate('engagement'));
@@ -111,17 +109,39 @@ class engageTest extends IznikTestCase {
         $this->assertEquals(Engage::ENGAGEMENT_DORMANT, $u->getPrivate('engagement'));
 
         # Post, should become occasional.
-        list ($r, $id1, $failok, $rc) = $this->createSimpleTestMessage('OFFER: Thing 1 (Place)', 'testgroup', 'from@test.com', 'to@test.com');
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Thing 1 (Place)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+       list ($id1, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        $this->assertEquals(MailRouter::PENDING, $rc);
 
         $e->updateEngagement($uid);
         $u = new User($this->dbhr, $this->dbhm, $uid);
         $this->assertEquals(Engage::ENGAGEMENT_OCCASIONAL, $u->getPrivate('engagement'));
 
         # Post more, should become frequent.
-        list ($r, $id2, $failok, $rc) = $this->createSimpleTestMessage('OFFER: Thing 2 (Place)', 'testgroup', 'from@test.com', 'to@test.com');
-        list ($r, $id3, $failok, $rc) = $this->createSimpleTestMessage('OFFER: Thing 3 (Place)', 'testgroup', 'from@test.com', 'to@test.com');
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Thing 2 (Place)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+       list ($id2, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
 
-        list ($r, $id4, $failok, $rc) = $this->createSimpleTestMessage('OFFER: Thing 4 (Place)', 'testgroup', 'from@test.com', 'to@test.com');
+        $this->assertEquals(MailRouter::PENDING, $rc);
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Thing 3 (Place)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+       list ($id3, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        $this->assertEquals(MailRouter::PENDING, $rc);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Thing 4 (Place)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+       list ($id4, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        $this->assertEquals(MailRouter::PENDING, $rc);
 
         $e->updateEngagement($uid);
         $u = new User($this->dbhr, $this->dbhm, $uid);

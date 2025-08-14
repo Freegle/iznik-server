@@ -32,7 +32,8 @@ class AlertTest extends IznikTestCase {
     }
 
     public function testMultiple() {
-        list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_UT);
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_UT);
 
         $g->setPrivate('contactmail', 'test@test.com');
 
@@ -50,9 +51,13 @@ class AlertTest extends IznikTestCase {
     }
 
     public function testErrors() {
-        list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_UT);
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_UT);
 
-        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
+        $this->user->addEmail('test@test.com');
         $this->user->addMembership($gid, User::ROLE_MODERATOR);
 
         $a = new Alert($this->dbhr, $this->dbhm);
@@ -76,7 +81,7 @@ class AlertTest extends IznikTestCase {
         $mock->method('lastInsertId')->willThrowException(new \Exception());
         $a->setDbhm($mock);
 
-        self::assertEquals(0, $a->mailMods($id, $gid));
+        self::assertEquals(0, $a->mailMods($id, $gid, FALSE));
     }
 }
 

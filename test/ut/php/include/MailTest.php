@@ -26,7 +26,8 @@ class MailTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        list($user, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
         $this->dbhm->preExec("INSERT INTO `returnpath_seedlist` (`id`, `timestamp`, `email`, `userid`, `type`, `active`, `oneshot`) VALUES (NULL, CURRENT_TIMESTAMP, 'test@test.com', $uid, 'ReturnPath', '1', '1')");
         $seeds = Mail::getSeeds($this->dbhr, $this->dbhm);
         $found = FALSE;

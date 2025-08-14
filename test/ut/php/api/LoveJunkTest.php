@@ -17,7 +17,9 @@ class LoveJunkAPITest extends IznikAPITestCase {
 
     public function testRemoveUser() {
         $this->dbhm->preExec("DELETE FROM users WHERE ljuserid = 456;");
-        list($u1, $uid1, $emailid1) = $this->createTestUser(null, null, 'Test User', 'test@test.com', 'testpw');
+        $u = new User($this->dbhr, $this->dbhm);
+        $uid1 = $u->create(null, null, 'Test User');
+        $u1 = new User($this->dbhr, $this->dbhm, $uid1);
         $u1->setPrivate('ljuserid', 456);
 
         $key = Utils::randstr(64);

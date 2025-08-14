@@ -70,7 +70,9 @@ class authorityAPITest extends IznikAPITestCase
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
 
-        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $this->user = User::get($this->dbhr, $this->dbhm);
+        $this->user->create(NULL, NULL, 'Test User');
+        $this->user->addEmail('test@test.com');
         $this->user->addMembership($this->groupid);
         $this->user->setMembershipAtt($this->groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
@@ -96,10 +98,13 @@ class authorityAPITest extends IznikAPITestCase
         $m->setPrivate('locationid', $fullpcid);
 
         # Add a search.  Need to be logged in.
-        list($u, $this->uid, $emailid) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = new User($this->dbhr, $this->dbhm);
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
         $m = new Message($this->dbhr, $this->dbhm);
         $ctx = NULL;
-        $m->search("Test", $ctx, Search::Limit, NULL, NULL, $fullpcid);
+        $m->search("Test", $ctx, Search::Limit, NULL, NULL, $fullpcid, FALSE);
 
         # Create an authority which covers that group.
         $a = new Authority($this->dbhr, $this->dbhm);
@@ -146,7 +151,8 @@ class authorityAPITest extends IznikAPITestCase
         $id = $a->create("UTAuth", 'GLA', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
 
         # Create a user within that authority.
-        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
         $u->setSetting('mylocation', [
             'lng' => 179.2167,
             'lat' => 8.53333,

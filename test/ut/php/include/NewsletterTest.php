@@ -37,7 +37,8 @@ class newsletterTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        list($g, $gid) = $this->createTestGroup("testgroup", Group::GROUP_REUSE);
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create("testgroup", Group::GROUP_REUSE);
 
         $n = new Newsletter($this->dbhr, $this->dbhm);
         $id = $n->create($gid, 'UT newsletter', 'UT newsletter text');
@@ -53,11 +54,14 @@ class newsletterTest extends IznikTestCase {
         $a->setPrivate('articleid', $artid);
 
         # And two users, one who wants newsletters and one who doesn't.
-        list($u, $uid1, $eid1) = $this->createTestUser(NULL, NULL, "Test User", 'test1@blackhole.io', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid1 = $u->create(NULL, NULL, "Test User");
+        $eid1 = $u->addEmail('test1@blackhole.io');
         $u->addMembership($gid, User::ROLE_MEMBER, $eid1);
         $u->setPrivate('newslettersallowed', 0);
-        list($u2, $uid2, $eid2) = $this->createTestUser(NULL, NULL, "Test User", 'test2@blackhole.io', 'testpw');
-        $u2->addMembership($gid, User::ROLE_MEMBER, $eid2);
+        $uid2 = $u->create(NULL, NULL, "Test User");
+        $eid2 = $u->addEmail('test2@blackhole.io');
+        $u->addMembership($gid, User::ROLE_MEMBER, $eid2);
 
         # Now test.
         $this->assertEquals(1, $n->send($gid));
@@ -70,8 +74,9 @@ class newsletterTest extends IznikTestCase {
         $this->assertEquals(0, $n->send($gid));
 
         # Invalid email
-        list($u3, $uid3, $eid3) = $this->createTestUser(NULL, NULL, "Test User", 'test.com', 'testpw');
-        $u3->addMembership($gid);
+        $uid3 = $u->create(NULL, NULL, "Test User");
+        $u->addEmail('test.com');
+        $u->addMembership($gid);
         $this->assertEquals(0, $n->send($gid));
 
         }

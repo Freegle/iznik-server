@@ -25,7 +25,9 @@ class ModConfigTest extends IznikTestCase {
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup1'");
 
-        list($this->user, $this->uid) = $this->createTestUserWithLogin('Test User', 'testpw');
+        $this->user = User::get($this->dbhm, $this->dbhm);
+        $this->uid = $this->user->create('Test', 'User', NULL);
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
     }
 
     public function testBasic() {
@@ -40,8 +42,11 @@ class ModConfigTest extends IznikTestCase {
 
         # Use on a group
         $this->log("Use on group");
-        list($g, $group1) = $this->createTestGroup('testgroup1', Group::GROUP_REUSE);
-        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test1@test.com', 'testpw');
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, 'Test User');
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $u->addMembership($group1, User::ROLE_MODERATOR);
         $c->useOnGroup($uid, $group1);
         $this->assertEquals($id, $c->getForGroup($uid, $group1));
@@ -54,7 +59,9 @@ class ModConfigTest extends IznikTestCase {
         # Another mod on this group with no config set up should pick this one up as shared.
         $this->log("Another mod");
         $c->setPrivate('default', FALSE);
-        list($u2, $uid2, $emailid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
+        $uid2 = $u->create(NULL, NULL, 'Test User');
+        $u2 = User::get($this->dbhr, $this->dbhm, $uid2);
+        $this->assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $u2->addMembership($group1, User::ROLE_OWNER);
         $this->assertEquals($id, $c->getForGroup($uid, $group1));
         $this->assertEquals($id, $c->getForGroup($uid2, $group1));
@@ -172,9 +179,9 @@ class ModConfigTest extends IznikTestCase {
         $c = new ModConfig($this->dbhr, $this->dbhm, $id);
         $c2 = new ModConfig($this->dbhr, $this->dbhm, $id2);
         $oldatts = $c->getPublic();
-        $this->log("Old " . var_export($oldatts, TRUE));
+        $this->log("Old " . var_export($oldatts, true));
         $newatts = $c2->getPublic();
-        $this->log("New " . var_export($newatts, TRUE));
+        $this->log("New " . var_export($newatts, true));
 
         # Should have created a message order during the copy.
         $this->assertNull($oldatts['messageorder']);
@@ -221,9 +228,10 @@ class ModConfigTest extends IznikTestCase {
         $id3 = $c->create('TestConfig2');
         $this->assertNotNull($id3);
 
-        list($g, $group1) = $this->createTestGroup('testgroup1', Group::GROUP_REUSE);
-        list($g, $group2) = $this->createTestGroup('testgroup2', Group::GROUP_REUSE);
-        list($g, $group3) = $this->createTestGroup('testgroup3', Group::GROUP_REUSE);
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
+        $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
+        $group3 = $g->create('testgroup3', Group::GROUP_REUSE);
         $this->user->addMembership($group1, User::ROLE_MODERATOR);
         $this->user->addMembership($group2, User::ROLE_MODERATOR);
         $this->user->addMembership($group3, User::ROLE_MODERATOR);

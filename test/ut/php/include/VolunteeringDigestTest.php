@@ -43,19 +43,29 @@ class volunteeringDigestTest extends IznikTestCase {
 
     public function testEvents() {
         # Create a group with two opportunities on it.
-        list($g, $gid) = $this->createTestGroup("testgroup", Group::GROUP_REUSE);
+        $g = Group::get($this->dbhr, $this->dbhm);
+        $gid = $g->create("testgroup", Group::GROUP_REUSE);
 
         # And two users, one who wants them and one who doesn't.
-        list($u1, $uid1, $eid1) = $this->createTestUser(NULL, NULL, "Test User", 'test1@test.com', 'testpw1');
-        $u1->addEmail('test1@' . USER_DOMAIN);
-        $u1->addMembership($gid, User::ROLE_MEMBER, $eid1);
-        $u1->setMembershipAtt($gid, 'volunteeringallowed', 0);
-        list($u2, $uid2, $eid2) = $this->createTestUser(NULL, NULL, "Test User", 'test2@test.com', 'testpw2');
-        $u2->addEmail('test2@' . USER_DOMAIN);
-        $u2->addMembership($gid, User::ROLE_MEMBER, $eid2);
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid1 = $u->create(NULL, NULL, "Test User");
+        $eid1 = $u->addEmail('test1@test.com');
+        $u->addEmail('test1@' . USER_DOMAIN);
+        $u->addMembership($gid, User::ROLE_MEMBER, $eid1);
+        $u->setMembershipAtt($gid, 'volunteeringallowed', 0);
+        $uid2 = $u->create(NULL, NULL, "Test User");
+        $eid2 = $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
+        $u->addMembership($gid, User::ROLE_MEMBER, $eid2);
 
-        list($e1, $eid1) = $this->createTestVolunteeringWithGroup($uid1, 'Test Volunteering 1', $gid);
-        list($e2, $eid2) = $this->createTestVolunteeringWithGroup($uid1, 'Test Volunteering 2', $gid);
+        $e = new Volunteering($this->dbhr, $this->dbhm);
+        $e->create($uid1, 'Test Volunteering 1', 0, 'Test Location', 'Test Contact Name', '000 000 000', 'test@test.com', 'http://ilovefreegle.org', 'A test event', 'Some time');
+        $e->addGroup($gid);
+        $e->create($uid1, 'Test Volunteering 2', 0, 'Test Location', 'Test Contact Name', '000 000 000', 'test@test.com', 'http://ilovefreegle.org', 'A test event', 'Some time');
+        $e->addGroup($gid);
+
+        # Fake approve.
+        $e->setPrivate('pending', 0);
 
         # Now test.
 
@@ -90,9 +100,9 @@ class volunteeringDigestTest extends IznikTestCase {
         $this->assertEquals(0, $mock->send($gid));
 
         # Invalid email
-        list($u3, $uid3, $eid3) = $this->createTestUser(NULL, NULL, "Test User", NULL, 'testpw3');
-        $u3->addEmail('test.com'); # Invalid email (no @ symbol)
-        $u3->addMembership($gid);
+        $uid3 = $u->create(NULL, NULL, "Test User");
+        $u->addEmail('test.com');
+        $u->addMembership($gid);
         $this->assertEquals(0, $mock->send($gid));
 
         $this->log("For coverage");

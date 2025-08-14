@@ -69,7 +69,9 @@ class nearbyTest extends IznikTestCase {
         $this->assertNotNull($lid2);
 
         # Create a group here
-        list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
+        $g = new Group($this->dbhr, $this->dbhm);
+        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+        $g = Group::get($this->dbhr, $this->dbhm, $gid);
         $g->setPrivate('lng', 179.15);
         $g->setPrivate('lat', 8.4);
 
@@ -78,7 +80,9 @@ class nearbyTest extends IznikTestCase {
         $g->setSettings($settings);
 
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-        list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', 'Test User', $email, 'testpw');
+        $u = new User($this->dbhr, $this->dbhm);
+        $u->create('Test', 'User', 'Test User');
+        $this->assertNotNull($u->addEmail($email));
         $u->addMembership($gid);
         $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
@@ -98,10 +102,12 @@ class nearbyTest extends IznikTestCase {
         $m->addToSpatialIndex();
 
         # Create a nearby user
-        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, "Test User2", 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, "Test User2");
         $this->log("Nearby user $uid");
         $u->addMembership($gid);
         $u->setPrivate('lastlocation', $lid2);
+        $u->addEmail('test@test.com');
 
         $n = new Nearby($this->dbhm, $this->dbhm);
         $n->updateLocations();

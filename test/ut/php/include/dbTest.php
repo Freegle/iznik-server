@@ -153,8 +153,8 @@ class dbTest extends IznikTestCase {
     public function falseAfter() {
         $this->log("falseAfter count " . $this->count);
         if ($this->count == 0) {
-            $this->log("FALSE");
-            return(FALSE);
+            $this->log("false");
+            return(false);
         } else {
             $this->count--;
             return 1;
@@ -164,11 +164,11 @@ class dbTest extends IznikTestCase {
     public function falseUntil() {
         $this->log("falseUntil count " . $this->count);
         if ($this->count == 0) {
-            $this->log("FALSE");
-            return(TRUE);
+            $this->log("false");
+            return(true);
         } else {
             $this->count--;
-            return(FALSE);
+            return(false);
         }
     }
 
@@ -184,12 +184,12 @@ class dbTest extends IznikTestCase {
             ->getMock();
         $mock->method('parentQuery')->will($this->throwException(new \Exception()));
 
-        $worked = FALSE;
+        $worked = false;
 
         try {
             $mock->retryQuery('SHOW COLUMNS FROM test;');
         } catch (DBException $e) {
-            $worked = TRUE;
+            $worked = true;
             $this->assertStringContainsString('Non-deadlock', $e->getMessage());
         }
         $this->assertTrue($worked);
@@ -200,12 +200,12 @@ class dbTest extends IznikTestCase {
             ->setMethods(array('parentQuery'))
             ->getMock();
         $mock->method('parentQuery')->will($this->throwException(new \Exception('Faked deadlock exception')));
-        $worked = FALSE;
+        $worked = false;
 
         try {
             $mock->retryQuery('SHOW COLUMNS FROM test;');
         } catch (DBException $e) {
-            $worked = TRUE;
+            $worked = true;
             $this->assertEquals('Unexpected database error Faked deadlock exception', $e->getMessage());
         }
         $this->assertTrue($worked);
@@ -231,7 +231,7 @@ class dbTest extends IznikTestCase {
             ->getMock();
         $this->count = 0;
         $mock->method('parentQuery')->willThrowException(new \Exception('Faked deadlock exception'));
-        $worked = FALSE;
+        $worked = false;
 
         try {
             $mock->beginTransaction();
@@ -246,7 +246,7 @@ class dbTest extends IznikTestCase {
 
         # Now a failure in the return code
 
-        $this->log("query returns FALSE");
+        $this->log("query returns false");
 
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
             ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE])
@@ -273,12 +273,12 @@ class dbTest extends IznikTestCase {
             ->getMock();
         $mock->method('parentExec')->will($this->throwException(new \Exception()));
 
-        $worked = FALSE;
+        $worked = false;
 
         try {
             $mock->retryExec('INSERT INTO test VALUES ();');
         } catch (DBException $e) {
-            $worked = TRUE;
+            $worked = true;
             $this->assertStringContainsString('Non-deadlock', $e->getMessage());
         }
         $this->assertTrue($worked);
@@ -289,12 +289,12 @@ class dbTest extends IznikTestCase {
             ->setMethods(array('parentExec'))
             ->getMock();
         $mock->method('parentExec')->will($this->throwException(new \Exception('Faked deadlock exception')));
-        $worked = FALSE;
+        $worked = false;
 
         try {
             $mock->retryExec('INSERT INTO test VALUES ();');
         } catch (DBException $e) {
-            $worked = TRUE;
+            $worked = true;
             $this->assertEquals('Unexpected database error Faked deadlock exception', $e->getMessage());
         }
         $this->assertTrue($worked);
@@ -312,7 +312,7 @@ class dbTest extends IznikTestCase {
         $mock->retryExec('INSERT INTO test VALUES ();');
 
         # Now a failure in the return code
-        $this->log("query returns FALSE");
+        $this->log("query returns false");
 
         $mock = $this->getMockBuilder('Freegle\Iznik\LoggedPDO')
             ->setConstructorArgs([$dbconfig['hosts_read'], $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE])
@@ -421,14 +421,14 @@ class dbTest extends IznikTestCase {
             ->getMock();
         $mock->method('parentPrepare')->will($this->throwException(new \Exception()));
 
-        $worked = FALSE;
+        $worked = false;
 
         $mock->suppressSentry = TRUE;
 
         try {
             $mock->preQuery('SHOW COLUMNS FROM test;');
         } catch (DBException $e) {
-            $worked = TRUE;
+            $worked = true;
             $this->assertStringContainsString('Non-deadlock', $e->getMessage());
         }
         $this->assertTrue($worked);
@@ -439,12 +439,12 @@ class dbTest extends IznikTestCase {
             ->setMethods(array('parentPrepare'))
             ->getMock();
         $mock->method('parentPrepare')->will($this->throwException(new \Exception('Faked deadlock exception')));
-        $worked = FALSE;
+        $worked = false;
 
         try {
             $mock->preQuery('SHOW COLUMNS FROM test;');
         } catch (DBException $e) {
-            $worked = TRUE;
+            $worked = true;
             $this->assertStringContainsString('Unexpected database error Faked deadlock exception', $e->getMessage());
         }
         $this->assertTrue($worked);

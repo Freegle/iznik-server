@@ -35,11 +35,12 @@ class requestAPITest extends IznikAPITestCase {
         self::assertEquals(1, count($pafadds));
         $pafid = $pafadds[0]['id'];
 
-        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
-        $this->addLoginAndLogin($this->user, 'testpw');
+        $u = new User($this->dbhr, $this->dbhm);
+        $this->uid = $u->create(NULL, NULL, 'Test User');
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         # Create logged out - should fail
-        unset($_SESSION['id']);
         $ret = $this->call('request', 'PUT', [
             'reqtype' => Request::TYPE_BUSINESS_CARDS
         ]);
@@ -92,10 +93,12 @@ class requestAPITest extends IznikAPITestCase {
         self::assertEquals(0, count($ret['requests']));
 
         # List outstanding - with permission
-        list($this->user, $this->uid, $emailid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
+        $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->log("Created {$this->uid}");
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->user->setPrivate('permissions', User::PERM_BUSINESS_CARDS);
-        $this->addLoginAndLogin($this->user, 'testpw');
+        $this->assertTrue($this->user->login('testpw'));
         $ret = $this->call('request', 'GET', [
             'outstanding' => TRUE
         ]);

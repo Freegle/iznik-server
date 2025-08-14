@@ -33,13 +33,14 @@ class addressAPITest extends IznikAPITestCase
 
     public function testBasic()
     {
-        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u = new User($this->dbhr, $this->dbhm);
+        $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->log("Created user {$this->uid}");
         $this->assertNotNull($this->uid);
-        $this->addLoginAndLogin($this->user, 'testpw');
+        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
+        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         # Create logged out - should fail
-        unset($_SESSION['id']);
         $ret = $this->call('address', 'PUT', [
             'line1' => 'Test'
         ]);

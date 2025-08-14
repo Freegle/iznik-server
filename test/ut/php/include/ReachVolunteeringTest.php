@@ -79,7 +79,7 @@ class ReachVolunteeringTest extends IznikTestCase {
             ]
         ]);
 
-        $reach = $this->getMockReachVolunteering(FALSE, $oldFormatData);
+        $reach = $this->getMockReachVolunteering(false, $oldFormatData);
         $reach->processFeed('http://test.example.com/feed');
 
         // Check that the volunteering opportunity was created
@@ -116,7 +116,7 @@ class ReachVolunteeringTest extends IznikTestCase {
             ]
         ]);
 
-        $reach = $this->getMockReachVolunteering(TRUE, $newFormatData);
+        $reach = $this->getMockReachVolunteering(true, $newFormatData);
         $reach->processFeed('http://test.example.com/feed');
 
         // Check that the volunteering opportunity was created
@@ -149,7 +149,7 @@ class ReachVolunteeringTest extends IznikTestCase {
             ]
         ]);
 
-        $reach = $this->getMockReachVolunteering(FALSE, $oldFormatData);
+        $reach = $this->getMockReachVolunteering(false, $oldFormatData);
         $reach->processFeed('http://test.example.com/feed');
 
         // Check that the opportunity was created (postcode was extracted correctly)
@@ -181,7 +181,7 @@ class ReachVolunteeringTest extends IznikTestCase {
             ]
         ]);
 
-        $reach = $this->getMockReachVolunteering(FALSE, $oldFormatData);
+        $reach = $this->getMockReachVolunteering(false, $oldFormatData);
         $reach->processFeed('http://test.example.com/feed');
 
         // Check that the opportunity was NOT created (too old)
@@ -190,10 +190,10 @@ class ReachVolunteeringTest extends IznikTestCase {
     }
 
     public function testFieldMapping() {
-        $reach = new ReachVolunteering($this->dbhr, $this->dbhm);
+        $reach = new ReachVolunteering($this->dbhr, $this->dbhm, false);
         $reflection = new \ReflectionClass($reach);
         $method = $reflection->getMethod('getFieldMapping');
-        $method->setAccessible(TRUE);
+        $method->setAccessible(true);
 
         // Test old field mapping
         $oldMapping = $method->invoke($reach);
@@ -202,7 +202,7 @@ class ReachVolunteeringTest extends IznikTestCase {
         $this->assertEquals('Apply url', $oldMapping['url']);
 
         // Test new field mapping
-        $reachNew = new ReachVolunteering($this->dbhr, $this->dbhm, TRUE);
+        $reachNew = new ReachVolunteering($this->dbhr, $this->dbhm, true);
         $newMapping = $method->invoke($reachNew);
         $this->assertEquals('job_id', $newMapping['job_id']);
         $this->assertEquals('description', $newMapping['description']);
@@ -250,7 +250,7 @@ class ReachVolunteeringTest extends IznikTestCase {
             ]
         ]);
 
-        $reach = $this->getMockReachVolunteering(TRUE, $actualFeedData);
+        $reach = $this->getMockReachVolunteering(true, $actualFeedData);
         $reach->processFeed('http://test.example.com/feed');
 
         // Check both opportunities were created
@@ -293,7 +293,7 @@ class ReachVolunteeringTest extends IznikTestCase {
                 ]
             ]);
 
-            $reach = $this->getMockReachVolunteering(TRUE, $testData);
+            $reach = $this->getMockReachVolunteering(true, $testData);
             $reach->processFeed('http://test.example.com/feed');
 
             // Check that opportunity was created with correct location

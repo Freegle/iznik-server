@@ -43,7 +43,9 @@ class giftaidAPITest extends IznikAPITestCase
         $this->assertEquals(1, $ret['ret']);
 
         # Create user
-        list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
+        $u = User::get($this->dbhm, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($u->login('testpw'));
 
         # Give them an address we will recognise the postcode for
@@ -151,7 +153,9 @@ class giftaidAPITest extends IznikAPITestCase
         $pafid = $pafadds[0]['id'];
 
         # Create user
-        list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test2@test.com', 'testpw');
+        $u = User::get($this->dbhm, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($u->login('testpw'));
 
         # Give them an address we will recognise the postcode for
@@ -216,7 +220,10 @@ class giftaidAPITest extends IznikAPITestCase
 
     public function testPostcode()
     {
-        list($u, $uid, $emailid) = $this->createTestUserAndLogin('Test', 'User', NULL, 'test@test.com', 'testpw');
+        $u = User::get($this->dbhm, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         # Add address.  EH3 6SS is set up in testenv.
         $ret = $this->call('giftaid', 'POST', [
@@ -244,7 +251,10 @@ class giftaidAPITest extends IznikAPITestCase
 
     public function testHouse()
     {
-        list($u, $uid, $emailid) = $this->createTestUserAndLogin('Test', 'User', NULL, 'test@test.com', 'testpw');
+        $u = User::get($this->dbhm, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
 
         # Add address.  EH3 6SS is set up in testenv.
         $ret = $this->call('giftaid', 'POST', [

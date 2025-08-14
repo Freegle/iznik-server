@@ -26,8 +26,11 @@ class pushNotificationsTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        list($u2, $id2, $emailid2) = $this->createTestUser('Test', 'User', NULL, 'test2@test.com', 'testpw2');
-        list($u, $id, $emailid) = $this->createTestUserAndLogin('Test', 'User', NULL, 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id2 = $u->create('Test', 'User', NULL);
+        $id = $u->create('Test', 'User', NULL);
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u->login('testpw'));
         $this->log("Created $id");
 
         $mock = $this->getMockBuilder('Freegle\Iznik\PushNotifications')

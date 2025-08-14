@@ -26,13 +26,21 @@ class trystTest extends IznikAPITestCase {
     }
 
     public function testBasic() {
+        $u = User::get($this->dbhr, $this->dbhm);
+
+        $u1id = $u->create('Test','User', 'Test User');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u1 = User::get($this->dbhr, $this->dbhm, $u1id);
         $email1 = 'test-' . rand() . '@blackhole.io';
-        list($u1, $u1id, $emailid1) = $this->createTestUser('Test','User', 'Test User', $email1, 'testpw');
-        
+        $u1->addEmail($email1);
+        $u2id = $u->create('Test','User', 'Test User');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u2 = User::get($this->dbhr, $this->dbhm, $u2id);
         $email2 = 'test-' . rand() . '@blackhole.io';
-        list($u2, $u2id, $emailid2) = $this->createTestUser('Test','User', 'Test User', $email2, 'testpw');
-        
-        list($u3, $u3id, $emailid3) = $this->createTestUser('Test','User', 'Test User', 'test3@test.com', 'testpw');
+        $u2->addEmail($email2);
+        $u3id = $u->create('Test','User', 'Test User');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u3 = User::get($this->dbhr, $this->dbhm, $u3id);
 
         # Create logged out - fail.
         $ret = $this->call('tryst', 'PUT', [
@@ -112,7 +120,7 @@ class trystTest extends IznikAPITestCase {
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
             ->setMethods(array('sendIt'))
             ->getMock();
-        $t->method('sendIt')->willReturn(FALSE);
+        $t->method('sendIt')->willReturn(false);
         $this->assertEquals(1, $t->sendCalendarsDue($id));
 
         # Send an accept
@@ -178,11 +186,16 @@ class trystTest extends IznikAPITestCase {
     }
 
     public function testReminder() {
+        $u = User::get($this->dbhr, $this->dbhm);
+
+        $u1id = $u->create('Test','User', 'Test User');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u1 = User::get($this->dbhr, $this->dbhm, $u1id);
         $email1 = 'test-' . rand() . '@blackhole.io';
-        list($u1, $u1id, $emailid1) = $this->createTestUser('Test','User', 'Test User', $email1, 'testpw');
-        
+        $u2id = $u->create('Test','User', 'Test User');
+        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $u2 = User::get($this->dbhr, $this->dbhm, $u2id);
         $email2 = 'test-' . rand() . '@blackhole.io';
-        list($u2, $u2id, $emailid2) = $this->createTestUser('Test','User', 'Test User', $email2, 'testpw');
 
         $this->assertTrue($u1->login('testpw'));
         $ret = $this->call('tryst', 'PUT', [
