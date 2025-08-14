@@ -55,6 +55,8 @@ class MailRouter
         $this->dbhm = $dbhm;
         $this->log = new Log($this->dbhr, $this->dbhm);
         $this->spamc = new spamc;
+        $this->spamc->host = SPAMD_HOST;
+        $this->spamc->port = SPAMD_PORT;
         $this->spam = new Spam($this->dbhr, $this->dbhm);
 
         if ($id) {

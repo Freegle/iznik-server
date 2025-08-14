@@ -23,6 +23,8 @@ if (count($opts) < 1) {
     $m = new Message($dbhr, $dbhm, $id);
 
     $s = new spamc;
+    $s->host = SPAMD_HOST;
+    $s->port = SPAMD_PORT;
     $s->command = 'CHECK';
     $s->filter($m->getMessage());
     var_dump($s->result);

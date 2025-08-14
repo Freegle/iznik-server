@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y dnsutils openssl zip unzip git libxml2-
     php8.1-xdebug php8.1-mbstring php8.1-simplexml php8.1-curl php8.1-zip postgresql-client php8.1-gd  \
     php8.1-xmlrpc php8.1-redis php8.1-pgsql curl libpq-dev php-pear php-dev libgeoip-dev libcurl4-openssl-dev wget \
     php-mbstring php-mailparse geoip-bin geoip-database php8.1-pdo-mysql cron rsyslog net-tools php8.1-fpm nginx telnet \
-    tesseract-ocr ca-certificates gnupg lsb-release
+    tesseract-ocr ca-certificates gnupg lsb-release geoipupdate
 
 # Install Node.js and npm
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
@@ -105,6 +105,21 @@ CMD /etc/init.d/ssh start \
   && sed -ie "s@'LOVE_JUNK_API', '.*'@'LOVE_JUNK_API', '$LOVE_JUNK_API'@" /etc/iznik.conf \
   && sed -ie "s@'LOVE_JUNK_SECRET', '.*'@'LOVE_JUNK_SECRET', '$LOVE_JUNK_SECRET'@" /etc/iznik.conf \
   && sed -ie "s@'IMAGE_DOMAIN', '.*'@'IMAGE_DOMAIN', '$IMAGE_DOMAIN'@" /etc/iznik.conf \
+
+  # Setup GeoIP updates - continue even if download limit is reached
+  && rm -f /tmp/geoipupdate.failed \
+  && if [ -f /run/secrets/MAXMIND_ACCOUNT ] && [ -f /run/secrets/MAXMIND_KEY ]; then \
+      export MAXMIND_ACCOUNT=`cat /run/secrets/MAXMIND_ACCOUNT` \
+      && export MAXMIND_KEY=`cat /run/secrets/MAXMIND_KEY` \
+      && mkdir -p /usr/share/GeoIP \
+      && echo "AccountID $MAXMIND_ACCOUNT" > /etc/GeoIP.conf \
+      && echo "LicenseKey $MAXMIND_KEY" >> /etc/GeoIP.conf \
+      && echo "ProductIds GeoLite2-Country GeoLite2-City" >> /etc/GeoIP.conf \
+      && echo "DatabaseDirectory /usr/share/GeoIP" >> /etc/GeoIP.conf \
+      && (geoipupdate -v -f /etc/GeoIP.conf || (echo "GeoIP update failed - continuing startup" && touch /tmp/geoipupdate.failed)) \
+    ; else \
+      echo "MaxMind credentials not found - skipping GeoIP update" && touch /tmp/geoipupdate.failed \
+    ; fi \
 
 	# We need to make some minor schema tweaks otherwise the schema fails to install.
   && sed -ie 's/ROW_FORMAT=DYNAMIC//g' install/schema.sql \

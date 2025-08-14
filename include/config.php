@@ -110,3 +110,11 @@ if (!defined('MMDB')) {
         define('MMDB', '/var/lib/GeoIP/GeoLite2-Country.mmdb');
     }
 }
+
+if (!defined('SPAMD_HOST')) {
+    define('SPAMD_HOST', 'localhost');
+}
+
+if (!defined('SPAMD_PORT')) {
+    define('SPAMD_PORT', 783);
+}

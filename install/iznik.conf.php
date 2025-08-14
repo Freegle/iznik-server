@@ -16,6 +16,10 @@ define('PGSQLUSER', 'iznik');
 define('PGSQLDB', 'iznik');
 define('PGSQLPASSWORD', 'iznik');
 
+# SpamAssassin daemon configuration
+define('SPAMD_HOST', 'localhost');
+define('SPAMD_PORT', 783);
+
 # Logos
 define('USERLOGO', 'https://www.ilovefreegle.org/icon.png');
 define('MODLOGO', 'https://modtools.org/images/modlogo-large.jpg');
