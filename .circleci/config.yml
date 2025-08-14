@@ -1,0 +1,190 @@
+version: 2
+jobs:
+  build:
+    environment:
+      - STANDALONE=TRUE
+      - NO_UNMAPPED_TO_PENDING=TRUE
+      - XDEBUG_MODE=coverage
+    docker:
+      - image: cimg/php:8.1-node
+      - image: cimg/redis:7.0
+      - image: schickling/beanstalkd
+      - image: cimg/mysql:8.0
+        environment:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_ROOT_PASSWORD: ''
+          MYSQL_DATABASE: iznik
+          MYSQL_ROOT_HOST: 127.0.0.1
+      - image: circleci/postgres:12-postgis
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD
+        environment:
+          POSTGRES_USER: iznik
+          POSTGRES_PASSWORD: iznik
+    steps:
+      - checkout
+      - run: sudo apt-get update
+
+      # PHP extensions
+      - run: sudo apt install dnsutils openssl zip unzip git libxml2-dev libzip-dev zlib1g-dev libcurl4-openssl-dev iputils-ping default-mysql-client vim libpng-dev libgmp-dev libjpeg-turbo8-dev tesseract-ocr
+      - run: sudo apt-get install php-xmlrpc php8.1-intl php8.1-xdebug php8.1-mbstring php8.1-simplexml php8.1-curl php8.1-zip postgresql-client php8.1-gd php8.1-xmlrpc php8.1-redis php8.1-pgsql php-mailparse redis-server redis-tools php-xdebug
+      - run: sudo pecl install xdebug
+      - run: sudo pecl install mailparse
+      - run: sudo pecl install igbinary
+      - run: sudo sh -c "echo Y | pecl install redis"
+
+      - run: sudo curl -sL https://deb.nodesource.com/setup_22.x | sudo bash -
+      - run: sudo apt update
+      - run: sudo apt -y install nodejs
+      - run: sudo rm /usr/local/bin/node
+
+      - run: sudo -E apt-get install -y libpq-dev
+
+      # Spamassassin for filtering
+      - run: sudo apt-get install -y spamassassin spamc psmisc
+      - run: sudo groupadd spamd
+      - run: sudo useradd -g spamd -s /bin/false -d /var/log/spamassassin spamd
+      - run: sudo mkdir /var/log/spamassassin
+      - run: sudo sed -i 's/ENABLED=0/ENABLED=1/g' /etc/default/spamassassin
+      - run: sudo sed -i 's/home-dir/home-dir -4/g' /etc/default/spamassassin
+      - run: sudo service spamassassin start
+
+      # Postgresql
+      - run: sudo apt-get install -y postgresql-client-common postgresql-client
+      - run: |
+          psql \
+          -h 127.0.0.1 -U iznik -d circle_test \
+          -c "CREATE DATABASE iznik;"
+      - run: |
+          psql \
+          -h 127.0.0.1 -U iznik -d iznik \
+          -c "CREATE EXTENSION IF NOT EXISTS postgis;"
+      - run: |
+          psql \
+          -h 127.0.0.1 -U iznik -d circle_test \
+          -c "CREATE TYPE location_type AS ENUM('Road','Polygon','Line','Point','Postcode');"
+      - run: |
+          psql \
+          -h 127.0.0.1 -U iznik -d circle_test \
+          -c "CREATE TABLE IF NOT EXISTS locations(id serial, locationid bigint, name text, type location_type, area numeric, location geometry);"
+
+      # GeoIP
+      - run: sudo apt-get install -y automake autoconf libtool build-essential libcurl4-openssl-dev zlib1g-dev
+      - run: git clone https://github.com/maxmind/geoipupdate-legacy ; cd geoipupdate-legacy ; ./bootstrap ; ./configure ; make
+      - run: sudo make install ; cd ..
+      - run: sudo mkdir /usr/local/share/GeoIP
+      - run: sudo chmod 777 /usr/local/share/GeoIP
+      - run: echo AccountID $MAXMIND_ACCOUNT > /tmp/GeoIP.conf
+      - run: echo LicenseKey $MAXMIND_KEY >> /tmp/GeoIP.conf
+      - run: echo ProductIds GeoLite2-Country GeoLite2-City >> /tmp/GeoIP.conf
+      - run: sudo geoipupdate-legacy/bin/geoipupdate -v -f /tmp/GeoIP.conf
+
+      # /etc/iznik.conf is where our config goes on the live server.  We have some keys in environment variables.
+      - run: sudo cp install/iznik.conf.php /etc/iznik.conf
+      - run: sudo chmod 777 /etc/iznik.conf
+
+      # Key for JWT.
+      - run: sudo sh -c 'echo secret > /etc/iznik_jwt_secret'
+      - run: sudo chmod 777 /etc/iznik_jwt_secret
+
+      # Redis listens on localhost, whereas we use a unix socket on the live servers.
+      - run: sudo sed -ie 's/\/var\/run\/redis\/redis.sock/127.0.0.1/g' /etc/iznik.conf
+
+      - run: sudo sed -ie "s/'AZURE_CONNECTION_STRING', 'zzzz'/'AZURE_CONNECTION_STRING', '$AZURE_CONNECTION_STRING'/g" /etc/iznik.conf
+      - run: sudo sed -ie "s/'PLAYGROUND_TOKEN', 'zzzz'/'PLAYGROUND_TOKEN', '$PLAYGROUND_TOKEN'/g" /etc/iznik.conf
+      - run: sudo sed -ie "s/'PLAYGROUND_SECRET', 'zzzz'/'PLAYGROUND_SECRET', '$PLAYGROUND_SECRET'/g" /etc/iznik.conf
+      - run: sudo sed -ie "s/'FBGRAFFITIAPP_ID', 'zzz'/'FBGRAFFITIAPP_ID', '$FBGRAFFITIAPP_ID'/g" /etc/iznik.conf
+      - run: sudo sed -ie "s/'FBGRAFFITIAPP_SECRET', 'zzz'/'FBGRAFFITIAPP_SECRET', '$FBGRAFFITIAPP_SECRET'/g" /etc/iznik.conf
+      - run: sudo sed -ie "s/'CHAT_HOST', 'users.ilovefreegle.org'/'CHAT_HOST', NULL/g" /etc/iznik.conf
+      - run: sudo sed -ie "s/'MAPBOX_TOKEN', 'zzzz'/'MAPBOX_TOKEN', '$MAPBOX_TOKEN'/g" /etc/iznik.conf
+      - run: sudo sed -ie "s/'SENTRY_DSN', 'zzzz'/'SENTRY_DSN', '$SENTRY_DSN'/g" /etc/iznik.conf
+      - run: sudo sed -ie "s/'PGSQLDB', 'iznik'/'PGSQLDB', 'circle_test'/g" /etc/iznik.conf
+      - run: sudo sed -ie "s/LOVE_JUNK_SECRET/$LOVE_JUNK_SECRET/g" /etc/iznik.conf
+      - run: sudo sed -ie "s/'TUS_UPLOADER', NULL/'TUS_UPLOADER', '$TUS_UPLOADER'/g" /etc/iznik.conf
+      - run: sudo sed -ie "s/'GOOGLE_GEMINI_API_KEY', 'zzzz'/'GOOGLE_GEMINI_API_KEY', '$GOOGLE_GEMINI_API_KEY'/g" /etc/iznik.conf
+
+      - run: echo "define('SQLLOG', TRUE);" >> /etc/iznik.conf
+
+      - run: sudo touch /tmp/iznik.uploadlock
+      - run: sudo chmod 777 /tmp/iznik.uploadlock
+
+      # phpunit.xml is set up for running tests on our debug server.
+      - run: sudo sed -ie 's/\/var\/www\/iznik.mt.dbg\//\//g' test/ut/php/phpunit.xml
+
+      # Set up the DB.  We need to make some minor schema tweaks otherwise it fails to install.
+      - run: sudo apt-get install -y default-mysql-client
+      - run: sudo sed -ie 's/ROW_FORMAT=DYNAMIC//g' install/schema.sql
+      - run: sudo sed -ie 's/timestamp(3)/timestamp/g' install/schema.sql
+      - run: sudo sed -ie 's/timestamp(6)/timestamp/g' install/schema.sql
+      - run: sudo sed -ie 's/CURRENT_TIMESTAMP(3)/CURRENT_TIMESTAMP/g' install/schema.sql
+      - run: sudo sed -ie 's/CURRENT_TIMESTAMP(6)/CURRENT_TIMESTAMP/g' install/schema.sql
+      - run: mysql --host="127.0.0.1" -u root iznik < install/schema.sql
+      - run: mysql --host="127.0.0.1" -u root iznik < install/functions.sql
+      - run: mysql --host="127.0.0.1" -u root iznik < install/damlevlim.sql
+      - run: mysql --host="127.0.0.1" -u root -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'"
+
+      # ...and change some config, otherwise some of the larger attachment inserts fail.
+      - run: mysql --host="127.0.0.1" -u root -e "set global max_allowed_packet=33554432"
+
+      # Install composer dependencies.
+      - run: composer self-update
+      - run: cd composer; echo Y | composer install ; cd ..
+      - run:
+          name: Background job
+          command: while ! nc -z localhost 11300; do sleep 1; done; php scripts/cron/background.php
+          background: true
+      - run:
+          name: Export job
+          command: php scripts/cron/exports.php
+          background: true
+
+      # Set up the environment we need for running our UT.
+      - run: php install/testenv.php
+
+      # Set up ModBot user with validated email for AI testing
+      - run:
+          name: Setup ModBot User
+          command: |
+            php -r "
+            require_once 'include/config.php';
+            require_once IZNIK_BASE . '/include/db.php';
+            global \$dbhr, \$dbhm;
+            
+            \$u = new Freegle\Iznik\User(\$dbhr, \$dbhm);
+            \$existingUser = \$u->findByEmail(MODBOT_USER);
+            
+            if (!\$existingUser) {
+                echo 'Creating ModBot user...' . PHP_EOL;
+                \$uid = \$u->create('ModBot', 'AI', 'ModBot AI Assistant');
+                \$u->addEmail(MODBOT_USER, 1, TRUE); // Primary email, validated
+                echo 'ModBot user created with ID: ' . \$uid . PHP_EOL;
+            } else {
+                echo 'ModBot user already exists with ID: ' . \$existingUser['id'] . PHP_EOL;
+                \$u = new Freegle\Iznik\User(\$dbhr, \$dbhm, \$existingUser['id']);
+                // Ensure email is validated
+                \$dbhm->preExec('UPDATE users_emails SET validated = NOW() WHERE userid = ? AND email = ?', [\$existingUser['id'], MODBOT_USER]);
+                echo 'ModBot email validated' . PHP_EOL;
+            }
+            
+            // Add to test groups as moderator for testing
+            \$g = new Freegle\Iznik\Group(\$dbhr, \$dbhm);
+            \$testGroups = ['FreeglePlayground', 'FreeglePlayground2'];
+            
+            foreach (\$testGroups as \$groupName) {
+                \$gid = \$g->findByShortName(\$groupName);
+                if (\$gid) {
+                    \$u->addMembership(\$gid, Freegle\Iznik\User::ROLE_MODERATOR);
+                    echo 'Added ModBot as moderator to group: ' . \$groupName . ' (ID: ' . \$gid . ')' . PHP_EOL;
+                }
+            }
+            
+            echo 'ModBot setup complete' . PHP_EOL;
+            "
+
+      # Run the UT.
+      - run:
+          name: PHPUnit Tests
+          no_output_timeout: 30m
+          command: cd http/api; ../../composer/vendor/bin/phpunit -d memory_limit=512M --stderr --bootstrap ../../composer/vendor/autoload.php -dxdebug.mode=coverage --coverage-clover ../../test/ut/php/clover.xml --configuration ../../test/ut/php/phpunit.xml ../../test/ut/php/
+      - run: php composer/vendor/bin/php-coveralls -v
