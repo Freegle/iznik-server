@@ -69,23 +69,15 @@ class MailRouterTest extends IznikTestCase {
         $u2 = User::get($this->dbhr, $this->dbhm, $uid2);
         $this->assertGreaterThan(0, $u->addEmail('test2@test.com'));
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace("X-Yahoo-Group-Post: member; u=420816297", "X-Yahoo-Group-Post: member; u=-1", $msg);
-
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list($r, $id, $failok, $rc) = $this->createTestMessage('basic', 'FreeglePlayground', 'from@test.com', 'to@test.com', $gid, $this->uid, ["X-Yahoo-Group-Post: member; u=420816297" => "X-Yahoo-Group-Post: member; u=-1"]);
         $this->assertNotNull($id);
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $this->assertEquals($this->uid, $m->getFromuser());
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/fromyahoo'));
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list($r, $id, $failok, $rc) = $this->createTestMessage('fromyahoo', 'FreeglePlayground', 'from@test.com', 'to@test.com', $gid, $this->uid);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $this->assertEquals('Yahoo-Web', $m->getSourceheader());
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Test group override
@@ -108,20 +100,13 @@ class MailRouterTest extends IznikTestCase {
     }
 
     public function testHamNoGroup() {
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace("freegleplayground@yahoogroups.com", "nogroup@yahoogroups.com", $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list($r, $id, $failok, $rc) = $this->createTestMessage('basic', 'nogroup', 'from@test.com', 'to@test.com', NULL, NULL, ["freegleplayground@yahoogroups.com" => "nogroup@yahoogroups.com"]);
         $this->assertNotNull($id);
-        $this->assertEquals(MailRouter::DROPPED, $r->route());
+        $this->assertEquals(MailRouter::DROPPED, $rc);
     }
 
     public function testSpamNoGroup() {
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
-        $msg = str_replace("FreeglePlayground <freegleplayground@yahoogroups.com>", "Nowhere <nogroup@yahoogroups.com>", $msg);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
+        list($r, $id, $failok, $rc) = $this->createTestMessage('spam', 'nogroup', 'from@test.com', 'to@test.com', NULL, NULL, ["FreeglePlayground <freegleplayground@yahoogroups.com>" => "Nowhere <nogroup@yahoogroups.com>"]);
         $this->assertEquals(MailRouter::DROPPED, $rc);
     }
 

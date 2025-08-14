@@ -30,20 +30,16 @@ class spammersAPITest extends IznikAPITestCase {
 
         list($this->group, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
 
-        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        list($this->user, $this->uid, $emailid) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User', 'test@test.com', 'testpw');
         $this->user->addEmail('test2@test.com');
-        $this->assertEquals(1, $this->user->addMembership($this->groupid));
     }
 
     public function testBasic() {
         $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail($u->inventEmail());
+        $inventedEmail = $u->inventEmail();
+        list($u, $uid, $emailid) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User', $inventedEmail, 'testpw');
         $this->assertGreaterThan(0, $u->addEmail('test3@test.com'));
         $this->assertGreaterThan(0, $u->addEmail('test4@test.com'));
-
-        # Add them to a group, so that when they get onto a list we can trigger their removal.
-        $this->assertTrue($u->addMembership($this->groupid));
 
         # And create a message from them, so that gets removed too.
         $this->user->setMembershipAtt($this->groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);

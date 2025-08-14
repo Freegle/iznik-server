@@ -128,15 +128,9 @@ class membershipsAPITest extends IznikAPITestCase {
 
     public function testJoinAndSee() {
         # Check that if we join a group we can see messages on it immediately.
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list($r, $id, $failok, $rc) = $this->createTestMessage('basic', 'testgroup', 'from@test.com', 'to@test.com', $this->groupid, $this->uid, ['22 Aug 2015' => '22 Aug 2035']);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $m->setPrivate('sourceheader', Message::PLATFORM);
-
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $this->log("Approved id $id");
 
@@ -615,13 +609,8 @@ class membershipsAPITest extends IznikAPITestCase {
         $this->log("Created user $uid");
 
         # Send a message.
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($origid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list($r, $origid, $failok, $rc) = $this->createTestMessage('basic', 'testgroup', 'from@test.com', 'to@test.com', $this->groupid, $uid, ['Subject: Basic test' => 'Subject: [Group-tag] Offer: thing (place)']);
         $this->assertNotNull($origid);
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Now mark the message as complete

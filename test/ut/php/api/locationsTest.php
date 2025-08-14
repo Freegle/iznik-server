@@ -55,8 +55,7 @@ class locationsAPITest extends IznikAPITestCase
 
         list($this->group, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
 
-        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
-        $this->assertEquals(1, $this->user->addMembership($this->groupid));
+        list($this->user, $this->uid, $emailid) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User', 'test@test.com', 'testpw');
     }
 
     public function testPost()
@@ -72,12 +71,8 @@ class locationsAPITest extends IznikAPITestCase
 
         # Create a message which should have the first subject suggested.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_ireplace('Basic test', 'OFFER: Test (Tuvalu High Street)', $msg);
-
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
+        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->groupid, $this->uid);
         $this->assertEquals(MailRouter::PENDING, $rc);
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -140,12 +135,8 @@ class locationsAPITest extends IznikAPITestCase
         $this->assertEquals($fullpcid, $this->group->getPublic()['defaultlocation']['id']);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_ireplace('Basic test', 'OFFER: Test (TV13 1HH)', $msg);
-
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
+        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->groupid, $this->uid);
         $this->assertEquals(MailRouter::PENDING, $rc);
 
         $m = new Message($this->dbhr, $this->dbhm, $id);

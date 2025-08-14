@@ -29,11 +29,9 @@ class userAPITest extends IznikAPITestCase {
 
         list($this->group, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
 
-        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
-        $this->assertEquals(1, $this->user->addMembership($this->groupid));
+        list($this->user, $this->uid, $emailid) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User', 'test@test.com', 'testpw');
 
-        list($this->user2, $this->uid2, $emailid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
-        $this->assertEquals(1, $this->user2->addMembership($this->groupid));
+        list($this->user2, $this->uid2, $emailid2) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User', 'test2@test.com', 'testpw');
 
         $this->assertTrue($this->user->login('testpw'));
     }

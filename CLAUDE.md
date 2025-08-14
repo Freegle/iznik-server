@@ -3,9 +3,11 @@
 ## PHPUnit Test Refactoring Approach
 
 Continue refactoring to move duplicate code within the phpunit tests into utility functions. Take the following approach:
-1) Identify duplicate code patterns in tests.
-2) Use an existing utility method (extend if necessary) or create a new one.
-3) **BATCH REFACTORING**: Once you've decided on a change pattern:
+1) Review the existing utility methods in IznikTestCase.php to understand what's available.
+2) Identify duplicate code patterns in tests or code which could be refactored to use existing utility methods.
+3) Use an existing utility method (extend if necessary) or create a new one.
+4) **IMPORTANT**: Only create a utility method if this would save lines of code vs the original. If a utility method call would be as long or longer than the original code pattern, don't create the utility method.
+5) **BATCH REFACTORING**: Once you've decided on a change pattern:
    a) Identify ALL tests that use this pattern 
    b) Refactor ALL of them in sequence without pausing
    c) Test each refactored file immediately after changes
@@ -35,17 +37,37 @@ Continue refactoring to move duplicate code within the phpunit tests into utilit
   - `createTestGroup()` - Group creation
   - `createTestUserWithMembership()` - User creation + group membership
 
+**Data Providers for Test Optimization:**
+- Use PHPUnit data providers where there are very similar test cases that only differ by input parameters
+- When you identify multiple test methods that follow the same pattern but test different inputs, consider consolidating them into a single test method with a data provider
+- Data providers reduce code duplication and make test intent clearer
+- Example: Instead of `testValidEmailA()`, `testValidEmailB()`, `testValidEmailC()` each testing different email formats, use `testValidEmail($email)` with a data provider containing all email formats
+
 **Error Handling:**
 - If a test fails after refactoring, determine if it's due to your changes:
-  1. Revert your refactoring changes to the file
-  2. Run the test again to see if it passes in the original state
-  3. If the original test also fails, the issue is pre-existing:
-     - Note the pre-existing issue for reference
-     - Re-apply your refactoring changes (they're not the cause)
-     - Continue with the refactoring process
-  4. If the original test passes, then your refactoring introduced the bug - fix it
+  1. **DO NOT immediately revert** - first try to fix the refactoring to make the test pass
+  2. Analyze what the test is actually testing and why your refactoring broke it
+  3. **Try harder and be more careful** - examine parameters passed and how users are set up beforehand
+  4. **Don't just fix it by reverting to the original** - be persistent and methodical in debugging
+  5. Look at setUp methods, earlier test logic, and the specific requirements of the test
+  6. Adjust your utility method usage or parameters to preserve the original test behavior exactly
+  7. Only revert as a last resort if you cannot make the refactoring work after genuine effort
+- **Be aggressive about fixing refactoring issues rather than giving up**
 - Only spend time debugging tests that your refactoring actually broke
 - Pre-existing test failures should not block refactoring progress
+- **IMPORTANT**: If you give up on refactoring a specific change due to complexity or errors, only revert that specific change - don't revert earlier successful changes that already passed tests
+
+**Debugging Refactored Tests:**
+- When a test fails after refactoring, examine:
+  1. What setUp() method established (existing users, groups, etc.)
+  2. What the test is specifically testing (spam detection, user relationships, etc.)
+  3. Whether your utility method parameters match the original logic exactly
+  4. Whether the utility method creates the same state as the original code
+- Common fixes for refactoring issues:
+  - Adjust email addresses to match what the test expects
+  - Ensure user IDs, group memberships, and roles are identical to original
+  - Check that timing, order of operations, and side effects are preserved
+  - Verify that complex test logic (loops, conditionals) still works with your changes
 
 ## Running Tests
 
@@ -93,3 +115,5 @@ php composer/vendor/phpunit/phpunit/phpunit --configuration test/ut/php/phpunit.
 - The `--filter` parameter accepts class names, method names, or patterns
 - Add `--teamcity` for CI-friendly output format
 - API test classes often have naming mismatches (file: `communityEventTest.php`, class: `communityEventAPITest`)
+- When refactoring MailRouter, never change the expected result of PENDING, APPROVED etc.
+- When summarising, show the % change in lines of code (using wc) for the current vs reference checkout

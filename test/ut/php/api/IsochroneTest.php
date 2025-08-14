@@ -43,7 +43,7 @@ class isochroneAPITest extends IznikAPITestCase
         ];
 
         $u->setPrivate('settings', json_encode($settings));
-        $this->addLoginAndLogin($u, 'testpw');
+        $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('isochrone', 'GET', []);
 
@@ -105,7 +105,7 @@ class isochroneAPITest extends IznikAPITestCase
 
         $email = 'test-' . rand() . '@blackhole.io';
         $u->addEmail($email);
-        $this->addLoginAndLogin($u, 'testpw');
+        $this->assertTrue($u->login('testpw'));
 
         $u->addEmail('test@test.com');
         $u->addMembership($group1);
@@ -173,7 +173,7 @@ class isochroneAPITest extends IznikAPITestCase
         ];
 
         $u->setPrivate('settings', json_encode($settings));
-        $this->addLoginAndLogin($u, 'testpw');
+        $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('isochrone', 'GET', []);
 
@@ -235,7 +235,7 @@ class isochroneAPITest extends IznikAPITestCase
 
         $email = 'test-' . rand() . '@blackhole.io';
         $u->addEmail($email);
-        $this->addLoginAndLogin($u, 'testpw');
+        $this->assertTrue($u->login('testpw'));
 
         $u->addEmail('test@test.com');
         $u->addMembership($group1);
@@ -273,7 +273,7 @@ class isochroneAPITest extends IznikAPITestCase
         $u->addMembership($group1, User::ROLE_MODERATOR);
         $email = 'test-' . rand() . '@blackhole.io';
         $u->addEmail($email);
-        $this->addLoginAndLogin($u, 'testpw');
+        $this->assertTrue($u->login('testpw'));
 
         $poly = 'POLYGON((-3.18 55.99,-3.1 55.99,-3.1 56.1,-3.18 56.1,-3.18 55.99))';
 

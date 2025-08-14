@@ -45,8 +45,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $pcatts = $l->getPublic();
         $this->assertEquals($this->areaid, $pcatts['areaid']);
 
-        list($this->user, $this->uid, $emailid1) = $this->createTestUser(NULL, NULL, 'Test User', 'test1@test.com', 'testpw');
-        $this->user->addMembership($gid);
+        list($this->user, $this->uid, $emailid1) = $this->createTestUserWithMembership($gid, User::ROLE_MEMBER, 'Test User', 'test1@test.com', 'testpw');
         $this->assertEquals('testgroup1', $this->user->getPublicLocation()['display']);
         $this->user->setPrivate('lastlocation', $this->fullpcid);
         $this->user->setSetting('mylocation', $pcatts);

@@ -290,25 +290,40 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
 
     /**
      * Create a test message using MailRouter
-     * @param string|null $content Message content (uses basic test message if null)
+     * @param string|null $sourceFile Message source file name (e.g. 'basic', 'spam') or full content if prefixed with full path
      * @param string $groupname Group name to replace in message
      * @param string $fromEmail From email address
      * @param string $toEmail To email address  
      * @param int|null $groupid Group ID for user membership (needed for approval)
      * @param int|null $userid User ID to set up membership for (creates user if null)
+     * @param array $substitutions Array of find=>replace substitutions to apply to message
      * @param bool $expectSuccess Whether message creation should succeed (default: TRUE)
      * @param bool $expectFailok Whether MailRouter should return failok=TRUE (default: TRUE)
+     * @param int|null $expectedRC Expected routing result (default: null, no assertion)
      */
-    protected function createTestMessage($content, $groupname, $fromEmail, $toEmail, $groupid, $userid, $expectSuccess = TRUE, $expectFailok = FALSE) {
-        if ($content === null) {
-            $basicMsgPath = IZNIK_BASE . '/test/ut/php/msgs/basic';
-            $this->assertFileExists($basicMsgPath, "Basic message file not found");
-            $content = $this->unique(file_get_contents($basicMsgPath));
+    protected function createTestMessage($sourceFile = 'basic', $groupname = 'testgroup', $fromEmail = 'from@test.com', $toEmail = 'to@test.com', $groupid = NULL, $userid = NULL, $substitutions = []) {
+        // Load source file
+        if ($sourceFile === null || $sourceFile === 'basic') {
+            $msgPath = IZNIK_BASE . '/test/ut/php/msgs/basic';
+        } elseif (strpos($sourceFile, '/') !== FALSE) {
+            // Full path provided
+            $msgPath = $sourceFile;
+        } else {
+            // Source file name provided
+            $msgPath = IZNIK_BASE . '/test/ut/php/msgs/' . $sourceFile;
         }
+        
+        $content = $this->unique(file_get_contents($msgPath));
         $this->assertNotEmpty($content, "Message content is empty");
         
+        // Apply default substitutions
         $content = str_ireplace('freegleplayground', $groupname, $content);
-        $content = str_ireplace('Subject: Basic test', 'Subject: OFFER: Test item (Edinburgh EH3)', $content);
+        
+        // Apply custom substitutions
+        foreach ($substitutions as $find => $replace) {
+            $content = str_ireplace($find, $replace, $content);
+        }
+        
         $this->assertStringContainsString($groupname, $content, "Group name replacement failed");
         
         // Set up user membership for message approval if group and user provided
@@ -425,7 +440,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
      * Create a conversation between two users
      * @param int $user1 First user ID
      * @param int $user2 Second user ID
-     * @return array [conversation_id, blocked_status]
+     * @return array [ChatRoom_object, conversation_id, blocked_status]
      */
     protected function createTestConversation($user1, $user2) {
         $this->assertGreaterThan(0, $user1, "User 1 ID must be valid");
@@ -435,7 +450,9 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         list ($id, $blocked) = $r->createConversation($user1, $user2);
         $this->assertNotNull($id, "Failed to create conversation");
         
-        return [$id, $blocked];
+        // Return the ChatRoom object for the conversation
+        $conversation = new ChatRoom($this->dbhr, $this->dbhm, $id);
+        return [$conversation, $id, $blocked];
     }
 
     /**

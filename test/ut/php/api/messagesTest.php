@@ -30,8 +30,8 @@ class messagesTest extends IznikAPITestCase {
         $this->group->setPrivate('onhere', 1);
 
         list($this->user, $this->uid, $emailid) = $this->createTestUser('Test', 'User', 'Test User', 'test@test.com', 'testpw');
-        $this->user->addEmail('sender@example.net');
         $this->user->addMembership($this->gid);
+        $this->user->addEmail('sender@example.net');
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
     }
 
@@ -77,10 +77,7 @@ class messagesTest extends IznikAPITestCase {
         $this->assertFalse(array_key_exists('source', $msgs[0])); # Only a member, shouldn't see mod att
 
         # Now join and check we can see see it.
-        list($u, $id, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test1@test.com', 'testpw');
-        $rc = $u->addMembership($this->gid, User::ROLE_MEMBER);
-        $this->assertEquals(1, $rc);
-        $this->assertTrue($u->login('testpw'));
+        list($u, $id, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', 'test1@test.com', 'testpw');
 
         # Omit groupid - should use groups for currently logged in user.
         $ret = $this->call('messages', 'GET', [

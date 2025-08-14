@@ -35,21 +35,15 @@ class activityAPITest extends IznikAPITestCase
 
         list($g, $group1) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
 
-        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', $email, 'testpw');
-        $this->assertTrue($u->login('testpw'));
-
+        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($group1, User::ROLE_MEMBER, NULL, NULL, 'Test User', $email, 'testpw');
         $u->addEmail('test@test.com');
-        $u->addMembership($group1);
         $u->setMembershipAtt($group1, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
         $msg = $this->unique($origmsg);
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
-        $rc = $r->route();
+        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', $email, 'to@test.com', $group1, $uid);
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $ret = $this->call('activity', 'GET', [ 'grouptype' => Group::GROUP_REUSE ]);
