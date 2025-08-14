@@ -492,6 +492,9 @@ class newsfeedAPITest extends IznikAPITestCase {
         $g->setPrivate('lng', 179.15);
         $g->setPrivate('lat', 8.5);
 
+        # Add the user to the group so they can see the community event in their newsfeed
+        $this->user->addMembership($gid);
+
         list($e, $eid) = $this->createTestCommunityEvent('Test event', 'Test location', $this->uid, $gid);
         $e->setPrivate('pending', 0);
 

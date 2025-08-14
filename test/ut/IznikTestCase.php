@@ -257,9 +257,10 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
     }
 
     /**
-     * Create a test user with email and login - supports both original patterns:
+     * Create a test user with optional email and login - supports both original patterns:
      * - createTestUser('Test', 'User', NULL, 'email', 'pass') for firstname/lastname
      * - createTestUser(NULL, NULL, 'Test User', 'email', 'pass') for fullname only
+     * - createTestUser(NULL, NULL, 'Test User', NULL, 'pass') for no email initially
      */
     protected function createTestUser($firstname, $lastname, $fullname, $email, $password) {
         $u = User::get($this->dbhr, $this->dbhm);
@@ -273,10 +274,13 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         $this->assertNotNull($user, "Failed to retrieve created user");
         $this->assertEquals($uid, $user->getId(), "User ID mismatch");
         
-        // Add email - match original behavior exactly
-        $emailid = $user->addEmail($email);
-        // Don't assert on email addition - let the calling test handle the result as needed
-        // The original tests had different expectations for email addition success
+        // Add email only if provided - allows for tests that need users with no email initially
+        $emailid = NULL;
+        if ($email !== NULL) {
+            $emailid = $user->addEmail($email);
+            // Don't assert on email addition - let the calling test handle the result as needed
+            // The original tests had different expectations for email addition success
+        }
         
         $loginid = $user->addLogin(User::LOGIN_NATIVE, NULL, $password);
         $this->assertGreaterThan(0, $loginid, "Failed to add login for user");
@@ -421,7 +425,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
      * Create a conversation between two users
      * @param int $user1 First user ID
      * @param int $user2 Second user ID
-     * @return array [ChatRoom, conversation_id, blocked_status]
+     * @return array [conversation_id, blocked_status]
      */
     protected function createTestConversation($user1, $user2) {
         $this->assertGreaterThan(0, $user1, "User 1 ID must be valid");
@@ -431,7 +435,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         list ($id, $blocked) = $r->createConversation($user1, $user2);
         $this->assertNotNull($id, "Failed to create conversation");
         
-        return [$r, $id, $blocked];
+        return [$id, $blocked];
     }
 
     /**
@@ -477,8 +481,12 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
      */
     protected function createTestCommunityEvent($title = 'Test Event', $location = 'Test Location', $userid = NULL, $groupid = NULL) {
         $c = new CommunityEvent($this->dbhr, $this->dbhm);
-        $id = $c->create($userid, $title, $location, NULL, NULL, NULL, $groupid, NULL);
+        $id = $c->create($userid, $title, $location, NULL, NULL, NULL, NULL, 'Test description');
         $this->assertNotNull($id, "Failed to create community event");
+        
+        if ($groupid !== NULL) {
+            $c->addGroup($groupid);
+        }
         
         return [$c, $id];
     }
