@@ -69,8 +69,11 @@ class MailRouterTest extends IznikTestCase {
         $u2 = User::get($this->dbhr, $this->dbhm, $uid2);
         $this->assertGreaterThan(0, $u->addEmail('test2@test.com'));
 
-        list($r, $id, $failok, $rc) = $this->createTestMessage('basic', 'FreeglePlayground', 'from@test.com', 'to@test.com', $gid, $this->uid, ["X-Yahoo-Group-Post: member; u=420816297" => "X-Yahoo-Group-Post: member; u=-1"]);
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
         $this->assertNotNull($id);
+        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $this->assertEquals($this->uid, $m->getFromuser());
@@ -81,8 +84,7 @@ class MailRouterTest extends IznikTestCase {
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Test group override
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup1", Group::GROUP_REUSE);
+        list($g, $gid) = $this->createTestGroup("testgroup1", Group::GROUP_REUSE);
         $this->user->addMembership($gid);
         $this->user->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         User::clearCache();
@@ -501,9 +503,7 @@ class MailRouterTest extends IznikTestCase {
         for ($i = 0; $i < Spam::USER_THRESHOLD + 2; $i++) {
             $this->log("User $i");
 
-            $u = new User($this->dbhr, $this->dbhm);
-            $u->create('Test', 'User', 'Test User');
-            $u->addEmail("test$i@test.com");
+            list($u, $uid) = $this->createTestUser('Test', 'User', 'Test User', "test$i@test.com");
             $u->addMembership($this->gid);
             $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
@@ -534,8 +534,7 @@ class MailRouterTest extends IznikTestCase {
         # Our subject is whitelisted and therefore should go through ok
         for ($i = 0; $i < Spam::SUBJECT_THRESHOLD + 2; $i++) {
             $this->log("Group $i");
-            $g = Group::get($this->dbhr, $this->dbhm);
-            $gid = $g->create("testgroup$i", Group::GROUP_REUSE);
+            list($g, $gid) = $this->createTestGroup("testgroup$i", Group::GROUP_REUSE);
 
             $this->user->addMembership($gid);
             $this->user->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
@@ -669,7 +668,7 @@ class MailRouterTest extends IznikTestCase {
 
         for ($i = 0; $i < Spam::GROUP_THRESHOLD + 2; $i++) {
             $this->log("Group $i");
-            $gid = $g->create("testgroup$i", Group::GROUP_OTHER);
+            list($g_temp, $gid) = $this->createTestGroup("testgroup$i", Group::GROUP_OTHER);
 
             $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
 
@@ -780,8 +779,7 @@ class MailRouterTest extends IznikTestCase {
         User::clearCache();
 
         # Create a user for a reply.
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid2 = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test@example.com', 'testpw');
 
         # Send a message.
         list($r, $origid, $failok, $rc) = $this->createTestMessage('basic', 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid, ['Subject: Basic test' => 'Subject: [Group-tag] Offer: thing (place)']);
@@ -895,8 +893,7 @@ class MailRouterTest extends IznikTestCase {
         User::clearCache();
 
         # Create a user for a reply.
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid2 = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test@example.com', 'testpw');
 
         # Send a message.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -929,8 +926,7 @@ class MailRouterTest extends IznikTestCase {
     }
 
     public function testReplyToMissing() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid1 = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid1) = $this->createTestUser(NULL, NULL, 'Test User', 'test@example.com', 'testpw');
 
         # Send a purported reply to that user.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply2'));
@@ -956,8 +952,7 @@ class MailRouterTest extends IznikTestCase {
 
     public function testTNHeader() {
         # Create a user for a reply.
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid2 = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test@example.com', 'testpw');
 
         # Send a message.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -984,8 +979,7 @@ class MailRouterTest extends IznikTestCase {
 
     public function testTwoTexts() {
         # Create a user for a reply.
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid2 = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test@example.com', 'testpw');
 
         # Send a message.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -1031,14 +1025,10 @@ class MailRouterTest extends IznikTestCase {
         # Immediate emails have a reply address of replyto-msgid-userid
         #
         # Create a user for a reply.
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid2 = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail('test2@test.com');
+        list($u, $uid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test2@test.com');
 
         # And a promise
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid3 = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail('test3@test.com');
+        list($u3, $uid3) = $this->createTestUser(NULL, NULL, 'Test User', 'test3@test.com');
 
         # Send a message.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -1090,13 +1080,10 @@ class MailRouterTest extends IznikTestCase {
 
     public function testMailOff() {
         # Create the sending user
-        $u = User::get($this->dbhm, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail('from@test.com');
+        list($u, $uid) = $this->createTestUser(NULL, NULL, 'Test User', 'from@test.com');
         $this->log("Created user $uid");
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup1", Group::GROUP_REUSE);
+        list($g, $gid) = $this->createTestGroup("testgroup1", Group::GROUP_REUSE);
         $u->addMembership($gid);
 
         $u->setMembershipAtt($gid, 'emailfrequency', 24);
@@ -1130,8 +1117,7 @@ class MailRouterTest extends IznikTestCase {
         $atts = $u->getPublic();
         $this->assertTrue($atts['settings']['notificationmails']);
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup1", Group::GROUP_REUSE);
+        list($g, $gid) = $this->createTestGroup("testgroup1", Group::GROUP_REUSE);
         $u->addMembership($gid);
 
         # Turn off by email
@@ -1804,8 +1790,7 @@ class MailRouterTest extends IznikTestCase {
         User::clearCache();
 
         # Create a user for a reply.
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid2 = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test@example.com', 'testpw');
 
         # Send a message.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -1863,9 +1848,7 @@ class MailRouterTest extends IznikTestCase {
         $u = User::get($this->dbhr, $this->dbhm);
 
         # Create a different user which will cause a merge.
-        $u2 = User::get($this->dbhr, $this->dbhm);
-        $uid2 = $u->create(NULL, NULL, 'Test User');
-        $u2 = User::get($this->dbhr, $this->dbhm, $uid2);
+        list($u2, $uid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test@example.com', 'testpw');
         $this->assertGreaterThan(0, $u->addEmail('test2@test.com'));
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/' . $file));

@@ -746,8 +746,7 @@ class membershipsAPITest extends IznikAPITestCase {
     public function testChatUnread($chatread) {
         # Create two mods on the group
         $this->user2->addMembership($this->groupid, User::ROLE_MODERATOR);
-        $othermod = User::get($this->dbhr, $this->dbhm);
-        $othermoduid = $othermod->create(NULL, NULL, 'Test User');
+        list($othermod, $othermoduid) = $this->createTestUser(NULL, NULL, 'Test User');
         $othermod->addMembership($this->groupid, User::ROLE_MODERATOR);
 
         # Create a ModConfig.
