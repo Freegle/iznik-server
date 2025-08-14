@@ -34,8 +34,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'Tuvalu%';");
         $this->deleteLocations("DELETE FROM locations WHERE name LIKE 'TV13%';");
 
-        $g = new Group($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup1", Group::GROUP_REUSE);
+        list($g, $gid) = $this->createTestGroup("testgroup1", Group::GROUP_REUSE);
 
         $l = new Location($this->dbhr, $this->dbhm);
         $this->areaid = $l->create(NULL, 'Tuvalu Central', 'Polygon', 'POLYGON((179.21 8.53, 179.21 8.54, 179.22 8.54, 179.22 8.53, 179.21 8.53, 179.21 8.53))');
@@ -46,24 +45,16 @@ class newsfeedAPITest extends IznikAPITestCase {
         $pcatts = $l->getPublic();
         $this->assertEquals($this->areaid, $pcatts['areaid']);
 
-        $this->user = User::get($this->dbhr, $this->dbhm);
-        $this->uid = $this->user->create(NULL, NULL, 'Test User');
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->user->addMembership($gid);
+        list($this->user, $this->uid, $emailid1) = $this->createTestUserWithMembership($gid, User::ROLE_MEMBER, 'Test User', 'test1@test.com', 'testpw');
         $this->assertEquals('testgroup1', $this->user->getPublicLocation()['display']);
         $this->user->setPrivate('lastlocation', $this->fullpcid);
         $this->user->setSetting('mylocation', $pcatts);
         $this->assertEquals('Tuvalu Central', $this->user->getPublicLocation()['display']);
 
-        $this->user2 = User::get($this->dbhr, $this->dbhm);
-        $this->uid2 = $this->user2->create(NULL, NULL, 'Test User');
-        $this->assertGreaterThan(0, $this->user2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($this->user2, $this->uid2, $emailid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
         $this->user2->setPrivate('lastlocation', $this->fullpcid);
-        $this->user2->addEmail('test@test.com');
 
-        $this->user3 = User::get($this->dbhr, $this->dbhm);
-        $this->uid3 = $this->user3->create(NULL, NULL, 'Test User');
-        $this->assertGreaterThan(0, $this->user3->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($this->user3, $this->uid3, $emailid3) = $this->createTestUser(NULL, NULL, 'Test User', 'test3@test.com', 'testpw');
         $this->user3->setPrivate('lastlocation', $this->fullpcid);
 
         $this->dbhm->preExec("DELETE FROM volunteering WHERE title = 'Test opp';");
@@ -232,9 +223,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->assertEquals(0, $n->digest($this->uid2, TRUE, 0));
 
         # Hack it to have a message for coverage
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_REUSE);
-        $g = Group::get($this->dbhr, $this->dbhm, $gid);
+        list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
 
         $g->setPrivate('lng', 179.15);
         $g->setPrivate('lat', 8.5);
@@ -497,16 +486,15 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->assertTrue($this->user->login('testpw'));
 
         # Create an event - should result in a newsfeed item
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_REUSE);
-        $g = Group::get($this->dbhr, $this->dbhm, $gid);
+        list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
 
         $g->setPrivate('lng', 179.15);
         $g->setPrivate('lat', 8.5);
 
-        $e = new CommunityEvent($this->dbhr, $this->dbhm);
-        $eid = $e->create($this->uid, 'Test event', 'Test location', NULL, NULL, NULL, NULL, NULL);
-        $e->addGroup($gid);
+        # Add the user to the group so they can see the community event in their newsfeed
+        $this->user->addMembership($gid);
+
+        list($e, $eid) = $this->createTestCommunityEvent('Test event', 'Test location', $this->uid, $gid);
         $e->setPrivate('pending', 0);
 
         $ret = $this->call('newsfeed', 'GET', [
@@ -525,18 +513,13 @@ class newsfeedAPITest extends IznikAPITestCase {
     public function testVolunteering() {
         $this->assertTrue($this->user->login('testpw'));
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_REUSE);
-        $g = Group::get($this->dbhr, $this->dbhm, $gid);
+        list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
 
         $g->setPrivate('lng', 179.15);
         $g->setPrivate('lat', 8.5);
 
-        $e = new Volunteering($this->dbhr, $this->dbhm);
-        $eid = $e->create($this->uid, 'Test opp', FALSE, 'Test location', NULL, NULL, NULL, NULL, NULL, NULL);
+        list($e, $eid) = $this->createTestVolunteeringWithGroup($this->uid, 'Test opp', $gid);
         $this->log("Created $eid");
-        $e->addGroup($gid);
-        $e->setPrivate('pending', 0);
 
         $ret = $this->call('newsfeed', 'GET', [
             'types' => [
@@ -722,8 +705,7 @@ class newsfeedAPITest extends IznikAPITestCase {
 
     public function testAttach()
     {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+        list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
         $this->user->addMembership($gid, User::ROLE_MODERATOR);
         
         $this->log("Log in as {$this->uid}");
@@ -788,10 +770,8 @@ class newsfeedAPITest extends IznikAPITestCase {
         # uid2 not a mod - nothing to do.
         $this->assertEquals(0, $n->modnotif($this->uid2));
 
-        $g = new Group($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+        list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
         $this->log("Created group $gid");
-        $g = Group::get($this->dbhr, $this->dbhm, $gid);
 
         $g->setPrivate('lng', 179.15);
         $g->setPrivate('lat', 8.5);

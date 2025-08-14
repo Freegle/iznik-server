@@ -36,20 +36,16 @@ class eventDigestTest extends IznikTestCase {
 
     public function testEvents() {
         # Create a group with two events on it.
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup", Group::GROUP_REUSE);
+        list($g, $gid) = $this->createTestGroup("testgroup", Group::GROUP_REUSE);
 
         # And two users, one who wants events and one who doesn't.
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid1 = $u->create(NULL, NULL, "Test User");
-        $eid1 = $u->addEmail('test1@test.com');
-        $u->addEmail('test1@' . USER_DOMAIN);
-        $u->addMembership($gid, User::ROLE_MEMBER, $eid1);
-        $u->setMembershipAtt($gid, 'eventsallowed', 0);
-        $uid2 = $u->create(NULL, NULL, "Test User");
-        $eid2 = $u->addEmail('test2@test.com');
-        $u->addEmail('test2@' . USER_DOMAIN);
-        $u->addMembership($gid, User::ROLE_MEMBER, $eid2);
+        list($user1, $uid1, $eid1) = $this->createTestUser(NULL, NULL, "Test User", 'test1@test.com', 'testpw');
+        $user1->addEmail('test1@' . USER_DOMAIN);
+        $user1->addMembership($gid, User::ROLE_MEMBER, $eid1);
+        $user1->setMembershipAtt($gid, 'eventsallowed', 0);
+        list($user2, $uid2, $eid2) = $this->createTestUser(NULL, NULL, "Test User", 'test2@test.com', 'testpw');
+        $user2->addEmail('test2@' . USER_DOMAIN);
+        $user2->addMembership($gid, User::ROLE_MEMBER, $eid2);
 
         $e = new CommunityEvent($this->dbhr, $this->dbhm);
         $e->create($uid1, 'Test Event 1', 'Test Location', 'Test Contact Name', '000 000 000', 'test@test.com', 'http://ilovefreegle.org', 'A test event');
@@ -97,6 +93,7 @@ class eventDigestTest extends IznikTestCase {
         $this->assertEquals(0, $mock->send($gid));
 
         # Invalid email
+        $u = User::get($this->dbhr, $this->dbhm);
         $uid3 = $u->create(NULL, NULL, "Test User");
         $u->addEmail('test.com');
         $u->addMembership($gid);

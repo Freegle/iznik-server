@@ -26,12 +26,9 @@ class searchTest extends IznikTestCase
 
         $this->dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup';");
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $this->gid = $g->create('testgroup', Group::GROUP_REUSE);
+        list($g, $this->gid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $u->create(NULL, NULL, 'Test User');
-        $u->addEmail('test@test.com', 0, FALSE);
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
     }
@@ -92,7 +89,7 @@ class searchTest extends IznikTestCase
         $ctx = NULL;
         $this->log("Test fuzzy");
         $ret = $m->search("tuesday", $ctx);
-        $this->log("Fuzzy " . var_export($ctx, true));
+        $this->log("Fuzzy " . var_export($ctx, TRUE));
         $this->assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
             return $a['id'] == $id1;
         })));
@@ -100,7 +97,7 @@ class searchTest extends IznikTestCase
         # Test typo
         $ctx = NULL;
         $ret = $m->search("Tess", $ctx);
-        $this->log("Typo " . var_export($ctx, true));
+        $this->log("Typo " . var_export($ctx, TRUE));
         $this->assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
             return $a['id'] == $id1;
         })));
@@ -124,7 +121,7 @@ class searchTest extends IznikTestCase
         })));
 
         # Search again using the same context - will find starts with
-        $this->log("CTX " . var_export($ctx, true));
+        $this->log("CTX " . var_export($ctx, TRUE));
         $ret = $m->search("zzzutzzz", $ctx);
         $this->assertEquals(1, count(array_filter($ret, function($a) use ($id1) {
             return $a['id'] == $id1;

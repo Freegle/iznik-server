@@ -30,16 +30,12 @@ class storiesAPITest extends IznikAPITestCase {
     }
 
     public function testBasic() {
-        $u = new User($this->dbhr, $this->dbhm);
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
-        $u->addMembership($this->groupid);
+        list($g, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
+        $this->user->addMembership($this->groupid);
 
-        $u->setSetting('mylocation', [
+        $this->user->setSetting('mylocation', [
             'lng' => 179.2167,
             'lat' => 8.53333,
             'name' => 'TV13 1HH'
@@ -95,7 +91,7 @@ class storiesAPITest extends IznikAPITestCase {
         $this->assertEquals(2, $ret['ret']);
 
         # Make us a mod
-        $u->addMembership($this->groupid, User::ROLE_MODERATOR);
+        $this->user->addMembership($this->groupid, User::ROLE_MODERATOR);
         $this->assertTrue($this->user->login('testpw'));
 
         $ret = $this->call('stories', 'GET', [

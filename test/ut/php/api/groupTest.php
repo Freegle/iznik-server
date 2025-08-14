@@ -30,17 +30,8 @@ class groupAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup2';");
 
         # Create a moderator
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $this->group = $g;
-
-        $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
-
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
-        $emailid = $this->user->addEmail('test@test.com');
-        $this->user->addMembership($this->groupid, User::ROLE_MEMBER, $emailid);
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($this->group, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
+        list($this->user, $this->uid) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User', 'test@test.com', 'testpw');
     }
 
     protected function tearDown() : void {
@@ -124,7 +115,7 @@ class groupAPITest extends IznikAPITestCase {
             'id' => $this->groupid,
             'members' => TRUE
         ]);
-        $this->log(var_export($ret, true));
+        $this->log(var_export($ret, TRUE));
         $this->assertEquals(0, $ret['ret']);
         $this->assertFalse(Utils::pres('members', $ret['group']));
 
@@ -134,7 +125,7 @@ class groupAPITest extends IznikAPITestCase {
             'id' => $this->groupid,
             'members' => TRUE
         ]);
-        $this->log("Members " . var_export($ret, true));
+        $this->log("Members " . var_export($ret, TRUE));
         $this->assertEquals(0, $ret['ret']);
 
         $this->assertEquals(1, count($ret['group']['members']));
@@ -246,7 +237,7 @@ class groupAPITest extends IznikAPITestCase {
 
         $ret = $this->call('group', 'GET', [
             'id' => $this->groupid,
-            'pending' => true
+            'pending' => TRUE
         ]);
         $this->assertNotFalse(strpos($ret['group']['profile'], $attid));
         $this->assertEquals('Test slogan', $ret['group']['tagline']);
@@ -271,7 +262,7 @@ class groupAPITest extends IznikAPITestCase {
             'action' => 'ConfirmKey',
             'id' => $this->groupid
         ]);
-        $this->log(var_export($ret, true));
+        $this->log(var_export($ret, TRUE));
         $this->assertEquals(0, $ret['ret']);
         $key = $ret['key'];
 
@@ -285,7 +276,7 @@ class groupAPITest extends IznikAPITestCase {
             'dup' => TRUE,
             'id' => $this->groupid
         ]);
-        $this->log(var_export($ret, true));
+        $this->log(var_export($ret, TRUE));
         $this->assertEquals(100, $ret['ret']);
 
         }

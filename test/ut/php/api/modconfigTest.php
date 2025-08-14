@@ -27,14 +27,9 @@ class ModConfigAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM mod_configs WHERE name LIKE 'UTTest%';");
 
         # Create a moderator and log in as them
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
-        $this->user->addEmail('test@test.com');
+        list($g, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
+        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $this->user->addMembership($this->groupid);
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
     }
 
     public function testCreate() {
@@ -73,7 +68,7 @@ class ModConfigAPITest extends IznikAPITestCase {
         $ret = $this->call('modconfig', 'GET', [
             'id' => $id
         ]);
-        $this->log("Returned " . var_export($ret, true));
+        $this->log("Returned " . var_export($ret, TRUE));
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals($id, $ret['config']['id']);
         $this->assertEquals($this->uid, $ret['config']['createdby']);
@@ -132,8 +127,7 @@ class ModConfigAPITest extends IznikAPITestCase {
         $user = User::get($this->dbhr, $this->dbhm, $uid);
         $user->addEmail('test2@test.com');
         $user->addMembership($gid, User::ROLE_OWNER);
-        $this->assertGreaterThan(0, $user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($user->login('testpw'));
+        $this->addLoginAndLogin($user, 'testpw');
 
         $ret = $this->call('modconfig', 'PATCH', [
             'id' => $id,
@@ -180,8 +174,7 @@ class ModConfigAPITest extends IznikAPITestCase {
         $user = User::get($this->dbhr, $this->dbhm, $uid);
         $user->addEmail('test2@test.com');
         $user->addMembership($gid, User::ROLE_OWNER);
-        $this->assertGreaterThan(0, $user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($user->login('testpw'));
+        $this->addLoginAndLogin($user, 'testpw');
 
         $ret = $this->call('modconfig', 'DELETE', [
             'id' => $id

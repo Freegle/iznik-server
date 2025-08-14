@@ -19,21 +19,12 @@ class freebieAlertsTest extends IznikAPITestCase {
         $l = new Location($this->dbhr, $this->dbhm);
         $locid = $l->create(NULL, 'TV1 1AA', 'Postcode', 'POINT(179.2167 8.53333)');
 
-        $g = new Group($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup", Group::GROUP_FREEGLE);
+        list($g, $gid) = $this->createTestGroup("testgroup", Group::GROUP_FREEGLE);
 
         # Create member.
-        $u = User::get($this->dbhr, $this->dbhm);
-        $memberid = $u->create('Test','User', 'Test User');
-        $member = User::get($this->dbhr, $this->dbhm, $memberid);
-        $this->assertGreaterThan(0, $member->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $member->addMembership($gid, User::ROLE_MEMBER);
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-        $member->addEmail($email);
-        $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
-
-        # Submit a message from the member, who will be moderated as new members are.
-        $this->assertTrue($member->login('testpw'));
+        list($member, $memberid, $emailid) = $this->createTestUserWithMembershipAndLogin($gid, User::ROLE_MEMBER, 'Test','User', 'Test User', $email, 'testpw');
+        $member->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
@@ -50,7 +41,7 @@ class freebieAlertsTest extends IznikAPITestCase {
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'JoinAndPost',
-            'ignoregroupoverride' => true,
+            'ignoregroupoverride' => TRUE,
             'email' => $email
         ]);
 

@@ -36,7 +36,7 @@ class yahooTest extends IznikTestCase {
             ->disableOriginalConstructor()
             ->setMethods(array('validate', 'getAttributes'))
             ->getMock();
-        $mock->method('validate')->willReturn(true);
+        $mock->method('validate')->willReturn(TRUE);
         $mock->method('getAttributes')->willThrowException(new \Exception());
         $y->setOpenid($mock);
 
@@ -63,7 +63,7 @@ class yahooTest extends IznikTestCase {
             ->disableOriginalConstructor()
             ->setMethods(array('validate', 'getAttributes'))
             ->getMock();
-        $mock->method('validate')->willReturn(true);
+        $mock->method('validate')->willReturn(TRUE);
         $mock->method('getAttributes')->willReturn([
             'contact/email' => $email,
             'namePerson' => 'Test User'

@@ -28,24 +28,9 @@ class chatMessagesAPITest extends IznikAPITestCase
 
         $dbhm->preExec("DELETE FROM chat_rooms WHERE name = 'test';");
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        self::assertNotNull($this->uid);
-        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
-        $this->assertEquals($this->user->getId(), $this->uid);
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid2 = $u->create(NULL, NULL, 'Test User');
-        self::assertNotNull($this->uid2);
-        $this->user2 = User::get($this->dbhr, $this->dbhm, $this->uid2);
-        $this->assertGreaterThan(0, $this->user2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid3 = $u->create(NULL, NULL, 'Test User');
-        self::assertNotNull($this->uid3);
-        $this->user3 = User::get($this->dbhr, $this->dbhm, $this->uid3);
-        $this->assertGreaterThan(0, $this->user3->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($this->user, $this->uid) = $this->createTestUserWithLogin('Test User', 'testpw');
+        list($this->user2, $this->uid2) = $this->createTestUserWithLogin('Test User', 'testpw');
+        list($this->user3, $this->uid3) = $this->createTestUserWithLogin('Test User', 'testpw');
 
         $g = Group::get($this->dbhr, $this->dbhm);
         $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
@@ -162,18 +147,15 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->assertTrue($this->user->login('testpw'));
 
         # We want to use a referenced message which is promised, to test suppressing of email notifications.
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid2 = $u->create(NULL, NULL, 'Test User');
+        list($testUser, $uid2) = $this->createTestUserWithLogin('Test User', 'testpw');
 
         $this->user2->addEmail('test@test.com');
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $this->user2->addMembership($this->groupid);
         $this->user2->setMembershipAtt($this->groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        self::assertNotNull($refmsgid);
-        $rc = $r->route();
+        $msg = str_ireplace('Subject: Basic test', 'Subject: OFFER: Test item (Edinburgh EH3)', $msg);
+        list($r, $refmsgid, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->groupid, $this->user2->getId(), TRUE, FALSE);
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # The message should not yet show that we have interacted.
@@ -397,10 +379,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->user->addMembership($this->groupid);
 
         # Add some mods on the recipient's group, so they can be notified.
-        $u = new User($this->dbhr, $this->dbhm);
-        $modid = $u->create('Test', 'User', 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $modid);
-        $u->addMembership($this->groupid, User::ROLE_MODERATOR);
+        list($mod, $modid) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MODERATOR, 'Test User', 'test@test.com', 'testpw');
 
         # Create a chat to the second user
         $ret = $this->call('chatrooms', 'PUT', [
@@ -504,7 +483,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         # Get the messages for review.
         $ret = $this->call('chatmessages', 'GET', []);
         $this->assertEquals(0, $ret['ret']);
-        error_log(var_export($ret['chatmessages'], true));
+        error_log(var_export($ret['chatmessages'], TRUE));
         $this->log("Messages for review " . var_export($ret, TRUE));
         $this->assertEquals(3, count($ret['chatmessages']));
         $this->assertEquals($mid1, $ret['chatmessages'][0]['id']);
@@ -875,18 +854,10 @@ class chatMessagesAPITest extends IznikAPITestCase
         # Set up:
         # - sender on group1
         # - recipient on group2
-        $u = new User($this->dbhr, $this->dbhm);
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $this->groupid = $g->create('testgroup2', Group::GROUP_FREEGLE);
-        $this->uid = $u->create('Test', 'User', 'Test User');
-        $this->user = new User($this->dbhr, $this->dbhm, $this->uid);
-        $this->user->addMembership($this->groupid);
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->groupid2 = $g->create('testgroup3', Group::GROUP_FREEGLE);
-        $this->uid2 = $u->create('Test', 'User', 'Test User');
-        $this->user2 = new User($this->dbhr, $this->dbhm, $this->uid2);
-        $this->user2->addMembership($this->groupid2);
-        $this->assertGreaterThan(0, $this->user2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($g, $this->groupid) = $this->createTestGroup('testgroup2', Group::GROUP_FREEGLE);
+        list($this->user, $this->uid) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User', 'test1@test.com', 'testpw');
+        list($g2, $this->groupid2) = $this->createTestGroup('testgroup3', Group::GROUP_FREEGLE);
+        list($this->user2, $this->uid2) = $this->createTestUserWithMembership($this->groupid2, User::ROLE_MEMBER, 'Test User', 'test2@test.com', 'testpw');
 
         # Create a chat from first user to second user.
         $this->assertTrue($this->user->login('testpw'));
@@ -911,20 +882,11 @@ class chatMessagesAPITest extends IznikAPITestCase
         # Set up:
         # - mod on sender's group
         # - mod on recipient's group
-        $u = new User($this->dbhr, $this->dbhm);
-        $modid1 = $u->create('Test', 'User', 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $modid1);
-        $u->addMembership($this->groupid, User::ROLE_MODERATOR);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-
-        $modid2 = $u->create('Test', 'User', 'Test User');
-        $u = new User($this->dbhr, $this->dbhm, $modid2);
-        $u->addMembership($this->groupid2, User::ROLE_MODERATOR);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($mod1, $modid1) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MODERATOR, 'Test User', 'mod1@test.com', 'testpw');
+        list($mod2, $modid2) = $this->createTestUserWithMembership($this->groupid2, User::ROLE_MODERATOR, 'Test User', 'mod2@test.com', 'testpw');
 
         # Mod on sender's group shouldn't see the message for review this recipient is on a group, but not theirs.
-        $u = new User($this->dbhr, $this->dbhm, $modid1);
-        $this->assertTrue($u->login('testpw'));
+        $this->assertTrue($mod1->login('testpw'));
         $ret = $this->call('session', 'GET', []);
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals(0, $ret['work']['chatreview']);
@@ -934,8 +896,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->assertEquals(0, count($ret['chatmessages']));
 
         # Mod on recipient's group should see it.
-        $u = new User($this->dbhr, $this->dbhm, $modid2);
-        $this->assertTrue($u->login('testpw'));
+        $this->assertTrue($mod2->login('testpw'));
         $ret = $this->call('session', 'GET', []);
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals(1, $ret['work']['chatreview']);
@@ -948,8 +909,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->user2->removeMembership($this->groupid2);
 
         # Mod on sender's group should now see the message for review.
-        $u = new User($this->dbhr, $this->dbhm, $modid1);
-        $this->assertTrue($u->login('testpw'));
+        $this->assertTrue($mod1->login('testpw'));
         $ret = $this->call('session', 'GET', []);
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals(1, $ret['work']['chatreview']);
@@ -959,8 +919,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->assertEquals(1, count($ret['chatmessages']));
 
         # Mod on recipient's group should not see it.
-        $u = new User($this->dbhr, $this->dbhm, $modid2);
-        $this->assertTrue($u->login('testpw'));
+        $this->assertTrue($mod2->login('testpw'));
         $ret = $this->call('session', 'GET', []);
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals(0, $ret['work']['chatreview']);
@@ -988,13 +947,9 @@ class chatMessagesAPITest extends IznikAPITestCase
         $g->setSettings($settings);
         Group::clearCache();
 
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid1 = $u->create('Test', 'User', 'Test User');
-        $u->addMembership($gid2);
-        $uid2 = $u->create('Test', 'User', 'Test User');
-        $u->addMembership($gid2);
-        $uid3 = $u->create('Test', 'User', 'Test User');
-        $u->addMembership($gid2, User::ROLE_MODERATOR);
+        list($user1, $uid1) = $this->createTestUserWithMembership($gid2, User::ROLE_MEMBER, 'Test User', 'user1@test.com', 'testpw');
+        list($user2, $uid2) = $this->createTestUserWithMembership($gid2, User::ROLE_MEMBER, 'Test User', 'user2@test.com', 'testpw');
+        list($user3, $uid3) = $this->createTestUserWithMembership($gid2, User::ROLE_MODERATOR, 'Test User', 'user3@test.com', 'testpw');
 
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         list ($rid, $blocked) = $r->createConversation($uid1, $uid2);

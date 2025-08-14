@@ -27,15 +27,11 @@ class visualiseTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup", Group::GROUP_FREEGLE);
+        list($g, $gid) = $this->createTestGroup("testgroup", Group::GROUP_FREEGLE);
 
         # Create the sending user
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $this->log("Created user $uid");
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $u->addEmail('test@test.com');
         $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         $u->addMembership($gid);
 
@@ -63,8 +59,7 @@ class visualiseTest extends IznikTestCase {
         $m->approve($gid);
 
         # Create a user to receive it.
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid2 = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid2, $emailid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
         $u->setPrivate('settings', json_encode([
             'mylocation' => [
                 'lat' => 8.63333,

@@ -28,27 +28,18 @@ class spammersAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE email IN ('test@test.com', 'test2@test.com', 'test3@test.com', 'test4@test.com');");
         $dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup';");
 
-        $this->group = Group::get($this->dbhr, $this->dbhm);
-        $this->groupid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
+        list($this->group, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
-        $this->user->addEmail('test@test.com');
+        list($this->user, $this->uid, $emailid) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User', 'test@test.com', 'testpw');
         $this->user->addEmail('test2@test.com');
-        $this->assertEquals(1, $this->user->addMembership($this->groupid));
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
     }
 
     public function testBasic() {
         $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail($u->inventEmail());
+        $inventedEmail = $u->inventEmail();
+        list($u, $uid, $emailid) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User', $inventedEmail, 'testpw');
         $this->assertGreaterThan(0, $u->addEmail('test3@test.com'));
         $this->assertGreaterThan(0, $u->addEmail('test4@test.com'));
-
-        # Add them to a group, so that when they get onto a list we can trigger their removal.
-        $this->assertTrue($u->addMembership($this->groupid));
 
         # And create a message from them, so that gets removed too.
         $this->user->setMembershipAtt($this->groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
@@ -110,8 +101,7 @@ class spammersAPITest extends IznikAPITestCase {
         $this->assertEquals(1, $ret['ret']);
 
         # Anyone logged in can report
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $ret = $this->call('spammers', 'POST', [
             'userid' => $uid,
@@ -484,8 +474,7 @@ class spammersAPITest extends IznikAPITestCase {
 
     public function testPerf() {
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $ret = $this->call('spammers', 'GET', [
             'collection' => Spam::TYPE_PENDING_ADD,
@@ -495,13 +484,10 @@ class spammersAPITest extends IznikAPITestCase {
     }
 
     public function testReportOwnDomain() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid1 = $u->create(NULL, NULL, 'Test User');
-        $this->assertGreaterThan(0, $u->addEmail('test3@' . GROUP_DOMAIN));
+        list($u, $uid1) = $this->createTestUser(NULL, NULL, 'Test User', 'test3@' . GROUP_DOMAIN, 'testpw');
 
         # Log in and report.
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $ret = $this->call('spammers', 'POST', [
             'userid' => $uid1,
@@ -516,15 +502,14 @@ class spammersAPITest extends IznikAPITestCase {
 
     public function testSpammerStartsChat() {
         $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail($u->inventEmail());
+        $inventedEmail = $u->inventEmail();
+        list($u, $uid) = $this->createTestUser(NULL, NULL, 'Test User', $inventedEmail, 'testpw');
         $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         $s = new Spam($this->dbhr, $this->dbhm);
         $s->addSpammer($uid, Spam::TYPE_SPAMMER, 'Test reason');
 
-        $u2 = User::get($this->dbhr, $this->dbhm);
-        $uid2 = $u2->create(NULL, NULL, 'Test User');
+        list($u2, $uid2) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
 
         $c = new ChatRoom($this->dbhr, $this->dbhm);
         list ($rid, $blocked) = $c->createConversation($uid, $uid2);
@@ -533,12 +518,11 @@ class spammersAPITest extends IznikAPITestCase {
 
     public function testSpammerSendsChat() {
         $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail($u->inventEmail());
+        $inventedEmail = $u->inventEmail();
+        list($u, $uid) = $this->createTestUser(NULL, NULL, 'Test User', $inventedEmail, 'testpw');
         $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
-        $u2 = User::get($this->dbhr, $this->dbhm);
-        $uid2 = $u2->create(NULL, NULL, 'Test User');
+        list($u2, $uid2) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
 
         $c = new ChatRoom($this->dbhr, $this->dbhm);
         list ($rid, $blocked) = $c->createConversation($uid, $uid2);

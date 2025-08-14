@@ -30,22 +30,16 @@ class imageAPITest extends IznikAPITestCase
 
     public function testApproved()
     {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup', Group::GROUP_FREEGLE);
+        list($g, $group1) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
         $g->setPrivate('onhere', 1);
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail('test@test.com');
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $u->addMembership($group1);
         $u->setMembershipAtt($group1, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         # Create a group with a message on it
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment');
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
+        list ($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $group1, $uid);
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $a = new Message($this->dbhr, $this->dbhm, $id);
@@ -66,7 +60,7 @@ class imageAPITest extends IznikAPITestCase
         $ret = $this->call('image', 'GET', [
             'id' => $img1,
             'w' => 100
-        ], FALSE);
+        ]);
 
         $a->delete();
         $g->delete();
@@ -231,7 +225,7 @@ class imageAPITest extends IznikAPITestCase
         // Get it back.  Will redirect but we don't have a good way to capture that in a test.
         $ret = $this->call('image', 'GET', [
             'id' => $id,
-        ], FALSE);
+        ]);
 
         $ret = $this->call('image', 'DELETE', [
             'id' => $id

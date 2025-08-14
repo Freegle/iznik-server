@@ -16,5 +16,6 @@
   </testsuites>
   <php>
     <env name="XDEBUG_MODE" value="coverage" force="true" />
+    <env name="NO_UNMAPPED_TO_PENDING" value="TRUE" force="true" />
   </php>
 </phpunit>

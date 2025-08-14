@@ -22,15 +22,13 @@ class communityEventTest extends IznikTestCase {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
 
-        $g = Group::get($dbhr, $dbhm);
-        $this->groupid = $g->create('testgroup', Group::GROUP_FREEGLE);
+        list($g, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
         $dbhm->preExec("DELETE FROM communityevents WHERE title = 'Test event';");
     }
 
     public function testBasic() {
         # Create an event and check we can read it back.
-        $c = new CommunityEvent($this->dbhm, $this->dbhm);
-        $id = $c->create(NULL, 'Test event', 'Test location', NULL, NULL, NULL, NULL, NULL);
+        list($c, $id) = $this->createTestCommunityEvent('Test event', 'Test location');
         $this->assertNotNull($id);
 
         $c->addGroup($this->groupid);
@@ -48,8 +46,7 @@ class communityEventTest extends IznikTestCase {
         $this->assertEquals($start, $atts['dates'][0]['end']);
 
         # Check that a user sees what we want them to see.
-        $u = User::get($this->dbhm, $this->dbhm);
-        $uid = $u->create('Test', 'User', 'Test User');
+        list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', 'Test User', 'test@test.com', 'testpw');
 
         # Not in the right group - shouldn't see.
         $ctx = NULL;

@@ -27,21 +27,11 @@ class userAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup';");
 
-        $this->group = Group::get($this->dbhr, $this->dbhm);
-        $this->groupid = $this->group->create('testgroup', Group::GROUP_REUSE);
+        list($this->group, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
-        $this->user->addEmail('test@test.com');
-        $this->assertEquals(1, $this->user->addMembership($this->groupid));
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($this->user, $this->uid, $emailid) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User', 'test@test.com', 'testpw');
 
-        $this->uid2 = $u->create(NULL, NULL, 'Test User');
-        $this->user2 = User::get($this->dbhr, $this->dbhm, $this->uid2);
-        $this->user2->addEmail('test2@test.com');
-        $this->assertEquals(1, $this->user2->addMembership($this->groupid));
-        $this->assertGreaterThan(0, $this->user2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($this->user2, $this->uid2, $emailid2) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User', 'test2@test.com', 'testpw');
 
         $this->assertTrue($this->user->login('testpw'));
     }
@@ -218,9 +208,7 @@ class userAPITest extends IznikAPITestCase {
 
     public function testNewsletter() {
         # Shouldn't be able to do this as a member
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create("Test", "User", "Test User");
-        $u->addEmail('test2@test.com');
+        list($u, $uid, $emailid) = $this->createTestUser("Test", "User", "Test User", 'test3@test.com', 'testpw');
 
         $ret = $this->call('user', 'PATCH', [
             'id' => $uid,
@@ -354,9 +342,7 @@ class userAPITest extends IznikAPITestCase {
         }
 
     public function testPassword() {
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create("Test", "User", "Test User");
-        $u->addEmail('test2@test.com');
+        list($u, $uid, $emailid) = $this->createTestUser("Test", "User", "Test User", 'test4@test.com', 'testpw');
 
         $ret = $this->call('user', 'PATCH', [
             'id' => $this->uid,
@@ -379,9 +365,8 @@ class userAPITest extends IznikAPITestCase {
         }
 
     public function testMail() {
-        # Create a user without an email - we're just testing the API.
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        # Create a user for testing the API.
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test5@test.com', 'testpw');
 
         # Shouldn't be able to do this as a non-member.
         $ret = $this->call('user', 'POST', [
@@ -441,7 +426,7 @@ class userAPITest extends IznikAPITestCase {
         $ctx = NULL;
         $logs = [ $this->uid => [ 'id' => $this->uid ] ];
         $u = new User($this->dbhr, $this->dbhm);
-        $u->getPublicLogs($u, $logs, FALSE, $ctx, FALSE, FALSE);
+        $u->getPublicLogs($u, $logs, FALSE, $ctx, FALSE);
         $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_JOINED, $logs[$this->uid]['logs']);
 
         $this->assertNull($log);
@@ -481,8 +466,7 @@ class userAPITest extends IznikAPITestCase {
         }
 
     public function testDelete() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'testdelete@test.com', 'testpw');
 
         $ret = $this->call('user', 'DELETE', [
             'id' => $uid
@@ -514,7 +498,7 @@ class userAPITest extends IznikAPITestCase {
         $this->assertEquals($this->uid, $ret['users'][0]['id']);
 
         # Test a phone number.
-        $this->user->addEmail('+44794000000@mediamessaging.o2.co.uk', 0, FALSE);
+        $this->user->addEmail('+44794000000@mediamessaging.o2.co.uk', 0);
         $ret = $this->call('user', 'GET', [
             'search' => '+44794000000@mediamessaging.o2.co.uk'
         ]);
@@ -535,24 +519,15 @@ class userAPITest extends IznikAPITestCase {
     }
 
     public function testMerge() {
-        $u1 = User::get($this->dbhm, $this->dbhm);
-        $id1 = $u1->create('Test', 'User', NULL);
+        list($u1, $id1, $emailid1) = $this->createTestUser('Test', 'User', 'Test User', 'testmerge1@test.com', 'testpw');
         $u1->addMembership($this->groupid);
-        $u2 = User::get($this->dbhm, $this->dbhm);
-        $id2 = $u2->create('Test', 'User', NULL);
+        list($u2, $id2, $emailid2) = $this->createTestUser('Test', 'User', 'Test User', 'test2@test.com', 'testpw');
         $u2->addMembership($this->groupid);
-        $u2->addEmail('test2@test.com', 0);
-        $u3 = User::get($this->dbhm, $this->dbhm);
-        $id3 = $u3->create('Test', 'User', NULL);
-        $u3->addEmail('test3@test.com', 0);
+        list($u3, $id3, $emailid3) = $this->createTestUser('Test', 'User', 'Test User', 'test3@test.com', 'testpw');
         $u3->addMembership($this->groupid);
-        $u4 = User::get($this->dbhm, $this->dbhm);
-        $id4 = $u4->create('Test', 'User', NULL);
+        list($u4, $id4, $emailid4) = $this->createTestUser('Test', 'User', 'Test User', 'test4@test.com', 'testpw');
         $u4->addMembership($this->groupid, User::ROLE_MODERATOR);
-        $u4->addEmail('test4@test.com', 0);
-        $u5 = User::get($this->dbhm, $this->dbhm);
-        $id5 = $u5->create('Test', 'User', NULL);
-        $u5->addEmail('test5@test.com', 0);
+        list($u5, $id5, $emailid5) = $this->createTestUser('Test', 'User', 'Test User', 'test5@test.com', 'testpw');
         $u5->addMembership($this->groupid);
 
         # Add giftaids to both.
@@ -561,8 +536,7 @@ class userAPITest extends IznikAPITestCase {
         $d->setGiftAid($this->uid2, Donations::PERIOD_PAST_4_YEARS_AND_FUTURE, "Test User", "Test Address");
 
         # Can't merge not a mod
-        $this->assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u1->login('testpw'));
+        $this->addLoginAndLogin($u1, 'testpw');
 
         $ret = $this->call('user', 'POST', [
             'action' => 'Merge',
@@ -581,8 +555,7 @@ class userAPITest extends IznikAPITestCase {
         $this->assertEquals(3, $ret['ret']);
 
         # As mod should work
-        $this->assertGreaterThan(0, $u4->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u4->login('testpw'));
+        $this->addLoginAndLogin($u4, 'testpw');
 
         $ret = $this->call('user', 'POST', [
             'action' => 'Merge',
@@ -602,7 +575,7 @@ class userAPITest extends IznikAPITestCase {
             'email1' => 'test2@test.com',
             'email2' => 'test3@test.com',
             'reason' => 'UT',
-            'dup' => true
+            'dup' => TRUE
         ]);
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals('Already the same user', $ret['status']);
@@ -629,29 +602,19 @@ class userAPITest extends IznikAPITestCase {
     }
 
     public function testMergeById() {
-        $u1 = User::get($this->dbhm, $this->dbhm);
-        $id1 = $u1->create('Test', 'User', NULL);
+        list($u1, $id1, $emailid1) = $this->createTestUser('Test', 'User', 'Test User', 'testmerge6@test.com', 'testpw');
         $u1->addMembership($this->groupid);
-        $u2 = User::get($this->dbhm, $this->dbhm);
-        $id2 = $u2->create('Test', 'User', NULL);
+        list($u2, $id2, $emailid2) = $this->createTestUser('Test', 'User', 'Test User', 'testmerge7@test.com', 'testpw');
         $u2->addMembership($this->groupid);
-        $u2->addEmail('test2@test.com', 0);
-        $u3 = User::get($this->dbhm, $this->dbhm);
-        $id3 = $u3->create('Test', 'User', NULL);
-        $u3->addEmail('test3@test.com', 0);
+        list($u3, $id3, $emailid3) = $this->createTestUser('Test', 'User', 'Test User', 'testmerge8@test.com', 'testpw');
         $u3->addMembership($this->groupid);
-        $u4 = User::get($this->dbhm, $this->dbhm);
-        $id4 = $u4->create('Test', 'User', NULL);
+        list($u4, $id4, $emailid4) = $this->createTestUser('Test', 'User', 'Test User', 'testmerge9@test.com', 'testpw');
         $u4->addMembership($this->groupid, User::ROLE_MODERATOR);
-        $u4->addEmail('test4@test.com', 0);
-        $u5 = User::get($this->dbhm, $this->dbhm);
-        $id5 = $u5->create('Test', 'User', NULL);
-        $u5->addEmail('test5@test.com', 0);
+        list($u5, $id5, $emailid5) = $this->createTestUser('Test', 'User', 'Test User', 'testmerge10@test.com', 'testpw');
         $u5->addMembership($this->groupid);
 
         # Can't merge not a mod
-        $this->assertGreaterThan(0, $u1->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u1->login('testpw'));
+        $this->addLoginAndLogin($u1, 'testpw');
 
         $ret = $this->call('user', 'POST', [
             'action' => 'Merge',
@@ -672,8 +635,7 @@ class userAPITest extends IznikAPITestCase {
         $this->assertEquals(4, $ret['ret']);
 
         # As mod should work
-        $this->assertGreaterThan(0, $u4->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u4->login('testpw'));
+        $this->addLoginAndLogin($u4, 'testpw');
 
         $ret = $this->call('user', 'POST', [
             'action' => 'Merge',
@@ -693,24 +655,16 @@ class userAPITest extends IznikAPITestCase {
 
     public function testCantMerge() {
         $u1 = User::get($this->dbhm, $this->dbhm);
-        $id1 = $u1->create('Test', 'User', NULL);
-        $u1->addMembership($this->groupid);
-        $u2 = User::get($this->dbhm, $this->dbhm);
-        $id2 = $u2->create('Test', 'User', NULL);
-        $u2->addMembership($this->groupid);
+        list($u1, $id1) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test', 'User', NULL, 'test1@test.com', 'testpw');
+        list($u2, $id2) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test', 'User', NULL, 'test2@test.com', 'testpw');
         $u2->addEmail('test2@test.com', 0);
-        $u3 = User::get($this->dbhm, $this->dbhm);
-        $id3 = $u3->create('Test', 'User', NULL);
+        list($u3, $id3) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test', 'User', NULL, 'test3@test.com', 'testpw');
         $u3->addEmail('test3@test.com', 0);
-        $u3->addMembership($this->groupid);
         $u3->setSetting('canmerge', FALSE);
-        $u4 = User::get($this->dbhm, $this->dbhm);
-        $id4 = $u4->create('Test', 'User', NULL);
-        $u4->addMembership($this->groupid, User::ROLE_MODERATOR);
+        list($u4, $id4) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MODERATOR, 'Test', 'User', NULL, 'test4@test.com', 'testpw');
         $u4->addEmail('test4@test.com', 0);
 
-        $this->assertGreaterThan(0, $u4->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u4->login('testpw'));
+        $this->addLoginAndLogin($u4, 'testpw');
 
         User::clearCache();
 
@@ -724,9 +678,7 @@ class userAPITest extends IznikAPITestCase {
     }
 
     public function testUnbounce() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail('test3@test.com');
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test3@test.com', 'testpw');
         $u->addMembership($this->groupid);
         $u->setPrivate('bouncing', 1);
 
@@ -765,12 +717,9 @@ class userAPITest extends IznikAPITestCase {
 
     public function testUnbounceAsMember()
     {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(null, null, 'Test User');
-        $u->addEmail('test3@test.com');
+        list($u, $uid, $emailid) = $this->createTestUser(null, null, 'Test User', 'testunbounce2@test.com', 'testpw');
         $u->addMembership($this->groupid);
         $u->setPrivate('bouncing', 1);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
         $this->assertTrue($u->login('testpw'));
 
@@ -786,8 +735,7 @@ class userAPITest extends IznikAPITestCase {
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_USER);
         $this->assertTrue($this->user->login('testpw'));
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'testaddemail@test.com', 'testpw');
 
         # Add for another user - should fail.
         $ret = $this->call('user', 'POST', [
@@ -809,10 +757,8 @@ class userAPITest extends IznikAPITestCase {
         $this->assertEquals('test@test.com', $this->user->getEmailPreferred());
 
         # Add as an admin - should work.
-        $au = new User($this->dbhr, $this->dbhm);
-        $auid = $au->create("Test", "User", "Test User");
+        list($au, $auid, $emailidau) = $this->createTestUser("Test", "User", "Test User", 'testadmin@test.com', 'testpw');
         $au->setPrivate("systemrole", User::SYSTEMROLE_ADMIN);
-        $this->assertGreaterThan(0, $au->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($au->login('testpw'));
         $_SESSION['supportAllowed'] = TRUE;
 
@@ -844,20 +790,16 @@ class userAPITest extends IznikAPITestCase {
         ]);
 
         $this->assertEquals(0, $ret['ret']);
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $this->assertNull($u->getEmailPreferred());
+        User::clearCache($this->user->getId());
+        $u = User::get($this->dbhr, $this->dbhm, $this->user->getId());
+        $this->assertEquals('test@test.com', $u->getEmailPreferred());
     }
 
     public function testRating() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $u->addMembership($this->groupid);
-        $u->addEmail('test@test.com');
 
-        $uid2 = $u->create(NULL, NULL, 'Test User');
-        $u2 = new User($this->dbhr, $this->dbhm, $uid2);
-        $this->assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($u2, $uid2, $emailid2) = $this->createTestUser(NULL, NULL, 'Test User', 'testrating@test.com', 'testpw');
 
         $ret = $this->call('user', 'GET', [
             'info' => TRUE,
@@ -977,10 +919,7 @@ class userAPITest extends IznikAPITestCase {
 
         # Add the other kind of interaction.  Fake a reply from $uid to a message ostensibly posted by $this->user.
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment');
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
+        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', null, null);
         $this->assertEquals(MailRouter::PENDING, $rc);
 
         $cm->create($cid, $uid, "test", ChatMessage::TYPE_DEFAULT, $id);
@@ -996,10 +935,7 @@ class userAPITest extends IznikAPITestCase {
         self::assertEquals(1, $ret['user']['info']['ratings'][User::RATING_DOWN]);
 
         # The rating should be visible to a mod on the rater and ratee's group.
-        $modid = $u->create('Test', 'User', 'Test User');
-        $u->addMembership($this->groupid, User::ROLE_MODERATOR);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        list($u, $modid) = $this->createTestUserWithMembershipAndLogin($this->groupid, User::ROLE_MODERATOR, 'Test', 'User', 'Test User', 'test@test.com', 'testpw');
         $ret = $this->call('memberships', 'GET', [
             'collection' => MembershipCollection::HAPPINESS,
             'groupid' => $this->groupid
@@ -1040,8 +976,7 @@ class userAPITest extends IznikAPITestCase {
 
     public function testActive() {
         $this->assertEquals(1, $this->user->addMembership($this->groupid));
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # Trigger a notification check - should mark this as active.
         $ret = $this->call('notification', 'GET', [
@@ -1056,11 +991,8 @@ class userAPITest extends IznikAPITestCase {
         self::assertEquals($this->user->getId(), $active[0]['id']);
 
         # Retrieve that info as a mod.
-        $u = User::get($this->dbhr, $this->dbhm);
-        $mod = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail('test2@test.com');
+        list($u, $mod, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'testactive@test.com', 'testpw');
         $this->assertEquals(1, $u->addMembership($this->groupid, User::ROLE_MODERATOR));
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($u->login('testpw'));
 
         $ret = $this->call('memberships', 'GET', [
@@ -1113,32 +1045,22 @@ class userAPITest extends IznikAPITestCase {
     }
 
     public function testSupportUnsubscribe() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail('test1@test.com');
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $uid2 = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail('test2@test.com');
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $mod = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail('test3@test.com');
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $u->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'testunsub1@test.com', 'testpw');
+        list($u2, $uid2, $emailid2) = $this->createTestUser(NULL, NULL, 'Test User', 'testunsub2@test.com', 'testpw');
+        list($umod, $mod, $emailidmod) = $this->createTestUser(NULL, NULL, 'Test User', 'testunsub3@test.com', 'testpw');
+        $umod->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
 
         # User shouldn't be able to unsub another.
-        $u = new User($this->dbhr, $this->dbhm, $uid2);
-        $this->assertTrue($u->login('testpw'));
+        $this->assertTrue($u2->login('testpw'));
         $ret = $this->call('user', 'POST', [
             'id' => $uid,
             'action' => 'Unsubscribe'
         ]);
         $this->assertEquals(4, $ret['ret']);
-        $u = new User($this->dbhr, $this->dbhm, $uid);
         $this->assertNull($u->getPrivate('deleted'));
 
         # Support should be able to.
-        $u = new User($this->dbhr, $this->dbhm, $mod);
-        $this->assertTrue($u->login('testpw'));
+        $this->assertTrue($umod->login('testpw'));
         $_SESSION['supportAllowed'] = TRUE;
         $ret = $this->call('user', 'POST', [
             'id' => $uid,
@@ -1146,7 +1068,8 @@ class userAPITest extends IznikAPITestCase {
             'bump' => TRUE
         ]);
         $this->assertEquals(0, $ret['ret']);
-        $u = new User($this->dbhr, $this->dbhm, $uid);
+        User::clearCache($uid);
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
         $this->assertNotNull($u->getPrivate('deleted'));
     }
 

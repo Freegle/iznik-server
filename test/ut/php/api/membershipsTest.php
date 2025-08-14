@@ -29,24 +29,14 @@ class membershipsAPITest extends IznikAPITestCase {
         $dbhm->preExec("DELETE FROM users WHERE yahooid LIKE '-testid%';");
         $dbhm->preExec("DELETE FROM users_emails WHERE backwards LIKE 'moctset%';");
 
-        $this->group = Group::get($this->dbhr, $this->dbhm);
-        $this->groupid = $this->group->create('testgroup', Group::GROUP_FREEGLE);
+        list($this->group, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
         $this->group->setPrivate('onhere', TRUE);
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->assertNotNull($this->uid);
-        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
-        $this->user->addEmail('test@test.com');
+        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $this->user->addMembership($this->groupid);
         $this->user->setMembershipAtt($this->groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-        $this->uid2 = $u->create(NULL, NULL, 'Test User');
-        $this->assertNotNull($this->uid);
-        $this->user2 = User::get($this->dbhr, $this->dbhm, $this->uid2);
-        $this->user2->addEmail('tes2t@test.com');
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertGreaterThan(0, $this->user2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($this->user2, $this->uid2, $emailid2) = $this->createTestUser(NULL, NULL, 'Test User', 'tes2t@test.com', 'testpw');
         $this->assertTrue($this->user->login('testpw'));
     }
 
@@ -138,15 +128,9 @@ class membershipsAPITest extends IznikAPITestCase {
 
     public function testJoinAndSee() {
         # Check that if we join a group we can see messages on it immediately.
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list($r, $id, $failok, $rc) = $this->createTestMessage('basic', 'testgroup', 'from@test.com', 'to@test.com', $this->groupid, $this->uid, ['22 Aug 2015' => '22 Aug 2035']);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $m->setPrivate('sourceheader', Message::PLATFORM);
-
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $this->log("Approved id $id");
 
@@ -208,7 +192,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $ret = $this->call('memberships', 'DELETE', [
             'groupid' => $this->groupid,
             'userid' => $this->uid2,
-            'dedup' => true
+            'dedup' => TRUE
         ]);
         $this->assertEquals(0, $ret['ret']);
 
@@ -285,7 +269,7 @@ class membershipsAPITest extends IznikAPITestCase {
             'groupid' => $this->groupid,
             'search' => 'wibble'
         ]);
-        $this->log("wibble search " . var_export($ret, true));
+        $this->log("wibble search " . var_export($ret, TRUE));
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals(0, count($ret['members']));
 
@@ -325,7 +309,7 @@ class membershipsAPITest extends IznikAPITestCase {
             'groupid' => $this->groupid,
             'userid' => $this->uid,
             'role' => 'Member',
-            'manual' => true
+            'manual' => TRUE
         ]);
         $this->assertEquals(0, $ret['ret']);
 
@@ -345,8 +329,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $this->assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
 
         # Join ourselves - should work
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test5@test.com', 'testpw');
 
         $ret = $this->call('memberships', 'PUT', [
             'groupid' => $this->groupid,
@@ -375,7 +358,7 @@ class membershipsAPITest extends IznikAPITestCase {
 
     public function testSettings() {
         # Shouldn't be able to set as a different member.
-        $settings = [ 'test' => true ];
+        $settings = [ 'test' => TRUE ];
 
         $ret = $this->call('memberships', 'PATCH', [
             'groupid' => $this->groupid,
@@ -494,9 +477,7 @@ class membershipsAPITest extends IznikAPITestCase {
     }
 
     public function testDelete() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $this->assertNotNull($uid);
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test6@test.com', 'testpw');
         $this->assertTrue($u->addMembership($this->groupid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED));
 
         # Shouldn't be able to do this as a non-member.
@@ -576,8 +557,7 @@ class membershipsAPITest extends IznikAPITestCase {
         ]);
         $this->assertEquals(0, $ret['ret']);
 
-        $u = User::get($this->dbhm, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
+        list($u, $id, $emailid) = $this->createTestUser('Test', 'User', 'Test User', 'test7@test.com', 'testpw');
         $u->addMembership($this->groupid);
 
         $ret = $this->call('memberships', 'GET', [
@@ -625,20 +605,12 @@ class membershipsAPITest extends IznikAPITestCase {
 
     function testHappiness() {
         # Create the sending user
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $this->log("Created user $uid");
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $this->assertEquals(0, $u->addEmail('test@test.com'));
 
         # Send a message.
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($origid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list($r, $origid, $failok, $rc) = $this->createTestMessage('basic', 'testgroup', 'from@test.com', 'to@test.com', $this->groupid, $uid, ['Subject: Basic test' => 'Subject: [Group-tag] Offer: thing (place)']);
         $this->assertNotNull($origid);
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Now mark the message as complete
@@ -657,8 +629,7 @@ class membershipsAPITest extends IznikAPITestCase {
 
         # Should get as mod.
         $this->assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $ret = $this->call('memberships', 'GET', [
             'collection' => MembershipCollection::HAPPINESS,
@@ -725,8 +696,7 @@ class membershipsAPITest extends IznikAPITestCase {
     }
 
     public function testNearby() {
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $ret = $this->call('memberships', 'GET', [
             'collection' => MembershipCollection::NEARBY
@@ -776,7 +746,7 @@ class membershipsAPITest extends IznikAPITestCase {
     public function testChatUnread($chatread) {
         # Create two mods on the group
         $this->user2->addMembership($this->groupid, User::ROLE_MODERATOR);
-        list($othermod, $othermoduid) = $this->createTestUser(NULL, NULL, 'Test User');
+        list($othermod, $othermoduid) = $this->createTestUser(NULL, NULL, 'Test User', 'othermod@test.com', 'testpw');
         $othermod->addMembership($this->groupid, User::ROLE_MODERATOR);
 
         # Create a ModConfig.
@@ -872,11 +842,8 @@ class membershipsAPITest extends IznikAPITestCase {
         $this->assertNotNull($id);
 
         // Create user with email test@partner.com
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create('Test', 'User', 'Test User');
-        $u->addEmail('test@partner.com');
-        $uid2 = $u->create('Test', 'User', 'Test User');
-        $u->addEmail('test@partner2.com');
+        list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', 'Test User', 'test@partner.com', 'testpw');
+        list($u2, $uid2, $emailid2) = $this->createTestUser('Test', 'User', 'Test User', 'test@partner2.com', 'testpw');
 
         // Without key = should fail.
         $GLOBALS['sessionPrepared'] = FALSE;
@@ -952,11 +919,8 @@ class membershipsAPITest extends IznikAPITestCase {
         $this->assertNotNull($id);
 
         // Create user with email test@partner.com
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create('Test', 'User', 'Test User');
-        $u->addEmail('test@partner.com');
-        $uid2 = $u->create('Test', 'User', 'Test User');
-        $u->addEmail('test@partner2.com');
+        list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', 'Test User', 'test@partner.com', 'testpw');
+        list($u2, $uid2, $emailid2) = $this->createTestUser('Test', 'User', 'Test User', 'test@partner2.com', 'testpw');
 
         // Invalid groupid
         $GLOBALS['sessionPrepared'] = FALSE;
@@ -977,7 +941,7 @@ class membershipsAPITest extends IznikAPITestCase {
 //
 //        $ret = $this->call('memberships', 'POST', [
 //
-//            "action" => "Leave Approved Member","userid" => 37462787,"groupid" => 21662,"subject" => "Testing 2","stdmsgid" => 158574,"body" => "Testing again","modtools" => true
+//            "action" => "Leave Approved Member","userid" => 37462787,"groupid" => 21662,"subject" => "Testing 2","stdmsgid" => 158574,"body" => "Testing again","modtools" => TRUE
 //        ]);
 //    }
 }

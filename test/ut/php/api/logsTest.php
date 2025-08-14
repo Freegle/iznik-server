@@ -32,20 +32,12 @@ class logsAPITest extends IznikAPITestCase
     public function testBasic()
     {
         # Create a group, put a message on it.
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_REUSE);
-        $this->assertNotNull($gid);
+        list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
 
         # Put a message on the group.
-        $u = User::get($this->dbhr, $this->dbhr);
-        $uid1 = $u->create(NULL, NULL, 'Test User');
-        $u->addEmail('test@test.com');
-        $u->addMembership($gid);
+        list($u, $uid1, $emailid) = $this->createTestUserWithMembership($gid, User::ROLE_MEMBER, 'Test User', 'test@test.com', 'testpw');
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/approved'));
-        $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($mid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
-        $rc = $r->route();
+        list($r, $mid, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $gid, $uid1);
         $this->assertEquals(MailRouter::PENDING, $rc);
 
         # Logged out shouldn't be able to see.
@@ -57,12 +49,7 @@ class logsAPITest extends IznikAPITestCase
         $this->assertEquals(2, $ret['ret']);
 
         # User shouldn't be able to see the logs.
-        $u = User::get($this->dbhr, $this->dbhr);
-        $uid2 = $u->create(NULL, NULL, 'Test User');
-        $this->assertNotNull($uid2);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $u->addMembership($gid, User::ROLE_MEMBER, NULL, MembershipCollection::APPROVED);
-        $this->assertTrue($u->login('testpw'));
+        list($u, $uid2, $emailid2) = $this->createTestUserWithMembershipAndLogin($gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
 
         $ret = $this->call('logs', 'GET', [
             'logtype' => 'memberships',

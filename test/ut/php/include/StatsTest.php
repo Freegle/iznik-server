@@ -28,14 +28,9 @@ class statsTest extends IznikTestCase {
 
     public function testBasic() {
         # Create a group with one message and one member.
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+        list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
 
-        $u = User::get($this->dbhr, $this->dbhm);
-        $this->uid = $u->create(NULL, NULL, 'Test User');
-        $this->assertNotNull($this->uid);
-        $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
-        $this->user->addEmail('test@test.com');
+        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $this->user->addMembership($gid);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -51,11 +46,8 @@ class statsTest extends IznikTestCase {
         $m->approve($gid);
 
         # Need to be a mod to see all.
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test1@test.com', 'testpw');
         $u->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
         $this->assertTrue($u->login('testpw'));
 
         # Now generate stats for today
@@ -117,15 +109,13 @@ class statsTest extends IznikTestCase {
         $iid = $i->create('test item');
         $m->addItem($iid);
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup1', Group::GROUP_REUSE);
+        list($g, $gid) = $this->createTestGroup('testgroup1', Group::GROUP_REUSE);
         $g->setSettings([ 'includearea' => FALSE ]);
 
         $m->constructSubject($gid);
         self::assertEquals(strtolower('OFFER: test item (TV13)'), strtolower($m->getSubject()));
 
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
         $this->dbhm->preExec("UPDATE users SET lastaccess = NOW(), lastlocation = ? WHERE id = ?", [
             $fullpcid,
             $uid

@@ -34,7 +34,7 @@ class donationsTest extends IznikTestCase {
 
     public function sendMock($mailer, $message) {
         $this->msgsSent[] = $message->toString();
-        return true;
+        return TRUE;
     }
 
     public function testRecord() {
@@ -72,8 +72,7 @@ class donationsTest extends IznikTestCase {
         $mod->create('Test', 'User', NULL);
         $mod->setPrivate('systemrole', User::ROLE_MODERATOR);
         $mod->setPrivate('permissions', User::PERM_GIFTAID);
-        $this->assertGreaterThan(0, $mod->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($mod->login('testpw'));
+        $this->addLoginAndLogin($mod, 'testpw');
 
         $ctx = NULL;
         $searches = $u->search($id , $ctx);
@@ -118,8 +117,7 @@ class donationsTest extends IznikTestCase {
         $mod->create('Test', 'User', NULL);
         $mod->setPrivate('systemrole', User::ROLE_MODERATOR);
         $mod->setPrivate('permissions', User::PERM_GIFTAID);
-        $this->assertGreaterThan(0, $mod->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($mod->login('testpw'));
+        $this->addLoginAndLogin($mod, 'testpw');
 
         $ctx = NULL;
         $searches = $u->search($id , $ctx);
@@ -255,7 +253,7 @@ class donationsTest extends IznikTestCase {
             $settings['lastbirthdayappeal'] = date('Y-m-d H:i:s');
             $u->setPrivate('settings', json_encode($settings));
             
-            return true;
+            return TRUE;
         }));
         
         $d = new Donations($this->dbhr, $this->dbhm);

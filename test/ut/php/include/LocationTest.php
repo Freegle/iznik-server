@@ -58,16 +58,15 @@ class locationTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        $l = new Location($this->dbhr, $this->dbhm);
-        $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
+        list($l, $id) = $this->createTestLocation(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
         $this->assertNotNull($id);
         $this->assertEquals($id, $l->findByName('Tuvalu High Street'));
         $l = new Location($this->dbhr, $this->dbhm, $id);
         $atts = $l->getPublic();
-        $this->log("Created loc " . var_export($atts, true));
+        $this->log("Created loc " . var_export($atts, TRUE));
         $gridid = $atts['gridid'];
         $grid = $l->getGrid();
-        $this->log("Grid " . var_export($grid, true));
+        $this->log("Grid " . var_export($grid, TRUE));
         $this->assertEquals($gridid, $grid['id']);
         $this->assertEquals(8.5, $grid['swlat']);
         $this->assertEquals(179.2, $grid['swlng']);
@@ -233,21 +232,18 @@ class locationTest extends IznikTestCase {
         }
 
     public function testSearch() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+        list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
         $this->log("Created group $gid");
-        $g = Group::get($this->dbhr, $this->dbhm, $gid);
 
         $g->setPrivate('lng', 179.15);
         $g->setPrivate('lat', 8.4);
 
-        $l = new Location($this->dbhr, $this->dbhm);
-        $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
+        list($l, $id) = $this->createTestLocation(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
 
         $l = new Location($this->dbhr, $this->dbhm, $id);
 
         $res = $l->search("Tuvalu", $gid);
-        $this->log(var_export($res, true));
+        $this->log(var_export($res, TRUE));
         $this->assertEquals(1, count($res));
         $this->assertEquals($id, $res[0]['id']);
 
@@ -300,17 +296,14 @@ class locationTest extends IznikTestCase {
         }
 
     public function testGroupsNear() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup', Group::GROUP_REUSE);
+        list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
         $this->log("Created group $gid");
-        $g = Group::get($this->dbhr, $this->dbhm, $gid);
 
         $g->setPrivate('lng', 179.15);
         $g->setPrivate('lat', 8.4);
         $g->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
 
-        $l = new Location($this->dbhr, $this->dbhm);
-        $id = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
+        list($l, $id) = $this->createTestLocation(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
 
         $groups = $l->groupsNear(50);
         $this->log("Found groups near " . var_export($groups, TRUE));
