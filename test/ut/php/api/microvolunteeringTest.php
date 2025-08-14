@@ -128,9 +128,9 @@ class microvolunteeringAPITest extends IznikAPITestCase
 
         # Create two other users and a difference of opinion.
         list($u2, $uid2) = $this->createTestUser('Test', 'User', NULL, 'test2@test.com', 'testpw');
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
-        $u->setPrivate('trustlevel', User::TRUST_BASIC);
+        $this->assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u2->login('testpw'));
+        $u2->setPrivate('trustlevel', User::TRUST_BASIC);
         $ret = $this->call('microvolunteering', 'POST', [
             'msgid' => $id,
             'response' => MicroVolunteering::RESULT_REJECT,
@@ -139,9 +139,9 @@ class microvolunteeringAPITest extends IznikAPITestCase
         ]);
 
         list($u3, $uid3) = $this->createTestUser('Test', 'User', NULL, 'test3@test.com', 'testpw');
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
-        $u->setPrivate('trustlevel', User::TRUST_BASIC);
+        $this->assertGreaterThan(0, $u3->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        $this->assertTrue($u3->login('testpw'));
+        $u3->setPrivate('trustlevel', User::TRUST_BASIC);
         $ret = $this->call('microvolunteering', 'POST', [
             'msgid' => $id,
             'response' => MicroVolunteering::RESULT_APPROVE

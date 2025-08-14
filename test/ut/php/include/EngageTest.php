@@ -83,7 +83,9 @@ class engageTest extends IznikTestCase {
     }
 
     public function testEngagement() {
-        list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create('Test', 'User', NULL);
+        $u->addEmail('test@test.com');
         # Add the from@test.com email for message routing to work
         $u->addEmail('from@test.com');
         $u->addMembership($this->gid);

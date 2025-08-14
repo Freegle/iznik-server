@@ -116,12 +116,11 @@ class MailRouterTest extends IznikTestCase {
         $groups = [];
 
         for ($i = 0; $i < Spam::SUBJECT_THRESHOLD + 2; $i++) {
-            $g = Group::get($this->dbhr, $this->dbhm);
-            $g->create("testgroup$i", Group::GROUP_REUSE);
+            list($g, $gid) = $this->createTestGroup("testgroup$i", Group::GROUP_REUSE);
             $groups[] = $g;
 
-            $this->user->addMembership($g->getId());
-            $this->user->setMembershipAtt($g->getId(), 'ourPostingStatus', Group::POSTING_DEFAULT);
+            $this->user->addMembership($gid);
+            $this->user->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
             User::clearCache();
 
             $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -185,7 +184,7 @@ class MailRouterTest extends IznikTestCase {
         }
 
     public function testGreetingSpam() {
-        # Suppress emails
+        # Suppress emails - can't use utility methods because we need the mocked MailRouter
         $r = $this->getMockBuilder('Freegle\Iznik\MailRouter')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
             ->setMethods(array('mail'))
@@ -578,14 +577,12 @@ class MailRouterTest extends IznikTestCase {
         }
 
     public function testMultipleGroups() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-
         # Remove a membership but will still count for spam checking.
         $this->user->removeMembership($this->gid);
 
         for ($i = 0; $i < Spam::GROUP_THRESHOLD + 2; $i++) {
             $this->log("Group $i");
-            $gid = $g->create("testgroup$i", Group::GROUP_OTHER);
+            list($g, $gid) = $this->createTestGroup("testgroup$i", Group::GROUP_OTHER);
 
             $this->waitBackground();
 
@@ -647,11 +644,9 @@ class MailRouterTest extends IznikTestCase {
     }
 
     public function testBulkOwnerMail() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-
         for ($i = 0; $i < Spam::GROUP_THRESHOLD + 2; $i++) {
             $this->log("Group $i");
-            $gid = $g->create("testgroup$i", Group::GROUP_OTHER);
+            list($g, $gid) = $this->createTestGroup("testgroup$i", Group::GROUP_OTHER);
 
             $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
 
@@ -1115,12 +1110,10 @@ class MailRouterTest extends IznikTestCase {
 
     public function testEventsOff() {
         # Create the sending user
-        $u = User::get($this->dbhm, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $this->log("Created user $uid");
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup1", Group::GROUP_REUSE);
+        list($g, $gid) = $this->createTestGroup("testgroup1", Group::GROUP_REUSE);
         $u->addMembership($gid);
 
         # Turn events off by email
@@ -1154,12 +1147,10 @@ class MailRouterTest extends IznikTestCase {
 
     public function testRelevantOff() {
         # Create the sending user
-        $u = User::get($this->dbhm, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $this->log("Created user $uid");
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup1", Group::GROUP_REUSE);
+        list($g, $gid) = $this->createTestGroup("testgroup1", Group::GROUP_REUSE);
         $u->addMembership($gid);
 
         # Turn events off by email
@@ -1170,12 +1161,10 @@ class MailRouterTest extends IznikTestCase {
 
     public function testNewslettersOff() {
         # Create the sending user
-        $u = User::get($this->dbhm, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $this->log("Created user $uid");
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup1", Group::GROUP_REUSE);
+        list($g, $gid) = $this->createTestGroup("testgroup1", Group::GROUP_REUSE);
         $u->addMembership($gid);
 
         # Turn events off by email
@@ -1186,8 +1175,7 @@ class MailRouterTest extends IznikTestCase {
         }
 
     public function testVols() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup", Group::GROUP_REUSE);
+        list($g, $gid) = $this->createTestGroup("testgroup", Group::GROUP_REUSE);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tovols'));
         $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
@@ -1222,8 +1210,7 @@ class MailRouterTest extends IznikTestCase {
 
     public function testVolsHtmlOnly()
     {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup", Group::GROUP_REUSE);
+        list($g, $gid) = $this->createTestGroup("testgroup", Group::GROUP_REUSE);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/htmlonly'));
         $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
@@ -1333,21 +1320,13 @@ class MailRouterTest extends IznikTestCase {
     public function testReplyAll() {
         # Some people reply all to both our user and the Yahoo group.
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create("testgroup1", Group::GROUP_REUSE);
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $eid = $u->addEmail('test2@test.com');
-        $u->addMembership($gid, User::ROLE_MEMBER, $eid);
+        list($g, $gid) = $this->createTestGroup("testgroup1", Group::GROUP_REUSE);
+        list($u, $uid) = $this->createTestUserWithMembership($gid, User::ROLE_MEMBER, 'Test User', 'test2@test.com', 'testpw');
 
         # Create the sending user
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid) = $this->createTestUserWithMembership($gid, User::ROLE_MEMBER, 'Test User', $email, 'testpw');
         $this->log("Created user $uid");
-        $u = User::get($this->dbhr, $this->dbhm, $uid);
-        $this->assertGreaterThan(0, $u->addEmail($email));
-        $this->assertEquals(1, $u->addMembership($gid));
         $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         # Send a message.
