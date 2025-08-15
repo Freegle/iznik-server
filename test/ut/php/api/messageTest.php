@@ -265,10 +265,14 @@ class messageAPITest extends IznikAPITestCase
     public function testSpamToApproved()
     {
         # Create a group with a message on it
-        list($r, $id, $failok, $rc) = $this->createTestMessage('spam', 'testgroup', 'from1@test.com', 'to@test.com', NULL, NULL, ['To: FreeglePlayground <freegleplayground@yahoogroups.com>' => 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>']);
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
+        $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
         $this->assertFalse($failok);
         $this->assertNotNull($id);
         $this->log("Created spam message $id");
+        $rc = $r->route();
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
 
