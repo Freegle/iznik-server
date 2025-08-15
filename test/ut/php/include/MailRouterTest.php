@@ -503,7 +503,7 @@ class MailRouterTest extends IznikTestCase {
         for ($i = 0; $i < Spam::USER_THRESHOLD + 2; $i++) {
             $this->log("User $i");
 
-            list($u, $uid) = $this->createTestUser('Test', 'User', 'Test User', "test$i@test.com");
+            list($u, $uid) = $this->createTestUser('Test', 'User', 'Test User', "test$i@test.com", 'testpw');
             $u->addMembership($this->gid);
             $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
@@ -1025,10 +1025,10 @@ class MailRouterTest extends IznikTestCase {
         # Immediate emails have a reply address of replyto-msgid-userid
         #
         # Create a user for a reply.
-        list($u, $uid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test2@test.com');
+        list($u, $uid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
 
         # And a promise
-        list($u3, $uid3) = $this->createTestUser(NULL, NULL, 'Test User', 'test3@test.com');
+        list($u3, $uid3) = $this->createTestUser(NULL, NULL, 'Test User', 'test3@test.com', 'testpw');
 
         # Send a message.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -1080,7 +1080,7 @@ class MailRouterTest extends IznikTestCase {
 
     public function testMailOff() {
         # Create the sending user
-        list($u, $uid) = $this->createTestUser(NULL, NULL, 'Test User', 'from@test.com');
+        list($u, $uid) = $this->createTestUser(NULL, NULL, 'Test User', 'from@test.com', 'testpw');
         $this->log("Created user $uid");
 
         list($g, $gid) = $this->createTestGroup("testgroup1", Group::GROUP_REUSE);
@@ -1161,7 +1161,8 @@ class MailRouterTest extends IznikTestCase {
         }
 
     public function testVols() {
-        list($g, $gid) = $this->createTestGroup("testgroup", Group::GROUP_REUSE);
+        $gid = $this->gid;
+        $g = $this->group;
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tovols'));
         $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
@@ -1196,7 +1197,8 @@ class MailRouterTest extends IznikTestCase {
 
     public function testVolsHtmlOnly()
     {
-        list($g, $gid) = $this->createTestGroup("testgroup", Group::GROUP_REUSE);
+        $gid = $this->gid;
+        $g = $this->group;
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/htmlonly'));
         $msg = str_replace("@groups.yahoo.com", GROUP_DOMAIN, $msg);
