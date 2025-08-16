@@ -33,10 +33,9 @@ class addressAPITest extends IznikAPITestCase
 
     public function testBasic()
     {
-        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        list($this->user, $this->uid, $emailid) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $this->log("Created user {$this->uid}");
         $this->assertNotNull($this->uid);
-        $this->addLoginAndLogin($this->user, 'testpw');
 
         # Create logged out - should fail
         unset($_SESSION['id']);
@@ -49,7 +48,7 @@ class addressAPITest extends IznikAPITestCase
         $l = new Location($this->dbhr, $this->dbhm);
         $pcid = $l->create(NULL, 'TV13', 'Postcode', 'POLYGON((179.2 8.5, 179.3 8.5, 179.3 8.6, 179.2 8.6, 179.2 8.5))');
 
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         // This assumes some addresses are loaded, even if they're fake.
         $pafadds = $this->dbhr->preQuery("SELECT id FROM paf_addresses LIMIT 1;");
@@ -110,7 +109,7 @@ class addressAPITest extends IznikAPITestCase
         $this->uid = $u->create(NULL, NULL, 'Test User');
         $this->user = User::get($this->dbhr, $this->dbhm, $this->uid);
         $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $postcode = $this->dbhr->preQuery("SELECT id, postcodeid FROM paf_addresses WHERE postcodeid IS NOT NULL LIMIT 1;");
 

@@ -226,10 +226,8 @@ class storiesAPITest extends IznikAPITestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($origid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list($r, $origid, $failok, $rc) = $this->createAndRouteMessage($msg, Message::EMAIL, 'from@test.com', 'to@test.com');
         $this->assertNotNull($origid);
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Shouldn't yet appear.

@@ -53,7 +53,7 @@ class volunteeringAPITest extends IznikAPITestCase {
         $this->assertEquals(1, $ret['ret']);
 
         # Create without mandatories
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('volunteering', 'POST', [
         ]);
         $this->assertEquals(2, $ret['ret']);
@@ -111,7 +111,7 @@ class volunteeringAPITest extends IznikAPITestCase {
 
         # Log in as the mod
         $this->user2->addMembership($this->groupid, User::ROLE_MODERATOR);
-        $this->assertTrue($this->user2->login('testpw'));
+        $this->addLoginAndLogin($this->user2, 'testpw');
 
         $ret = $this->call('session', 'GET', []);
         $this->assertEquals(0, $ret['ret']);
@@ -146,14 +146,14 @@ class volunteeringAPITest extends IznikAPITestCase {
 
         # Shouldn't be editable for someone else.
         $this->user3->addMembership($this->groupid, User::ROLE_MEMBER);
-        $this->assertTrue($this->user3->login('testpw'));
+        $this->addLoginAndLogin($this->user3, 'testpw');
         $ret = $this->call('volunteering', 'GET', [
             'id' => $id
         ]);
         $this->assertFalse($ret['volunteering']['canmodify']);
 
         # And back as the user
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $ret = $this->call('volunteering', 'PATCH', [
             'id' => $id,
@@ -223,7 +223,7 @@ class volunteeringAPITest extends IznikAPITestCase {
     }
 
     public function testHold() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $this->user->setPrivate('systemrole', User::ROLE_MODERATOR);
 
         $ret = $this->call('volunteering', 'POST', [
@@ -271,7 +271,7 @@ class volunteeringAPITest extends IznikAPITestCase {
     }
 
     public function testNational() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $ret = $this->call('volunteering', 'POST', [
             'title' => 'UTTest',
@@ -294,7 +294,7 @@ class volunteeringAPITest extends IznikAPITestCase {
 
         # Log in as the mod
         $this->user2->addMembership($this->groupid, User::ROLE_MODERATOR);
-        $this->assertTrue($this->user2->login('testpw'));
+        $this->addLoginAndLogin($this->user2, 'testpw');
 
         # Shouldn't show as we don't have national permission.
         $ret = $this->call('session', 'GET', []);
@@ -303,7 +303,7 @@ class volunteeringAPITest extends IznikAPITestCase {
     }
 
     public function testNational2() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $ret = $this->call('volunteering', 'POST', [
             'title' => 'UTTest',
@@ -327,7 +327,7 @@ class volunteeringAPITest extends IznikAPITestCase {
         # Log in as the mod
         $this->user2->setPrivate('permissions', User::PERM_NATIONAL_VOLUNTEERS . "," . User::PERM_GIFTAID);
         $this->user2->addMembership($this->groupid, User::ROLE_MODERATOR);
-        $this->assertTrue($this->user2->login('testpw'));
+        $this->addLoginAndLogin($this->user2, 'testpw');
 
         $ret = $this->call('session', 'GET', [
             'components' => [ 'work' ]

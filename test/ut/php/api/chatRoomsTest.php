@@ -58,7 +58,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         $this->assertEquals(1, $ret['ret']);
         $this->assertFalse(Utils::pres('chatrooms', $ret));
 
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # Now we're talking.
         $ret = $this->call('chatrooms', 'GET', [
@@ -113,7 +113,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         $this->assertEquals(1, $ret['ret']);
         $this->assertFalse(Utils::pres('chatrooms', $ret));
 
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # Still not, even logged in.
         $ret = $this->call('chatrooms', 'GET', []);
@@ -172,7 +172,7 @@ class chatRoomsAPITest extends IznikAPITestCase
 
     public function testUser2Mod()
     {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # Create a support room from this user to the group mods
         $this->user->addMembership($this->groupid);
@@ -214,7 +214,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         # Now create a group mod
         list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'testmod@test.com', 'testpw');
         $u->addMembership($this->groupid);
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         # Shouldn't see it before we promote.
         $ret = $this->call('chatrooms', 'GET', [
@@ -256,7 +256,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         list ($mid, $banned) = $m->create($rid, $uid, 'Test');
         $this->log("Created message $mid");
 
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # Check it's unseen
         $ret = $this->call('chatrooms', 'GET', [
@@ -320,7 +320,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         list ($rid, $blocked) = $c->createConversation($this->uid, $uid);
         $this->log("Created room $rid between {$this->uid} and $uid");
 
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $ret = $this->call('chatrooms', 'POST', [
             'id' => $rid,
@@ -340,7 +340,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['user']['info']['nudges']['responded']);
 
         # Now reply - should mark the nudge as handled
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $ret = $this->call('chatmessages', 'POST', [ 'roomid' => $rid, 'message' => 'Test' ]);
         $this->assertEquals(0, $ret['ret']);
@@ -368,7 +368,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         list ($rid, $blocked) = $c->createConversation($this->uid, $uid);
         $this->log("Created room $rid between {$this->uid} and $uid");
 
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $ret = $this->call('chatrooms', 'GET', [
             'id' => -$rid
@@ -441,7 +441,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         $m->approve($gid);
 
         # u2 logs in and replies to message.
-        $u2->login('testpw');
+        $this->addLoginAndLogin($u2, 'testpw');
         $ret = $this->call('chatrooms', 'PUT', [
             'userid' => $uid1,
             'chattype' => ChatRoom::TYPE_USER2USER
@@ -465,7 +465,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         $this->assertEquals('Test', $ret['chatroom']['snippet']);
 
         # u1 logs in and marked message as taken.
-        $u1->login('testpw');
+        $this->addLoginAndLogin($u1, 'testpw');
         $ret = $this->call('message', 'POST', [
             'id' => $msgid,
             'action' => 'Outcome',
@@ -484,7 +484,7 @@ class chatRoomsAPITest extends IznikAPITestCase
 
 
     public function testReferToSupport() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # Create a support room from this user to the group mods
         $this->user->addMembership($this->groupid);
@@ -502,7 +502,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         # Now create a group mod
         list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
         $u->addMembership($this->groupid);
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $ret = $this->call('chatrooms', 'POST', [
             'id' => $rid,

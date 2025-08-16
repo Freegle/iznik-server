@@ -39,7 +39,7 @@ class changesAPITest extends IznikAPITestCase
         $u->addEmail('test@test.com');
         $u->addMembership($group1);
         $u->setMembershipAtt($group1, 'ourPostingStatus', Group::POSTING_DEFAULT);
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);

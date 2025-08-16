@@ -303,8 +303,7 @@ class messagesTest extends IznikAPITestCase {
         ]);
         self::assertEquals(2, $ret['ret']);
 
-        list($u, $id, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test3@test.com', 'testpw');
-        $this->assertTrue($u->login('testpw'));
+        list($u, $id, $emailid) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', 'test3@test.com', 'testpw');
 
         # Shouldn't be able to see pending logged in but not a member.
         $ret = $this->call('messages', 'GET', [
@@ -316,9 +315,7 @@ class messagesTest extends IznikAPITestCase {
         $this->assertEquals(2, $ret['ret']);
 
         # Now join - shouldn't be able to see a pending message
-        list($u, $id, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test4@test.com', 'testpw');
-        $u->addMembership($this->gid);
-        $this->assertTrue($u->login('testpw'));
+        list($u, $id, $emailid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', 'test4@test.com', 'testpw');
 
         $ret = $this->call('messages', 'GET', [
             'groupid' => $this->gid,
@@ -564,7 +561,7 @@ class messagesTest extends IznikAPITestCase {
         $sender = User::get($this->dbhr, $this->dbhm, $a->getFromuser());
 
         # Log in as a user on the group.
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # Look for it - should find it.
         $ret = $this->call('messages', 'GET', [
@@ -581,7 +578,7 @@ class messagesTest extends IznikAPITestCase {
 
     public function testPendingWithdraw() {
         # Set up a pending message on a native group.
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_MODERATED);
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -748,7 +745,7 @@ class messagesTest extends IznikAPITestCase {
         $this->assertEquals(0, count($msgs));
 
         # Logged in but no groups
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $this->user->removeMembership($this->gid);
 
         $ret = $this->call('messages', 'GET', [

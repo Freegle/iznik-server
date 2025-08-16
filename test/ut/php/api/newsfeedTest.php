@@ -86,7 +86,7 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         # Logged in - empty
         $this->log("Logged in - empty");
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('newsfeed', 'GET', []);
         $this->log("Returned " . gettype($ret['newsfeed']));
         $this->assertEquals(0, $ret['ret']);
@@ -261,7 +261,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         self::assertEquals($mid, $ret['newsfeed'][0]['refmsg']['id']);
 
         # Like
-        $this->assertTrue($this->user2->login('testpw'));
+        $this->addLoginAndLogin($this->user2, 'testpw');
         $ret = $this->call('newsfeed', 'POST', [
             'id' => $nid,
             'action' => 'Love'
@@ -278,7 +278,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->assertEquals($this->user2->getId(), $ret['newsfeed']['lovelist'][0]['id']);
 
         # Will have generated a notification, plus the one for "about me".
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('notification', 'GET', [
             'count' => TRUE
         ]);
@@ -313,14 +313,14 @@ class newsfeedAPITest extends IznikAPITestCase {
         ]);
         $this->assertEquals(0, $ret['ret']);
 
-        $this->assertTrue($this->user2->login('testpw'));
+        $this->addLoginAndLogin($this->user2, 'testpw');
         $ret = $this->call('newsfeed', 'POST', [
             'id' => $nid,
             'action' => 'Seen'
         ]);
         $this->assertEquals(0, $ret['ret']);
 
-        $this->assertTrue($this->user2->login('testpw'));
+        $this->addLoginAndLogin($this->user2, 'testpw');
         $ret = $this->call('newsfeed', 'POST', [
             'id' => $nid,
             'action' => 'Unlove'
@@ -339,13 +339,13 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->assertEquals(0, $ret['ret']);
         self::assertEquals(0, count($ret['newsfeed']));
 
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('newsfeed', 'GET', [
             'count' => TRUE
         ]);
         $this->assertEquals(0, $ret['ret']);
 
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('newsfeed', 'GET', [
             'id' => $nid
         ]);
@@ -426,7 +426,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->assertEquals(6, count($ret['newsfeed']['replies']));
 
         # Unhide it - should fail, not support
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('newsfeed', 'POST', [
             'id' => $nid,
             'action' => 'Unhide'
@@ -436,7 +436,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         # Unhide - should work , support.
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
         $_SESSION['id'] = NULL;
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $_SESSION['supportAllowed'] = TRUE;
 
         $ret = $this->call('newsfeed', 'POST', [
@@ -483,7 +483,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         }
 
     public function testCommunityEvent() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # Create an event - should result in a newsfeed item
         list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
@@ -511,7 +511,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         }
 
     public function testVolunteering() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
 
@@ -535,7 +535,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         }
 
     public function testPublicity() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # Create a publicity post so that we can issue the API call from that point.  Use a real example with
         # ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id) for the standalone test.
@@ -584,7 +584,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         }
 
     public function checkSpammer() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $ret = $this->call('newsfeed', 'POST', [
             'message' => 'Test with (miraabeller44@gmail.com)'
@@ -608,7 +608,7 @@ class newsfeedAPITest extends IznikAPITestCase {
 
     public function testMention() {
         $this->log("Log in as {$this->uid}");
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('newsfeed', 'POST', [
             'message' => 'Test for mention'
         ]);
@@ -619,7 +619,7 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         # Get mentions - should show first user
         $this->log("Log in as {$this->uid2}");
-        $this->assertTrue($this->user2->login('testpw'));
+        $this->addLoginAndLogin($this->user2, 'testpw');
 
         $ret = $this->call('mentions', 'GET', [
             'id' => $nid,
@@ -646,7 +646,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->assertEquals(0, $ret['ret']);
 
         # Should show second user
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('mentions', 'GET', [
             'id' => $nid,
             'query' => 'T'
@@ -659,7 +659,7 @@ class newsfeedAPITest extends IznikAPITestCase {
 
     public function testFollow() {
         $this->log("Log in as {$this->uid}");
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('newsfeed', 'POST', [
             'message' => 'Test for mention'
         ]);
@@ -709,7 +709,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->user->addMembership($gid, User::ROLE_MODERATOR);
         
         $this->log("Log in as {$this->uid}");
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('newsfeed', 'POST', [
             'message' => 'Test for attach'
         ]);
@@ -742,7 +742,7 @@ class newsfeedAPITest extends IznikAPITestCase {
     }
 
     public function testModNotif() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $this->user->setSetting('mylocation', [
             'lng' => 179.15,
@@ -792,7 +792,7 @@ class newsfeedAPITest extends IznikAPITestCase {
     }
 
     public function testReplyToReply() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # Post something.
         $this->log("Post something as {$this->uid}");
@@ -805,7 +805,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->log("Created feed {$ret['id']}");
         $threadhead = $ret['id'];
 
-        $this->assertTrue($this->user2->login('testpw'));
+        $this->addLoginAndLogin($this->user2, 'testpw');
 
         $ret = $this->call('newsfeed', 'POST', [
             'message' => 'Test reply',
@@ -841,7 +841,7 @@ class newsfeedAPITest extends IznikAPITestCase {
 
     public function testSuppressed() {
         $this->log("Logged in - empty");
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # Suppress them
         $this->user->setPrivate('newsfeedmodstatus', User::NEWSFEED_SUPPRESSED);
@@ -875,7 +875,7 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->assertTrue($found);
 
         # Shouldn't show for someone else.
-        $this->assertTrue($this->user2->login('testpw'));
+        $this->addLoginAndLogin($this->user2, 'testpw');
 
         $ret = $this->call('newsfeed', 'GET', [
             'ctx' => [
@@ -896,7 +896,7 @@ class newsfeedAPITest extends IznikAPITestCase {
     }
 
     public function testDuplicate() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # Post something.
         $this->log("Post something as {$this->uid}");
@@ -931,7 +931,7 @@ class newsfeedAPITest extends IznikAPITestCase {
     }
 
     public function testOwnPosts() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $settings = [
             'mylocation' => [
@@ -987,7 +987,7 @@ class newsfeedAPITest extends IznikAPITestCase {
 
     public function testConvertToStory() {
         $this->log("Log in as {$this->uid}");
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('newsfeed', 'POST', [
             'message' => 'Test for mention'
         ]);

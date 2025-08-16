@@ -266,9 +266,7 @@ class messageTest extends IznikTestCase {
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
+        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, Message::EMAIL, 'from@test.com', 'to@test.com');
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
@@ -304,9 +302,7 @@ class messageTest extends IznikTestCase {
         $u->addEmail('sender@example.net');
         $this->user = $u;
 
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
+        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, Message::EMAIL, 'from@test.com', 'to@test.com');
         $this->assertEquals(MailRouter::APPROVED, $rc);
     }
     
@@ -345,9 +341,7 @@ class messageTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
+        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, Message::EMAIL, 'from@test.com', 'to@test.com');
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
 

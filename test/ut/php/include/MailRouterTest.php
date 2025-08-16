@@ -236,10 +236,7 @@ class MailRouterTest extends IznikTestCase {
         $this->user->addMembership($gid);
         $this->user->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
-        $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        list ($id, $failok) = $m->save();
+        list($m, $id, $failok) = $this->createParsedTestMessage('Spammy spam', 'from@test.com', 'to@test.com');
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $this->assertEquals(Message::EMAIL, $m->getSource());
@@ -264,11 +261,7 @@ class MailRouterTest extends IznikTestCase {
         }
 
     public function testGroupsSpam() {
-        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamgroups');
-        $msg = str_replace('chippenham-freegle', 'testgroup', $msg);
-        $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
-        list ($id, $failok) = $m->save();
+        list($m, $id, $failok) = $this->createParsedTestMessage('Spammy spam', 'from1@test.com', 'to@test.com');
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
@@ -280,11 +273,7 @@ class MailRouterTest extends IznikTestCase {
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_MODERATED);
         User::clearCache();
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        list ($id, $failok) = $m->save();
+        list($m, $id, $failok) = $this->createParsedTestMessage('Basic test', 'test@test.com', 'to@test.com');
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();

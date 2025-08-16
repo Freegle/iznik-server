@@ -35,7 +35,7 @@ class stdMessageAPITest extends IznikAPITestCase {
 
         # Create an empty config
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         @session_start();
         $ret = $this->call('modconfig', 'POST', [
             'name' => 'UTTest',
@@ -62,7 +62,7 @@ class stdMessageAPITest extends IznikAPITestCase {
         $this->assertEquals(1, $ret['ret']);
 
         # Create without title
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('stdmsg', 'POST', [
         ]);
         $this->assertEquals(3, $ret['ret']);
@@ -124,7 +124,7 @@ class stdMessageAPITest extends IznikAPITestCase {
     }
 
     public function testPatch() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
         $this->log("Create stdmsg for {$this->cid}");
         $ret = $this->call('stdmsg', 'POST', [
@@ -145,7 +145,7 @@ class stdMessageAPITest extends IznikAPITestCase {
         $this->assertEquals(1, $ret['ret']);
 
         # Log back in
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # As a non-mod
         $this->log("Demote");
@@ -183,7 +183,7 @@ class stdMessageAPITest extends IznikAPITestCase {
         }
 
     public function testDelete() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
         $ret = $this->call('stdmsg', 'POST', [
             'configid' => $this->cid,
@@ -203,7 +203,7 @@ class stdMessageAPITest extends IznikAPITestCase {
         $this->assertEquals(1, $ret['ret']);
 
         # Log back in
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # As a non-mod
         $this->log("Demote");
@@ -224,7 +224,7 @@ class stdMessageAPITest extends IznikAPITestCase {
 
         # Promote back
         $this->user->setRole(User::ROLE_OWNER, $this->groupid);
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('stdmsg', 'DELETE', [
             'id' => $id
         ]);

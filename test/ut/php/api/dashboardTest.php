@@ -93,8 +93,7 @@ class dashboardTest extends IznikAPITestCase {
     }
 
     public function testRegion() {
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup1', Group::GROUP_OTHER);
+        list($g, $group1) = $this->createTestGroup('testgroup1', Group::GROUP_OTHER);
         $g->setPrivate('region', 'Scotland');
 
         $ret = $this->call('dashboard', 'GET', [

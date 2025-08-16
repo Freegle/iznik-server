@@ -1101,7 +1101,7 @@ class messageAPITest extends IznikAPITestCase
         $this->log("Created member $memberid and mod $modid");
 
         # Submit a message from the member, who will be moderated as new members are.
-        $this->assertTrue($member->login('testpw'));
+        $this->addLoginAndLogin($member, 'testpw');
 
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
@@ -1125,7 +1125,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
 
         # Test the canedit flag
-        $this->assertTrue($member->login('testpw'));
+        $this->addLoginAndLogin($member, 'testpw');
         $ret = $this->call('message', 'GET', [
             'id' => $mid
         ]);
@@ -1147,7 +1147,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(FALSE, $ret['message']['canedit']);
 
         # Should be allowed to edit as mod
-        $this->assertTrue($mod->login('testpw'));
+        $this->addLoginAndLogin($mod, 'testpw');
         $ret = $this->call('message', 'GET', [
             'id' => $mid
         ]);
@@ -1164,7 +1164,7 @@ class messageAPITest extends IznikAPITestCase
         # Now log in as the member.  Should show in our count.
         $m = new Message($this->dbhr, $this->dbhm);
         $m->updateSpatialIndex();
-        $this->assertTrue($member->login('testpw'));
+        $this->addLoginAndLogin($member, 'testpw');
         $ret = $this->call('session', 'GET', [
             'components' => [ 'openposts' ]
         ]);
@@ -1256,7 +1256,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals($anonymous ? 3 : 0, Utils::presdef('availablenow', $ret['message'], 0));
 
         # Now back as the mod and check the edit history.
-        $this->assertTrue($mod->login('testpw'));
+        $this->addLoginAndLogin($mod, 'testpw');
         $ret = $this->call('message', 'GET', [
             'id' => $mid
         ]);
@@ -1406,7 +1406,7 @@ class messageAPITest extends IznikAPITestCase
         $this->log("Created member $memberid");
 
         # Submit a message from the member, who will be moderated as new members are.
-        $this->assertTrue($member->login('testpw'));
+        $this->addLoginAndLogin($member, 'testpw');
 
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
@@ -1430,7 +1430,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
 
         # Now log in as the member and edit the message in Pending.
-        $this->assertTrue($member->login('testpw'));
+        $this->addLoginAndLogin($member, 'testpw');
 
         $ret = $this->call('message', 'PATCH', [
             'id' => $mid,
@@ -1456,7 +1456,7 @@ class messageAPITest extends IznikAPITestCase
         $this->log("Created member $memberid");
 
         # Submit a message from the member, who will be moderated as new members are.
-        $this->assertTrue($member->login('testpw'));
+        $this->addLoginAndLogin($member, 'testpw');
 
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
@@ -1507,7 +1507,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(MessageCollection::REJECTED, $m->getGroups(FALSE, FALSE)[0]['collection']);
 
         # Now log in as the member and edit the message.
-        $this->assertTrue($member->login('testpw'));
+        $this->addLoginAndLogin($member, 'testpw');
 
         $ret = $this->call('message', 'PATCH', [
             'id' => $mid,
@@ -1535,7 +1535,7 @@ class messageAPITest extends IznikAPITestCase
         $this->log("Created member $memberid");
 
         # Submit a message from the member, who will be moderated as new members are.
-        $this->assertTrue($member->login('testpw'));
+        $this->addLoginAndLogin($member, 'testpw');
 
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
@@ -1563,7 +1563,7 @@ class messageAPITest extends IznikAPITestCase
         $m->approve($this->gid);
 
         # Now log in as the member and edit the message.
-        $this->assertTrue($member->login('testpw'));
+        $this->addLoginAndLogin($member, 'testpw');
 
         $ret = $this->call('message', 'PATCH', [
             'id' => $mid,
@@ -1929,7 +1929,7 @@ class messageAPITest extends IznikAPITestCase
 
         # Promise it to the other user.
         $u = User::get($this->dbhr, $this->dbhm, $this->uid);
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'userid' => $uid2,
@@ -1961,7 +1961,7 @@ class messageAPITest extends IznikAPITestCase
 
         # But should to that user.
         $u2 = User::get($this->dbhr, $this->dbhm, $uid2);
-        $this->assertTrue($u2->login('testpw'));
+        $this->addLoginAndLogin($u2, 'testpw');
 
         $ret = $this->call('message', 'GET', [
             'id' => $id
@@ -1969,7 +1969,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
         $this->assertTrue($ret['message']['promisedtome']);
 
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         # Can promise to multiple users
         $ret = $this->call('message', 'POST', [
@@ -2037,7 +2037,7 @@ class messageAPITest extends IznikAPITestCase
 
         # Renege on the other.
         $u = User::get($this->dbhr, $this->dbhm, $this->uid);
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $ret = $this->call('message', 'POST', [
             'id' => $id,
@@ -2142,7 +2142,7 @@ class messageAPITest extends IznikAPITestCase
         $m->addToSpatialIndex();
 
         # Should show in our open post count.
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $ret = $this->call('session', 'GET', [
             'components' => [ 'openposts' ]
         ]);
@@ -2209,7 +2209,7 @@ class messageAPITest extends IznikAPITestCase
 
         # Now get the happiness back.  Should be 1 because we have one comment.
         $u->setRole(User::ROLE_MODERATOR, $this->gid);
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $ret = $this->call('memberships', 'GET', [
             'collection' => 'Happiness',
             'groupid' => $this->gid
@@ -2789,7 +2789,7 @@ class messageAPITest extends IznikAPITestCase
 
         $this->assertEquals(0, $ret['ret']);
         $this->waitBackground();
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         # Check this shows up in our list of viewed messages.
         $ret = $this->call('messages', 'GET', [
@@ -2914,7 +2914,7 @@ class messageAPITest extends IznikAPITestCase
 
         if ($login) {
             # Submit a message from the member - should fail
-            $this->assertTrue($member->login('testpw'));
+            $this->addLoginAndLogin($member, 'testpw');
         }
 
         $ret = $this->call('message', 'PUT', [
@@ -3012,7 +3012,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
 
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $ret = $this->call('message', 'GET', [
             'id' => $id,
@@ -3056,7 +3056,7 @@ class messageAPITest extends IznikAPITestCase
         $this->log("Created member $memberid and mod $modid");
 
         # Submit a message from the member, who will be moderated as new members are.
-        $this->assertTrue($member->login('testpw'));
+        $this->addLoginAndLogin($member, 'testpw');
 
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
@@ -3103,7 +3103,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals($email, $ret['message']['fromuser']['emails'][0]['email']);
 
         # Give consent
-        $this->assertTrue($member->login('testpw'));
+        $this->addLoginAndLogin($member, 'testpw');
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'action' => 'PartnerConsent',
@@ -3147,7 +3147,7 @@ class messageAPITest extends IznikAPITestCase
         $rc = $r->route();
         $this->assertEquals(MailRouter::PENDING, $rc);
 
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # Move as member - fail.
         $ret = $this->call('message', 'POST', [
@@ -3229,7 +3229,7 @@ class messageAPITest extends IznikAPITestCase
     }
 
     public function testPromiseError() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $ret = $this->call('message', 'POST', [
             'id' => 0,
@@ -3530,7 +3530,7 @@ class messageAPITest extends IznikAPITestCase
 
         # Promise it to the other user, twice
         $u = User::get($this->dbhr, $this->dbhm, $this->uid);
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $ret = $this->call('message', 'POST', [
             'id' => $mid,
             'userid' => $uid2,
@@ -3641,7 +3641,7 @@ class messageAPITest extends IznikAPITestCase
 
         $this->log("Created member $memberid and mod $modid");
 
-        $this->assertTrue($member->login('testpw'));
+        $this->addLoginAndLogin($member, 'testpw');
 
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
@@ -3710,7 +3710,7 @@ class messageAPITest extends IznikAPITestCase
 
         $this->log("Created member $memberid and mod $modid");
 
-        $this->assertTrue($member->login('testpw'));
+        $this->addLoginAndLogin($member, 'testpw');
 
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
@@ -3866,7 +3866,7 @@ class messageAPITest extends IznikAPITestCase
 
         # Promise it and renege.
         $u = User::get($this->dbhr, $this->dbhm, $this->uid);
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'userid' => $uid2,
@@ -3928,7 +3928,7 @@ class messageAPITest extends IznikAPITestCase
         $this->log("Created member $memberid");
 
         # Submit a message from the member, who will be moderated as new members are.
-        $this->assertTrue($member->login('testpw'));
+        $this->addLoginAndLogin($member, 'testpw');
 
         $ret = $this->call('message', 'PUT', [
             'collection' => 'Draft',
@@ -3952,7 +3952,7 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
 
         # Now log in as the member and edit the message in Pending.
-        $this->assertTrue($member->login('testpw'));
+        $this->addLoginAndLogin($member, 'testpw');
 
         $ret = $this->call('message', 'GET', [
             'id' => $mid,

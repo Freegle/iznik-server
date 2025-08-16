@@ -60,8 +60,7 @@ class pushNotificationsTest extends IznikTestCase {
         $this->dbhm->preExec("DELETE FROM users_push_notifications WHERE subscription LIKE 'Test%';");
         $n->add($id, PushNotifications::PUSH_GOOGLE, 'test3', TRUE);
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $this->groupid = $g->create('testgroup', Group::GROUP_REUSE);
+        list($g, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
         $u->addMembership($this->groupid, User::ROLE_MODERATOR);
 
         # Create a chat message from the user to the mods.
@@ -78,8 +77,7 @@ class pushNotificationsTest extends IznikTestCase {
     }
 
     public function testExecuteOld() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $id = $u->create('Test', 'User', NULL);
+        list($u, $id) = $this->createTestUser('Test', 'User', NULL, NULL, 'testpw');
         $this->log("Created $id");
 
         $mock = $this->getMockBuilder('Freegle\Iznik\PushNotifications')

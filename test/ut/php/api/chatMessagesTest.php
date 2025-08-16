@@ -65,7 +65,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->assertEquals(1, $ret['ret']);
         $this->assertFalse(Utils::pres('chatmessages', $ret));
 
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # Still not, even logged in.
         $ret = $this->call('chatmessages', 'GET', [ 'roomid' => $this->cid ]);
@@ -101,7 +101,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->assertFalse(Utils::pres('chatmessages', $ret));
 
         $this->assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # Now we're talking.  Make sure we're on the roster.
         $this->log("Logged in");
@@ -144,7 +144,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         }
 
     public function testConversation() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # We want to use a referenced message which is promised, to test suppressing of email notifications.
         list($testUser, $uid2) = $this->createTestUserWithLogin('Test User', 'testpw');
@@ -240,7 +240,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         }
 
         # Now log in as the other user.
-        $this->assertTrue($this->user2->login('testpw'));
+        $this->addLoginAndLogin($this->user2, 'testpw');
 
         # Should be able to see the room
         $ret = $this->call('chatrooms', 'GET', []);
@@ -300,7 +300,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->assertEquals(1, $ret['chatmessage']['replyreceived']);
 
         # Now log in as a third user
-        $this->assertTrue($this->user3->login('testpw'));
+        $this->addLoginAndLogin($this->user3, 'testpw');
 
         # Shouldn't see the chat
         $ret = $this->call('chatmessages', 'GET', [ 'roomid' => $this->cid ]);
@@ -316,7 +316,7 @@ class chatMessagesAPITest extends IznikAPITestCase
     }
 
     public function testImage() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $ret = $this->call('chatrooms', 'PUT', [
             'userid' => $this->uid2
@@ -352,7 +352,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $mid1 = $ret['id'];
 
         # Now log in as the other user.
-        $this->assertTrue($this->user2->login('testpw'));
+        $this->addLoginAndLogin($this->user2, 'testpw');
 
         # Should see the messages
         $ret = $this->call('chatmessages', 'GET', [
@@ -373,7 +373,7 @@ class chatMessagesAPITest extends IznikAPITestCase
     }
 
     public function testReview() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # Make the originating user be on the group so we can test groupfrom.
         $this->user->addMembership($this->groupid);
@@ -431,7 +431,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         self::assertEquals(ChatMessage::REVIEW_LAST, $cm->getPrivate('reportreason'));
 
         # Now log in as the other user.
-        $this->assertTrue($this->user2->login('testpw'));
+        $this->addLoginAndLogin($this->user2, 'testpw');
 
         # Shouldn't see chat as no messages not held for review.
         $ret = $this->call('chatrooms', 'GET', []);
@@ -448,7 +448,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->assertEquals(0, count($ret['chatmessages']));
 
         # Now log in as a third user.
-        $this->assertTrue($this->user3->login('testpw'));
+        $this->addLoginAndLogin($this->user3, 'testpw');
         $this->user3->addMembership($this->groupid, User::ROLE_MODERATOR);
 
         $this->user2->removeMembership($this->groupid);
@@ -566,7 +566,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->assertEquals(0, count($ret['chatmessages'])*-9);
 
         # Now log in as the recipient.  Should see the approved ones.
-        $this->assertTrue($this->user2->login('testpw'));
+        $this->addLoginAndLogin($this->user2, 'testpw');
 
         $ret = $this->call('chatmessages', 'GET', [
             'roomid' => $this->cid
@@ -578,7 +578,7 @@ class chatMessagesAPITest extends IznikAPITestCase
     }
 
     public function testReviewDup() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # Make the originating user be on the group so we can test groupfrom.
         $this->user->addMembership($this->groupid);
@@ -621,7 +621,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $mid2 = $ret['id'];
 
         # Now log in as a mod.
-        $this->assertTrue($this->user3->login('testpw'));
+        $this->addLoginAndLogin($this->user3, 'testpw');
         $this->user3->addMembership($this->groupid, User::ROLE_MODERATOR);
 
         # Should see this now.
@@ -644,7 +644,7 @@ class chatMessagesAPITest extends IznikAPITestCase
 
     public function testReviewUnmod() {
         $this->user->setPrivate('chatmodstatus', User::CHAT_MODSTATUS_UNMODERATED);
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # Create a chat to the second user
         $ret = $this->call('chatrooms', 'PUT', [
@@ -690,7 +690,7 @@ class chatMessagesAPITest extends IznikAPITestCase
             $this->log("Created chat message $cid in $rid");
         }
 
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # Get all.
         $ret = $this->call('chatmessages', 'GET', [
@@ -732,7 +732,7 @@ class chatMessagesAPITest extends IznikAPITestCase
     }
 
     public function testTyping() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $this->user->addEmail('test@test.com');
         $this->user2->addEmail('test2@test.com');
@@ -805,7 +805,7 @@ class chatMessagesAPITest extends IznikAPITestCase
     }
 
     public function testDelete() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $this->user->addEmail('test@test.com');
         $this->user2->addEmail('test2@test.com');
@@ -849,7 +849,7 @@ class chatMessagesAPITest extends IznikAPITestCase
     public function testReviewRecipientOnNoGroups() {
         # Normally mods on the recipient's groups see chat for review.  But if the recipient is not on any group
         # then the sender's mods see it.
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # Set up:
         # - sender on group1
@@ -860,7 +860,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         list($this->user2, $this->uid2) = $this->createTestUserWithMembership($this->groupid2, User::ROLE_MEMBER, 'Test User', 'test2@test.com', 'testpw');
 
         # Create a chat from first user to second user.
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('chatrooms', 'PUT', [
             'userid' => $this->uid2
         ]);
@@ -989,7 +989,7 @@ class chatMessagesAPITest extends IznikAPITestCase
     }
 
     public function testReviewLastSpam() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # Create a chat to the second user
         $ret = $this->call('chatrooms', 'PUT', [

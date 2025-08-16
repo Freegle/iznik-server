@@ -37,7 +37,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $this->user->setMembershipAtt($this->groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         list($this->user2, $this->uid2, $emailid2) = $this->createTestUser(NULL, NULL, 'Test User', 'tes2t@test.com', 'testpw');
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
     }
 
     public function testAdd() {
@@ -452,7 +452,7 @@ class membershipsAPITest extends IznikAPITestCase {
 
         # Member - shouldn't see members list
         $this->log("Login as " . $this->user->getId());
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('memberships', 'PATCH', [
             'groupid' => $this->groupid,
             'members' => TRUE
@@ -465,7 +465,7 @@ class membershipsAPITest extends IznikAPITestCase {
     }
 
     public function testPendingMembers() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $this->assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_OWNER));
 
         $ret = $this->call('memberships', 'GET', [
@@ -491,7 +491,7 @@ class membershipsAPITest extends IznikAPITestCase {
         $this->assertEquals(2, $ret['ret']);
 
         # Shouldn't be able to do this as a member
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('memberships', 'POST', [
             'userid' => $uid,
             'groupid' => $this->groupid,
@@ -550,7 +550,7 @@ class membershipsAPITest extends IznikAPITestCase {
 
     public function testFilter() {
         $this->assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('memberships', 'GET', [
             'id' => $this->groupid,
             'members' => TRUE
@@ -784,7 +784,7 @@ class membershipsAPITest extends IznikAPITestCase {
     public function testSearchBanned() {
         $this->assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
         $this->assertEquals(1, $this->user2->addMembership($this->groupid));
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         // Search for the member - should find.
         $ret = $this->call('memberships', 'GET', [
@@ -813,7 +813,7 @@ class membershipsAPITest extends IznikAPITestCase {
 
     public function testBanNonMember() {
         $this->assertEquals(1, $this->user->addMembership($this->groupid, User::ROLE_MODERATOR));
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         // Search for the member - should find.
         $ret = $this->call('memberships', 'DELETE', [

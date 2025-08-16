@@ -451,10 +451,7 @@ class spammersAPITest extends IznikAPITestCase {
         $id = $this->dbhm->preExec("INSERT INTO partners_keys (`partner`, `key`) VALUES ('UT', ?);", [$key]);
         $this->assertNotNull($id);
 
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create("Test", "User", "Test User");
-        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
-        $u->addEmail($email);
+        list($u, $uid) = $this->createTestUser("Test", "User", "Test User", 'ut-' . rand() . '@' . USER_DOMAIN, 'testpw');
 
         $this->dbhm->preExec("INSERT INTO spam_users (userid, collection, reason) VALUES (?, ?, ?);", [
             $uid,
@@ -501,10 +498,7 @@ class spammersAPITest extends IznikAPITestCase {
     }
 
     public function testSpammerStartsChat() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $inventedEmail = $u->inventEmail();
-        list($u, $uid) = $this->createTestUser(NULL, NULL, 'Test User', $inventedEmail, 'testpw');
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($u, $uid) = $this->createTestUserWithLogin('Test User', 'testpw');
 
         $s = new Spam($this->dbhr, $this->dbhm);
         $s->addSpammer($uid, Spam::TYPE_SPAMMER, 'Test reason');
@@ -517,10 +511,7 @@ class spammersAPITest extends IznikAPITestCase {
     }
 
     public function testSpammerSendsChat() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $inventedEmail = $u->inventEmail();
-        list($u, $uid) = $this->createTestUser(NULL, NULL, 'Test User', $inventedEmail, 'testpw');
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($u, $uid) = $this->createTestUserWithLogin('Test User', 'testpw');
 
         list($u2, $uid2) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
 

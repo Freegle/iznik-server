@@ -27,12 +27,12 @@ class trystTest extends IznikAPITestCase {
 
     public function testBasic() {
         $email1 = 'test-' . rand() . '@blackhole.io';
-        list($u1, $u1id, $emailid1) = $this->createTestUser('Test','User', 'Test User', $email1, 'testpw');
+        list($u1, $u1id, $emailid1) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', $email1, 'testpw');
         
         $email2 = 'test-' . rand() . '@blackhole.io';
-        list($u2, $u2id, $emailid2) = $this->createTestUser('Test','User', 'Test User', $email2, 'testpw');
+        list($u2, $u2id, $emailid2) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', $email2, 'testpw');
         
-        list($u3, $u3id, $emailid3) = $this->createTestUser('Test','User', 'Test User', 'test3@test.com', 'testpw');
+        list($u3, $u3id, $emailid3) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', 'test3@test.com', 'testpw');
 
         # Create logged out - fail.
         $ret = $this->call('tryst', 'PUT', [
@@ -44,7 +44,6 @@ class trystTest extends IznikAPITestCase {
         $this->assertEquals(1, $ret['ret']);
 
         # Create logged in - should work.
-        $this->assertTrue($u1->login('testpw'));
         $ret = $this->call('tryst', 'PUT', [
             'user1' => $u1id,
             'user2' => $u2id,
@@ -77,7 +76,6 @@ class trystTest extends IznikAPITestCase {
         $this->assertEquals($id, $ret['trysts'][0]['id']);
 
         # As the other user
-        $this->assertTrue($u2->login('testpw'));
         $ret = $this->call('tryst', 'GET', [
             'id' => $id
         ]);

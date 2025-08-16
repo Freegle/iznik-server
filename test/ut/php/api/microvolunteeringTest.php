@@ -127,9 +127,7 @@ class microvolunteeringAPITest extends IznikAPITestCase
         $this->assertEquals(3, count($ret['microvolunteerings']));
 
         # Create two other users and a difference of opinion.
-        list($u2, $uid2) = $this->createTestUser('Test', 'User', NULL, 'test2@test.com', 'testpw');
-        $this->assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u2->login('testpw'));
+        list($u2, $uid2, $emailid2) = $this->createTestUserAndLogin('Test', 'User', NULL, 'test2@test.com', 'testpw');
         $u2->setPrivate('trustlevel', User::TRUST_BASIC);
         $ret = $this->call('microvolunteering', 'POST', [
             'msgid' => $id,
@@ -138,9 +136,7 @@ class microvolunteeringAPITest extends IznikAPITestCase
             'comments' => 'Fish with another bad face2'
         ]);
 
-        list($u3, $uid3) = $this->createTestUser('Test', 'User', NULL, 'test3@test.com', 'testpw');
-        $this->assertGreaterThan(0, $u3->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u3->login('testpw'));
+        list($u3, $uid3, $emailid3) = $this->createTestUserAndLogin('Test', 'User', NULL, 'test3@test.com', 'testpw');
         $u3->setPrivate('trustlevel', User::TRUST_BASIC);
         $ret = $this->call('microvolunteering', 'POST', [
             'msgid' => $id,
@@ -179,11 +175,8 @@ class microvolunteeringAPITest extends IznikAPITestCase
         $rc = $r->route();
         $this->assertEquals(MailRouter::PENDING, $rc);
 
-        list($u, $uid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($gid, User::ROLE_MEMBER, 'Test', 'User', NULL, 'test@test.com', 'testpw');
         $u->setPrivate('trustlevel', User::TRUST_BASIC);
-        $u->addMembership($gid);
 
         # Message is Pending so shouldn't see it as basic.
         $ret = $this->call('microvolunteering', 'GET', [
@@ -246,10 +239,7 @@ class microvolunteeringAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
 
         # Log in as a mod.
-        list($u, $uid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
-        $u->addMembership($gid, User::ROLE_MODERATOR);
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($gid, User::ROLE_MODERATOR, 'Test', 'User', NULL, 'test@test.com', 'testpw');
 
         # Get the messages.
         $ret = $this->call('messages', 'GET', [
@@ -281,12 +271,8 @@ class microvolunteeringAPITest extends IznikAPITestCase
         $gid = $g->create('testgroup1', Group::GROUP_FREEGLE);
         $g->setPrivate('microvolunteering', 1);
 
-        list($u, $uid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
-        $u->addMembership($gid);
-
+        list($u, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($gid, User::ROLE_MEMBER, 'Test', 'User', NULL, 'test@test.com', 'testpw');
         $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_FACEBOOK, NULL, 'testpw'));
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
 
         $this->dbhm->preExec("INSERT INTO `groups_facebook_toshare` (`id`, `sharefrom`, `postid`, `date`, `data`) VALUES
 (1, '134117207097', '134117207097_10153929944247098', NOW(), '{\"id\":\"134117207097_10153929944247098\",\"link\":\"https:\\/\\/www.facebook.com\\/Freegle\\/photos\\/a.395738372097.175912.134117207097\\/10153929925422098\\/?type=3\",\"message\":\"TEST DO NOT SHARE\\nhttp:\\/\\/ilovefreegle.org\\/groups\\/\",\"type\":\"photo\",\"icon\":\"https:\\/\\/www.facebook.com\\/images\\/icons\\/photo.gif\",\"name\":\"Photos from Freegle\'s post\"}') ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id), date=NOW();");
@@ -387,9 +373,7 @@ class microvolunteeringAPITest extends IznikAPITestCase
         $this->assertFalse($ret['rotated']);
 
         # Again to trigger actual rotate.
-        list($u, $uid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
-        $this->assertGreaterThan(0, $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
-        $this->assertTrue($u->login('testpw'));
+        list($u, $uid, $emailid) = $this->createTestUserAndLogin('Test', 'User', NULL, 'test@test.com', 'testpw');
 
         # Should not be flagged as a supporter.
         $atts = $u->getPublic();

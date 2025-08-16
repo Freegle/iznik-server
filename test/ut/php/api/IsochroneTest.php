@@ -43,7 +43,7 @@ class isochroneAPITest extends IznikAPITestCase
         ];
 
         $u->setPrivate('settings', json_encode($settings));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $ret = $this->call('isochrone', 'GET', []);
 
@@ -105,7 +105,7 @@ class isochroneAPITest extends IznikAPITestCase
 
         $email = 'test-' . rand() . '@blackhole.io';
         $u->addEmail($email);
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $u->addEmail('test@test.com');
         $u->addMembership($group1);
@@ -116,9 +116,7 @@ class isochroneAPITest extends IznikAPITestCase
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
-        $rc = $r->route();
+        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, Message::EMAIL, $email, 'to@test.com');
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $this->assertEquals(Message::TYPE_OFFER, $m->getType());
@@ -172,7 +170,7 @@ class isochroneAPITest extends IznikAPITestCase
         ];
 
         $u->setPrivate('settings', json_encode($settings));
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $ret = $this->call('isochrone', 'GET', []);
 
@@ -234,7 +232,7 @@ class isochroneAPITest extends IznikAPITestCase
 
         $email = 'test-' . rand() . '@blackhole.io';
         $u->addEmail($email);
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $u->addEmail('test@test.com');
         $u->addMembership($group1);
@@ -245,9 +243,7 @@ class isochroneAPITest extends IznikAPITestCase
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
-        $rc = $r->route();
+        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, Message::EMAIL, $email, 'to@test.com');
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $this->assertEquals(Message::TYPE_OFFER, $m->getType());
@@ -291,7 +287,7 @@ class isochroneAPITest extends IznikAPITestCase
 
         # Log back in as the user - shouldn't be visible.
         $u = new User($this->dbhr, $this->dbhm, $uid);
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $ret = $this->call('messages', 'GET', [
             'subaction' => 'isochrones'
@@ -313,7 +309,7 @@ class isochroneAPITest extends IznikAPITestCase
 
         # Log back in as the user - shouldn't be visible.
         $u = new User($this->dbhr, $this->dbhm, $uid);
-        $this->assertTrue($u->login('testpw'));
+        $this->addLoginAndLogin($u, 'testpw');
 
         $ret = $this->call('messages', 'GET', [
             'subaction' => 'isochrones'

@@ -44,12 +44,11 @@ class exportAPITest extends IznikAPITestCase {
 
         $this->user->addMembership($this->groupid, User::ROLE_MODERATOR);
 
-        $g = new Group($this->dbhr, $this->dbhm);
-        $gid1 = $g->create('testgroup1', Group::GROUP_FREEGLE);
+        list($g, $gid1) = $this->createTestGroup('testgroup1', Group::GROUP_FREEGLE);
         $this->user->addMembership($gid1, User::ROLE_MODERATOR);
 
         # Add a comment.
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $this->user->addComment($gid1, 'Banned');
 
         # Add a ban by us.

@@ -26,8 +26,7 @@ class teamAPITest extends IznikAPITestCase {
         $this->dbhr = $dbhm;
         $this->dbhm = $dbhm;
 
-        list($this->user, $this->uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
-        $this->assertGreaterThan(0, $this->user->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
+        list($this->user, $this->uid, $emailid) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
 
         $dbhm->preExec("DELETE FROM teams WHERE name = 'UTTest';");
     }
@@ -40,7 +39,7 @@ class teamAPITest extends IznikAPITestCase {
         $this->assertEquals(1, $ret['ret']);
 
         # Can't create when logged in without permissions.
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('team', 'POST', [
             'name' => 'UTTest',
             'email' => 'test@test.com',
@@ -51,7 +50,7 @@ class teamAPITest extends IznikAPITestCase {
         $this->user->setPrivate('permissions', User::PERM_TEAMS);
 
         # Can now create.
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('team', 'POST', [
             'name' => 'UTTest',
             'email' => 'test@test.com',

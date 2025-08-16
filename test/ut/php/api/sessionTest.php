@@ -362,8 +362,7 @@ class sessionTest extends IznikAPITestCase
     }
 
     public function testConfigs() {
-        list($u, $id, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
-        $this->assertTrue($u->login('testpw'));
+        list($u, $id, $emailid) = $this->createTestUserAndLogin('Test', 'User', NULL, 'test@test.com', 'testpw');
 
         $ret = $this->call('session', 'GET', []);
         $this->assertEquals(0, $ret['ret']);
@@ -396,22 +395,12 @@ class sessionTest extends IznikAPITestCase
         # Send one message to pending on each.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
-        $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        list ($id, $failok) = $m->save();
-
-        $r = new MailRouter($this->dbhr, $this->dbhm, $id);
-        $rc = $r->route();
+        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, 'from@test.com', 'to@test.com', MailRouter::PENDING);
         $this->assertEquals(MailRouter::PENDING, $rc);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_ireplace('freegleplayground', 'testgroup2', $msg);
-        $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        list ($id, $failok) = $m->save();
-
-        $r = new MailRouter($this->dbhr, $this->dbhm, $id);
-        $rc = $r->route();
+        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, 'from@test.com', 'to@test.com', MailRouter::PENDING);
         $this->assertEquals(MailRouter::PENDING, $rc);
 
         $ret = $this->call('session', 'POST', [
@@ -733,8 +722,7 @@ class sessionTest extends IznikAPITestCase
         $this->assertTrue($found);
 
         # Again by group id for coverage.
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $gid = $g->create('testgroup1', Group::GROUP_REUSE);
+        list($g, $gid) = $this->createTestGroup('testgroup1', Group::GROUP_REUSE);
         $u1 = User::get($this->dbhm, $this->dbhm, $id1);
         $u2 = User::get($this->dbhm, $this->dbhm, $id2);
         $u3 = User::get($this->dbhm, $this->dbhm, $id3);
@@ -831,7 +819,6 @@ class sessionTest extends IznikAPITestCase
         $f = new GroupFacebook($this->dbhr, $this->dbhm, $gid);
         $f->add($gid, '123', 'test', 123, GroupFacebook::TYPE_PAGE);
 
-        $u = new User($this->dbhr, $this->dbhm);
         list($u, $uid) = $this->createTestUserWithMembership($gid, User::ROLE_MODERATOR, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $_SESSION['id'] = $uid;
 
@@ -842,7 +829,6 @@ class sessionTest extends IznikAPITestCase
     }
 
     public function testPhone() {
-        $u = User::get($this->dbhm, $this->dbhm);
         list($u, $id) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
         $_SESSION['id'] = $id;
 
@@ -865,8 +851,7 @@ class sessionTest extends IznikAPITestCase
     }
 
     public function testVersion() {
-        list($u, $id, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
-        $u->login('testpw');
+        list($u, $id, $emailid) = $this->createTestUserAndLogin('Test', 'User', NULL, 'test@test.com', 'testpw');
 
         $ret = $this->call('session', 'GET', [
             'modtools' => FALSE,
@@ -922,8 +907,7 @@ class sessionTest extends IznikAPITestCase
     public function testSimpleEmail() {
         list($u, $id, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
 
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group1 = $g->create('testgroup1', Group::GROUP_REUSE);
+        list($g, $group1) = $this->createTestGroup('testgroup1', Group::GROUP_REUSE);
         $u->addMembership($group1);
 
         $this->assertTrue($u->login('testpw'));
@@ -962,8 +946,7 @@ class sessionTest extends IznikAPITestCase
         $this->assertEquals(User::SIMPLE_MAIL_NONE, $u->getSetting('simplemail', NULL));
 
         # Joining an additional group should default to none.
-        $g = Group::get($this->dbhr, $this->dbhm);
-        $group2 = $g->create('testgroup2', Group::GROUP_REUSE);
+        list($g, $group2) = $this->createTestGroup('testgroup2', Group::GROUP_REUSE);
         $u->addMembership($group2);
 
         $u = new User($this->dbhr, $this->dbhm, $id);

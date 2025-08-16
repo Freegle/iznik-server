@@ -48,8 +48,7 @@ class visualiseAPITest extends IznikAPITestCase
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
 
         # Create another person who replied.
-        $u = new User($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
+        list($u, $uid) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
         $u->setSetting('mylocation', [
             'lng' => 179.15,
             'lat' => 8.5

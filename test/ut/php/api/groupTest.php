@@ -51,7 +51,7 @@ class groupAPITest extends IznikAPITestCase {
         $this->assertEquals(1, $ret['ret']);
 
         # Logged in - not mod, can't create
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('group', 'POST', [
             'action' => 'Create',
             'grouptype' => 'Reuse',
@@ -110,7 +110,7 @@ class groupAPITest extends IznikAPITestCase {
         $this->assertEquals(2, $ret['ret']);
 
         # Member - shouldn't see members list
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('group', 'GET', [
             'id' => $this->groupid,
             'members' => TRUE
@@ -145,7 +145,7 @@ class groupAPITest extends IznikAPITestCase {
         $this->assertFalse(Utils::pres('members', $ret));
 
         # Member - shouldn't either
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('group', 'PATCH', [
             'id' => $this->groupid,
             'settings' => [
@@ -268,7 +268,7 @@ class groupAPITest extends IznikAPITestCase {
 
         # And again but with support status so it goes through.
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $_SESSION['supportAllowed'] = TRUE;
 
         $ret = $this->call('group', 'POST', [
@@ -300,7 +300,7 @@ class groupAPITest extends IznikAPITestCase {
         $this->assertEquals(0, $ret['ret']);
         $this->assertFalse(Utils::pres('showmods', $ret['group']));
 
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('session', 'PATCH', [
             'settings' => [
                 'showmod' => TRUE
@@ -322,7 +322,7 @@ class groupAPITest extends IznikAPITestCase {
         }
 
     public function testAffiliation() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
 
@@ -354,12 +354,10 @@ class groupAPITest extends IznikAPITestCase {
         $msg = str_replace('Basic test', 'OFFER: Test (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'test@test.com', $msg);
-        $rc = $r->route();
+        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, Message::EMAIL, 'test@test.com', 'test@test.com');
         $this->assertEquals(MailRouter::PENDING, $rc);
 
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('message', 'POST', [
             'id' => $id,
             'groupid' => $this->groupid,
@@ -398,7 +396,7 @@ class groupAPITest extends IznikAPITestCase {
         $uid = $gf->add($this->groupid, 'UT', 'UT', 1);
 
         $this->user->setPrivate('systemrole', User::ROLE_MODERATOR);
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         $ret = $this->call('group', 'GET', [
             'id' => $this->groupid

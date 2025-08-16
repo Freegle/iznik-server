@@ -58,11 +58,9 @@ class digestTest extends IznikTestCase {
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $msg = str_replace("Hey", "Hey {{username}}", $msg);
 
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
+        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, Message::EMAIL, 'from@test.com', 'to@test.com', $this->gid);
         $this->assertNotNull($id);
         $this->log("Created message $id");
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Create a user on that group who wants immediate delivery.  They need two emails; one for our membership,
@@ -91,11 +89,9 @@ class digestTest extends IznikTestCase {
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $msg = str_replace("Hey", "Hey {{username}}", $msg);
 
-        $r = new MailRouter($this->dbhm, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
+        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, Message::EMAIL, 'from@test.com', 'to@test.com', $this->gid);
         $this->assertNotNull($id);
         $this->log("Created message $id");
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Create a user on that group who wants immediate delivery.  They need two emails; one for our membership,
@@ -143,11 +139,9 @@ class digestTest extends IznikTestCase {
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $msg = str_replace("Hey", "Hey {{username}}", $msg);
 
-        $r = new MailRouter($this->dbhm, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
+        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, Message::EMAIL, 'from@test.com', 'to@test.com', $this->gid);
         $this->assertNotNull($id);
         $this->log("Created message $id");
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Create a user on that group who wants immediate delivery, but who is a TN user and therefore
@@ -169,11 +163,9 @@ class digestTest extends IznikTestCase {
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $msg = str_replace("Hey", "Hey {{username}}", $msg);
 
-        $r = new MailRouter($this->dbhm, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
+        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, Message::EMAIL, 'from@test.com', 'to@test.com', $this->gid);
         $this->assertNotNull($id);
         $this->log("Created message $id");
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Create a user on that group who wants immediate delivery.  They need two emails; one for our membership,
@@ -215,21 +207,17 @@ class digestTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
+        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, Message::EMAIL, 'from@test.com', 'to@test.com', $this->gid);
         $this->assertNotNull($id);
         $this->log("Created message $id");
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test thing (location)', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
+        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, Message::EMAIL, 'from@test.com', 'to@test.com', $this->gid);
         $this->assertNotNull($id);
         $this->log("Created message $id");
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
@@ -284,21 +272,17 @@ class digestTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup1", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item 1 (location)', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id1, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid1);
+        list($r, $id1, $failok, $rc) = $this->createAndRouteMessage($msg, Message::EMAIL, 'from@test.com', 'to@test.com', $gid1);
         $this->assertNotNull($id1);
         $this->log("Created message $id1");
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup2", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item 2 (location)', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id2, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid2);
+        list($r, $id2, $failok, $rc) = $this->createAndRouteMessage($msg, Message::EMAIL, 'from@test.com', 'to@test.com', $gid2);
         $this->assertNotNull($id2);
         $this->log("Created message $id2");
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Mock the actual send
@@ -373,21 +357,17 @@ class digestTest extends IznikTestCase {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test item Test item Test item Test item Test item Test item (location)', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
+        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, Message::EMAIL, 'from@test.com', 'to@test.com', $this->gid);
         $this->assertNotNull($id);
         $this->log("Created message $id");
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace("FreeglePlayground", "testgroup", $msg);
         $msg = str_replace('Basic test', 'OFFER: Test thing  thing  thing  thing  thing  thing  thing  thing  thing  thing (location)', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
+        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, Message::EMAIL, 'from@test.com', 'to@test.com', $this->gid);
         $this->assertNotNull($id);
         $this->log("Created message $id");
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         list($u, $uid, $eid1) = $this->createTestUser(NULL, NULL, 'Test User', 'test@blackhole.io', 'testpw');

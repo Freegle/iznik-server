@@ -46,7 +46,7 @@ class ModConfigAPITest extends IznikAPITestCase {
         $this->assertEquals(1, $ret['ret']);
 
         # Create without name
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('modconfig', 'POST', [
         ]);
         $this->assertEquals(3, $ret['ret']);
@@ -76,7 +76,7 @@ class ModConfigAPITest extends IznikAPITestCase {
         }
 
     public function testPatch() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
         $ret = $this->call('modconfig', 'POST', [
             'name' => 'UTTest'
@@ -94,7 +94,7 @@ class ModConfigAPITest extends IznikAPITestCase {
         $this->assertEquals(1, $ret['ret']);
 
         # Log back in
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # As a non-mod
         $this->log("Demote");
@@ -122,12 +122,7 @@ class ModConfigAPITest extends IznikAPITestCase {
         # Try as a mod, but the wrong one.
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup2', Group::GROUP_REUSE);
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $user = User::get($this->dbhr, $this->dbhm, $uid);
-        $user->addEmail('test2@test.com');
-        $user->addMembership($gid, User::ROLE_OWNER);
-        $this->addLoginAndLogin($user, 'testpw');
+        list($user, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($gid, User::ROLE_OWNER, NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
 
         $ret = $this->call('modconfig', 'PATCH', [
             'id' => $id,
@@ -138,7 +133,7 @@ class ModConfigAPITest extends IznikAPITestCase {
         }
 
     public function testDelete() {
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
         $ret = $this->call('modconfig', 'POST', [
             'name' => 'UTTest'
@@ -156,7 +151,7 @@ class ModConfigAPITest extends IznikAPITestCase {
         $this->assertEquals(1, $ret['ret']);
 
         # Log back in
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
 
         # As a non-mod
         $this->log("Demote");
@@ -169,12 +164,7 @@ class ModConfigAPITest extends IznikAPITestCase {
         # Try as a mod, but the wrong one.
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup2', Group::GROUP_REUSE);
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create(NULL, NULL, 'Test User');
-        $user = User::get($this->dbhr, $this->dbhm, $uid);
-        $user->addEmail('test2@test.com');
-        $user->addMembership($gid, User::ROLE_OWNER);
-        $this->addLoginAndLogin($user, 'testpw');
+        list($user, $uid, $emailid) = $this->createTestUserWithMembershipAndLogin($gid, User::ROLE_OWNER, NULL, NULL, 'Test User', 'test2@test.com', 'testpw');
 
         $ret = $this->call('modconfig', 'DELETE', [
             'id' => $id
@@ -183,7 +173,7 @@ class ModConfigAPITest extends IznikAPITestCase {
 
         # Promote back
         $this->user->setRole(User::ROLE_OWNER, $this->groupid);
-        $this->assertTrue($this->user->login('testpw'));
+        $this->addLoginAndLogin($this->user, 'testpw');
         $ret = $this->call('modconfig', 'DELETE', [
             'id' => $id
         ]);
