@@ -23,9 +23,14 @@ RUN apt-get update && apt-get install -y dnsutils openssl zip unzip git libxml2-
     php8.1-xdebug php8.1-mbstring php8.1-simplexml php8.1-curl php8.1-zip postgresql-client php8.1-gd  \
     php8.1-xmlrpc php8.1-redis php8.1-pgsql curl libpq-dev php-pear php-dev libgeoip-dev libcurl4-openssl-dev wget \
     php-mbstring php-mailparse geoip-bin geoip-database php8.1-pdo-mysql cron rsyslog net-tools php8.1-fpm nginx telnet \
-    tesseract-ocr
+    tesseract-ocr postfix
 
 RUN apt-get remove -y apache2* sendmail* mlocate php-ssh2
+
+# Configure Postfix for MailHog relay
+RUN echo "postfix postfix/mailname string localhost" | debconf-set-selections \
+    && echo "postfix postfix/main_mailer_type string 'Satellite system'" | debconf-set-selections \
+    && echo "postfix postfix/relayhost string [mailhog]:1025" | debconf-set-selections
 
 RUN mkdir -p /var/www \
 	&& cd /var/www \
@@ -63,6 +68,7 @@ RUN cp install/iznik.conf.php /etc/iznik.conf \
     && sed -ie "s/'PGSQLDB', '.*'/'PGSQLDB', '$PGSQLDB'/" /etc/iznik.conf \
     && sed -ie "s/'PHEANSTALK_SERVER', '.*'/'PHEANSTALK_SERVER', '$PHEANSTALK_SERVER'/" /etc/iznik.conf \
     && sed -ie "s/'IMAGE_DOMAIN', '.*'/'IMAGE_DOMAIN', '$IMAGE_DOMAIN'/" /etc/iznik.conf \
+    && sed -ie "s/'IMAGE_DELIVERY', '.*'/'IMAGE_DELIVERY', '$IMAGE_DELIVERY'/" /etc/iznik.conf \
     && sed -ie "s/case 'iznik.ilovefreegle.org'/default/" /etc/iznik.conf \
     && echo "[mysql]" > ~/.my.cnf \
     && echo "host=$SQLHOST" >> ~/.my.cnf \
@@ -89,6 +95,7 @@ CMD /etc/init.d/ssh start \
   && /etc/init.d/nginx start \
 	&& /etc/init.d/cron start \
 	&& /etc/init.d/php8.1-fpm start \
+	&& /etc/init.d/postfix start \
 
   && export LOVE_JUNK_API=`cat /run/secrets/LOVE_JUNK_API` \
   && export LOVE_JUNK_SECRET=`cat /run/secrets/LOVE_JUNK_SECRET` \
