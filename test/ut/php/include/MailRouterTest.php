@@ -261,7 +261,10 @@ class MailRouterTest extends IznikTestCase {
         }
 
     public function testGroupsSpam() {
-        list($m, $id, $failok) = $this->createParsedTestMessage('Spammy spam', 'from1@test.com', 'to@test.com');
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamgroups'));
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
+        list ($id, $failok) = $m->save();
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();

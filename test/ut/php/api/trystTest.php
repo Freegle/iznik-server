@@ -26,24 +26,27 @@ class trystTest extends IznikAPITestCase {
     }
 
     public function testBasic() {
-        $email1 = 'test-' . rand() . '@blackhole.io';
+        $email1 = 'test1@test.com';
+        $email2 = 'test2@test.com';
+        
         list($u1, $u1id, $emailid1) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', $email1, 'testpw');
         
-        $email2 = 'test-' . rand() . '@blackhole.io';
         list($u2, $u2id, $emailid2) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', $email2, 'testpw');
         
         list($u3, $u3id, $emailid3) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', 'test3@test.com', 'testpw');
 
         # Create logged out - fail.
+        $_SESSION['id'] = NULL;
         $ret = $this->call('tryst', 'PUT', [
             'user1' => $u1id,
             'user2' => $u2id,
             'arrangedfor' => Utils::ISODate('2038-01-19 03:14:06') // Just in time.
         ]);
 
-        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, $ret['ret']);
 
         # Create logged in - should work.
+        $this->assertTrue($u1->login('testpw'));
         $ret = $this->call('tryst', 'PUT', [
             'user1' => $u1id,
             'user2' => $u2id,
