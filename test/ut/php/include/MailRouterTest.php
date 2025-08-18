@@ -248,8 +248,8 @@ class MailRouterTest extends IznikTestCase {
         }
 
     public function testWhitelist() {
-        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
-        $msg = str_replace('Precedence: junk', 'X-Freegle-IP: 1.2.3.4', $msg);
+        $substitutions = ['Precedence: junk' => 'X-Freegle-IP: 1.2.3.4'];
+        $msg = $this->createMessageContent('spam', $substitutions);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
         list ($id, $failok) = $m->save();
@@ -334,8 +334,8 @@ class MailRouterTest extends IznikTestCase {
 
         # Now the same, but with a TN post which has no messageid.
         $this->log("Now TN post");
-        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tn');
-        $msg = str_replace('freegleplayground', 'testgroup', $msg);
+        $substitutions = ['freegleplayground' => 'testgroup'];
+        $msg = $this->createMessageContent('tn', $substitutions);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $this->assertEquals('20065945', $m->getTnpostid());
@@ -362,8 +362,8 @@ class MailRouterTest extends IznikTestCase {
         User::clearCache();
 
         # Force a TN message to spam
-        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tn');
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $substitutions = ['freegleplayground' => 'testgroup'];
+        $msg = $this->createMessageContent('tn', $substitutions);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from1@test.com', 'to@test.com', $msg);
         list ($id, $failok) = $m->save();
@@ -384,8 +384,8 @@ class MailRouterTest extends IznikTestCase {
 
     public function testSpamIP() {
         # Sorry, Cameroon folk.
-        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/cameroon');
-        $msg = str_replace('freegleplayground@yahoogroups.com', 'b.com', $msg);
+        $substitutions = ['freegleplayground@yahoogroups.com' => 'b.com'];
+        $msg = $this->createMessageContent('cameroon', $substitutions);
 
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
@@ -406,8 +406,9 @@ class MailRouterTest extends IznikTestCase {
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         User::clearCache();
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam'));
-        $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
+        $substitutions = ['FreeglePlayground' => 'testgroup'];
+        $msg = $this->createMessageContent('spam', $substitutions);
+        $msg = $this->unique($msg);
 
         # Make the attempt to mark as spam fail.
         $r = $this->getMockBuilder('Freegle\Iznik\MailRouter')
@@ -429,8 +430,9 @@ class MailRouterTest extends IznikTestCase {
         $mock->method('filter')->willReturn(FALSE);
         $r->setSpamc($mock);
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam'));
-        $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
+        $substitutions = ['FreeglePlayground' => 'testgroup'];
+        $msg = $this->createMessageContent('spam', $substitutions);
+        $msg = $this->unique($msg);
         $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
@@ -1006,9 +1008,12 @@ class MailRouterTest extends IznikTestCase {
         list($u3, $uid3) = $this->createTestUser(NULL, NULL, 'Test User', 'test3@test.com', 'testpw');
 
         # Send a message.
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
-        $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
+        $substitutions = [
+            'Subject: Basic test' => 'Subject: [Group-tag] Offer: thing (place)',
+            'FreeglePlayground' => 'testgroup'
+        ];
+        $msg = $this->createMessageContent('basic', $substitutions);
+        $msg = $this->unique($msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($origid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $this->assertNotNull($origid);

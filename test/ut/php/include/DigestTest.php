@@ -61,11 +61,14 @@ class digestTest extends IznikTestCase {
         }));
 
         # Create a group with a message on it.
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace("freegleplayground", "testgroup", $msg);
-        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
-        $msg = str_replace("Hey", "Hey {{username}}", $msg);
-        $msg = str_replace('test@test.com', 'sender@example.net', $msg);
+        $substitutions = [
+            'freegleplayground' => 'testgroup',
+            'Basic test' => 'OFFER: Test item (location)',
+            'Hey' => 'Hey {{username}}',
+            'test@test.com' => 'sender@example.net'
+        ];
+        $msg = $this->createMessageContent('basic', $substitutions);
+        $msg = $this->unique($msg);
 
         list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, 'sender@example.net', 'to@test.com');
         $this->assertNotNull($id);
@@ -93,11 +96,14 @@ class digestTest extends IznikTestCase {
         $d = new Digest($this->dbhm, $this->dbhm, NULL, TRUE);
 
         # Create a group with a message on it.
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace("freegleplayground", "testgroup", $msg);
-        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
-        $msg = str_replace("Hey", "Hey {{username}}", $msg);
-        $msg = str_replace('test@test.com', 'sender@example.net', $msg);
+        $substitutions = [
+            'freegleplayground' => 'testgroup',
+            'Basic test' => 'OFFER: Test item (location)',
+            'Hey' => 'Hey {{username}}',
+            'test@test.com' => 'sender@example.net'
+        ];
+        $msg = $this->createMessageContent('basic', $substitutions);
+        $msg = $this->unique($msg);
 
         list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, 'sender@example.net', 'to@test.com');
         $this->assertNotNull($id);
@@ -144,11 +150,14 @@ class digestTest extends IznikTestCase {
         $d = new Digest($this->dbhm, $this->dbhm);
 
         # Create a group with a message on it.
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace("freegleplayground", "testgroup", $msg);
-        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
-        $msg = str_replace("Hey", "Hey {{username}}", $msg);
-        $msg = str_replace('test@test.com', 'sender@example.net', $msg);
+        $substitutions = [
+            'freegleplayground' => 'testgroup',
+            'Basic test' => 'OFFER: Test item (location)',
+            'Hey' => 'Hey {{username}}',
+            'test@test.com' => 'sender@example.net'
+        ];
+        $msg = $this->createMessageContent('basic', $substitutions);
+        $msg = $this->unique($msg);
 
         list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, 'sender@example.net', 'to@test.com');
         $this->assertNotNull($id);
@@ -169,11 +178,14 @@ class digestTest extends IznikTestCase {
 
     public function testError() {
         # Create a group with a message on it.
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace("freegleplayground", "testgroup", $msg);
-        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
-        $msg = str_replace("Hey", "Hey {{username}}", $msg);
-        $msg = str_replace('test@test.com', 'sender@example.net', $msg);
+        $substitutions = [
+            'freegleplayground' => 'testgroup',
+            'Basic test' => 'OFFER: Test item (location)',
+            'Hey' => 'Hey {{username}}',
+            'test@test.com' => 'sender@example.net'
+        ];
+        $msg = $this->createMessageContent('basic', $substitutions);
+        $msg = $this->unique($msg);
 
         list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, 'sender@example.net', 'to@test.com');
         $this->assertNotNull($id);
@@ -224,17 +236,23 @@ class digestTest extends IznikTestCase {
         $this->log("Created message $id");
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace("freegleplayground", "testgroup", $msg);
-        $msg = str_replace('Basic test', 'OFFER: Test thing (location)', $msg);
+        $substitutions = [
+            'freegleplayground' => 'testgroup',
+            'Basic test' => 'OFFER: Test thing (location)'
+        ];
+        $msg = $this->createMessageContent('basic', $substitutions);
+        $msg = $this->unique($msg);
         list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, 'sender@example.net', 'to@test.com');
         $this->assertNotNull($id);
         $this->log("Created message $id");
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace("freegleplayground", "testgroup", $msg);
-        $msg = str_replace('Basic test', 'TAKEN: Test item (location)', $msg);
+        $substitutions = [
+            'freegleplayground' => 'testgroup',
+            'Basic test' => 'TAKEN: Test item (location)'
+        ];
+        $msg = $this->createMessageContent('basic', $substitutions);
+        $msg = $this->unique($msg);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $this->gid);
         $this->assertNotNull($id);
@@ -281,19 +299,25 @@ class digestTest extends IznikTestCase {
         $this->user->addMembership($gid2);
         $this->user->setMembershipAtt($gid2, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace("freegleplayground", "testgroup1", $msg);
-        $msg = str_replace('Basic test', 'OFFER: Test item 1 (location)', $msg);
-        $msg = str_replace('test@test.com', 'sender@example.net', $msg);
+        $substitutions = [
+            'freegleplayground' => 'testgroup1',
+            'Basic test' => 'OFFER: Test item 1 (location)',
+            'test@test.com' => 'sender@example.net'
+        ];
+        $msg = $this->createMessageContent('basic', $substitutions);
+        $msg = $this->unique($msg);
         list($r, $id1, $failok, $rc) = $this->createAndRouteMessage($msg, 'sender@example.net', 'to@test.com');
         $this->assertNotNull($id1);
         $this->log("Created message $id1");
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace("freegleplayground", "testgroup2", $msg);
-        $msg = str_replace('Basic test', 'OFFER: Test item 2 (location)', $msg);
-        $msg = str_replace('test@test.com', 'sender@example.net', $msg);
+        $substitutions = [
+            'freegleplayground' => 'testgroup2',
+            'Basic test' => 'OFFER: Test item 2 (location)',
+            'test@test.com' => 'sender@example.net'
+        ];
+        $msg = $this->createMessageContent('basic', $substitutions);
+        $msg = $this->unique($msg);
         list($r, $id2, $failok, $rc) = $this->createAndRouteMessage($msg, 'sender@example.net', 'to@test.com');
         $this->assertNotNull($id2);
         $this->log("Created message $id2");
@@ -368,18 +392,24 @@ class digestTest extends IznikTestCase {
         }));
 
         # Create a group with two messages on it.
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace("freegleplayground", "testgroup", $msg);
-        $msg = str_replace('Basic test', 'OFFER: Test item Test item Test item Test item Test item Test item (location)', $msg);
-        $msg = str_replace('test@test.com', 'sender@example.net', $msg);
+        $substitutions = [
+            'freegleplayground' => 'testgroup',
+            'Basic test' => 'OFFER: Test item Test item Test item Test item Test item Test item (location)',
+            'test@test.com' => 'sender@example.net'
+        ];
+        $msg = $this->createMessageContent('basic', $substitutions);
+        $msg = $this->unique($msg);
         list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, 'sender@example.net', 'to@test.com');
         $this->assertNotNull($id);
         $this->log("Created message $id");
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace("freegleplayground", "testgroup", $msg);
-        $msg = str_replace('Basic test', 'OFFER: Test thing  thing  thing  thing  thing  thing  thing  thing  thing  thing (location)', $msg);
+        $substitutions = [
+            'freegleplayground' => 'testgroup',
+            'Basic test' => 'OFFER: Test thing  thing  thing  thing  thing  thing  thing  thing  thing  thing (location)'
+        ];
+        $msg = $this->createMessageContent('basic', $substitutions);
+        $msg = $this->unique($msg);
         list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, 'sender@example.net', 'to@test.com');
         $this->assertNotNull($id);
         $this->log("Created message $id");
