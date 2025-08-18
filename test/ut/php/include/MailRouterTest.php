@@ -887,14 +887,9 @@ class MailRouterTest extends IznikTestCase {
         # Create a user for a reply.
         list($u, $uid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test@example.com', 'testpw');
 
-        # Send a message.
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($origid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        # Send a message using OFFER utility method
+        list($r, $origid, $failok, $rc) = $this->createOfferMessage('thing', 'place', 'basic', 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid);
         $this->assertNotNull($origid);
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Mark the group as closed.
@@ -946,14 +941,9 @@ class MailRouterTest extends IznikTestCase {
         # Create a user for a reply.
         list($u, $uid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test@example.com', 'testpw');
 
-        # Send a message.
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
-        $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($origid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        # Send a message using OFFER utility method
+        list($r, $origid, $failok, $rc) = $this->createOfferMessage('thing', 'place', 'basic', 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid);
         $this->assertNotNull($origid);
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Send a purported reply.  This should result in the replying user being created.
@@ -973,14 +963,9 @@ class MailRouterTest extends IznikTestCase {
         # Create a user for a reply.
         list($u, $uid2) = $this->createTestUser(NULL, NULL, 'Test User', 'test@example.com', 'testpw');
 
-        # Send a message.
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Subject: Basic test', 'Subject: [Group-tag] Offer: thing (place)', $msg);
-        $msg = str_ireplace("FreeglePlayground", "testgroup", $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($origid, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        # Send a message using OFFER utility method
+        list($r, $origid, $failok, $rc) = $this->createOfferMessage('thing', 'place', 'basic', 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid);
         $this->assertNotNull($origid);
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $this->log("Send reply with two texts");
@@ -1645,26 +1630,22 @@ class MailRouterTest extends IznikTestCase {
         $u2->addMembership($this->gid);
         $u2->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Subject: Basic test', 'Subject: Offer: thing1 (place)', $msg);
-        $msg = str_replace('test@test.com', 'test1@test.com', $msg);
-        $msg = str_replace('freegleplayground', 'testgroup', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id1, $failok) = $r->received(Message::EMAIL, 'test1@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
+        # Create OFFER message using utility method with custom substitutions
+        $substitutions = [
+            'test@test.com' => 'test1@test.com'
+        ];
+        list($r, $id1, $failok, $rc) = $this->createOfferMessage('thing1', 'place', 'basic', 'testgroup', 'test1@test.com', 'testgroup@' . GROUP_DOMAIN, NULL, NULL, $substitutions);
         $this->assertNotNull($id1);
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
         $this->assertEquals($uid1, $m1->getFromuser());
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Subject: Basic test', 'Subject: Offer: thing2 (place)', $msg);
-        $msg = str_replace('test@test.com', 'test2@test.com', $msg);
-        $msg = str_replace('freegleplayground', 'testgroup', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id2, $failok) = $r->received(Message::EMAIL, 'test2@test.com', 'testgroup@' . GROUP_DOMAIN, $msg);
-        $this->assertNotNull($id1);
-        $rc = $r->route();
+        # Create second OFFER message using utility method with custom substitutions
+        $substitutions2 = [
+            'test@test.com' => 'test2@test.com'
+        ];
+        list($r, $id2, $failok, $rc) = $this->createOfferMessage('thing2', 'place', 'basic', 'testgroup', 'test2@test.com', 'testgroup@' . GROUP_DOMAIN, NULL, NULL, $substitutions2);
+        $this->assertNotNull($id2);
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $m2 = new Message($this->dbhr, $this->dbhm, $id2);
         $this->assertEquals($uid2, $m2->getFromuser());

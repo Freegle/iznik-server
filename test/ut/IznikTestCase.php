@@ -817,5 +817,310 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         
         return [$user, $uid, $emailid];
     }
+
+    /**
+     * Create an OFFER message with default item and location
+     * @param string $item Item being offered (default: 'Test item')
+     * @param string $location Location for the offer (default: 'Test location')
+     * @param string $sourceFile Source message file (default: 'basic')
+     * @param string $groupname Group name (default: 'testgroup')
+     * @param string $fromEmail From email (default: 'from@test.com')
+     * @param string $toEmail To email (default: 'to@test.com')
+     * @param int|null $groupid Group ID for membership
+     * @param int|null $userid User ID for membership
+     * @param array $substitutions Additional substitutions
+     * @return array [MailRouter, message_id, failok, routing_result]
+     */
+    protected function createOfferMessage($item = 'Test item', $location = 'Test location', $sourceFile = 'basic', $groupname = 'testgroup', $fromEmail = 'from@test.com', $toEmail = 'to@test.com', $groupid = NULL, $userid = NULL, $substitutions = []) {
+        $subject = "OFFER: $item ($location)";
+        $substitutions['Basic test'] = $subject;
+        return $this->createTestMessage($sourceFile, $groupname, $fromEmail, $toEmail, $groupid, $userid, $substitutions);
+    }
+
+    /**
+     * Create a TAKEN message with default item and location
+     * @param string $item Item that was taken (default: 'Test item')
+     * @param string $location Location for the item (default: 'Test location')
+     * @param string $sourceFile Source message file (default: 'basic')
+     * @param string $groupname Group name (default: 'testgroup')
+     * @param string $fromEmail From email (default: 'from@test.com')
+     * @param string $toEmail To email (default: 'to@test.com')
+     * @param int|null $groupid Group ID for membership
+     * @param int|null $userid User ID for membership
+     * @param array $substitutions Additional substitutions
+     * @return array [MailRouter, message_id, failok, routing_result]
+     */
+    protected function createTakenMessage($item = 'Test item', $location = 'Test location', $sourceFile = 'basic', $groupname = 'testgroup', $fromEmail = 'from@test.com', $toEmail = 'to@test.com', $groupid = NULL, $userid = NULL, $substitutions = []) {
+        $subject = "TAKEN: $item ($location)";
+        $substitutions['Basic test'] = $subject;
+        return $this->createTestMessage($sourceFile, $groupname, $fromEmail, $toEmail, $groupid, $userid, $substitutions);
+    }
+
+    /**
+     * Create a WANTED message with default item and location
+     * @param string $item Item being wanted (default: 'Test item')
+     * @param string $location Location for the want (default: 'Test location')
+     * @param string $sourceFile Source message file (default: 'basic')
+     * @param string $groupname Group name (default: 'testgroup')
+     * @param string $fromEmail From email (default: 'from@test.com')
+     * @param string $toEmail To email (default: 'to@test.com')
+     * @param int|null $groupid Group ID for membership
+     * @param int|null $userid User ID for membership
+     * @param array $substitutions Additional substitutions
+     * @return array [MailRouter, message_id, failok, routing_result]
+     */
+    protected function createWantedMessage($item = 'Test item', $location = 'Test location', $sourceFile = 'basic', $groupname = 'testgroup', $fromEmail = 'from@test.com', $toEmail = 'to@test.com', $groupid = NULL, $userid = NULL, $substitutions = []) {
+        $subject = "WANTED: $item ($location)";
+        $substitutions['Basic test'] = $subject;
+        return $this->createTestMessage($sourceFile, $groupname, $fromEmail, $toEmail, $groupid, $userid, $substitutions);
+    }
+
+    /**
+     * Convert a message subject from one type to another
+     * @param string $originalSubject Original message subject
+     * @param string $fromType Source message type (OFFER, TAKEN, WANTED)
+     * @param string $toType Target message type (OFFER, TAKEN, WANTED)
+     * @return string Converted subject
+     */
+    protected function convertMessageType($originalSubject, $fromType, $toType) {
+        $fromType = strtoupper($fromType);
+        $toType = strtoupper($toType);
+        
+        // Extract item and location from subject like "OFFER: item (location)"
+        $pattern = '/^' . preg_quote($fromType) . ':\s*(.+?)\s*(\([^)]+\))?$/i';
+        if (preg_match($pattern, $originalSubject, $matches)) {
+            $item = trim($matches[1]);
+            $location = isset($matches[2]) ? $matches[2] : '';
+            return "$toType: $item $location";
+        }
+        
+        // Fallback: simple string replacement
+        return str_ireplace($fromType . ':', $toType . ':', $originalSubject);
+    }
+
+    /**
+     * Create multiple message variations from a base message
+     * @param string $baseItem Base item name
+     * @param string $baseLocation Base location
+     * @param array $types Array of message types to create (default: ['OFFER', 'TAKEN', 'WANTED'])
+     * @param string $sourceFile Source message file (default: 'basic')
+     * @param string $groupname Group name (default: 'testgroup') 
+     * @param string $fromEmail From email (default: 'from@test.com')
+     * @param string $toEmail To email (default: 'to@test.com')
+     * @param int|null $groupid Group ID for membership
+     * @param int|null $userid User ID for membership
+     * @param array $additionalSubstitutions Additional substitutions for all messages
+     * @return array Array of [type => [MailRouter, message_id, failok, routing_result]]
+     */
+    protected function createMessageVariations($baseItem = 'Test item', $baseLocation = 'Test location', $types = ['OFFER', 'TAKEN', 'WANTED'], $sourceFile = 'basic', $groupname = 'testgroup', $fromEmail = 'from@test.com', $toEmail = 'to@test.com', $groupid = NULL, $userid = NULL, $additionalSubstitutions = []) {
+        $results = [];
+        
+        foreach ($types as $type) {
+            $type = strtoupper($type);
+            switch ($type) {
+                case 'OFFER':
+                    $results[$type] = $this->createOfferMessage($baseItem, $baseLocation, $sourceFile, $groupname, $fromEmail, $toEmail, $groupid, $userid, $additionalSubstitutions);
+                    break;
+                case 'TAKEN':
+                    $results[$type] = $this->createTakenMessage($baseItem, $baseLocation, $sourceFile, $groupname, $fromEmail, $toEmail, $groupid, $userid, $additionalSubstitutions);
+                    break;
+                case 'WANTED':
+                    $results[$type] = $this->createWantedMessage($baseItem, $baseLocation, $sourceFile, $groupname, $fromEmail, $toEmail, $groupid, $userid, $additionalSubstitutions);
+                    break;
+                default:
+                    // For custom types, create with the type prefix
+                    $subject = "$type: $baseItem ($baseLocation)";
+                    $substitutions = array_merge(['Basic test' => $subject], $additionalSubstitutions);
+                    $results[$type] = $this->createTestMessage($sourceFile, $groupname, $fromEmail, $toEmail, $groupid, $userid, $substitutions);
+                    break;
+            }
+        }
+        
+        return $results;
+    }
+
+    /**
+     * Create message content with substitutions (without routing)
+     * @param string $sourceFile Source message file (default: 'basic')
+     * @param array $substitutions Text substitutions to apply
+     * @return string Message content
+     */
+    protected function createMessageContent($sourceFile = 'basic', $substitutions = []) {
+        // Load source file
+        if ($sourceFile === 'basic') {
+            $msgPath = IZNIK_BASE . '/test/ut/php/msgs/basic';
+        } else {
+            $msgPath = IZNIK_BASE . '/test/ut/php/msgs/' . $sourceFile;
+        }
+        
+        $content = $this->unique(file_get_contents($msgPath));
+        
+        // Apply substitutions
+        foreach ($substitutions as $search => $replace) {
+            $content = str_replace($search, $replace, $content);
+        }
+        
+        return $content;
+    }
+
+    /**
+     * Create a reply message to an existing message
+     * @param string $originalSubject Original message subject
+     * @param string $replyPrefix Reply prefix (default: 'Re:')
+     * @param string $sourceFile Source message file (default: 'basic')
+     * @param string $groupname Group name (default: 'testgroup')
+     * @param string $fromEmail From email (default: 'from@test.com')
+     * @param string $toEmail To email (default: 'to@test.com')
+     * @param int|null $groupid Group ID for membership
+     * @param int|null $userid User ID for membership
+     * @param array $substitutions Additional substitutions
+     * @return array [MailRouter, message_id, failok, routing_result]
+     */
+    protected function createReplyMessage($originalSubject, $replyPrefix = 'Re:', $sourceFile = 'basic', $groupname = 'testgroup', $fromEmail = 'from@test.com', $toEmail = 'to@test.com', $groupid = NULL, $userid = NULL, $substitutions = []) {
+        $replySubject = "$replyPrefix $originalSubject";
+        $substitutions['Basic test'] = $replySubject;
+        return $this->createTestMessage($sourceFile, $groupname, $fromEmail, $toEmail, $groupid, $userid, $substitutions);
+    }
+
+    /**
+     * Get common substitution patterns for OFFER messages
+     * @param string $item Item being offered (default: 'Test item')
+     * @param string $location Location (default: 'Test location')
+     * @param array $additionalSubstitutions Additional custom substitutions
+     * @return array Substitution patterns array
+     */
+    protected function getOfferSubstitutions($item = 'Test item', $location = 'Test location', $additionalSubstitutions = []) {
+        $substitutions = [
+            'Basic test' => "OFFER: $item ($location)",
+            'freegleplayground' => 'testgroup',
+            'from@test.com' => 'from@test.com',
+            'to@test.com' => 'to@test.com'
+        ];
+        
+        return array_merge($substitutions, $additionalSubstitutions);
+    }
+
+    /**
+     * Get common substitution patterns for spam testing
+     * @param string $spamSubject Spam subject line (default: 'Test spam mail')
+     * @param string $spamEmail Spam email address (default: 'GTUBE1.1010101@example.net')
+     * @param array $additionalSubstitutions Additional custom substitutions
+     * @return array Substitution patterns array
+     */
+    protected function getSpamTestSubstitutions($spamSubject = 'Test spam mail', $spamEmail = 'GTUBE1.1010101@example.net', $additionalSubstitutions = []) {
+        $substitutions = [
+            'Basic test' => $spamSubject,
+            'from@test.com' => $spamEmail,
+            'freegleplayground' => 'testgroup',
+            'Test test' => 'This is spam content for testing'
+        ];
+        
+        return array_merge($substitutions, $additionalSubstitutions);
+    }
+
+    /**
+     * Get substitution patterns for multi-user scenarios
+     * @param array $userMappings Array of email mappings like ['from@test.com' => 'user1@test.com', 'to@test.com' => 'user2@test.com']
+     * @param string $groupname Group name (default: 'testgroup')
+     * @param array $additionalSubstitutions Additional custom substitutions
+     * @return array Substitution patterns array
+     */
+    protected function getMultiUserSubstitutions($userMappings = [], $groupname = 'testgroup', $additionalSubstitutions = []) {
+        $defaultMappings = [
+            'from@test.com' => 'user1@test.com',
+            'to@test.com' => 'user2@test.com'
+        ];
+        
+        $userMappings = array_merge($defaultMappings, $userMappings);
+        $substitutions = array_merge($userMappings, [
+            'freegleplayground' => $groupname
+        ]);
+        
+        return array_merge($substitutions, $additionalSubstitutions);
+    }
+
+    /**
+     * Get substitution patterns for temporal/date replacements
+     * @param string $dateFormat Date format (default: 'Y-m-d H:i:s')
+     * @param string|null $specificDate Specific date to use (default: current time)
+     * @param array $additionalSubstitutions Additional custom substitutions
+     * @return array Substitution patterns array
+     */
+    protected function getTemporalSubstitutions($dateFormat = 'Y-m-d H:i:s', $specificDate = NULL, $additionalSubstitutions = []) {
+        $timestamp = $specificDate ? strtotime($specificDate) : time();
+        $substitutions = [
+            'DATE_PLACEHOLDER' => date($dateFormat, $timestamp),
+            'YESTERDAY' => date($dateFormat, $timestamp - 86400),
+            'TOMORROW' => date($dateFormat, $timestamp + 86400),
+            'CURRENT_YEAR' => date('Y', $timestamp)
+        ];
+        
+        return array_merge($substitutions, $additionalSubstitutions);
+    }
+
+    /**
+     * Get substitution patterns for content/body modifications
+     * @param string $bodyContent New body content (default: 'Test message body')
+     * @param string $signature Message signature (default: 'Test User')
+     * @param array $additionalSubstitutions Additional custom substitutions
+     * @return array Substitution patterns array
+     */
+    protected function getContentSubstitutions($bodyContent = 'Test message body', $signature = 'Test User', $additionalSubstitutions = []) {
+        $substitutions = [
+            'Test test' => $bodyContent,
+            'SIGNATURE_PLACEHOLDER' => $signature,
+            'BODY_PLACEHOLDER' => $bodyContent
+        ];
+        
+        return array_merge($substitutions, $additionalSubstitutions);
+    }
+
+    /**
+     * Get substitution patterns for technical/routing modifications
+     * @param string $messageId Custom message ID (default: auto-generated)
+     * @param string $ipAddress IP address (default: '1.2.3.4')
+     * @param string $userAgent User agent (default: 'Test-Agent/1.0')
+     * @param array $additionalSubstitutions Additional custom substitutions
+     * @return array Substitution patterns array
+     */
+    protected function getTechnicalSubstitutions($messageId = NULL, $ipAddress = '1.2.3.4', $userAgent = 'Test-Agent/1.0', $additionalSubstitutions = []) {
+        if ($messageId === NULL) {
+            $messageId = 'test-' . time() . '@test.com';
+        }
+        
+        $substitutions = [
+            'MESSAGE_ID_PLACEHOLDER' => $messageId,
+            'IP_ADDRESS_PLACEHOLDER' => $ipAddress,
+            'USER_AGENT_PLACEHOLDER' => $userAgent,
+            'ROUTING_PLACEHOLDER' => 'test-routing-header'
+        ];
+        
+        return array_merge($substitutions, $additionalSubstitutions);
+    }
+
+    /**
+     * Create a message with comprehensive substitution patterns
+     * @param string $subject Message subject
+     * @param array $substitutionSets Array of substitution pattern methods to apply
+     * @param string $sourceFile Source message file (default: 'basic')
+     * @param string $groupname Group name (default: 'testgroup')
+     * @param string $fromEmail From email (default: 'from@test.com')
+     * @param string $toEmail To email (default: 'to@test.com')
+     * @param int|null $groupid Group ID for membership
+     * @param int|null $userid User ID for membership
+     * @return array [MailRouter, message_id, failok, routing_result]
+     */
+    protected function createMessageWithPatterns($subject = 'Test message', $substitutionSets = ['getOfferSubstitutions'], $sourceFile = 'basic', $groupname = 'testgroup', $fromEmail = 'from@test.com', $toEmail = 'to@test.com', $groupid = NULL, $userid = NULL) {
+        $allSubstitutions = ['Basic test' => $subject];
+        
+        foreach ($substitutionSets as $methodName) {
+            if (method_exists($this, $methodName)) {
+                $patternSubstitutions = $this->$methodName();
+                $allSubstitutions = array_merge($allSubstitutions, $patternSubstitutions);
+            }
+        }
+        
+        return $this->createTestMessage($sourceFile, $groupname, $fromEmail, $toEmail, $groupid, $userid, $allSubstitutions);
+    }
 }
 

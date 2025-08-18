@@ -74,17 +74,14 @@ class messageTest extends IznikTestCase {
     }
 
     public function testRelated() {
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
+        # Create OFFER message using new utility method
+        list($m, $id1, $failok) = $this->createParsedTestMessage('OFFER: Test item (location)', 'from@test.com', 'to@test.com');
 
+        # TAKEN after OFFER - should match using utility method
+        $substitutions = ['Basic test' => 'TAKEN: Test item (location)', '22 Aug 2015' => '22 Aug 2016'];
+        $takenMsg = $this->createMessageContent('basic', $substitutions);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        list ($id1, $failok) = $m->save();
-
-        # TAKEN after OFFER - should match
-        $msg = str_replace('OFFER: Test item', 'TAKEN: Test item', $msg);
-        $msg = str_replace('22 Aug 2015', '22 Aug 2016', $msg);
-        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $takenMsg);
         $this->assertEquals(1, $m->recordRelated());
         $atts = $m->getPublic();
         $this->assertEquals($id1, $atts['related'][0]['id']);
@@ -93,38 +90,32 @@ class messageTest extends IznikTestCase {
         $this->dbhm->preExec("DELETE FROM messages_outcomes WHERE msgid = $id1;");
 
         # TAKEN before OFFER - shouldn't match
-        $msg = str_replace('22 Aug 2016', '22 Aug 2014', $msg);
-        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $takenMsg = str_replace('22 Aug 2016', '22 Aug 2014', $takenMsg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $takenMsg);
         $this->assertEquals(0, $m->recordRelated());
 
         # TAKEN after OFFER but for other item - shouldn't match
-        $msg = str_replace('22 Aug 2014', '22 Aug 2016', $msg);
-        $msg = str_replace('TAKEN: Test item', 'TAKEN: Something completely different', $msg);
-        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $takenMsg = str_replace('22 Aug 2014', '22 Aug 2016', $takenMsg);
+        $takenMsg = str_replace('TAKEN: Test item', 'TAKEN: Something completely different', $takenMsg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $takenMsg);
         $this->assertEquals(0, $m->recordRelated());
 
         # TAKEN with similar wording - should match
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Basic test', 'TAKEN: Test items (location)', $msg);
-        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list($m, $id3, $failok3) = $this->createParsedTestMessage('TAKEN: Test items (location)', 'from@test.com', 'to@test.com');
         $this->assertEquals(1, $m->recordRelated());
      }
 
     public function testRelated2() {
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Basic test', '[hertford_freegle] Offered - Grey Driveway Blocks - Hoddesdon', $msg);
-        $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        list ($id1, $failok) = $m->save();
+        # Create first message using utility method
+        list($m, $id1, $failok) = $this->createParsedTestMessage('[hertford_freegle] Offered - Grey Driveway Blocks - Hoddesdon', 'from@test.com', 'to@test.com');
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Basic test', '[hertford_freegle] Offer - Pedestal Fan - Hoddesdon', $msg);
-        $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        list ($id2, $failok) = $m->save();
+        # Create second message using utility method
+        list($m, $id2, $failok) = $this->createParsedTestMessage('[hertford_freegle] Offer - Pedestal Fan - Hoddesdon', 'from@test.com', 'to@test.com');
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Basic test', '[hertford_freegle] TAKEN: Grey Driveway Blocks (Hoddesdon)', $msg);
+        # Create TAKEN message using utility method
+        $substitutions = ['Basic test' => '[hertford_freegle] TAKEN: Grey Driveway Blocks (Hoddesdon)'];
+        $msg = $this->createMessageContent('basic', $substitutions);
+        $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $this->assertEquals(1, $m->recordRelated());
         $atts = $m->getPublic();
@@ -133,8 +124,10 @@ class messageTest extends IznikTestCase {
         # We don't match on messages with outcomes so hack this out out again.
         $this->dbhm->preExec("DELETE FROM messages_outcomes WHERE msgid = $id1;");
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Basic test', 'TAKEN: Grey Driveway Blocks (Hoddesdon)', $msg);
+        # Create final TAKEN message using utility method
+        $substitutions = ['Basic test' => 'TAKEN: Grey Driveway Blocks (Hoddesdon)'];
+        $msg = $this->createMessageContent('basic', $substitutions);
+        $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $this->assertEquals(1, $m->recordRelated());
         $atts = $m->getPublic();
@@ -150,18 +143,19 @@ class messageTest extends IznikTestCase {
         list($g1, $gid1) = $this->createTestGroup('testgroup1', Group::GROUP_REUSE);
         list($g2, $gid2) = $this->createTestGroup('testgroup2', Group::GROUP_REUSE);
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Basic test', 'OFFER: Test (Location)', $msg);
-        $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
+        # Create OFFER message for first group using new utility method
+        list($m1, $id1, $failok) = $this->createParsedTestMessage('OFFER: Test (Location)', 'from@test.com', 'testgroup1@testgroup1.com');
+        $substitutions1 = ['freegleplayground' => 'testgroup1', 'Basic test' => 'OFFER: Test (Location)'];
+        $msg1 = $this->createMessageContent('basic', $substitutions1);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg1);
         list ($id1, $failok) = $m->save();
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Basic test', 'OFFER: Test (Location)', $msg);
-        $msg = str_ireplace('freegleplayground', 'testgroup2', $msg);
+        # Create OFFER message for second group
+        $substitutions2 = ['freegleplayground' => 'testgroup2', 'Basic test' => 'OFFER: Test (Location)'];
+        $msg2 = $this->createMessageContent('basic', $substitutions2);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg2);
         list ($id2, $failok) = $m->save();
 
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
@@ -169,11 +163,11 @@ class messageTest extends IznikTestCase {
         $this->assertEquals($gid1, $m1->getGroups(FALSE, TRUE)[0]);
         $this->assertEquals($gid2, $m2->getGroups(FALSE, TRUE)[0]);
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Basic test', 'TAKEN: Test (Location)', $msg);
-        $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
+        # Create TAKEN message for first group
+        $substitutions3 = ['freegleplayground' => 'testgroup1', 'Basic test' => 'TAKEN: Test (Location)'];
+        $msg3 = $this->createMessageContent('basic', $substitutions3);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg3);
         list ($id3, $failok) = $m->save();
 
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
@@ -181,11 +175,11 @@ class messageTest extends IznikTestCase {
         $m2 = new Message($this->dbhr, $this->dbhm, $id2);
         $this->assertEquals(FALSE, $m2->hasOutcome());
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Basic test', 'TAKEN: Test (Location)', $msg);
-        $msg = str_ireplace('freegleplayground', 'testgroup2', $msg);
+        # Create TAKEN message for second group
+        $substitutions4 = ['freegleplayground' => 'testgroup2', 'Basic test' => 'TAKEN: Test (Location)'];
+        $msg4 = $this->createMessageContent('basic', $substitutions4);
         $m = new Message($this->dbhr, $this->dbhm);
-        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg4);
         list ($id4, $failok) = $m->save();
 
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
@@ -216,9 +210,8 @@ class messageTest extends IznikTestCase {
 
         $m = new Message($this->dbhr, $this->dbhm);
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Basic test', 'OFFER: Test item (Tuvalu High Street)', $msg);
-        $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
+        $substitutions = ['Basic test' => 'OFFER: Test item (Tuvalu High Street)', 'freegleplayground' => 'testgroup1'];
+        $msg = $this->createMessageContent('basic', $substitutions);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'testgroup1@yahoogroups.com', $msg);
         list ($mid, $failok) = $m->save();

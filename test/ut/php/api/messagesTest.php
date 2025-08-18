@@ -36,11 +36,11 @@ class messagesTest extends IznikAPITestCase {
     }
 
     public function testApproved() {
-        # Create a group with a message on it
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Subject: Basic test', 'Subject: OFFER: sofa (Place)', $msg);
-        $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
-        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid);
+        # Create a group with a message on it using OFFER utility method
+        $substitutions = [
+            '22 Aug 2015' => '22 Aug 2035'
+        ];
+        list($r, $id, $failok, $rc) = $this->createOfferMessage('sofa', 'Place', 'basic', 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid, $substitutions);
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $this->log("Approved id $id");
 
@@ -349,14 +349,11 @@ class messagesTest extends IznikAPITestCase {
         $this->group->setPrivate('poly', 'POLYGON((179.1 8.3, 179.2 8.3, 179.2 8.4, 179.1 8.4, 179.1 8.3))');
         $this->group->setPrivate('onhere', 1);
 
-        # Create a group with a message on it
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $msg = str_replace('Basic test', 'OFFER: basic test (Place)', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
+        # Create a group with a message on it using OFFER utility method
+        $substitutions = [
+            '22 Aug 2015' => '22 Aug 2035'
+        ];
+        list($r, $id, $failok, $rc) = $this->createOfferMessage('basic test', 'Place', 'basic', 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid, $substitutions);
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $this->log("Approved id $id");
 

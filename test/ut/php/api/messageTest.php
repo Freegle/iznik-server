@@ -456,13 +456,8 @@ class messageAPITest extends IznikAPITestCase
 
     public function testReject()
     {
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $msg = str_replace('Subject: Basic test', 'Subject: OFFER: thing (place)', $msg);
-
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
+        # Create OFFER message using utility method
+        list($r, $id, $failok, $rc) = $this->createOfferMessage('thing', 'place', 'basic', 'testgroup', 'from@test.com', 'to@test.com', $this->gid, NULL);
         $this->assertEquals(MailRouter::PENDING, $rc);
 
         # Suppress mails.
@@ -1896,13 +1891,8 @@ class messageAPITest extends IznikAPITestCase
         list($u2, $uid2) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
         list($u3, $uid3) = $this->createTestUser(NULL, NULL, 'Test User', NULL, 'testpw');
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $msg = str_ireplace('Basic test', 'OFFER: A thing (A place)', $msg);
-
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
+        # Create OFFER message using utility method
+        list($r, $id, $failok, $rc) = $this->createOfferMessage('A thing', 'A place', 'basic', 'testgroup', 'test@test.com', 'to@test.com', $this->gid, NULL);
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Not yet promised in spatial index.
@@ -2068,13 +2058,8 @@ class messageAPITest extends IznikAPITestCase
 
         $uid2 = $u->create(NULL, NULL, 'Test User');
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $msg = str_ireplace('Basic test', 'OFFER: A thing (A place)', $msg);
-
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
+        # Create OFFER message using utility method
+        list($r, $id, $failok, $rc) = $this->createOfferMessage('A thing', 'A place', 'basic', 'testgroup', 'test@test.com', 'to@test.com', $this->gid, NULL);
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Promise it to the other user.
@@ -2122,14 +2107,9 @@ class messageAPITest extends IznikAPITestCase
         list($u, $uid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', $email, 'testpw');
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-        $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
-        $msg = $this->unique($origmsg);
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
-        $msg = str_replace('test@test.com', $email, $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
-        $rc = $r->route();
+        # Create OFFER message using utility method
+        $substitutions = ['test@test.com' => $email];
+        list($r, $id, $failok, $rc) = $this->createOfferMessage('a thing', 'A Place', 'basic', 'testgroup', $email, 'to@test.com', $this->gid, $uid, $substitutions);
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $this->assertEquals(Message::TYPE_OFFER, $m->getType());
@@ -2176,13 +2156,8 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals(0, $ret['me']['openposts']);
 
-        $msg = $this->unique($origmsg);
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $msg = str_replace('Basic test', 'WANTED: a thing (A Place)', $msg);
-        $msg = str_replace('test@test.com', $email, $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
-        $rc = $r->route();
+        # Create WANTED message using utility method
+        list($r, $id, $failok, $rc) = $this->createWantedMessage('a thing', 'A Place', 'basic', 'testgroup', $email, 'to@test.com', $this->gid, $uid, $substitutions);
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $this->assertEquals(Message::TYPE_WANTED, $m->getType());
@@ -2229,14 +2204,9 @@ class messageAPITest extends IznikAPITestCase
         list($u, $uid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', $email, 'testpw');
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-        $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
-        $msg = $this->unique($origmsg);
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
-        $msg = str_replace('test@test.com', $email, $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
-        $rc = $r->route();
+        # Create OFFER message using utility method
+        $substitutions = ['test@test.com' => $email];
+        list($r, $id, $failok, $rc) = $this->createOfferMessage('a thing', 'A Place', 'basic', 'testgroup', $email, 'to@test.com', $this->gid, $uid, $substitutions);
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
@@ -2273,14 +2243,9 @@ class messageAPITest extends IznikAPITestCase
         list($u, $uid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', $email, 'testpw');
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-        $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
-        $msg = $this->unique($origmsg);
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
-        $msg = str_replace('test@test.com', $email, $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
-        $rc = $r->route();
+        # Create OFFER message using utility method
+        $substitutions = ['test@test.com' => $email];
+        list($r, $id, $failok, $rc) = $this->createOfferMessage('a thing', 'A Place', 'basic', 'testgroup', $email, 'to@test.com', $this->gid, $uid, $substitutions);
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
@@ -2330,14 +2295,9 @@ class messageAPITest extends IznikAPITestCase
         list($u, $uid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', $email, 'testpw');
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-        $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
-        $msg = $this->unique($origmsg);
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
-        $msg = str_replace('test@test.com', $email, $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
-        $rc = $r->route();
+        # Create OFFER message using utility method
+        $substitutions = ['test@test.com' => $email];
+        list($r, $id, $failok, $rc) = $this->createOfferMessage('a thing', 'A Place', 'basic', 'testgroup', $email, 'to@test.com', $this->gid, $uid, $substitutions);
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
@@ -2368,14 +2328,9 @@ class messageAPITest extends IznikAPITestCase
         list($u, $uid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', $email, 'testpw');
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-        $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
-        $msg = $this->unique($origmsg);
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
-        $msg = str_replace('test@test.com', $email, $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
-        $rc = $r->route();
+        # Create OFFER message using utility method with custom email substitution
+        $substitutions = ['test@test.com' => $email];
+        list($r, $id, $failok, $rc) = $this->createOfferMessage('a thing', 'A Place', 'basic', 'testgroup', $email, 'to@test.com', $this->gid, $uid, $substitutions);
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
@@ -2400,14 +2355,9 @@ class messageAPITest extends IznikAPITestCase
         list($u, $uid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', $email, 'testpw');
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-        $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
-        $msg = $this->unique($origmsg);
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $msg = str_replace('Basic test', 'WANTED: a thing (A Place)', $msg);
-        $msg = str_replace('test@test.com', $email, $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
-        $rc = $r->route();
+        # Create WANTED message using utility method
+        $substitutions = ['test@test.com' => $email];
+        list($r, $id, $failok, $rc) = $this->createWantedMessage('a thing', 'A Place', 'basic', 'testgroup', $email, 'to@test.com', $this->gid, $uid, $substitutions);
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
@@ -2438,14 +2388,9 @@ class messageAPITest extends IznikAPITestCase
         list($u, $uid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', $email, 'testpw');
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-        $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
-        $msg = $this->unique($origmsg);
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $msg = str_replace('Basic test', 'WANTED: a thing (A Place)', $msg);
-        $msg = str_replace('test@test.com', $email, $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
-        $rc = $r->route();
+        # Create WANTED message using utility method
+        $substitutions = ['test@test.com' => $email];
+        list($r, $id, $failok, $rc) = $this->createWantedMessage('a thing', 'A Place', 'basic', 'testgroup', $email, 'to@test.com', $this->gid, $uid, $substitutions);
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
@@ -2476,14 +2421,9 @@ class messageAPITest extends IznikAPITestCase
         list($u, $uid) = $this->createTestUserWithMembershipAndLogin($this->gid, User::ROLE_MEMBER, NULL, NULL, 'Test User', $email, 'testpw');
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-        $origmsg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic');
-        $msg = $this->unique($origmsg);
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $msg = str_replace('Basic test', 'WANTED: a thing (A Place)', $msg);
-        $msg = str_replace('test@test.com', $email, $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
-        $rc = $r->route();
+        # Create WANTED message using utility method
+        $substitutions = ['test@test.com' => $email];
+        list($r, $id, $failok, $rc) = $this->createWantedMessage('a thing', 'A Place', 'basic', 'testgroup', $email, 'to@test.com', $this->gid, $uid, $substitutions);
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
@@ -3339,13 +3279,9 @@ class messageAPITest extends IznikAPITestCase
 
 
     public function testTnPostId() {
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Subject: Basic test', 'Subject: OFFER: sofa (Place)', $msg);
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
-        $rc = $r->route();
+        # Create OFFER message using utility method with custom date substitution
+        $substitutions = ['22 Aug 2015' => '22 Aug 2035'];
+        list($r, $id, $failok, $rc) = $this->createOfferMessage('sofa', 'Place', 'basic', 'testgroup', 'from@test.com', 'to@test.com', $this->gid, NULL, $substitutions);
         $this->assertEquals(MailRouter::PENDING, $rc);
 
         $m = new Message($this->dbhr, $this->dbhm, $id);

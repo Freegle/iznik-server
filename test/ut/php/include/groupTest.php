@@ -172,13 +172,12 @@ class groupTest extends IznikTestCase
         $u->addMembership($gid);
         $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment'));
-        $msg = str_replace("FreeglePlayground", "testgroup", $msg);
-        $msg = str_replace('Basic test', 'OFFER: Test item (TV13)', $msg);
-        $msg = str_replace("Hey", "Hey {{username}}", $msg);
-
-        $r = new MailRouter($this->dbhm, $this->dbhm);
-        list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg, $gid);
+        # Create OFFER message using utility method with custom substitutions
+        $substitutions = [
+            "FreeglePlayground" => "testgroup",
+            "Hey" => "Hey {{username}}"
+        ];
+        list($r, $id, $failok, $rc) = $this->createOfferMessage('Test item', 'TV13', 'attachment', 'testgroup', 'from@test.com', 'to@test.com', $gid, $uid, $substitutions);
 
         $r->setLatLng(8.55, 179.26);
 
