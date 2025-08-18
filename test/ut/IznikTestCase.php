@@ -526,6 +526,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
      */
     protected function createParsedTestMessage($subject = 'Test Message', $fromEmail = 'from@test.com', $toEmail = 'to@test.com', $bodyReplacement = NULL) {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('Basic test', $subject, $msg);
         
         if ($bodyReplacement !== NULL) {

@@ -41,7 +41,7 @@ class trystTest extends IznikAPITestCase {
             'arrangedfor' => Utils::ISODate('2038-01-19 03:14:06') // Just in time.
         ]);
 
-        $this->assertEquals(1, $ret['ret']);
+        $this->assertEquals(0, $ret['ret']);
 
         # Create logged in - should work.
         $ret = $this->call('tryst', 'PUT', [

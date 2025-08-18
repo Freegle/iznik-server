@@ -127,6 +127,7 @@ CMD /etc/init.d/ssh start \
   && sed -ie "s@'GOOGLE_PROJECT', '.*'@'GOOGLE_PROJECT', '$GOOGLE_PROJECT'@" /etc/iznik.conf \
   && sed -ie "s@'GOOGLE_APP_NAME', '.*'@'GOOGLE_APP_NAME', '$GOOGLE_APP_NAME'@" /etc/iznik.conf \
   && sed -ie "s@'MAPBOX_TOKEN', '.*'@'MAPBOX_TOKEN', '$MAPBOX_KEY'@" /etc/iznik.conf \
+  && sed -ie "s@'SPAMD_HOST', '.*'@'SPAMD_HOST', '$SPAMD_HOST'@" /etc/iznik.conf \
 
   # Setup GeoIP updates - continue even if download limit is reached
   && rm -f /tmp/geoipupdate.failed \

@@ -273,7 +273,7 @@ class MailRouterTest extends IznikTestCase {
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_MODERATED);
         User::clearCache();
 
-        list($m, $id, $failok) = $this->createParsedTestMessage('Basic test', 'test@test.com', 'to@test.com');
+        list($m, $id, $failok) = $this->createParsedTestMessage('Basic test', 'from@test.com', 'to@test.com');
 
         $r = new MailRouter($this->dbhr, $this->dbhm, $id);
         $rc = $r->route();
