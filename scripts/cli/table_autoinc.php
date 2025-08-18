@@ -17,7 +17,7 @@ foreach ($tables as $table)
         try
         {
             // This will throw an exception if the table doesn't have auto increment.
-            $dbhm->preExec("ALTER TABLE $tablename AUTO_INCREMENT = " . $autoinc . ";");
+            $dbhm->preExec("ALTER TABLE `$tablename` AUTO_INCREMENT = " . $autoinc . ";");
             error_log("$tablename => $autoinc");
 
             $autoinc += 10000;
