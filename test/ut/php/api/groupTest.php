@@ -354,7 +354,7 @@ class groupAPITest extends IznikAPITestCase {
         $msg = str_replace('Basic test', 'OFFER: Test (Tuvalu High Street)', $msg);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
 
-        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, Message::EMAIL, 'test@test.com', 'test@test.com');
+        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, 'test@test.com', 'test@test.com');
         $this->assertEquals(MailRouter::PENDING, $rc);
 
         $this->addLoginAndLogin($this->user, 'testpw');

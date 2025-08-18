@@ -116,7 +116,7 @@ class isochroneAPITest extends IznikAPITestCase
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
-        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, Message::EMAIL, $email, 'to@test.com');
+        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, $email, 'to@test.com', MailRouter::APPROVED);
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $this->assertEquals(Message::TYPE_OFFER, $m->getType());
@@ -243,7 +243,7 @@ class isochroneAPITest extends IznikAPITestCase
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
-        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, Message::EMAIL, $email, 'to@test.com');
+        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, $email, 'to@test.com', MailRouter::APPROVED);
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
         $this->assertEquals(Message::TYPE_OFFER, $m->getType());

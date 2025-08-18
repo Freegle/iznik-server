@@ -1,5 +1,7 @@
 FROM ubuntu:22.04
 
+ARG IZNIK_SERVER_BRANCH=master
+
 ENV DEBIAN_FRONTEND=noninteractive \
 	  TZ='UTZ' \
 	  NOTVISIBLE="in users profile" \
@@ -43,6 +45,9 @@ RUN mkdir -p /var/www \
 	&& cd /var/www \
 	&& apt-get -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false update \
 	&& git clone https://github.com/Freegle/iznik-server.git iznik \
+	&& cd iznik \
+	&& git checkout ${IZNIK_SERVER_BRANCH} \
+	&& cd /var/www \
   && touch iznik/standalone \
   && mkdir /var/www/iznik/spool \
   && chown www-data:www-data /var/www/iznik/spool \
@@ -112,10 +117,27 @@ CMD /etc/init.d/ssh start \
   && sed -ie "s@'LOVE_JUNK_API', '.*'@'LOVE_JUNK_API', '$LOVE_JUNK_API'@" /etc/iznik.conf \
   && sed -ie "s@'LOVE_JUNK_SECRET', '.*'@'LOVE_JUNK_SECRET', '$LOVE_JUNK_SECRET'@" /etc/iznik.conf \
   && sed -ie "s@'IMAGE_DOMAIN', '.*'@'IMAGE_DOMAIN', '$IMAGE_DOMAIN'@" /etc/iznik.conf \
+  # Update Google and Mapbox API keys from environment variables \
+  && sed -ie "s@'GOOGLE_CLIENT_ID', '.*'@'GOOGLE_CLIENT_ID', '$GOOGLE_CLIENT_ID'@" /etc/iznik.conf \
+  && sed -ie "s@'GOOGLE_CLIENT_SECRET', '.*'@'GOOGLE_CLIENT_SECRET', '$GOOGLE_CLIENT_SECRET'@" /etc/iznik.conf \
+  && sed -ie "s@'GOOGLE_PUSH_KEY', '.*'@'GOOGLE_PUSH_KEY', '$GOOGLE_PUSH_KEY'@" /etc/iznik.conf \
+  && sed -ie "s@'GOOGLE_VISION_KEY', '.*'@'GOOGLE_VISION_KEY', '$GOOGLE_VISION_KEY'@" /etc/iznik.conf \
+  && sed -ie "s@'GOOGLE_PERSPECTIVE_KEY', '.*'@'GOOGLE_PERSPECTIVE_KEY', '$GOOGLE_PERSPECTIVE_KEY'@" /etc/iznik.conf \
+  && sed -ie "s@'GOOGLE_GEMINI_API_KEY', '.*'@'GOOGLE_GEMINI_API_KEY', '$GOOGLE_GEMINI_API_KEY'@" /etc/iznik.conf \
+  && sed -ie "s@'GOOGLE_PROJECT', '.*'@'GOOGLE_PROJECT', '$GOOGLE_PROJECT'@" /etc/iznik.conf \
+  && sed -ie "s@'GOOGLE_APP_NAME', '.*'@'GOOGLE_APP_NAME', '$GOOGLE_APP_NAME'@" /etc/iznik.conf \
+  && sed -ie "s@'MAPBOX_TOKEN', '.*'@'MAPBOX_TOKEN', '$MAPBOX_KEY'@" /etc/iznik.conf \
 
   # Setup GeoIP updates - continue even if download limit is reached
   && rm -f /tmp/geoipupdate.failed \
-  && if [ -f /run/secrets/MAXMIND_ACCOUNT ] && [ -f /run/secrets/MAXMIND_KEY ]; then \
+  && if [ -n "$MAXMIND_ACCOUNT" ] && [ -n "$MAXMIND_KEY" ]; then \
+      mkdir -p /usr/share/GeoIP \
+      && echo "AccountID $MAXMIND_ACCOUNT" > /etc/GeoIP.conf \
+      && echo "LicenseKey $MAXMIND_KEY" >> /etc/GeoIP.conf \
+      && echo "ProductIds GeoLite2-Country GeoLite2-City" >> /etc/GeoIP.conf \
+      && echo "DatabaseDirectory /usr/share/GeoIP" >> /etc/GeoIP.conf \
+      && (geoipupdate -v -f /etc/GeoIP.conf || (echo "GeoIP update failed - continuing startup" && touch /tmp/geoipupdate.failed)) \
+    ; elif [ -f /run/secrets/MAXMIND_ACCOUNT ] && [ -f /run/secrets/MAXMIND_KEY ]; then \
       export MAXMIND_ACCOUNT=`cat /run/secrets/MAXMIND_ACCOUNT` \
       && export MAXMIND_KEY=`cat /run/secrets/MAXMIND_KEY` \
       && mkdir -p /usr/share/GeoIP \
