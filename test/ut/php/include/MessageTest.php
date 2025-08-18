@@ -257,8 +257,8 @@ class messageTest extends IznikTestCase {
         $this->user->addMembership($gid);
         $this->user->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
+        $substitutions = ['freegleplayground' => 'testgroup1'];
+        $msg = $this->createMessageContent('basic', $substitutions);
         list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, 'from@test.com', 'to@test.com', MailRouter::APPROVED);
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
@@ -268,9 +268,8 @@ class messageTest extends IznikTestCase {
         list($u, $uid) = $this->createTestUserWithMembership($gid, User::ROLE_MEMBER, 'Test User', 'test2@test.com', 'testpw');
         $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
-        $msg = str_ireplace('test@test.com', 'test2@test.com', $msg);
+        $substitutions2 = ['freegleplayground' => 'testgroup1', 'test@test.com' => 'test2@test.com'];
+        $msg = $this->createMessageContent('basic', $substitutions2);
         $r = new MailRouter($this->dbhr, $this->dbhm);
        list ($id, $failok) = $r->received(Message::EMAIL, 'from2@test.com', 'to@test.com', $msg);
         $rc = $r->route();
@@ -286,10 +285,11 @@ class messageTest extends IznikTestCase {
     }
 
     public function testHebrew() {
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $msg = str_replace('Basic test', '=?windows-1255?B?UkU6IE1hdGFub3MgTGFFdnlvbmltIFB1cmltIDIwMTYg7sf6yMzw5Q==?=
-=?windows-1255?B?yfog7MjgxuHA6cnwxOnt?=', $msg);
+        $substitutions = [
+            'freegleplayground' => 'testgroup',
+            'Basic test' => '=?windows-1255?B?UkU6IE1hdGFub3MgTGFFdnlvbmltIFB1cmltIDIwMTYg7sf6yMzw5Q==?=\n=?windows-1255?B?yfog7MjgxuHA6cnwxOnt?='
+        ];
+        $msg = $this->createMessageContent('basic', $substitutions);
 
         list($u, $this->uid) = $this->createTestUserWithMembership($this->gid, User::ROLE_MEMBER, 'Test User', 'test@test.com', 'testpw');
         $u->addEmail('sender@example.net');
@@ -312,17 +312,15 @@ class messageTest extends IznikTestCase {
     }
 
     public function testReverseSubject() {
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $substitutions = ['freegleplayground' => 'testgroup', 'Basic test' => 'OFFER: Test item (location)'];
+        $msg = $this->createMessageContent('basic', $substitutions);
         $m = new Message($this->dbhr, $this->dbhm);
-        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $this->assertEquals('TAKEN: Test item (location)', $m->reverseSubject());
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $substitutions2 = ['freegleplayground' => 'testgroup', 'Basic test' => '[StevenageFreegle] OFFER: Ninky nonk train and night garden characters St NIcks [1 Attachment]'];
+        $msg = $this->createMessageContent('basic', $substitutions2);
         $m = new Message($this->dbhr, $this->dbhm);
-        $msg = str_replace('Basic test', '[StevenageFreegle] OFFER: Ninky nonk train and night garden characters St NIcks [1 Attachment]', $msg);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $this->assertEquals('TAKEN: Ninky nonk train and night garden characters St NIcks', $m->reverseSubject());
 
@@ -331,24 +329,23 @@ class messageTest extends IznikTestCase {
         $this->user->addMembership($gid);
         $this->user->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_ireplace('freegleplayground', 'testgroup1', $msg);
-        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
+        $substitutions3 = ['freegleplayground' => 'testgroup1', 'Basic test' => 'OFFER: Test item (location)'];
+        $msg = $this->createMessageContent('basic', $substitutions3);
         list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, 'from@test.com', 'to@test.com', MailRouter::APPROVED);
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
         $this->assertEquals('TAKEN: Test item (location)', $m->reverseSubject());
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $substitutions4 = ['Basic test' => 'Bexley Freegle OFFER: compost bin (Bexley DA5)'];
+        $msg = $this->createMessageContent('basic', $substitutions4);
         $m = new Message($this->dbhr, $this->dbhm);
-        $msg = str_replace('Basic test', 'Bexley Freegle OFFER: compost bin (Bexley DA5)', $msg);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $this->assertEquals('TAKEN: compost bin (Bexley DA5)', $m->reverseSubject());
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $substitutions5 = ['Basic test' => 'OFFER/CYNNIG: Windows 95 & 98 on DVD (Criccieth LL52)'];
+        $msg = $this->createMessageContent('basic', $substitutions5);
         $m = new Message($this->dbhr, $this->dbhm);
-        $msg = str_replace('Basic test', 'OFFER/CYNNIG: Windows 95 & 98 on DVD (Criccieth LL52)', $msg);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $this->assertEquals('TAKEN: Windows 95 & 98 on DVD (Criccieth LL52)', $m->reverseSubject());
 
@@ -495,19 +492,19 @@ class messageTest extends IznikTestCase {
         }
 
     public function testAutoReply() {
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = $this->createMessageContent('basic');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $this->assertFalse($m->isAutoreply());;
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Subject: Basic test', 'Subject: Out of the office', $msg);
+        $substitutions2 = ['Subject: Basic test' => 'Subject: Out of the office'];
+        $msg = $this->createMessageContent('basic', $substitutions2);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $this->assertTrue($m->isAutoreply());
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Hey.', 'I aim to respond within', $msg);
+        $substitutions3 = ['Hey.' => 'I aim to respond within'];
+        $msg = $this->createMessageContent('basic', $substitutions3);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $this->assertTrue($m->isAutoreply());
@@ -524,19 +521,19 @@ class messageTest extends IznikTestCase {
     }
 
     public function testBounce() {
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = $this->createMessageContent('basic');
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $this->assertFalse($m->isBounce());;
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Subject: Basic test', 'Subject: Mail delivery failed', $msg);
+        $substitutions2 = ['Subject: Basic test' => 'Subject: Mail delivery failed'];
+        $msg = $this->createMessageContent('basic', $substitutions2);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $this->assertTrue($m->isBounce());
 
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('Hey.', '550 No such user', $msg);
+        $substitutions3 = ['Hey.' => '550 No such user'];
+        $msg = $this->createMessageContent('basic', $substitutions3);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         $this->assertTrue($m->isBounce());
@@ -550,10 +547,8 @@ class messageTest extends IznikTestCase {
         $this->user->addEmail($email);
 
         # Put two messages on the group - one eligible for autorepost, the other not yet.
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('test@test.com', $email, $msg);
-        $msg = str_replace('Basic test', 'OFFER: Test not due (Tuvalu High Street)', $msg);
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+        $substitutions = ['test@test.com' => $email, 'Basic test' => 'OFFER: Test not due (Tuvalu High Street)', 'freegleplayground' => 'testgroup'];
+        $msg = $this->createMessageContent('basic', $substitutions);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         $email = 'ut-' . rand() . '@' . USER_DOMAIN;
