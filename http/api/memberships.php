@@ -199,11 +199,11 @@ function memberships() {
                                 $p = $p !== FALSE ? $p : strrpos($email, '@');
                                 $name =  substr($email, 0, $p);
                                 $uid = $u->create(NULL, NULL, $name);
-                                $u->addEmail($email);
                                 $u->setPrivate('tnuserid', $tnuserid);
                             }
 
                             $u = new User($dbhr, $dbhm, $uid);
+                            $u->addEmail($email);
                             $emailid = $u->getAnEmailId();
                             $rc = $u->addMembership($groupid, $role, $emailid, MembershipCollection::APPROVED);
 
