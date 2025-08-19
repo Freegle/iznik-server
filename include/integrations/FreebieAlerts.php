@@ -33,7 +33,9 @@ class FreebieAlerts
 
             $msg = date("Y-m-d H:i:s") . " post to freebies returned $status $json_response";
 
-            if ($status != 200 || strtolower($json_response) != '{"success":true}') {
+            $rsp = json_decode($json_response, TRUE);
+
+            if ($status != 200 || !$rsp || !array_key_exists('success', $rsp) || !$rsp['success']) {
                 \Sentry\captureMessage($msg);
             }
         } catch (\Exception $e) {
