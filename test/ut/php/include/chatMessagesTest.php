@@ -68,21 +68,17 @@ class chatMessagesTest extends IznikTestCase {
     public function testSpamReply() {
         # Put a valid message on a group.
         $this->log("Put valid message on");
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        list($r, $refmsgid, $failok, $rc) = $this->createTestMessage('offer', 'testgroup', 'test@test.com', 'to@test.com', $this->groupid, $this->uid);
         $r->setLatLng(8.55, 179.26);
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Now reply to it with spam.
         $this->log("Reply with spam");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply'));
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
-        $rc = $r->route();
-        $this->assertEquals(MailRouter::TO_USER, $rc);
+        $r2 = new MailRouter($this->dbhr, $this->dbhm);
+       list ($refmsgid2, $failok2) = $r2->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
+        $rc2 = $r2->route();
+        $this->assertEquals(MailRouter::TO_USER, $rc2);
 
         # Check got flagged.
         $msgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE userid IN (SELECT userid FROM users_emails WHERE email = 'from2@test.com');");
@@ -92,21 +88,17 @@ class chatMessagesTest extends IznikTestCase {
     public function testSpamReply2() {
         # Put a valid message on a group.
         $this->log("Put valid message on");
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        list($r, $refmsgid, $failok, $rc) = $this->createTestMessage('offer', 'testgroup', 'test@test.com', 'to@test.com', $this->groupid, $this->uid);
         $r->setLatLng(8.55, 179.26);
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Now reply to it with spam.
         $this->log("Reply with spam");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply'));
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
-        $rc = $r->route();
-        $this->assertEquals(MailRouter::TO_USER, $rc);
+        $r2 = new MailRouter($this->dbhr, $this->dbhm);
+       list ($refmsgid2, $failok2) = $r2->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
+        $rc2 = $r2->route();
+        $this->assertEquals(MailRouter::TO_USER, $rc2);
 
         # Check got flagged.
         $msgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE userid IN (SELECT userid FROM users_emails WHERE email = 'from2@test.com');");
@@ -131,21 +123,17 @@ class chatMessagesTest extends IznikTestCase {
     public function testSpamReply5() {
         # Put a valid message on a group.
         $this->log("Put valid message on");
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        list($r, $refmsgid, $failok, $rc) = $this->createTestMessage('offer', 'testgroup', 'test@test.com', 'to@test.com', $this->groupid, $this->uid);
         $r->setLatLng(8.55, 179.26);
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Now reply to it with something that isn't actually spam.
         $this->log("Reply with not spam");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spamreply5'));
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
-        $rc = $r->route();
-        $this->assertEquals(MailRouter::TO_USER, $rc);
+        $r2 = new MailRouter($this->dbhr, $this->dbhm);
+       list ($refmsgid2, $failok2) = $r2->received(Message::EMAIL, 'from2@test.com', 'test@test.com', $msg);
+        $rc2 = $r2->route();
+        $this->assertEquals(MailRouter::TO_USER, $rc2);
 
         # Check not flagged.
         $msgs = $this->dbhr->preQuery("SELECT * FROM chat_messages WHERE userid IN (SELECT userid FROM users_emails WHERE email = 'from2@test.com');");
@@ -155,12 +143,8 @@ class chatMessagesTest extends IznikTestCase {
     public function testReplyFromSpammer() {
         # Put a valid message on a group.
         $this->log("Put valid message on");
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        list($r, $refmsgid, $failok, $rc) = $this->createTestMessage('offer', 'testgroup', 'test@test.com', 'to@test.com', $this->groupid, $this->uid);
         $r->setLatLng(8.55, 179.26);
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Now create a sender on the spammer list.
@@ -182,21 +166,17 @@ class chatMessagesTest extends IznikTestCase {
         # Now reply from them.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
         $msg = str_replace('Re: Basic test', 'Re: OFFER: a test item (location)', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        $replyid = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
-        $rc = $r->route();
-        $this->assertEquals(MailRouter::DROPPED, $rc);
+        $r2 = new MailRouter($this->dbhr, $this->dbhm);
+        $replyid = $r2->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
+        $rc2 = $r2->route();
+        $this->assertEquals(MailRouter::DROPPED, $rc2);
     }
 
     public function testStripOurFooter() {
         # Put a valid message on a group.
         $this->log("Put valid message on");
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        list($r, $refmsgid, $failok, $rc) = $this->createTestMessage('offer', 'testgroup', 'test@test.com', 'to@test.com', $this->groupid, $this->uid);
         $r->setLatLng(8.55, 179.26);
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         list($u, $uid) = $this->createTestUser('Test', 'User', 'Test User', 'test2@test.com', 'testpw');
@@ -204,10 +184,10 @@ class chatMessagesTest extends IznikTestCase {
         # Now reply from them.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/ourfooter'));
         $msg = str_replace('Re: Basic test', 'Re: OFFER: a test item (location)', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-        $replyid = $r->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
-        $rc = $r->route();
-        $this->assertEquals(MailRouter::TO_USER, $rc);
+        $r2 = new MailRouter($this->dbhr, $this->dbhm);
+        $replyid = $r2->received(Message::EMAIL, 'test2@test.com', 'test@test.com', $msg);
+        $rc2 = $r2->route();
+        $this->assertEquals(MailRouter::TO_USER, $rc2);
 
         $m = new Message($this->dbhr, $this->dbhm, $replyid);
         $uid = $u->findByEmail('test@test.com');
@@ -225,12 +205,8 @@ class chatMessagesTest extends IznikTestCase {
     public function testSpamReply4() {
         # Put a valid message on a group.
         $this->log("Put valid message on");
-        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
-        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($refmsgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        list($r, $refmsgid, $failok, $rc) = $this->createTestMessage('offer', 'testgroup', 'test@test.com', 'to@test.com', $this->groupid, $this->uid);
         $r->setLatLng(8.55, 179.26);
-        $rc = $r->route();
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # Now reply to it with spam spoof.
@@ -241,10 +217,10 @@ class chatMessagesTest extends IznikTestCase {
 
         $this->log("Reply with to self $email");
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/replytext'));
-        $r = new MailRouter($this->dbhr, $this->dbhm);
-       list ($refmsgid, $failok) = $r->received(Message::EMAIL, $email, $email, $msg);
-        $rc = $r->route();
-        $this->assertEquals(MailRouter::DROPPED, $rc);
+        $r2 = new MailRouter($this->dbhr, $this->dbhm);
+       list ($refmsgid2, $failok2) = $r2->received(Message::EMAIL, $email, $email, $msg);
+        $rc2 = $r2->route();
+        $this->assertEquals(MailRouter::DROPPED, $rc2);
 
     }
 
