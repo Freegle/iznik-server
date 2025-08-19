@@ -259,11 +259,11 @@ WHERE chat_rooms.id IN $idlist;";
 
             for ($i = 0; $i < count($ret); $i++) {
                 if (Utils::pres('user1id', $ret[$i])) {
-                    $users[$ret[$i]['user1id']]['supporter'] = FALSE;
+                    $users[$ret[$i]['user1id']]['supporter'] = false;
                 }
 
                 if (Utils::pres('user2id', $ret[$i])) {
-                    $users[$ret[$i]['user2id']]['supporter'] = FALSE;
+                    $users[$ret[$i]['user2id']]['supporter'] = false;
                 }
             }
 
@@ -1124,33 +1124,27 @@ WHERE chat_rooms.id IN $idlist;";
                 # than doing more queries.
                 $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
-                # It might be a group chat which we can see.  We reuse the code that lists chats and checks access,
-                # but using a specific chatid to save time.
-                $rooms = $this->listForUser(Session::modtools(), $userid, [$this->chatroom['chattype']], NULL, $this->id);
-                #error_log("CanSee $userid, {$this->id}, " . var_export($rooms, TRUE));
-                $cansee = $rooms ? in_array($this->id, $rooms) : FALSE;
-
-                if (!$cansee && $me && $me->isAdminOrSupport()) {
+                if ($me && $me->isAdminOrSupport()) {
                     if ($this->chatroom['chattype'] == ChatRoom::TYPE_USER2MOD) {
                         # Check if the user has an email address with the same domain as USER_SITE.  In that case
                         # it is a system user and we don't want every support user to be able to see it, just
-                        # admins.
+                        # admins.  Unless it's the support user, who often emails mods.
                         $u = User::get($this->dbhr, $this->dbhm, $this->chatroom['user1']);
 
                         if ($u && $u->getId()) {
                             $userEmail = $u->getEmailPreferred(TRUE);
 
-                            if ($userEmail) {
+                            if ($userEmail && strcmp(SUPPORT_ADDR, $userEmail)) {
                                 # Extract domain from user email
                                 $userDomain = substr($userEmail, strpos($userEmail, '@') + 1);
 
                                 # Get USER_SITE domain and remove www. prefix if present
                                 $siteDomain = str_ireplace('www.', '', USER_SITE);
 
-                                # If domains match, return FALSE (unless admin)
+                                # If domains match, return false (unless admin)
                                 if (strcasecmp($userDomain, $siteDomain) === 0) {
                                     if (!$me->isAdmin()) {
-                                        return FALSE;
+                                        return false;
                                     }
                                 }
                             }
@@ -1158,6 +1152,12 @@ WHERE chat_rooms.id IN $idlist;";
                     }
 
                     $cansee = TRUE;
+                } else {
+                    # It might be a group chat which we can see.  We reuse the code that lists chats and checks access,
+                    # but using a specific chatid to save time.
+                    $rooms = $this->listForUser(Session::modtools(), $userid, [$this->chatroom['chattype']], NULL, $this->id);
+                    #error_log("CanSee $userid, {$this->id}, " . var_export($rooms, TRUE));
+                    $cansee = $rooms ? in_array($this->id, $rooms) : FALSE;
                 }
             }
 
@@ -2971,7 +2971,7 @@ ORDER BY chat_messages.id DESC LIMIT 1;", [
             }
 
             # Have we got any messages from someone else?
-            $justmine = ($unmailedmsg['userid'] != $sendingto->getId()) ? FALSE : $justmine;
+            $justmine = ($unmailedmsg['userid'] != $sendingto->getId()) ? false : $justmine;
             #error_log("From {$unmailedmsg['userid']} $thisone justmine? $justmine");
 
             if (!$lastmsg || $lastmsg != $thisone) {
@@ -3147,11 +3147,11 @@ ORDER BY chat_messages.id DESC LIMIT 1;", [
 
         $jobads = $sendingto->getJobAds();
 
-        $replyexpected = FALSE;
+        $replyexpected = false;
         foreach ($twigmessages as $t) {
-            if (Utils::presbool('replyexpected', $t, FALSE))
+            if (Utils::presbool('replyexpected', $t, false))
             {
-                $replyexpected = TRUE;
+                $replyexpected = true;
             }
         }
 
@@ -3315,7 +3315,7 @@ ORDER BY chat_messages.id DESC LIMIT 1;", [
         $replyto = 'notify-' . $chatid1 . '-' . $sendtoid . '@' . $domain;
 
         # ModTools users should never get notified.
-        if ($to && strpos($to, MOD_SITE) === FALSE) {
+        if ($to && strpos($to, MOD_SITE) === false) {
             error_log(
                 "Notify chat #{$chatid1} $to for {$sendtoid} $subject last mailed will be $lastmsgemailed lastmax $lastmaxmailed"
             );
@@ -3372,7 +3372,7 @@ ORDER BY chat_messages.id DESC LIMIT 1;", [
                         exit(0);
                     }
 
-                    $sentsome = TRUE;
+                    $sentsome = true;
 
                     if ($recordsend) {
                         $this->recordSend($lastmsgemailed, $sendtoid, $chatid1);
