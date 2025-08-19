@@ -32,9 +32,8 @@ class FreebieAlerts
             $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
             $msg = date("Y-m-d H:i:s") . " post to freebies returned $status $json_response";
-            error_log($msg);
 
-            if ($status != 200 || $json_response != '{"success":TRUE}') {
+            if ($status != 200 || strtolower($json_response) != '{"success":true}') {
                 \Sentry\captureMessage($msg);
             }
         } catch (\Exception $e) {
