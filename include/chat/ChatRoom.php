@@ -1125,6 +1125,8 @@ WHERE chat_rooms.id IN $idlist;";
                 $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
                 if ($me && $me->isAdminOrSupport()) {
+                    $cansee = TRUE;
+
                     if ($this->chatroom['chattype'] == ChatRoom::TYPE_USER2MOD) {
                         # Check if the user has an email address with the same domain as USER_SITE.  In that case
                         # it is a system user and we don't want every support user to be able to see it, just
@@ -1150,16 +1152,14 @@ WHERE chat_rooms.id IN $idlist;";
                             }
                         }
                     }
-
-                    $cansee = TRUE;
                 }
 
                 if (!$cansee) {
                     # It might be a group chat which we can see.  We reuse the code that lists chats and checks access,
                     # but using a specific chatid to save time.
                     $rooms = $this->listForUser(Session::modtools(), $userid, [$this->chatroom['chattype']], NULL, $this->id);
-                    #error_log("CanSee $userid, {$this->id}, " . var_export($rooms, TRUE));
                     $cansee = $rooms ? in_array($this->id, $rooms) : FALSE;
+                    #error_log("CanSee $userid, {$this->id}, " . var_export($rooms, TRUE) . " gives $cansee");
                 }
             }
 
@@ -1169,8 +1169,7 @@ WHERE chat_rooms.id IN $idlist;";
                 $me = Session::whoAmI($this->dbhr, $this->dbhm);
 
                 if ($me) {
-                    if ($me->isAdminOrSupport() ||
-                        ($this->chatroom['chattype'] == ChatRoom::TYPE_USER2USER &&
+                    if (($this->chatroom['chattype'] == ChatRoom::TYPE_USER2USER &&
                             ($me->moderatorForUser($this->chatroom['user1']) ||
                                 $me->moderatorForUser($this->chatroom['user2']))) ||
                         ($this->chatroom['chattype'] == ChatRoom::TYPE_USER2MOD &&
