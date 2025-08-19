@@ -1748,7 +1748,7 @@ class chatRoomsTest extends IznikTestCase {
         $siteDomain = str_ireplace('www.', '', USER_SITE);
         
         $userWithSiteDomain = $u->create(NULL, NULL, "User Site Domain");
-        $userSiteEmail = "testuser@" . $siteDomain;
+        $userSiteEmail = OMBUDSMAN_ADDR;
 
         # Delete any existing user with this email to avoid conflicts.
         $existingUser = $u->findByEmail($userSiteEmail);
