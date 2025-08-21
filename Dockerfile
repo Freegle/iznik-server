@@ -128,6 +128,8 @@ CMD /etc/init.d/ssh start \
   && sed -ie "s@'GOOGLE_APP_NAME', '.*'@'GOOGLE_APP_NAME', '$GOOGLE_APP_NAME'@" /etc/iznik.conf \
   && sed -ie "s@'MAPBOX_TOKEN', '.*'@'MAPBOX_TOKEN', '$MAPBOX_KEY'@" /etc/iznik.conf \
   && sed -ie "s@'SPAMD_HOST', '.*'@'SPAMD_HOST', '$SPAMD_HOST'@" /etc/iznik.conf \
+  && sed -ie "s@'TUS_UPLOADER', \".*\"@'TUS_UPLOADER', '$TUS_UPLOADER'@" /etc/iznik.conf \
+  && sed -ie "s@'IMAGE_DELIVERY', NULL@'IMAGE_DELIVERY', '$IMAGE_DELIVERY'@" /etc/iznik.conf \
 
   # Setup GeoIP updates - continue even if download limit is reached
   && rm -f /tmp/geoipupdate.failed \
