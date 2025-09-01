@@ -95,8 +95,8 @@ RUN wget https://getcomposer.org/composer-2.phar -O composer.phar \
     && echo Y | php ../composer.phar install \
     && cd ..
 
-# Cron jobs for background scripts
-RUN cat install/crontab | crontab -u root -
+# Cron jobs for background scripts (excluding messages_spatial)
+RUN grep -v "message_spatial.php" install/crontab | crontab -u root -
 
 # Tidy image
 RUN rm -rf /var/lib/apt/lists/*
@@ -174,7 +174,7 @@ CMD /etc/init.d/ssh start \
   && php install/testenv.php \
   && php scripts/cli/table_autoinc.php \
 
-  # Keep the container alive
-	&& sleep infinity
+  # Start messages_spatial loop in background and keep container alive
+  && sh -c 'nohup sh -c "while true; do cd /var/www/iznik/scripts/cron && php ./message_spatial.php >> /tmp/iznik.message_spatial.out 2>&1; sleep 10; done" </dev/null >/dev/null 2>&1 & exec sleep infinity'
 
 EXPOSE 80
