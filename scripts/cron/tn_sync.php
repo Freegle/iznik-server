@@ -12,13 +12,30 @@ $lockh = Utils::lockScript(basename(__FILE__));
 
 $donesummat = TRUE;
 
-# Find the latest TN rating we have - that's what we use to decide the time period for the sync.
-$latest = $dbhr->preQuery("SELECT MAX(timestamp) AS max FROM `ratings` WHERE tn_rating_id IS NOT NULL;");
-$from = Utils::ISODate('@' . strtotime($latest[0]['max']));
+# Find the latest sync date - first try local file, fallback to max rating timestamp
+$dateFile = '/etc/tn_sync_last_date.txt';
+$from = null;
+
+if (file_exists($dateFile)) {
+    $lastSyncDate = trim(file_get_contents($dateFile));
+    if ($lastSyncDate && strtotime($lastSyncDate)) {
+        $from = $lastSyncDate;
+        error_log("Using stored sync date from $dateFile: $from");
+    }
+}
+
+if (!$from) {
+    # Fallback to max rating timestamp if no stored date found
+    $latest = $dbhr->preQuery("SELECT MAX(timestamp) AS max FROM `ratings` WHERE tn_rating_id IS NOT NULL;");
+    $from = Utils::ISODate('@' . strtotime($latest[0]['max']));
+    error_log("No stored sync date found, using max rating timestamp: $from");
+}
+
 $to = Utils::ISODate('@' . time());
 
 # Sync the ratings.
 $page = 1;
+$maxChangeDate = null;
 
 do {
     $url = "https://trashnothing.com/fd/api/ratings?key=" . TNKEY . "&page=$page&per_page=100&date_min=$from&date_max=$to";
@@ -27,6 +44,11 @@ do {
 
     foreach ($ratings as $rating) {
         $donesummat = TRUE;
+        
+        # Track the maximum date from this batch
+        if (!$maxChangeDate || $rating['date'] > $maxChangeDate) {
+            $maxChangeDate = $rating['date'];
+        }
 
         if ($rating['ratee_fd_user_id']) {
             // TN id might be wrong - check the user exists.
@@ -69,6 +91,11 @@ do {
 
     foreach ($changes as $change) {
         $donesummat = TRUE;
+        
+        # Track the maximum date from this batch  
+        if (!$maxChangeDate || $change['date'] > $maxChangeDate) {
+            $maxChangeDate = $change['date'];
+        }
 
         if ($change['fd_user_id']) {
             try {
@@ -179,6 +206,18 @@ if (count($users) > 0) {
             }
         }
     }
+}
+
+# Store the maximum change date for next sync if we processed any data
+if ($maxChangeDate) {
+    if (file_put_contents($dateFile, $maxChangeDate) !== false) {
+        error_log("Stored max change date to $dateFile: $maxChangeDate");
+    } else {
+        error_log("Failed to store max change date to $dateFile");
+        \Sentry\captureMessage("Failed to store TN sync date to $dateFile");
+    }
+} else {
+    error_log("No change date to store - no data processed");
 }
 
 if (!$donesummat) {
