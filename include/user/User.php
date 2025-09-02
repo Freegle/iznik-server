@@ -4106,6 +4106,13 @@ class User extends Entity
             return FALSE;
         }
 
+        # We have two kinds of email settings - the top-level Simple one, and more detailed per group ones.
+        # Where present the Simple one overrides the group ones, so check that first.
+        $simplemail = $this->getSetting('simplemail', NULL);
+        if ($simplemail === User::SIMPLE_MAIL_NONE) {
+            return FALSE;
+        }
+
         # We don't want to send emails to people who haven't been active for more than six months.  This improves
         # our spam reputation, by avoiding honeytraps.
         $sendit = FALSE;
