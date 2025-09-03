@@ -83,9 +83,10 @@ if (!$gid) {
     $m->setPrivate('lng',  -3.1883);
     $m->setPrivate('locationid', $pcid);
 
-    # Index
-    $m = new Message($dbhr, $dbhm);
+    # Approve and index the message
+    $m->approve($uid2);  # Approve with the moderator user
     $m->updateSpatialIndex();
+    $m->index();
 
     $i = new Item($dbhr, $dbhm);
     $i->create('chair');
