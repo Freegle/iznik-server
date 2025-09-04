@@ -166,6 +166,14 @@
             <span class="celebration-emoji">🎊</span>
           </mj-text>
 
+          <mj-text align="center">
+            <p>Thank you!</p>
+
+            <p>
+              Neil Morris<br/>
+              Freegle Board Chair
+            </p>
+          </mj-text>
         </mj-column>
       </mj-section>
 
