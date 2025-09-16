@@ -5814,6 +5814,42 @@ class User extends Entity
         $this->dbhm->preExec("UPDATE users SET deleted = NOW() WHERE id = ?;", [
             $this->id
         ]);
+
+        # Send email notification about account removal
+        $email = $this->getEmailPreferred();
+        if ($email) {
+            try {
+                $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+                $twig = new \Twig_Environment($loader);
+
+                list ($transport, $mailer) = Mail::getMailer();
+
+                $html = $twig->render('limbo.html', [
+                    'site_url' => 'https://' . USER_SITE
+                ]);
+
+                $message = \Swift_Message::newInstance()
+                    ->setSubject("Your Freegle account has been removed as requested")
+                    ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                    ->setReplyTo(SUPPORT_ADDR)
+                    ->setTo($email)
+                    ->setBody("We've removed your Freegle account as requested. Your personal data has been marked for deletion and will be completely removed from our systems within 14 days.\n\nIf you changed your mind or removed your account by mistake, don't worry! You can still reactivate it by visiting " . USER_SITE . " and logging back in.\n\nOnce you visit the site and log back in, your account will be automatically restored with all your data intact.\n\nIf you meant to remove your account, you can safely ignore this email. After 14 days, your data will be permanently deleted and cannot be recovered.");
+
+                # Add HTML in base-64 as default quoted-printable encoding leads to problems on
+                # Outlook.
+                $htmlPart = \Swift_MimePart::newInstance();
+                $htmlPart->setCharset('utf-8');
+                $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
+                $htmlPart->setContentType('text/html');
+                $htmlPart->setBody($html);
+                $message->attach($htmlPart);
+
+                Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::LIMBO, $this->id);
+                $this->sendIt($mailer, $message);
+            } catch (\Exception $e) {
+                error_log("Failed to send limbo email to user {$this->id}: " . $e->getMessage());
+            }
+        }
     }
 
     public function processForgets($id = NULL) {

@@ -1768,5 +1768,37 @@ class userTest extends IznikTestCase {
         # Demote.  Should trigger a mail to the owner.
         $u2->setRole(User::ROLE_MEMBER, $gid);
     }
+
+    public function testLimbo() {
+        # Create test user with email
+        list($u, $uid) = $this->createTestUserWithLogin('Test User', 'testpw');
+        $this->assertGreaterThan(0, $u->addEmail('test@test.com'));
+
+        # Mock the user to capture the email that should be sent
+        $mock = $this->getMockBuilder('Freegle\Iznik\User')
+            ->setConstructorArgs([$this->dbhr, $this->dbhm, $uid])
+            ->setMethods(array('sendIt'))
+            ->getMock();
+        $mock->method('sendIt')->will($this->returnCallback(function($mailer, $message) {
+            return($this->sendMock($mailer, $message));
+        }));
+
+        # Call limbo which should send an email
+        $mock->limbo();
+
+        # Verify that exactly one email was sent
+        $this->assertEquals(1, count($this->msgsSent));
+
+        # Verify the email subject
+        $this->assertStringContainsString('Your Freegle account has been removed as requested', $this->msgsSent[0]);
+
+        # Verify the user is marked as deleted in database
+        $users = $this->dbhr->preQuery("SELECT deleted FROM users WHERE id = ?", [$uid]);
+        $this->assertNotNull($users[0]['deleted']);
+
+        # Verify email content contains key information
+        $this->assertStringContainsString('14 days', $this->msgsSent[0]);
+        $this->assertStringContainsString('reactivate', $this->msgsSent[0]);
+    }
 }
 

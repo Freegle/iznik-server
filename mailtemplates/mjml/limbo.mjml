@@ -1,0 +1,54 @@
+<mjml>
+  <mj-head>
+    <mj-preview>Your Freegle account has been removed as requested</mj-preview>
+    <mj-style>a {
+      color: #288c0a;
+      text-decoration: none;
+      font-weight: bold
+      }
+      ol {
+      margin-top: 0; margin-bottom: 0;
+      /* margin-left: 2.2em; For Outlook */
+      padding-left: 2.4em; /* For the rest */
+      }
+      li {
+      margin: 0.5em 0;
+      }</mj-style>
+    <mj-attributes>
+      <mj-all font-family="Trebuchet MS, Helvetica, Arial"></mj-all>
+    </mj-attributes>
+  </mj-head>
+  <mj-body>
+    <mj-wrapper padding="0px" full-width="full-width">
+      <mj-raw>
+        <!-- header section -->
+      </mj-raw>
+      <mj-section background-url="https://www.ilovefreegle.org/wallpaper.png" background-color="#e5e4db" border-top="5px solid #61AE24" padding="0px">
+        <mj-group>
+          <mj-column vertical-align="middle" width="65%">
+            <mj-text color="#61AE24" font-size="18px">Your account has been removed</mj-text>
+          </mj-column>
+          <mj-column vertical-align="middle" width="35%">
+            <mj-image css-class="logo" src="https://www.ilovefreegle.org/icon.png" alt="Logo" width="80px" align="right" border-radius="5px" padding="20px"></mj-image>
+          </mj-column>
+        </mj-group>
+      </mj-section>
+      <mj-section background-color="#F7F6EC">
+        <mj-column>
+          <mj-text>We've removed your Freegle account as requested. Your personal data has been marked for deletion and will be completely removed from our systems within 14 days.</mj-text>
+          <mj-text>If you changed your mind or removed your account by mistake, don't worry! You can still reactivate it by clicking the button below and visiting our site.</mj-text>
+          <mj-text>Once you visit the site and log back in, your account will be automatically restored with all your data intact.</mj-text>
+          <mj-button href="{{ site_url }}" background-color="#61AE24" font-size="18px">I want to keep my account</mj-button>
+          <mj-text font-size="14px" color="#666">If you meant to remove your account, you can safely ignore this email. After 14 days, your data will be permanently deleted and cannot be recovered.</mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-section background-color="#E0E0E0">
+        <mj-column>
+          <mj-text font-size="9px" color="#707070">
+            Freegle is registered as a charity with HMRC (ref. XT32865) and is run by volunteers. Which is nice.  Registered address: Weaver's Field, Loud Bridge, Chipping PR3 2NX
+          </mj-text>
+        </mj-column>
+      </mj-section>
+    </mj-wrapper>
+  </mj-body>
+</mjml>

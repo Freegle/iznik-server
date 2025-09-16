@@ -56,6 +56,7 @@ class Mail {
     const PLEDGE_SIGNUP = 53;
     const PLEDGE_SUCCESS = 54;
     const PLEDGE_REMINDER = 55;
+    const LIMBO = 56;
 
     const DESCRIPTIONS = [
         Mail::DIGEST => 'Digest',
@@ -111,6 +112,7 @@ class Mail {
         Mail::PLEDGE_SIGNUP => 'PledgeSignup',
         Mail::PLEDGE_SUCCESS => 'PledgeSuccess',
         Mail::PLEDGE_REMINDER => 'PledgeReminder',
+        Mail::LIMBO => 'Limbo',
     ];
 
     private static $mailers = [];
