@@ -757,10 +757,15 @@ class Location extends Entity
             $pgsql->preExec("DROP INDEX IF EXISTS idx_location$uniq;");
             $pgsql->preExec("DROP INDEX IF EXISTS idx_location_id$uniq;");
             try {
-                # No easy way to CREATE TYPE IF NOT EXISTS.
+                # Check if type already exists before attempting to create it
                 $this->dbhm->suppressSentry = TRUE;
-                $pgsql->preExec("CREATE TYPE location_type AS ENUM('Road','Polygon','Line','Point','Postcode');");
-            } catch (\Exception $e) {}
+                $typeExists = $pgsql->preQuery("SELECT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'location_type');");
+                if (!$typeExists[0]['exists']) {
+                    $pgsql->preExec("CREATE TYPE location_type AS ENUM('Road','Polygon','Line','Point','Postcode');");
+                }
+            } catch (\Exception $e) {
+                # Ignore any errors - type might already exist
+            }
             $this->dbhm->suppressSentry = FALSE;
 
             $pgsql->preExec("CREATE TABLE locations_tmp$uniq (id serial, locationid bigint, name text, type location_type, area numeric, location geometry);");
