@@ -23,7 +23,11 @@ do {
         $spool = new \Swift_FileSpool(IZNIK_BASE . $spoolname);
 
         $transport = \Swift_SpoolTransport::newInstance($spool);
-        $realTransport = \Swift_SmtpTransport::newInstance();
+
+        # Configure SMTP transport with config defines for MailHog
+        $smtpHost = defined('SMTP_HOST') ? SMTP_HOST : 'localhost';
+        $smtpPort = defined('SMTP_PORT') ? SMTP_PORT : 25;
+        $realTransport = \Swift_SmtpTransport::newInstance($smtpHost, $smtpPort);
 
         $spool = $transport->getSpool();
 

@@ -20,6 +20,10 @@ define('PGSQLPASSWORD', 'iznik');
 define('SPAMD_HOST', 'localhost');
 define('SPAMD_PORT', 783);
 
+# SMTP configuration for mail delivery
+define('SMTP_HOST', 'localhost');
+define('SMTP_PORT', 25);
+
 # Logos
 define('USERLOGO', 'https://www.ilovefreegle.org/icon.png');
 define('MODLOGO', 'https://modtools.org/images/modlogo-large.jpg');

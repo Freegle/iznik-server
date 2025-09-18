@@ -162,7 +162,11 @@ class Mail {
         return($users);
     }
 
-    public static function getMailer($host = 'localhost', $spoolname = '/spool') {
+    public static function getMailer($host = null, $spoolname = '/spool') {
+        # Use config defines if available, fallback to localhost
+        if ($host === null) {
+            $host = defined('SMTP_HOST') ? SMTP_HOST : 'localhost';
+        }
         $key = $host . $spoolname;
 
         if (!array_key_exists($key, self::$mailers)) {
@@ -175,7 +179,10 @@ class Mail {
 
             $spool = new \Swift_FileSpool(IZNIK_BASE . $spoolname);
             $spooltrans = \Swift_SpoolTransport::newInstance($spool);
-            $smtptrans = \Swift_SmtpTransport::newInstance($host);
+
+            # Configure SMTP transport with config defines
+            $smtpPort = defined('SMTP_PORT') ? SMTP_PORT : 25;
+            $smtptrans = \Swift_SmtpTransport::newInstance($host, $smtpPort);
             $transport = \Swift_FailoverTransport::newInstance([
                                                                    $smtptrans,
                                                                    $spooltrans

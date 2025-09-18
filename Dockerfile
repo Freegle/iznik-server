@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y dnsutils openssl zip unzip git libxml2-
     php8.1-xdebug php8.1-mbstring php8.1-simplexml php8.1-curl php8.1-zip postgresql-client php8.1-gd  \
     php8.1-xmlrpc php8.1-redis php8.1-pgsql curl libpq-dev php-pear php-dev libgeoip-dev libcurl4-openssl-dev wget \
     php-mbstring php-mailparse geoip-bin geoip-database php8.1-pdo-mysql cron rsyslog net-tools php8.1-fpm nginx telnet \
-    tesseract-ocr ca-certificates gnupg lsb-release geoipupdate postfix
+    tesseract-ocr ca-certificates gnupg lsb-release geoipupdate postfix jq
 
 # Install Node.js and npm
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
@@ -81,6 +81,8 @@ RUN cp install/iznik.conf.php /etc/iznik.conf \
     && sed -ie "s/'PHEANSTALK_SERVER', '.*'/'PHEANSTALK_SERVER', '$PHEANSTALK_SERVER'/" /etc/iznik.conf \
     && sed -ie "s/'IMAGE_DOMAIN', '.*'/'IMAGE_DOMAIN', '$IMAGE_DOMAIN'/" /etc/iznik.conf \
     && sed -ie "s/'IMAGE_DELIVERY', '.*'/'IMAGE_DELIVERY', '$IMAGE_DELIVERY'/" /etc/iznik.conf \
+    && sed -ie "s/'SMTP_HOST', '.*'/'SMTP_HOST', '$SMTP_HOST'/" /etc/iznik.conf \
+    && sed -ie "s/'SMTP_PORT', '.*'/'SMTP_PORT', '$SMTP_PORT'/" /etc/iznik.conf \
     && sed -ie "s/case 'iznik.ilovefreegle.org'/default/" /etc/iznik.conf \
     && echo "[mysql]" > ~/.my.cnf \
     && echo "host=$SQLHOST" >> ~/.my.cnf \
