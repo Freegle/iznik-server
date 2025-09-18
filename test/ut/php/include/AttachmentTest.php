@@ -65,10 +65,18 @@ class AttachmentTest extends IznikTestCase {
         $a = new Attachment($this->dbhr, $this->dbhm, $attid);
         # Data length will be zero because this isn't a real uploaded file.
         $this->assertEquals(0, strlen($a->getData()));
-        $this->assertEquals(TUS_UPLOADER . '/uid/', $a->getPath());
+
+        # When IMAGE_DELIVERY is configured, URLs are wrapped with the delivery service
+        if (defined('IMAGE_DELIVERY') && IMAGE_DELIVERY) {
+            $expectedUrl = IMAGE_DELIVERY . '?url=' . TUS_UPLOADER . '/uid/';
+        } else {
+            $expectedUrl = TUS_UPLOADER . '/uid/';
+        }
+
+        $this->assertEquals($expectedUrl, $a->getPath());
         $atts = $a->getPublic();
-        $this->assertEquals(TUS_UPLOADER . '/uid/', $atts['path']);
-        $this->assertEquals(TUS_UPLOADER . '/uid/', $atts['paththumb']);
+        $this->assertEquals($expectedUrl, $atts['path']);
+        $this->assertEquals($expectedUrl, $atts['paththumb']);
     }
 }
 
