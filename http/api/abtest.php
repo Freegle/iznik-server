@@ -52,12 +52,12 @@ function abtest() {
             # by old code on the app which hasn't updated.
             if (!Utils::pres('app', $_REQUEST) && $uid && $variant) {
                 if (!is_null($shown)) {
-                    $sql = "INSERT INTO abtest (uid, variant, shown) VALUES (" . $dbhm->quote($uid) . ", " . $dbhm->quote($variant) . ", 1) ON DUPLICATE KEY UPDATE shown = shown + 1, rate = COALESCE(100 * action / shown, 0);";
+                    $sql = "INSERT INTO abtest (uid, variant, shown, action, rate) VALUES (" . $dbhm->quote($uid) . ", " . $dbhm->quote($variant) . ", 1, 0, 0) ON DUPLICATE KEY UPDATE shown = shown + 1, rate = COALESCE(100 * action / shown, 0);";
                     $dbhm->background($sql);
                 }
 
                 if (!is_null($action)) {
-                    $sql = "INSERT INTO abtest (uid, variant, action) VALUES (" . $dbhm->quote($uid) . ", " . $dbhm->quote($variant) . ", $score) ON DUPLICATE KEY UPDATE action = action + $score, rate = COALESCE(100 * action / shown, 0);";
+                    $sql = "INSERT INTO abtest (uid, variant, shown, action, rate) VALUES (" . $dbhm->quote($uid) . ", " . $dbhm->quote($variant) . ", 0, $score, 0) ON DUPLICATE KEY UPDATE action = action + $score, rate = COALESCE(100 * action / shown, 0);";
 //                    $dbhm->preExec($sql);
                     $dbhm->background($sql);
                 }
