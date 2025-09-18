@@ -12,7 +12,7 @@ require_once(UT_DIR . '/../../include/db.php');
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class worryWordsTest extends IznikTestCase
+class WorryWordsTest extends IznikTestCase
 {
     private $dbhr, $dbhm;
 

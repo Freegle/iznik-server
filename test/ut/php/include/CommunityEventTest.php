@@ -12,7 +12,7 @@ require_once(UT_DIR . '/../../include/db.php');
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class communityEventTest extends IznikTestCase {
+class CommunityEventTest extends IznikTestCase {
     private $dbhr, $dbhm;
 
     protected function setUp() : void {

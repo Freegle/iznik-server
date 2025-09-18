@@ -12,7 +12,7 @@ require_once(UT_DIR . '/../../include/db.php');
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class userTest extends IznikTestCase {
+class UserTest extends IznikTestCase {
     private $dbhr, $dbhm, $msgsSent;
 
     public function sendMock($mailer, $message) {

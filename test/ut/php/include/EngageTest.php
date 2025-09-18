@@ -12,7 +12,7 @@ require_once(UT_DIR . '/../../include/db.php');
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class engageTest extends IznikTestCase {
+class EngageTest extends IznikTestCase {
     private $dbhr, $dbhm, $msgsSent;
 
     protected function setUp() : void

@@ -17,48 +17,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
     const DEBUG = FALSE;
 
     private $dbhr, $dbhm;
-    private static $chatNotifyStopped = false;
-
     public static $unique = 1;
-
-    public static function setUpBeforeClass(): void {
-        parent::setUpBeforeClass();
-
-        // Stop chat_notify job if it hasn't been stopped already
-        if (!self::$chatNotifyStopped) {
-            error_log("PHPUnit: Stopping chat_notify background job...");
-
-            // Create abort file to signal background jobs to stop
-            touch('/tmp/iznik.mail.abort');
-
-            // Kill chat_notify processes immediately
-            exec("pkill -f chat_notifyemail_user2user.php 2>/dev/null");
-
-            self::$chatNotifyStopped = true;
-            error_log("PHPUnit: chat_notify background job stopped");
-        }
-    }
-
-    public static function tearDownAfterClass(): void {
-        parent::tearDownAfterClass();
-
-        // Only restart if we stopped it
-        if (self::$chatNotifyStopped) {
-            error_log("PHPUnit: Cleaning up and restarting chat_notify...");
-
-            // Remove abort file
-            if (file_exists('/tmp/iznik.mail.abort')) {
-                unlink('/tmp/iznik.mail.abort');
-            }
-
-            // Restart the chat_notify job in background
-            $cmd = "cd /var/www/iznik/scripts/cron && nohup php ./chat_notifyemail_user2user.php >> /tmp/iznik.chat_notifyemail_user2user.out 2>&1 &";
-            exec($cmd);
-
-            self::$chatNotifyStopped = false;
-            error_log("PHPUnit: chat_notify background job restarted");
-        }
-    }
 
     public function log($str) {
         if (IznikTestCase::DEBUG) {

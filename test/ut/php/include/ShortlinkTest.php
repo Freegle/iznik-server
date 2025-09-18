@@ -12,7 +12,7 @@ require_once(UT_DIR . '/../../include/db.php');
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class shortlinkTest extends IznikTestCase {
+class ShortlinkTest extends IznikTestCase {
     private $dbhr, $dbhm;
 
     protected function setUp() : void {

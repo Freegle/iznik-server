@@ -13,7 +13,7 @@ require_once(UT_DIR . '/../../include/db.php');
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class utilsTest extends IznikTestCase {
+class UtilsTest extends IznikTestCase {
     private $dbhr, $dbhm;
 
     public function testCheckFiles() {

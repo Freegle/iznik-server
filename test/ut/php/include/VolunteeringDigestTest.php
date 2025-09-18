@@ -12,7 +12,7 @@ require_once(UT_DIR . '/../../include/db.php');
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class volunteeringDigestTest extends IznikTestCase {
+class VolunteeringDigestTest extends IznikTestCase {
     private $dbhr, $dbhm;
 
     private $volunteeringSent = [];

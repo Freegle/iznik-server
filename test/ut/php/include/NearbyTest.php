@@ -12,7 +12,7 @@ require_once(UT_DIR . '/../../include/db.php');
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-class nearbyTest extends IznikTestCase {
+class NearbyTest extends IznikTestCase {
     private $dbhr, $dbhm;
 
     protected function setUp() : void {
