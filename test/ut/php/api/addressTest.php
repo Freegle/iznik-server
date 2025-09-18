@@ -50,8 +50,11 @@ class addressAPITest extends IznikAPITestCase
 
         $this->addLoginAndLogin($this->user, 'testpw');
 
-        // This assumes some addresses are loaded, even if they're fake.
-        $pafadds = $this->dbhr->preQuery("SELECT id FROM paf_addresses LIMIT 1;");
+        // Select a PAF address that has a valid postcode with coordinates
+        $pafadds = $this->dbhr->preQuery("SELECT pa.id FROM paf_addresses pa
+                                          INNER JOIN locations l ON pa.postcodeid = l.id
+                                          WHERE l.lat IS NOT NULL AND l.lng IS NOT NULL
+                                          LIMIT 1;");
         self::assertEquals(1, count($pafadds));
 
         $ret = $this->call('address', 'PUT', [

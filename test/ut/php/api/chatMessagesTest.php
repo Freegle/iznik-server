@@ -732,12 +732,14 @@ class chatMessagesAPITest extends IznikAPITestCase
     }
 
     public function testTyping() {
+        error_log("testTyping: Stage 1 - Login and setup");
         $this->addLoginAndLogin($this->user, 'testpw');
 
         $this->user->addEmail('test@test.com');
         $this->user2->addEmail('test2@test.com');
 
         # Create a chat to the second user with a referenced message from the second user.
+        error_log("testTyping: Stage 2 - Creating chat room");
         $ret = $this->call('chatrooms', 'PUT', [
             'userid' => $this->uid2
         ]);
@@ -745,7 +747,9 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
         $rid = $ret['id'];
         $this->assertNotNull($rid);
+        error_log("testTyping: Created chat room $rid");
 
+        error_log("testTyping: Stage 3 - Setting up mock mailer");
         $r = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm, $rid))
             ->setMethods(array('mailer'))
@@ -754,6 +758,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $r->method('mailer')->willReturn(TRUE);
 
         # Send a message.
+        error_log("testTyping: Stage 4 - Sending initial message");
         $ret = $this->call('chatmessages', 'POST', [
             'roomid' => $rid,
             'message' => 'Test'
@@ -761,47 +766,66 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
         $this->assertNotNull($ret['id']);
         $cmid = $ret['id'];
+        error_log("testTyping: Sent message $cmid");
+
+        # Process the message so it can be sent via email
+        error_log("testTyping: Stage 5 - Processing message for email");
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $cmid);
+        $cm->process();
 
         # Notify - too soon.
+        error_log("testTyping: Stage 6 - First notify attempt (should be too soon)");
         $this->assertEquals(0, $r->notifyByEmail($rid, ChatRoom::TYPE_USER2USER, NULL, 30));
 
+        error_log("testTyping: Stage 7 - Sleeping for 10 seconds");
         sleep(10);
 
         # Notify again - still too soon.
+        error_log("testTyping: Stage 8 - Second notify attempt (still too soon)");
         $this->assertEquals(0, $r->notifyByEmail($rid, ChatRoom::TYPE_USER2USER, NULL, 30));
 
         # Say we're still typing.  Should bump 1 chat message.
-        $cm = new ChatMessage($this->dbhr, $this->dbhm, $cmid);
+        error_log("testTyping: Stage 9 - Testing typing action - should bump message");
         $olddate = $cm->getPrivate('date');
         $this->log("Message time before bump $olddate");
+        error_log("testTyping: Message time before bump $olddate");
         $ret = $this->call('chatrooms', 'POST', [
             'id' => $rid,
             'action' => ChatRoom::ACTION_TYPING
         ]);
+        error_log("testTyping: Typing action result: ret={$ret['ret']}, count={$ret['count']}");
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals(1, $ret['count']);
         $cm = new ChatMessage($this->dbhr, $this->dbhm, $cmid);
         $newdate = $cm->getPrivate('date');
         $this->log("Message time after bump $newdate");
+        error_log("testTyping: Message time after bump $newdate");
         $this->assertNotEquals($olddate, $newdate);
 
+        error_log("testTyping: Stage 10 - Sleeping for 25 seconds");
         sleep(25);
 
         # Notify again.  Message would get mailed by now, except that it has been bumped.
+        error_log("testTyping: Stage 11 - Third notify attempt (should still be 0 due to bump)");
         $this->assertEquals(0, $r->notifyByEmail($rid, ChatRoom::TYPE_USER2USER, NULL, 30));
 
+        error_log("testTyping: Stage 12 - Sleeping for 10 seconds");
         sleep(10);
 
         # Notify again.  Will send this time.
+        error_log("testTyping: Stage 13 - Fourth notify attempt (should send now)");
         $this->assertEquals(1, $r->notifyByEmail($rid, ChatRoom::TYPE_USER2USER, NULL, 30));
 
         # Say we're still typing - nothing to bump.
+        error_log("testTyping: Stage 14 - Testing typing action again - nothing to bump");
         $ret = $this->call('chatrooms', 'POST', [
             'id' => $rid,
             'action' => ChatRoom::ACTION_TYPING
         ]);
+        error_log("testTyping: Final typing action result: ret={$ret['ret']}, count={$ret['count']}");
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals(0, $ret['count']);
+        error_log("testTyping: Test completed successfully");
     }
 
     public function testDelete() {
