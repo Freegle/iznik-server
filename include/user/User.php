@@ -7101,7 +7101,6 @@ memberships.groupid IN $groupq
             if ($g->getPrivate('welcomemail') && $collection == MembershipCollection::APPROVED && $g->getPrivate('onhere')) {
                 # They are now approved.  We need to send a per-group welcome mail.
                 try {
-                    error_log(date("Y-m-d H:i:s") . "Send welcome to $userid for membership $id\n");
                     $g->sendWelcome($userid, FALSE);
                 } catch (Exception $e) {
                     error_log("Welcome failed: " . $e->getMessage());
