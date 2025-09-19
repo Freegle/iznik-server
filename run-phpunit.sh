@@ -26,21 +26,24 @@ XDEBUG_MODE=coverage php /var/www/iznik/composer/vendor/phpunit/phpunit/phpunit 
 # Store the exit code
 TEST_EXIT_CODE=$?
 
-# Check if coverage file was created and persist it
-if [ $TEST_EXIT_CODE -eq 0 ]; then
-    if [ ! -f /tmp/phpunit-coverage.xml ]; then
-        echo "ERROR: PHPUnit tests passed but coverage file was not generated at /tmp/phpunit-coverage.xml"
+# Always check if coverage file was created, regardless of test outcome
+if [ ! -f /tmp/phpunit-coverage.xml ]; then
+    echo "ERROR: Coverage file was not generated at /tmp/phpunit-coverage.xml"
+    # If tests passed but no coverage, that's a failure
+    if [ $TEST_EXIT_CODE -eq 0 ]; then
+        echo "Tests passed but coverage generation failed - marking as failure"
         TEST_EXIT_CODE=1
-    else
-        echo "Coverage file generated successfully at /tmp/phpunit-coverage.xml"
-        # Show file size for debugging
-        ls -la /tmp/phpunit-coverage.xml
-        # Also copy to output log location to ensure it persists
-        cp /tmp/phpunit-coverage.xml /tmp/phpunit-coverage.xml.backup 2>/dev/null || true
     fi
 else
-    echo "Tests failed with exit code $TEST_EXIT_CODE, skipping coverage check"
+    echo "Coverage file generated successfully at /tmp/phpunit-coverage.xml"
+    # Show file size for debugging
+    ls -la /tmp/phpunit-coverage.xml
+    # Also copy to output log location to ensure it persists
+    cp /tmp/phpunit-coverage.xml /tmp/phpunit-coverage.xml.backup 2>/dev/null || true
 fi
+
+# Log the final exit code
+echo "Final test exit code: $TEST_EXIT_CODE"
 
 echo "Cleaning up and restarting chat_notify..."
 # Remove abort file
