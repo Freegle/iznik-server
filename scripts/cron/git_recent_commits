@@ -12,7 +12,7 @@ printf "This is an automated list of the changes to the new fast server code in 
 grep "^*" /tmp/git.log >> /tmp/git.mail
 printf "\n...and here are the ones which are minor, or only affect volunteers in ModTools, or are internal changes that you wouldn't notice:\n\n"  >> /tmp/git.mail
 grep -v "^*" /tmp/git.log >> /tmp/git.mail
-cat /tmp/git.mail | mail -s "$(date +'%d-%m-%Y') Fast server code changes in the last 7 days" "discoursereplies+Tech@ilovefreegle.org" -aFrom:geeks@ilovefreegle.org
+cat /tmp/git.mail | mail -s "$(date +'%d-%m-%Y') v2 API Go server code changes in the last 7 days" "discoursereplies+Tech@ilovefreegle.org" -aFrom:geeks@ilovefreegle.org
 rm /tmp/git.mail
 cd /tmp
 
@@ -26,7 +26,7 @@ printf "This is an automated list of the changes to the ModTools code in the las
 grep "^*" /tmp/git.log >> /tmp/git.mail
 printf "\n...and here are the ones which are minor, or only affect volunteers in ModTools, or are internal changes that you wouldn't notice:\n\n"  >> /tmp/git.mail
 grep -v "^*" /tmp/git.log >> /tmp/git.mail
-cat /tmp/git.mail | mail -s "$(date +'%d-%m-%Y') ModTools code changes in the last 7 days" "discoursereplies+Tech@ilovefreegle.org" -aFrom:geeks@ilovefreegle.org
+cat /tmp/git.mail | mail -s "$(date +'%d-%m-%Y') ModTools site code changes in the last 7 days" "discoursereplies+Tech@ilovefreegle.org" -aFrom:geeks@ilovefreegle.org
 rm /tmp/git.mail
 cd /tmp
 
@@ -39,7 +39,7 @@ git checkout -f production
 git log --pretty=format:'%s (%cr)' --abbrev-commit --since="7 days ago" > /tmp/git.log
 printf "This is an automated list of the changes to the next generation client code in the last 7 days.  This will be used for the next version of Freegle Direct." > /tmp/git.mail
 cat /tmp/git.log >> /tmp/git.mail
-cat /tmp/git.mail | mail -s "$(date +'%d-%m-%Y') Freegle Nuxt3 code changes in the last 7 days" "discoursereplies+Tech@ilovefreegle.org" -aFrom:geeks@ilovefreegle.org
+cat /tmp/git.mail | mail -s "$(date +'%d-%m-%Y') Freegle site code changes in the last 7 days" "discoursereplies+Tech@ilovefreegle.org" -aFrom:geeks@ilovefreegle.org
 rm /tmp/git.mail
 cd /tmp
 
@@ -53,7 +53,21 @@ printf "This is an automated list of the changes to the server code in the last 
 grep "^*" /tmp/git.log >> /tmp/git.mail
 printf "\n...and here are the ones which are minor, or only affect volunteers in ModTools, or are internal changes that you wouldn't notice:\n\n"  >> /tmp/git.mail
 grep -v "^*" /tmp/git.log >> /tmp/git.mail
-cat /tmp/git.mail | mail -s "$(date +'%d-%m-%Y') Server code changes in the last 7 days" "discoursereplies+Tech@ilovefreegle.org" -aFrom:geeks@ilovefreegle.org
+cat /tmp/git.mail | mail -s "$(date +'%d-%m-%Y') v1 API PHP server code changes in the last 7 days" "discoursereplies+Tech@ilovefreegle.org" -aFrom:geeks@ilovefreegle.org
+rm /tmp/git.mail
+cd /tmp
+
+rm -r /tmp/iznik.recent
+mkdir iznik.recent
+cd iznik.recent
+git clone https://github.com/Freegle/FreegleDocker.git
+cd FreegleDocker
+git log --pretty=format:'%s (%cr)' --abbrev-commit --since="7 days ago" > /tmp/git.log
+printf "This is an automated list of the changes to the Docker Test Environment code in the last 7 days.  If you have any questions about them, please reply to this mail.\n\nHere are the more important ones which would affect members:\n\n" > /tmp/git.mail
+grep "^*" /tmp/git.log >> /tmp/git.mail
+printf "\n...and here are the ones which are minor, or only affect volunteers in ModTools, or are internal changes that you wouldn't notice:\n\n"  >> /tmp/git.mail
+grep -v "^*" /tmp/git.log >> /tmp/git.mail
+cat /tmp/git.mail | mail -s "$(date +'%d-%m-%Y') Docker Test Environment code changes in the last 7 days" "discoursereplies+Tech@ilovefreegle.org" -aFrom:geeks@ilovefreegle.org
 rm /tmp/git.mail
 cd /tmp
 
