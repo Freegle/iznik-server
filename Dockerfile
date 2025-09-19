@@ -27,6 +27,13 @@ RUN apt-get update && apt-get install -y dnsutils openssl zip unzip git libxml2-
     php-mbstring php-mailparse geoip-bin geoip-database php8.1-pdo-mysql cron rsyslog net-tools php8.1-fpm nginx telnet \
     tesseract-ocr ca-certificates gnupg lsb-release geoipupdate postfix jq netcat
 
+# Configure xdebug to support coverage mode
+# Set mode to develop,coverage to allow both development features and coverage generation
+# The actual mode used will be controlled by the XDEBUG_MODE environment variable at runtime
+RUN echo "zend_extension=xdebug.so" > /etc/php/8.1/mods-available/xdebug.ini \
+    && echo "xdebug.mode=develop,coverage" >> /etc/php/8.1/mods-available/xdebug.ini \
+    && phpenmod xdebug
+
 # Install Node.js and npm
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs
