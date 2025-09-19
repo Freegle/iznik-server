@@ -19,9 +19,10 @@ if [[ "$TEST_PATH" == /var/www/iznik/* ]]; then
 fi
 
 # Pass all arguments to the PHPUnit test runner with coverage generation
-# Enable xdebug coverage mode for this run
+# Enable xdebug coverage mode for this run - must export to work properly
 cd /var/www/iznik
-XDEBUG_MODE=coverage php /var/www/iznik/composer/vendor/phpunit/phpunit/phpunit --configuration /var/www/iznik/test/ut/php/phpunit.xml --coverage-clover /tmp/phpunit-coverage.xml $TEST_PATH
+export XDEBUG_MODE=coverage
+php /var/www/iznik/composer/vendor/phpunit/phpunit/phpunit --configuration /var/www/iznik/test/ut/php/phpunit.xml --coverage-clover /tmp/phpunit-coverage.xml $TEST_PATH
 
 # Store the exit code
 TEST_EXIT_CODE=$?
