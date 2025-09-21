@@ -125,20 +125,33 @@
           </mj-text>
 
           <!-- Donation buttons -->
-          <mj-text align="center" padding="20px 0">
-            <a href="https://www.ilovefreegle.org/birthday/donate/{{ groupnameshort }}?amount=3" 
-               style="background-color: #325906; color: white; padding: 12px 25px; text-decoration: none; border-radius: 25px; margin: 0 10px; display: inline-block; font-weight: bold;">
-              Donate £3
-            </a>
-            <a href="https://www.ilovefreegle.org/birthday/donate/{{ groupnameshort }}?amount=5" 
-               style="background-color: #ff6b9d; color: white; padding: 12px 25px; text-decoration: none; border-radius: 25px; margin: 0 10px; display: inline-block; font-weight: bold;">
-              Donate £5
-            </a>
-            <a href="https://www.ilovefreegle.org/birthday/donate/{{ groupnameshort }}?amount=10" 
-               style="background-color: #1e40af; color: white; padding: 12px 25px; text-decoration: none; border-radius: 25px; margin: 0 10px; display: inline-block; font-weight: bold;">
-              Donate £10
-            </a>
-          </mj-text>
+          <mj-button href="https://www.ilovefreegle.org/birthday/donate/{{ groupnameshort }}?amount=3"
+                     background-color="#325906"
+                     color="white"
+                     border-radius="25px"
+                     padding="20px 10px"
+                     width="150px"
+                     font-weight="bold">
+            Donate £3
+          </mj-button>
+          <mj-button href="https://www.ilovefreegle.org/birthday/donate/{{ groupnameshort }}?amount=5"
+                     background-color="#ff6b9d"
+                     color="white"
+                     border-radius="25px"
+                     padding="20px 10px"
+                     width="150px"
+                     font-weight="bold">
+            Donate £5
+          </mj-button>
+          <mj-button href="https://www.ilovefreegle.org/birthday/donate/{{ groupnameshort }}?amount=10"
+                     background-color="#1e40af"
+                     color="white"
+                     border-radius="25px"
+                     padding="20px 10px"
+                     width="150px"
+                     font-weight="bold">
+            Donate £10
+          </mj-button>
 
           <mj-text align="center" font-size="28px" font-weight="bold" color="#2d3748" padding="20px 0 15px 0">
             We're free to use, but not free to run.
