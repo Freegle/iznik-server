@@ -570,4 +570,15 @@ class Utils {
 
         return FALSE;
     }
+
+    /**
+     * Check if we should abort execution due to the abort file
+     * @param int $exitCode Exit code to use if aborting (default 0)
+     */
+    public static function checkAbortFile($exitCode = 0) {
+        // Check if abort file exists and we're not in unit tests
+        if (file_exists('/tmp/iznik.mail.abort') && getenv('UT') !== '1') {
+            exit($exitCode);
+        }
+    }
 }

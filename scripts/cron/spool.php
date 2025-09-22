@@ -49,18 +49,15 @@ do {
         \Sentry\captureException($e);
     }
 
-    if (file_exists('/tmp/iznik.mail.abort')) {
-        error_log("Aborting");
-        exit(0);
-    } else {
-        $restart--;
-        sleep(1);
+    Utils::checkAbortFile();
 
-        if ($restart <= 0) {
-            # Exit and restart.  Picks up any code changes and will force another flush of the spool when we
-            # next start running due to cron.
-            error_log("Exiting");
-            exit(0);
-        }
+    $restart--;
+    sleep(1);
+
+    if ($restart <= 0) {
+        # Exit and restart.  Picks up any code changes and will force another flush of the spool when we
+        # next start running due to cron.
+        error_log("Exiting");
+        exit(0);
     }
 } while (TRUE);

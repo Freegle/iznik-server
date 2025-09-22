@@ -26,9 +26,7 @@ do {
         $max--;
         sleep(1);
 
-        if (file_exists('/tmp/iznik.mail.abort')) {
-            exit(0);
-        }
+        Utils::checkAbortFile();
     }
 } while ($max > 0);
 

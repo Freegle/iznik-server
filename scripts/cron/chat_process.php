@@ -13,9 +13,7 @@ $lockh = Utils::lockScript(basename(__FILE__));
 $max = 120;
 
 do {
-    if (file_exists('/tmp/iznik.mail.abort')) {
-        exit(0);
-    }
+    Utils::checkAbortFile();
 
     $msgs = $dbhr->preQuery("SELECT * FROM `chat_messages` WHERE chat_messages.processingrequired = 1 ORDER BY id ASC;");
 

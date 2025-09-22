@@ -43,9 +43,7 @@ if (count($opts) < 1) {
                 $total += $e->send($group['id']);
             }
 
-            if (file_exists('/tmp/iznik.mail.abort')) {
-                exit(0);
-            }
+            Utils::checkAbortFile();
         } catch (\Exception $e) {
             \Sentry\captureException($e);
             error_log("Exception " . $e->getMessage() . " on " . $group['nameshort']);
