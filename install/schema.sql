@@ -459,7 +459,7 @@ CREATE TABLE `chat_messages` (
   `facebookid` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `scheduleid` bigint unsigned DEFAULT NULL,
   `replyexpected` tinyint(1) DEFAULT NULL,
-  `replyreceived` tinyint(1) NOT NULL,
+  `replyreceived` tinyint(1) NOT NULL DEFAULT '0',
   `processingrequired` tinyint(1) NOT NULL DEFAULT '0',
   `processingsuccessful` tinyint(1) NOT NULL DEFAULT '0',
   `confirmrequired` tinyint(1) NOT NULL DEFAULT '0',

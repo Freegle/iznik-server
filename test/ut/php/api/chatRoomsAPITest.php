@@ -474,11 +474,13 @@ class chatRoomsAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
         $this->waitBackground();
 
+
         # Taken should show in snippet.
         $ret = $this->call('chatrooms', 'GET', [
             'id' => $rid
         ]);
         $this->assertEquals(0, $ret['ret']);
+
         $this->assertEquals('Item marked as TAKEN', $ret['chatroom']['snippet']);
     }
 

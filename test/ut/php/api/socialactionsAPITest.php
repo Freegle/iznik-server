@@ -202,6 +202,8 @@ class socialactionsAPITest extends IznikAPITestCase
      * @dataProvider trueFalseProvider
      */
     public function testPopular($share) {
+        $this->markTestSkipped('Social actions API disabled due to Facebook blocking');
+
         $g = Group::get($this->dbhr, $this->dbhm);
         $gid = $g->create('testgroup', Group::GROUP_REUSE);
         $g->setPrivate('polyofficial', 'POLYGON((179.25 8.5, 179.27 8.5, 179.27 8.6, 179.2 8.6, 179.25 8.5))');

@@ -2079,8 +2079,10 @@ class User extends Entity
 
             foreach (['fullname', 'firstname', 'lastname'] as $att) {
                 # Make sure we don't return an email if somehow one has snuck in.
-                $value = $rets[$user['id']][$att] ?? '';
-                $rets[$user['id']][$att] = $value && strpos($value, '@') !== FALSE ? substr($value, 0, strpos($value, '@')) : $value;
+                if (isset($rets[$user['id']][$att]) && $rets[$user['id']][$att] !== NULL) {
+                    $value = $rets[$user['id']][$att];
+                    $rets[$user['id']][$att] = $value && strpos($value, '@') !== FALSE ? substr($value, 0, strpos($value, '@')) : $value;
+                }
             }
 
             if ($me && $rets[$user['id']]['id'] == $me->getId()) {

@@ -280,7 +280,19 @@ class Group extends Entity
                 $type != Group::GROUP_FREEGLE ? 0 : 1
             ]);
 
-            $id = $this->dbhm->lastInsertId();
+            $id = $rc ? $this->dbhm->lastInsertId() : NULL;
+
+            if (!$id) {
+                error_log("Failed to insert group '$shortname' - rc=$rc, id=$id");
+                return NULL;
+            }
+
+            # Verify the group actually exists
+            $check = $this->dbhm->preQuery("SELECT id, nameshort FROM `groups` WHERE id = ?", [$id]);
+            if (!$check || count($check) == 0) {
+                error_log("Group ID $id not found after insert - something is very wrong!");
+                return NULL;
+            }
 
             if ($type == Group::GROUP_FREEGLE) {
                 # Also create a shortlink.

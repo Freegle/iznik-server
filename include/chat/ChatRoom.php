@@ -473,7 +473,14 @@ WHERE chat_rooms.id IN $idlist;";
             # If the sender is banned on all the groups they have in common with the recipient, then they shouldn't
             # be able to communicate.
             $s = new Spam($this->dbhr, $this->dbhm);
-            $bannedonall = $this->bannedInCommon($user1, $user2) || $s->isSpammerUid($user1) || $s->isSpammerUid($user2);
+            $bannedInCommon = $this->bannedInCommon($user1, $user2);
+            $user1Spammer = $s->isSpammerUid($user1);
+            $user2Spammer = $s->isSpammerUid($user2);
+            $bannedonall = $bannedInCommon || $user1Spammer || $user2Spammer;
+
+            if ($bannedonall) {
+                error_log("Chat creation blocked: bannedInCommon=$bannedInCommon, user1Spammer=$user1Spammer, user2Spammer=$user2Spammer for users $user1, $user2");
+            }
 
             if (!$bannedonall) {
                 # All good.  Create one.  Duplicates can happen due to timing windows.
@@ -488,6 +495,8 @@ WHERE chat_rooms.id IN $idlist;";
                     $id = $this->dbhm->lastInsertId();
                     $rollback = FALSE;
                     $created = TRUE;
+                } else {
+                    error_log("Failed to create chat room for users $user1 and $user2");
                 }
             }
         }
