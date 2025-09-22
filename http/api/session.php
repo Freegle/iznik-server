@@ -132,7 +132,9 @@ function session() {
                     }
 
                     $ret['persistent'] = Utils::presdef('persistent', $_SESSION, NULL);
-                    $ret['jwt'] = Session::JWT($dbhr, $dbhm);
+                    if ($ret['persistent']) {
+                        $ret['jwt'] = Session::JWT($dbhr, $dbhm);
+                    }
 
                     if (!$components || in_array('notifications', $components)) {
                         $settings = $me->getPrivate('settings');
@@ -587,7 +589,9 @@ function session() {
                 $u = User::get($dbhr, $dbhm, $id);
                 $ret['user'] = $u->getPublic();
                 $ret['persistent'] = Utils::presdef('persistent', $_SESSION, NULL);
-                $ret['jwt'] = Session::JWT($dbhr, $dbhm);
+                if ($ret['persistent']) {
+                    $ret['jwt'] = Session::JWT($dbhr, $dbhm);
+                }
             }
 
             break;
@@ -713,8 +717,10 @@ function session() {
                                 'userid' => $confirmid
                             ];
 
-                            $ret['jwt'] = Session::JWT($dbhr, $dbhm);
                             $ret['persistent'] = Utils::presdef('persistent', $_SESSION, NULL);
+                            if ($ret['persistent']) {
+                                $ret['jwt'] = Session::JWT($dbhr, $dbhm);
+                            }
                         }
                     }
                 }
