@@ -290,7 +290,7 @@ class messagesTest extends IznikAPITestCase {
         # Create a group with a message on it
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_MODERATED);
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid);
+        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid, []);
         $this->assertEquals(MailRouter::PENDING, $rc);
 
         $c = new MessageCollection($this->dbhr, $this->dbhm, MessageCollection::PENDING);
@@ -629,7 +629,7 @@ class messagesTest extends IznikAPITestCase {
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
-        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid);
+        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid, []);
         $this->assertNotNull($id);
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $this->log("Approved id $id");
@@ -710,7 +710,7 @@ class messagesTest extends IznikAPITestCase {
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
-        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid);
+        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid, []);
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $this->log("Approved id $id");
 

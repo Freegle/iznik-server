@@ -39,7 +39,7 @@ class imageAPITest extends IznikAPITestCase
 
         # Create a group with a message on it
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment');
-        list ($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $group1, $uid);
+        list ($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $group1, $uid, []);
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $a = new Message($this->dbhr, $this->dbhm, $id);

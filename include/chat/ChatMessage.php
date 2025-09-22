@@ -768,6 +768,7 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
         if ($me) {
             # See getMessagesForReview for logic comments.
             $widerreview = $me->widerReview();
+            $wideq = '';
 
             if ($widerreview) {
                 # We want all messages for review on groups which are also enrolled in this scheme

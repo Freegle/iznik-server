@@ -275,7 +275,7 @@ class Newsfeed extends Entity
         }
     }
 
-    private function fillIn(&$entries, &$users, $checkreplies = TRUE, $allreplies = FALSE, $getPreviews) {
+    private function fillIn(&$entries, &$users, $checkreplies = TRUE, $allreplies = FALSE, $getPreviews = TRUE) {
         $myid = Session::whoAmId($this->dbhr, $this->dbhm);
         $ids = array_filter(array_column($entries, 'id'));
 
@@ -515,7 +515,7 @@ class Newsfeed extends Entity
         return($dist);
     }
 
-    public function getFeed($userid, $dist = Newsfeed::DISTANCE, $types, &$ctx, $fillin = TRUE, $minhourage = NULL) {
+    public function getFeed($userid, $dist, $types, &$ctx, $fillin = TRUE, $minhourage = NULL) {
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         $topitems = [];
         $bottomitems = [];

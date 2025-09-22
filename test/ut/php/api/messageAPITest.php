@@ -49,7 +49,7 @@ class messageAPITest extends IznikAPITestCase
         # Create a group with a message on it
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid);
+        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid, []);
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $a = new Message($this->dbhr, $this->dbhm, $id);
@@ -82,7 +82,7 @@ class messageAPITest extends IznikAPITestCase
         # Create a group with a message on it
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid);
+        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid, []);
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $a = new Message($this->dbhr, $this->dbhm, $id);
@@ -136,7 +136,7 @@ class messageAPITest extends IznikAPITestCase
     {
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid);
+        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid, []);
         $rc = $r->route();
         $this->assertEquals(MailRouter::PENDING, $rc);
 
@@ -153,7 +153,7 @@ class messageAPITest extends IznikAPITestCase
     {
         # Create a group with a message on it
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid);
+        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->gid, $this->uid, []);
         $this->assertEquals(MailRouter::PENDING, $rc);
 
         $a = new Message($this->dbhr, $this->dbhm, $id);
@@ -198,7 +198,7 @@ class messageAPITest extends IznikAPITestCase
         # Create a group with a message on it
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/spam');
         $msg = str_ireplace('To: FreeglePlayground <freegleplayground@yahoogroups.com>', 'To: "testgroup@yahoogroups.com" <testgroup@yahoogroups.com>', $msg);
-        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from1@test.com', 'to@test.com', $this->gid, $this->uid, TRUE, FALSE, MailRouter::INCOMING_SPAM);
+        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from1@test.com', 'to@test.com', $this->gid, $this->uid, [], TRUE, FALSE, MailRouter::INCOMING_SPAM);
         $this->log("Created spam message $id");
         $this->assertEquals(MailRouter::INCOMING_SPAM, $rc);
 

@@ -393,7 +393,7 @@ class chatRoomsAPITest extends IznikAPITestCase
 
         # Put a message on the group.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
-        list($r, $msgid, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'test@test.com', 'to@test.com', $gid, null);
+        list($r, $msgid, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'test@test.com', 'to@test.com', $gid, null, []);
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # u1 should not be able to open a chat to u2 as they are banned on all groups in common.
@@ -434,7 +434,7 @@ class chatRoomsAPITest extends IznikAPITestCase
         # Put a message on the group.
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/offer'));
         $msg = str_ireplace('test@test.com', 'test3@test.com', $msg);
-        list($r, $msgid, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'test3@test.com', 'to@test.com', $gid, $uid1);
+        list($r, $msgid, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'test3@test.com', 'to@test.com', $gid, $uid1, []);
         $this->assertEquals(MailRouter::PENDING, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $msgid);
         $this->assertEquals($uid1, $m->getFromuser());

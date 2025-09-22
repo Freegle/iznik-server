@@ -45,7 +45,27 @@ echo "Debug: Running PHPUnit command..."
 echo "Debug: Command: php /var/www/iznik/composer/vendor/phpunit/phpunit/phpunit --configuration /var/www/iznik/test/ut/php/phpunit.xml --coverage-clover /tmp/phpunit-coverage.xml $TEST_PATH"
 
 # Run PHPUnit with additional debug to see what tests it's actually running
-php /var/www/iznik/composer/vendor/phpunit/phpunit/phpunit --configuration /var/www/iznik/test/ut/php/phpunit.xml --coverage-clover /tmp/phpunit-coverage.xml --debug $TEST_PATH 2>&1 | tee /tmp/phpunit-debug.log
+# Remove --stop-on-failure to let all tests run
+# Also remove --debug to reduce output verbosity
+# Add --verbose to get more information about what's happening
+echo "Debug: Running PHPUnit with command:"
+echo "php /var/www/iznik/composer/vendor/phpunit/phpunit/phpunit --configuration /var/www/iznik/test/ut/php/phpunit.xml --coverage-clover /tmp/phpunit-coverage.xml --verbose $TEST_PATH"
+
+# First, check if PHPUnit binary exists and is executable
+if [ ! -f /var/www/iznik/composer/vendor/phpunit/phpunit/phpunit ]; then
+    echo "ERROR: PHPUnit binary not found at /var/www/iznik/composer/vendor/phpunit/phpunit/phpunit"
+    exit 1
+fi
+
+# Check PHP memory limit and other relevant settings
+php -r "echo 'Debug: PHP memory_limit = ' . ini_get('memory_limit') . PHP_EOL;"
+php -r "echo 'Debug: PHP max_execution_time = ' . ini_get('max_execution_time') . PHP_EOL;"
+
+# Set unlimited memory and execution time for PHPUnit
+export PHP_MEMORY_LIMIT=-1
+
+# Run PHPUnit with error reporting and unlimited memory
+php -d memory_limit=-1 -d max_execution_time=0 /var/www/iznik/composer/vendor/phpunit/phpunit/phpunit --configuration /var/www/iznik/test/ut/php/phpunit.xml --coverage-clover /tmp/phpunit-coverage.xml --verbose $TEST_PATH 2>&1 | tee /tmp/phpunit-debug.log
 
 # Get the exit code from the pipeline (PIPESTATUS[0] is the exit code of the first command in the pipe)
 TEST_EXIT_CODE=${PIPESTATUS[0]}

@@ -37,7 +37,7 @@ class logsAPITest extends IznikAPITestCase
         # Put a message on the group.
         list($u, $uid1, $emailid) = $this->createTestUserWithMembership($gid, User::ROLE_MEMBER, 'Test User', 'test@test.com', 'testpw');
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/approved'));
-        list($r, $mid, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $gid, $uid1);
+        list($r, $mid, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'test@test.com', 'testgroup@' . GROUP_DOMAIN, $gid, $uid1, []);
         $this->assertEquals(MailRouter::PENDING, $rc);
 
         # Logged out shouldn't be able to see.

@@ -2098,7 +2098,7 @@ WHERE chat_messages.id > ? $wideq AND chat_messages_held.id IS NULL AND chat_mes
         return $thisone;
     }
 
-    public function notifyByEmail($chatid = NULL, $chattype, $emailoverride = NULL, $delay = ChatRoom::DELAY, $since = "24 hours ago", $forceall = FALSE, $sendAndExit = NULL)
+    public function notifyByEmail($chatid = NULL, $chattype = NULL, $emailoverride = NULL, $delay = ChatRoom::DELAY, $since = "24 hours ago", $forceall = FALSE, $sendAndExit = NULL)
     {
         # We want to find chatrooms with messages which haven't been mailed to people.
         #
@@ -2568,7 +2568,7 @@ ORDER BY chat_messages.id DESC LIMIT 1;", [
 
                 # Only set lastupdated if the new time is more than a minute different from the old time.  This
                 # avoids triggering a lot of changes for TN to process.
-                if (abs($time - $oldtimes[$userid]) > 60) {
+                if (!isset($oldtimes[$userid]) || abs($time - $oldtimes[$userid]) > 60) {
                     $this->dbhm->background("UPDATE users SET lastupdated = NOW() WHERE id = $userid;");
                 }
 

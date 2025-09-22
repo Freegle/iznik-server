@@ -680,7 +680,7 @@ class Message
      * @param array $msgs
      * @return mixed
      */
-    public function getRolesForMessages($me = NULL, $msgs, $overrides = TRUE) {
+    public function getRolesForMessages($me, $msgs, $overrides = TRUE) {
         $me = $me ? $me : Session::whoAmI($this->dbhr, $this->dbhm);
         $ret = [];
         $groups = NULL;
@@ -779,7 +779,7 @@ class Message
      * @param null $me
      * @return mixed
      */
-    public function getRoleForMessage($overrides = TRUE, $me = NULL) {
+    public function getRoleForMessage($me = NULL, $overrides = TRUE) {
         # Use the multi-message method.
         return($this->getRolesForMessages($me, $this->getThisAsArray(), $overrides)[$this->id]);
     }
@@ -1918,7 +1918,7 @@ ORDER BY lastdate DESC;";
     public function getFromhost()
     {
         // Check that it's a real ip - might be a TN hash.
-        $realIP = strpos($fromip, '.') !== FALSE || strpos($fromip, ':') !== FALSE;
+        $realIP = strpos($this->fromip, '.') !== FALSE || strpos($this->fromip, ':') !== FALSE;
 
         if ($realIP && !$this->fromhost && $this->fromip) {
             # If the call returns a hostname which is the same as the IP, then it's

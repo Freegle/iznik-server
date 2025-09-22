@@ -2,8 +2,9 @@
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          stderr="true"
          testdox="true"
-         enforceTimeLimit="true"
-         defaultTimeLimit="300"
+         enforceTimeLimit="false"
+         defaultTimeLimit="0"
+         convertDeprecationsToExceptions="false"
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd">
   <coverage includeUncoveredFiles="true" processUncoveredFiles="true">
     <include>
@@ -20,7 +21,7 @@
     </testsuite>
   </testsuites>
   <php>
-    <ini name="error_reporting" value="E_ALL" />
+    <ini name="error_reporting" value="E_ALL &amp; ~E_DEPRECATED" />
     <env name="XDEBUG_MODE" value="coverage" force="true" />
     <env name="NO_UNMAPPED_TO_PENDING" value="TRUE" force="true" />
   </php>

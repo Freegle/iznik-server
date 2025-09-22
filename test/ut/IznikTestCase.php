@@ -237,22 +237,33 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
     }
 
     /**
-     * Create a test group with standard settings
+     * Create a test group with standard settings, or return existing one
      */
     protected function createTestGroup($name, $type) {
         $g = Group::get($this->dbhr, $this->dbhm);
         $this->assertNotNull($g, "Failed to get Group instance");
-        
+
+        // First check if the group already exists using findByShortName
+        $groupid = $g->findByShortName($name);
+
+        if ($groupid) {
+            // Group exists, return it
+            $existingGroup = Group::get($this->dbhr, $this->dbhm, $groupid);
+            $this->assertNotNull($existingGroup, "Failed to retrieve existing group '$name'");
+            return [$existingGroup, $groupid];
+        }
+
+        // Group doesn't exist, create it
         $groupid = $g->create($name, $type);
         $this->assertGreaterThan(0, $groupid, "Failed to create group '$name'");
-        
+
         // Verify the group was created correctly
         $createdGroup = Group::get($this->dbhr, $this->dbhm, $groupid);
         $this->assertNotNull($createdGroup, "Failed to retrieve created group");
         $this->assertEquals($name, $createdGroup->getPrivate('nameshort'), "Group name mismatch");
         $this->assertEquals($type, $createdGroup->getPrivate('type'), "Group type mismatch");
-        
-        return [$g, $groupid];
+
+        return [$createdGroup, $groupid];
     }
 
     /**
@@ -297,10 +308,10 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
      * @param int|null $userid User ID to set up membership for (creates user if null)
      * @param array $substitutions Array of find=>replace substitutions to apply to message
      * @param bool $expectSuccess Whether message creation should succeed (default: TRUE)
-     * @param bool $expectFailok Whether MailRouter should return failok=TRUE (default: TRUE)
+     * @param bool $expectFailok Whether MailRouter should return failok=TRUE (default: FALSE)
      * @param int|null $expectedRC Expected routing result (default: null, no assertion)
      */
-    protected function createTestMessage($sourceFile = 'basic', $groupname = 'testgroup', $fromEmail = 'from@test.com', $toEmail = 'to@test.com', $groupid = NULL, $userid = NULL, $substitutions = []) {
+    protected function createTestMessage($sourceFile = 'basic', $groupname = 'testgroup', $fromEmail = 'from@test.com', $toEmail = 'to@test.com', $groupid = NULL, $userid = NULL, $substitutions = [], $expectSuccess = TRUE, $expectFailok = FALSE, $expectedRC = NULL) {
         // Check if first parameter is already message content (contains newlines and headers)
         if (is_string($sourceFile) && (strpos($sourceFile, "\n") !== FALSE || strpos($sourceFile, "From:") !== FALSE || strpos($sourceFile, "Subject:") !== FALSE)) {
             // First parameter is already message content, use it directly

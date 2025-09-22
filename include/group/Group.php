@@ -721,7 +721,7 @@ HAVING logincount > 0
         }
 
         # If we're searching for a notify address, switch to the user it.
-        $search = preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $search, $matches) ? $matches[2] : $search;
+        $search = $search && preg_match('/notify-(.*)-(.*)' . USER_DOMAIN . '/', $search, $matches) ? $matches[2] : $search;
 
         $date = is_null($ctx) ? NULL : $this->dbhr->quote(date("Y-m-d H:i:s", $ctx['Added']));
         $addq = (is_null($ctx) || !Utils::pres('id', $ctx)) ? '' : (" AND (memberships.added < $date OR (memberships.added = $date AND memberships.id < " . $this->dbhr->quote($ctx['id']) . ")) ");
@@ -1546,10 +1546,10 @@ HAVING logincount > 0
 
     function notifyAboutSignificantEvent($subject, $mail) {
         $notify = $this->getModsToNotify();
+        $count = 0;
 
         foreach ($notify as $n) {
             $m = User::get($this->dbhr, $this->dbhm, $n);
-            $email = $m->getEmailPreferred();
 
             $message = \Swift_Message::newInstance()
                 ->setSubject($subject)

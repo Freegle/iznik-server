@@ -919,7 +919,7 @@ class userAPITest extends IznikAPITestCase {
 
         # Add the other kind of interaction.  Fake a reply from $uid to a message ostensibly posted by $this->user.
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment');
-        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', null, null);
+        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', null, null, []);
         $this->assertEquals(MailRouter::PENDING, $rc);
 
         $cm->create($cid, $uid, "test", ChatMessage::TYPE_DEFAULT, $id);

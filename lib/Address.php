@@ -458,13 +458,13 @@ class Address
         );
         $ex4Regex = '/^(' . join('|', $specialPrefixes) . ')\s([0-9]+[a-zA-Z]+|[0-9]+\-[0-9]+|[a-zA-Z])$/';
 
-        if (strlen($buildingName)) {
+        if ($buildingName && strlen($buildingName)) {
             if (preg_match($ex4Regex, $buildingName)) {
                 $this->assembleDebugFlags['ex4BuildingName'] = TRUE;
             }
         }
 
-        if (strlen($this->subBuildingName)) {
+        if ($this->subBuildingName && strlen($this->subBuildingName)) {
             if (preg_match($ex4Regex, $this->subBuildingName)) {
                 $this->assembleDebugFlags['ex4SubBuildingName'] = TRUE;
             }
@@ -683,13 +683,13 @@ class Address
             // FIXME Should we test the exception rules?
         }
 
-        if (strlen($nextLinePrefix) && (substr($nextLinePrefix, -1) != ' ')) {
+        if ($nextLinePrefix && strlen($nextLinePrefix) && (substr($nextLinePrefix, -1) != ' ')) {
             $nextLinePrefix .= ' ';
         }
 
         // Dependent Thoroughfare
         if (! empty($this->dependentThoroughfare)) {
-            $addressLines[] = (strlen($nextLinePrefix) ? $nextLinePrefix : '') . $this->dependentThoroughfare;
+            $addressLines[] = ($nextLinePrefix && strlen($nextLinePrefix) ? $nextLinePrefix : '') . $this->dependentThoroughfare;
             $nextLinePrefix = null;
         }
         // Thoroughfare

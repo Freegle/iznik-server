@@ -110,7 +110,7 @@ class BulkOp extends Entity
                 $this->dbhm->preExec($sql, [ $bulkop['id'], $bulkop['groupid']]);
             }
 
-            $hoursago = floor((time() - strtotime($bulkop['runstarted'])) / 3600);
+            $hoursago = $bulkop['runstarted'] ? floor((time() - strtotime($bulkop['runstarted'])) / 3600) : PHP_INT_MAX;
             #error_log("Bulk op {$bulkop['id']} started $hoursago hours ago from {$bulkop['runstarted']}, " . max(1, $bulkop['runevery']));
 
             if (!$bulkop['runstarted'] || ($bulkop['runevery'] > 0 && $hoursago >= $bulkop['runevery'])) {

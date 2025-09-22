@@ -79,9 +79,9 @@ function bulkop() {
 
                     foreach (['runstarted', 'runfinished'] as $att) {
                         $val = Utils::presdef($att, $_REQUEST, NULL);
-                        $mysqltime = date("Y-m-d H:i:s", strtotime($val));
 
                         if ($val) {
+                            $mysqltime = date("Y-m-d H:i:s", strtotime($val));
                             $b->setRunAtt($groupid, 'runstarted', $mysqltime);
                         }
                     }

@@ -351,7 +351,7 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
         return [ $swlat, $swlng, $nelat, $nelng, $geom, $area ];
     }
 
-    public function scanToCSV($inputFile, $outputFile, $maxage = 7, $fakeTime = FALSE, $distribute = 0.0005, $perFile = 1000, $format) {
+    public function scanToCSV($inputFile, $outputFile, $maxage = 7, $fakeTime = FALSE, $distribute = 0.0005, $perFile = 1000, $format = 'csv') {
         $now = $fakeTime ? '2001-01-01 00:00:00' : date("Y-m-d H:i:s", time());
         $out = fopen("$outputFile.tmp", 'w');
 

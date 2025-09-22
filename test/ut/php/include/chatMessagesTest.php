@@ -68,7 +68,7 @@ class chatMessagesTest extends IznikTestCase {
     public function testSpamReply() {
         # Put a valid message on a group.
         $this->log("Put valid message on");
-        list($r, $refmsgid, $failok, $rc) = $this->createTestMessage('offer', 'testgroup', 'test@test.com', 'to@test.com', $this->groupid, $this->uid);
+        list($r, $refmsgid, $failok, $rc) = $this->createTestMessage('offer', 'testgroup', 'test@test.com', 'to@test.com', $this->groupid, $this->uid, []);
         $r->setLatLng(8.55, 179.26);
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -88,7 +88,7 @@ class chatMessagesTest extends IznikTestCase {
     public function testSpamReply2() {
         # Put a valid message on a group.
         $this->log("Put valid message on");
-        list($r, $refmsgid, $failok, $rc) = $this->createTestMessage('offer', 'testgroup', 'test@test.com', 'to@test.com', $this->groupid, $this->uid);
+        list($r, $refmsgid, $failok, $rc) = $this->createTestMessage('offer', 'testgroup', 'test@test.com', 'to@test.com', $this->groupid, $this->uid, []);
         $r->setLatLng(8.55, 179.26);
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -123,7 +123,7 @@ class chatMessagesTest extends IznikTestCase {
     public function testSpamReply5() {
         # Put a valid message on a group.
         $this->log("Put valid message on");
-        list($r, $refmsgid, $failok, $rc) = $this->createTestMessage('offer', 'testgroup', 'test@test.com', 'to@test.com', $this->groupid, $this->uid);
+        list($r, $refmsgid, $failok, $rc) = $this->createTestMessage('offer', 'testgroup', 'test@test.com', 'to@test.com', $this->groupid, $this->uid, []);
         $r->setLatLng(8.55, 179.26);
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -143,7 +143,7 @@ class chatMessagesTest extends IznikTestCase {
     public function testReplyFromSpammer() {
         # Put a valid message on a group.
         $this->log("Put valid message on");
-        list($r, $refmsgid, $failok, $rc) = $this->createTestMessage('offer', 'testgroup', 'test@test.com', 'to@test.com', $this->groupid, $this->uid);
+        list($r, $refmsgid, $failok, $rc) = $this->createTestMessage('offer', 'testgroup', 'test@test.com', 'to@test.com', $this->groupid, $this->uid, []);
         $r->setLatLng(8.55, 179.26);
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -175,7 +175,7 @@ class chatMessagesTest extends IznikTestCase {
     public function testStripOurFooter() {
         # Put a valid message on a group.
         $this->log("Put valid message on");
-        list($r, $refmsgid, $failok, $rc) = $this->createTestMessage('offer', 'testgroup', 'test@test.com', 'to@test.com', $this->groupid, $this->uid);
+        list($r, $refmsgid, $failok, $rc) = $this->createTestMessage('offer', 'testgroup', 'test@test.com', 'to@test.com', $this->groupid, $this->uid, []);
         $r->setLatLng(8.55, 179.26);
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -205,7 +205,7 @@ class chatMessagesTest extends IznikTestCase {
     public function testSpamReply4() {
         # Put a valid message on a group.
         $this->log("Put valid message on");
-        list($r, $refmsgid, $failok, $rc) = $this->createTestMessage('offer', 'testgroup', 'test@test.com', 'to@test.com', $this->groupid, $this->uid);
+        list($r, $refmsgid, $failok, $rc) = $this->createTestMessage('offer', 'testgroup', 'test@test.com', 'to@test.com', $this->groupid, $this->uid, []);
         $r->setLatLng(8.55, 179.26);
         $this->assertEquals(MailRouter::APPROVED, $rc);
 

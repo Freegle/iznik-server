@@ -210,7 +210,7 @@ class Shortlink extends Entity
     function expandAllUrls($str) {
         $urls = [];
 
-        if (preg_match_all(Utils::URL_PATTERN, $str, $matches)) {
+        if ($str && preg_match_all(Utils::URL_PATTERN, $str, $matches)) {
             foreach ($matches as $val) {
                 foreach ($val as $url) {
                     // If url contains ] then use everything before it.  This seems common and wrong, and the regex is

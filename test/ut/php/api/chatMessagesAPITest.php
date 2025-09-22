@@ -155,7 +155,7 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->user2->setMembershipAtt($this->groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
         $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
         $msg = str_ireplace('Subject: Basic test', 'Subject: OFFER: Test item (Edinburgh EH3)', $msg);
-        list($r, $refmsgid, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->groupid, $this->user2->getId(), TRUE, FALSE);
+        list($r, $refmsgid, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'to@test.com', $this->groupid, $this->user2->getId(), []);
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         # The message should not yet show that we have interacted.

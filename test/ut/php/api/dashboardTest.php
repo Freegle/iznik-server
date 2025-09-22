@@ -115,7 +115,7 @@ class dashboardTest extends IznikAPITestCase {
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
-        list($r, $mid, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'testgroup@groups.ilovefreegle.org', $gid, $uid);
+        list($r, $mid, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', 'from@test.com', 'testgroup@groups.ilovefreegle.org', $gid, $uid, []);
         $this->assertNotNull($mid);
         $this->log("Created message $mid");
         $this->assertEquals(MailRouter::PENDING, $rc);

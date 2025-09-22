@@ -43,7 +43,7 @@ class activityAPITest extends IznikAPITestCase
         $msg = $this->unique($origmsg);
         $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
-        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', $email, 'to@test.com', $group1, $uid);
+        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', $email, 'to@test.com', $group1, $uid, []);
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
         $ret = $this->call('activity', 'GET', [ 'grouptype' => Group::GROUP_REUSE ]);

@@ -2079,7 +2079,8 @@ class User extends Entity
 
             foreach (['fullname', 'firstname', 'lastname'] as $att) {
                 # Make sure we don't return an email if somehow one has snuck in.
-                $rets[$user['id']][$att] = strpos($rets[$user['id']][$att], '@') !== FALSE ? substr($rets[$user['id']][$att], 0, strpos($rets[$user['id']][$att], '@')) : $rets[$user['id']][$att];
+                $value = $rets[$user['id']][$att] ?? '';
+                $rets[$user['id']][$att] = $value && strpos($value, '@') !== FALSE ? substr($value, 0, strpos($value, '@')) : $value;
             }
 
             if ($me && $rets[$user['id']]['id'] == $me->getId()) {
@@ -4330,7 +4331,7 @@ class User extends Entity
     private function safeGetPostcode($val) {
         $ret = [ NULL, NULL ];
 
-        $settings = json_decode($val, TRUE);
+        $settings = $val ? json_decode($val, TRUE) : [];
 
         if (Utils::pres('mylocation', $settings) &&
             Utils::presdef('type', $settings['mylocation'], NULL) == 'Postcode') {
@@ -7160,10 +7161,14 @@ memberships.groupid IN $groupq
             ]);
 
             foreach ($donations as $donation) {
-                $this->dbhm->preExec("UPDATE users_donations SET userid = ? WHERE id = ?;", [
-                    $userid,
-                    $donation['id']
-                ]);
+                // Check if user exists before updating to avoid foreign key constraint violations
+                $userExists = $this->dbhr->preQuery("SELECT id FROM users WHERE id = ?;", [$userid]);
+                if (count($userExists) > 0) {
+                    $this->dbhm->preExec("UPDATE users_donations SET userid = ? WHERE id = ?;", [
+                        $userid,
+                        $donation['id']
+                    ]);
+                }
             }
         }
     }

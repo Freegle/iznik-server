@@ -65,7 +65,7 @@ class Attachment {
         if ($p !== FALSE) {
             if (IMAGE_DELIVERY) {
                 $url = IMAGE_DELIVERY . "?";
-                $mods = json_decode($mods, TRUE);
+                $mods = $mods ? json_decode($mods, TRUE) : [];
 
                 if (Utils::pres('rotate', $mods)) {
                     $url .= 'ro=' . $mods['rotate'] . "&";

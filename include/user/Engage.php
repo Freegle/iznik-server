@@ -36,7 +36,7 @@ class Engage
         $mailer->send($message);
     }
 
-    public function findUsersByFilter($id = NULL, $filter, $limit = NULL) {
+    public function findUsersByFilter($filter, $id = NULL, $limit = NULL) {
         $userids = [];
         $limq = $limit ? " LIMIT $limit " : "";
 
@@ -58,7 +58,7 @@ class Engage
         return $userids;
     }
 
-    public function findUsersByEngagement($id = NULL, $engagement, $limit = NULL) {
+    public function findUsersByEngagement($engagement, $id = NULL, $limit = NULL) {
         $uq = $id ? " users.id = $id AND " : "";
         $limq = $limit ? " LIMIT $limit " : "";
 
@@ -378,11 +378,11 @@ class Engage
         #
         # First the ones who will shortly become dormant.  We always want to send this, even if they have turned
         # off the normal engagement mails.
-        $uids = $this->findUsersByFilter($id, Engage::FILTER_INACTIVE);
+        $uids = $this->findUsersByFilter(Engage::FILTER_INACTIVE, $id);
         $count += $this->sendUsers(Engage::ENGAGEMENT_ATRISK, $uids, TRUE);
 
         # Then the other inactive ones.
-        $uids = $this->findUsersByEngagement($id, Engage::ENGAGEMENT_INACTIVE, 10000);
+        $uids = $this->findUsersByEngagement(Engage::ENGAGEMENT_INACTIVE, $id, 10000);
         $count += $this->sendUsers(Engage::FILTER_INACTIVE, $uids);
 
         return $count;

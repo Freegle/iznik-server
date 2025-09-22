@@ -95,7 +95,7 @@ class Spam {
                 $ip = NULL;
             } else {
                 $host = $msg->getFromhost();
-                if (preg_match('/mail.*yahoo\.com/', $host)) {
+                if ($host && preg_match('/mail.*yahoo\.com/', $host)) {
                     # Posts submitted by email to Yahoo show up with an X-Originating-IP of one of Yahoo's MTAs.  We don't
                     # want to consider those as spammers.
                     $ip = NULL;

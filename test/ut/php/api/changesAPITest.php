@@ -44,7 +44,7 @@ class changesAPITest extends IznikAPITestCase
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', 'OFFER: a thing (A Place)', $msg);
         $msg = str_replace('test@test.com', $email, $msg);
-        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', $email, 'to@test.com', $group1, $uid);
+        list($r, $id, $failok, $rc) = $this->createTestMessage($msg, 'testgroup', $email, 'to@test.com', $group1, $uid, []);
         $this->assertEquals(MailRouter::APPROVED, $rc);
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
