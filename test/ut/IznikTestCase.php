@@ -71,6 +71,11 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
 
         $this->log(__METHOD__);
 
+        // Output a clear test execution marker for monitoring
+        $className = get_class($this);
+        $testName = $this->getName();
+        echo "##PHPUNIT_TEST_STARTED##:{$className}::{$testName}\n";
+
         putenv('UT=1');
 
         if (file_exists(IZNIK_BASE . '/standalone')) {
