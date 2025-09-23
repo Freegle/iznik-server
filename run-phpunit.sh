@@ -47,9 +47,9 @@ echo "Debug: Command: php /var/www/iznik/composer/vendor/phpunit/phpunit/phpunit
 # Run PHPUnit with additional debug to see what tests it's actually running
 # Remove --stop-on-failure to let all tests run
 # Also remove --debug to reduce output verbosity
-# Add --verbose to get more information about what's happening
+# Use TeamCity output format for better CI integration
 echo "Debug: Running PHPUnit with command:"
-echo "php /var/www/iznik/composer/vendor/phpunit/phpunit/phpunit --configuration /var/www/iznik/test/ut/php/phpunit.xml --coverage-clover /tmp/phpunit-coverage.xml --verbose $TEST_PATH"
+echo "php /var/www/iznik/composer/vendor/phpunit/phpunit/phpunit --configuration /var/www/iznik/test/ut/php/phpunit.xml --coverage-clover /tmp/phpunit-coverage.xml --teamcity $TEST_PATH"
 
 # First, check if PHPUnit binary exists and is executable
 if [ ! -f /var/www/iznik/composer/vendor/phpunit/phpunit/phpunit ]; then
@@ -65,7 +65,8 @@ php -r "echo 'Debug: PHP max_execution_time = ' . ini_get('max_execution_time') 
 export PHP_MEMORY_LIMIT=-1
 
 # Run PHPUnit with error reporting and unlimited memory
-php -d memory_limit=-1 -d max_execution_time=0 /var/www/iznik/composer/vendor/phpunit/phpunit/phpunit --configuration /var/www/iznik/test/ut/php/phpunit.xml --coverage-clover /tmp/phpunit-coverage.xml --verbose $TEST_PATH 2>&1 | tee /tmp/phpunit-debug.log
+# Use teamcity output format for better CI integration
+php -d memory_limit=-1 -d max_execution_time=0 /var/www/iznik/composer/vendor/phpunit/phpunit/phpunit --configuration /var/www/iznik/test/ut/php/phpunit.xml --coverage-clover /tmp/phpunit-coverage.xml --teamcity $TEST_PATH 2>&1 | tee /tmp/phpunit-debug.log
 
 # Get the exit code from the pipeline (PIPESTATUS[0] is the exit code of the first command in the pipe)
 TEST_EXIT_CODE=${PIPESTATUS[0]}
@@ -81,6 +82,27 @@ if [ $TEST_EXIT_CODE -eq 0 ]; then
     echo "Debug: PHPUnit reports success (exit code 0)"
 else
     echo "Debug: PHPUnit reports failure (exit code $TEST_EXIT_CODE)"
+
+    # Show failure details when tests fail
+    echo ""
+    echo "============ TEST FAILURE DETAILS ============"
+
+    # Look for actual failure messages in the output
+    echo "Searching for test failures in output..."
+    grep -A 10 "FAILURES!" /tmp/phpunit-debug.log 2>/dev/null || echo "No FAILURES! marker found"
+
+    # Also look for error messages
+    echo ""
+    echo "Searching for error messages..."
+    grep -i -A 5 "error\|failed\|failure" /tmp/phpunit-debug.log | head -50 2>/dev/null || echo "No error messages found"
+
+    # Show summary statistics if available
+    echo ""
+    echo "Test summary:"
+    grep "Tests: \|Assertions: \|Failures: \|Errors: " /tmp/phpunit-debug.log 2>/dev/null || echo "No test summary found"
+
+    echo "=============================================="
+    echo ""
 fi
 
 # Debug: List any PHPUnit output files
