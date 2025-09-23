@@ -33,6 +33,9 @@ abstract class IznikAPITestCase extends IznikTestCase {
         $_SERVER['REQUEST_URI'] = '/';
         $_SESSION['id'] = NULL;
 
+        # Initialize lastOutput to capture any output from setUp (like the test marker)
+        $this->lastOutput = $this->getActualOutput();
+
         $dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE users_emails.email IN ('test@test.com', 'test2@test.com', 'tes2t@test.com', 'sender@example.net');");
         $dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE users_emails.backwards LIKE 'oielohkcalb@%';");
         $dbhm->preExec("DELETE users, users_logins FROM users INNER JOIN users_logins ON users.id = users_logins.userid WHERE uid IN ('testid', '1234');");
