@@ -926,7 +926,7 @@ WHERE chat_rooms.id IN $idlist;";
         # We store some information about the messages in the room itself.  We try to avoid duplicating information
         # like this, because it's asking for it to get out of step, but it means we can efficiently find the chat
         # rooms for a user in listForUser.
-        $unheld = $this->dbhr->preQuery("SELECT CASE WHEN reviewrequired = 0 AND reviewrejected = 0 AND processingsuccessful = 1 THEN 1 ELSE 0 END AS valid, COUNT(*) AS count FROM chat_messages WHERE chatid = ? GROUP BY (reviewrequired = 0 AND reviewrejected = 0 AND processingsuccessful = 1) ORDER BY valid ASC;", [
+        $unheld = $this->dbhr->preQuery("SELECT CASE WHEN reviewrequired = 0 AND reviewrejected = 0 AND processingsuccessful = 1 THEN 1 ELSE 0 END AS valid, COUNT(*) AS count FROM chat_messages WHERE chatid = ? GROUP BY CASE WHEN reviewrequired = 0 AND reviewrejected = 0 AND processingsuccessful = 1 THEN 1 ELSE 0 END ORDER BY valid ASC;", [
             $this->id
         ]);
 

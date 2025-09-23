@@ -5569,7 +5569,7 @@ class User extends Entity
         # we're interested in information we have provided.  So we get the chats mentioned in the roster (we have
         # provided information about being online) and where we have sent or reviewed a chat message.
         error_log("...chats");
-        $chatids = $this->dbhr->preQuery("SELECT DISTINCT  id FROM chat_rooms INNER JOIN (SELECT DISTINCT chatid FROM chat_roster WHERE userid = ? UNION SELECT DISTINCT chatid FROM chat_messages WHERE userid = ? OR reviewedby = ?) t ON t.chatid = chat_rooms.id ORDER BY latestmessage ASC;", [
+        $chatids = $this->dbhr->preQuery("SELECT DISTINCT id, latestmessage FROM chat_rooms INNER JOIN (SELECT DISTINCT chatid FROM chat_roster WHERE userid = ? UNION SELECT DISTINCT chatid FROM chat_messages WHERE userid = ? OR reviewedby = ?) t ON t.chatid = chat_rooms.id ORDER BY latestmessage ASC;", [
             $this->id,
             $this->id,
             $this->id
