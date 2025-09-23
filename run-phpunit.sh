@@ -87,19 +87,45 @@ else
     echo ""
     echo "============ TEST FAILURE DETAILS ============"
 
-    # Look for actual failure messages in the output
-    echo "Searching for test failures in output..."
-    grep -A 10 "FAILURES!" /tmp/phpunit-debug.log 2>/dev/null || echo "No FAILURES! marker found"
+    # Look for TeamCity failure messages which are more structured
+    echo "Extracting test failures from TeamCity output..."
+    grep "##teamcity\[testFailed" /tmp/phpunit-debug.log 2>/dev/null | while read -r line; do
+        # Extract test name and message from TeamCity format
+        test_name=$(echo "$line" | sed -n "s/.*name='\([^']*\)'.*/\1/p")
+        message=$(echo "$line" | sed -n "s/.*message='\([^']*\)'.*/\1/p")
+        details=$(echo "$line" | sed -n "s/.*details='\([^']*\)'.*/\1/p")
 
-    # Also look for error messages
+        if [ -n "$test_name" ]; then
+            echo ""
+            echo "❌ FAILED: $test_name"
+            [ -n "$message" ] && echo "   Message: $message"
+            [ -n "$details" ] && echo "   Details: $details" | sed 's/|n/\n   /g'
+        fi
+    done || echo "No TeamCity failure messages found"
+
+    # Look for assertion failures in non-TeamCity format
     echo ""
-    echo "Searching for error messages..."
-    grep -i -A 5 "error\|failed\|failure" /tmp/phpunit-debug.log | head -50 2>/dev/null || echo "No error messages found"
+    echo "Searching for assertion failures..."
+    grep -B 2 -A 5 "Failed asserting\|AssertionFailedError" /tmp/phpunit-debug.log 2>/dev/null | head -100 || echo "No assertion failures found"
 
-    # Show summary statistics if available
+    # Look for PHP errors or exceptions
+    echo ""
+    echo "Searching for PHP errors or exceptions..."
+    grep -B 2 -A 5 "Fatal error\|PHP Warning\|PHP Notice\|Exception:" /tmp/phpunit-debug.log 2>/dev/null | head -50 || echo "No PHP errors found"
+
+    # Show the final summary
     echo ""
     echo "Test summary:"
-    grep "Tests: \|Assertions: \|Failures: \|Errors: " /tmp/phpunit-debug.log 2>/dev/null || echo "No test summary found"
+    tail -20 /tmp/phpunit-debug.log | grep -E "Tests:|OK \(|FAILURES!|Errors:|Skipped:" || echo "No test summary found"
+
+    # Also show any skipped tests
+    echo ""
+    echo "Skipped tests:"
+    grep "##teamcity\[testIgnored" /tmp/phpunit-debug.log 2>/dev/null | while read -r line; do
+        test_name=$(echo "$line" | sed -n "s/.*name='\([^']*\)'.*/\1/p")
+        message=$(echo "$line" | sed -n "s/.*message='\([^']*\)'.*/\1/p")
+        [ -n "$test_name" ] && echo "  • $test_name: $message"
+    done || echo "No skipped tests found"
 
     echo "=============================================="
     echo ""
