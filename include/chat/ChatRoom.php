@@ -2644,7 +2644,7 @@ ORDER BY chat_messages.id DESC LIMIT 1;", [
         $modaddr = $g->getModsEmail();
 
         $message = \Swift_Message::newInstance()
-            ->setSubject($me->getName() . " asked for help with chat #{$this->id} " . $this->getName($this->id, $me->getId()))
+            ->setSubject($me->getName() . " asked for help with chat #{$this->id} " . $this->getName($this->id, $me->getId()) . " member #" . $this->getPrivate('user1'))
             ->setFrom([NOREPLY_ADDR => SITE_NAME])
             ->setReplyTo([$modaddr => $g->getName() . " Volunteers"])
             ->setTo(explode(',', SUPPORT_ADDR))
