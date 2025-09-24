@@ -1719,18 +1719,41 @@ class chatRoomsTest extends IznikTestCase {
         $m = new ChatMessage($this->dbhr, $this->dbhm, $cm);
         $m->setPrivate('replyexpected', $expected ? 1 : 0);
 
-        # Reply time should be null as not evaluated.
-        $this->assertEquals(0, $r->replyTime($u2, TRUE));
+        # Debug: Check message state before replyTime calculation
+        $messages = $this->dbhr->preQuery("SELECT id, userid, processingrequired, processingsuccessful, replyexpected, replyreceived, date FROM chat_messages WHERE chatid = ? ORDER BY id;", [$id]);
+        error_log("DEBUG testUserStopsReplyingReplyTime: expected=$expected, chatid=$id, u1=$u1, u2=$u2");
+        error_log("DEBUG Messages in chat:");
+        foreach ($messages as $msg) {
+            error_log("  Message {$msg['id']}: user={$msg['userid']}, procreq={$msg['processingrequired']}, procsucc={$msg['processingsuccessful']}, replyexp={$msg['replyexpected']}, replyrec={$msg['replyreceived']}, date={$msg['date']}");
+        }
 
-        # Force recalculation
-        sleep(2);
+        # Check cached reply times
+        $cached = $this->dbhr->preQuery("SELECT userid, replytime FROM users_replytime WHERE userid IN (?, ?);", [$u1, $u2]);
+        error_log("DEBUG Cached reply times:");
+        foreach ($cached as $cache) {
+            error_log("  User {$cache['userid']}: {$cache['replytime']}");
+        }
+
+        # Reply time should be null as not evaluated.
+        $actualReplyTime = $r->replyTime($u2, TRUE);
+        error_log("DEBUG replyTime($u2, TRUE) returned: " . var_export($actualReplyTime, TRUE));
+        $this->assertEquals(0, $actualReplyTime);
+
+        # Force recalculation by manually processing messages (since background chat_process isn't running)
+        $unprocessed = $this->dbhr->preQuery("SELECT id FROM chat_messages WHERE chatid = ? AND processingrequired = 1;", [$id]);
+        foreach ($unprocessed as $msg) {
+            $cm = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
+            $cm->process();
+        }
+
         $time1 = $r->replyTime($u2, TRUE);
 
         if ($expected) {
             # Should have a value, as we have not yet replied.
             $this->assertNotNull($time1);
 
-            sleep(2);
+            # Simulate passage of time by updating message timestamps
+            $this->dbhm->preExec("UPDATE chat_messages SET date = date + INTERVAL 2 SECOND WHERE chatid = ?;", [$id]);
             $time2 = $r->replyTime($u2, TRUE);
 
             # Should have increased.
