@@ -1739,6 +1739,9 @@ class chatRoomsTest extends IznikTestCase {
         error_log("DEBUG replyTime($u2, TRUE) returned: " . var_export($actualReplyTime, TRUE));
         $this->assertEquals(0, $actualReplyTime);
 
+        # Force recalculation
+        sleep(2);
+
         # Force recalculation by manually processing messages (since background chat_process isn't running)
         $unprocessed = $this->dbhr->preQuery("SELECT id FROM chat_messages WHERE chatid = ? AND processingrequired = 1;", [$id]);
         foreach ($unprocessed as $msg) {
