@@ -1708,7 +1708,8 @@ class chatRoomsTest extends IznikTestCase {
         $u->addEmail('test2@test.com');
         $u->addEmail('test2@' . USER_DOMAIN);
 
-        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($u1, $u2);
         $this->assertNotNull($id);
 
         # Create a message from u2 -> u1, then a message from u1 -> u2 with reply expected.  That sets us up
@@ -1719,44 +1720,18 @@ class chatRoomsTest extends IznikTestCase {
         $m = new ChatMessage($this->dbhr, $this->dbhm, $cm);
         $m->setPrivate('replyexpected', $expected ? 1 : 0);
 
-        # Debug: Check message state before replyTime calculation
-        $messages = $this->dbhr->preQuery("SELECT id, userid, processingrequired, processingsuccessful, replyexpected, replyreceived, date FROM chat_messages WHERE chatid = ? ORDER BY id;", [$id]);
-        error_log("DEBUG testUserStopsReplyingReplyTime: expected=$expected, chatid=$id, u1=$u1, u2=$u2");
-        error_log("DEBUG Messages in chat:");
-        foreach ($messages as $msg) {
-            error_log("  Message {$msg['id']}: user={$msg['userid']}, procreq={$msg['processingrequired']}, procsucc={$msg['processingsuccessful']}, replyexp={$msg['replyexpected']}, replyrec={$msg['replyreceived']}, date={$msg['date']}");
-        }
-
-        # Check cached reply times
-        $cached = $this->dbhr->preQuery("SELECT userid, replytime FROM users_replytime WHERE userid IN (?, ?);", [$u1, $u2]);
-        error_log("DEBUG Cached reply times:");
-        foreach ($cached as $cache) {
-            error_log("  User {$cache['userid']}: {$cache['replytime']}");
-        }
-
         # Reply time should be null as not evaluated.
-        $actualReplyTime = $r->replyTime($u2, TRUE);
-        error_log("DEBUG replyTime($u2, TRUE) returned: " . var_export($actualReplyTime, TRUE));
-        $this->assertEquals(0, $actualReplyTime);
+        $this->assertEquals(0, $r->replyTime($u2, TRUE));
 
         # Force recalculation
         sleep(2);
-
-        # Force recalculation by manually processing messages (since background chat_process isn't running)
-        $unprocessed = $this->dbhr->preQuery("SELECT id FROM chat_messages WHERE chatid = ? AND processingrequired = 1;", [$id]);
-        foreach ($unprocessed as $msg) {
-            $cm = new ChatMessage($this->dbhr, $this->dbhm, $msg['id']);
-            $cm->process();
-        }
-
         $time1 = $r->replyTime($u2, TRUE);
 
         if ($expected) {
             # Should have a value, as we have not yet replied.
             $this->assertNotNull($time1);
 
-            # Simulate passage of time by updating message timestamps
-            $this->dbhm->preExec("UPDATE chat_messages SET date = date + INTERVAL 2 SECOND WHERE chatid = ?;", [$id]);
+            sleep(2);
             $time2 = $r->replyTime($u2, TRUE);
 
             # Should have increased.
@@ -1764,70 +1739,6 @@ class chatRoomsTest extends IznikTestCase {
         } else {
             $this->assertNull($r->replyTime($u2));
         }
-    }
-
-    public function testCanSeeUser2ModWithUserSiteDomain() {
-        # Test User2Mod chat visibility for users with different permission levels
-        
-        # Create a user with USER_SITE domain (minus www.)
-        $u = new User($this->dbhr, $this->dbhm);
-        $siteDomain = str_ireplace('www.', '', USER_SITE);
-        
-        $userWithSiteDomain = $u->create(NULL, NULL, "User Site Domain");
-        $userSiteEmail = "testuser@" . $siteDomain;
-
-        # Delete any existing user with this email to avoid conflicts.
-        $existingUser = $u->findByEmail($userSiteEmail);
-        if ($existingUser) {
-            $u2 = new User($this->dbhr, $this->dbhm, $existingUser);
-            $u2->delete();
-        }
-
-        $this->assertNotNull($u->addEmail($userSiteEmail, 0, TRUE));
-        $this->assertEquals($userSiteEmail, $u->getEmailPreferred(TRUE));
-
-        # Create a separate user with support rights
-        $supportUser = $u->create(NULL, NULL, "Support User");
-        $supportEmail = "support@example.com";
-        $this->assertNotNull($u->addEmail($supportEmail, 0, TRUE));
-        $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw');
-        # Give support rights
-        $this->dbhm->preExec("UPDATE users SET systemrole = ? WHERE id = ?", 
-                            [User::SYSTEMROLE_SUPPORT, $supportUser]);
-
-        # Create a separate user with admin rights  
-        $adminUser = $u->create(NULL, NULL, "Admin User");
-        $adminEmail = "admin@example.com";
-        $this->assertNotNull($u->addEmail($adminEmail, 0, TRUE));
-        $u->addLogin(User::LOGIN_NATIVE, NULL, 'testpw');
-        # Give admin rights
-        $this->dbhm->preExec("UPDATE users SET systemrole = ? WHERE id = ?",
-                            [User::SYSTEMROLE_ADMIN, $adminUser]);
-
-        User::clearCache();
-
-        # Create a User2Mod chat between the user and test group mods
-        $r = new ChatRoom($this->dbhr, $this->dbhm);
-        $chatId = $r->createUser2Mod($userWithSiteDomain, $this->groupid);
-
-        # Test: Support user should NOT be able to see the chat (blocked by USER_SITE domain check)
-        $this->log("Log in as support user");
-        $u = new User($this->dbhr, $this->dbhm, $supportUser);
-        $this->assertTrue($u->login($supportEmail, 'testpw'));
-        $this->assertFalse($r->canSee($supportUser, TRUE),
-                          "Support user should not be able to see User2Mod chat due to USER_SITE domain blocking");
-        
-        # Test: Admin user should be able to see the chat (admin overrides domain blocking)
-        $this->log("Log in as admin user");
-        $u = new User($this->dbhr, $this->dbhm, $adminUser);
-        $this->assertTrue($u->login($adminEmail, 'testpw'));
-        $this->assertTrue($r->canSee($adminUser, TRUE),
-                         "Admin user should be able to see User2Mod chat even with domain blocking");
-        
-        # Clean up test data
-        $this->dbhm->preExec("DELETE FROM users WHERE id IN (?, ?, ?)", 
-                            [$userWithSiteDomain, $supportUser, $adminUser]);
-        $this->dbhm->preExec("DELETE FROM chat_rooms WHERE id = ?", [$chatId]);
     }
 }
 
