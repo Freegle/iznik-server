@@ -53,6 +53,7 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         $this->dbhm->preExec("DELETE FROM `groups` WHERE nameshort LIKE 'testgroup%';", []);
         $this->dbhm->preExec("DELETE FROM users_notifications WHERE title LIKE 'Test';");
         $this->dbhm->preExec("DELETE FROM users_push_notifications WHERE subscription LIKE 'Test%';");
+        $this->dbhm->preExec("DELETE FROM users_replytime;");
 
         if (defined('_SESSION')) {
             unset($_SESSION['id']);
