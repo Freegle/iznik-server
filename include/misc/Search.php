@@ -203,6 +203,8 @@ class Search
                 }
             }
         }
+
+        $this->clearCache();
     }
 
     public function bump($extid, $sortval)
@@ -399,5 +401,14 @@ class Search
     {
         $sql = "DELETE FROM {$this->table} WHERE {$this->idatt} = $extid;";
         $this->dbhm->exec($sql);
+        $this->clearCache();
+    }
+
+    public function clearCache()
+    {
+        # Clear the search result cache when index changes occur
+        if ($this->cachetab) {
+            $this->dbhm->exec("DELETE FROM {$this->cachetab}");
+        }
     }
 }
