@@ -73,10 +73,12 @@ try {
         $displayName = $modUser->getName();
         $email = $modUser->getEmailPreferred();
 
-        // Check qualification criteria
+        // Check qualification criteria (matching Donations.php logic exactly)
+        $qualifies = $lastAccess && $lastAccess > $oneYearAgo && $publishConsent;
+
+        // For reporting purposes
         $isActive = $lastAccess && $lastAccess > $oneYearAgo;
-        $hasConsent = $publishConsent == 1;
-        $qualifies = $isActive && $hasConsent;
+        $hasConsent = $publishConsent ? TRUE : FALSE;
 
         // Extract first name
         $firstName = explode(' ', $displayName)[0];
