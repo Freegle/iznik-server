@@ -2,6 +2,12 @@
 namespace Freegle\Iznik;
 
 function src() {
+    // TODO: DEPRECATED - This endpoint has been migrated to v2 Go API
+    // Can be retired once all FD clients are using v2
+    // Migrated: 2025-09-29
+    // V2 endpoint: POST /apiv2/src
+    // Used by: FD only (not MT) for tracking source parameters from URLs
+
     global $dbhr, $dbhm;
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];
