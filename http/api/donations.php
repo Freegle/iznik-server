@@ -2,6 +2,12 @@
 namespace Freegle\Iznik;
 
 function donations() {
+    // TODO: DEPRECATED - This endpoint has been migrated to v2 Go API
+    // Can be retired once all FD/MT clients are using v2
+    // Migrated: 2025-10-01
+    // V2 endpoints: GET /apiv2/donations
+    // Used by: FD for donation tracking
+
     global $dbhr, $dbhm;
 
     $ret = [ 'ret' => 100, 'status' => 'Unknown verb' ];

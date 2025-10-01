@@ -2,6 +2,12 @@
 namespace Freegle\Iznik;
 
 function jobs() {
+    // TODO: DEPRECATED - This endpoint has been migrated to v2 Go API
+    // Can be retired once all FD/MT clients are using v2
+    // Migrated: 2025-09-30
+    // V2 endpoints: GET /apiv2/job, GET /apiv2/job/{id}, POST /apiv2/job
+    // Used by: Both FD and MT for job listings and click tracking
+
     # This proxies a request on to adview to avoid CORS issues.
     global $dbhr, $dbhm;
 
