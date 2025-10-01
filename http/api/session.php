@@ -408,31 +408,30 @@ function session() {
                 # uid and key login, used in email links and impersonation.
                 $u = new User($dbhr, $dbhm, $keyu);
 
-                if (Utils::presdef('id', $_SESSION, null) == $keyu || $u->linkLogin($keyk)) {
+                # Check if this is a TN user BEFORE logging in
+                $tnuserid = $u->getPrivate('tnuserid');
+                if ($tnuserid) {
+                    # Don't log in TN users via link login - send warning email
+                    $email = $u->getEmailPreferred();
+                    $username = $u->getName();
+                    $ip = $_SERVER['REMOTE_ADDR'];
+                    $timestamp = date('Y-m-d H:i:s');
+
+                    list ($transport, $mailer) = Mail::getMailer();
+                    $message = \Swift_Message::newInstance()
+                        ->setSubject("Unusual TN User Login Attempt via Link")
+                        ->setFrom([NOREPLY_ADDR => SITE_NAME])
+                        ->setTo(['log@ehibbert.org.uk'])
+                        ->setBody("WARNING: Attempted TN user login via u/k parameters (blocked)\n\nUser ID: $keyu\nTN User ID: $tnuserid\nName: $username\nEmail: $email\nIP Address: $ip\nTimestamp: $timestamp\n\nThis login used the link login method which may indicate unusual activity.");
+
+                    Mail::addHeaders($dbhr, $dbhm, $message, Mail::ALERT, $keyu);
+                    $mailer->send($message);
+
+                    $ret = ['ret' => 5, 'status' => 'Now why would you do this for a TN user, hmmm?'];
+                } else if (Utils::presdef('id', $_SESSION, null) == $keyu || $u->linkLogin($keyk)) {
+                    # Not a TN user, proceed with normal login
                     $id = $keyu;
-
-                    # Check if this is a TN user and send warning email
-                    $tnuserid = $u->getPrivate('tnuserid');
-                    if ($tnuserid) {
-                        $email = $u->getEmailPreferred();
-                        $username = $u->getName();
-                        $ip = $_SERVER['REMOTE_ADDR'];
-                        $timestamp = date('Y-m-d H:i:s');
-
-                        list ($transport, $mailer) = Mail::getMailer();
-                        $message = \Swift_Message::newInstance()
-                            ->setSubject("Unusual TN User Login via Link")
-                            ->setFrom([NOREPLY_ADDR => SITE_NAME])
-                            ->setTo(['log@ehibbert.org.uk'])
-                            ->setBody("WARNING: TN user logged in via u/k parameters\n\nUser ID: $keyu\nTN User ID: $tnuserid\nName: $username\nEmail: $email\nIP Address: $ip\nTimestamp: $timestamp\n\nThis login used the link login method which may indicate unusual activity.");
-
-                        Mail::addHeaders($dbhr, $dbhm, $message, Mail::ALERT, $keyu);
-                        $mailer->send($message);
-
-                        $ret = ['ret' => 5, 'status' => 'Now why would you do this for a TN user, hmmm?'];
-                    } else {
-                        $ret = ['ret' => 0, 'status' => 'Success'];
-                    }
+                    $ret = ['ret' => 0, 'status' => 'Success'];
                 }
             } else if ($fblimited) {
                 # We've been asked to log in using Facebook Limited Login
