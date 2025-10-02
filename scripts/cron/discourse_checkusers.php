@@ -51,8 +51,7 @@ function GetAllUsers(){
     'Api-Username: '.$api_username
   ));
 
-
-  $result = curl_exec( $ch );
+  $result = Utils::curlWithRetry($ch);
 
   if ( curl_errno( $ch ) !== 0 ) {
     curl_close($ch);
@@ -88,7 +87,7 @@ function GetUser($id,$username){
     'Api-Username: '.$api_username
   ));
 
-  $result = curl_exec( $ch );
+  $result = Utils::curlWithRetry($ch);
 
   if ( curl_errno( $ch ) !== 0 ) {
     curl_close($ch);
@@ -124,7 +123,7 @@ function GetUser2($id,$username){
     'Api-Username: '.$api_username
   ));
 
-  $result = curl_exec( $ch );
+  $result = Utils::curlWithRetry($ch);
 
   if ( curl_errno( $ch ) !== 0 ) {
     curl_close($ch);
@@ -136,7 +135,7 @@ function GetUser2($id,$username){
   //  {"errors":["The requested URL or resource could not be found."],"error_type":"not_found"}
   $user2 = json_decode($result);
   //echo print_r($user2)."\r\n\r\n";
-  if( !$user2){ // Probably 429 Too Many Requests
+  if( !$user2){
     echo print_r($result)."\r\n\r\n";
     throw new \Exception('GetUser2 error A ');
   }
@@ -166,7 +165,7 @@ function GetUserEmail($username){
     'Api-Username: '.$api_username
   ));
 
-  $result = curl_exec( $ch );
+  $result = Utils::curlWithRetry($ch);
 
   if ( curl_errno( $ch ) !== 0 ) {
     curl_close($ch);
@@ -212,10 +211,10 @@ function SetWatchCategory($username,$alreadywatching,$catid){
   }
   $data .= 'watched_category_ids[]='.$catid;
   //echo "data: $data\r\n";
-  curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT'); 
+  curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
   curl_setopt($ch, CURLOPT_POSTFIELDS,$data);
 
-  $result = curl_exec( $ch );
+  $result = Utils::curlWithRetry($ch);
   //echo "result: ".print_r($result)."\r\n";
   //echo htmlspecialchars($result);
 
@@ -251,10 +250,10 @@ function SetBio($username,$bio){
   );
   $data = http_build_query($fields);
   //echo "data: $data\r\n";
-  curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT'); 
+  curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
   curl_setopt($ch, CURLOPT_POSTFIELDS,$data);
 
-  $result = curl_exec( $ch );
+  $result = Utils::curlWithRetry($ch);
   //echo "result: ".print_r($result)."\r\n";
   //echo htmlspecialchars($result);
 

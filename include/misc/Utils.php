@@ -581,4 +581,58 @@ class Utils {
             exit($exitCode);
         }
     }
+
+    /**
+     * Execute curl request with retry logic for rate limiting
+     * @param resource $ch cURL handle initialized with curl_init()
+     * @param int $maxRetries Maximum number of retry attempts (default 5)
+     * @param int $retryDelay Delay in seconds between retries (default 1)
+     * @return string|false The response from curl_exec, or FALSE on failure
+     * @throws \Exception If max retries exceeded or non-rate-limit error occurs
+     */
+    public static function curlWithRetry($ch, $maxRetries = 60, $retryDelay = 1) {
+        $attempt = 0;
+
+        while ($attempt < $maxRetries) {
+            $result = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+            // Check if request was successful (2xx or 3xx status codes)
+            if ($httpCode >= 200 && $httpCode < 400) {
+                return $result;
+            }
+
+            // Check for rate limiting (429 or error message containing "too many")
+            $isRateLimited = FALSE;
+            if ($httpCode == 429) {
+                $isRateLimited = TRUE;
+            } else if ($result) {
+                $decoded = json_decode($result);
+                if ($decoded && property_exists($decoded, 'errors')) {
+                    foreach ($decoded->errors as $error) {
+                        if (stripos($error, 'too many') !== FALSE) {
+                            $isRateLimited = TRUE;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if ($isRateLimited) {
+                $attempt++;
+                if ($attempt < $maxRetries) {
+                    error_log("Rate limited (HTTP $httpCode), retrying in $retryDelay seconds (attempt $attempt/$maxRetries)");
+                    sleep($retryDelay);
+                    continue;
+                } else {
+                    throw new \Exception("Max retries ($maxRetries) exceeded due to rate limiting");
+                }
+            } else {
+                // Non-rate-limit error, don't retry
+                return $result;
+            }
+        }
+
+        return FALSE;
+    }
 }

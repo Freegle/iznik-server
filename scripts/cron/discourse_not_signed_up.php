@@ -58,8 +58,7 @@ function GetAllUsers(){
     'Api-Username: '.$api_username
   ));
 
-
-  $result = curl_exec( $ch );
+  $result = Utils::curlWithRetry($ch);
 
   if ( curl_errno( $ch ) !== 0 ) {
     curl_close($ch);
@@ -95,7 +94,7 @@ function GetUser($id,$username){
     'Api-Username: '.$api_username
   ));
 
-  $result = curl_exec( $ch );
+  $result = Utils::curlWithRetry($ch);
 
   if ( curl_errno( $ch ) !== 0 ) {
     curl_close($ch);
@@ -131,7 +130,7 @@ function GetUserEmail($username){
     'Api-Username: '.$api_username
   ));
 
-  $result = curl_exec( $ch );
+  $result = Utils::curlWithRetry($ch);
 
   if ( curl_errno( $ch ) !== 0 ) {
     curl_close($ch);
