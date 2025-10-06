@@ -1,0 +1,66 @@
+<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-section background-color="#F9F7EC" />
+      <mj-all font-family="'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" />
+    </mj-attributes>
+    <mj-preview>Add your Freegle handover to your calendar</mj-preview>
+  </mj-head>
+  <mj-body background-color="#F9F7EC">
+    <!-- Header -->
+    <mj-section padding="20px 0px 10px">
+      <mj-column>
+        <mj-text align="center" font-size="28px" font-weight="bold" color="#5A9943">
+          📅 {{ title }}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Main Content -->
+    <mj-section background-color="white" border-radius="10px" padding="30px 20px">
+      <mj-column>
+        <mj-text font-size="16px" line-height="24px" color="#333333">
+          Great news! You've arranged a handover.
+        </mj-text>
+
+        <mj-spacer height="20px" />
+
+        <mj-text font-size="16px" line-height="24px" color="#333333">
+          To help make sure everything goes smoothly, please add this to your calendar:
+        </mj-text>
+
+        <mj-spacer height="30px" />
+
+        <!-- Calendar Button -->
+        <mj-button href="{{ calendarLink }}" align="center" font-size="20px" background-color="#5A9943" color="white" border-radius="10px">
+          Add to Calendar
+        </mj-button>
+
+        <mj-spacer height="30px" />
+
+        <mj-text font-size="14px" line-height="22px" color="#666666" align="center">
+          You'll be able to choose your preferred calendar app:<br/>
+          <strong>Google Calendar • Outlook • Apple Calendar • Yahoo • and more</strong>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Footer -->
+    <mj-section padding="20px 0px">
+      <mj-column>
+        <mj-text font-size="13px" line-height="20px" color="#999999" align="center">
+          If anything changes, please let the other person know through Chat on Freegle.<br/>
+          This helps everyone have a great experience! 💚
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section padding="10px 0px 20px">
+      <mj-column>
+        <mj-text font-size="12px" color="#999999" align="center">
+          <a href="{{ unsubscribe }}" style="color: #999999; text-decoration: underline;">Unsubscribe</a>
+        </mj-text>
+      </mj:column>
+    </mj-section>
+  </mj-body>
+</mjml>

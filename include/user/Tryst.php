@@ -1,10 +1,6 @@
 <?php
 namespace Freegle\Iznik;
 
-use Eluceo\iCal\Component\Calendar;
-use Eluceo\iCal\Component\Event;
-use Eluceo\iCal\Component\Timezone;
-use Eluceo\iCal\Property\Event\Organizer;
 use PhpMimeMailParser\Exception;
 
 class Tryst extends Entity
@@ -51,8 +47,7 @@ class Tryst extends Entity
         if ($userid) {
             $u1 = User::get($this->dbhr, $this->dbhm, $userid);
             $u2 = User::get($this->dbhr, $this->dbhm, $userid == $this->getPrivate('user1') ? $this->getPrivate('user2') : $this->getPrivate('user1'));
-            list ($ics, $id, $title) = $this->createICS($userid, $u1, $u2);
-            $ret['ics'] = $ics;
+            $ret['calendarLink'] = $this->getCalendarLink($userid, $u1, $u2);
         }
 
         return($ret);
@@ -86,40 +81,28 @@ class Tryst extends Entity
         return($rc);
     }
 
-    public function createICS($userid, $u1, $u2) {
+    public function getCalendarLink($userid, $u1, $u2) {
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         list ($rid, $blocked) = $r->createConversation($this->getPrivate('user1'), $this->getPrivate('user2'));
-        $title = 'Freegle Handover: ' . $u1->getName() . " and " . $u2->getName();
+        $title = 'Handover: ' . $u1->getName() . " and " . $u2->getName();
 
-        $event = new Event();
+        $arrangedfor = new \DateTime(Utils::ISODate($this->getPrivate('arrangedfor')));
+        $arrangedfor->setTimezone(new \DateTimeZone('Europe/London'));
+        $endtime = clone $arrangedfor;
+        $endtime->add(new \DateInterval('PT15M'));
 
-        // Create a VCALENDAR.  No point creating an alarm as Google ignores them unless they were generated
-        // itself.
+        $eventData = [
+            'name' => $title,
+            'description' => "Please add to your calendar.  If anything changes please let them know through Chat - click https://" . USER_SITE . "/chats/" . $rid,
+            'startDate' => $arrangedfor->format('Y-m-d'),
+            'startTime' => $arrangedfor->format('H:i'),
+            'endTime' => $endtime->format('H:i'),
+            'timeZone' => 'Europe/London',
+            'location' => ''
+        ];
 
-        $tz = new \DateTimeZone('Europe/London');
-        $date = new \DateTime(Utils::ISODate($this->getPrivate('arrangedfor')));
-        $date->setTimezone($tz);
-        $event->setDtStart($date);
-
-        $event->setSummary($title);
-        $event->setDescription("If anything changes please let them know through Chat - click https://" . USER_SITE . "/chats/" . $rid);
-        $event->setDuration(new \DateInterval('PT15M'));
-        $event->setOrganizer(new Organizer("MAILTO:handover-" . $this->id . '-' . $userid . "@" . USER_DOMAIN, [ 'CN' => SITE_NAME ]));
-        $event->addAttendee('MAILTO:' . $u1->getEmailPreferred(), [ 'ROLE' => 'REQ-PARTICIPANT', 'PARTSTAT' => 'ACCEPTED', 'CN' => $u1->getName()]);
-        $event->addAttendee('MAILTO:' . $u2->getOurEmail(), [ 'ROLE' => 'REQ-PARTICIPANT', 'PARTSTAT' => 'ACCEPTED', 'CN' => $u2->getName()]);
-        $event->setUseTimezone(TRUE);
-        $event->setTimezoneString('Europe/London');
-
-        $calendar = new Calendar([$event]);
-        $calendar->addComponent($event);
-        $calendar->setMethod('REQUEST');
-
-        $op = $calendar->render();
-        $op = str_replace("ATTENDEE;", "ATTENDEE;RSVP=TRUE:", $op);
-
-        $id = $event->getUniqueId();
-
-        return [ $op, $id, $title ];
+        $encodedData = base64_encode(json_encode($eventData));
+        return 'https://' . USER_SITE . '/calendar?data=' . $encodedData;
     }
 
     public function sendCalendar($userid, $emailOverride = NULL) {
@@ -134,18 +117,30 @@ class Tryst extends Entity
             list ($transport, $mailer) = Mail::getMailer();
 
             try {
-                list ($ics, $ret, $title) = $this->createICS($userid, $u1, $u2);
+                $calendarLink = $this->getCalendarLink($userid, $u1, $u2);
+                $title = 'Handover: ' . $u1->getName() . " and " . $u2->getName();
+
+                // Render MJML template
+                $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
+                $twig = new \Twig_Environment($loader);
+
+                $html = $twig->render('calendar_invite.html', [
+                    'title' => $title,
+                    'calendarLink' => $calendarLink,
+                    'unsubscribe' => $u1->getUnsubLink(USER_SITE, $userid, User::SRC_CALENDAR)
+                ]);
 
                 $message = \Swift_Message::newInstance()
                     ->setSubject("Please add to your calendar - $title")
                     ->setFrom([NOREPLY_ADDR => SITE_NAME])
                     ->setTo($email)
-                    ->setBody('You\'ve arranged a Freegle handover.  Please add this to your calendar to help things go smoothly.')
-                    ->addPart($ics, 'text/calendar; name=handover.ics');
+                    ->setBody("You've arranged a handover. Click this link to add it to your calendar: $calendarLink")
+                    ->addPart($html, 'text/html');
 
                 Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::CALENDAR, $u1->getId());
 
                 $this->sendIt($mailer, $message);
+                $ret = $calendarLink;
             } catch (\Exception $e) {
                 error_log("Failed to send calendar invite for {$this->id}" . $e->getMessage());
             }

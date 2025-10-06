@@ -26,7 +26,7 @@ function tryst() {
                         $ret = [
                             'ret' => 0,
                             'status' => 'Success',
-                            'tryst' => $t->getPublic($me->getId())
+                            'tryst' => $t->getPublic(TRUE, $me->getId())
                         ];
                     }
                 } else {

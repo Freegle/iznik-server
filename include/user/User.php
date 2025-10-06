@@ -101,6 +101,7 @@ class User extends Entity
     const SRC_ADMIN = 'admin';
     const SRC_DUMMY = 'dummy';
     const SRC_FBL = 'fbl';
+    const SRC_CALENDAR = 'calendar';
 
     # Chat mod status
     const CHAT_MODSTATUS_MODERATED = 'Moderated';

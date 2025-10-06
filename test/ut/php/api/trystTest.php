@@ -71,6 +71,11 @@ class trystTest extends IznikAPITestCase {
         $arrangedat = $ret['tryst']['arrangedat'];
         $this->assertNotNull($arrangedat);
 
+        # Verify calendar link is present and has correct format
+        $this->assertArrayHasKey('calendarLink', $ret['tryst']);
+        $this->assertStringContainsString('/calendar?data=', $ret['tryst']['calendarLink']);
+        $this->assertStringContainsString('https://', $ret['tryst']['calendarLink']);
+
         # List
         $ret = $this->call('tryst', 'GET', []);
 
