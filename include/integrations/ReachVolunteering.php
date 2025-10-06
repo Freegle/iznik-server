@@ -9,7 +9,8 @@ class ReachVolunteering {
     private $dbhm;
     private $useNewFieldNames;
 
-    public function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $useNewFieldNames = FALSE) {
+    public function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $useNewFieldNames = TRUE) {
+        # Reach switched to new field names on 06/10/2025
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
         $this->useNewFieldNames = $useNewFieldNames;
@@ -56,7 +57,16 @@ class ReachVolunteering {
         }
     }
 
-    private function processOpportunity($opp, $fieldMap, &$externalsSeen, &$added, &$updated) {
+    private function processOpportunity($opp, $fieldMap, &$externalsSeen, &$urlsSeen, &$added, &$updated) {
+        // Track this opportunity as seen FIRST, before any early returns
+        // This prevents deletion of opportunities that are skipped for processing reasons
+        $externalid = "reach-" . $opp[$fieldMap['job_id']];
+        $externalsSeen[$externalid] = TRUE;
+
+        // Also track URL to handle migration from old to new format
+        $url = $opp[$fieldMap['url']];
+        $urlsSeen[$url] = TRUE;
+
         $postingDate = $opp[$fieldMap['date_posted']];
         $postingAgeInDays = (time() - strtotime($postingDate)) / (60 * 60 * 24);
 
@@ -64,9 +74,6 @@ class ReachVolunteering {
             error_log("...skipping as too old $postingDate");
             return;
         }
-
-        $externalid = "reach-" . $opp[$fieldMap['job_id']];
-        $externalsSeen[$externalid] = TRUE;
 
         if ($this->useNewFieldNames) {
             // New format: location field contains combined "Town, Postcode, Country" format
@@ -105,11 +112,19 @@ class ReachVolunteering {
                     error_log("...on #{$groups[0]} " . $g->getName());
 
                     if ($g->getSetting('volunteering', 1)) {
-                        $existing = $this->dbhr->preQuery("SELECT * FROM volunteering WHERE externalid = ?", [ $externalid ]);
+                        $url = $opp[$fieldMap['url']];
+
+                        // Check for existing opportunity by contacturl (for migration from old to new format)
+                        // or by externalid (for regular updates)
+                        // Match by exact URL or base URL (without query params) or externalid
+                        $existing = $this->dbhr->preQuery("SELECT id, externalid, contacturl FROM volunteering WHERE contacturl = ? OR externalid = ?", [ $url, $externalid ]);
 
                         $title = $opp[$fieldMap['title']];
-                        $description = $opp[$fieldMap['description']];
-                        $url = $opp[$fieldMap['url']];
+
+                        $descriptionRaw = $opp[$fieldMap['description']];
+                        $html = new \Html2Text\Html2Text($descriptionRaw);
+                        $description = $html->getText();
+
                         $location = $loc;
                         $commitment = Utils::presdef($fieldMap['other_details'], $opp, NULL);
 
@@ -124,6 +139,7 @@ class ReachVolunteering {
                             $v->setPrivate('location', $location);
                             $v->setPrivate('description', $description);
                             $v->setPrivate('contacturl', $url);
+                            $v->setPrivate('externalid', $externalid);
                             $v->setPrivate('timecommitment', $commitment);
                             $updated++;
                         } else {
@@ -207,16 +223,26 @@ class ReachVolunteering {
 
         if ($return) {
             $data = json_decode($return, TRUE, 512, JSON_INVALID_UTF8_IGNORE);
+
+            if ($data === NULL) {
+                throw new Exception("Failed to decode JSON: " . json_last_error_msg());
+            }
+
             $externalsSeen = [];
+            $urlsSeen = [];
 
             if ($this->useNewFieldNames) {
                 // New format: top level is array of opportunities
+                if (!is_array($data)) {
+                    throw new Exception("Expected JSON array for new format, got: " . gettype($data));
+                }
+
                 $opps = $data;
                 error_log("Found " . count($opps) . " opportunities");
 
                 foreach ($opps as $opp) {
                     // Each item is directly an opportunity object
-                    $this->processOpportunity($opp, $fieldMap, $externalsSeen, $added, $updated);
+                    $this->processOpportunity($opp, $fieldMap, $externalsSeen, $urlsSeen, $added, $updated);
                 }
             } else {
                 // Old format: { "Opportunities": [ { "Opportunity": {} } ] }
@@ -226,7 +252,7 @@ class ReachVolunteering {
 
                     foreach ($opps as $oppWrapper) {
                         $opp = $oppWrapper['Opportunity'];
-                        $this->processOpportunity($opp, $fieldMap, $externalsSeen, $added, $updated);
+                        $this->processOpportunity($opp, $fieldMap, $externalsSeen, $urlsSeen, $added, $updated);
                     }
                 } else {
                     throw new Exception("JSON is unexpected " . json_last_error_msg());
@@ -240,14 +266,22 @@ class ReachVolunteering {
         error_log("Added $added");
 
         # Look for ops which need removing because they aren't on Reach any more.
-        $existings = $this->dbhr->preQuery("SELECT id, externalid FROM volunteering WHERE externalid LIKE 'reach-%';");
+        # Check both externalid and contacturl to handle migration from old to new format
+        $existings = $this->dbhr->preQuery("SELECT id, externalid, contacturl FROM volunteering WHERE externalid LIKE 'reach-%';");
 
         foreach ($existings as $e) {
-            if (!array_key_exists($e['externalid'], $externalsSeen)) {
-                error_log("...deleting old {$e['id']}, {$e['externalid']}");
-                $cv = new Volunteering($this->dbhr, $this->dbhm, $e['id']);
-                $cv->setPrivate('deleted', 1);
-                $deleted++;
+            // Don't delete if we've seen either the externalid OR the URL (for migration compatibility)
+            $seenByExternalId = array_key_exists($e['externalid'], $externalsSeen);
+            $seenByUrl = $e['contacturl'] && array_key_exists($e['contacturl'], $urlsSeen);
+
+            if (!$seenByExternalId && !$seenByUrl) {
+                error_log("...deleting old {$e['id']}, externalid={$e['externalid']}, url={$e['contacturl']}");
+//                $cv = new Volunteering($this->dbhr, $this->dbhm, $e['id']);
+//                $cv->setPrivate('deleted', 1);
+//                $deleted++;
+            } else {
+                $matchedBy = $seenByExternalId ? 'externalid' : 'url';
+                error_log("...keeping {$e['id']} (matched by $matchedBy)");
             }
         }
 

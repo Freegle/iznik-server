@@ -10,7 +10,7 @@ global $dbhr, $dbhm;
 
 // Parse command line arguments
 $feedUrl = REACH_FEED;
-$useNewFieldNames = FALSE;
+$useNewFieldNames = TRUE;  // Reach switched to new field names on 06/10/2025
 
 if ($argc > 1) {
     $feedUrl = $argv[1];

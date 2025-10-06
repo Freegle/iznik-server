@@ -11,22 +11,38 @@ global $dbhr, $dbhm, $dbconfig;
 
 $dbhback = new LoggedPDO('localhost:3309', $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE);
 
-$opts = getopt('i:');
+$opts = getopt('i:r');
 
 if (count($opts) < 1) {
-    echo "Usage: php volunteering_restore.php -i <id to restore>\n";
+    echo "Usage: php volunteering_restore.php -i <id to restore> [-r]\n";
+    echo "  -r  Restore all deleted Reach opportunities (externalid LIKE 'reach-%')\n";
 } else {
-    $id = $opts['i'];
+    if (isset($opts['r'])) {
+        error_log("Find all deleted Reach ops");
+        $vols = $dbhback->preQuery("SELECT * FROM volunteering WHERE deleted = 1 AND externalid LIKE 'reach-%';");
+        error_log("Found " . count($vols) . " deleted Reach opportunities to restore");
+    } else {
+        $id = $opts['i'];
 
-    error_log("Find op $id");
-    $vols = $dbhback->preQuery("SELECT * FROM volunteering WHERE id = ?;", [
-        $id
-    ]);
+        error_log("Find op $id");
+        $vols = $dbhback->preQuery("SELECT * FROM volunteering WHERE id = ?;", [
+            $id
+        ]);
+    }
 
     foreach ($vols as $vol) {
         error_log("Found it");
         $v = new Volunteering($dbhr, $dbhm);
         $id = $v->create($vol['userid'], $vol['title'], $vol['online'], $vol['location'], $vol['contactname'], $vol['contactphone'], $vol['contactemail'], $vol['contacturl'], $vol['description'], $vol['timecommitment']);
+
+        # Preserve the pending status so approved opportunities don't show up for approval again
+        $v->setPrivate('pending', $vol['pending']);
+
+        # Preserve the externalid (important for Reach opportunities)
+        if ($vol['externalid']) {
+            $v->setPrivate('externalid', $vol['externalid']);
+        }
+
         error_log("...restored as $id");
 
         $dates = $dbhback->preQuery("SELECT * FROM volunteering_dates WHERE volunteeringid = ?;", [ $vol['id'] ]);
