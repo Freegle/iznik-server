@@ -7,7 +7,6 @@ require_once(IZNIK_BASE . '/lib/wordle/functions.php');
 require_once(IZNIK_BASE . '/lib/GreatCircle.php');
 
 use Jenssegers\ImageHash\ImageHash;
-use Twilio\Rest\Client;
 
 class Pledge extends Entity
 {

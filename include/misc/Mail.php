@@ -37,7 +37,6 @@ class Mail {
     const WELCOME = 33;
     const FORGOT_PASSWORD = 34;
     const VERIFY_EMAIL = 35;
-    const BAD_SMS = 36;
     const SPAM_WARNING = 37;
     const NOTICEBOARD = 38;
     const MERGE = 39;
@@ -93,7 +92,6 @@ class Mail {
         Mail::WELCOME => 'Welcome',
         Mail::FORGOT_PASSWORD => 'ForgotPassword',
         Mail::VERIFY_EMAIL => 'VerifyEmail',
-        Mail::BAD_SMS => 'BadSMS',
         Mail::SPAM_WARNING => 'SpamWarning',
         Mail::NOTICEBOARD => 'Noticeboard',
         Mail::UNSUBSCRIBE => 'Unsubscribe',

@@ -1167,7 +1167,6 @@ class UserTest extends IznikTestCase {
         ];
 
         $u->invite('test@test.com');
-        $u->addPhone('1234');
 
         $u->setPrivate('settings', json_encode($settings));
         $this->assertEquals(8.51111, $u->getPublic()['settings']['mylocation']['lat']);
@@ -1293,24 +1292,6 @@ class UserTest extends IznikTestCase {
 
         $u = User::get($this->dbhm, $this->dbhm, $uid2);
         $this->assertNull($u->getPrivate('yahooid'));
-    }
-
-    public function testPhone() {
-        $u = User::get($this->dbhr, $this->dbhm);
-        $uid = $u->create('Test', 'User', 'Test User');
-
-        $this->assertEquals('+441234567890', $u->formatPhone('01234 567890'));
-
-        $u->addPhone('01234 567890');
-        $u->sms('Test message', 'https://' . USER_SITE, TWILIO_TEST_FROM, TWILIO_TEST_SID, TWILIO_TEST_AUTHTOKEN);
-
-        # Again - too recent to send
-        $u->sms('Test message', 'https://' . USER_SITE, TWILIO_TEST_FROM, TWILIO_TEST_SID, TWILIO_TEST_AUTHTOKEN);
-
-        # Test with error.
-        $u->removePhone();
-        $this->assertNotNull($u->addPhone('+15005550001'));
-        $u->sms('Test message', 'https://' . USER_SITE, TWILIO_TEST_FROM, TWILIO_TEST_SID, TWILIO_TEST_AUTHTOKEN);
     }
 
     public function testKudos() {
@@ -1609,18 +1590,6 @@ class UserTest extends IznikTestCase {
         $this->assertEquals(1, $chatcount);
         list ($total, $chatcount, $notifcount, $title, $message, $chatids, $route) = $u->getNotificationPayload(TRUE);
         $this->assertEquals(2, $chatcount);
-    }
-
-    public function testFormatPhone() {
-        $u = new User($this->dbhr, $this->dbhm);
-        $this->assertEquals('+447888888888' ,$u->formatPhone('+44447888888888'));
-        $this->assertEquals('+447888888888' ,$u->formatPhone('+4444447888888888'));
-        $this->assertEquals('+447888888888' ,$u->formatPhone('4444447888888888'));
-        $this->assertEquals('+447888888888' ,$u->formatPhone('447888888888'));
-        $this->assertEquals('+447888888888' ,$u->formatPhone('4407888888888'));
-        $this->assertEquals('+447888888888' ,$u->formatPhone('+4407888888888'));
-        $this->assertEquals('+447888888888' ,$u->formatPhone('07888888888'));
-        $this->assertEquals('+447888888888' ,$u->formatPhone('+440447888888888'));
     }
 
     public function testJobAds() {

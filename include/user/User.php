@@ -6,7 +6,6 @@ require_once(IZNIK_BASE . '/lib/wordle/functions.php');
 require_once(IZNIK_BASE . '/lib/GreatCircle.php');
 
 use Jenssegers\ImageHash\ImageHash;
-use Twilio\Rest\Client;
 
 class User extends Entity
 {
@@ -2983,7 +2982,6 @@ class User extends Entity
                         $this->dbhm->preExec("UPDATE IGNORE users_notifications SET touser = $id1 WHERE touser = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_nudges SET fromuser = $id1 WHERE fromuser = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_nudges SET touser = $id1 WHERE touser = $id2;");
-                        $this->dbhm->preExec("UPDATE IGNORE users_phones SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_push_notifications SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_requests SET userid = $id1 WHERE userid = $id2;");
                         $this->dbhm->preExec("UPDATE IGNORE users_requests SET completedby = $id1 WHERE completedby = $id2;");
@@ -5346,16 +5344,6 @@ class User extends Entity
             }
         }
 
-        $phones = $this->dbhr->preQuery("SELECT * FROM users_phones WHERE userid = ?;", [
-            $this->id
-        ]);
-
-        foreach ($phones as $phone) {
-            $d['phone'] = $phone['number'];
-            $d['phonelastsent'] = Utils::ISODate($phone['lastsent']);
-            $d['phonelastclicked'] = Utils::ISODate($phone['lastclicked']);
-        }
-
         error_log("...logins");
         $d['logins'] = $this->dbhr->preQuery("SELECT type, uid, added, lastaccess FROM users_logins WHERE userid = ?;", [
             $this->id
@@ -5897,11 +5885,6 @@ class User extends Entity
             $this->id
         ]);
 
-        # Delete any phone numbers.
-        $this->dbhm->preExec("DELETE FROM users_phones WHERE userid = ?;", [
-            $this->id
-        ]);
-
         # Delete the content (but not subject) of any messages, and any email header information such as their
         # name and email address.
         $msgs = $this->dbhm->preQuery("SELECT id FROM messages WHERE fromuser = ? AND messages.type IN (?, ?);", [
@@ -6144,98 +6127,6 @@ class User extends Entity
             }
 
             $ret[] = $thisone;
-        }
-
-        return ($ret);
-    }
-
-    public function formatPhone($num)
-    {
-        $num = str_replace(' ', '', $num);
-        $num = preg_replace('/^(\+)?[04]+([^4])/', '$2', $num);
-
-        if (substr($num, 0, 1) ==  '0') {
-            $num = substr($num, 1);
-        }
-
-        $num = "+44$num";
-
-        return ($num);
-    }
-
-    public function sms($msg, $url, $from = TWILIO_FROM, $sid = TWILIO_SID, $auth = TWILIO_AUTH, $forcemsg = NULL)
-    {
-        # We only want to send SMS to people who are clicking on the links.  So if we've sent them one and they've
-        # not clicked on it, we stop.  This saves significant amounts of money.
-        $phones = $this->dbhr->preQuery("SELECT * FROM users_phones WHERE userid = ? AND valid = 1 AND (lastsent IS NULL OR (lastclicked IS NOT NULL AND DATE(lastclicked) >= DATE(lastsent)));", [
-            $this->id
-        ]);
-
-        foreach ($phones as $phone) {
-            try {
-                $last = Utils::presdef('lastsent', $phone, NULL);
-                $last = $last ? strtotime($last) : NULL;
-
-                # Only send one SMS per day.  This keeps the cost down.
-                if ($forcemsg || !$last || (time() - $last > 24 * 60 * 60)) {
-                    $client = new Client($sid, $auth);
-
-                    $text = $forcemsg ? $forcemsg : "$msg Click $url Don't reply to this text.  No more texts sent today.";
-                    $rsp = $client->messages->create(
-                        $this->formatPhone($phone['number']),
-                        array(
-                            'from' => $from,
-                            'body' => $text,
-                            'statusCallback' => 'https://' . USER_SITE . '/twilio/status.php'
-                        )
-                    );
-
-                    $this->dbhr->preExec("UPDATE users_phones SET lastsent = NOW(), count = count + 1, lastresponse = ? WHERE id = ?;", [
-                        $rsp->sid,
-                        $phone['id']
-                    ]);
-                    error_log("Sent SMS to {$phone['number']} result {$rsp->sid}");
-                } else {
-                    error_log("Don't send SMS to {$phone['number']}, too recent");
-                }
-            } catch (\Exception $e) {
-                error_log("Send to {$phone['number']} failed with " . $e->getMessage());
-                \Sentry\captureException($e);
-                $this->dbhr->preExec("UPDATE users_phones SET lastsent = NOW(), lastresponse = ? WHERE id = ?;", [
-                    $e->getMessage(),
-                    $phone['id']
-                ]);
-            }
-
-        }
-    }
-
-    public function addPhone($phone)
-    {
-        $this->dbhm->preExec("REPLACE INTO users_phones (userid, number, valid) VALUES (?, ?, 1);", [
-            $this->id,
-            $this->formatPhone($phone),
-        ]);
-
-        return($this->dbhm->lastInsertId());
-    }
-
-    public function removePhone()
-    {
-        $this->dbhm->preExec("DELETE FROM users_phones WHERE userid = ?;", [
-            $this->id
-        ]);
-    }
-
-    public function getPhone()
-    {
-        $ret = NULL;
-        $phones = $this->dbhr->preQuery("SELECT *, DATE(lastclicked) AS lastclicked, DATE(lastsent) AS lastsent FROM users_phones WHERE userid = ?;", [
-            $this->id
-        ]);
-
-        foreach ($phones as $phone) {
-            $ret = [ $phone['number'], Utils::ISODate($phone['lastsent']), Utils::ISODate($phone['lastclicked']) ];
         }
 
         return ($ret);

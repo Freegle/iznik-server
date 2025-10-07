@@ -184,7 +184,6 @@ class Tryst extends Entity
     }
 
     public function sendRemindersDue($id = NULL) {
-        $sms = 0;
         $chat = 0;
 
         $idq = $id ? (" AND id = " . intval($id)) : '';
@@ -207,9 +206,6 @@ class Tryst extends Entity
                 $u1 = User::get($this->dbhr, $this->dbhm, $u1id);
                 $u2 = User::get($this->dbhr, $this->dbhm, $u2id);
 
-                $u1phone = $u1->getPhone();
-                $u2phone = $u2->getPhone();
-
                 $tz1 = new \DateTimeZone('UTC');
                 $tz2 = new \DateTimeZone('Europe/London');
 
@@ -219,33 +215,19 @@ class Tryst extends Entity
 
                 $r = new ChatRoom($this->dbhr, $this->dbhm);
                 list ($rid, $blocked) = $r->createConversation($u1id, $u2id);
-                $url = "https://" . USER_SITE . "/chats/$rid?src=sms";
 
-                if ($u1phone) {
-                    $u1->sms(NULL, NULL, TWILIO_FROM, TWILIO_SID, TWILIO_AUTH, "Reminder: handover with " . $u2->getName() . " at $time.  Click $url to let us know if it's still ok.");
-                    $sms++;
-                }
-
-                if ($u2phone) {
-                    $u1->sms(NULL, NULL, TWILIO_FROM, TWILIO_SID, TWILIO_AUTH, "Reminder: handover with " . $u1->getName() . " on $time.  Click $url to let us know if it's still ok.");
-                    $sms++;
-                }
-
-                if (!$u1phone || !$u2phone) {
-                    # No phone number to send to - add into chat which will trigger notifications
-                    # and emails.
-                    #
-                    # By setting platform = FALSE we ensure that we will notify both
-                    # parties.  We need to provide a userid for table integrity but it doesn't matter
-                    # which we use.
-                    $cm = new ChatMessage($this->dbhr, $this->dbhm);
-                    $cm->create($rid, $u1id,
-                                "Automatic reminder: Handover at $time.  Please confirm that's still ok or let them know if things have changed.  Everybody hates a no-show...",
-                                ChatMessage::TYPE_REMINDER,
-                    NULL, FALSE);
-                    error_log("Chat reminder sent in $rid for users $u1id, $u2id");
-                    $chat++;
-                }
+                # Send reminder via chat which will trigger notifications and emails.
+                #
+                # By setting platform = FALSE we ensure that we will notify both
+                # parties.  We need to provide a userid for table integrity but it doesn't matter
+                # which we use.
+                $cm = new ChatMessage($this->dbhr, $this->dbhm);
+                $cm->create($rid, $u1id,
+                            "Automatic reminder: Handover at $time.  Please confirm that's still ok or let them know if things have changed.  Everybody hates a no-show...",
+                            ChatMessage::TYPE_REMINDER,
+                NULL, FALSE);
+                error_log("Chat reminder sent in $rid for users $u1id, $u2id");
+                $chat++;
 
                 $this->dbhm->preExec("UPDATE trysts SET remindersent = NOW() WHERE id = ?;", [
                     $due['id']
@@ -253,7 +235,7 @@ class Tryst extends Entity
             }
         }
 
-        return [ $sms, $chat ];
+        return [ 0, $chat ];
     }
 
     public function response($userid, $rsp) {

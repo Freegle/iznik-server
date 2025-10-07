@@ -3388,16 +3388,6 @@ ORDER BY chat_messages.id DESC LIMIT 1;", [
                         $this->recordSend($lastmsgemailed, $sendtoid, $chatid1);
                     }
 
-                    if ($chattype == ChatRoom::TYPE_USER2USER && !$justmine) {
-                        # Send any SMS, but not if we're only mailing our own messages
-                        $smsmsg = ($textsummary && substr($textsummary, 0, 1) != "\r") ? ('New message: "' . substr(
-                                $textsummary,
-                                0,
-                                30
-                            ) . '"...') : 'You have a new message.';
-                        $sendingto->sms($smsmsg, 'https://' . $site . '/chats/' . $chatid1 . '?src=sms');
-                    }
-
                     $notified++;
                 }
             } catch (\Exception $e) {
