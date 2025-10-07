@@ -60,33 +60,54 @@ class ModBotTest extends IznikTestCase {
 
         # Log in as ModBot user before review
         $this->assertTrue($this->modBotUser->login('modbotpw'));
-        
+
         # Test ModBot review
         $modbot = new ModBot($this->dbhr, $this->dbhm);
-        $result = $modbot->reviewPost($id);
-        
+
         # Note: This test requires a valid Google Gemini API key to fully work
         # In a real environment, we would mock the API call for testing
         if (defined('GOOGLE_GEMINI_API_KEY') && GOOGLE_GEMINI_API_KEY !== 'zzzz') {
             $this->log("Testing with real API key");
-            $this->assertNotNull($result);
-            
-            if (is_array($result) && isset($result['violations'])) {
-                # Should detect weapons rule violation
-                $foundWeapons = FALSE;
-                foreach ($result['violations'] as $violation) {
-                    if (isset($violation['rule']) && $violation['rule'] === 'weapons') {
-                        $foundWeapons = TRUE;
-                        $this->assertGreaterThan(0.1, $violation['probability']);
-                        break;
+
+            # Add retries since AI detection can be unreliable
+            $foundWeapons = FALSE;
+            $maxRetries = 3;
+            $result = NULL;
+
+            for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+                $this->log("Attempt $attempt of $maxRetries");
+                $result = $modbot->reviewPost($id);
+                $this->assertNotNull($result);
+
+                if (is_array($result) && isset($result['error'])) {
+                    if ($attempt < $maxRetries) {
+                        $this->log("Error on attempt $attempt: " . $result['error']);
+                        sleep(1);
+                        continue;
+                    }
+                    $this->fail("ModBot returned error: " . $result['error']);
+                }
+
+                if (is_array($result) && isset($result['violations'])) {
+                    foreach ($result['violations'] as $violation) {
+                        if (isset($violation['rule']) && $violation['rule'] === 'weapons') {
+                            $foundWeapons = TRUE;
+                            $this->assertGreaterThan(0.1, $violation['probability']);
+                            break 2;
+                        }
                     }
                 }
-                $this->assertTrue($foundWeapons, "Should detect weapons rule violation");
-            } elseif (is_array($result) && isset($result['error'])) {
-                $this->fail("ModBot returned error: " . $result['error']);
+
+                if (!$foundWeapons && $attempt < $maxRetries) {
+                    $this->log("Weapons violation not detected on attempt $attempt, retrying...");
+                    sleep(1);
+                }
             }
+
+            $this->assertTrue($foundWeapons, "Should detect weapons rule violation after $maxRetries attempts");
         } else {
             $this->log("Skipping API test - no valid key");
+            $result = $modbot->reviewPost($id);
             $this->assertTrue(is_array($result) || is_null($result));
         }
 
@@ -94,7 +115,7 @@ class ModBotTest extends IznikTestCase {
         $resultNonExistent = $modbot->reviewPost(999999);
         $this->assertIsArray($resultNonExistent);
         $this->assertEquals('message_not_found', $resultNonExistent['error']);
-        
+
         $this->log("ModBot test completed successfully");
     }
 
