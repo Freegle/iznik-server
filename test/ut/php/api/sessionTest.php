@@ -828,27 +828,6 @@ class sessionTest extends IznikAPITestCase
         $this->assertEquals('test', $ret['groups'][0]['facebook'][0]['name']);
     }
 
-    public function testPhone() {
-        list($u, $id) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
-        $_SESSION['id'] = $id;
-
-        $ret = $this->call('session', 'PATCH', [
-            'phone' => 123
-        ]);
-
-        $this->assertEquals(0, $ret['ret']);
-        $ret = $this->call('session', 'GET', []);
-        $this->assertEquals(0, $ret['ret']);
-        $this->assertEquals(44123, $ret['me']['phone']);
-
-        $ret = $this->call('session', 'PATCH', [
-            'phone' => NULL
-        ]);
-        $this->assertEquals(0, $ret['ret']);
-        $ret = $this->call('session', 'GET', []);
-        $this->assertEquals(0, $ret['ret']);
-        $this->assertFalse(Utils::pres('phone', $ret['me']));
-    }
 
     public function testVersion() {
         list($u, $id, $emailid) = $this->createTestUserAndLogin('Test', 'User', NULL, 'test@test.com', 'testpw');

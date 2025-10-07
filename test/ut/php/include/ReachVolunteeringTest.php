@@ -190,13 +190,13 @@ class ReachVolunteeringTest extends IznikTestCase {
     }
 
     public function testFieldMapping() {
-        $reach = new ReachVolunteering($this->dbhr, $this->dbhm);
-        $reflection = new \ReflectionClass($reach);
+        $reflection = new \ReflectionClass(ReachVolunteering::class);
         $method = $reflection->getMethod('getFieldMapping');
         $method->setAccessible(TRUE);
 
         // Test old field mapping
-        $oldMapping = $method->invoke($reach);
+        $reachOld = new ReachVolunteering($this->dbhr, $this->dbhm, FALSE);
+        $oldMapping = $method->invoke($reachOld);
         $this->assertEquals('Job id', $oldMapping['job_id']);
         $this->assertEquals('Job description', $oldMapping['description']);
         $this->assertEquals('Apply url', $oldMapping['url']);
