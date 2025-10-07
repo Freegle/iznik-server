@@ -95,6 +95,18 @@ class API
         }
         // @codeCoverageIgnoreEnd
 
+        # Check if IP is blocked
+        $ip = Utils::presdef('REMOTE_ADDR', $_SERVER, '');
+        $ipBlocker = new IPBlocker($dbhr, $dbhm);
+
+        if ($ipBlocker->isBlocked($ip)) {
+            echo json_encode(array(
+                'ret' => 403,
+                'status' => 'Access denied'
+            ));
+            exit(0);
+        }
+
         $includetime = microtime(TRUE) - $scriptstart;
 
         # All API calls come through here.

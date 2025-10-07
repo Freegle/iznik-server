@@ -1015,6 +1015,56 @@ class sessionTest extends IznikAPITestCase
         $this->assertEquals(1, $ret['ret']);
     }
 
+    public function testTNUserLinkLoginBlocked()
+    {
+        # Create a TN user with numeric tnuserid (TN IDs are bigints)
+        $tnUserEmail = 'tnuser_' . time() . '@test.com';
+        $tnUserID = 999888777; # Test TN user ID
+        $this->dbhm->preExec("INSERT INTO users (firstname, lastname, fullname, systemrole, added, tnuserid) VALUES (?, ?, ?, ?, NOW(), ?)",
+            ['TN', 'User', 'TN User', 'User', $tnUserID]);
+        $id = $this->dbhm->lastInsertId();
+
+        # Add email
+        $this->dbhm->preExec("INSERT INTO users_emails (userid, email, preferred) VALUES (?, ?, 1)", [$id, $tnUserEmail]);
+
+        # Create User object for adding login
+        $u = new User($this->dbhr, $this->dbhm, $id);
+
+        # Add a link login credential
+        $key = 'test_link_key_' . time();
+        $u->addLogin(User::LOGIN_LINK, $id, $key);
+
+        # Verify the user is marked as a TN user by querying database
+        $users = $this->dbhr->preQuery("SELECT tnuserid FROM users WHERE id = ?", [$id]);
+        $this->assertEquals(1, count($users));
+        $this->assertEquals($tnUserID, $users[0]['tnuserid']);
+
+        # Try to login via link (u/k parameters)
+        $ret = $this->call('session', 'POST', [
+            'u' => $id,
+            'k' => $key
+        ]);
+
+        # Login should be rejected with ret = 5
+        $this->assertEquals(5, $ret['ret']);
+        $this->assertStringContainsString('TN user', $ret['status']);
+
+        # Verify the IP is blocked
+        $ipBlocker = new IPBlocker($this->dbhr, $this->dbhm);
+        $testIP = $_SERVER['REMOTE_ADDR'];
+        $this->assertTrue($ipBlocker->isBlocked($testIP));
+
+        # Verify block info
+        $blockInfo = $ipBlocker->getBlockInfo($testIP);
+        $this->assertNotNull($blockInfo);
+        $this->assertEquals($testIP, $blockInfo['ip']);
+        $this->assertEquals($id, $blockInfo['userid']);
+        $this->assertStringContainsString('TN user', $blockInfo['reason']);
+
+        # Cleanup - unblock the IP for other tests
+        $ipBlocker->unblockIP($testIP);
+    }
+
     // TODO Disabled for now.
 //    public function testSupportSecureLogin() {
 //        # Create a user with support tools access.

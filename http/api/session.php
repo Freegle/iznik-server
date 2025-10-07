@@ -166,17 +166,6 @@ function session() {
                         $ret['emails'] = $me->getEmails();
                     }
 
-                    if (!$components || in_array('phone', $components)) {
-                        $me = $me ? $me : Session::whoAmI($dbhm, $dbhm);
-                        $phone = $me->getPhone();
-
-                        if ($phone) {
-                            $ret['me']['phone'] = $phone[0];
-                            $ret['me']['phonelastsent'] = $phone[1];
-                            $ret['me']['phonelastclicked'] = $phone[2];
-                        }
-                    }
-
                     if (!$components || in_array('aboutme', $components)) {
                         $me = $me ? $me : Session::whoAmI($dbhm, $dbhm);
                         $ret['me']['aboutme'] = $me->getAboutMe();
@@ -411,21 +400,21 @@ function session() {
                 # Check if this is a TN user BEFORE logging in
                 $tnuserid = $u->getPrivate('tnuserid');
                 if ($tnuserid) {
-                    # Don't log in TN users via link login - send warning email
+                    # Don't log in TN users via link login - block IP and send warning email
                     $email = $u->getEmailPreferred();
                     $username = $u->getName();
                     $ip = $_SERVER['REMOTE_ADDR'];
                     $timestamp = date('Y-m-d H:i:s');
 
-                    list ($transport, $mailer) = Mail::getMailer();
-                    $message = \Swift_Message::newInstance()
-                        ->setSubject("Unusual TN User Login Attempt via Link")
-                        ->setFrom([NOREPLY_ADDR => SITE_NAME])
-                        ->setTo(['log@ehibbert.org.uk'])
-                        ->setBody("WARNING: Attempted TN user login via u/k parameters (blocked)\n\nUser ID: $keyu\nTN User ID: $tnuserid\nName: $username\nEmail: $email\nIP Address: $ip\nTimestamp: $timestamp\n\nThis login used the link login method which may indicate unusual activity.");
-
-                    Mail::addHeaders($dbhr, $dbhm, $message, Mail::ALERT, $keyu);
-                    $mailer->send($message);
+                    # Block the IP address
+                    $ipBlocker = new IPBlocker($dbhr, $dbhm);
+                    $ipBlocker->blockIP(
+                        $ip,
+                        "Attempted TN user login via u/k parameters (link login)",
+                        $keyu,
+                        $username,
+                        $email
+                    );
 
                     $ret = ['ret' => 5, 'status' => 'Now why would you do this for a TN user, hmmm?'];
                 } else if (Utils::presdef('id', $_SESSION, null) == $keyu || $u->linkLogin($keyk)) {
@@ -702,15 +691,6 @@ function session() {
                 if ($email) {
                     if (!$me->verifyEmail($email, $force)) {
                         $ret = ['ret' => 10, 'status' => "We've sent a verification mail; please check your mailbox." ];
-                    }
-                }
-
-                if (array_key_exists('phone', $_REQUEST)) {
-                    $phone = $_REQUEST['phone'];
-                    if ($phone) {
-                        $me->addPhone($phone);
-                    } else {
-                        $me->removePhone();
                     }
                 }
 

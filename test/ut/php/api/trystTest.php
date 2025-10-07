@@ -225,11 +225,10 @@ class trystTest extends IznikAPITestCase {
         $t->setPrivate('remindersent', NULL);
         $t = new Tryst($this->dbhr, $this->dbhm, $id);
 
-        # Reminder - phone and chat.
-        $u1->addPhone('123');
+        # Reminder - chat only (phone/SMS removed).
         $ret = $t->sendRemindersDue($id);
-        $this->assertEquals(1, $ret[0]);
-        $this->assertEquals(1, $ret[1]);
+        $this->assertEquals(0, $ret[0]); # No SMS sent (phone removed)
+        $this->assertEquals(1, $ret[1]); # Chat reminder sent
 
         $ret = $this->call('tryst', 'POST', [
             'id' => $id,
