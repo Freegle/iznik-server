@@ -15,6 +15,7 @@ require_once(UT_DIR . '/../../include/db.php');
 class SearchTest extends IznikTestCase
 {
     private $dbhr, $dbhm;
+    private $lockh;
 
     protected function setUp() : void
     {
@@ -31,10 +32,20 @@ class SearchTest extends IznikTestCase
         list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
         $u->addMembership($this->gid);
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
+
+        # Prevent the message_spatial.php cron job from running during tests by holding its lock.
+        $lock = "/tmp/iznik_lock_message_spatial.php.lock";
+        $this->lockh = fopen($lock, 'wa');
+        flock($this->lockh, LOCK_EX);
     }
 
     protected function tearDown() : void
     {
+        # Release the lock to allow message_spatial.php to run again.
+        if ($this->lockh) {
+            flock($this->lockh, LOCK_UN);
+            fclose($this->lockh);
+        }
 //        parent::tearDown();
 //        $this->dbhm->preExec("DROP TABLE IF EXISTS test_index");
     }
@@ -178,7 +189,6 @@ class SearchTest extends IznikTestCase
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
         list ($id1, $failok) = $m->save();
-
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
         $m1->index();
         $m1->setPrivate('lat', 8.4);
@@ -201,27 +211,10 @@ class SearchTest extends IznikTestCase
 
         # Search for various terms
         $ctx = NULL;
-
-        # Debug: Check what's in messages_items
-        $items1 = $this->dbhr->preQuery("SELECT * FROM messages_items WHERE msgid = ?", [$id1]);
-        $items2 = $this->dbhr->preQuery("SELECT * FROM messages_items WHERE msgid = ?", [$id2]);
-        error_log("DEBUG: Message $id1 items: " . count($items1) . " - " . var_export($items1, TRUE));
-        error_log("DEBUG: Message $id2 items: " . count($items2) . " - " . var_export($items2, TRUE));
-
-        # Debug: Check what's in messages_spatial
-        $spatial1 = $this->dbhr->preQuery("SELECT * FROM messages_spatial WHERE msgid = ?", [$id1]);
-        $spatial2 = $this->dbhr->preQuery("SELECT * FROM messages_spatial WHERE msgid = ?", [$id2]);
-        error_log("DEBUG: Message $id1 spatial: " . count($spatial1));
-        error_log("DEBUG: Message $id2 spatial: " . count($spatial2));
-
         $ret = $m->search("Test", $ctx);
-        error_log("DEBUG: Search returned " . count($ret) . " results, all IDs: " . implode(',', array_column($ret, 'id')));
-        $matching = count(array_filter($ret, function($a) use ($id1, $id2) {
+        $this->assertEquals(2, count(array_filter($ret, function($a) use ($id1, $id2) {
             return $a['id'] == $id1 || $a['id'] == $id2;
-        }));
-        error_log("DEBUG: Matching our messages ($id1, $id2): $matching");
-
-        $this->assertEquals(2, $matching);
+        })));
 
         $ctx = NULL;
         $ret = $m->search("Test zzzutzzz", $ctx);
