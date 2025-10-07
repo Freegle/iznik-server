@@ -174,7 +174,6 @@ class SearchTest extends IznikTestCase
     public function testMultiple()
     {
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('Basic test', 'OFFER: Test zzzutzzz (location)', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
@@ -189,7 +188,6 @@ class SearchTest extends IznikTestCase
         #error_log("Indexed ? " . var_export($this->dbhr->preQuery("SELECT DISTINCT items_index.itemid, items_index.popularity, wordid FROM items_index INNER JOIN messages_items ON items_index.itemid = messages_items.itemid  WHERE `wordid` IN (13449318)"), TRUE));
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
-        $msg = str_replace('freegleplayground', 'testgroup', $msg);
         $msg = str_replace('Basic test', 'OFFER: Test yyyutyyy (location)', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
@@ -203,10 +201,27 @@ class SearchTest extends IznikTestCase
 
         # Search for various terms
         $ctx = NULL;
+
+        # Debug: Check what's in messages_items
+        $items1 = $this->dbhr->preQuery("SELECT * FROM messages_items WHERE msgid = ?", [$id1]);
+        $items2 = $this->dbhr->preQuery("SELECT * FROM messages_items WHERE msgid = ?", [$id2]);
+        error_log("DEBUG: Message $id1 items: " . count($items1) . " - " . var_export($items1, TRUE));
+        error_log("DEBUG: Message $id2 items: " . count($items2) . " - " . var_export($items2, TRUE));
+
+        # Debug: Check what's in messages_spatial
+        $spatial1 = $this->dbhr->preQuery("SELECT * FROM messages_spatial WHERE msgid = ?", [$id1]);
+        $spatial2 = $this->dbhr->preQuery("SELECT * FROM messages_spatial WHERE msgid = ?", [$id2]);
+        error_log("DEBUG: Message $id1 spatial: " . count($spatial1));
+        error_log("DEBUG: Message $id2 spatial: " . count($spatial2));
+
         $ret = $m->search("Test", $ctx);
-        $this->assertEquals(2, count(array_filter($ret, function($a) use ($id1, $id2) {
+        error_log("DEBUG: Search returned " . count($ret) . " results, all IDs: " . implode(',', array_column($ret, 'id')));
+        $matching = count(array_filter($ret, function($a) use ($id1, $id2) {
             return $a['id'] == $id1 || $a['id'] == $id2;
-        })));
+        }));
+        error_log("DEBUG: Matching our messages ($id1, $id2): $matching");
+
+        $this->assertEquals(2, $matching);
 
         $ctx = NULL;
         $ret = $m->search("Test zzzutzzz", $ctx);
