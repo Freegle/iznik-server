@@ -1141,5 +1141,240 @@ class MessageTest extends IznikTestCase {
         $this->assertEquals(0, $count);
         $this->assertEquals(0, $warncount);
     }
+
+    public function testMessageIsochrones() {
+        # Clean up
+        $this->dbhm->preExec("DELETE FROM messages_isochrones;");
+        $this->dbhm->preExec("DELETE FROM isochrones;");
+        $this->dbhm->preExec("DELETE FROM users_approxlocs;");
+
+        # Create a message with a location
+        list ($r, $id, $failok, $rc) = $this->createCustomTestMessage('Test message', 'testgroup', 'test@test.com', 'to@test.com', 'Test message body', MailRouter::APPROVED);
+        $this->assertNotNull($id);
+
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+
+        # Find a location
+        $l = new Location($this->dbhr, $this->dbhm);
+        $lid = $l->findByName('EH3 6SS');
+        $this->assertNotNull($lid);
+
+        # Set the message location
+        $m->setPrivate('locationid', $lid);
+
+        # Get lat/lng for creating test users
+        $lat = $l->getPrivate('lat');
+        $lng = $l->getPrivate('lng');
+
+        # Create some test users near the location
+        for ($j = 0; $j < 10; $j++) {
+            $u = User::get($this->dbhr, $this->dbhm);
+            $uid = $u->create(NULL, NULL, "Test User $j");
+
+            $offsetLat = ($j - 5) * 0.0001;
+            $offsetLng = ($j - 5) * 0.0001;
+            $userLat = $lat + $offsetLat;
+            $userLng = $lng + $offsetLng;
+
+            $this->dbhm->preExec("UPDATE users SET lastaccess = NOW() WHERE id = ?;", [$uid]);
+            $this->dbhm->preExec("INSERT INTO users_approxlocs (userid, lat, lng, position, timestamp) VALUES (?, ?, ?, ST_GeomFromText(CONCAT('POINT(', ?, ' ', ?, ')'), {$this->dbhr->SRID()}), NOW());", [
+                $uid,
+                $userLat,
+                $userLng,
+                $userLng,
+                $userLat
+            ]);
+        }
+
+        # Test getLatestIsochrone when none exists
+        $latest = $m->getLatestIsochrone();
+        $this->assertNull($latest);
+
+        # Create first isochrone - returns [id, minutes]
+        list($msgIsoId1, $minutes1) = $m->createOrExpandIsochrone(5, 90, 60);
+        $this->assertNotNull($msgIsoId1);
+        $this->assertGreaterThanOrEqual(10, $minutes1);
+        $this->assertLessThanOrEqual(60, $minutes1);
+
+        # Verify it was created
+        $latest = $m->getLatestIsochrone();
+        $this->assertNotNull($latest);
+        $this->assertEquals($msgIsoId1, $latest['id']);
+        $this->assertEquals($minutes1, $latest['minutes']);
+        $this->assertGreaterThanOrEqual(0, $latest['activeUsers']);
+
+        # Create/expand isochrone again - should bump by 10 minutes (if not at max)
+        if ($minutes1 < 60) {
+            list($msgIsoId2, $minutes2) = $m->createOrExpandIsochrone(5, 90, 60);
+            $this->assertNotNull($msgIsoId2);
+            $this->assertEquals($minutes1 + 10, $minutes2);
+
+            # Verify it expanded
+            $latest2 = $m->getLatestIsochrone();
+            $this->assertNotNull($latest2);
+            $this->assertEquals($msgIsoId2, $latest2['id']);
+            $this->assertEquals($minutes2, $latest2['minutes']);
+        }
+
+        # Test max minutes limit
+        # Set up a message with high minutes already
+        list ($r2, $id2, $failok, $rc) = $this->createCustomTestMessage('Test message 2', 'testgroup', 'test@test.com', 'to@test.com', 'Test message body', MailRouter::APPROVED);
+        $m2 = new Message($this->dbhr, $this->dbhm, $id2);
+        $m2->setPrivate('locationid', $lid);
+
+        # Create an isochrone at 50 minutes with max of 50
+        list($msgIsoId3, $minutes3) = $m2->createOrExpandIsochrone(5, 90, 50);
+        $this->assertNotNull($msgIsoId3);
+        $this->assertLessThanOrEqual(50, $minutes3);
+
+        # Try to expand - should return existing isochrone since we're at max
+        list($msgIsoId4, $minutes4) = $m2->createOrExpandIsochrone(5, 90, 50);
+        $this->assertNotNull($msgIsoId4);
+        $this->assertEquals($msgIsoId3, $msgIsoId4);  # Should be same as existing
+        $this->assertEquals($minutes3, $minutes4);    # Same minutes
+
+        # Test message without location
+        list ($r3, $id3, $failok, $rc) = $this->createCustomTestMessage('Test message 3', 'testgroup', 'test@test.com', 'to@test.com', 'Test message body', MailRouter::APPROVED);
+        $m3 = new Message($this->dbhr, $this->dbhm, $id3);
+
+        # Should return NULL for message without location
+        $result = $m3->createOrExpandIsochrone(5, 90, 60);
+        $this->assertNull($result);
+    }
+
+    public function testExpandIsochrones() {
+        # Clean up
+        $this->dbhm->preExec("DELETE FROM messages_isochrones;");
+        $this->dbhm->preExec("DELETE FROM isochrones;");
+        $this->dbhm->preExec("DELETE FROM users_approxlocs;");
+        $this->dbhm->preExec("DELETE FROM messages_spatial;");
+        $this->dbhm->preExec("DELETE FROM chat_messages;");
+        $this->dbhm->preExec("DELETE FROM messages_likes;");
+
+        # Create a message with a location
+        list ($r, $id1, $failok, $rc) = $this->createCustomTestMessage('Test message 1', 'testgroup', 'test@test.com', 'to@test.com', 'Test message body', MailRouter::APPROVED);
+        $this->assertNotNull($id1);
+        $m1 = new Message($this->dbhr, $this->dbhm, $id1);
+
+        # Find a location
+        $l = new Location($this->dbhr, $this->dbhm);
+        $lid = $l->findByName('EH3 6SS');
+        $this->assertNotNull($lid);
+        $m1->setPrivate('locationid', $lid);
+
+        # Load the location object properly to get lat/lng
+        $l = new Location($this->dbhr, $this->dbhm, $lid);
+        $lat = $l->getPrivate('lat');
+        $lng = $l->getPrivate('lng');
+
+        # Set lat/lng on message in database
+        $this->dbhm->preExec("UPDATE messages SET lat = ?, lng = ? WHERE id = ?;", [$lat, $lng, $id1]);
+
+        # Create some test users near the location
+        for ($j = 0; $j < 10; $j++) {
+            $u = User::get($this->dbhr, $this->dbhm);
+            $uid = $u->create(NULL, NULL, "Test User $j");
+
+            $offsetLat = ($j - 5) * 0.0001;
+            $offsetLng = ($j - 5) * 0.0001;
+            $userLat = $lat + $offsetLat;
+            $userLng = $lng + $offsetLng;
+
+            $this->dbhm->preExec("UPDATE users SET lastaccess = NOW() WHERE id = ?;", [$uid]);
+            $this->dbhm->preExec("INSERT INTO users_approxlocs (userid, lat, lng, position, timestamp) VALUES (?, ?, ?, ST_GeomFromText(CONCAT('POINT(', ?, ' ', ?, ')'), {$this->dbhr->SRID()}), NOW());", [
+                $uid,
+                $userLat,
+                $userLng,
+                $userLng,
+                $userLat
+            ]);
+        }
+
+        # Add message to messages_spatial (not successful, not promised)
+        # Get the group ID from messages_groups
+        $msgGroups = $this->dbhr->preQuery("SELECT groupid FROM messages_groups WHERE msgid = ? LIMIT 1;", [$id1]);
+        $groupid = $msgGroups[0]['groupid'];
+        $this->dbhm->preExec("INSERT INTO messages_spatial (msgid, point, successful, promised, groupid, msgtype, arrival) VALUES (?, ST_GeomFromText('POINT({$lng} {$lat})', {$this->dbhr->SRID()}), 0, 0, ?, 'Offer', NOW());", [$id1, $groupid]);
+
+        # Test 1: expandIsochrones should create first isochrone for message with no isochrone
+        $expanded = Message::expandIsochrones(60, 3);
+        $this->assertEquals(1, count($expanded));
+        $this->assertEquals($id1, $expanded[0]);
+
+        # Verify isochrone was created
+        $latest = $m1->getLatestIsochrone();
+        $this->assertNotNull($latest);
+        $this->assertEquals(0, $latest['replies']);
+        $this->assertEquals(0, $latest['views']);
+
+        # Test 2: expandIsochrones should not expand if not enough time has passed
+        $expanded2 = Message::expandIsochrones(60, 3);
+        $this->assertEquals(0, count($expanded2));
+
+        # Test 3: expandIsochrones should expand if enough time has passed and not enough replies
+        # Set the timestamp back 2 hours
+        $this->dbhm->preExec("UPDATE messages_isochrones SET timestamp = DATE_SUB(NOW(), INTERVAL 2 HOUR) WHERE msgid = ?;", [$id1]);
+        $expanded3 = Message::expandIsochrones(60, 3);
+        $this->assertEquals(1, count($expanded3));
+        $this->assertEquals($id1, $expanded3[0]);
+
+        # Test 4: expandIsochrones should not expand if message has enough replies
+        # Add chat messages (replies) from multiple users to reach threshold
+        # expandIsochrones counts DISTINCT userids, so we need 3+ different users
+        for ($i = 0; $i < 4; $i++) {
+            $replyUser = User::get($this->dbhr, $this->dbhm);
+            $replyUid = $replyUser->create(NULL, NULL, "Reply User $i");
+
+            $cr = new ChatRoom($this->dbhr, $this->dbhm);
+            list($chatid, $banned) = $cr->createConversation($replyUid, $m1->getPrivate('fromuser'));
+
+            $cm = new ChatMessage($this->dbhr, $this->dbhm);
+            $cmid = $cm->create($chatid, $replyUid, "Test reply $i", ChatMessage::TYPE_INTERESTED, $id1, FALSE, NULL, NULL, NULL, NULL, NULL, FALSE);
+            # Mark as successfully processed
+            $this->dbhm->preExec("UPDATE chat_messages SET processingsuccessful = 1, processingrequired = 0 WHERE id = ?;", [$cmid]);
+        }
+
+        # Set timestamp back again
+        $this->dbhm->preExec("UPDATE messages_isochrones SET timestamp = DATE_SUB(NOW(), INTERVAL 2 HOUR) WHERE msgid = ?;", [$id1]);
+        $expanded4 = Message::expandIsochrones(60, 3);
+        $this->assertEquals(0, count($expanded4)); # Should not expand because replies >= 3
+
+        # Test 5: expandIsochrones should not expand successful messages
+        $this->dbhm->preExec("UPDATE messages_spatial SET successful = 1 WHERE msgid = ?;", [$id1]);
+        $this->dbhm->preExec("UPDATE messages_isochrones SET timestamp = DATE_SUB(NOW(), INTERVAL 2 HOUR) WHERE msgid = ?;", [$id1]);
+        $expanded5 = Message::expandIsochrones(60, 10); # Even with high reply threshold
+        $this->assertEquals(0, count($expanded5));
+
+        # Test 6: expandIsochrones should not expand promised messages
+        $this->dbhm->preExec("UPDATE messages_spatial SET successful = 0, promised = 1 WHERE msgid = ?;", [$id1]);
+        $expanded6 = Message::expandIsochrones(60, 10);
+        $this->assertEquals(0, count($expanded6));
+
+        # Test 7: Test with views
+        # Create a new message
+        list ($r2, $id2, $failok, $rc) = $this->createCustomTestMessage('Test message 2', 'testgroup', 'test@test.com', 'to@test.com', 'Test message body', MailRouter::APPROVED);
+        $m2 = new Message($this->dbhr, $this->dbhm, $id2);
+        $m2->setPrivate('locationid', $lid);
+        $this->dbhm->preExec("UPDATE messages SET lat = ?, lng = ? WHERE id = ?;", [$lat, $lng, $id2]);
+        $msgGroups2 = $this->dbhr->preQuery("SELECT groupid FROM messages_groups WHERE msgid = ? LIMIT 1;", [$id2]);
+        $groupid2 = $msgGroups2[0]['groupid'];
+        $this->dbhm->preExec("INSERT INTO messages_spatial (msgid, point, successful, promised, groupid, msgtype, arrival) VALUES (?, ST_GeomFromText('POINT({$lng} {$lat})', {$this->dbhr->SRID()}), 0, 0, ?, 'Offer', NOW());", [$id2, $groupid2]);
+
+        # Add some views
+        for ($i = 0; $i < 5; $i++) {
+            $viewUser = User::get($this->dbhr, $this->dbhm);
+            $viewUid = $viewUser->create(NULL, NULL, "View User $i");
+            $this->dbhm->preExec("INSERT INTO messages_likes (msgid, userid, type) VALUES (?, ?, 'View');", [$id2, $viewUid]);
+        }
+
+        # Create isochrone - should record views
+        list($msgIsoId, $minutes) = $m2->createOrExpandIsochrone(5, 90, 60);
+        $this->assertNotNull($msgIsoId);
+
+        # Verify views were recorded
+        $latest2 = $m2->getLatestIsochrone();
+        $this->assertNotNull($latest2);
+        $this->assertEquals(5, $latest2['views']);
+    }
 }
 

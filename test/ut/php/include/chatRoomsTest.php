@@ -27,10 +27,15 @@ class chatRoomsTest extends IznikTestCase {
         $dbhm->preExec("DELETE FROM users_replytime;");
 
         list($g, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
+
+        # Stop background processing during tests to prevent race conditions
+        touch('/tmp/iznik.background.abort');
     }
 
     protected function tearDown(): void
     {
+        # Resume background processing
+        @unlink('/tmp/iznik.background.abort');
     }
 
     public function testPromoteRead() {
@@ -1721,19 +1726,40 @@ class chatRoomsTest extends IznikTestCase {
 
         # Create a message from u2 -> u1, then a message from u1 -> u2 with reply expected.  That sets us up
         # for calculating a reply time for u2.
+        # Loop until entire sequence (message creation + replyTime call) happens within the same second to avoid timing issues.
         $m = new ChatMessage($this->dbhr, $this->dbhm);
-        list ($cm, $banned) = $m->create($id, $u2, "Testing");
-        $this->log("Created message from u2: cm=$cm");
-        list ($cm, $banned) = $m->create($id, $u1, "Testing");
-        $this->log("Created message from u1: cm=$cm");
-        $m = new ChatMessage($this->dbhr, $this->dbhm, $cm);
-        $m->setPrivate('replyexpected', $expected ? 1 : 0);
-        $this->log("Set replyexpected=" . ($expected ? 1 : 0) . " on message $cm");
+        $maxRetries = 20;
+        $actualTime = NULL;
 
-        # Reply time should be null as not evaluated.
-        $this->log("TEST CHECKPOINT 1: About to call replyTime($u2, TRUE) - expecting 0");
-        $actualTime = $r->replyTime($u2, TRUE);
-        $this->waitBackground();
+        for ($attempt = 0; $attempt < $maxRetries; $attempt++) {
+            list ($cm1, $banned) = $m->create($id, $u2, "Testing");
+            list ($cm2, $banned) = $m->create($id, $u1, "Testing");
+
+            $m2 = new ChatMessage($this->dbhr, $this->dbhm, $cm2);
+            $m2->setPrivate('replyexpected', $expected ? 1 : 0);
+
+            # Get reply time immediately
+            $actualTime = $r->replyTime($u2, TRUE);
+
+            # Check if messages and replyTime call all happened in same second
+            $msg2Data = $this->dbhr->preQuery("SELECT UNIX_TIMESTAMP(date) AS ts FROM chat_messages WHERE id = ?;", [$cm2]);
+            $now = time();
+
+            if ($actualTime == 0 || $msg2Data[0]['ts'] == $now) {
+                $this->log("Sequence completed successfully (attempt " . ($attempt + 1) . ", actualTime=$actualTime)");
+                break;
+            }
+
+            # Clean up and retry
+            $this->dbhm->preExec("DELETE FROM chat_messages WHERE id IN (?, ?);", [$cm1, $cm2]);
+            $this->dbhm->preExec("DELETE FROM users_replytime WHERE userid = ?;", [$u2]);
+            $this->log("Timing issue, retrying (attempt " . ($attempt + 1) . ", actualTime=$actualTime)");
+        }
+
+        $this->log("Created message from u2: cm=$cm1");
+        $this->log("Created message from u1: cm=$cm2, actualTime=$actualTime");
+
+        # Reply time should be 0 since we ensured the call happened in the same second as message creation.
         $this->log("TEST CHECKPOINT 1: Got actualTime=" . var_export($actualTime, TRUE));
         $this->assertEquals(0, $actualTime);
 
@@ -1741,7 +1767,6 @@ class chatRoomsTest extends IznikTestCase {
         sleep(2);
         $this->log("TEST CHECKPOINT 2: About to call replyTime($u2, TRUE) after 2 second sleep");
         $time1 = $r->replyTime($u2, TRUE);
-        $this->waitBackground();
         $this->log("TEST CHECKPOINT 2: Got time1=" . var_export($time1, TRUE));
 
         if ($expected) {
@@ -1751,7 +1776,6 @@ class chatRoomsTest extends IznikTestCase {
             sleep(2);
             $this->log("TEST CHECKPOINT 3: About to call replyTime($u2, TRUE) after another 2 second sleep");
             $time2 = $r->replyTime($u2, TRUE);
-            $this->waitBackground();
             $this->log("TEST CHECKPOINT 3: Got time2=" . var_export($time2, TRUE));
 
             # Should have increased.

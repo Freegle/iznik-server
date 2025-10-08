@@ -5797,4 +5797,218 @@ $mq", [
             }
         }
     }
+
+    /**
+     * Get the latest isochrone for this message.
+     * @return array|null The latest isochrone record or NULL if none exists
+     */
+    public function getLatestIsochrone() {
+        $isochrones = $this->dbhr->preQuery("SELECT messages_isochrones.*, isochrones.polygon
+            FROM messages_isochrones
+            INNER JOIN isochrones ON messages_isochrones.isochroneid = isochrones.id
+            WHERE msgid = ?
+            ORDER BY minutes DESC
+            LIMIT 1;", [
+            $this->id
+        ]);
+
+        return count($isochrones) > 0 ? $isochrones[0] : NULL;
+    }
+
+    /**
+     * Create or expand the isochrone for this message.
+     * If no isochrone exists, creates the first one.
+     * If one exists, bumps the distance by increment minutes to create a new one.
+     * If we can't create a larger isochrone, returns the existing one.
+     *
+     * @param int $targetUsers Number of active users to target (default 100)
+     * @param int $activeSince Days to consider users as active (default 90)
+     * @param int $maxMinutes Maximum minutes limit (default 60)
+     * @param int $increment Minutes to increment by when expanding (default 10)
+     * @return array|null [messages_isochrones_id, minutes] or NULL on failure
+     */
+    public function createOrExpandIsochrone($targetUsers = 100, $activeSince = 90, $maxMinutes = 60, $increment = 10) {
+        # Get the message's location
+        $locationid = $this->getPrivate('locationid');
+
+        if (!$locationid) {
+            return NULL;
+        }
+
+        # Check if we already have an isochrone
+        $latest = $this->getLatestIsochrone();
+
+        $i = new Isochrone($this->dbhr, $this->dbhm);
+
+        if ($latest) {
+            # We have an existing isochrone - bump by increment minutes
+            $newMinutes = $latest['minutes'] + $increment;
+
+            # Don't exceed max minutes
+            if ($newMinutes > $maxMinutes) {
+                # Can't expand further - return existing isochrone
+                return [$latest['id'], $latest['minutes']];
+            }
+
+            # Create isochrone starting from the new minutes with enough active users
+            list($isochroneid, $minutes) = $i->ensureIsochroneContainingActiveUsers(
+                $locationid,
+                NULL,
+                $targetUsers,
+                $activeSince,
+                $newMinutes,
+                $maxMinutes,
+                $increment
+            );
+
+            # If we couldn't create a new one, return the existing one
+            if (!$isochroneid) {
+                return [$latest['id'], $latest['minutes']];
+            }
+        } else {
+            # No existing isochrone - create one with enough active users
+            list($isochroneid, $minutes) = $i->ensureIsochroneContainingActiveUsers(
+                $locationid,
+                NULL,
+                $targetUsers,
+                $activeSince,
+                10,
+                $maxMinutes,
+                $increment
+            );
+
+            if (!$isochroneid) {
+                return NULL;
+            }
+        }
+
+        # Count active users in this isochrone
+        $count = $this->dbhr->preQuery("SELECT COUNT(DISTINCT users_approxlocs.userid) AS count
+            FROM users_approxlocs
+            INNER JOIN isochrones ON ST_Contains(isochrones.polygon, users_approxlocs.position)
+            WHERE isochrones.id = ?
+            AND users_approxlocs.timestamp >= ?", [
+            $isochroneid,
+            date('Y-m-d H:i:s', strtotime("-$activeSince days"))
+        ]);
+
+        $activeUsers = $count[0]['count'];
+
+        # Count replies
+        $replyCount = $this->dbhr->preQuery("SELECT COUNT(DISTINCT userid) AS count FROM chat_messages WHERE refmsgid = ? AND reviewrejected = 0 AND reviewrequired = 0 AND processingsuccessful = 1 AND userid != ? AND type = ?;", [
+            $this->id,
+            $this->getPrivate('fromuser'),
+            ChatMessage::TYPE_INTERESTED
+        ]);
+        $replies = $replyCount[0]['count'];
+
+        # Count views
+        $viewCount = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_likes WHERE msgid = ? AND type = ?;", [
+            $this->id,
+            'View'
+        ]);
+        $views = $viewCount[0]['count'];
+
+        # Record this isochrone for the message
+        $this->dbhm->preExec("INSERT INTO messages_isochrones (msgid, isochroneid, minutes, activeUsers, replies, views) VALUES (?, ?, ?, ?, ?, ?);", [
+            $this->id,
+            $isochroneid,
+            $minutes,
+            $activeUsers,
+            $replies,
+            $views
+        ]);
+
+        return [$this->dbhm->lastInsertId(), $minutes];
+    }
+
+    /**
+     * Expand isochrones for messages that need more visibility.
+     * Processes messages in messages_spatial that are not successful or promised,
+     * and expands their isochrones if they have too few replies.
+     *
+     * @param int $timeSinceLastExpand Minutes since last isochrone expansion (default 60)
+     * @param int $numReplies Maximum number of replies before stopping expansion (default 3)
+     * @return array Array of msgids that were expanded
+     */
+    public static function expandIsochrones($timeSinceLastExpand = 60, $numReplies = 3) {
+        global $dbhr, $dbhm;
+
+        $expanded = [];
+
+        # Find messages in messages_spatial that are not successful or promised
+        $messages = $dbhr->preQuery("
+            SELECT DISTINCT messages_spatial.msgid
+            FROM messages_spatial
+            INNER JOIN messages ON messages.id = messages_spatial.msgid
+            WHERE messages_spatial.successful = 0
+            AND messages_spatial.promised = 0
+            AND messages.locationid IS NOT NULL
+        ");
+
+        foreach ($messages as $msg) {
+            $msgid = $msg['msgid'];
+
+            # Check if we have an isochrone and when it was last expanded
+            $latest = $dbhr->preQuery("
+                SELECT messages_isochrones.*, messages_isochrones.timestamp
+                FROM messages_isochrones
+                WHERE msgid = ?
+                ORDER BY timestamp DESC
+                LIMIT 1
+            ", [$msgid]);
+
+            $shouldExpand = FALSE;
+
+            if (count($latest) == 0) {
+                # No isochrone yet - should create one
+                $shouldExpand = TRUE;
+            } else {
+                # Check if enough time has passed since last expansion
+                $lastExpanded = strtotime($latest[0]['timestamp']);
+                $now = time();
+                $minutesSinceExpand = ($now - $lastExpanded) / 60;
+
+                if ($minutesSinceExpand >= $timeSinceLastExpand) {
+                    # Enough time has passed - check reply count
+                    $m = new Message($dbhr, $dbhm, $msgid);
+                    $fromuser = $m->getPrivate('fromuser');
+
+                    $replyCount = $dbhr->preQuery("
+                        SELECT COUNT(DISTINCT userid) AS count
+                        FROM chat_messages
+                        WHERE refmsgid = ?
+                        AND reviewrejected = 0
+                        AND reviewrequired = 0
+                        AND processingsuccessful = 1
+                        AND userid != ?
+                        AND type = ?
+                    ", [
+                        $msgid,
+                        $fromuser,
+                        ChatMessage::TYPE_INTERESTED
+                    ]);
+
+                    $replies = $replyCount[0]['count'];
+
+                    if ($replies < $numReplies) {
+                        # Not enough replies - should expand
+                        $shouldExpand = TRUE;
+                    }
+                }
+            }
+
+            if ($shouldExpand) {
+                # Expand the isochrone for this message
+                $m = new Message($dbhr, $dbhm, $msgid);
+                $result = $m->createOrExpandIsochrone();
+
+                if ($result !== NULL) {
+                    $expanded[] = $msgid;
+                }
+            }
+        }
+
+        return $expanded;
+    }
 }

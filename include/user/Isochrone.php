@@ -74,7 +74,22 @@ class Isochrone extends Entity
         return [ $lat, $lng, $locationid ];
     }
 
-    private function ensureIsochroneExists($locationid, $minutes, $transport) {
+    private function countActiveUsersInIsochrone($isochroneid, $activeSince) {
+        # Count how many active users are within this isochrone polygon.
+        # Uses users_approxlocs which contains blurred locations for active users.
+        $count = $this->dbhr->preQuery("SELECT COUNT(DISTINCT users_approxlocs.userid) AS count
+            FROM users_approxlocs
+            INNER JOIN isochrones ON ST_Contains(isochrones.polygon, users_approxlocs.position)
+            WHERE isochrones.id = ?
+            AND users_approxlocs.timestamp >= ?", [
+            $isochroneid,
+            date('Y-m-d H:i:s', strtotime("-$activeSince days"))
+        ]);
+
+        return $count[0]['count'];
+    }
+
+    public function ensureIsochroneExists($locationid, $minutes = 10, $transport = NULL) {
         # See if we already have one.
         $transq = $transport ? (" AND transport = " . $this->dbhr->quote($transport)) : " AND transport IS NULL";
         $existings = $this->dbhr->preQuery("SELECT id FROM isochrones WHERE locationid = ? $transq AND minutes = ? ORDER BY timestamp DESC LIMIT 1;", [
@@ -97,7 +112,7 @@ class Isochrone extends Entity
             $wkt = $this->fetchFromMapbox($transport, $lng, $lat, $minutes);
 
             if ($wkt) {
-                $rc = $this->dbhm->preExec("INSERT INTO isochrones (locationid, transport, minutes, polygon) VALUES (?, ?, ?, 
+                $rc = $this->dbhm->preExec("INSERT INTO isochrones (locationid, transport, minutes, polygon) VALUES (?, ?, ?,
                  CASE WHEN ST_SIMPLIFY(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?) IS NULL THEN ST_GeomFromText(?, {$this->dbhr->SRID()}) ELSE ST_SIMPLIFY(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?) END
                                                                          )", [
                     $locationid,
@@ -117,6 +132,34 @@ class Isochrone extends Entity
         }
 
         return $isochroneid;
+    }
+
+    public function ensureIsochroneContainingActiveUsers($locationid, $transport = NULL, $targetUsers = 100, $activeSince = 90, $initialMinutes = 10, $maxMinutes = 60, $increment = 10) {
+        # Create an isochrone that contains at least the target number of active users.
+        # Start with initialMinutes and keep increasing by increment until we have enough users or hit maxMinutes.
+        # Returns [isochroneid, minutes] or [NULL, NULL] if failed.
+        $minutes = $initialMinutes;
+        $isochroneid = NULL;
+        $actualMinutes = NULL;
+
+        while ($minutes <= $maxMinutes) {
+            $isochroneid = $this->ensureIsochroneExists($locationid, $minutes, $transport);
+
+            if ($isochroneid) {
+                $actualMinutes = $minutes;
+                $activeUsers = $this->countActiveUsersInIsochrone($isochroneid, $activeSince);
+
+                if ($activeUsers >= $targetUsers) {
+                    # We have enough users, stop here.
+                    break;
+                }
+            }
+
+            # Need more users, increase the time.
+            $minutes += $increment;
+        }
+
+        return [$isochroneid, $actualMinutes];
     }
 
     public function create($userid, $transport, $minutes, $nickname, $locationid) {
