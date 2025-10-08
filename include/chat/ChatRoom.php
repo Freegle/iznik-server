@@ -2512,9 +2512,9 @@ WHERE chat_messages.id > ? $wideq AND chat_messages_held.id IS NULL AND chat_mes
 
         if (count($left)) {
             $mysqltime = date("Y-m-d", strtotime("90 days ago"));
-            $msgs = $this->dbhr->preQuery("SELECT chat_messages.userid, chat_messages.id, chat_messages.chatid, chat_messages.date 
-FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid 
-WHERE chat_messages.userid IN (" . implode(',', $left) . ") 
+            $msgs = $this->dbhr->preQuery("SELECT chat_messages.userid, chat_messages.id, chat_messages.chatid, chat_messages.date
+FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid
+WHERE chat_messages.userid IN (" . implode(',', $left) . ")
 AND chat_messages.date > ? AND chat_rooms.chattype = ? AND chat_messages.type IN (?, ?);", [
                 $mysqltime,
                 ChatRoom::TYPE_USER2USER,
@@ -2533,9 +2533,9 @@ AND chat_messages.date > ? AND chat_rooms.chattype = ? AND chat_messages.type IN
                         # reply.  This helps with the case where someone is responsive and then stops replying.
                         #error_log("$userid Chat message {$msg['id']}, {$msg['date']} in {$msg['chatid']}, expected {$msg['replyexpected']}, received {$msg['replyreceived']}");
 
-                        $expecting = $this->dbhr->preQuery("SELECT chat_messages.userid, chat_messages.id, chat_messages.chatid, chat_messages.date, chat_messages.replyexpected, chat_messages.replyreceived 
-FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid 
-WHERE chat_rooms.id = ? AND userid != ? 
+                        $expecting = $this->dbhr->preQuery("SELECT chat_messages.userid, chat_messages.id, chat_messages.chatid, chat_messages.date, chat_messages.replyexpected, chat_messages.replyreceived
+FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid
+WHERE chat_rooms.id = ? AND userid != ?
 ORDER BY chat_messages.id DESC LIMIT 1;", [
                             $msg['chatid'],
                             $userid,

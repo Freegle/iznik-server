@@ -34,9 +34,20 @@ class SearchTest extends IznikTestCase
         $u->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         # Prevent the message_spatial.php cron job from running during tests by holding its lock.
+        # If the script is already running, retry until we can get the lock.
         $lock = "/tmp/iznik_lock_message_spatial.php.lock";
         $this->lockh = fopen($lock, 'wa');
-        flock($this->lockh, LOCK_EX);
+        $block = 0;
+        $maxRetries = 50;
+        $retryCount = 0;
+
+        while (!flock($this->lockh, LOCK_EX | LOCK_NB, $block)) {
+            $retryCount++;
+            if ($retryCount >= $maxRetries) {
+                $this->fail("Could not acquire lock on message_spatial.php after $maxRetries attempts - script may be stuck");
+            }
+            usleep(100000); # Sleep for 100ms before retrying
+        }
     }
 
     protected function tearDown() : void

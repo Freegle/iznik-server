@@ -1694,7 +1694,7 @@ class chatRoomsTest extends IznikTestCase {
      * @dataProvider trueFalseProvider
      */
     public function testUserStopsReplyingReplyTime($expected) {
-        $this->log(__METHOD__ );
+        $this->log(__METHOD__ . " expected=" . ($expected ? 'TRUE' : 'FALSE'));
 
         # Set up a chatroom
         $u = User::get($this->dbhr, $this->dbhm);
@@ -1702,43 +1702,67 @@ class chatRoomsTest extends IznikTestCase {
         $u->addMembership($this->groupid);
         $u->addEmail('test1@test.com');
         $u->addEmail('test1@' . USER_DOMAIN);
+        $this->log("Created user u1=$u1");
 
         $u2 = $u->create(NULL, NULL, "Test User 2");
         $u->addMembership($this->groupid);
         $u->addEmail('test2@test.com');
         $u->addEmail('test2@' . USER_DOMAIN);
+        $this->log("Created user u2=$u2");
+
+        # Check for any existing reply times in the database
+        $existing = $this->dbhr->preQuery("SELECT * FROM users_replytime WHERE userid IN (?, ?);", [$u1, $u2]);
+        $this->log("Existing reply times: " . var_export($existing, TRUE));
 
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         list ($id, $blocked) = $r->createConversation($u1, $u2);
         $this->assertNotNull($id);
+        $this->log("Created chatroom id=$id");
 
         # Create a message from u2 -> u1, then a message from u1 -> u2 with reply expected.  That sets us up
         # for calculating a reply time for u2.
         $m = new ChatMessage($this->dbhr, $this->dbhm);
         list ($cm, $banned) = $m->create($id, $u2, "Testing");
+        $this->log("Created message from u2: cm=$cm");
         list ($cm, $banned) = $m->create($id, $u1, "Testing");
+        $this->log("Created message from u1: cm=$cm");
         $m = new ChatMessage($this->dbhr, $this->dbhm, $cm);
         $m->setPrivate('replyexpected', $expected ? 1 : 0);
+        $this->log("Set replyexpected=" . ($expected ? 1 : 0) . " on message $cm");
 
         # Reply time should be null as not evaluated.
-        $this->assertEquals(0, $r->replyTime($u2, TRUE));
+        $this->log("TEST CHECKPOINT 1: About to call replyTime($u2, TRUE) - expecting 0");
+        $actualTime = $r->replyTime($u2, TRUE);
+        $this->waitBackground();
+        $this->log("TEST CHECKPOINT 1: Got actualTime=" . var_export($actualTime, TRUE));
+        $this->assertEquals(0, $actualTime);
 
         # Force recalculation
         sleep(2);
+        $this->log("TEST CHECKPOINT 2: About to call replyTime($u2, TRUE) after 2 second sleep");
         $time1 = $r->replyTime($u2, TRUE);
+        $this->waitBackground();
+        $this->log("TEST CHECKPOINT 2: Got time1=" . var_export($time1, TRUE));
 
         if ($expected) {
             # Should have a value, as we have not yet replied.
             $this->assertNotNull($time1);
 
             sleep(2);
+            $this->log("TEST CHECKPOINT 3: About to call replyTime($u2, TRUE) after another 2 second sleep");
             $time2 = $r->replyTime($u2, TRUE);
+            $this->waitBackground();
+            $this->log("TEST CHECKPOINT 3: Got time2=" . var_export($time2, TRUE));
 
             # Should have increased.
             $this->assertGreaterThan($time1, $time2);
         } else {
-            $this->assertNull($r->replyTime($u2));
+            $this->log("TEST CHECKPOINT 3: About to call replyTime($u2) - expecting NULL");
+            $finalTime = $r->replyTime($u2);
+            $this->log("TEST CHECKPOINT 3: Got finalTime=" . var_export($finalTime, TRUE));
+            $this->assertNull($finalTime);
         }
+        $this->log("TEST COMPLETED SUCCESSFULLY");
     }
 }
 
