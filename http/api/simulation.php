@@ -6,11 +6,9 @@ function simulation() {
 
     $ret = ['ret' => 100, 'status' => 'Unknown verb'];
 
-    $s = new Session($dbhr, $dbhm);
+    $me = Session::whoAmI($dbhr, $dbhm);
 
-    if ($s->getUserId()) {
-        $me = new User($dbhr, $dbhm, $s->getUserId());
-
+    if ($me) {
     // Check if user has mod/support/admin status
     if ($me->isModerator() || $me->isAdminOrSupport()) {
         switch ($_SERVER['REQUEST_METHOD']) {
@@ -35,12 +33,9 @@ function simulation() {
                             (id, runid, userid, current_index, expires) VALUES (?, ?, ?, 0, ?)", [
                             $sessionId,
                             $runid,
-                            $s->getUserId(),
+                            $me->getId(),
                             $expires
                         ]);
-
-                        // Get message count
-                        $counts = $dbhr->preQuery("SELECT COUNT(*) AS count FROM simulation_message_isochrones_messages WHERE runid = ?", [$runid]);
 
                         $ret = [
                             'ret' => 0,
@@ -54,7 +49,7 @@ function simulation() {
                                 'completed' => Utils::ISODate($runs[0]['completed']),
                                 'parameters' => json_decode($runs[0]['parameters'], TRUE),
                                 'filters' => json_decode($runs[0]['filters'], TRUE),
-                                'message_count' => $counts[0]['count'],
+                                'message_count' => $runs[0]['message_count'],
                                 'metrics' => json_decode($runs[0]['metrics'], TRUE)
                             ]
                         ];
@@ -76,7 +71,7 @@ function simulation() {
                     // Get session
                     $sessions = $dbhr->preQuery("SELECT * FROM simulation_message_isochrones_sessions WHERE id = ? AND userid = ?", [
                         $sessionId,
-                        $s->getUserId()
+                        $me->getId()
                     ]);
 
                     if (count($sessions) == 0) {

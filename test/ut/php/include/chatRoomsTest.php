@@ -27,9 +27,6 @@ class chatRoomsTest extends IznikTestCase {
         $dbhm->preExec("DELETE FROM users_replytime;");
 
         list($g, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
-
-        # Stop background processing during tests to prevent race conditions
-        touch('/tmp/iznik.background.abort');
     }
 
     protected function tearDown(): void
@@ -1699,6 +1696,9 @@ class chatRoomsTest extends IznikTestCase {
      * @dataProvider trueFalseProvider
      */
     public function testUserStopsReplyingReplyTime($expected) {
+        # Stop background processing during this test to prevent race conditions
+        touch('/tmp/iznik.background.abort');
+
         $this->log(__METHOD__ . " expected=" . ($expected ? 'TRUE' : 'FALSE'));
 
         # Set up a chatroom

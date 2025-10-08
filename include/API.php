@@ -342,6 +342,9 @@ class API
                         case 'session':
                             $ret = session();
                             break;
+                        case 'simulation':
+                            $ret = simulation();
+                            break;
                         case 'group':
                             $ret = group();
                             break;
