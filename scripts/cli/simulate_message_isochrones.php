@@ -2,7 +2,7 @@
 
 namespace Freegle\Iznik;
 
-define('BASE_DIR', dirname(__FILE__) . '/..');
+define('BASE_DIR', dirname(__FILE__) . '/../..');
 require_once(BASE_DIR . '/include/config.php');
 
 require_once(IZNIK_BASE . '/include/db.php');
@@ -21,19 +21,19 @@ class MessageIsochroneSimulator {
     private $runId = NULL;
     private $startDate;
     private $endDate;
-    private $groupId = NULL;
+    private $groupIds = [];
     private $limit = NULL;
 
     // Simulation parameters to test
     private $params = [
-        'initialMinutes' => 10,
+        'initialMinutes' => 5,
         'maxMinutes' => 60,
-        'increment' => 10,
-        'targetUsers' => 100,
+        'increment' => 5,
+        'minUsers' => 100,  // Minimum users to include in initial isochrone / add per expansion
         'activeSince' => 90,
-        'transport' => 'walk',
+        'transport' => 'car',
         'timeSinceLastExpand' => 60,  // minutes
-        'numReplies' => 3  // replies needed to trigger expansion
+        'numReplies' => 7  // Stop expanding once we have this many replies (we have enough interest)
     ];
 
     public function __construct($dbhr, $dbhm, $options = []) {
@@ -43,7 +43,7 @@ class MessageIsochroneSimulator {
         // Set date range - default to 30-7 days ago
         $this->startDate = $options['startDate'] ?? date('Y-m-d', strtotime('-30 days'));
         $this->endDate = $options['endDate'] ?? date('Y-m-d', strtotime('-7 days'));
-        $this->groupId = $options['groupId'] ?? NULL;
+        $this->groupIds = $options['groupIds'] ?? [];
         $this->limit = $options['limit'] ?? NULL;
 
         // Override default parameters if provided
@@ -55,8 +55,17 @@ class MessageIsochroneSimulator {
     public function run($name = NULL, $description = NULL) {
         echo "\n=== Message Isochrone Simulation ===\n";
         echo "Date range: {$this->startDate} to {$this->endDate}\n";
-        if ($this->groupId) {
-            echo "Group filter: {$this->groupId}\n";
+        if (count($this->groupIds) > 0) {
+            echo "Group filter: " . implode(', ', $this->groupIds) . "\n";
+        }
+        if ($this->limit) {
+            if (count($this->groupIds) > 1) {
+                echo "Message limit: {$this->limit} per group (" . (count($this->groupIds) * $this->limit) . " total max)\n";
+            } elseif (count($this->groupIds) == 0) {
+                echo "Message limit: {$this->limit} per group (applied to all groups in date range)\n";
+            } else {
+                echo "Message limit: {$this->limit}\n";
+            }
         }
         echo "Parameters: " . json_encode($this->params, JSON_PRETTY_PRINT) . "\n\n";
 
@@ -117,16 +126,36 @@ class MessageIsochroneSimulator {
 
         echo "\n=== Simulation Complete ===\n";
         echo "Run ID: {$this->runId}\n";
-        echo "Messages processed: " . count($allMetrics) . "\n";
+        echo "Messages processed: " . count($allMetrics) . "\n\n";
+
         echo "Aggregate metrics:\n";
-        echo json_encode($aggregateMetrics, JSON_PRETTY_PRINT) . "\n";
+        echo json_encode($aggregateMetrics, JSON_PRETTY_PRINT) . "\n\n";
+
+        echo "Metric Definitions:\n";
+        echo "- messages_analyzed: Total messages across ALL runs with these same parameters\n";
+        echo "- messages_in_this_run: Number of messages processed in this run only\n";
+        echo "- median_replies: Median number of replies per message (across all runs)\n";
+        echo "- median_users_reached: Median users reached by final isochrones (across all runs)\n";
+        echo "- median_capture_rate: Median % of replies from within final isochrones\n";
+        echo "  (Higher is better - shows we're targeting the right areas)\n";
+        echo "- mean_capture_rate: Average % of replies from within final isochrones\n";
+        echo "- median_efficiency: Median % of notified users who actually replied\n";
+        echo "  (Higher is better - shows we're not over-notifying)\n";
+        echo "- mean_efficiency: Average % of notified users who replied\n";
+        echo "- median_expansions: Median number of isochrone expansions per message\n";
+        echo "- mean_expansions: Average number of expansions per message\n";
+        echo "- messages_with_taker: Number of messages where we know who took the item\n";
+        echo "- takers_reached_pct: % of takers who were within the final isochrone\n";
+        echo "- takers_in_initial_pct: % of takers who were in the initial (smallest) isochrone\n";
+        echo "- median_taker_reach_time: Median minutes until taker would be reached\n";
+        echo "  (Lower is better - shows spiral expansion doesn't delay reaching taker)\n";
     }
 
     private function createRun($name, $description) {
         $filters = [
             'startDate' => $this->startDate,
             'endDate' => $this->endDate,
-            'groupId' => $this->groupId,
+            'groupids' => $this->groupIds,
             'limit' => $this->limit
         ];
 
@@ -149,32 +178,124 @@ class MessageIsochroneSimulator {
     }
 
     private function getMessages() {
+        // If limit is specified, apply it per group (even when no groups specified)
+        if ($this->limit) {
+            return $this->getMessagesPerGroup();
+        }
+
+        // No limit - use simple query
         $sql = "SELECT DISTINCT messages.id, messages.arrival, messages.subject, messages.locationid,
                        messages.lat, messages.lng, messages.fromuser, messages_groups.groupid,
                        `groups`.nameshort
                 FROM messages
                 INNER JOIN messages_groups ON messages.id = messages_groups.msgid
                 INNER JOIN `groups` ON messages_groups.groupid = `groups`.id
+                LEFT JOIN simulation_message_isochrones_messages simm ON messages.id = simm.msgid AND simm.runid = ?
                 WHERE messages.arrival >= ?
                   AND messages.arrival <= ?
                   AND messages.type IN ('Offer', 'Wanted')
                   AND messages.deleted IS NULL
-                  AND messages.locationid IS NOT NULL";
+                  AND messages.locationid IS NOT NULL
+                  AND simm.id IS NULL";
 
-        $params = [$this->startDate, $this->endDate];
+        $params = [$this->runId, $this->startDate, $this->endDate];
 
-        if ($this->groupId) {
-            $sql .= " AND messages_groups.groupid = ?";
-            $params[] = $this->groupId;
+        if (count($this->groupIds) > 0) {
+            // Use IN clause for multiple groups
+            $placeholders = implode(',', array_fill(0, count($this->groupIds), '?'));
+            $sql .= " AND messages_groups.groupid IN ($placeholders)";
+            $params = array_merge($params, $this->groupIds);
         }
 
         $sql .= " ORDER BY messages.arrival ASC";
 
-        if ($this->limit) {
-            $sql .= " LIMIT " . intval($this->limit);
+        return $this->dbhr->preQuery($sql, $params);
+    }
+
+    private function getMessagesPerGroup() {
+        // Fetch messages from each group separately, then interleave them
+        // This gives a better distribution when viewing the simulation
+        $messagesByGroup = [];
+
+        // If no specific groups specified, get all groups with messages in the date range
+        $groupsToProcess = $this->groupIds;
+        if (count($groupsToProcess) == 0) {
+            $groupsToProcess = $this->getGroupsWithMessages();
+            echo "DEBUG: Found " . count($groupsToProcess) . " groups with messages\n";
+        } else {
+            echo "DEBUG: Processing " . count($groupsToProcess) . " specified groups\n";
         }
 
-        return $this->dbhr->preQuery($sql, $params);
+        foreach ($groupsToProcess as $groupId) {
+            $sql = "SELECT DISTINCT messages.id, messages.arrival, messages.subject, messages.locationid,
+                           messages.lat, messages.lng, messages.fromuser, messages_groups.groupid,
+                           `groups`.nameshort
+                    FROM messages
+                    INNER JOIN messages_groups ON messages.id = messages_groups.msgid
+                    INNER JOIN `groups` ON messages_groups.groupid = `groups`.id
+                    LEFT JOIN simulation_message_isochrones_messages simm ON messages.id = simm.msgid AND simm.runid = ?
+                    WHERE messages.arrival >= ?
+                      AND messages.arrival <= ?
+                      AND messages.type IN ('Offer', 'Wanted')
+                      AND messages.deleted IS NULL
+                      AND messages.locationid IS NOT NULL
+                      AND simm.id IS NULL
+                      AND messages_groups.groupid = ?
+                    ORDER BY messages.arrival ASC
+                    LIMIT " . intval($this->limit);
+
+            $params = [$this->runId, $this->startDate, $this->endDate, $groupId];
+            $messagesByGroup[$groupId] = $this->dbhr->preQuery($sql, $params);
+            echo "DEBUG: Group $groupId returned " . count($messagesByGroup[$groupId]) . " messages\n";
+        }
+
+        // Round-robin through groups to interleave messages
+        $result = [];
+        if (count($messagesByGroup) == 0) {
+            return $result;
+        }
+
+        $maxMessages = max(array_map('count', $messagesByGroup));
+        $seenIds = []; // Track message IDs to avoid duplicates (cross-posted messages)
+
+        for ($i = 0; $i < $maxMessages; $i++) {
+            foreach ($groupsToProcess as $groupId) {
+                if (isset($messagesByGroup[$groupId][$i])) {
+                    $msg = $messagesByGroup[$groupId][$i];
+                    // Only add if we haven't seen this message ID before
+                    if (!isset($seenIds[$msg['id']])) {
+                        $result[] = $msg;
+                        $seenIds[$msg['id']] = TRUE;
+                    }
+                }
+            }
+        }
+
+        echo "DEBUG: Round-robin produced " . count($result) . " unique messages from " . count($messagesByGroup) . " groups\n";
+
+        return $result;
+    }
+
+    private function getGroupsWithMessages() {
+        // Get all groups that have messages in the date range
+        $sql = "SELECT DISTINCT messages_groups.groupid
+                FROM messages
+                INNER JOIN messages_groups ON messages.id = messages_groups.msgid
+                LEFT JOIN simulation_message_isochrones_messages simm ON messages.id = simm.msgid AND simm.runid = ?
+                WHERE messages.arrival >= ?
+                  AND messages.arrival <= ?
+                  AND messages.type IN ('Offer', 'Wanted')
+                  AND messages.deleted IS NULL
+                  AND messages.locationid IS NOT NULL
+                  AND simm.id IS NULL
+                ORDER BY messages_groups.groupid ASC";
+
+        $params = [$this->runId, $this->startDate, $this->endDate];
+        $results = $this->dbhr->preQuery($sql, $params);
+
+        return array_map(function($row) {
+            return $row['groupid'];
+        }, $results);
     }
 
     private function simulateMessage($msg, $sequence) {
@@ -205,6 +326,9 @@ class MessageIsochroneSimulator {
         // Get actual replies to this message
         $replies = $this->getReplies($msg['id']);
 
+        // Get the taker (person who collected the item)
+        $taker = $this->getTaker($msg['id']);
+
         // Store message data
         $simMsgId = $this->storeMessage($msg, $sequence, $groupCGA, count($activeUsers), count($replies));
 
@@ -212,13 +336,20 @@ class MessageIsochroneSimulator {
         $this->storeUsers($simMsgId, $activeUsers, $replies);
 
         // Simulate isochrone expansions
-        $expansions = $this->simulateExpansions($msg, $lat, $lng, $replies, $activeUsers);
+        $expansionResult = $this->simulateExpansions($msg, $lat, $lng, $replies, $activeUsers, $taker);
 
         // Store expansion data
-        $this->storeExpansions($simMsgId, $expansions, $msg['arrival']);
+        $this->storeExpansions($simMsgId, $expansionResult['expansions'], $msg['arrival']);
 
         // Calculate metrics for this message
-        $metrics = $this->calculateMessageMetrics($simMsgId, $expansions, $activeUsers, $replies);
+        $metrics = $this->calculateMessageMetrics(
+            $simMsgId,
+            $expansionResult['expansions'],
+            $activeUsers,
+            $replies,
+            $expansionResult['taker_reached_at'],
+            $taker
+        );
 
         // Store metrics
         $this->dbhm->preExec("UPDATE simulation_message_isochrones_messages SET metrics = ? WHERE id = ?", [
@@ -281,6 +412,17 @@ class MessageIsochroneSimulator {
                 ORDER BY chat_messages.date ASC";
 
         return $this->dbhr->preQuery($sql, [$msgId]);
+    }
+
+    private function getTaker($msgId) {
+        // Get the person who eventually took/received the item
+        $sql = "SELECT messages_by.userid
+                FROM messages_by
+                WHERE messages_by.msgid = ?
+                LIMIT 1";
+
+        $result = $this->dbhr->preQuery($sql, [$msgId]);
+        return count($result) > 0 ? $result[0]['userid'] : NULL;
     }
 
     private function storeMessage($msg, $sequence, $groupCGA, $totalUsers, $totalReplies) {
@@ -355,15 +497,62 @@ class MessageIsochroneSimulator {
         }
     }
 
-    private function simulateExpansions($msg, $lat, $lng, $replies, $activeUsers) {
+    private function simulateExpansions($msg, $lat, $lng, $replies, $activeUsers, $takerId) {
         $expansions = [];
         $currentMinutes = $this->params['initialMinutes'];
-        $lastExpansionTime = NULL;
-        $repliesSinceExpansion = 0;
+        $takerReachedAt = NULL;
 
-        // Initial isochrone at message arrival
-        $isochronePolygon = $this->getIsochronePolygon($msg['locationid'], $currentMinutes, $this->params['transport']);
-        $usersInIsochrone = $this->countUsersInIsochrone($isochronePolygon, $activeUsers);
+        // Find taker in active users
+        $takerUser = NULL;
+        if ($takerId) {
+            foreach ($activeUsers as $user) {
+                if ($user['userid'] == $takerId) {
+                    $takerUser = $user;
+                    break;
+                }
+            }
+        }
+
+        // Sort replies by time for efficient counting
+        usort($replies, function($a, $b) {
+            return strtotime($a['date']) - strtotime($b['date']);
+        });
+
+        // Convert replies to minutes since arrival for easier comparison
+        $arrivalTime = strtotime($msg['arrival']);
+        $replyTimesMinutes = [];
+        foreach ($replies as $reply) {
+            $replyTimesMinutes[] = (strtotime($reply['date']) - $arrivalTime) / 60;
+        }
+
+        // Initial isochrone at message arrival (time 0)
+        // Expand until we reach minimum number of users or hit maxMinutes
+        $isochronePolygon = NULL;
+        $usersInIsochrone = 0;
+
+        while ($currentMinutes <= $this->params['maxMinutes']) {
+            $isochronePolygon = $this->getIsochronePolygon($msg['locationid'], $currentMinutes, $this->params['transport']);
+            $usersInIsochrone = $this->countUsersInIsochrone($isochronePolygon, $activeUsers);
+
+            // Stop if we have enough users or can't expand further
+            if ($usersInIsochrone >= $this->params['minUsers'] || $currentMinutes >= $this->params['maxMinutes']) {
+                break;
+            }
+
+            $currentMinutes += $this->params['increment'];
+        }
+
+        // Check if taker is in initial isochrone
+        if ($takerUser && !$takerReachedAt && $this->pointInPolygon($takerUser['lat'], $takerUser['lng'], $isochronePolygon)) {
+            $takerReachedAt = [
+                'expansion_index' => 0,
+                'minutes_after_arrival' => 0,
+                'minutes' => $currentMinutes
+            ];
+        }
+
+        // Count replies received by time 0 (should be 0)
+        $repliesAtTime = $this->countRepliesByTime($replyTimesMinutes, 0);
 
         $expansions[] = [
             'sequence' => 0,
@@ -373,58 +562,178 @@ class MessageIsochroneSimulator {
             'polygon' => $isochronePolygon,
             'users_in_isochrone' => $usersInIsochrone,
             'new_users_reached' => $usersInIsochrone,
-            'replies_at_time' => 0,
-            'replies_in_isochrone' => 0
+            'replies_at_time' => $repliesAtTime,
+            'replies_in_isochrone' => $this->countRepliesInIsochroneByTime($isochronePolygon, $activeUsers, $replies, $arrivalTime, 0)
         ];
 
-        $lastExpansionTime = 0;
+        // Expand at variable intervals (fast at first, slower later)
+        // Only expand during daytime hours (8am-8pm)
+        $currentTime = 0;
+        $expansionIndex = 1;
+        $maxSimulationTime = 72 * 60; // 3 days in minutes
 
-        // Sort replies by time
-        usort($replies, function($a, $b) {
-            return strtotime($a['date']) - strtotime($b['date']);
-        });
+        while ($currentMinutes < $this->params['maxMinutes'] && $currentTime < $maxSimulationTime) {
+            // Calculate next expansion interval based on elapsed time
+            $nextInterval = $this->getExpansionInterval($currentTime);
 
-        // Process each reply
-        foreach ($replies as $reply) {
-            $replyTime = strtotime($reply['date']);
-            $arrivalTime = strtotime($msg['arrival']);
-            $minutesSinceArrival = ($replyTime - $arrivalTime) / 60;
+            // Move to next expansion time
+            $currentTime += $nextInterval;
 
-            $repliesSinceExpansion++;
+            // Skip nighttime hours (8pm-8am)
+            $currentTime = $this->skipToNextDaytime($arrivalTime, $currentTime);
 
-            // Check if we should expand
-            $timeSinceLastExpand = $minutesSinceArrival - $lastExpansionTime;
+            // Check if we've exceeded simulation time
+            if ($currentTime >= $maxSimulationTime) {
+                break;
+            }
 
-            if ($repliesSinceExpansion >= $this->params['numReplies'] &&
-                $timeSinceLastExpand >= $this->params['timeSinceLastExpand'] &&
-                $currentMinutes < $this->params['maxMinutes']) {
+            // Check if we have enough replies by this time to stop expanding
+            $repliesAtTime = $this->countRepliesByTime($replyTimesMinutes, $currentTime);
+            if ($repliesAtTime >= $this->params['numReplies']) {
+                // We have enough interest, stop expanding
+                break;
+            }
 
-                // Expand isochrone
+            // Expand isochrone until we add minUsers new users or hit maxMinutes
+            $prevUsers = end($expansions)['users_in_isochrone'];
+            $newUsersAdded = 0;
+
+            while ($currentMinutes < $this->params['maxMinutes']) {
                 $currentMinutes += $this->params['increment'];
                 $currentMinutes = min($currentMinutes, $this->params['maxMinutes']);
 
                 $isochronePolygon = $this->getIsochronePolygon($msg['locationid'], $currentMinutes, $this->params['transport']);
                 $usersInIsochrone = $this->countUsersInIsochrone($isochronePolygon, $activeUsers);
-                $prevUsers = end($expansions)['users_in_isochrone'];
+                $newUsersAdded = $usersInIsochrone - $prevUsers;
 
-                $expansions[] = [
-                    'sequence' => count($expansions),
-                    'minutes_after_arrival' => round($minutesSinceArrival),
-                    'minutes' => $currentMinutes,
-                    'transport' => $this->params['transport'],
-                    'polygon' => $isochronePolygon,
-                    'users_in_isochrone' => $usersInIsochrone,
-                    'new_users_reached' => $usersInIsochrone - $prevUsers,
-                    'replies_at_time' => count($replies),
-                    'replies_in_isochrone' => $this->countRepliesInIsochrone($isochronePolygon, $activeUsers, $replies)
+                // Stop if we've added enough new users or can't expand further
+                if ($newUsersAdded >= $this->params['minUsers'] || $currentMinutes >= $this->params['maxMinutes']) {
+                    break;
+                }
+            }
+
+            // Check if taker is reached in this expansion
+            if ($takerUser && !$takerReachedAt && $this->pointInPolygon($takerUser['lat'], $takerUser['lng'], $isochronePolygon)) {
+                $takerReachedAt = [
+                    'expansion_index' => $expansionIndex,
+                    'minutes_after_arrival' => $currentTime,
+                    'minutes' => $currentMinutes
                 ];
+            }
 
-                $lastExpansionTime = $minutesSinceArrival;
-                $repliesSinceExpansion = 0;
+            $expansions[] = [
+                'sequence' => $expansionIndex,
+                'minutes_after_arrival' => $currentTime,
+                'minutes' => $currentMinutes,
+                'transport' => $this->params['transport'],
+                'polygon' => $isochronePolygon,
+                'users_in_isochrone' => $usersInIsochrone,
+                'new_users_reached' => $newUsersAdded,
+                'replies_at_time' => $repliesAtTime,
+                'replies_in_isochrone' => $this->countRepliesInIsochroneByTime($isochronePolygon, $activeUsers, $replies, $arrivalTime, $currentTime)
+            ];
+
+            $expansionIndex++;
+        }
+
+        return [
+            'expansions' => $expansions,
+            'taker_reached_at' => $takerReachedAt
+        ];
+    }
+
+    /**
+     * Get expansion interval in minutes based on elapsed time
+     * Slowed down so distance reached in 24 hours is what was previously reached in 4 hours
+     * Extends over 3 days (72 hours) total
+     */
+    private function getExpansionInterval($elapsedMinutes) {
+        // Convert to hours for easier readability
+        $elapsedHours = $elapsedMinutes / 60;
+
+        // Expansion schedule over 72 hours:
+        // 0-12 hours: expand every 4 hours
+        // 12-24 hours: expand every 6 hours
+        // 24-48 hours: expand every 8 hours
+        // 48-72 hours: expand every 8 hours
+
+        if ($elapsedHours < 12) {
+            return 240;  // 4 hours
+        } else if ($elapsedHours < 24) {
+            return 360; // 6 hours
+        } else {
+            return 480; // 8 hours
+        }
+    }
+
+    /**
+     * Skip to next daytime hour (8am) if currently in nighttime (8pm-8am)
+     * Returns adjusted minutes from arrival
+     */
+    private function skipToNextDaytime($arrivalTimestamp, $minutesFromArrival) {
+        // Calculate absolute timestamp
+        $currentTimestamp = $arrivalTimestamp + ($minutesFromArrival * 60);
+
+        // Get hour of day (0-23)
+        $hour = intval(date('G', $currentTimestamp));
+
+        // If between 8am (8) and 8pm (20), we're in daytime - no adjustment needed
+        if ($hour >= 8 && $hour < 20) {
+            return $minutesFromArrival;
+        }
+
+        // We're in nighttime - skip to next 8am
+        $currentDate = getdate($currentTimestamp);
+
+        // If after 8pm today, skip to 8am tomorrow
+        if ($hour >= 20) {
+            $next8am = mktime(8, 0, 0, $currentDate['mon'], $currentDate['mday'] + 1, $currentDate['year']);
+        } else {
+            // Before 8am today, skip to 8am today
+            $next8am = mktime(8, 0, 0, $currentDate['mon'], $currentDate['mday'], $currentDate['year']);
+        }
+
+        // Return new minutes from arrival
+        return ($next8am - $arrivalTimestamp) / 60;
+    }
+
+    private function countRepliesByTime($replyTimesMinutes, $currentTime) {
+        $count = 0;
+        foreach ($replyTimesMinutes as $replyTime) {
+            if ($replyTime <= $currentTime) {
+                $count++;
+            }
+        }
+        return $count;
+    }
+
+    private function countRepliesInIsochroneByTime($polygon, $users, $replies, $arrivalTime, $currentTimeMinutes) {
+        if (!$polygon || count($replies) == 0) {
+            return 0;
+        }
+
+        // Create lookup of users who replied by the current time
+        $repliedUsersByTime = [];
+        foreach ($replies as $reply) {
+            $replyTime = strtotime($reply['date']);
+            $minutesSinceArrival = ($replyTime - $arrivalTime) / 60;
+
+            // Only count replies that occurred before or at current time
+            if ($minutesSinceArrival <= $currentTimeMinutes) {
+                $repliedUsersByTime[$reply['userid']] = TRUE;
             }
         }
 
-        return $expansions;
+        // Count how many of those repliers are in the isochrone
+        $count = 0;
+        foreach ($users as $user) {
+            if (isset($repliedUsersByTime[$user['userid']]) &&
+                $this->pointInPolygon($user['lat'], $user['lng'], $polygon)) {
+                $count++;
+            }
+        }
+
+        return $count;
     }
 
     private function getIsochronePolygon($locationId, $minutes, $transport) {
@@ -535,21 +844,47 @@ class MessageIsochroneSimulator {
         }
     }
 
-    private function calculateMessageMetrics($simMsgId, $expansions, $activeUsers, $replies) {
+    private function calculateMessageMetrics($simMsgId, $expansions, $activeUsers, $replies, $takerReachedAt, $takerId) {
         $finalExpansion = end($expansions);
 
         $metrics = [
+            // Total number of users who actually replied to this message
             'total_replies' => count($replies),
+
+            // Total number of active users in the group (within 10 miles) at the time
             'total_active_users' => count($activeUsers),
+
+            // How many users were reached by the initial (smallest) isochrone
             'initial_users_reached' => $expansions[0]['users_in_isochrone'],
+
+            // How many users were reached by the final (largest) isochrone
             'final_users_reached' => $finalExpansion['users_in_isochrone'],
+
+            // Number of times the isochrone was expanded (0 = no expansions, just initial)
             'total_expansions' => count($expansions) - 1,
+
+            // How many of the repliers were within the final isochrone
             'replies_in_final_isochrone' => $finalExpansion['replies_in_isochrone'],
+
+            // Capture rate: % of actual replies that came from users within the final isochrone
+            // (Higher is better - shows we're targeting the right area)
             'capture_rate' => count($replies) > 0 ?
                 round($finalExpansion['replies_in_isochrone'] / count($replies) * 100, 2) : 0,
+
+            // Efficiency: % of notified users who actually replied
+            // (Higher is better - shows we're not over-notifying)
             'efficiency' => $finalExpansion['users_in_isochrone'] > 0 ?
                 round($finalExpansion['replies_in_isochrone'] / $finalExpansion['users_in_isochrone'] * 100, 2) : 0,
-            'cost_notifications' => $finalExpansion['users_in_isochrone']
+
+            // Cost: Total number of notifications that would be sent with this strategy
+            'cost_notifications' => $finalExpansion['users_in_isochrone'],
+
+            // Taker metrics: When would the person who eventually took the item have been reached?
+            'has_taker' => $takerId ? TRUE : FALSE,
+            'taker_reached' => $takerReachedAt ? TRUE : FALSE,
+            'taker_reached_at_expansion' => $takerReachedAt ? $takerReachedAt['expansion_index'] : NULL,
+            'taker_reached_at_minutes' => $takerReachedAt ? $takerReachedAt['minutes_after_arrival'] : NULL,
+            'taker_in_initial_isochrone' => $takerReachedAt && $takerReachedAt['expansion_index'] === 0 ? TRUE : FALSE
         ];
 
         return $metrics;
@@ -560,34 +895,75 @@ class MessageIsochroneSimulator {
             return [];
         }
 
-        $totals = [
-            'messages' => count($allMetrics),
-            'total_replies' => 0,
-            'total_users_reached' => 0,
-            'capture_rates' => [],
-            'efficiencies' => [],
-            'expansions' => []
-        ];
+        // Get current run's parameters to find all runs with same settings
+        $currentRun = $this->dbhr->preQuery("SELECT parameters FROM simulation_message_isochrones_runs WHERE id = ?", [
+            $this->runId
+        ])[0];
 
-        foreach ($allMetrics as $m) {
-            $totals['total_replies'] += $m['total_replies'];
-            $totals['total_users_reached'] += $m['final_users_reached'];
-            $totals['capture_rates'][] = $m['capture_rate'];
-            $totals['efficiencies'][] = $m['efficiency'];
-            $totals['expansions'][] = $m['total_expansions'];
+        $currentParams = $currentRun['parameters'];
+
+        // Get all messages from all completed runs with the same parameters
+        $allMessages = $this->dbhr->preQuery(
+            "SELECT m.metrics
+             FROM simulation_message_isochrones_messages m
+             INNER JOIN simulation_message_isochrones_runs r ON m.runid = r.id
+             WHERE r.parameters = ?
+               AND r.status = 'completed'
+               AND m.metrics IS NOT NULL",
+            [$currentParams]
+        );
+
+        $replies = [];
+        $usersReached = [];
+        $captureRates = [];
+        $efficiencies = [];
+        $expansions = [];
+        $takerTimes = [];
+        $messagesWithTaker = 0;
+        $takersReached = 0;
+        $takersInInitial = 0;
+
+        foreach ($allMessages as $msg) {
+            $metrics = json_decode($msg['metrics'], TRUE);
+            if ($metrics) {
+                $replies[] = $metrics['total_replies'];
+                $usersReached[] = $metrics['final_users_reached'];
+                $captureRates[] = $metrics['capture_rate'];
+                $efficiencies[] = $metrics['efficiency'];
+                $expansions[] = $metrics['total_expansions'];
+
+                // Taker statistics
+                if ($metrics['has_taker']) {
+                    $messagesWithTaker++;
+                    if ($metrics['taker_reached']) {
+                        $takersReached++;
+                        $takerTimes[] = $metrics['taker_reached_at_minutes'];
+                        if ($metrics['taker_in_initial_isochrone']) {
+                            $takersInInitial++;
+                        }
+                    }
+                }
+            }
         }
 
-        return [
-            'messages_analyzed' => $totals['messages'],
-            'total_replies' => $totals['total_replies'],
-            'total_users_reached' => $totals['total_users_reached'],
-            'median_capture_rate' => $this->median($totals['capture_rates']),
-            'mean_capture_rate' => $this->mean($totals['capture_rates']),
-            'median_efficiency' => $this->median($totals['efficiencies']),
-            'mean_efficiency' => $this->mean($totals['efficiencies']),
-            'median_expansions' => $this->median($totals['expansions']),
-            'mean_expansions' => $this->mean($totals['expansions'])
+        $result = [
+            'messages_analyzed' => count($allMessages),
+            'messages_in_this_run' => count($allMetrics),
+            'median_replies' => round($this->median($replies), 2),
+            'median_users_reached' => round($this->median($usersReached), 2),
+            'median_capture_rate' => round($this->median($captureRates), 2),
+            'mean_capture_rate' => round($this->mean($captureRates), 2),
+            'median_efficiency' => round($this->median($efficiencies), 2),
+            'mean_efficiency' => round($this->mean($efficiencies), 2),
+            'median_expansions' => round($this->median($expansions), 2),
+            'mean_expansions' => round($this->mean($expansions), 2),
+            'messages_with_taker' => $messagesWithTaker,
+            'takers_reached_pct' => $messagesWithTaker > 0 ? round(($takersReached / $messagesWithTaker) * 100, 2) : 0,
+            'takers_in_initial_pct' => $messagesWithTaker > 0 ? round(($takersInInitial / $messagesWithTaker) * 100, 2) : 0,
+            'median_taker_reach_time' => round($this->median($takerTimes), 2)
         ];
+
+        return $result;
     }
 
     private function median($arr) {
@@ -614,10 +990,54 @@ $options = getopt('', [
     'start:',
     'end:',
     'group:',
+    'groups:',
     'limit:',
+    'min-users:',
     'name:',
-    'description:'
+    'description:',
+    'help'
 ]);
+
+// Show usage message if requested
+if (isset($options['help'])) {
+    echo "Usage: php simulate_message_isochrones.php [options]\n\n";
+    echo "Simulates message isochrone expansion using historical data to determine optimal\n";
+    echo "notification strategies. Analyzes when replies arrived and tracks when users would\n";
+    echo "have been reached by expanding isochrones. Each expansion aims to cover an\n";
+    echo "additional minimum number of known active users (configurable via --min-users).\n\n";
+    echo "Options:\n";
+    echo "  --start DATE          Start date for message range (default: 30 days ago)\n";
+    echo "                        Format: YYYY-MM-DD\n";
+    echo "  --end DATE            End date for message range (default: 7 days ago)\n";
+    echo "                        Format: YYYY-MM-DD\n";
+    echo "  --group ID[,ID...]    Filter to one or more group IDs (comma-separated)\n";
+    echo "                        Example: --group 12345 or --group \"12345,67890,11111\"\n";
+    echo "  --groups IDS          Same as --group (accepts comma-separated IDs)\n";
+    echo "  --limit N             Limit number of messages to process (default: all)\n";
+    echo "                        When used with --groups, limit applies PER GROUP\n";
+    echo "                        Example: --groups \"1,2,3\" --limit 100 = 300 messages total\n";
+    echo "  --min-users N         Minimum users to include/add per expansion (default: 100)\n";
+    echo "                        Initial isochrone expands until it reaches this many users\n";
+    echo "                        Each subsequent expansion adds at least this many new users\n";
+    echo "  --name NAME           Name for this simulation run (optional)\n";
+    echo "  --description TEXT    Description for this run (optional)\n";
+    echo "  --help                Show this help message\n\n";
+    echo "Examples:\n";
+    echo "  # Single group:\n";
+    echo "  php simulate_message_isochrones.php --start 2025-09-01 --end 2025-09-30 --group 12345 --limit 100 --name \"Sept Test\"\n\n";
+    echo "  # Multiple groups (10 messages per group = 30 total):\n";
+    echo "  php simulate_message_isochrones.php --group \"12345,67890,11111\" --limit 10 --name \"Multi-Group Test\"\n\n";
+    echo "Simulation Parameters (hardcoded, adjust in class if needed):\n";
+    echo "  - transport: car (mode of transport for isochrone calculation)\n";
+    echo "  - initialMinutes: 5 (starting size for initial isochrone)\n";
+    echo "  - maxMinutes: 60 (maximum isochrone size)\n";
+    echo "  - increment: 5 (minutes to add per expansion step)\n";
+    echo "  - minUsers: 100 (minimum users per isochrone/expansion - overridable via --min-users)\n";
+    echo "  - activeSince: 90 days (only include users active in last N days)\n";
+    echo "  - timeSinceLastExpand: 60 minutes (minimum time between expansions)\n";
+    echo "  - numReplies: 7 (stop expanding once we have this many replies - we have enough interest)\n\n";
+    exit(0);
+}
 
 $simulatorOptions = [];
 
@@ -629,12 +1049,32 @@ if (isset($options['end'])) {
     $simulatorOptions['endDate'] = $options['end'];
 }
 
-if (isset($options['group'])) {
-    $simulatorOptions['groupId'] = $options['group'];
+// Handle group filtering - support both single --group and multiple --groups
+if (isset($options['groups'])) {
+    // Parse comma-separated list from --groups
+    $groupIds = array_map('trim', explode(',', $options['groups']));
+    $groupIds = array_map('intval', $groupIds);
+    $simulatorOptions['groupIds'] = $groupIds;
+} elseif (isset($options['group'])) {
+    // Check if --group contains comma-separated values
+    if (strpos($options['group'], ',') !== FALSE) {
+        // Parse comma-separated list from --group
+        $groupIds = array_map('trim', explode(',', $options['group']));
+        $groupIds = array_map('intval', $groupIds);
+        $simulatorOptions['groupIds'] = $groupIds;
+    } else {
+        // Single group - convert to array for consistency
+        $simulatorOptions['groupIds'] = [intval($options['group'])];
+    }
 }
 
 if (isset($options['limit'])) {
     $simulatorOptions['limit'] = $options['limit'];
+}
+
+// Handle min-users parameter
+if (isset($options['min-users'])) {
+    $simulatorOptions['params']['minUsers'] = intval($options['min-users']);
 }
 
 $name = $options['name'] ?? NULL;
