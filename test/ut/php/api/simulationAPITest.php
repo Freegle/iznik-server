@@ -131,8 +131,6 @@ class simulationAPITest extends IznikAPITestCase {
     }
 
     public function testNavigateMessages() {
-        $this->markTestSkipped('Transaction isolation prevents session data from persisting across API calls in tests');
-
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
         $this->assertTrue($this->user->login('testpw'));
 
@@ -182,17 +180,10 @@ class simulationAPITest extends IznikAPITestCase {
             }
         }
 
-        // Create session
-        $ret = $this->call('simulation', 'POST', [
-            'runid' => $runId
-        ]);
-        $this->assertEquals(0, $ret['ret']);
-        $sessionId = $ret['session'];
-
-        // Get current message (should be first)
+        // Get first message (index 0)
         $ret = $this->call('simulation', 'GET', [
-            'session' => $sessionId,
-            'action' => 'current'
+            'runid' => $runId,
+            'index' => 0
         ]);
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals('Test Message 0', $ret['message']['subject']);
@@ -201,44 +192,27 @@ class simulationAPITest extends IznikAPITestCase {
         $this->assertFalse($ret['navigation']['has_prev']);
         $this->assertEquals(3, $ret['navigation']['total_messages']);
 
-        // Navigate to next
+        // Get second message (index 1)
         $ret = $this->call('simulation', 'GET', [
-            'session' => $sessionId,
-            'action' => 'next'
+            'runid' => $runId,
+            'index' => 1
         ]);
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals('Test Message 1', $ret['message']['subject']);
         $this->assertEquals(1, $ret['navigation']['current_index']);
+        $this->assertTrue($ret['navigation']['has_next']);
+        $this->assertTrue($ret['navigation']['has_prev']);
 
-        // Navigate to next again
+        // Get third message (index 2)
         $ret = $this->call('simulation', 'GET', [
-            'session' => $sessionId,
-            'action' => 'next'
+            'runid' => $runId,
+            'index' => 2
         ]);
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals('Test Message 2', $ret['message']['subject']);
         $this->assertEquals(2, $ret['navigation']['current_index']);
         $this->assertFalse($ret['navigation']['has_next']);
         $this->assertTrue($ret['navigation']['has_prev']);
-
-        // Navigate to prev
-        $ret = $this->call('simulation', 'GET', [
-            'session' => $sessionId,
-            'action' => 'prev'
-        ]);
-        $this->assertEquals(0, $ret['ret']);
-        $this->assertEquals('Test Message 1', $ret['message']['subject']);
-        $this->assertEquals(1, $ret['navigation']['current_index']);
-
-        // Navigate by index
-        $ret = $this->call('simulation', 'GET', [
-            'session' => $sessionId,
-            'action' => 'index',
-            'index' => 0
-        ]);
-        $this->assertEquals(0, $ret['ret']);
-        $this->assertEquals('Test Message 0', $ret['message']['subject']);
-        $this->assertEquals(0, $ret['navigation']['current_index']);
     }
 
     public function testGetMessageWithoutRunid() {
@@ -263,8 +237,6 @@ class simulationAPITest extends IznikAPITestCase {
     }
 
     public function testResponseStructure() {
-        $this->markTestSkipped('Transaction isolation prevents session data from persisting across API calls in tests');
-
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
         $this->assertTrue($this->user->login('testpw'));
 
@@ -306,11 +278,11 @@ class simulationAPITest extends IznikAPITestCase {
             $simMsgId
         ]);
 
-        // Create session and get message
-        $ret = $this->call('simulation', 'POST', ['runid' => $runId]);
-        $sessionId = $ret['session'];
-
-        $ret = $this->call('simulation', 'GET', ['session' => $sessionId]);
+        // Get message at index 0
+        $ret = $this->call('simulation', 'GET', [
+            'runid' => $runId,
+            'index' => 0
+        ]);
 
         // Verify response structure
         $this->assertEquals(0, $ret['ret']);
