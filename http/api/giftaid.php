@@ -1,6 +1,14 @@
 <?php
 namespace Freegle\Iznik;
 
+// TODO: DEPRECATED - This endpoint has been migrated to v2 Go API
+// Can be retired once all FD/MT clients are using v2
+// Migrated: 2025-10-13
+// V2 endpoint: GET /api/v2/giftaid (for user's own gift aid record)
+// Used by: FD for user's gift aid declaration; MT still uses v1 for list() and search() (admin functions)
+// Note: Only the GET operation (user's own record) has been migrated to v2 for FD.
+//       MT admin functions (list, search) and write operations (POST, PATCH, DELETE) remain in v1.
+
 function giftaid() {
     global $dbhr, $dbhm;
 
