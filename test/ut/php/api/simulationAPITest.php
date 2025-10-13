@@ -26,7 +26,7 @@ class simulationAPITest extends IznikAPITestCase {
         $this->dbhm = $dbhm;
 
         // Clean up simulation tables
-        $this->dbhm->preExec("DELETE FROM simulation_message_isochrones_sessions;");
+        // Note: simulation_message_isochrones_sessions table has been removed
         $this->dbhm->preExec("DELETE FROM simulation_message_isochrones_users;");
         $this->dbhm->preExec("DELETE FROM simulation_message_isochrones_expansions;");
         $this->dbhm->preExec("DELETE FROM simulation_message_isochrones_messages;");
