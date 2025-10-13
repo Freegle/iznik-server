@@ -46,8 +46,53 @@ function simulation() {
                         'status' => 'Success',
                         'runs' => $runList
                     ];
+                } elseif ($action === 'getrun') {
+                    // Get run information
+                    $runid = intval(Utils::presdef('runid', $_REQUEST, 0));
+
+                    if (!$runid) {
+                        $ret = ['ret' => 1, 'status' => 'Missing runid parameter'];
+                    } else {
+                        // Check if run exists
+                        $runs = $dbhr->preQuery("SELECT id, name, description, created, completed,
+                                                        parameters, filters, message_count, metrics, status
+                                                 FROM simulation_message_isochrones_runs
+                                                 WHERE id = ?", [$runid]);
+
+                        if (count($runs) == 0) {
+                            $ret = ['ret' => 2, 'status' => 'Run not found'];
+                        } else {
+                            $run = $runs[0];
+
+                            // Check if run is completed
+                            if ($run['status'] !== 'completed') {
+                                $ret = [
+                                    'ret' => 3,
+                                    'status' => 'Run is not completed',
+                                    'run_status' => $run['status']
+                                ];
+                            } else {
+                                $ret = [
+                                    'ret' => 0,
+                                    'status' => 'Success',
+                                    'run' => [
+                                        'id' => $run['id'],
+                                        'name' => $run['name'],
+                                        'description' => $run['description'],
+                                        'created' => Utils::ISODate($run['created']),
+                                        'completed' => Utils::ISODate($run['completed']),
+                                        'parameters' => json_decode($run['parameters'], TRUE),
+                                        'filters' => json_decode($run['filters'], TRUE),
+                                        'message_count' => $run['message_count'],
+                                        'metrics' => json_decode($run['metrics'], TRUE),
+                                        'status' => $run['status']
+                                    ]
+                                ];
+                            }
+                        }
+                    }
                 } else {
-                    // Get message at index for a run
+                    // Stateless navigation - get message at index for a run
                     $runid = intval(Utils::presdef('runid', $_REQUEST, 0));
                     $index = intval(Utils::presdef('index', $_REQUEST, 0));
 

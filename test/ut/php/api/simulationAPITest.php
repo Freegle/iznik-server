@@ -52,7 +52,7 @@ class simulationAPITest extends IznikAPITestCase {
         $this->assertEquals(99, $ret['ret']);
     }
 
-    public function testCreateSession() {
+    public function testGetRun() {
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
         $this->assertTrue($this->user->login('testpw'));
 
@@ -79,34 +79,35 @@ class simulationAPITest extends IznikAPITestCase {
 
         $runId = $this->dbhm->lastInsertId();
 
-        // Call API to create session
-        $ret = $this->call('simulation', 'POST', [
-            'runid' => $runId
+        // Call API to get run info
+        $ret = $this->call('simulation', 'GET', [
+            'runid' => $runId,
+            'action' => 'getrun'
         ]);
 
         $this->assertEquals(0, $ret['ret']);
-        $this->assertNotNull($ret['session']);
         $this->assertEquals($runId, $ret['run']['id']);
         $this->assertEquals('Test Run', $ret['run']['name']);
         $this->assertEquals(5, $ret['run']['message_count']);
     }
 
-    public function testCreateSessionMissingRun() {
+    public function testGetRunMissingParams() {
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
         $this->assertTrue($this->user->login('testpw'));
 
-        // Try to create session without runid
-        $ret = $this->call('simulation', 'POST', []);
+        // Try to get run without runid
+        $ret = $this->call('simulation', 'GET', ['action' => 'getrun']);
         $this->assertEquals(1, $ret['ret']);
 
-        // Try to create session with non-existent run
-        $ret = $this->call('simulation', 'POST', [
-            'runid' => 99999
+        // Try to get non-existent run
+        $ret = $this->call('simulation', 'GET', [
+            'runid' => 99999,
+            'action' => 'getrun'
         ]);
         $this->assertEquals(2, $ret['ret']);
     }
 
-    public function testCreateSessionIncompleteRun() {
+    public function testGetIncompleteRun() {
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
         $this->assertTrue($this->user->login('testpw'));
 
@@ -120,9 +121,10 @@ class simulationAPITest extends IznikAPITestCase {
 
         $runId = $this->dbhm->lastInsertId();
 
-        // Try to create session with incomplete run
-        $ret = $this->call('simulation', 'POST', [
-            'runid' => $runId
+        // Try to get incomplete run
+        $ret = $this->call('simulation', 'GET', [
+            'runid' => $runId,
+            'action' => 'getrun'
         ]);
         $this->assertEquals(3, $ret['ret']);
         $this->assertEquals('pending', $ret['run_status']);
@@ -239,22 +241,23 @@ class simulationAPITest extends IznikAPITestCase {
         $this->assertEquals(0, $ret['navigation']['current_index']);
     }
 
-    public function testNavigateWithoutSession() {
+    public function testGetMessageWithoutRunid() {
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
         $this->assertTrue($this->user->login('testpw'));
 
-        // Try to navigate without session
+        // Try to get message without runid
         $ret = $this->call('simulation', 'GET', []);
         $this->assertEquals(1, $ret['ret']);
     }
 
-    public function testNavigateInvalidSession() {
+    public function testGetMessageInvalidRun() {
         $this->user->setPrivate('systemrole', User::SYSTEMROLE_MODERATOR);
         $this->assertTrue($this->user->login('testpw'));
 
-        // Try to navigate with invalid session
+        // Try to get message with invalid runid
         $ret = $this->call('simulation', 'GET', [
-            'session' => 'invalid_session_id'
+            'runid' => 99999,
+            'index' => 0
         ]);
         $this->assertEquals(2, $ret['ret']);
     }
