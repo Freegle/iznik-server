@@ -1,6 +1,8 @@
 <?php
 namespace Freegle\Iznik;
 
+// DEPRECATED: GET operations have been migrated to v2 (Go API) at /apiv2/microvolunteering
+// POST and PATCH operations still use v1 and will be migrated in a future phase
 function microvolunteering() {
     global $dbhr, $dbhm;
 
