@@ -37,6 +37,13 @@ function user() {
 
     switch ($_REQUEST['type']) {
         case 'GET': {
+            // TODO: DEPRECATED - Email lookup migrated to v2 Go API
+            // Email lookup (GET /user?email=...) can be retired once all FD clients are using v2
+            // Search functionality (GET /user?search=...) still in v1, will be migrated in Phase 2 (MT)
+            // Migrated: 2025-10-17
+            // V2 endpoint: GET /api/v2/user/byemail/{email}
+            // Used by: FD for email-in-use checks during post creation
+
             $emailhistory = array_key_exists('emailhistory', $_REQUEST) ? filter_var($_REQUEST['emailhistory'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $modmailsonly = array_key_exists('modmailsonly', $_REQUEST) ? filter_var($_REQUEST['modmailsonly'], FILTER_VALIDATE_BOOLEAN) : FALSE;
             $info = array_key_exists('info', $_REQUEST) ? filter_var($_REQUEST['info'], FILTER_VALIDATE_BOOLEAN) : FALSE;
