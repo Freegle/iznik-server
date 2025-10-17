@@ -28,7 +28,7 @@ class MessageIsochroneSimulator {
     private $params = [
         'initialMinutes' => 5,
         'maxMinutes' => 60,
-        'increment' => 5,
+        'increment' => 1,
         'minUsers' => 100,  // Minimum users to include in initial isochrone / add per expansion
         'activeSince' => 90,
         'transport' => 'car',
