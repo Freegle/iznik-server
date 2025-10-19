@@ -2,7 +2,7 @@
 
 namespace Freegle\Iznik;
 
-require_once(dirname(__FILE__) . '/simulate_message_isochrones.php');
+require_once(dirname(__FILE__) . '/spiralling_investigation_simulate.php');
 
 /**
  * Extended simulator that supports configurable temporal expansion curves
