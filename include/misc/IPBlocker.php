@@ -94,6 +94,7 @@ class IPBlocker
         $blockFile = $this->getBlockFilePath($ip);
         $blockCount = 0;
         $duration = self::INITIAL_BLOCK_DURATION;
+        $isNewBlock = !file_exists($blockFile);
 
         if (file_exists($blockFile)) {
             $existingData = json_decode(file_get_contents($blockFile), TRUE);
@@ -128,7 +129,9 @@ class IPBlocker
 
         file_put_contents($blockFile, json_encode($data, JSON_PRETTY_PRINT));
 
-        $this->sendBlockNotification($ip, $reason, $duration, $blockCount, $userid, $username, $email);
+        if ($isNewBlock) {
+            $this->sendBlockNotification($ip, $reason, $duration, $blockCount, $userid, $username, $email);
+        }
 
         return TRUE;
     }
