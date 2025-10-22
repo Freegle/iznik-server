@@ -300,7 +300,7 @@ $options = getopt('', [
 ]);
 
 if (isset($options['help'])) {
-    echo "Usage: php validate_cluster_parameters.php [options]\n\n";
+    echo "Usage: php spiralling_investigation_validate_clusters.php [options]\n\n";
     echo "Validates whether isochrone parameters should vary by cluster by running\n";
     echo "parameter optimization on representative groups from each cluster.\n\n";
     echo "This script answers the question: 'Do different types of groups (urban, rural, etc.)\n";
@@ -326,14 +326,17 @@ if (isset($options['help'])) {
     echo "  - CV > 20%: Parameters differ → use cluster-specific parameters\n\n";
     echo "Example workflow:\n";
     echo "  # 1. Analyze all groups\n";
-    echo "  php analyze_group_characteristics.php\n\n";
+    echo "  php spiralling_investigation_analyze_characteristics.php\n\n";
     echo "  # 2. Cluster groups by characteristics\n";
-    echo "  php cluster_groups.php --clusters=4\n\n";
+    echo "  php spiralling_investigation_cluster_groups.php --clusters=4\n\n";
     echo "  # 3. Validate if clusters need different parameters (THIS SCRIPT)\n";
-    echo "  php validate_cluster_parameters.php --iterations=50\n\n";
+    echo "  php spiralling_investigation_validate_clusters.php --iterations=50\n\n";
     echo "  # 4. Based on recommendation, either:\n";
     echo "  #    a) Run global optimization if parameters are consistent\n";
     echo "  #    b) Run per-cluster optimization if parameters vary\n\n";
+    echo "Database Files:\n";
+    echo "  - Validation results: {output} (JSON summary)\n";
+    echo "  - Per-cluster data: /tmp/cluster_{N}_optimization.db (SQLite databases)\n\n";
     exit(0);
 }
 
