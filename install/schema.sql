@@ -1142,12 +1142,13 @@ CREATE TABLE `isochrones` (
   `locationid` bigint unsigned DEFAULT NULL,
   `transport` enum('Walk','Cycle','Drive') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `minutes` int NOT NULL,
+  `source` enum('Mapbox','OSM','Valhalla','GraphHopper','ORS') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'Mapbox' COMMENT 'Isochrone data source',
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `polygon` geometry NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `userid_2` (`locationid`,`transport`,`minutes`),
+  UNIQUE KEY `userid_2` (`locationid`,`transport`,`minutes`,`source`),
   KEY `locationid` (`locationid`),
-  KEY `locationid_2` (`locationid`,`transport`,`minutes`),
+  KEY `locationid_2` (`locationid`,`transport`,`minutes`,`source`),
   CONSTRAINT `isochrones_ibfk_2` FOREIGN KEY (`locationid`) REFERENCES `locations` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
 ) ENGINE=InnoDB AUTO_INCREMENT=1751137774 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1617,6 +1618,94 @@ CREATE TABLE `locations_spatial` (
   SPATIAL KEY `geometry` (`geometry`),
   CONSTRAINT `locations_spatial_ibfk_1` FOREIGN KEY (`locationid`) REFERENCES `locations` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `transport_postcode_classification`
+--
+
+DROP TABLE IF EXISTS `transport_postcode_classification`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `transport_postcode_classification` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `postcode` varchar(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Postcode without spaces, e.g. AB101XG',
+  `postcode_space` varchar(9) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Original postcode with space, e.g. AB10 1XG',
+  `ru_category` varchar(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Rural-Urban Classification 2011: A1, B1, C1, C2, D1, D2, E1, E2, F1, F2',
+  `region_code` varchar(9) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'ONS Region code, e.g. E12000001',
+  `region_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Region name for reference',
+  `lat` decimal(10,6) DEFAULT NULL,
+  `lng` decimal(10,6) DEFAULT NULL,
+  `imported_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_seen` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `postcode` (`postcode`),
+  KEY `ru_category` (`ru_category`),
+  KEY `region_code` (`region_code`),
+  KEY `ru_region` (`ru_category`,`region_code`),
+  KEY `lat_lng` (`lat`,`lng`),
+  KEY `last_seen` (`last_seen`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Postcode to Rural-Urban Classification and Region mapping from ONSPD';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `transport_duration_model`
+--
+
+DROP TABLE IF EXISTS `transport_duration_model`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `transport_duration_model` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `ru_category` varchar(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'A1, B1, C1, C2, D1, D2, E1, E2, F1, F2',
+  `region_code` varchar(9) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'E12000001, etc.',
+  `ru_description` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Human-readable description',
+  `walk_speed_mph` decimal(4,2) NOT NULL DEFAULT '3.00' COMMENT 'Average walking speed in mph',
+  `cycle_speed_mph` decimal(4,2) NOT NULL DEFAULT '10.00' COMMENT 'Average cycling speed in mph',
+  `drive_speed_mph` decimal(4,2) NOT NULL DEFAULT '20.00' COMMENT 'Average driving speed in mph',
+  `walk_base_mins` int NOT NULL DEFAULT '18' COMMENT 'NTS 2024 average walk trip duration',
+  `cycle_base_mins` int NOT NULL DEFAULT '24' COMMENT 'NTS 2024 average cycle trip duration',
+  `drive_base_mins` int NOT NULL DEFAULT '22' COMMENT 'NTS 2024 average drive trip duration',
+  `time_adjustment_factor` decimal(4,2) NOT NULL DEFAULT '1.00' COMMENT 'Rural adjustment factor (1.0=urban, 1.33=rural)',
+  `avg_walk_distance_miles` decimal(5,2) DEFAULT NULL COMMENT 'Average walk trip distance from NTS',
+  `avg_cycle_distance_miles` decimal(5,2) DEFAULT NULL COMMENT 'Average cycle trip distance from NTS',
+  `avg_drive_distance_miles` decimal(5,2) DEFAULT NULL COMMENT 'Average drive trip distance from NTS',
+  `data_source` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'NTS2024' COMMENT 'Source of the data',
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `last_seen` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ru_region` (`ru_category`,`region_code`),
+  KEY `ru_category` (`ru_category`),
+  KEY `last_seen` (`last_seen`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Transport speed and duration parameters by area type and region';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `transport_mode_probabilities`
+--
+
+DROP TABLE IF EXISTS `transport_mode_probabilities`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `transport_mode_probabilities` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `ru_category` varchar(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `region_code` varchar(9) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `walk_pct` decimal(5,2) DEFAULT '0.00' COMMENT 'Percentage of trips by walking',
+  `cycle_pct` decimal(5,2) DEFAULT '0.00' COMMENT 'Percentage of trips by cycling',
+  `drive_pct` decimal(5,2) DEFAULT '0.00' COMMENT 'Percentage of trips by driving',
+  `bus_pct` decimal(5,2) DEFAULT '0.00' COMMENT 'Percentage of trips by bus',
+  `rail_pct` decimal(5,2) DEFAULT '0.00' COMMENT 'Percentage of trips by rail',
+  `other_pct` decimal(5,2) DEFAULT '0.00' COMMENT 'Percentage of trips by other modes',
+  `avg_trips_per_year` int DEFAULT NULL COMMENT 'Average trips per person per year',
+  `data_source` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'NTS2024' COMMENT 'Source: NTS9903',
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `last_seen` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ru_region` (`ru_category`,`region_code`),
+  KEY `ru_category` (`ru_category`),
+  KEY `last_seen` (`last_seen`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Transport mode choice probabilities by area type from NTS';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --

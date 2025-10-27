@@ -89,10 +89,12 @@ class Isochrone extends Entity
         return $count[0]['count'];
     }
 
-    public function ensureIsochroneExists($locationid, $minutes = 10, $transport = NULL) {
-        # See if we already have one.
+    public function ensureIsochroneExists($locationid, $minutes = 10, $transport = NULL, $orsServer = NULL) {
+        $source = $orsServer ? 'ORS' : 'Mapbox';
+
         $transq = $transport ? (" AND transport = " . $this->dbhr->quote($transport)) : " AND transport IS NULL";
-        $existings = $this->dbhr->preQuery("SELECT id FROM isochrones WHERE locationid = ? $transq AND minutes = ? ORDER BY timestamp DESC LIMIT 1;", [
+        $sourceq = " AND source = " . $this->dbhr->quote($source);
+        $existings = $this->dbhr->preQuery("SELECT id FROM isochrones WHERE locationid = ? $transq AND minutes = ? $sourceq ORDER BY timestamp DESC LIMIT 1;", [
             $locationid,
             $minutes
         ]);
@@ -101,23 +103,26 @@ class Isochrone extends Entity
         $isochroneid = NULL;
 
         if (count($existings)) {
-            # We have an existing one for these parameters.  Copy it for this user.
             $isochroneid = $existings[0]['id'];
         } else {
-            # Need to create one.
             $l = new Location($this->dbhr, $this->dbhm, $locationid);
             $lat = $l->getPrivate('lat');
             $lng = $l->getPrivate('lng');
 
-            $wkt = $this->fetchFromMapbox($transport, $lng, $lat, $minutes);
+            if ($orsServer) {
+                $wkt = $this->fetchFromORS($transport, $lng, $lat, $minutes, $orsServer);
+            } else {
+                $wkt = $this->fetchFromMapbox($transport, $lng, $lat, $minutes);
+            }
 
             if ($wkt) {
-                $rc = $this->dbhm->preExec("INSERT INTO isochrones (locationid, transport, minutes, polygon) VALUES (?, ?, ?,
+                $rc = $this->dbhm->preExec("INSERT INTO isochrones (locationid, transport, minutes, source, polygon) VALUES (?, ?, ?, ?,
                  CASE WHEN ST_SIMPLIFY(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?) IS NULL THEN ST_GeomFromText(?, {$this->dbhr->SRID()}) ELSE ST_SIMPLIFY(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?) END
                                                                          )", [
                     $locationid,
                     $transport,
                     $minutes,
+                    $source,
                     $wkt,
                     self::SIMPLIFY,
                     $wkt,
@@ -134,28 +139,23 @@ class Isochrone extends Entity
         return $isochroneid;
     }
 
-    public function ensureIsochroneContainingActiveUsers($locationid, $transport = NULL, $targetUsers = 100, $activeSince = 90, $initialMinutes = 10, $maxMinutes = 60, $increment = 10) {
-        # Create an isochrone that contains at least the target number of active users.
-        # Start with initialMinutes and keep increasing by increment until we have enough users or hit maxMinutes.
-        # Returns [isochroneid, minutes] or [NULL, NULL] if failed.
+    public function ensureIsochroneContainingActiveUsers($locationid, $transport = NULL, $targetUsers = 100, $activeSince = 90, $initialMinutes = 10, $maxMinutes = 60, $increment = 10, $orsServer = NULL) {
         $minutes = $initialMinutes;
         $isochroneid = NULL;
         $actualMinutes = NULL;
 
         while ($minutes <= $maxMinutes) {
-            $isochroneid = $this->ensureIsochroneExists($locationid, $minutes, $transport);
+            $isochroneid = $this->ensureIsochroneExists($locationid, $minutes, $transport, $orsServer);
 
             if ($isochroneid) {
                 $actualMinutes = $minutes;
                 $activeUsers = $this->countActiveUsersInIsochrone($isochroneid, $activeSince);
 
                 if ($activeUsers >= $targetUsers) {
-                    # We have enough users, stop here.
                     break;
                 }
             }
 
-            # Need more users, increase the time.
             $minutes += $increment;
         }
 
@@ -232,8 +232,6 @@ class Isochrone extends Entity
             case self::CYCLE: $mapTrans = 'cycling'; break;
             case self::DRIVE: $mapTrans = 'driving'; break;
             default:
-                // We assume driving if they've not specified a preference.  This means that any preference they
-                // have specified is explicit.
                 $mapTrans = 'driving';
                 break;
         }
@@ -245,7 +243,6 @@ class Isochrone extends Entity
         curl_setopt($curl, CURLOPT_TIMEOUT, 60);
         $json_response = curl_exec($curl);
 
-        # This returns GeoJSON - we need to convert to WKT.
         $resp = json_decode($json_response, TRUE);
 
         if (Utils::pres('features', $resp) && count($resp['features']) == 1) {
@@ -257,6 +254,80 @@ class Isochrone extends Entity
                 $p = $g->load(json_encode($geom));
                 $wkt = $p->out('wkt');
             }
+        }
+
+        return $wkt;
+    }
+
+    public function fetchFromORS($transport, $lng, $lat, $minutes, $orsServer) {
+        $wkt = NULL;
+
+        switch ($transport) {
+            case self::WALK: $orsTrans = 'foot-walking'; break;
+            case self::CYCLE: $orsTrans = 'cycling-regular'; break;
+            case self::DRIVE: $orsTrans = 'driving-car'; break;
+            default:
+                $orsTrans = 'driving-car';
+                break;
+        }
+
+        $seconds = $minutes * 60;
+        $url = "$orsServer/v2/isochrones/$orsTrans";
+
+        $postData = json_encode([
+            'locations' => [[$lng, $lat]],
+            'range' => [$seconds],
+            'range_type' => 'time'
+        ]);
+
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_POST, TRUE);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $postData);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'Accept: application/geo+json'
+        ]);
+        $json_response = curl_exec($curl);
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($curl);
+        curl_close($curl);
+
+        if ($curlError) {
+            error_log("ORS fetch failed for lat=$lat, lng=$lng, minutes=$minutes: cURL error: $curlError");
+            return NULL;
+        }
+
+        if ($httpCode !== 200) {
+            error_log("ORS fetch failed for lat=$lat, lng=$lng, minutes=$minutes: HTTP $httpCode. Response: " . substr($json_response, 0, 500));
+            return NULL;
+        }
+
+        $resp = json_decode($json_response, TRUE);
+
+        if (!$resp) {
+            error_log("ORS fetch failed for lat=$lat, lng=$lng, minutes=$minutes: Invalid JSON response");
+            return NULL;
+        }
+
+        if (Utils::pres('error', $resp)) {
+            error_log("ORS fetch failed for lat=$lat, lng=$lng, minutes=$minutes: ORS error: " . json_encode($resp['error']));
+            return NULL;
+        }
+
+        if (Utils::pres('features', $resp) && count($resp['features']) > 0) {
+            $geom = $resp['features'][0];
+
+            if ($geom)
+            {
+                $g = new \geoPHP();
+                $p = $g->load(json_encode($geom));
+                $wkt = $p->out('wkt');
+            }
+        } else {
+            error_log("ORS fetch failed for lat=$lat, lng=$lng, minutes=$minutes: No features in response");
         }
 
         return $wkt;

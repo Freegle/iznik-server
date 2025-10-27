@@ -48,9 +48,9 @@ class GroupCharacteristicsAnalyzer {
                 $characteristics = $this->analyzeGroup($group);
                 if ($characteristics) {
                     $results[] = $characteristics;
-                    echo "  ✓ Area: {$characteristics['area_km2']} km², Users: {$characteristics['active_users']}, Density: {$characteristics['user_density']} users/km²\n";
+                    echo "  ✓ Area: {$characteristics['area_km2']} km², Activity: {$characteristics['messages_per_week']} msg/wk, ONS: {$characteristics['ons_ru_category']} ({$characteristics['group_type']})\n";
                 } else {
-                    echo "  ⚠ Skipped - no valid CGA or users\n";
+                    echo "  ⚠ Skipped - no valid CGA\n";
                 }
             } catch (\Exception $e) {
                 echo "  ✗ Error: " . $e->getMessage() . "\n";
@@ -105,27 +105,14 @@ class GroupCharacteristicsAnalyzer {
         $perimeterKm = $this->calculatePerimeter($cgaGeoJson);
         $compactness = $this->calculateCompactness($areaKm2, $perimeterKm);
 
-        // Get active users in the last 90 days
-        $activeUsers = $this->getActiveUsers($groupId);
-        $userCount = count($activeUsers);
-
-        if ($userCount == 0) {
-            return NULL;
-        }
-
-        $userDensity = round($userCount / max($areaKm2, 0.1), 2);
-
-        // Calculate user spatial distribution
-        $userSpread = $this->calculateUserSpread($activeUsers, $centroid);
-
         // Calculate messages per week (as activity metric)
         $messagesPerWeek = $this->getMessageRate($groupId);
 
-        // Calculate urban/rural classification using user locations
-        $urbanPct = $this->estimateUrbanPercentage($activeUsers);
+        // Get ONS Rural-Urban classification from external data
+        $onsClassification = $this->getONSClassification($centroid);
 
-        // Classify group type
-        $groupType = $this->classifyGroupType($areaKm2, $userDensity, $urbanPct);
+        // Classify group type using ONS data
+        $groupType = $this->classifyGroupTypeFromONS($onsClassification);
 
         return [
             'group_id' => $groupId,
@@ -135,12 +122,9 @@ class GroupCharacteristicsAnalyzer {
             'compactness' => $compactness,
             'centroid_lat' => $centroid['lat'],
             'centroid_lng' => $centroid['lng'],
-            'active_users' => $userCount,
-            'user_density' => $userDensity,
-            'avg_user_distance_km' => $userSpread['avg_distance'],
-            'user_spread_stddev_km' => $userSpread['stddev'],
             'messages_per_week' => $messagesPerWeek,
-            'urban_percentage' => $urbanPct,
+            'ons_ru_category' => $onsClassification['ru_category'] ?? 'Unknown',
+            'ons_region' => $onsClassification['region_name'] ?? 'Unknown',
             'group_type' => $groupType
         ];
     }
@@ -250,50 +234,6 @@ class GroupCharacteristicsAnalyzer {
         return round(min($compactness, 1.0), 4);
     }
 
-    private function getActiveUsers($groupId) {
-        // Get users active in last 90 days with approximate locations
-        $sql = "SELECT DISTINCT
-                    users_approxlocs.userid,
-                    users_approxlocs.lat,
-                    users_approxlocs.lng
-                FROM users_approxlocs
-                INNER JOIN memberships ON users_approxlocs.userid = memberships.userid
-                WHERE memberships.groupid = ?
-                  AND users_approxlocs.timestamp >= DATE_SUB(NOW(), INTERVAL 90 DAY)";
-
-        return $this->dbhr->preQuery($sql, [$groupId]);
-    }
-
-    private function calculateUserSpread($users, $centroid) {
-        if (count($users) == 0) {
-            return ['avg_distance' => 0, 'stddev' => 0];
-        }
-
-        $distances = [];
-
-        foreach ($users as $user) {
-            $distance = $this->haversineDistance(
-                $centroid['lat'], $centroid['lng'],
-                $user['lat'], $user['lng']
-            );
-            $distances[] = $distance;
-        }
-
-        $avgDistance = round(array_sum($distances) / count($distances), 2);
-
-        // Calculate standard deviation
-        $variance = 0;
-        foreach ($distances as $distance) {
-            $variance += pow($distance - $avgDistance, 2);
-        }
-        $stddev = round(sqrt($variance / count($distances)), 2);
-
-        return [
-            'avg_distance' => $avgDistance,
-            'stddev' => $stddev
-        ];
-    }
-
     private function getMessageRate($groupId) {
         // Messages per week in last 30 days
         $sql = "SELECT COUNT(*) / 4.0 as messages_per_week
@@ -308,64 +248,107 @@ class GroupCharacteristicsAnalyzer {
         return round($result[0]['messages_per_week'], 2);
     }
 
-    private function estimateUrbanPercentage($users) {
-        // Estimate urban percentage based on user clustering
-        // Urban areas typically have tight user clusters
+    private function getONSClassification($centroid) {
+        // Look up ONS Rural-Urban classification for the group's centroid
+        // Find nearest postcode within 10km
+        // Note: ONS RU categories only available for England/Wales, not Scotland/NI
 
-        if (count($users) < 10) {
-            return 50; // Unknown, default to mixed
+        $sql = "SELECT ru_category, region_name,
+                       ST_Distance_Sphere(
+                           POINT(?, ?),
+                           POINT(lng, lat)
+                       ) AS distance_meters
+                FROM transport_postcode_classification
+                WHERE lat IS NOT NULL
+                  AND lng IS NOT NULL
+                  AND lat BETWEEN -90 AND 90
+                  AND lng BETWEEN -180 AND 180
+                  AND ru_category IS NOT NULL
+                  AND ru_category != ''
+                HAVING distance_meters < 10000
+                ORDER BY distance_meters ASC
+                LIMIT 1";
+
+        $result = $this->dbhr->preQuery($sql, [$centroid['lng'], $centroid['lat']]);
+
+        if (count($result) > 0) {
+            return [
+                'ru_category' => $result[0]['ru_category'],
+                'region_name' => $result[0]['region_name'],
+                'distance_m' => round($result[0]['distance_meters'])
+            ];
         }
 
-        // Calculate pairwise distances
-        $nearbyCount = 0;
-        $totalPairs = 0;
+        // No England/Wales postcode found - use simple density-based classification
+        // This handles Scotland/Northern Ireland where ONS RU categories aren't available
+        return $this->estimateClassificationFromDensity($centroid);
+    }
 
-        $sampleSize = min(100, count($users)); // Sample for performance
-        $sampledUsers = array_rand(array_flip(array_keys($users)), $sampleSize);
+    private function estimateClassificationFromDensity($centroid) {
+        // For areas without ONS data (Scotland, NI), estimate based on population density
+        // Using a simple city/town lookup for major urban areas
 
-        foreach ($sampledUsers as $i) {
-            foreach ($sampledUsers as $j) {
-                if ($i >= $j) continue;
+        $lat = $centroid['lat'];
+        $lng = $centroid['lng'];
 
-                $totalPairs++;
-                $distance = $this->haversineDistance(
-                    $users[$i]['lat'], $users[$i]['lng'],
-                    $users[$j]['lat'], $users[$j]['lng']
-                );
+        // Major Scottish cities (approximate bounds)
+        $cities = [
+            // [name, lat_min, lat_max, lng_min, lng_max, category]
+            ['Glasgow', 55.8, 55.9, -4.35, -4.15, 'A1'],       // Major conurbation
+            ['Edinburgh', 55.9, 56.0, -3.25, -3.05, 'A1'],     // Major conurbation
+            ['Aberdeen', 57.1, 57.2, -2.2, -2.0, 'B1'],        // Minor conurbation
+            ['Dundee', 56.4, 56.5, -3.0, -2.9, 'B1'],          // Minor conurbation
+            ['Inverness', 57.4, 57.5, -4.3, -4.1, 'C1'],       // City/town
+            ['Belfast', 54.5, 54.7, -6.0, -5.8, 'A1'],         // Major conurbation
+        ];
 
-                // Users within 2km are "nearby" (urban-like)
-                if ($distance < 2) {
-                    $nearbyCount++;
-                }
+        foreach ($cities as $city) {
+            list($name, $latMin, $latMax, $lngMin, $lngMax, $category) = $city;
+            if ($lat >= $latMin && $lat <= $latMax && $lng >= $lngMin && $lng <= $lngMax) {
+                return [
+                    'ru_category' => $category,
+                    'region_name' => 'Scotland/NI (estimated)',
+                    'distance_m' => 0
+                ];
             }
         }
 
-        if ($totalPairs == 0) {
-            return 50;
-        }
-
-        // High percentage of nearby pairs = more urban
-        $nearbyPct = ($nearbyCount / $totalPairs) * 100;
-
-        // Scale to 0-100
-        $urbanPct = min(100, $nearbyPct * 2);
-
-        return round($urbanPct, 2);
+        // Default to rural for Scotland/NI
+        return [
+            'ru_category' => 'E1',  // Rural village (conservative default)
+            'region_name' => 'Scotland/NI (estimated)',
+            'distance_m' => 0
+        ];
     }
 
-    private function classifyGroupType($areaKm2, $userDensity, $urbanPct) {
-        // Simple heuristic classification
+    private function classifyGroupTypeFromONS($onsData) {
+        // Classify group based on official ONS Rural-Urban classification
 
-        if ($userDensity > 10 && $urbanPct > 60) {
+        if (!$onsData || !$onsData['ru_category']) {
+            return 'Unknown';
+        }
+
+        $ruCat = $onsData['ru_category'];
+
+        // A1 = Urban Major Conurbation (London, Manchester, etc.)
+        // B1 = Urban Minor Conurbation
+        // C1/C2 = Urban City and Town
+        // D1/D2 = Rural Town and Fringe
+        // E1/E2 = Rural Village
+        // F1/F2 = Rural Hamlets and Isolated Dwellings
+
+        if ($ruCat == 'A1') {
             return 'Urban Dense';
-        } elseif ($userDensity > 5 && $urbanPct > 40) {
+        } elseif ($ruCat == 'B1' || $ruCat == 'C1') {
             return 'Urban Moderate';
-        } elseif ($userDensity > 2) {
+        } elseif ($ruCat == 'C2' || $ruCat == 'D1' || $ruCat == 'D2') {
             return 'Suburban';
-        } elseif ($areaKm2 > 1000) {
-            return 'Rural Large';
+        } elseif ($ruCat == 'E1' || $ruCat == 'E2') {
+            return 'Rural Village';
+        } elseif ($ruCat == 'F1' || $ruCat == 'F2') {
+            return 'Rural Sparse';
         } else {
-            return 'Rural Small';
+            return 'Unknown';
         }
     }
 
@@ -415,23 +398,17 @@ class GroupCharacteristicsAnalyzer {
 
         // Overall statistics
         $areas = array_column($results, 'area_km2');
-        $densities = array_column($results, 'user_density');
-        $urbanPcts = array_column($results, 'urban_percentage');
+        $activities = array_column($results, 'messages_per_week');
 
         echo "\nArea (km²):\n";
         echo "  Min: " . round(min($areas), 2) . "\n";
         echo "  Max: " . round(max($areas), 2) . "\n";
         echo "  Median: " . round($this->median($areas), 2) . "\n";
 
-        echo "\nUser Density (users/km²):\n";
-        echo "  Min: " . round(min($densities), 2) . "\n";
-        echo "  Max: " . round(max($densities), 2) . "\n";
-        echo "  Median: " . round($this->median($densities), 2) . "\n";
-
-        echo "\nUrban Percentage:\n";
-        echo "  Min: " . round(min($urbanPcts), 2) . "\n";
-        echo "  Max: " . round(max($urbanPcts), 2) . "\n";
-        echo "  Median: " . round($this->median($urbanPcts), 2) . "\n";
+        echo "\nActivity (messages/week):\n";
+        echo "  Min: " . round(min($activities), 2) . "\n";
+        echo "  Max: " . round(max($activities), 2) . "\n";
+        echo "  Median: " . round($this->median($activities), 2) . "\n";
     }
 
     private function median($arr) {

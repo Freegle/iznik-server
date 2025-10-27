@@ -13,6 +13,14 @@ global $dbhr, $dbhm;
  *
  * This script analyzes historical messages to determine optimal isochrone expansion parameters.
  * It simulates the arrival of replies over time and tracks when isochrones would have been expanded.
+ *
+ * IMPORTANT: By default, this simulator ONLY uses cached isochrones from the database.
+ * It will NOT fetch new isochrones from Mapbox. Messages are skipped if required isochrones
+ * are not already cached in the isochrones table.
+ *
+ * However, when an OpenRouteService (ORS) server is specified via --ors-server parameter,
+ * the simulator will create new ORS isochrones on demand and store them in the database
+ * with source='ORS'.
  */
 
 class MessageIsochroneSimulator {
@@ -23,6 +31,7 @@ class MessageIsochroneSimulator {
     private $endDate;
     private $groupIds = [];
     private $limit = NULL;
+    private $orsServer = NULL;
 
     // Simulation parameters to test
     private $params = [
@@ -45,16 +54,36 @@ class MessageIsochroneSimulator {
         $this->endDate = $options['endDate'] ?? date('Y-m-d', strtotime('-7 days'));
         $this->groupIds = $options['groupIds'] ?? [];
         $this->limit = $options['limit'] ?? NULL;
+        $this->orsServer = $options['orsServer'] ?? NULL;
 
         // Override default parameters if provided
         if (isset($options['params'])) {
             $this->params = array_merge($this->params, $options['params']);
+        }
+
+        // If using ORS and transport is 'walk', automatically use 'cycle' instead
+        if ($this->orsServer && strtolower($this->params['transport']) === 'walk') {
+            $this->params['transport'] = 'cycle';
         }
     }
 
     public function run($name = NULL, $description = NULL) {
         echo "\n=== Message Isochrone Simulation ===\n";
         echo "Date range: {$this->startDate} to {$this->endDate}\n";
+        echo "Isochrone source: " . ($this->orsServer ? "ORS ({$this->orsServer})" : "Mapbox (cached only)") . "\n";
+
+        // Test ORS connectivity if specified
+        if ($this->orsServer) {
+            echo "Testing ORS server connectivity... ";
+            if (!$this->testORSConnectivity()) {
+                echo "FAILED\n";
+                echo "ERROR: Cannot connect to ORS server at {$this->orsServer}\n";
+                echo "Please check that the server is running and accessible.\n";
+                return;
+            }
+            echo "OK\n";
+        }
+
         if (count($this->groupIds) > 0) {
             echo "Group filter: " . implode(', ', $this->groupIds) . "\n";
         }
@@ -175,6 +204,53 @@ class MessageIsochroneSimulator {
         $this->dbhm->preExec("UPDATE simulation_message_isochrones_runs SET status = 'failed' WHERE id = ?", [
             $this->runId
         ]);
+    }
+
+    private function testORSConnectivity() {
+        // Test basic connectivity with the ORS health check endpoint
+        $url = rtrim($this->orsServer, '/') . '/v2/health';
+
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 10);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
+        $response = curl_exec($curl);
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($curl);
+        curl_close($curl);
+
+        if ($curlError) {
+            error_log("ORS connectivity test failed: $curlError");
+            return FALSE;
+        }
+
+        // Accept any 2xx response
+        if ($httpCode >= 200 && $httpCode < 300) {
+            return TRUE;
+        }
+
+        error_log("ORS connectivity test failed: HTTP $httpCode for URL: $url");
+        return FALSE;
+    }
+
+    private function mapTransportToEnum($transport) {
+        // Map simulation transport modes to Isochrone enum values
+        switch (strtolower($transport)) {
+            case 'walk':
+            case 'walking':
+                return Isochrone::WALK;
+            case 'cycle':
+            case 'cycling':
+            case 'bike':
+                return Isochrone::CYCLE;
+            case 'car':
+            case 'drive':
+            case 'driving':
+                return Isochrone::DRIVE;
+            default:
+                return NULL;
+        }
     }
 
     private function getMessages() {
@@ -532,6 +608,14 @@ class MessageIsochroneSimulator {
 
         while ($currentMinutes <= $this->params['maxMinutes']) {
             $isochronePolygon = $this->getIsochronePolygon($msg['locationid'], $currentMinutes, $this->params['transport']);
+
+            // If no isochrone available, skip this message entirely
+            // With ORS: only fails if server is down
+            // With Mapbox: fails if not already cached
+            if ($isochronePolygon === NULL && $currentMinutes === $this->params['initialMinutes']) {
+                return ['expansions' => [], 'taker_reached_at' => NULL];
+            }
+
             $usersInIsochrone = $this->countUsersInIsochrone($isochronePolygon, $activeUsers);
 
             // Stop if we have enough users or can't expand further
@@ -603,6 +687,14 @@ class MessageIsochroneSimulator {
                 $currentMinutes = min($currentMinutes, $this->params['maxMinutes']);
 
                 $isochronePolygon = $this->getIsochronePolygon($msg['locationid'], $currentMinutes, $this->params['transport']);
+
+                // If no isochrone available for this expansion, stop expanding
+                // With ORS: only fails if server is down (rare)
+                // With Mapbox: fails if not already cached (expected behavior)
+                if ($isochronePolygon === NULL) {
+                    break;
+                }
+
                 $usersInIsochrone = $this->countUsersInIsochrone($isochronePolygon, $activeUsers);
                 $newUsersAdded = $usersInIsochrone - $prevUsers;
 
@@ -610,6 +702,11 @@ class MessageIsochroneSimulator {
                 if ($newUsersAdded >= $this->params['minUsers'] || $currentMinutes >= $this->params['maxMinutes']) {
                     break;
                 }
+            }
+
+            // Skip this expansion if we couldn't get an isochrone
+            if ($isochronePolygon === NULL) {
+                break;
             }
 
             // Check if taker is reached in this expansion
@@ -737,15 +834,38 @@ class MessageIsochroneSimulator {
     }
 
     private function getIsochronePolygon($locationId, $minutes, $transport) {
-        // Get or create isochrone
-        $i = new Isochrone($this->dbhr, $this->dbhm);
-        $isochroneId = $i->ensureIsochroneExists($locationId, $minutes, $transport);
+        // Map simulation transport mode to Isochrone class constants
+        $transportEnum = $this->mapTransportToEnum($transport);
+
+        $source = $this->orsServer ? 'ORS' : 'Mapbox';
+        $transq = $transportEnum ? (" AND transport = " . $this->dbhr->quote($transportEnum)) : " AND transport IS NULL";
+        $sourceq = " AND source = " . $this->dbhr->quote($source);
+
+        $existings = $this->dbhr->preQuery("SELECT id FROM isochrones WHERE locationid = ? $transq AND minutes = ? $sourceq ORDER BY timestamp DESC LIMIT 1;", [
+            $locationId,
+            $minutes
+        ]);
+
+        $isochroneId = NULL;
+
+        if (count($existings)) {
+            $isochroneId = $existings[0]['id'];
+        } elseif ($this->orsServer) {
+            $i = new Isochrone($this->dbhr, $this->dbhm);
+            $isochroneId = $i->ensureIsochroneExists($locationId, $minutes, $transportEnum, $this->orsServer);
+
+            if (!$isochroneId) {
+                echo "  ⚠ ORS server failed to create isochrone for location $locationId, $minutes minutes, $transport\n";
+                echo "  Check error_log for details. ORS server may be down or unreachable.\n";
+            }
+        } else {
+            return NULL;
+        }
 
         if (!$isochroneId) {
             return NULL;
         }
 
-        // Get polygon as GeoJSON
         $result = $this->dbhr->preQuery("SELECT ST_AsGeoJSON(polygon) AS geojson FROM isochrones WHERE id = ?", [
             $isochroneId
         ]);
@@ -903,14 +1023,15 @@ class MessageIsochroneSimulator {
         $currentParams = $currentRun['parameters'];
 
         // Get all messages from all completed runs with the same parameters
+        // Include the current run even if still 'running' since we're calculating its final metrics
         $allMessages = $this->dbhr->preQuery(
             "SELECT m.metrics
              FROM simulation_message_isochrones_messages m
              INNER JOIN simulation_message_isochrones_runs r ON m.runid = r.id
              WHERE r.parameters = ?
-               AND r.status = 'completed'
+               AND (r.status = 'completed' OR r.id = ?)
                AND m.metrics IS NOT NULL",
-            [$currentParams]
+            [$currentParams, $this->runId]
         );
 
         $replies = [];
@@ -995,6 +1116,7 @@ $options = getopt('', [
     'min-users:',
     'name:',
     'description:',
+    'ors-server:',
     'help'
 ]);
 
@@ -1005,6 +1127,12 @@ if (isset($options['help'])) {
     echo "notification strategies. Analyzes when replies arrived and tracks when users would\n";
     echo "have been reached by expanding isochrones. Each expansion aims to cover an\n";
     echo "additional minimum number of known active users (configurable via --min-users).\n\n";
+    echo "Isochrone Sources:\n";
+    echo "  - Without --ors-server: Uses only cached Mapbox isochrones from database\n";
+    echo "    Messages are skipped if required isochrones are not already cached\n";
+    echo "  - With --ors-server: Creates new ORS isochrones on demand (no cost limit)\n";
+    echo "    All messages can be processed as isochrones are generated as needed\n";
+    echo "    NOTE: 'walk' transport is automatically converted to 'cycle' for ORS\n\n";
     echo "Options:\n";
     echo "  --start DATE          Start date for message range (default: 30 days ago)\n";
     echo "                        Format: YYYY-MM-DD\n";
@@ -1019,6 +1147,9 @@ if (isset($options['help'])) {
     echo "  --min-users N         Minimum users to include/add per expansion (default: 100)\n";
     echo "                        Initial isochrone expands until it reaches this many users\n";
     echo "                        Each subsequent expansion adds at least this many new users\n";
+    echo "  --ors-server URL      OpenRouteService server URL (optional)\n";
+    echo "                        Example: --ors-server http://localhost:8080/ors\n";
+    echo "                        When specified, creates and uses ORS isochrones instead of Mapbox\n";
     echo "  --name NAME           Name for this simulation run (optional)\n";
     echo "  --description TEXT    Description for this run (optional)\n";
     echo "  --help                Show this help message\n\n";
@@ -1027,8 +1158,11 @@ if (isset($options['help'])) {
     echo "  php simulate_message_isochrones.php --start 2025-09-01 --end 2025-09-30 --group 12345 --limit 100 --name \"Sept Test\"\n\n";
     echo "  # Multiple groups (10 messages per group = 30 total):\n";
     echo "  php simulate_message_isochrones.php --group \"12345,67890,11111\" --limit 10 --name \"Multi-Group Test\"\n\n";
+    echo "  # Using local ORS server:\n";
+    echo "  php simulate_message_isochrones.php --group 12345 --limit 100 --ors-server http://localhost:8080/ors --name \"ORS Test\"\n\n";
     echo "Simulation Parameters (hardcoded, adjust in class if needed):\n";
     echo "  - transport: car (mode of transport for isochrone calculation)\n";
+    echo "    Valid values: 'car' (default), 'cycle', 'walk' (Mapbox only)\n";
     echo "  - initialMinutes: 5 (starting size for initial isochrone)\n";
     echo "  - maxMinutes: 60 (maximum isochrone size)\n";
     echo "  - increment: 5 (minutes to add per expansion step)\n";
@@ -1075,6 +1209,11 @@ if (isset($options['limit'])) {
 // Handle min-users parameter
 if (isset($options['min-users'])) {
     $simulatorOptions['params']['minUsers'] = intval($options['min-users']);
+}
+
+// Handle ors-server parameter
+if (isset($options['ors-server'])) {
+    $simulatorOptions['orsServer'] = $options['ors-server'];
 }
 
 $name = $options['name'] ?? NULL;
