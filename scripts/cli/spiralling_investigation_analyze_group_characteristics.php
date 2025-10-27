@@ -265,6 +265,7 @@ class GroupCharacteristicsAnalyzer {
                   AND lng BETWEEN -180 AND 180
                   AND ru_category IS NOT NULL
                   AND ru_category != ''
+                  AND ru_category REGEXP '^[A-F][12]$'
                 HAVING distance_meters < 10000
                 ORDER BY distance_meters ASC
                 LIMIT 1";
