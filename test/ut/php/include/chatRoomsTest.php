@@ -1788,6 +1788,70 @@ class chatRoomsTest extends IznikTestCase {
         }
         $this->log("TEST COMPLETED SUCCESSFULLY");
     }
+
+    public function testNotifyWithProcessingRequired() {
+        $this->log(__METHOD__);
+
+        # Set up a chatroom with two users
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test1@test.com');
+        $u->addEmail('test1@' . USER_DOMAIN);
+
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addMembership($this->groupid);
+        $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
+
+        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $this->log("Chat room $id for $u1 <-> $u2");
+        $this->assertNotNull($id);
+
+        # Create a message but set processingrequired = 1 manually to simulate
+        # a message that hasn't been processed yet
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cm, $banned) = $m->create($id, $u1, "Test message", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
+        $this->log("Created chat message $cm");
+
+        # Manually set processingrequired = 1 to simulate unprocessed state
+        $this->dbhm->preExec("UPDATE chat_messages SET processingrequired = 1 WHERE id = ?;", [$cm]);
+
+        # Verify the message has processingrequired = 1
+        $msg = $this->dbhr->preQuery("SELECT processingrequired FROM chat_messages WHERE id = ?;", [$cm]);
+        $this->assertEquals(1, $msg[0]['processingrequired']);
+
+        $rmock = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $id))
+            ->setMethods(array('mailer'))
+            ->getMock();
+
+        $rmock->method('mailer')->will($this->returnCallback(function($message) {
+            return($this->mailer($message));
+        }));
+
+        $this->msgsSent = [];
+
+        # Notify - should NOT send any emails because message has processingrequired = 1
+        $this->log("Attempt notification with processingrequired = 1");
+        $this->assertEquals(0, $rmock->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
+        $this->assertEquals(0, count($this->msgsSent), "No emails should be sent when processingrequired = 1");
+
+        # Now set processingrequired = 0 and processingsuccessful = 1 to simulate successful processing
+        $this->dbhm->preExec("UPDATE chat_messages SET processingrequired = 0, processingsuccessful = 1 WHERE id = ?;", [$cm]);
+
+        # Verify the message has been marked as processed
+        $msg = $this->dbhr->preQuery("SELECT processingrequired, processingsuccessful FROM chat_messages WHERE id = ?;", [$cm]);
+        $this->assertEquals(0, $msg[0]['processingrequired']);
+        $this->assertEquals(1, $msg[0]['processingsuccessful']);
+
+        $this->msgsSent = [];
+
+        # Notify again - should now send email because processingrequired = 0 and processingsuccessful = 1
+        $this->log("Attempt notification with processingrequired = 0 and processingsuccessful = 1");
+        $this->assertEquals(1, $rmock->notifyByEmail($id, ChatRoom::TYPE_USER2USER, NULL, 0));
+        $this->assertEquals(1, count($this->msgsSent), "Email should be sent when processingrequired = 0 and processingsuccessful = 1");
+    }
 }
 
 
