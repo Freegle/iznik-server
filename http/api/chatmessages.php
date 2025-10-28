@@ -155,6 +155,8 @@ function chatmessages() {
                         ];
 
                         if (!$id) {
+                            # Don't process immediately - there might be earlier unprocessed chatmessages sent via APIv2.
+                            # We must maintain message order until we fully move over to APIv2.
                             list ($id, $banned) = $m->create($roomid,
                                 $me->getId(),
                                 $message,
@@ -164,7 +166,11 @@ function chatmessages() {
                                 NULL,
                                 $reportreason,
                                 $refchatid,
-                                $imageid);
+                                $imageid,
+                                NULL,    # facebookid
+                                FALSE,   # forcereview
+                                FALSE,   # suppressmodnotif
+                                FALSE);  # process
 
                             $ret = $banned ? ['ret' => 4, 'status' => 'Message create blocked'] : ['ret' => 3, 'status' => 'Message create failed'];
 

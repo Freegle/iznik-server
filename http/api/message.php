@@ -786,7 +786,9 @@ function message() {
                                 if ($userid) {
                                     # Userid is optional - TN can promise without a userid.
                                     $m->promise($userid);
-                                    list ($mid, $banned) = $cm->create($rid, $myid, NULL, ChatMessage::TYPE_PROMISED, $id);
+                                    # Don't process immediately - there might be earlier unprocessed chatmessages sent via APIv2.
+                                    # We must maintain message order until we fully move over to APIv2.
+                                    list ($mid, $banned) = $cm->create($rid, $myid, NULL, ChatMessage::TYPE_PROMISED, $id, TRUE, NULL, NULL, NULL, NULL, NULL, FALSE, FALSE, FALSE);
                                     $ret = ['ret' => 0, 'status' => 'Success', 'id' => $mid];
                                 } else {
                                     $m->promise($m->getFromuser());
@@ -797,7 +799,9 @@ function message() {
                                 # Userid is optional - TN doesn't use it.
                                 if ($userid > 0) {
                                     $m->renege($userid);
-                                    list ($mid, $banned) = $cm->create($rid, $myid, NULL, ChatMessage::TYPE_RENEGED, $id);
+                                    # Don't process immediately - there might be earlier unprocessed chatmessages sent via APIv2.
+                                    # We must maintain message order until we fully move over to APIv2.
+                                    list ($mid, $banned) = $cm->create($rid, $myid, NULL, ChatMessage::TYPE_RENEGED, $id, TRUE, NULL, NULL, NULL, NULL, NULL, FALSE, FALSE, FALSE);
                                     $ret = ['ret' => 0, 'status' => 'Success', 'id' => $mid];
                                 } else {
                                     $m->renege($m->getFromuser());
