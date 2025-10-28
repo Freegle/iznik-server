@@ -965,6 +965,27 @@ class MessageIsochroneSimulator {
     }
 
     private function calculateMessageMetrics($simMsgId, $expansions, $activeUsers, $replies, $takerReachedAt, $takerId) {
+        // Handle case where no isochrones could be created (e.g., invalid locationid)
+        if (empty($expansions)) {
+            return [
+                'total_replies' => count($replies),
+                'total_active_users' => count($activeUsers),
+                'initial_users_reached' => 0,
+                'final_users_reached' => 0,
+                'total_expansions' => 0,
+                'replies_in_final_isochrone' => 0,
+                'capture_rate' => 0,
+                'efficiency' => 0,
+                'cost_notifications' => 0,
+                'has_taker' => $takerId ? TRUE : FALSE,
+                'taker_reached' => FALSE,
+                'taker_reached_at_expansion' => NULL,
+                'taker_reached_at_minutes' => NULL,
+                'taker_in_initial_isochrone' => FALSE,
+                'failed_reason' => 'no_isochrone_created'
+            ];
+        }
+
         $finalExpansion = end($expansions);
 
         $metrics = [
