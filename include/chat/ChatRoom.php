@@ -2131,20 +2131,16 @@ WHERE chat_messages.id > ? $wideq AND chat_messages_held.id IS NULL AND chat_mes
         $allq = $forceall ? '' : "AND mailedtoall = 0 AND seenbyall = 0 AND reviewrejected = 0";
         $start = date('Y-m-d H:i:s', strtotime($since));
         $end = date('Y-m-d H:i:s', time() - $delay);
-        #error_log("End $end from $delay current " . date('Y-m-d H:i:s'));
         $chatq = $chatid ? " AND chatid = $chatid " : '';
-        $sql = "SELECT DISTINCT chatid, chat_rooms.chattype, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages 
-    INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id 
+        $sql = "SELECT DISTINCT chatid, chat_rooms.chattype, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages
+    INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id
     WHERE date >= ? AND date <= ? $allq $reviewq AND chattype = ? $chatq;";
-        #error_log("$sql, $start, $end, $chattype");
         $chats = $this->dbhr->preQuery($sql, [$start, $end, $chattype]);
-        #error_log("Chats to scan " . count($chats));
         $notified = 0;
         $userlist = [];
 
         foreach ($chats as $chat) {
             # Different members of the chat might have been mailed different messages.
-            #error_log("Check chat {$chat['chatid']}");
             $r = new ChatRoom($this->dbhr, $this->dbhm, $chat['chatid']);
             $chatatts = $r->getPublic();
             $lastmaxmailed = $r->lastMailedToAll();
@@ -2153,14 +2149,11 @@ WHERE chat_messages.id > ? $wideq AND chat_messages_held.id IS NULL AND chat_mes
             $outcometaken = '';
             $outcomewithdrawn= '';
 
-            #error_log("Notmailed " . count($notmailed) . " with last message {$chatatts['lastmsg']}");
-
             foreach ($notmailed as $member) {
                 # Now we have a member who has not been mailed the messages in this chat.  That's who we're sending to.
                 $sendingto = User::get($this->dbhr, $this->dbhm, $member['userid']);
                 $other = $member['userid'] == $chatatts['user1']['id'] ? Utils::presdef('id', $chatatts['user2'], NULL) : $chatatts['user1']['id'];
                 $sendingfrom = User::get($this->dbhr, $this->dbhm, $other);
-                #error_log("Sending to {$sendingto->getEmailPreferred()} from {$sendingfrom->getEmailPreferred()}");
 
                 # For User2Mod chats we do different things based on whether we're notifying the member or the mods.
                 $notifyingmember = $chattype ==  ChatRoom::TYPE_USER2MOD && $member['role'] == User::ROLE_MEMBER;
@@ -2177,7 +2170,6 @@ WHERE chat_messages.id > ? $wideq AND chat_messages_held.id IS NULL AND chat_mes
                 $emailnotifson = $sendingto->notifsOn(User::NOTIFS_EMAIL, $r->getPrivate('groupid'));
                 $forcemailfrommod = ($chat['chattype'] ==  ChatRoom::TYPE_USER2MOD && $chat['user1'] ==  $member['userid']);
                 $mailson = $emailnotifson || $forcemailfrommod || $sendingtoTN;
-                #error_log("Consider mail user {$member['userid']}, mails on " . $sendingto->notifsOn(User::NOTIFS_EMAIL) . ", memberships " . count($sendingto->getMemberships()));
                 $sendingown  = $sendingto->notifsOn(User::NOTIFS_EMAIL_MINE);
 
                 # Now collect a summary of what they've missed.  Don't include anything stupid old, in case they

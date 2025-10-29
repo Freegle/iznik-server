@@ -40,6 +40,28 @@ abstract class IznikAPITestCase extends IznikTestCase {
         $dbhm->preExec("DELETE users, users_emails FROM users INNER JOIN users_emails ON users.id = users_emails.userid WHERE users_emails.backwards LIKE 'oielohkcalb@%';");
         $dbhm->preExec("DELETE users, users_logins FROM users INNER JOIN users_logins ON users.id = users_logins.userid WHERE uid IN ('testid', '1234');");
         $dbhm->preExec("DELETE FROM `groups` WHERE nameshort LIKE 'testgroup%';");
+
+        # Stop background mail scripts to prevent race conditions in chat tests
+        $this->stopBackgroundMailScripts();
+    }
+
+    protected function tearDown() : void {
+        # Restart background mail scripts
+        $this->startBackgroundMailScripts();
+
+        parent::tearDown();
+    }
+
+    protected function stopBackgroundMailScripts() {
+        # Create abort file to signal background mail scripts to exit
+        touch('/tmp/iznik.mail.abort');
+        # Give scripts time to see the abort file and exit (they check every second)
+        sleep(2);
+    }
+
+    protected function startBackgroundMailScripts() {
+        # Remove abort file to allow background mail scripts to restart
+        @unlink('/tmp/iznik.mail.abort');
     }
 
     public function call($call, $type, $params, $decode = TRUE) {

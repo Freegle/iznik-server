@@ -418,6 +418,16 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->assertNotNull($ret['id']);
         $mid3 = $ret['id'];
 
+        # Process the messages to trigger review logic
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid1);
+        $cm->process();
+
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid2);
+        $cm->process();
+
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid3);
+        $cm->process();
+
         $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid1);
         self::assertEquals(1, $cm->getPrivate('reviewrequired'));
         self::assertEquals(ChatMessage::REVIEW_SPAM, $cm->getPrivate('reportreason'));
@@ -619,6 +629,13 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
         $this->assertNotNull($ret['id']);
         $mid2 = $ret['id'];
+
+        # Process the messages to trigger review logic
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid1);
+        $cm->process();
+
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid2);
+        $cm->process();
 
         # Now log in as a mod.
         $this->addLoginAndLogin($this->user3, 'testpw');
@@ -903,6 +920,10 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->assertNotNull($ret['id']);
         $mid1 = $ret['id'];
 
+        # Process the message to trigger review logic
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid1);
+        $cm->process();
+
         # Set up:
         # - mod on sender's group
         # - mod on recipient's group
@@ -1053,6 +1074,16 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
         $this->assertNotNull($ret['id']);
         $mid3 = $ret['id'];
+
+        # Process the messages to trigger review logic
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid1);
+        $cm->process();
+
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid2);
+        $cm->process();
+
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid3);
+        $cm->process();
 
         # Messages should be held for:
         # - spam

@@ -344,6 +344,11 @@ class chatRoomsAPITest extends IznikAPITestCase
 
         $ret = $this->call('chatmessages', 'POST', [ 'roomid' => $rid, 'message' => 'Test' ]);
         $this->assertEquals(0, $ret['ret']);
+        $mid = $ret['id'];
+
+        # Process the message to trigger nudge response logic
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $mid);
+        $cm->process();
 
         $this->waitBackground();
 
