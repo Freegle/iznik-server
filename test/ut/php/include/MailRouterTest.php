@@ -1825,8 +1825,8 @@ class MailRouterTest extends IznikTestCase {
 
     public function expandProvider() {
         return [
-            [ 'basic', [ 'www.microsoft.com' ] ],
-            [ 'link_expansion', [ 'www.adobe.com', 'personal.nedbank.co.za' ] ]
+            [ 'basic', [ 'www.apple.com' ] ],
+            [ 'link_expansion', [ 'google.com', 'github.com' ] ]
         ];
     }
 
@@ -1847,7 +1847,7 @@ class MailRouterTest extends IznikTestCase {
 
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/' . $file));
         $msg = str_replace("X-Yahoo-Group-Post: member; u=420816297", "X-Yahoo-Group-Post: member; u=-1", $msg);
-        $msg = str_replace('Hey', 'Text body with http://microsoft.com which should expand', $msg);
+        $msg = str_replace('Hey', 'Text body with http://apple.com which should expand', $msg);
 
         $r = new MailRouter($this->dbhr, $this->dbhm);
         list ($id, $failok) = $r->received(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
