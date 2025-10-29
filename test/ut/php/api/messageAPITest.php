@@ -3900,8 +3900,8 @@ class messageAPITest extends IznikAPITestCase
     public function expandText() {
         return [
             [
-                'Text body with http://apple.com which should expand',
-                'www.apple.com'
+                'Text body with http://microsoft.com which should expand',
+                'www.microsoft.com'
             ],
             [
                 "Hi\r\nVirus-free.www.avg.com",

@@ -1,10 +1,10 @@
-From notification@github.com Tue Jul 30 14:20:30 2024
-Return-path: <notification@github.com>
+From notification@nedbank.co.za Tue Jul 30 14:20:30 2024
+Return-path: <notification@nedbank.co.za>
 Envelope-to: fermanaghfreegle-volunteers@groups.ilovefreegle.org
 Received: from [185.85.189.101] (helo=101-189-85-185.ip.idealhosting.net.tr)
 	by bulk4.ilovefreegle.org with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.95)
-	(envelope-from <notification@github.com>)
+	(envelope-from <notification@nedbank.co.za>)
 	id 1sYnBH-00Cefj-J2
 	for fermanaghfreegle-volunteers@groups.ilovefreegle.org;
 	Tue, 30 Jul 2024 13:46:23 +0000
@@ -23,15 +23,15 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 Received: from [41.216.202.108] (port=2131 helo=rain-197-184-176-148.rain.network)
 	by hosting2.idealhosting.org with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
 	(Exim 4.97.1)
-	(envelope-from <notification@github.com>)
+	(envelope-from <notification@nedbank.co.za>)
 	id 1sYnB8-0000000GaSI-20yp
 	for fermanaghfreegle-volunteers@groups.ilovefreegle.org;
 	Tue, 30 Jul 2024 16:46:17 +0300
-From: Nedbank <notification@github.com>
+From: Nedbank <notification@nedbank.co.za>
 To: fermanaghfreegle-volunteers@groups.ilovefreegle.org
 Subject: Nedbank Current Account Statement - 20240728
 Date: 30 Jul 2024 15:46:14 +0200
-Message-ID: <20240730154614.F093A86C42120964@github.com>
+Message-ID: <20240730154614.F093A86C42120964@nedbank.co.za>
 MIME-Version: 1.0
 Content-Type: multipart/mixed;
 	boundary="----=_NextPart_000_0012_97D26231.6B5AC6CA"
@@ -39,7 +39,7 @@ X-AntiAbuse: This header was added to track abuse, please include it with any ab
 X-AntiAbuse: Primary Hostname - hosting2.idealhosting.org
 X-AntiAbuse: Original Domain - groups.ilovefreegle.org
 X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - github.com
+X-AntiAbuse: Sender Address Domain - nedbank.co.za
 X-Get-Message-Sender-Via: hosting2.idealhosting.org: authenticated_id: supnewday@ipedizilibayrak.com
 X-Authenticated-Sender: hosting2.idealhosting.org: supnewday@ipedizilibayrak.com
 X-Source:
@@ -88,7 +88,7 @@ We attach your card e-statement, which is password-protected to ensure conf=
 identiality. To view your e-statement you'll need Adobe Reader, which you c=
 an download from<span>&nbsp;</span><a style=3D"color: rgb(0, 0, 0); text-de=
 coration: underline; background-color: transparent;" href=3D"https://www.ad=
-obe.com/" target=3D"_blank" rel=3D"noreferrer">google.com</a><span>&nbsp;</s=
+obe.com/" target=3D"_blank" rel=3D"noreferrer">adobe.com</a><span>&nbsp;</s=
 pan>if you don't already have it.<br><br><a style=3D"text-decoration: none;=
 " href=3D"https://aminsms.com/LlupZ">
 <span style=3D"padding: 5px 1px; border-radius: 8px; border: 1px solid rgb(=
@@ -108,7 +108,7 @@ Roboto, RobotoDraft, Helvetica, Arial, sans-serif;'><p style=3D"color: rgb(=
 &nbsp;</span><b>0800 555 111</b><span>&nbsp;</span>or<span>&nbsp;</span><b>=
 011 710 4710</b>.<br><br><b>For more information on your credit card benefi=
 ts or other Nedbank products, visit<span>&nbsp;</span><a style=3D"color: rg=
-b(0, 0, 0); background-color: transparent;">github.com</a>.<br><br>Kind =
+b(0, 0, 0); background-color: transparent;">nedbank.co.za</a>.<br><br>Kind =
 regards<br><b>The Nedbank Team</b><br><br></b></p></td></tr><tr style=3D"ba=
 ckground: rgb(204, 234, 215);">
 <td width=3D"500" align=3D"left" valign=3D"middle" style=3D'margin: 0px; pa=
@@ -166,14 +166,14 @@ Helvetica, Arial, sans-serif;'><table width=3D"540" align=3D"center" border=
 h=3D"300" style=3D'margin: 0px; color: rgb(0, 77, 54); font-family: "Google=
  Sans", Roboto, RobotoDraft, Helvetica, Arial, sans-serif;'>
 <a style=3D"color: rgb(0, 77, 54); text-decoration: none;" href=3D"https://=
-www.github.com/content/nedbank/desktop/gt/en/aboutus/legal/other/disclai=
+www.nedbank.co.za/content/nedbank/desktop/gt/en/aboutus/legal/other/disclai=
 mer.html" target=3D"_blank" rel=3D"noreferrer">Disclaimer</a><span>&nbsp;</=
 span>|<span>&nbsp;</span><span>&nbsp;</span><a style=3D"color: rgb(0, 77, 5=
-4); text-decoration: none;" href=3D"https://www.github.com/" target=3D"_=
-blank" rel=3D"noreferrer">github.com</a><span>&nbsp;</span>|<span>&nbsp;=
+4); text-decoration: none;" href=3D"https://www.nedbank.co.za/" target=3D"_=
+blank" rel=3D"noreferrer">nedbank.co.za</a><span>&nbsp;</span>|<span>&nbsp;=
 </span>
 <a style=3D"color: rgb(0, 77, 54); text-decoration: none;" href=3D"https://=
-github.com/content/forms/af/nedbank/TalkToUs.html" target=3D"_blank" rel=
+nedbank.co.za/content/forms/af/nedbank/TalkToUs.html" target=3D"_blank" rel=
 =3D"noreferrer">Contact us</a></td><td width=3D"380" align=3D"right" style=
 =3D'margin: 0px; font-family: "Google Sans", Roboto, RobotoDraft, Helvetica=
 , Arial, sans-serif;'><table width=3D"101" height=3D"20" id=3D"v1v1v1m_-436=
