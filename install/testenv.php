@@ -84,9 +84,23 @@ if (!$gid) {
 
     $dbhm->preExec("INSERT IGNORE INTO communityevents (title, location, contactname, contactemail, contacturl, description, added) VALUES ('Test Event', 'Edinburgh', 'Test Contact', 'event@test.com', 'http://test.com', 'Test community event', NOW())");
     $eventid = $dbhm->lastInsertId();
+    if (!$eventid) {
+        # If INSERT IGNORE didn't create a new record, get the existing one
+        $rows = $dbhm->preQuery("SELECT id FROM communityevents WHERE title = 'Test Event' AND contactemail = 'event@test.com' LIMIT 1");
+        if ($rows && count($rows) > 0) {
+            $eventid = $rows[0]['id'];
+        }
+    }
+
     if ($eventid) {
         $dbhm->preExec("INSERT IGNORE INTO communityevents_groups (eventid, groupid) VALUES ($eventid, $gid)");
-        error_log("Created community event 'Test Event' and linked to group $gid (ID: $eventid)");
+        error_log("Linked community event 'Test Event' to group $gid (ID: $eventid)");
+
+        # Add a date for the community event (required by Go tests)
+        $start = date('Y-m-d', strtotime('+1 week'));
+        $end = date('Y-m-d', strtotime('+1 week'));
+        $dbhm->preExec("INSERT IGNORE INTO communityevents_dates (eventid, start, end) VALUES ($eventid, '$start', '$end')");
+        error_log("Added date for community event $eventid (start: $start, end: $end)");
     }
 
     # A mod.
