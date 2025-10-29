@@ -143,31 +143,54 @@ if (!$gid) {
     list ($rid4, $banned) = $r->createConversation($uid3, $uid);
     error_log("Created User2User chat room between $uid3 and $uid (ID: $rid4)");
 
-    # A message with an attachment.
-    $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment');
-    $msg = str_replace('Test att', 'OFFER: Test due (Tuvalu High Street)', $msg);
-    $msg = str_replace('22 Aug 2015', '22 Aug 2035', $msg);
-    $r = new MailRouter($dbhr, $dbhm);
-    list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'test@test.com', $msg);
-    $rc = $r->route();
-    error_log("Created message 'OFFER: Test due' (ID: $id, route result: $rc)");
+    # Static counter for unique message IDs (similar to IznikTestCase::$unique)
+    static $messageCounter = 1;
 
-    $m = new Message($dbhr, $dbhm, $id);
-    $m->setPrivate('lat', 55.9533);
-    $m->setPrivate('lng',  -3.1883);
-    $m->setPrivate('locationid', $pcid);
+    # Function to create a test message with unique message-id
+    $createTestMessage = function($subject, $date, $approver, $pcid) use ($dbhr, $dbhm, $gid, &$messageCounter) {
+        # Load the template message
+        $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment');
 
-    # Manually approve the message by updating messages_groups
-    $dbhm->preExec("UPDATE messages_groups SET collection = 'Approved', approvedby = ?, approvedat = NOW() WHERE msgid = ?", [$uid2, $id]);
-    error_log("Approved message $id");
+        # Generate unique message-id to avoid duplicates (using same pattern as IznikTestCase::unique())
+        $uniqueId = time() . rand(1, 1000000) . $messageCounter++;
+        $msg = preg_replace('/Message-Id: <[^>]+>/i', 'Message-Id: <' . $uniqueId . '@testenv>', $msg);
 
-    # Manually add to messages_spatial for Go tests
-    $dbhm->preExec("INSERT IGNORE INTO messages_spatial (msgid, point, successful, promised, groupid, msgtype, arrival)
-                    SELECT m.id, ST_Transform(ST_SRID(POINT(m.lng, m.lat), 4326), 3857), 0, 0, mg.groupid, m.type, mg.arrival
-                    FROM messages m
-                    JOIN messages_groups mg ON m.id = mg.msgid
-                    WHERE m.id = ? AND m.lat IS NOT NULL AND m.lng IS NOT NULL", [$id]);
-    error_log("Added message $id to messages_spatial");
+        # Replace subject and date
+        $msg = str_replace('Test att', $subject, $msg);
+        $msg = str_replace('22 Aug 2015', $date, $msg);
+
+        # Create and route the message
+        $r = new MailRouter($dbhr, $dbhm);
+        list ($id, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'test@test.com', $msg);
+        $rc = $r->route();
+        error_log("Created message '$subject' (ID: $id, route result: $rc)");
+
+        if ($id) {
+            # Set location
+            $m = new Message($dbhr, $dbhm, $id);
+            $m->setPrivate('lat', 55.9533);
+            $m->setPrivate('lng',  -3.1883);
+            $m->setPrivate('locationid', $pcid);
+
+            # Manually approve the message
+            $dbhm->preExec("UPDATE messages_groups SET collection = 'Approved', approvedby = ?, approvedat = NOW() WHERE msgid = ?", [$approver, $id]);
+            error_log("Approved message $id");
+
+            # Add to messages_spatial for Go tests
+            $dbhm->preExec("INSERT IGNORE INTO messages_spatial (msgid, point, successful, promised, groupid, msgtype, arrival)
+                            SELECT m.id, ST_Transform(ST_SRID(POINT(m.lng, m.lat), 4326), 3857), 0, 0, mg.groupid, m.type, mg.arrival
+                            FROM messages m
+                            JOIN messages_groups mg ON m.id = mg.msgid
+                            WHERE m.id = ? AND m.lat IS NOT NULL AND m.lng IS NOT NULL", [$id]);
+            error_log("Added message $id to messages_spatial");
+        }
+
+        return $id;
+    };
+
+    # Create test messages (Go tests require at least 2 messages)
+    $id = $createTestMessage('OFFER: Test due (Tuvalu High Street)', '22 Aug 2035', $uid2, $pcid);
+    $id2 = $createTestMessage('WANTED: Test item (Tuvalu High Street)', '23 Aug 2035', $uid2, $pcid);
 
     $i = new Item($dbhr, $dbhm);
     $i->create('chair');
