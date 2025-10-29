@@ -21,6 +21,8 @@ class StdMessage extends Entity
     }
 
     /**
+     * For testing.
+     *
      * @param LoggedPDO $dbhm
      */
     public function setDbhm($dbhm)
