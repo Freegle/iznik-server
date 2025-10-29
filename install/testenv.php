@@ -77,9 +77,23 @@ if (!$gid) {
     # Add volunteering and community events for the group (required by Go tests)
     $dbhm->preExec("INSERT IGNORE INTO volunteering (title, location, contactname, contactemail, contacturl, description, added) VALUES ('Test Volunteering', 'Edinburgh', 'Test Contact', 'volunteer@test.com', 'http://test.com', 'Test volunteering opportunity', NOW())");
     $volid = $dbhm->lastInsertId();
+    if (!$volid) {
+        # If INSERT IGNORE didn't create a new record, get the existing one
+        $rows = $dbhm->preQuery("SELECT id FROM volunteering WHERE title = 'Test Volunteering' AND contactemail = 'volunteer@test.com' LIMIT 1");
+        if ($rows && count($rows) > 0) {
+            $volid = $rows[0]['id'];
+        }
+    }
+
     if ($volid) {
         $dbhm->preExec("INSERT IGNORE INTO volunteering_groups (volunteeringid, groupid) VALUES ($volid, $gid)");
-        error_log("Created volunteering 'Test Volunteering' and linked to group $gid (ID: $volid)");
+        error_log("Linked volunteering 'Test Volunteering' to group $gid (ID: $volid)");
+
+        # Add a date for the volunteering opportunity (required by Go tests)
+        $start = date('Y-m-d', strtotime('+1 week'));
+        $end = date('Y-m-d', strtotime('+1 week'));
+        $dbhm->preExec("INSERT IGNORE INTO volunteering_dates (volunteeringid, start, end) VALUES ($volid, '$start', '$end')");
+        error_log("Added date for volunteering $volid (start: $start, end: $end)");
     }
 
     $dbhm->preExec("INSERT IGNORE INTO communityevents (title, location, contactname, contactemail, contacturl, description, added) VALUES ('Test Event', 'Edinburgh', 'Test Contact', 'event@test.com', 'http://test.com', 'Test community event', NOW())");
