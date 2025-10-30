@@ -162,27 +162,38 @@ class ChatMessage extends Entity
 
     public function processImageMessage(&$review, &$reviewreason) {
         try {
+            echo "processImageMessage called for message {$this->id}\n";
+
             # Extract text from the image using Tesseract OCR
             $imageid = $this->chatmessage['imageid'];
             if (!$imageid) {
+                echo "No imageid found\n";
                 return;
             }
+
+            echo "Processing image ID: $imageid\n";
 
             # Get the image attachment
             $a = new Attachment($this->dbhr, $this->dbhm, $imageid, Attachment::TYPE_CHAT_MESSAGE);
             $data = $a->getData();
 
             if (!$data) {
+                echo "No image data retrieved\n";
                 return;
             }
+
+            echo "Got image data, size: " . strlen($data) . " bytes\n";
 
             # Save image data to temporary file for OCR processing
             $tempFile = tempnam(sys_get_temp_dir(), 'chat_image_');
             file_put_contents($tempFile, $data);
+            echo "Saved to temp file: $tempFile\n";
 
             # Use Tesseract OCR to extract text
             $tesseract = new \thiagoalessio\TesseractOCR\TesseractOCR($tempFile);
+            echo "About to run Tesseract...\n";
             $extractedText = $tesseract->run();
+            echo "Tesseract completed. Extracted text length: " . strlen($extractedText) . "\n";
 
             # Clean up temporary file
             unlink($tempFile);
@@ -201,13 +212,19 @@ class ChatMessage extends Entity
                 # Check for spam using Spam::checkReview
                 $s = new Spam($this->dbhr, $this->dbhm);
                 if ($s->checkSpam($extractedText, [ Spam::ACTION_SPAM, Spam::ACTION_REVIEW ]) || $s->checkReview($extractedText, FALSE)) {
+                    echo "Spam detected in extracted text\n";
                     $review = 1;
                     $reviewreason = self::REVIEW_SPAM;
                     return;
                 }
+
+                echo "No spam or email found in extracted text\n";
+            } else {
+                echo "Extracted text is empty\n";
             }
 
         } catch (\Exception $e) {
+            echo "Exception in processImageMessage: " . $e->getMessage() . "\n";
             error_log("Error processing image OCR for chat message {$this->id}: " . $e->getMessage());
             # Don't fail the entire message processing if OCR fails
         }
