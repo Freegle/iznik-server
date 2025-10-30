@@ -59,7 +59,7 @@
               <p><b>Please could you put up another poster there?</b></p>
               <p>You can download it from <a href="https://freegle.in/A4Poster" target="_blank">here</a> and then  use this button to let us know when you have.  If you're not able to, it would be useful to know that too.</p>
             </mj-text>
-            <mj-button href="http://www.ilovefreegle.org/noticeboards/{{ id }}" background-color="#61AE24" font-size="12pt">Click to let us know</mj-button>
+            <mj-button href="https://www.ilovefreegle.org/noticeboards/{{ id }}" background-color="#61AE24" font-size="12pt">Click to let us know</mj-button>
           </mj-column>
         </mj-section>
         <mj-section background-color="#E0E0E0">

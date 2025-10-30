@@ -39,7 +39,7 @@
 						<mj-text>
               You kindly donated to Freegle on {{ date }}.  Your donation will go even further if you're able to complete a Gift Aid declaration:
             </mj-text>
-            <mj-button href="http://www.ilovefreegle.org/giftaid" background-color="#61AE24" font-size="12pt">Click to Complete a Gift Aid Form</mj-button>
+            <mj-button href="https://www.ilovefreegle.org/giftaid" background-color="#61AE24" font-size="12pt">Click to Complete a Gift Aid Form</mj-button>
             <mj-text>
               If you're not a tax payer or you're not able to do this for other reasons, then that's fine -
               there's no need to reply to let us know.
