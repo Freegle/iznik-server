@@ -576,8 +576,9 @@ class Utils {
      * @param int $exitCode Exit code to use if aborting (default 0)
      */
     public static function checkAbortFile($exitCode = 0) {
-        // Check if abort file exists and we're not in unit tests
-        if (file_exists('/tmp/iznik.mail.abort') && getenv('UT') !== '1') {
+        // Check if abort file exists - respect it even during unit tests to prevent race conditions
+        if (file_exists('/tmp/iznik.mail.abort')) {
+            error_log("checkAbortFile: Abort file found, exiting. UT=" . getenv('UT') . ", PID=" . getmypid() . ", script=" . ($_SERVER['PHP_SELF'] ?? 'unknown'));
             exit($exitCode);
         }
     }

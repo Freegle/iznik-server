@@ -9,6 +9,8 @@ global $dbhr, $dbhm;
 
 $lockh = Utils::lockScript(basename(__FILE__));
 
+error_log("chat_process started. PID=" . getmypid() . ", UT=" . getenv('UT') . ", lockh=" . $lockh);
+
 # We want to exit occasionally to pick up new code.  We'll get restarted by cron.
 $max = 120;
 
@@ -17,7 +19,7 @@ do {
 
     $msgs = $dbhr->preQuery("SELECT * FROM `chat_messages` WHERE chat_messages.processingrequired = 1 ORDER BY id ASC;");
 
-    error_log("DEBUG chat_process: Found " . count($msgs) . " messages requiring processing. UT=" . getenv('UT'));
+    error_log("DEBUG chat_process: Found " . count($msgs) . " messages requiring processing. UT=" . getenv('UT') . ", PID=" . getmypid());
     if (count($msgs) > 0) {
         error_log("DEBUG chat_process: First message ID: " . $msgs[0]['id'] . ", chatid: " . $msgs[0]['chatid']);
     }
@@ -29,9 +31,10 @@ do {
     } else {
         foreach ($msgs as $msg) {
             if ($msg['processingrequired']) {
-                error_log(date("Y-m-d H:i:s", time()) . " " . $msg['id']);
+                error_log("DEBUG chat_process: Processing message {$msg['id']} at " . date("Y-m-d H:i:s") . ", PID=" . getmypid());
                 $cm = new ChatMessage($dbhr, $dbhm, $msg['id']);
-                $cm->process();
+                $result = $cm->process();
+                error_log("DEBUG chat_process: Processed message {$msg['id']}, result=" . ($result ? 'TRUE' : 'FALSE'));
             }
         }
     }

@@ -33,6 +33,31 @@ class chatMessagesTest extends IznikTestCase {
         $this->user->setMembershipAtt($this->groupid, 'ourPostingStatus', Group::POSTING_DEFAULT);
 
         $this->dbhm->preExec("DELETE FROM locations WHERE name = 'TV13 1HH';");
+
+        # Stop background scripts to prevent race conditions
+        $this->stopBackgroundScripts();
+    }
+
+    protected function tearDown() : void {
+        # Restart background scripts
+        $this->startBackgroundScripts();
+
+        parent::tearDown();
+    }
+
+    protected function stopBackgroundScripts() {
+        # Create abort file to signal background scripts to exit
+        error_log("TEST setUp: Creating abort file at " . date("Y-m-d H:i:s"));
+        touch('/tmp/iznik.mail.abort');
+        # Give scripts time to see the abort file and exit (they check every second)
+        sleep(2);
+        error_log("TEST setUp: Background scripts should be stopped at " . date("Y-m-d H:i:s"));
+    }
+
+    protected function startBackgroundScripts() {
+        # Remove abort file to allow background scripts to restart
+        error_log("TEST tearDown: Removing abort file at " . date("Y-m-d H:i:s"));
+        @unlink('/tmp/iznik.mail.abort');
     }
 
     public function testGroup() {
@@ -813,12 +838,16 @@ class chatMessagesTest extends IznikTestCase {
 
         # Create image message
         $m = new ChatMessage($this->dbhr, $this->dbhm);
+        error_log("TEST: About to create message with imageid=$imageId at " . date("Y-m-d H:i:s"));
         list ($mid, $banned) = $m->create($chatid, $uid1, '', ChatMessage::TYPE_IMAGE, NULL, TRUE, NULL, NULL, NULL, $imageId, NULL, NULL, FALSE, FALSE);
         $this->assertNotNull($mid);
+        error_log("TEST: Created message id=$mid at " . date("Y-m-d H:i:s"));
         $m->setPrivate('imageid', $imageId);
 
         $m = new ChatMessage($this->dbhr, $this->dbhm, $mid);
-        $this->assertEquals(1, $m->getPrivate('processingrequired'));
+        $processingrequired = $m->getPrivate('processingrequired');
+        error_log("TEST: Checking message $mid, processingrequired=$processingrequired at " . date("Y-m-d H:i:s") . " for test: $description");
+        $this->assertEquals(1, $processingrequired);
 
         # Process the message
         $result = $m->process();
