@@ -576,9 +576,15 @@ class Utils {
      * @param int $exitCode Exit code to use if aborting (default 0)
      */
     public static function checkAbortFile($exitCode = 0) {
-        // Check if abort file exists - respect it even during unit tests to prevent race conditions
+        // Don't abort during PHPUnit tests - the abort file is used to stop background scripts,
+        // but PHPUnit should complete all tests
+        if (getenv('UT')) {
+            return;
+        }
+
+        // Check if abort file exists for background scripts
         if (file_exists('/tmp/iznik.mail.abort')) {
-            error_log("checkAbortFile: Abort file found, exiting. UT=" . getenv('UT') . ", PID=" . getmypid() . ", script=" . ($_SERVER['PHP_SELF'] ?? 'unknown'));
+            error_log("checkAbortFile: Abort file found, exiting. PID=" . getmypid() . ", script=" . ($_SERVER['PHP_SELF'] ?? 'unknown'));
             exit($exitCode);
         }
     }
