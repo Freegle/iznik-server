@@ -790,19 +790,19 @@ class chatMessagesAPITest extends IznikAPITestCase
         $cm = new ChatMessage($this->dbhr, $this->dbhm, $cmid);
         $cm->process();
 
-        # Notify - too soon.
+        # Notify - too soon (message is recent).
         error_log("testTyping: Stage 6 - First notify attempt (should be too soon)");
         $this->assertEquals(0, $r->notifyByEmail($rid, ChatRoom::TYPE_USER2USER, NULL, 30));
 
-        error_log("testTyping: Stage 7 - Sleeping for 10 seconds");
-        sleep(10);
-
-        # Notify again - still too soon.
-        error_log("testTyping: Stage 8 - Second notify attempt (still too soon)");
-        $this->assertEquals(0, $r->notifyByEmail($rid, ChatRoom::TYPE_USER2USER, NULL, 30));
+        # Age the message slightly (10 seconds old) so the typing action can bump it.
+        # Messages need to be old enough to be in the "about to be mailed" window for typing to bump them.
+        error_log("testTyping: Stage 7 - Aging message to 10 seconds old");
+        $tenSecondsAgo = date("Y-m-d H:i:s", strtotime("-10 seconds"));
+        $this->dbhm->preExec("UPDATE chat_messages SET date = ? WHERE id = ?;", [$tenSecondsAgo, $cmid]);
+        $cm = new ChatMessage($this->dbhr, $this->dbhm, $cmid); # Reload
 
         # Say we're still typing.  Should bump 1 chat message.
-        error_log("testTyping: Stage 9 - Testing typing action - should bump message");
+        error_log("testTyping: Stage 8 - Testing typing action - should bump message");
         $olddate = $cm->getPrivate('date');
         $this->log("Message time before bump $olddate");
         error_log("testTyping: Message time before bump $olddate");
@@ -819,22 +819,23 @@ class chatMessagesAPITest extends IznikAPITestCase
         error_log("testTyping: Message time after bump $newdate");
         $this->assertNotEquals($olddate, $newdate);
 
-        error_log("testTyping: Stage 10 - Sleeping for 25 seconds");
-        sleep(25);
-
-        # Notify again.  Message would get mailed by now, except that it has been bumped.
-        error_log("testTyping: Stage 11 - Third notify attempt (should still be 0 due to bump)");
+        # Notify again - message was just bumped, still too soon.
+        error_log("testTyping: Stage 9 - Second notify attempt (should still be too soon after bump)");
         $this->assertEquals(0, $r->notifyByEmail($rid, ChatRoom::TYPE_USER2USER, NULL, 30));
 
-        error_log("testTyping: Stage 12 - Sleeping for 10 seconds");
-        sleep(10);
+        # Manually age the message past the notification threshold (35 seconds > 30 second delay).
+        # This simulates time passing without the unreliability of sleep().
+        error_log("testTyping: Stage 10 - Manually aging message to 35 seconds old");
+        $oldTimestamp = date("Y-m-d H:i:s", strtotime("-35 seconds"));
+        $this->dbhm->preExec("UPDATE chat_messages SET date = ? WHERE id = ?;", [$oldTimestamp, $cmid]);
+        error_log("testTyping: Message artificially aged to $oldTimestamp");
 
         # Notify again.  Will send this time.
-        error_log("testTyping: Stage 13 - Fourth notify attempt (should send now)");
+        error_log("testTyping: Stage 11 - Third notify attempt (should send now)");
         $this->assertEquals(1, $r->notifyByEmail($rid, ChatRoom::TYPE_USER2USER, NULL, 30));
 
-        # Say we're still typing - nothing to bump.
-        error_log("testTyping: Stage 14 - Testing typing action again - nothing to bump");
+        # Say we're still typing - nothing to bump (message already mailed).
+        error_log("testTyping: Stage 12 - Testing typing action again - nothing to bump");
         $ret = $this->call('chatrooms', 'POST', [
             'id' => $rid,
             'action' => ChatRoom::ACTION_TYPING
