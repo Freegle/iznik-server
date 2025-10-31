@@ -262,24 +262,28 @@ class GitSummaryAI {
 
         $prompt .= "Then organise the changes into these sections:\n\n";
         $prompt .= "## FREEGLE DIRECT (Main Website for Members)\n";
-        $prompt .= "List changes that affect regular users of the Freegle website (3-5 bullet points).\n\n";
+        $prompt .= "List changes that affect regular users of the Freegle website (3-5 bullet points).\n";
+        $prompt .= "IMPORTANT: Sort items by impact - put changes that affect the most users most significantly at the top of the list.\n\n";
 
         $prompt .= "## MODTOOLS (Volunteer Website)\n";
-        $prompt .= "List changes that affect volunteers/moderators (3-5 bullet points).\n\n";
+        $prompt .= "List changes that affect volunteers/moderators (3-5 bullet points).\n";
+        $prompt .= "IMPORTANT: Sort items by impact - put changes that affect the most volunteers most significantly at the top of the list.\n\n";
 
         $prompt .= "## BACKEND SYSTEMS (Behind the scenes)\n";
-        $prompt .= "List technical improvements that don't directly change the user interface (2-3 bullet points).\n\n";
+        $prompt .= "List technical improvements that don't directly change the user interface (2-3 bullet points).\n";
+        $prompt .= "IMPORTANT: Sort items by impact - put changes with the biggest effect on system performance or reliability at the top.\n\n";
 
         $prompt .= "Guidelines:\n";
         $prompt .= "- When a feature spans multiple repos (e.g., frontend + API), describe it ONCE under the appropriate user-facing category\n";
-        $prompt .= "- Use straightforward language. Explain technical terms when needed (e.g., 'database' = 'where information is stored')\n";
+        $prompt .= "- Use simple, direct language. Avoid formal business speak. Say 'makes it easier' not 'ensuring a smoother experience'\n";
+        $prompt .= "- Use active, plain language: 'We fixed' not 'has been resolved', 'You can now' not 'functionality has been enhanced'\n";
         $prompt .= "- Use British English spelling and phrasing throughout\n";
-        $prompt .= "- Avoid American phrases and excessive enthusiasm - keep tone factual and straightforward\n";
+        $prompt .= "- Keep tone casual and straightforward, like explaining to a friend - not overly formal or corporate\n";
         $prompt .= "- Focus on WHAT changed, not HOW it was implemented technically\n";
         $prompt .= "- Identify prototype/experimental/investigation code clearly (look for test files, 'investigate', 'analyse', 'simulation', 'prototype' in commit messages or file paths)\n";
         $prompt .= "- When describing prototype work, say 'investigating', 'prototyping', 'testing approaches for' rather than implying it's live\n";
         $prompt .= "- If a category has no changes, say 'No changes in this period'\n";
-        $prompt .= "- Be specific but concise\n";
+        $prompt .= "- Be specific but concise - get straight to the point\n";
         $prompt .= "- Use bullet points starting with '-'\n\n";
         $prompt .= "Do not include repository names in your summary - just describe the changes by user impact.";
 
@@ -356,16 +360,127 @@ class GitSummaryAI {
      * Build the email content with AI-generated summary
      */
     private function buildEmail($aiSummary, $sinceDate) {
-        $email = "Freegle Code Changes Summary\n";
-        $email .= "Changes since: $sinceDate\n";
-        $email .= "Generated: " . date('Y-m-d H:i:s') . "\n\n";
-        $email .= str_repeat('=', 70) . "\n\n";
+        $generatedDate = date('l, j F Y \a\t H:i');
 
-        // The AI summary already includes the intro and sections
-        $email .= $aiSummary . "\n\n";
+        // Process line by line to properly handle different elements
+        $lines = explode("\n", $aiSummary);
+        $htmlLines = [];
+        $inList = FALSE;
+        $currentParagraph = '';
 
-        $email .= str_repeat('=', 70) . "\n\n";
-        $email .= "If you have any questions about these changes, please reply to this email.\n";
+        foreach ($lines as $line) {
+            $line = trim($line);
+
+            // Skip empty lines
+            if (empty($line)) {
+                if ($currentParagraph) {
+                    $htmlLines[] = '<p style="line-height: 1.6; margin-bottom: 12px;">' . $currentParagraph . '</p>';
+                    $currentParagraph = '';
+                }
+                if ($inList) {
+                    $htmlLines[] = '</ul>';
+                    $inList = FALSE;
+                }
+                continue;
+            }
+
+            // Handle headings
+            if (preg_match('/^## (.+)$/', $line, $matches)) {
+                if ($currentParagraph) {
+                    $htmlLines[] = '<p style="line-height: 1.6; margin-bottom: 12px;">' . $currentParagraph . '</p>';
+                    $currentParagraph = '';
+                }
+                if ($inList) {
+                    $htmlLines[] = '</ul>';
+                    $inList = FALSE;
+                }
+                $htmlLines[] = '<h2 style="color: #2c5282; margin-top: 24px; margin-bottom: 16px; font-size: 20px; display: block;">' . htmlspecialchars($matches[1]) . '</h2>';
+                $htmlLines[] = '<div style="height: 8px;"></div>'; // Add spacing after heading
+                continue;
+            }
+
+            if (preg_match('/^# (.+)$/', $line, $matches)) {
+                if ($currentParagraph) {
+                    $htmlLines[] = '<p style="line-height: 1.6; margin-bottom: 12px;">' . $currentParagraph . '</p>';
+                    $currentParagraph = '';
+                }
+                if ($inList) {
+                    $htmlLines[] = '</ul>';
+                    $inList = FALSE;
+                }
+                $htmlLines[] = '<h1 style="color: #1a365d; margin-top: 24px; margin-bottom: 20px; font-size: 24px; display: block;">' . htmlspecialchars($matches[1]) . '</h1>';
+                $htmlLines[] = '<div style="height: 8px;"></div>'; // Add spacing after heading
+                continue;
+            }
+
+            // Handle bullet points
+            if (preg_match('/^[-*]\s+(.+)$/', $line, $matches)) {
+                if ($currentParagraph) {
+                    $htmlLines[] = '<p style="line-height: 1.6; margin-bottom: 12px;">' . $currentParagraph . '</p>';
+                    $currentParagraph = '';
+                }
+                if (!$inList) {
+                    $htmlLines[] = '<ul style="margin: 12px 0; padding-left: 24px; line-height: 1.6;">';
+                    $inList = TRUE;
+                }
+                $htmlLines[] = '<li style="margin-bottom: 8px;">' . $matches[1] . '</li>';
+                continue;
+            }
+
+            // Regular paragraph text
+            if ($inList) {
+                $htmlLines[] = '</ul>';
+                $inList = FALSE;
+            }
+            if ($currentParagraph) {
+                $currentParagraph .= ' ';
+            }
+            $currentParagraph .= $line;
+        }
+
+        // Close any remaining open elements
+        if ($currentParagraph) {
+            $htmlLines[] = '<p style="line-height: 1.6; margin-bottom: 12px;">' . $currentParagraph . '</p>';
+        }
+        if ($inList) {
+            $htmlLines[] = '</ul>';
+        }
+
+        $htmlSummary = implode("\n", $htmlLines);
+
+        $email = <<<HTML
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;">
+    <div style="background-color: white; border-radius: 8px; padding: 32px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h1 style="color: #1a365d; border-bottom: 3px solid #4299e1; padding-bottom: 12px; margin-bottom: 24px; font-size: 28px;">
+            Freegle Code Changes Summary
+        </h1>
+
+        <div style="background-color: #ebf8ff; border-left: 4px solid #4299e1; padding: 16px; margin-bottom: 24px; border-radius: 4px;">
+            <p style="margin: 0; line-height: 1.6;">
+                <strong>Changes since:</strong> $sinceDate<br>
+                <strong>Generated:</strong> $generatedDate
+            </p>
+        </div>
+
+        <div style="color: #2d3748;">
+            $htmlSummary
+        </div>
+
+        <hr style="border: none; border-top: 2px solid #e2e8f0; margin: 32px 0;">
+
+        <p style="color: #718096; font-size: 14px; line-height: 1.6; margin: 0;">
+            If you have any questions about these changes, please reply to this post.
+        </p>
+    </div>
+</body>
+</html>
+HTML;
 
         return $email;
     }
@@ -374,38 +489,87 @@ class GitSummaryAI {
      * Build an empty email when there are no changes
      */
     private function buildEmptyEmail($sinceDate) {
-        $email = "Freegle Code Changes Summary\n";
-        $email .= "Changes since: $sinceDate\n";
-        $email .= "Generated: " . date('Y-m-d H:i:s') . "\n\n";
-        $email .= str_repeat('=', 70) . "\n\n";
-        $email .= "No code changes were found in any repository during this period.\n\n";
-        $email .= str_repeat('=', 70) . "\n";
+        $generatedDate = date('l, j F Y \a\t H:i');
+
+        $email = <<<HTML
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;">
+    <div style="background-color: white; border-radius: 8px; padding: 32px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h1 style="color: #1a365d; border-bottom: 3px solid #4299e1; padding-bottom: 12px; margin-bottom: 24px; font-size: 28px;">
+            Freegle Code Changes Summary
+        </h1>
+
+        <div style="background-color: #ebf8ff; border-left: 4px solid #4299e1; padding: 16px; margin-bottom: 24px; border-radius: 4px;">
+            <p style="margin: 0; line-height: 1.6;">
+                <strong>Changes since:</strong> $sinceDate<br>
+                <strong>Generated:</strong> $generatedDate
+            </p>
+        </div>
+
+        <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 16px; margin-bottom: 24px; border-radius: 4px;">
+            <p style="margin: 0; line-height: 1.6;">
+                No code changes were found in any repository during this period.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+HTML;
+
         return $email;
     }
 
     /**
      * Send the report via email
      */
-    public function sendReport($sinceOverride = NULL) {
+    public function sendReport($sinceOverride = NULL, $emailOverride = NULL) {
         $report = $this->generateReport($sinceOverride);
 
         $subject = date('d-m-Y') . ' Freegle Code Changes Summary (AI Generated)';
-        $to = 'discoursereplies+Tech@ilovefreegle.org';
-        $from = 'From: geeks@ilovefreegle.org';
+        $to = $emailOverride ?: 'discoursereplies+Tech@ilovefreegle.org';
+        $from = 'geeks@ilovefreegle.org';
 
-        // Use mail command
+        // Show email preview (first 500 characters of text content)
+        echo "\n" . str_repeat('=', 70) . "\n";
+        echo "EMAIL PREVIEW\n";
+        echo str_repeat('=', 70) . "\n";
+        $textPreview = strip_tags($report);
+        $textPreview = preg_replace('/\s+/', ' ', $textPreview);
+        $textPreview = substr($textPreview, 0, 500);
+        echo wordwrap($textPreview, 70) . "...\n";
+        echo str_repeat('=', 70) . "\n";
+        echo "To: $to\n";
+        echo "Subject: $subject\n";
+        echo "Format: HTML\n";
+        echo str_repeat('=', 70) . "\n\n";
+
+        // Write report to temporary file for reliable piping
+        $tmpFile = tempnam(sys_get_temp_dir(), 'git_summary_');
+        file_put_contents($tmpFile, $report);
+
+        // Use mail command with HTML content type
         $mailCmd = sprintf(
-            'echo %s | mail -s %s %s -a%s',
-            escapeshellarg($report),
+            'mail -s %s -a %s -a %s -r %s %s < %s',
             escapeshellarg($subject),
+            escapeshellarg('From: ' . $from),
+            escapeshellarg('Content-Type: text/html; charset=UTF-8'),
+            escapeshellarg($from),
             escapeshellarg($to),
-            escapeshellarg($from)
+            escapeshellarg($tmpFile)
         );
 
         exec($mailCmd, $output, $return);
 
+        // Cleanup temp file
+        unlink($tmpFile);
+
         if ($return === 0) {
-            echo "Email sent successfully!\n";
+            echo "We sent the email successfully to $to!\n";
         } else {
             echo "Failed to send email. Return code: $return\n";
             echo implode("\n", $output) . "\n";
@@ -414,28 +578,31 @@ class GitSummaryAI {
 }
 
 // CLI handling
-$options = getopt('s:h', ['since:', 'help', 'dry-run']);
+$options = getopt('s:e:h', ['since:', 'email:', 'help', 'dry-run']);
 
 if (isset($options['h']) || isset($options['help'])) {
     echo "Usage: php git_summary_ai.php [options]\n\n";
     echo "Options:\n";
     echo "  -s, --since <date>    Override the last run time (format: YYYY-MM-DD or relative like '-3 days')\n";
+    echo "  -e, --email <address> Override the recipient email address\n";
     echo "  --dry-run             Generate report but don't send email or update timestamp\n";
     echo "  -h, --help            Show this help message\n\n";
     echo "Examples:\n";
-    echo "  php git_summary_ai.php                    # Normal run (uses stored timestamp)\n";
-    echo "  php git_summary_ai.php --since 2025-01-01 # Override since date\n";
-    echo "  php git_summary_ai.php --since '-3 days'  # Relative date\n";
-    echo "  php git_summary_ai.php --dry-run          # Test without sending\n";
+    echo "  php git_summary_ai.php                              # Normal run (uses stored timestamp)\n";
+    echo "  php git_summary_ai.php --since 2025-01-01           # Override since date\n";
+    echo "  php git_summary_ai.php --since '-3 days'            # Relative date\n";
+    echo "  php git_summary_ai.php --email test@example.com     # Send to different address\n";
+    echo "  php git_summary_ai.php --dry-run                    # Test without sending\n";
     exit(0);
 }
 
 $summaryGenerator = new GitSummaryAI();
 
 $sinceOverride = $options['s'] ?? $options['since'] ?? NULL;
+$emailOverride = $options['e'] ?? $options['email'] ?? NULL;
 
 if (isset($options['dry-run'])) {
     echo $summaryGenerator->generateReport($sinceOverride);
 } else {
-    $summaryGenerator->sendReport($sinceOverride);
+    $summaryGenerator->sendReport($sinceOverride, $emailOverride);
 }
