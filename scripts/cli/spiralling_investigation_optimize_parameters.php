@@ -29,6 +29,7 @@ class IsochroneParameterOptimizer {
     private $groupIds;
     private $sampleSize;
     private $dbPath;
+    private $orsServer;
 
     public function __construct($dbhr, $dbhm, $options = []) {
         $this->dbhr = $dbhr;
@@ -38,6 +39,7 @@ class IsochroneParameterOptimizer {
         $this->endDate = $options['endDate'] ?? date('Y-m-d', strtotime('-7 days'));
         $this->groupIds = $options['groupIds'] ?? [];
         $this->sampleSize = $options['sampleSize'] ?? 50; // Messages per optimization run
+        $this->orsServer = $options['orsServer'] ?? NULL;
 
         // Initialize SQLite database for tracking optimization
         $this->dbPath = $options['dbPath'] ?? '/tmp/isochrone_optimization.db';
@@ -468,17 +470,25 @@ class IsochroneParameterOptimizer {
     private function evaluateParameters($params) {
         echo "Running simulation...\n";
 
+        // Prepare simulator options
+        $simulatorOptions = [
+            'startDate' => $this->startDate,
+            'endDate' => $this->endDate,
+            'groupIds' => $this->groupIds,
+            'limit' => $this->sampleSize,
+            'params' => $params
+        ];
+
+        // Pass ORS server if specified
+        if ($this->orsServer) {
+            $simulatorOptions['orsServer'] = $this->orsServer;
+        }
+
         // Create modified simulator with temporal curve support
         $simulator = new MessageIsochroneSimulatorWithTemporal(
             $this->dbhr,
             $this->dbhm,
-            [
-                'startDate' => $this->startDate,
-                'endDate' => $this->endDate,
-                'groupIds' => $this->groupIds,
-                'limit' => $this->sampleSize,
-                'params' => $params
-            ]
+            $simulatorOptions
         );
 
         // Run simulation
@@ -649,9 +659,12 @@ $options = getopt('', [
     'stage:',
     'stage1-iterations:',
     'stage2-iterations:',
+    'iterations:',
     'start:',
     'end:',
     'groups:',
+    'categories:',
+    'ors-server:',
     'sample-size:',
     'db-path:',
     'export-csv:',
@@ -659,7 +672,7 @@ $options = getopt('', [
 ]);
 
 if (isset($options['help']) || (!isset($options['stage']) && !isset($options['export-csv']))) {
-    echo "Usage: php optimize_isochrone_parameters.php --stage=<1|2|both> [options]\n\n";
+    echo "Usage: php spiralling_investigation_optimize_parameters.php --stage=<1|2|both> [options]\n\n";
     echo "Two-stage Bayesian optimization for isochrone parameters.\n";
     echo "Results stored in local SQLite database (default: /tmp/isochrone_optimization.db)\n\n";
     echo "Required:\n";
@@ -669,23 +682,29 @@ if (isset($options['help']) || (!isset($options['stage']) && !isset($options['ex
     echo "                         both: Run both stages sequentially\n";
     echo "  --export-csv=PATH      Export optimization results to CSV file\n\n";
     echo "Options:\n";
-    echo "  --stage1-iterations=N  Number of iterations for stage 1 (default: 50)\n";
-    echo "  --stage2-iterations=N  Number of iterations for stage 2 (default: 50)\n";
+    echo "  --iterations=N         Number of iterations (applies to both stages, default: 100)\n";
+    echo "  --stage1-iterations=N  Number of iterations for stage 1 (overrides --iterations)\n";
+    echo "  --stage2-iterations=N  Number of iterations for stage 2 (overrides --iterations)\n";
     echo "  --start=DATE           Start date for historical data (default: 60 days ago)\n";
     echo "  --end=DATE             End date for historical data (default: 7 days ago)\n";
     echo "  --groups=IDS           Comma-separated group IDs to include (default: all)\n";
+    echo "  --categories=CATS      Comma-separated ONS categories (A1,B1,C1,C2,D1,D2,E1,E2,F1,F2)\n";
+    echo "  --ors-server=URL       OpenRouteService server URL (default: from config)\n";
     echo "  --sample-size=N        Messages per iteration (default: 50)\n";
     echo "  --db-path=PATH         SQLite database path (default: /tmp/isochrone_optimization.db)\n";
     echo "  --help                 Show this help\n\n";
     echo "Examples:\n";
     echo "  # Run both stages with defaults\n";
-    echo "  php optimize_isochrone_parameters.php --stage=both\n\n";
+    echo "  php spiralling_investigation_optimize_parameters.php --stage=both\n\n";
+    echo "  # Optimize for urban groups (A1, B1, C1)\n";
+    echo "  php spiralling_investigation_optimize_parameters.php --stage=both --categories=\"A1,B1,C1\" \\\n";
+    echo "    --iterations=100 --ors-server=http://10.220.0.103:8081/ors \\\n";
+    echo "    --db-path=/tmp/urban_optimization.db\n\n";
     echo "  # Run stage 1 only with more iterations\n";
-    echo "  php optimize_isochrone_parameters.php --stage=1 --stage1-iterations=100\n\n";
-    echo "  # Run stage 2 with specific date range\n";
-    echo "  php optimize_isochrone_parameters.php --stage=2 --start=2025-01-01 --end=2025-01-31\n\n";
+    echo "  php spiralling_investigation_optimize_parameters.php --stage=1 --stage1-iterations=100\n\n";
     echo "  # Export results to CSV\n";
-    echo "  php optimize_isochrone_parameters.php --export-csv=/tmp/results.csv --db-path=/tmp/isochrone_optimization.db\n\n";
+    echo "  php spiralling_investigation_optimize_parameters.php --export-csv=/tmp/results.csv \\\n";
+    echo "    --db-path=/tmp/isochrone_optimization.db\n\n";
     exit(0);
 }
 
@@ -704,8 +723,11 @@ if (isset($options['export-csv'])) {
 }
 
 $stage = $options['stage'];
-$stage1Iterations = intval($options['stage1-iterations'] ?? 50);
-$stage2Iterations = intval($options['stage2-iterations'] ?? 50);
+
+// Handle iterations - general parameter can be overridden by stage-specific ones
+$defaultIterations = intval($options['iterations'] ?? 100);
+$stage1Iterations = intval($options['stage1-iterations'] ?? $defaultIterations);
+$stage2Iterations = intval($options['stage2-iterations'] ?? $defaultIterations);
 
 $optimizerOptions = [];
 if (isset($options['start'])) {
@@ -714,15 +736,54 @@ if (isset($options['start'])) {
 if (isset($options['end'])) {
     $optimizerOptions['endDate'] = $options['end'];
 }
-if (isset($options['groups'])) {
+
+// Handle group selection - either by explicit IDs or by ONS categories
+if (isset($options['categories'])) {
+    // Query groups by ONS categories
+    $categories = array_map('trim', explode(',', $options['categories']));
+    echo "Finding groups matching ONS categories: " . implode(', ', $categories) . "\n";
+
+    $placeholders = implode(',', array_fill(0, count($categories), '?'));
+    $sql = "SELECT g.id, g.nameshort, g.ons_label
+            FROM `groups` g
+            WHERE g.type = 'Freegle'
+              AND g.publish = 1
+              AND g.ons_label IN ($placeholders)
+            ORDER BY g.nameshort";
+
+    $groups = $dbhr->preQuery($sql, $categories);
+
+    if (empty($groups)) {
+        echo "Error: No groups found matching ONS categories: " . implode(', ', $categories) . "\n";
+        exit(1);
+    }
+
+    $groupIds = array_map(function($g) { return intval($g['id']); }, $groups);
+    $optimizerOptions['groupIds'] = $groupIds;
+
+    echo "Found " . count($groupIds) . " groups:\n";
+    foreach (array_slice($groups, 0, 10) as $group) {
+        echo "  - {$group['nameshort']} (ID: {$group['id']}, ONS: {$group['ons_label']})\n";
+    }
+    if (count($groups) > 10) {
+        echo "  ... and " . (count($groups) - 10) . " more\n";
+    }
+    echo "\n";
+
+} elseif (isset($options['groups'])) {
+    // Explicit group IDs
     $groupIds = array_map('trim', explode(',', $options['groups']));
     $optimizerOptions['groupIds'] = array_map('intval', $groupIds);
 }
+
 if (isset($options['sample-size'])) {
     $optimizerOptions['sampleSize'] = intval($options['sample-size']);
 }
 if (isset($options['db-path'])) {
     $optimizerOptions['dbPath'] = $options['db-path'];
+}
+if (isset($options['ors-server'])) {
+    $optimizerOptions['orsServer'] = $options['ors-server'];
 }
 
 $optimizer = new IsochroneParameterOptimizer($dbhr, $dbhm, $optimizerOptions);

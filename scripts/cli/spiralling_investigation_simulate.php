@@ -70,7 +70,7 @@ class MessageIsochroneSimulator {
     public function run($name = NULL, $description = NULL) {
         echo "\n=== Message Isochrone Simulation ===\n";
         echo "Date range: {$this->startDate} to {$this->endDate}\n";
-        echo "Isochrone source: " . ($this->orsServer ? "ORS ({$this->orsServer})" : "Mapbox (cached only)") . "\n";
+        echo "Isochrone source: Uses cached isochrones (any source)" . ($this->orsServer ? ", creates new via ORS ({$this->orsServer}) if needed" : "") . "\n";
 
         // Test ORS connectivity if specified
         if ($this->orsServer) {
@@ -837,11 +837,10 @@ class MessageIsochroneSimulator {
         // Map simulation transport mode to Isochrone class constants
         $transportEnum = $this->mapTransportToEnum($transport);
 
-        $source = $this->orsServer ? 'ORS' : 'Mapbox';
         $transq = $transportEnum ? (" AND transport = " . $this->dbhr->quote($transportEnum)) : " AND transport IS NULL";
-        $sourceq = " AND source = " . $this->dbhr->quote($source);
 
-        $existings = $this->dbhr->preQuery("SELECT id FROM isochrones WHERE locationid = ? $transq AND minutes = ? $sourceq ORDER BY timestamp DESC LIMIT 1;", [
+        // Accept any suitable isochrone regardless of source (Mapbox, ORS, etc.)
+        $existings = $this->dbhr->preQuery("SELECT id FROM isochrones WHERE locationid = ? $transq AND minutes = ? ORDER BY timestamp DESC LIMIT 1;", [
             $locationId,
             $minutes
         ]);
@@ -1149,8 +1148,8 @@ if (isset($options['help'])) {
     echo "have been reached by expanding isochrones. Each expansion aims to cover an\n";
     echo "additional minimum number of known active users (configurable via --min-users).\n\n";
     echo "Isochrone Sources:\n";
-    echo "  - Without --ors-server: Uses only cached Mapbox isochrones from database\n";
-    echo "    Messages are skipped if required isochrones are not already cached\n";
+    echo "  - Uses any cached isochrones from database (Mapbox, ORS, or any source)\n";
+    echo "  - Without --ors-server: Messages are skipped if required isochrones not cached\n";
     echo "  - With --ors-server: Creates new ORS isochrones on demand (no cost limit)\n";
     echo "    All messages can be processed as isochrones are generated as needed\n";
     echo "    NOTE: 'walk' transport is automatically converted to 'cycle' for ORS\n\n";
