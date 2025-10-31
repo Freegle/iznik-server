@@ -59,43 +59,34 @@ try{
   // Android
   //        const FD_LOOKUP = 'https://play.google.com/store/apps/details?id=org.ilovefreegle.direct&hl=en'
   //        const MT_LOOKUP = 'https://play.google.com/store/apps/details?id=org.ilovefreegle.modtools&hl=en'
-  // 2/9/22: $lookfor appears twice but new $lookfor2 still works
+  // Updated 2025: Parse AF_initDataCallback('ds:5') for version and date info
 
-  //$lookfor = '[null,null,[]],null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,[[["';
-  //$lookforlen = strlen($lookfor);
-
-  $lookfor = 'You can request that data be deleted"]]],null,null,null,[[["';
-  $lookforlen = strlen($lookfor);
-
-  $lookfor2 = ']]]],[["';
-  $lookfor2len = strlen($lookfor2);
-
-  // '[[["2.0.102"]],[[[30,"11"]],[[[22,"5.1"]]]],[["May 15, 2022"]]]'
-  // '[[["0.3.76"]],[[[30,"11"]],[[[22,"5.1"]]]],[["May 14, 2022"]]]'
-  
   // ANDROID FREEGLE
   $url = "https://play.google.com/store/apps/details?id=org.ilovefreegle.direct&hl=en";
   $data = file_get_contents($url);
   $savefilenamefr = FALSE;
 
-  $pos = strpos($data,$lookfor);
-  if( $pos!==FALSE){
-    $pos += $lookforlen;
-    $endpos = strpos($data,'"',$pos);
-    if( $endpos!==FALSE){
-      $FD_Android_version = substr($data,$pos,$endpos-$pos);
-      //echo "Android FD: ".$FD_Android_version."\r\n";
-      $pos = strpos($data,$lookfor2,$pos);
-      if( $pos!==FALSE){
-        $pos += $lookfor2len;
-        $endpos = strpos($data,'"',$pos);
-        if( $endpos!==FALSE){
-          $FD_Android_currentVersionReleaseDate = substr($data,$pos,$endpos-$pos);
-          echo "Android FD: ".$FD_Android_version.": ".$FD_Android_currentVersionReleaseDate."\r\n";
-        }
-      }
+  // Extract the AF_initDataCallback for 'ds:5' which contains app version info
+  if (preg_match('/AF_initDataCallback\(\{key: \'ds:5\'.*?}\);/s', $data, $ds5Match)) {
+    $ds5Data = $ds5Match[0];
+
+    // Extract version number (format: x.x.x)
+    if (preg_match('/\d+\.\d+\.\d+/', $ds5Data, $verMatch)) {
+      $FD_Android_version = $verMatch[0];
     }
-  } else{
+
+    // Extract release date - get the most recent date (second match)
+    if (preg_match_all('/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d+, \d{4}/', $ds5Data, $dateMatches)) {
+      // The last date match is usually the current version release date
+      $FD_Android_currentVersionReleaseDate = end($dateMatches[0]);
+    }
+
+    if ($FD_Android_version && $FD_Android_currentVersionReleaseDate) {
+      echo "Android FD: ".$FD_Android_version.": ".$FD_Android_currentVersionReleaseDate."\r\n";
+    }
+  }
+
+  if (!$FD_Android_version) {
     $savefilenamefr = "/tmp/get_app_android_fr.htm";
     $savefile = fopen($savefilenamefr, "w");
     fwrite($savefile, $data);
@@ -105,28 +96,31 @@ try{
   // ANDROID MODTOOLS
   $url = "https://play.google.com/store/apps/details?id=org.ilovefreegle.modtools&hl=en";
   $data = file_get_contents($url);
-  $savefilenamefr = FALSE;
+  $savefilenamemt = FALSE;
 
-  $pos = strpos($data,$lookfor);
-  if( $pos!==FALSE){
-    $pos += $lookforlen;
-    $endpos = strpos($data,'"',$pos);
-    if( $endpos!==FALSE){
-      $MT_Android_version = substr($data,$pos,$endpos-$pos);
-      //echo "Android MT: ".$MT_Android_version."\r\n";
-      $pos = strpos($data,$lookfor2,$pos);
-      if( $pos!==FALSE){
-        $pos += $lookfor2len;
-        $endpos = strpos($data,'"',$pos);
-        if( $endpos!==FALSE){
-          $MT_Android_currentVersionReleaseDate = substr($data,$pos,$endpos-$pos);
-          echo "Android MT: ".$MT_Android_version.": ".$MT_Android_currentVersionReleaseDate."\r\n";
-        }
-      }
+  // Extract the AF_initDataCallback for 'ds:5' which contains app version info
+  if (preg_match('/AF_initDataCallback\(\{key: \'ds:5\'.*?}\);/s', $data, $ds5Match)) {
+    $ds5Data = $ds5Match[0];
+
+    // Extract version number (format: x.x.x)
+    if (preg_match('/\d+\.\d+\.\d+/', $ds5Data, $verMatch)) {
+      $MT_Android_version = $verMatch[0];
     }
-  } else{
-    $savefilenamefr = "/tmp/get_app_android_mt.htm";
-    $savefile = fopen($savefilenamefr, "w");
+
+    // Extract release date - get the most recent date (second match)
+    if (preg_match_all('/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d+, \d{4}/', $ds5Data, $dateMatches)) {
+      // The last date match is usually the current version release date
+      $MT_Android_currentVersionReleaseDate = end($dateMatches[0]);
+    }
+
+    if ($MT_Android_version && $MT_Android_currentVersionReleaseDate) {
+      echo "Android MT: ".$MT_Android_version.": ".$MT_Android_currentVersionReleaseDate."\r\n";
+    }
+  }
+
+  if (!$MT_Android_version) {
+    $savefilenamemt = "/tmp/get_app_android_mt.htm";
+    $savefile = fopen($savefilenamemt, "w");
     fwrite($savefile, $data);
     fclose($savefile);
   }
@@ -199,21 +193,37 @@ try{
   $gotIOS_MT = $MT_iOS_version !== FALSE;
   $gotAndroid_FD = $FD_Android_version !== FALSE;
   $gotAndroid_MT = $MT_Android_version !== FALSE;
-  
+
+  // Check if FD Android app is older than 2 weeks
+  $FD_Android_tooOld = FALSE;
+  if ($gotAndroid_FD && $FD_Android_currentVersionReleaseDate) {
+    $releaseTimestamp = strtotime($FD_Android_currentVersionReleaseDate);
+    $twoWeeksAgo = strtotime('-2 weeks');
+    if ($releaseTimestamp < $twoWeeksAgo) {
+      $FD_Android_tooOld = TRUE;
+      $daysSinceRelease = floor((time() - $releaseTimestamp) / 86400);
+      echo "WARNING: Android FD app is $daysSinceRelease days old (released $FD_Android_currentVersionReleaseDate)\r\n";
+    }
+  }
+
   if( $gotIOS_FD){
-    $dbhm->preExec("UPDATE config SET value = ? WHERE `key` = 'app_fd_version_ios_latest';", [ $FD_iOS_version ]);
+    $dbhm->preExec("INSERT INTO config (`key`, value) VALUES ('app_fd_version_ios_latest', ?) ON DUPLICATE KEY UPDATE value = ?;", [ $FD_iOS_version, $FD_iOS_version ]);
+    $dbhm->preExec("INSERT INTO config (`key`, value) VALUES ('app_fd_version_ios_date', ?) ON DUPLICATE KEY UPDATE value = ?;", [ $FD_iOS_currentVersionReleaseDate, $FD_iOS_currentVersionReleaseDate ]);
   }
   if( $gotIOS_MT){
-    $dbhm->preExec("UPDATE config SET value = ? WHERE `key` = 'app_mt_version_ios_latest';", [ $MT_iOS_version ]);
+    $dbhm->preExec("INSERT INTO config (`key`, value) VALUES ('app_mt_version_ios_latest', ?) ON DUPLICATE KEY UPDATE value = ?;", [ $MT_iOS_version, $MT_iOS_version ]);
+    $dbhm->preExec("INSERT INTO config (`key`, value) VALUES ('app_mt_version_ios_date', ?) ON DUPLICATE KEY UPDATE value = ?;", [ $MT_iOS_currentVersionReleaseDate, $MT_iOS_currentVersionReleaseDate ]);
   }
   if( $gotAndroid_FD){
-    $dbhm->preExec("UPDATE config SET value = ? WHERE `key` = 'app_fd_version_android_latest';", [ $FD_Android_version ]);
+    $dbhm->preExec("INSERT INTO config (`key`, value) VALUES ('app_fd_version_android_latest', ?) ON DUPLICATE KEY UPDATE value = ?;", [ $FD_Android_version, $FD_Android_version ]);
+    $dbhm->preExec("INSERT INTO config (`key`, value) VALUES ('app_fd_version_android_date', ?) ON DUPLICATE KEY UPDATE value = ?;", [ $FD_Android_currentVersionReleaseDate, $FD_Android_currentVersionReleaseDate ]);
   }
   if( $gotAndroid_MT){
-    $dbhm->preExec("UPDATE config SET value = ? WHERE `key` = 'app_mt_version_android_latest';", [ $MT_Android_version ]);
+    $dbhm->preExec("INSERT INTO config (`key`, value) VALUES ('app_mt_version_android_latest', ?) ON DUPLICATE KEY UPDATE value = ?;", [ $MT_Android_version, $MT_Android_version ]);
+    $dbhm->preExec("INSERT INTO config (`key`, value) VALUES ('app_mt_version_android_date', ?) ON DUPLICATE KEY UPDATE value = ?;", [ $MT_Android_currentVersionReleaseDate, $MT_Android_currentVersionReleaseDate ]);
   }
-  
-  if( $gotIOS_FD && $gotIOS_MT && $gotAndroid_FD && $gotAndroid_MT){
+
+  if( $gotIOS_FD && $gotIOS_MT && $gotAndroid_FD && $gotAndroid_MT && !$FD_Android_tooOld){
     $subject .= "OK";
   } else {
     $subject .= "FAIL";
@@ -222,7 +232,12 @@ try{
   $report .= "FD: ".$FD_iOS_version.": ".$FD_iOS_currentVersionReleaseDate."\r\n";
   $report .= "MT: ".$MT_iOS_version.": ".$MT_iOS_currentVersionReleaseDate."\r\n";
   $report .= "\r\nAndroid \r\n\r\n";
-  $report .= "FD: ".$FD_Android_version.": ".$FD_Android_currentVersionReleaseDate."\r\n";
+  $report .= "FD: ".$FD_Android_version.": ".$FD_Android_currentVersionReleaseDate;
+  if ($FD_Android_tooOld) {
+    $daysSinceRelease = floor((time() - strtotime($FD_Android_currentVersionReleaseDate)) / 86400);
+    $report .= " [WARNING: $daysSinceRelease days old - exceeds 2 week limit]";
+  }
+  $report .= "\r\n";
   $report .= "MT: ".$MT_Android_version.": ".$MT_Android_currentVersionReleaseDate."\r\n";
   if( $savefilenamefr) $report .= "Received file written to: ".$savefilenamefr."\r\n";
   if( $savefilenamemt) $report .= "Received file written to: ".$savefilenamemt."\r\n";

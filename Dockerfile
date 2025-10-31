@@ -182,6 +182,7 @@ CMD /etc/init.d/ssh start \
   && cd .. \
   && php install/testenv.php \
   && php scripts/cli/table_autoinc.php \
+  && php scripts/cron/get_app_release_versions.php >> /tmp/iznik.get_app_release_versions.out 2>&1 \
 
   # Start messages_spatial loop in background and keep container alive
   && sh -c 'nohup sh -c "while true; do cd /var/www/iznik/scripts/cron && php ./message_spatial.php >> /tmp/iznik.message_spatial.out 2>&1; sleep 10; done" </dev/null >/dev/null 2>&1 & exec sleep infinity'
