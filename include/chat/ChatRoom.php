@@ -2932,9 +2932,8 @@ ORDER BY chat_messages.id DESC LIMIT 1;", [
         # y'know, freegle) according to Litmus.  Remove them.
         $unmailedmsg['message'] = str_replace('!', '.', $unmailedmsg['message']);
 
-        # Convert all emojis to smilies.  Obviously that's not right, but most of them are, and we want
-        # to get rid of the unicode.
-        $unmailedmsg['message'] = preg_replace('/\\\\u.*?\\\\u/', ':-)', $unmailedmsg['message']);
+        # Decode emoji escape sequences to actual emojis for email display.
+        $unmailedmsg['message'] = Utils::decodeEmojis($unmailedmsg['message']);
 
         if ($mailson) {
             if (!$firstid) {

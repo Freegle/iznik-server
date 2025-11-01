@@ -894,8 +894,8 @@ class Newsfeed extends Entity
                         }
                     }
 
-                    # Strip emoji.
-                    $str = preg_replace('/\\\\u.*?\\\\u/', ':-)', $str);
+                    # Decode emoji escape sequences to actual emojis for email display.
+                    $str = Utils::decodeEmojis($str);
 
                     $this->snip($str);
                     $feed['message'] = $str;
@@ -928,6 +928,7 @@ class Newsfeed extends Entity
                                 $u2 = User::get($this->dbhr, $this->dbhm, $reply['userid']);
                                 $reply['fromname'] = $u2->getName();
                                 $reply['timestamp'] = date("D, jS F g:ia", strtotime($reply['timestamp']));
+                                $reply['message'] = Utils::decodeEmojis($reply['message']);
                                 $short2 = $reply['message'];
                                 $this->snip($short2, 40);
                                 $textsumm .= "  {$reply['fromname']}: $short2\n";
@@ -1070,6 +1071,7 @@ class Newsfeed extends Entity
                     }
                 }
 
+                $str = Utils::decodeEmojis($str);
                 $this->snip($str);
                 $feed['message'] = $str;
 

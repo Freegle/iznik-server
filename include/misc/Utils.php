@@ -642,4 +642,30 @@ class Utils {
 
         return FALSE;
     }
+
+    /**
+     * Decode emoji escape sequences from \u{CODE}\u format to actual emojis.
+     * This format is used by the frontend twemoji library to store emojis in the database.
+     *
+     * @param string $str The string containing emoji escape sequences
+     * @return string The string with actual emoji characters
+     */
+    public static function decodeEmojis($str) {
+        if (!$str) {
+            return $str;
+        }
+
+        return preg_replace_callback(
+            '/\\\\u(.*?)\\\\u/',
+            function($matches) {
+                $codePoints = explode('-', $matches[1]);
+                $emoji = '';
+                foreach ($codePoints as $codePoint) {
+                    $emoji .= mb_convert_encoding('&#x' . $codePoint . ';', 'UTF-8', 'HTML-ENTITIES');
+                }
+                return $emoji;
+            },
+            $str
+        );
+    }
 }

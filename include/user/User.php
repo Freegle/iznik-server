@@ -4452,9 +4452,8 @@ class User extends Entity
                 if (count($msgs) > 0) {
                     $message = Utils::presdef('message', $msgs[count($msgs) - 1], "You have a message");
 
-                    # Convert all emojis to smilies.  Obviously that's not right, but most of them are, and we want
-                    # to get rid of the unicode.
-                    $message = preg_replace('/\\\\u.*?\\\\u/', ':-)', $message);
+                    # Decode emoji escape sequences to actual emojis for display.
+                    $message = Utils::decodeEmojis($message);
 
                     $message = strlen($message) > 256 ? (substr($message, 0, 256) . "...") : $message;
                 }
