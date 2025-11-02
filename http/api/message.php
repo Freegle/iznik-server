@@ -100,7 +100,10 @@ function message() {
                             $atts['message'] = $m->getPrivate('message');
                         }
 
-                        $cansee = $summary || $m->canSee($atts) || $ischat;
+                        # Moderators can view message history (raw email source) for moderation purposes
+                        $canseemessagehistory = $messagehistory && $mod;
+
+                        $cansee = $summary || $m->canSee($atts) || $ischat || $canseemessagehistory;
 
                         # We want to return the groups info even if we can't see the message, so that we can tell them
                         # which group to join.

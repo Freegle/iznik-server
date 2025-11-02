@@ -1731,7 +1731,7 @@ class MailRouterTest extends IznikTestCase {
 
         foreach ($chatmessages as $chatmessage) {
             $cm = new ChatMessage($this->dbhr, $this->dbhm, $chatmessage['chatmsgid']);
-            $this->assertGreaterThan(0, strpos($cm->getPrivate('message'), '(Replied to digest)'));
+            $this->assertGreaterThan(0, strpos($cm->getPrivate('message'), '(Probably replied to digest - check View original email)'));
         }
     }
 
@@ -1752,7 +1752,7 @@ class MailRouterTest extends IznikTestCase {
 
         foreach ($chatmessages as $chatmessage) {
             $cm = new ChatMessage($this->dbhr, $this->dbhm, $chatmessage['chatmsgid']);
-            $this->assertGreaterThan(0, strpos($cm->getPrivate('message'), '(Replied to digest)'));
+            $this->assertGreaterThan(0, strpos($cm->getPrivate('message'), '(Probably replied to digest - check View original email)'));
         }
     }
 
