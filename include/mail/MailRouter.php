@@ -703,12 +703,12 @@ class MailRouter
                                         # ...but we don't want the whole digest, if they sent that.
                                         if (preg_match('/(.*)^\s*On.*?-auto@' . GROUP_DOMAIN . '> wrote\:(\s*)/ms', $textbody, $matches)) {
                                             $textbody = $matches[1];
-                                            $textbody .= "\r\n\r\n(Replied to digest)";
+                                            $textbody .= "\r\n\r\n(Probably replied to digest - check View original email)";
                                         }
 
                                         if (preg_match('/(.*)^\s*-----Original Message-----(\s*)/ms', $textbody, $matches)) {
                                             $textbody = $matches[1];
-                                            $textbody .= "\r\n\r\n(Replied to digest)";
+                                            $textbody .= "\r\n\r\n(Probably replied to digest - check View original email)";
                                         }
 
                                         if (strlen($textbody)) {
