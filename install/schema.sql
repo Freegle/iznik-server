@@ -708,7 +708,8 @@ CREATE TABLE `config` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `key` varchar(255) NOT NULL,
   `value` text NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `key` (`key`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1750987774 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
