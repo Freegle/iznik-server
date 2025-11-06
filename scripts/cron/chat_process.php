@@ -19,7 +19,6 @@ do {
 
     $msgs = $dbhr->preQuery("SELECT * FROM `chat_messages` WHERE chat_messages.processingrequired = 1 ORDER BY id ASC;");
 
-    error_log("DEBUG chat_process: Found " . count($msgs) . " messages requiring processing. UT=" . getenv('UT') . ", PID=" . getmypid());
     if (count($msgs) > 0) {
         error_log("DEBUG chat_process: First message ID: " . $msgs[0]['id'] . ", chatid: " . $msgs[0]['chatid']);
     }
