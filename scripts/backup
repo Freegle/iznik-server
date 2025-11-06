@@ -15,22 +15,7 @@ if [ $? == 0 ]; then
     # cases where requests get blocked on other nodes while the backup is occurring.
     mysql --execute "SET GLOBAL wsrep_desync = ON"
 
-    # ...to our archive server
-    echo "$BACKUP | ssh root@archive \ \"cat - > /archive/backups/iznik-$timestamp.xbstream\""
-    $BACKUP | ssh root@archive \ "cat - > /archive/backups/iznik-$timestamp.xbstream"
-    rc=$?
-    echo "Archive backup returned " $rc
-
-    # This fails with network glitches sometimes.  If so try again.
-    if [ $rc != 0 ]; then
-        $BACKUP | gzip - | ssh root@archive \ "cat - > /archive/backups/iznik-$timestamp.tar.gz"
-        echo "Archive backup 2 returned " $?
-    fi
-
-    # Kick off the restore
-    ssh root@archive "nohup /var/www/iznik/scripts/restore > /tmp/restore.out 2>&1 &"
-
-    # ...to Google storage
+    # We back up to Google storage, and this is then used by the yesterday system.
     $BACKUP | /usr/lib/google-cloud-sdk/platform/gsutil/gsutil cp - gs://freegle_backup_uk/iznik-$timestamp.xbstream > /tmp/gsutil.out 2>&1
 
     if [ $? == 0 ]; then
