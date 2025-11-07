@@ -161,6 +161,13 @@ class Volunteering extends Entity
         $atts = parent::getPublic();
         $atts['groups'] = [];
 
+        # Decode HTML entities in text fields
+        foreach (['title', 'description', 'location', 'contactname', 'contacturl', 'timecommitment'] as $field) {
+            if (isset($atts[$field]) && $atts[$field]) {
+                $atts[$field] = html_entity_decode($atts[$field], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            }
+        }
+
         $atts['dates'] = $this->dbhr->preQuery("SELECT * FROM volunteering_dates WHERE volunteeringid = ? ORDER BY end ASC", [ $this->id ]);
 
         foreach ($atts['dates'] as &$date) {
