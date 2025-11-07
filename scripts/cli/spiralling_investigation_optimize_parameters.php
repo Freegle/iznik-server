@@ -30,6 +30,8 @@ class IsochroneParameterOptimizer {
     private $sampleSize;
     private $dbPath;
     private $orsServer;
+    private $orsTimeout;
+    private $earlyStopThreshold;
 
     public function __construct($dbhr, $dbhm, $options = []) {
         $this->dbhr = $dbhr;
@@ -40,6 +42,8 @@ class IsochroneParameterOptimizer {
         $this->groupIds = $options['groupIds'] ?? [];
         $this->sampleSize = $options['sampleSize'] ?? 50; // Messages per optimization run
         $this->orsServer = $options['orsServer'] ?? NULL;
+        $this->orsTimeout = $options['orsTimeout'] ?? 15;  // Default ORS timeout (seconds)
+        $this->earlyStopThreshold = $options['earlyStopThreshold'] ?? NULL;
 
         // Initialize SQLite database for tracking optimization
         $this->dbPath = $options['dbPath'] ?? '/tmp/isochrone_optimization.db';
@@ -157,7 +161,7 @@ class IsochroneParameterOptimizer {
     /**
      * Run Stage 1: Optimize spatial parameters
      */
-    public function optimizeStage1($numIterations = 50) {
+    public function optimizeStage1($numIterations = 50, $forceFresh = FALSE) {
         echo "\n=== STAGE 1: SPATIAL PARAMETER OPTIMIZATION ===\n";
         echo "Iterations: $numIterations\n";
         echo "Sample size per iteration: {$this->sampleSize} messages\n\n";
@@ -185,11 +189,32 @@ class IsochroneParameterOptimizer {
         $bestParams = NULL;
         $bestScore = 0;
         $allResults = [];
+        $iterationsSinceImprovement = 0;
 
-        // Create optimization run record
-        $this->createOptimizationRun('stage1', $searchSpace, $fixedTemporal);
+        // Check for incomplete run to resume (unless force fresh)
+        $resumeData = !$forceFresh ? $this->checkForIncompleteRun('stage1', $searchSpace, $fixedTemporal) : NULL;
 
-        for ($i = 1; $i <= $numIterations; $i++) {
+        if ($resumeData) {
+            echo "*** RESUMING from previous run (ID: {$resumeData['run_id']}) ***\n";
+            echo "Previous iterations completed: {$resumeData['last_iteration']}/{$numIterations}\n";
+            echo "Best score so far: " . round($resumeData['best_score'] * 100, 2) . "%\n\n";
+
+            $this->optimizationRunId = $resumeData['run_id'];
+            $allResults = $resumeData['all_results'];
+            $bestScore = $resumeData['best_score'];
+            $bestParams = $resumeData['best_params'];
+            $startIteration = $resumeData['last_iteration'] + 1;
+        } else {
+            // Create new optimization run record
+            $this->createOptimizationRun('stage1', $searchSpace, $fixedTemporal);
+            $startIteration = 1;
+        }
+
+        if ($this->earlyStopThreshold) {
+            echo "Early stopping enabled: Will stop after {$this->earlyStopThreshold} iterations without improvement\n\n";
+        }
+
+        for ($i = $startIteration; $i <= $numIterations; $i++) {
             echo "\n--- Iteration $i/$numIterations ---\n";
 
             // Sample parameters
@@ -225,7 +250,17 @@ class IsochroneParameterOptimizer {
             if ($score > $bestScore) {
                 $bestScore = $score;
                 $bestParams = $params;
+                $iterationsSinceImprovement = 0;
                 echo "*** NEW BEST SCORE: " . round($bestScore * 100, 2) . "% ***\n";
+            } else {
+                $iterationsSinceImprovement++;
+            }
+
+            // Early stopping check
+            if ($this->earlyStopThreshold && $iterationsSinceImprovement >= $this->earlyStopThreshold) {
+                echo "\n*** EARLY STOPPING: No improvement for {$iterationsSinceImprovement} iterations ***\n";
+                echo "Stopping at iteration $i/$numIterations\n";
+                break;
             }
         }
 
@@ -242,7 +277,7 @@ class IsochroneParameterOptimizer {
     /**
      * Run Stage 2: Optimize temporal curve parameters
      */
-    public function optimizeStage2($spatialParams, $numIterations = 50) {
+    public function optimizeStage2($spatialParams, $numIterations = 50, $forceFresh = FALSE) {
         echo "\n=== STAGE 2: TEMPORAL CURVE OPTIMIZATION ===\n";
         echo "Iterations: $numIterations\n";
         echo "Sample size per iteration: {$this->sampleSize} messages\n\n";
@@ -259,11 +294,32 @@ class IsochroneParameterOptimizer {
         $bestParams = NULL;
         $bestScore = 0;
         $allResults = [];
+        $iterationsSinceImprovement = 0;
 
-        // Create optimization run record
-        $this->createOptimizationRun('stage2', $searchSpace, $spatialParams);
+        // Check for incomplete run to resume (unless force fresh)
+        $resumeData = !$forceFresh ? $this->checkForIncompleteRun('stage2', $searchSpace, $spatialParams) : NULL;
 
-        for ($i = 1; $i <= $numIterations; $i++) {
+        if ($resumeData) {
+            echo "*** RESUMING from previous run (ID: {$resumeData['run_id']}) ***\n";
+            echo "Previous iterations completed: {$resumeData['last_iteration']}/{$numIterations}\n";
+            echo "Best score so far: " . round($resumeData['best_score'] * 100, 2) . "%\n\n";
+
+            $this->optimizationRunId = $resumeData['run_id'];
+            $allResults = $resumeData['all_results'];
+            $bestScore = $resumeData['best_score'];
+            $bestParams = $resumeData['best_params'];
+            $startIteration = $resumeData['last_iteration'] + 1;
+        } else {
+            // Create new optimization run record
+            $this->createOptimizationRun('stage2', $searchSpace, $spatialParams);
+            $startIteration = 1;
+        }
+
+        if ($this->earlyStopThreshold) {
+            echo "Early stopping enabled: Will stop after {$this->earlyStopThreshold} iterations without improvement\n\n";
+        }
+
+        for ($i = $startIteration; $i <= $numIterations; $i++) {
             echo "\n--- Iteration $i/$numIterations ---\n";
 
             // Sample temporal parameters
@@ -304,7 +360,17 @@ class IsochroneParameterOptimizer {
             if ($score > $bestScore) {
                 $bestScore = $score;
                 $bestParams = $temporalParams;
+                $iterationsSinceImprovement = 0;
                 echo "*** NEW BEST SCORE: " . round($bestScore * 100, 2) . "% ***\n";
+            } else {
+                $iterationsSinceImprovement++;
+            }
+
+            // Early stopping check
+            if ($this->earlyStopThreshold && $iterationsSinceImprovement >= $this->earlyStopThreshold) {
+                echo "\n*** EARLY STOPPING: No improvement for {$iterationsSinceImprovement} iterations ***\n";
+                echo "Stopping at iteration $i/$numIterations\n";
+                break;
             }
         }
 
@@ -479,9 +545,10 @@ class IsochroneParameterOptimizer {
             'params' => $params
         ];
 
-        // Pass ORS server if specified
+        // Pass ORS server and timeout if specified
         if ($this->orsServer) {
             $simulatorOptions['orsServer'] = $this->orsServer;
+            $simulatorOptions['orsTimeout'] = $this->orsTimeout;
         }
 
         // Create modified simulator with temporal curve support
@@ -538,6 +605,91 @@ class IsochroneParameterOptimizer {
         }
 
         return $successRate;
+    }
+
+    /**
+     * Check for incomplete run that can be resumed
+     */
+    private function checkForIncompleteRun($stage, $searchSpace, $fixedParams) {
+        // Look for most recent incomplete run with matching configuration
+        $query = $this->sqliteDb->prepare("
+            SELECT id, search_space, fixed_params
+            FROM optimization_runs
+            WHERE stage = :stage
+              AND status = 'running'
+              AND start_date = :start_date
+              AND end_date = :end_date
+              AND sample_size = :sample_size
+            ORDER BY created DESC
+            LIMIT 1
+        ");
+
+        $query->bindValue(':stage', $stage, SQLITE3_TEXT);
+        $query->bindValue(':start_date', $this->startDate, SQLITE3_TEXT);
+        $query->bindValue(':end_date', $this->endDate, SQLITE3_TEXT);
+        $query->bindValue(':sample_size', $this->sampleSize, SQLITE3_INTEGER);
+
+        $result = $query->execute();
+        $row = $result->fetchArray(SQLITE3_ASSOC);
+
+        if (!$row) {
+            return NULL; // No incomplete run found
+        }
+
+        // Verify search space and fixed params match (to avoid resuming with different config)
+        $dbSearchSpace = json_decode($row['search_space'], TRUE);
+        $dbFixedParams = json_decode($row['fixed_params'], TRUE);
+
+        if ($dbSearchSpace !== $searchSpace || $dbFixedParams !== $fixedParams) {
+            echo "Note: Found incomplete run but configuration differs, starting fresh\n\n";
+            return NULL;
+        }
+
+        $runId = $row['id'];
+
+        // Load all iterations from this run
+        $iterQuery = $this->sqliteDb->query("
+            SELECT iteration, parameters, score
+            FROM optimization_iterations
+            WHERE run_id = $runId
+            ORDER BY iteration ASC
+        ");
+
+        $allResults = [];
+        $bestScore = 0;
+        $bestParams = NULL;
+        $lastIteration = 0;
+
+        while ($iterRow = $iterQuery->fetchArray(SQLITE3_ASSOC)) {
+            $params = json_decode($iterRow['parameters'], TRUE);
+            $score = floatval($iterRow['score']);
+            $iteration = intval($iterRow['iteration']);
+
+            $allResults[] = [
+                'iteration' => $iteration,
+                'params' => $params,
+                'score' => $score
+            ];
+
+            if ($score > $bestScore) {
+                $bestScore = $score;
+                $bestParams = $params;
+            }
+
+            $lastIteration = max($lastIteration, $iteration);
+        }
+
+        if (empty($allResults)) {
+            return NULL; // Run exists but has no iterations yet
+        }
+
+        return [
+            'run_id' => $runId,
+            'all_results' => $allResults,
+            'best_score' => $bestScore,
+            'best_params' => $bestParams,
+            'last_iteration' => $lastIteration
+        ];
     }
 
     /**
@@ -665,9 +817,12 @@ $options = getopt('', [
     'groups:',
     'categories:',
     'ors-server:',
+    'ors-timeout:',
     'sample-size:',
     'db-path:',
     'export-csv:',
+    'force-fresh',
+    'early-stop:',
     'help'
 ]);
 
@@ -690,8 +845,11 @@ if (isset($options['help']) || (!isset($options['stage']) && !isset($options['ex
     echo "  --groups=IDS           Comma-separated group IDs to include (default: all)\n";
     echo "  --categories=CATS      Comma-separated ONS categories (A1,B1,C1,C2,D1,D2,E1,E2,F1,F2)\n";
     echo "  --ors-server=URL       OpenRouteService server URL (default: from config)\n";
+    echo "  --ors-timeout=N        ORS request timeout in seconds (default: 15)\n";
     echo "  --sample-size=N        Messages per iteration (default: 50)\n";
     echo "  --db-path=PATH         SQLite database path (default: /tmp/isochrone_optimization.db)\n";
+    echo "  --force-fresh          Start fresh even if incomplete run exists (default: auto-resume)\n";
+    echo "  --early-stop=N         Stop if no improvement after N iterations (default: disabled)\n";
     echo "  --help                 Show this help\n\n";
     echo "Examples:\n";
     echo "  # Run both stages with defaults\n";
@@ -785,20 +943,28 @@ if (isset($options['db-path'])) {
 if (isset($options['ors-server'])) {
     $optimizerOptions['orsServer'] = $options['ors-server'];
 }
+if (isset($options['ors-timeout'])) {
+    $optimizerOptions['orsTimeout'] = intval($options['ors-timeout']);
+}
+if (isset($options['early-stop'])) {
+    $optimizerOptions['earlyStopThreshold'] = intval($options['early-stop']);
+}
 
 $optimizer = new IsochroneParameterOptimizer($dbhr, $dbhm, $optimizerOptions);
 
+$forceFresh = isset($options['force-fresh']);
+
 if ($stage === 'both') {
     // Run both stages
-    $bestSpatial = $optimizer->optimizeStage1($stage1Iterations);
-    $bestFinal = $optimizer->optimizeStage2($bestSpatial, $stage2Iterations);
+    $bestSpatial = $optimizer->optimizeStage1($stage1Iterations, $forceFresh);
+    $bestFinal = $optimizer->optimizeStage2($bestSpatial, $stage2Iterations, $forceFresh);
 
     echo "\n=== OPTIMIZATION COMPLETE ===\n";
     echo "Final best parameters:\n";
     echo json_encode($bestFinal, JSON_PRETTY_PRINT) . "\n";
 
 } elseif ($stage === '1') {
-    $bestSpatial = $optimizer->optimizeStage1($stage1Iterations);
+    $bestSpatial = $optimizer->optimizeStage1($stage1Iterations, $forceFresh);
 
 } elseif ($stage === '2') {
     // Need to load best spatial params from stage 1

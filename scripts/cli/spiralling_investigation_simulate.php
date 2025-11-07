@@ -32,6 +32,7 @@ class MessageIsochroneSimulator {
     private $groupIds = [];
     private $limit = NULL;
     private $orsServer = NULL;
+    private $orsTimeout = 15;  // Default timeout for ORS requests (seconds)
 
     // Simulation parameters to test
     private $params = [
@@ -55,6 +56,7 @@ class MessageIsochroneSimulator {
         $this->groupIds = $options['groupIds'] ?? [];
         $this->limit = $options['limit'] ?? NULL;
         $this->orsServer = $options['orsServer'] ?? NULL;
+        $this->orsTimeout = $options['orsTimeout'] ?? 15;  // Configurable ORS timeout
 
         // Override default parameters if provided
         if (isset($options['params'])) {
@@ -851,7 +853,7 @@ class MessageIsochroneSimulator {
             $isochroneId = $existings[0]['id'];
         } elseif ($this->orsServer) {
             $i = new Isochrone($this->dbhr, $this->dbhm);
-            $isochroneId = $i->ensureIsochroneExists($locationId, $minutes, $transportEnum, $this->orsServer);
+            $isochroneId = $i->ensureIsochroneExists($locationId, $minutes, $transportEnum, $this->orsServer, $this->orsTimeout);
 
             if (!$isochroneId) {
                 echo "  ⚠ ORS server failed to create isochrone for location $locationId, $minutes minutes, $transport\n";

@@ -89,7 +89,7 @@ class Isochrone extends Entity
         return $count[0]['count'];
     }
 
-    public function ensureIsochroneExists($locationid, $minutes = 10, $transport = NULL, $orsServer = NULL) {
+    public function ensureIsochroneExists($locationid, $minutes = 10, $transport = NULL, $orsServer = NULL, $orsTimeout = 60) {
         $source = $orsServer ? 'ORS' : 'Mapbox';
 
         $transq = $transport ? (" AND transport = " . $this->dbhr->quote($transport)) : " AND transport IS NULL";
@@ -110,13 +110,13 @@ class Isochrone extends Entity
             $lng = $l->getPrivate('lng');
 
             if ($orsServer) {
-                $wkt = $this->fetchFromORS($transport, $lng, $lat, $minutes, $orsServer);
+                $wkt = $this->fetchFromORS($transport, $lng, $lat, $minutes, $orsServer, $orsTimeout);
             } else {
                 $wkt = $this->fetchFromMapbox($transport, $lng, $lat, $minutes);
             }
 
             if ($wkt) {
-                $rc = $this->dbhm->preExec("INSERT INTO isochrones (locationid, transport, minutes, source, polygon) VALUES (?, ?, ?, ?,
+                $rc = $this->dbhm->preExec("INSERT IGNORE INTO isochrones (locationid, transport, minutes, source, polygon) VALUES (?, ?, ?, ?,
                  CASE WHEN ST_SIMPLIFY(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?) IS NULL THEN ST_GeomFromText(?, {$this->dbhr->SRID()}) ELSE ST_SIMPLIFY(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?) END
                                                                          )", [
                     $locationid,
@@ -129,10 +129,23 @@ class Isochrone extends Entity
                     $wkt,
                     self::SIMPLIFY
                 ]);
-            }
 
-            if ($rc) {
-                $isochroneid = $this->dbhm->lastInsertId();
+                # If INSERT IGNORE skipped due to duplicate, fetch the existing ID
+                if ($rc) {
+                    $isochroneid = $this->dbhm->lastInsertId();
+
+                    if (!$isochroneid) {
+                        # Insert was ignored, query for existing isochrone
+                        $existings = $this->dbhr->preQuery("SELECT id FROM isochrones WHERE locationid = ? $transq AND minutes = ? $sourceq ORDER BY timestamp DESC LIMIT 1;", [
+                            $locationid,
+                            $minutes
+                        ]);
+
+                        if (count($existings)) {
+                            $isochroneid = $existings[0]['id'];
+                        }
+                    }
+                }
             }
         }
 
@@ -259,7 +272,7 @@ class Isochrone extends Entity
         return $wkt;
     }
 
-    public function fetchFromORS($transport, $lng, $lat, $minutes, $orsServer) {
+    public function fetchFromORS($transport, $lng, $lat, $minutes, $orsServer, $timeout = 60) {
         $wkt = NULL;
 
         switch ($transport) {
@@ -285,7 +298,7 @@ class Isochrone extends Entity
         curl_setopt($curl, CURLOPT_POST, TRUE);
         curl_setopt($curl, CURLOPT_POSTFIELDS, $postData);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+        curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
         curl_setopt($curl, CURLOPT_HTTPHEADER, [
             'Content-Type: application/json',
             'Accept: application/geo+json'
