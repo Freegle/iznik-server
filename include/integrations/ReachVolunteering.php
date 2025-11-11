@@ -276,9 +276,9 @@ class ReachVolunteering {
 
             if (!$seenByExternalId && !$seenByUrl) {
                 error_log("...deleting old {$e['id']}, externalid={$e['externalid']}, url={$e['contacturl']}");
-//                $cv = new Volunteering($this->dbhr, $this->dbhm, $e['id']);
-//                $cv->setPrivate('deleted', 1);
-//                $deleted++;
+                $cv = new Volunteering($this->dbhr, $this->dbhm, $e['id']);
+                $cv->setPrivate('deleted', 1);
+                $deleted++;
             } else {
                 $matchedBy = $seenByExternalId ? 'externalid' : 'url';
                 error_log("...keeping {$e['id']} (matched by $matchedBy)");
