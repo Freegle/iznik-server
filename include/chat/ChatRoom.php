@@ -438,6 +438,11 @@ WHERE chat_rooms.id IN $idlist;";
         $bannedonall = FALSE;
         $created = FALSE;
 
+        # Cannot create a conversation with yourself.
+        if ($user1 == $user2) {
+            return [NULL, FALSE];
+        }
+
         # We use a transaction to close timing windows.
         $this->dbhm->beginTransaction();
 

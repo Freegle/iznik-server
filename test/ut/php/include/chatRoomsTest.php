@@ -108,6 +108,18 @@ class chatRoomsTest extends IznikTestCase {
 
         }
 
+    public function testCannotCreateConversationWithSelf() {
+        # Create a user
+        list($u1, $user1) = $this->createTestUserWithMembership($this->groupid, User::ROLE_MEMBER, 'Test User 1', 'test1@test.com', 'testpw');
+
+        # Try to create a conversation with themselves - should return NULL and not create a chat
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($id, $blocked) = $r->createConversation($user1, $user1);
+
+        $this->assertNull($id);
+        $this->assertFalse($blocked);
+    }
+
     public function testError() {
         $dbconfig = array (
             'host' => SQLHOST,
