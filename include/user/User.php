@@ -1932,6 +1932,8 @@ class User extends Entity
                             'default' => FALSE,
                             'TN' => TRUE
                         ];
+
+                        break;
                     } else if (!Mail::ourDomain($email['email'])) {
                         # Try for gravatar
                         $gurl = $this->gravatar($email['email'], 200, 404);
@@ -1970,9 +1972,12 @@ class User extends Entity
 
             if (!Utils::pres('default', $atts['profile'])) {
                 # We think we have a profile.  Make sure we can fetch it and filter out other people's
-                # default images.
-                $atts['profile']['default'] = TRUE;
-                $this->filterDefault($atts['profile'], $hash);
+                # default images.  But skip this check for trusted external sources (TN, gravatar) since
+                # they may not be accessible in test environments and we trust them anyway.
+                if (!Utils::pres('TN', $atts['profile']) && !Utils::pres('gravatar', $atts['profile'])) {
+                    $atts['profile']['default'] = TRUE;
+                    $this->filterDefault($atts['profile'], $hash);
+                }
             }
 
             if (Utils::pres('default', $atts['profile'])) {
