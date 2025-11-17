@@ -10,7 +10,7 @@ function stripecreateintent() {
 
     switch ($_REQUEST['type']) {
         case 'POST': {
-            $amount = Utils::presint('amount', $_REQUEST, 0);
+            $amount = floatval(Utils::presdef('amount', $_REQUEST, 0));
             $test = Utils::presbool('test', $_REQUEST, FALSE);
             $paymentType = Utils::presdef('paymenttype', $_REQUEST, 'card');
             $stripe = new \Stripe\StripeClient($test ? STRIPE_SECRET_KEY_TEST : STRIPE_SECRET_KEY);
