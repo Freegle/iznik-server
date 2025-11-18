@@ -73,13 +73,19 @@ class FreebieAlerts
 
                 $params = [
                     'id' => $msgid,
-                    'title' => $m->getSubject(),
+                    'title' => $m->getSubject() ?: 'No Title',
                     'description' => $body,
-                    'latitude' => $atts['lat'],
-                    'longitude' => $atts['lng'],
-                    'images' => implode(',', $images),
                     'created_at' => Utils::ISODate(count($groups) ? $groups[0]['arrival'] : $m->getPrivate('arrival'))
                 ];
+
+                if ($atts['lat'] !== NULL && $atts['lng'] !== NULL) {
+                    $params['latitude'] = $atts['lat'];
+                    $params['longitude'] = $atts['lng'];
+                }
+
+                if (!empty($images)) {
+                    $params['images'] = implode(',', $images);
+                }
 
                 list ($status, $json_response) = $this->doCurl('https://api.freebiealerts.app/freegle/post/create', $params);
                 error_log(date("Y-m-d H:i:s") . " Added $msgid to freebies returned " . $json_response);
