@@ -3,12 +3,29 @@ namespace Freegle\Iznik;
 
 class FreebieAlerts
 {
+    private const HTTP_OK = 200;
+    private const API_BASE_URL = 'https://api.freebiealerts.app/freegle/post';
+    private const CURL_TIMEOUT = 60;
+
     private $dbhr, $dbhm;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
+    }
+
+    private function logWithTimestamp($message) {
+        error_log(date("Y-m-d H:i:s") . " " . $message);
+    }
+
+    private function isResponseSuccessful($status, $json_response) {
+        if ($status != self::HTTP_OK) {
+            return FALSE;
+        }
+
+        $rsp = json_decode($json_response, TRUE);
+        return $rsp && array_key_exists('success', $rsp) && $rsp['success'];
     }
 
     public function doCurl($url, $fields) {
@@ -19,8 +36,8 @@ class FreebieAlerts
             $curl = curl_init();
             curl_setopt($curl, CURLOPT_URL, $url);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 60);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 60);
+            curl_setopt($curl, CURLOPT_TIMEOUT, self::CURL_TIMEOUT);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, self::CURL_TIMEOUT);
             curl_setopt($curl, CURLOPT_HTTPHEADER, [
                 "Content-type: application/json",
                 "Key: " . FREEBIE_ALERTS_KEY
@@ -31,11 +48,9 @@ class FreebieAlerts
             $json_response = FREEBIE_ALERTS_KEY ? curl_exec($curl) : NULL;
             $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-            $msg = date("Y-m-d H:i:s") . " post to freebies returned $status $json_response";
-
-            $rsp = json_decode($json_response, TRUE);
-
-            if ($status != 200 || !$rsp || !array_key_exists('success', $rsp) || !$rsp['success']) {
+            if (!$this->isResponseSuccessful($status, $json_response)) {
+                $msg = "post to freebies returned $status $json_response";
+                $this->logWithTimestamp($msg);
                 \Sentry\captureMessage($msg);
             }
         } catch (\Exception $e) {
@@ -46,61 +61,68 @@ class FreebieAlerts
         return [ $status, $json_response ];
     }
 
-    public function add($msgid) {
-        $m = new Message($this->dbhr, $this->dbhm, $msgid);
-        $status = NULL;
-        $json_response = NULL;
+    private function shouldAddMessage(Message $message) {
+        return !$message->hasOutcome() && $message->getPrivate('type') == Message::TYPE_OFFER;
+    }
 
-        # Only want outstanding OFFERs.
-        if (!$m->hasOutcome() && $m->getPrivate('type') == Message::TYPE_OFFER) {
-            $u = User::get($this->dbhr, $this->dbhm, $m->getFromuser());
-
-            # TN messages are sync'd from TN itself.
-            if (!$u->isTN()) {
-                $atts = $m->getPublic();
-
-                $images = [];
-
-                foreach ($atts['attachments'] as $att) {
-                    $images[] = $att['path'];
-                }
-
-                $body = $m->getTextbody();
-                $body = $body ? $body : 'No description';
-
-                # We want to pass the date it was approved.
-                $groups = $m->getGroups(FALSE, FALSE);
-
-                $params = [
-                    'id' => $msgid,
-                    'title' => $m->getSubject() ?: 'No Title',
-                    'description' => $body,
-                    'created_at' => Utils::ISODate(count($groups) ? $groups[0]['arrival'] : $m->getPrivate('arrival'))
-                ];
-
-                if ($atts['lat'] !== NULL && $atts['lng'] !== NULL) {
-                    $params['latitude'] = $atts['lat'];
-                    $params['longitude'] = $atts['lng'];
-                }
-
-                if (!empty($images)) {
-                    $params['images'] = implode(',', $images);
-                }
-
-                list ($status, $json_response) = $this->doCurl('https://api.freebiealerts.app/freegle/post/create', $params);
-                error_log(date("Y-m-d H:i:s") . " Added $msgid to freebies returned " . $json_response);
-            } else {
-                error_log(date("Y-m-d H:i:s") . " Skip TN message " . $u->getEmailPreferred());
-            }
-        } else {
-            error_log(date("Y-m-d H:i:s") . " Skip message " . $m->hasOutcome() . " type " . $m->getPrivate('type'));
+    private function extractImages($attachments) {
+        $images = [];
+        foreach ($attachments as $att) {
+            $images[] = $att['path'];
         }
+        return $images;
+    }
+
+    private function buildMessageParams($msgid, Message $message) {
+        $atts = $message->getPublic();
+        $images = $this->extractImages($atts['attachments']);
+        $body = $message->getTextbody() ?: 'No description';
+        $groups = $message->getGroups(FALSE, FALSE);
+
+        $params = [
+            'id' => $msgid,
+            'title' => $message->getSubject() ?: 'No Title',
+            'description' => $body,
+            'created_at' => Utils::ISODate(count($groups) ? $groups[0]['arrival'] : $message->getPrivate('arrival'))
+        ];
+
+        if ($atts['lat'] !== NULL && $atts['lng'] !== NULL) {
+            $params['latitude'] = $atts['lat'];
+            $params['longitude'] = $atts['lng'];
+        }
+
+        if (!empty($images)) {
+            $params['images'] = implode(',', $images);
+        }
+
+        return $params;
+    }
+
+    public function add($msgid) {
+        $message = new Message($this->dbhr, $this->dbhm, $msgid);
+        $status = NULL;
+
+        if (!$this->shouldAddMessage($message)) {
+            $this->logWithTimestamp("Skip message " . $message->hasOutcome() . " type " . $message->getPrivate('type'));
+            return $status;
+        }
+
+        $user = User::get($this->dbhr, $this->dbhm, $message->getFromuser());
+
+        if ($user->isTN()) {
+            $this->logWithTimestamp("Skip TN message " . $user->getEmailPreferred());
+            return $status;
+        }
+
+        $params = $this->buildMessageParams($msgid, $message);
+        list ($status, $json_response) = $this->doCurl(self::API_BASE_URL . '/create', $params);
+        $this->logWithTimestamp("Added $msgid to freebies returned " . $json_response);
 
         return $status;
     }
 
     public function remove($msgid) {
-        list ($status, $json_response) = $this->doCurl("https://api.freebiealerts.app/freegle/post/$msgid/delete", []);
+        list ($status, $json_response) = $this->doCurl(self::API_BASE_URL . "/$msgid/delete", []);
         return $status;
     }
 }
