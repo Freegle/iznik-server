@@ -116,26 +116,40 @@ class Isochrone extends Entity
             }
 
             if ($wkt) {
-                $rc = $this->dbhm->preExec("INSERT IGNORE INTO isochrones (locationid, transport, minutes, source, polygon) VALUES (?, ?, ?, ?,
-                 CASE WHEN ST_SIMPLIFY(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?) IS NULL THEN ST_GeomFromText(?, {$this->dbhr->SRID()}) ELSE ST_SIMPLIFY(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?) END
-                                                                         )", [
-                    $locationid,
-                    $transport,
-                    $minutes,
-                    $source,
-                    $wkt,
-                    self::SIMPLIFY,
-                    $wkt,
-                    $wkt,
-                    self::SIMPLIFY
-                ]);
+                try {
+                    $rc = $this->dbhm->preExec("INSERT IGNORE INTO isochrones (locationid, transport, minutes, source, polygon) VALUES (?, ?, ?, ?,
+                     CASE WHEN ST_SIMPLIFY(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?) IS NULL THEN ST_GeomFromText(?, {$this->dbhr->SRID()}) ELSE ST_SIMPLIFY(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?) END
+                                                                             )", [
+                        $locationid,
+                        $transport,
+                        $minutes,
+                        $source,
+                        $wkt,
+                        self::SIMPLIFY,
+                        $wkt,
+                        $wkt,
+                        self::SIMPLIFY
+                    ]);
 
-                # If INSERT IGNORE skipped due to duplicate, fetch the existing ID
-                if ($rc) {
-                    $isochroneid = $this->dbhm->lastInsertId();
+                    # If INSERT IGNORE skipped due to duplicate, fetch the existing ID
+                    if ($rc) {
+                        $isochroneid = $this->dbhm->lastInsertId();
 
-                    if (!$isochroneid) {
-                        # Insert was ignored, query for existing isochrone
+                        if (!$isochroneid) {
+                            # Insert was ignored, query for existing isochrone
+                            $existings = $this->dbhr->preQuery("SELECT id FROM isochrones WHERE locationid = ? $transq AND minutes = ? $sourceq ORDER BY timestamp DESC LIMIT 1;", [
+                                $locationid,
+                                $minutes
+                            ]);
+
+                            if (count($existings)) {
+                                $isochroneid = $existings[0]['id'];
+                            }
+                        }
+                    }
+                } catch (DBException $e) {
+                    if (strpos($e->getMessage(), 'Duplicate entry') !== FALSE) {
+                        # This can happen due to a race condition. Query for the existing isochrone.
                         $existings = $this->dbhr->preQuery("SELECT id FROM isochrones WHERE locationid = ? $transq AND minutes = ? $sourceq ORDER BY timestamp DESC LIMIT 1;", [
                             $locationid,
                             $minutes
@@ -144,6 +158,8 @@ class Isochrone extends Entity
                         if (count($existings)) {
                             $isochroneid = $existings[0]['id'];
                         }
+                    } else {
+                        throw $e;
                     }
                 }
             }
