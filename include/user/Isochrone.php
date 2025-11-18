@@ -340,28 +340,24 @@ class Isochrone extends Entity
         # So first make sure there is one.
         $isochroneid = $this->ensureIsochroneExists($this->isochrone['locationid'], $minutes, $transport);
 
-        # And update this entry. If there's already an entry for this user/isochrone combination,
-        # delete the old entry since we can't have duplicates.
         if ($isochroneid) {
             $userid = $this->isochrone['userid'];
+            $nickname = $this->isochrone['nickname'];
 
-            # First, try to update to the new isochrone. If this would create a duplicate,
-            # the UPDATE will fail and we'll delete the old entry.
-            $updated = $this->dbhm->preExec("UPDATE isochrones_users SET isochroneid = ? WHERE id = ? AND NOT EXISTS (SELECT 1 FROM isochrones_users iu WHERE iu.userid = ? AND iu.isochroneid = ? AND iu.id != ?);", [
-                $isochroneid,
-                $this->id,
-                $userid,
-                $isochroneid,
+            # Use INSERT ... ON DUPLICATE KEY UPDATE to either update the existing entry or handle duplicates atomically.
+            # If userid+isochroneid already exists, this will update that row. Otherwise, it will fail because
+            # we're trying to insert with the same userid that already exists (with old isochroneid).
+            # So we need to first delete the old entry, then insert/update.
+            $this->dbhm->preExec("DELETE FROM isochrones_users WHERE id = ?;", [
                 $this->id
             ]);
 
-            if (!$updated) {
-                # This can happen due to a timing window. We already have an entry for this user/isochrone, so
-                # we no longer need this one.
-                $this->dbhm->preExec("DELETE FROM isochrones_users WHERE id = ?;", [
-                    $this->id
-                ]);
-            }
+            $this->dbhm->preExec("INSERT INTO isochrones_users (userid, isochroneid, nickname) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE nickname = ?;", [
+                $userid,
+                $isochroneid,
+                $nickname,
+                $nickname
+            ]);
         }
     }
 }
