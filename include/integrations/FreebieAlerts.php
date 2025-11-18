@@ -62,7 +62,19 @@ class FreebieAlerts
     }
 
     private function shouldAddMessage(Message $message) {
-        return !$message->hasOutcome() && $message->getPrivate('type') == Message::TYPE_OFFER;
+        if ($message->hasOutcome() || $message->getPrivate('type') != Message::TYPE_OFFER) {
+            return FALSE;
+        }
+
+        // Don't send messages without location data to FreebieAlerts
+        // as they will return a 500 error
+        $atts = $message->getPublic();
+        if ($atts['lat'] === NULL || $atts['lng'] === NULL) {
+            $this->logWithTimestamp("Skip message without location data msgid=" . $message->getId());
+            return FALSE;
+        }
+
+        return TRUE;
     }
 
     private function extractImages($attachments) {
