@@ -140,7 +140,7 @@ class RepairCafeWales {
 
 
             # Look for events which need removing because they aren't on Restart any more.
-            $existings = $this->dbhr->preQuery("SELECT externalid FROM communityevents 
+            $existings = $this->dbhr->preQuery("SELECT communityevents.id, externalid FROM communityevents 
                     INNER JOIN communityevents_dates ON communityevents.id = communityevents_dates.eventid 
                     WHERE externalid LIKE '%repaircafewales%' AND start >= ?", [ $now ]);
 
