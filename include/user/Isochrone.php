@@ -116,51 +116,22 @@ class Isochrone extends Entity
             }
 
             if ($wkt) {
-                try {
-                    $rc = $this->dbhm->preExec("INSERT IGNORE INTO isochrones (locationid, transport, minutes, source, polygon) VALUES (?, ?, ?, ?,
-                     CASE WHEN ST_SIMPLIFY(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?) IS NULL THEN ST_GeomFromText(?, {$this->dbhr->SRID()}) ELSE ST_SIMPLIFY(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?) END
-                                                                             )", [
-                        $locationid,
-                        $transport,
-                        $minutes,
-                        $source,
-                        $wkt,
-                        self::SIMPLIFY,
-                        $wkt,
-                        $wkt,
-                        self::SIMPLIFY
-                    ]);
+                $rc = $this->dbhm->preExec("INSERT INTO isochrones (locationid, transport, minutes, source, polygon) VALUES (?, ?, ?, ?,
+                 CASE WHEN ST_SIMPLIFY(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?) IS NULL THEN ST_GeomFromText(?, {$this->dbhr->SRID()}) ELSE ST_SIMPLIFY(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?) END
+                ) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)", [
+                    $locationid,
+                    $transport,
+                    $minutes,
+                    $source,
+                    $wkt,
+                    self::SIMPLIFY,
+                    $wkt,
+                    $wkt,
+                    self::SIMPLIFY
+                ]);
 
-                    # If INSERT IGNORE skipped due to duplicate, fetch the existing ID
-                    if ($rc) {
-                        $isochroneid = $this->dbhm->lastInsertId();
-
-                        if (!$isochroneid) {
-                            # Insert was ignored, query for existing isochrone
-                            $existings = $this->dbhr->preQuery("SELECT id FROM isochrones WHERE locationid = ? $transq AND minutes = ? $sourceq ORDER BY timestamp DESC LIMIT 1;", [
-                                $locationid,
-                                $minutes
-                            ]);
-
-                            if (count($existings)) {
-                                $isochroneid = $existings[0]['id'];
-                            }
-                        }
-                    }
-                } catch (DBException $e) {
-                    if (strpos($e->getMessage(), 'Duplicate entry') !== FALSE) {
-                        # This can happen due to a race condition. Query for the existing isochrone.
-                        $existings = $this->dbhr->preQuery("SELECT id FROM isochrones WHERE locationid = ? $transq AND minutes = ? $sourceq ORDER BY timestamp DESC LIMIT 1;", [
-                            $locationid,
-                            $minutes
-                        ]);
-
-                        if (count($existings)) {
-                            $isochroneid = $existings[0]['id'];
-                        }
-                    } else {
-                        throw $e;
-                    }
+                if ($rc) {
+                    $isochroneid = $this->dbhm->lastInsertId();
                 }
             }
         }
@@ -369,21 +340,27 @@ class Isochrone extends Entity
         # So first make sure there is one.
         $isochroneid = $this->ensureIsochroneExists($this->isochrone['locationid'], $minutes, $transport);
 
-        # And update this entry.
+        # And update this entry. If there's already an entry for this user/isochrone combination,
+        # delete the old entry since we can't have duplicates.
         if ($isochroneid) {
-            try {
-                $this->dbhm->preExec("UPDATE isochrones_users SET isochroneid = ? WHERE id = ?;", [
-                    $isochroneid,
+            $userid = $this->isochrone['userid'];
+
+            # First, try to update to the new isochrone. If this would create a duplicate,
+            # the UPDATE will fail and we'll delete the old entry.
+            $updated = $this->dbhm->preExec("UPDATE isochrones_users SET isochroneid = ? WHERE id = ? AND NOT EXISTS (SELECT 1 FROM isochrones_users iu WHERE iu.userid = ? AND iu.isochroneid = ? AND iu.id != ?);", [
+                $isochroneid,
+                $this->id,
+                $userid,
+                $isochroneid,
+                $this->id
+            ]);
+
+            if (!$updated) {
+                # This can happen due to a timing window. We already have an entry for this user/isochrone, so
+                # we no longer need this one.
+                $this->dbhm->preExec("DELETE FROM isochrones_users WHERE id = ?;", [
                     $this->id
                 ]);
-            } catch (DBException $e) {
-                if (strpos($e->getMessage(), 'Duplicate entry') !== FALSE) {
-                    # This can happen due to a timing window.  We already have an entry for this user/isochrone, so
-                    # we no longer need this one.
-                    $this->dbhm->preExec("DELETE FROM isochrones_users WHERE id = ?;", [
-                        $this->id
-                    ]);
-                }
             }
         }
     }
