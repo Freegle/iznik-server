@@ -436,6 +436,10 @@ class chatMessagesTest extends IznikTestCase {
     public function testCheckReview() {
         $m = new ChatMessage($this->dbhr, $this->dbhm);
 
+        # Add Freegle domains to whitelist so URL checks pass
+        $this->dbhm->preExec("INSERT INTO spam_whitelist_links (domain, count) VALUES (?, 5) ON DUPLICATE KEY UPDATE count = 5", [USER_DOMAIN]);
+        $this->dbhm->preExec("INSERT INTO spam_whitelist_links (domain, count) VALUES (?, 5) ON DUPLICATE KEY UPDATE count = 5", ['freegle.in']);
+
         # Fine
         $this->assertNull($m->checkReview('Nothing to see here'));
 
