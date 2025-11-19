@@ -35,3 +35,4 @@ hear about it; you can mail <geeks@ilovefreegle.org>.
 Freegle's own use of this code includes a database of UK locations which is derived in part from OpenStreetMap data, and
 is therefore subject to the Open Database License.  You can request a copy of this data by mailing 
 <geeks@ilovefreegle.org>.
+
