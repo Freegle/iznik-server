@@ -71,6 +71,9 @@ class isochroneAPITest extends IznikAPITestCase
         $this->assertEquals(Isochrone::WALK, $ret['isochrones'][0]['transport']);
         $this->assertEquals(20, $ret['isochrones'][0]['minutes']);
 
+        // Get the updated ID after PATCH (edit() creates a new isochrones_users row)
+        $id = $ret['isochrones'][0]['id'];
+
         $ret = $this->call('isochrone', 'DELETE', [
             'id' => $id
         ]);
@@ -197,6 +200,9 @@ class isochroneAPITest extends IznikAPITestCase
         $this->assertEquals(1, count($ret['isochrones']));
         $this->assertEquals(Isochrone::WALK, $ret['isochrones'][0]['transport']);
         $this->assertEquals(20, $ret['isochrones'][0]['minutes']);
+
+        // Get the updated ID after PATCH (edit() creates a new isochrones_users row)
+        $id = $ret['isochrones'][0]['id'];
 
         $ret = $this->call('isochrone', 'DELETE', [
             'id' => $id
