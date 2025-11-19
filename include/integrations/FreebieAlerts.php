@@ -49,7 +49,6 @@ class FreebieAlerts
     public function add($msgid) {
         $m = new Message($this->dbhr, $this->dbhm, $msgid);
         $status = NULL;
-        $json_response = NULL;
 
         # Only want outstanding OFFERs.
         if (!$m->hasOutcome() && $m->getPrivate('type') == Message::TYPE_OFFER) {
@@ -85,8 +84,8 @@ class FreebieAlerts
                         'created_at' => Utils::ISODate(count($groups) ? $groups[0]['arrival'] : $m->getPrivate('arrival'))
                     ];
 
-                    list ($status, $json_response) = $this->doCurl('https://api.freebiealerts.app/freegle/post/create', $params);
-                    error_log(date("Y-m-d H:i:s") . " Added $msgid to freebies returned " . $json_response);
+                    list ($status, $response) = $this->doCurl('https://api.freebiealerts.app/freegle/post/create', $params);
+                    error_log(date("Y-m-d H:i:s") . " Added $msgid to freebies returned " . $response);
                 }
             } else {
                 error_log(date("Y-m-d H:i:s") . " Skip TN message " . $u->getEmailPreferred());
@@ -99,7 +98,7 @@ class FreebieAlerts
     }
 
     public function remove($msgid) {
-        list ($status, $json_response) = $this->doCurl("https://api.freebiealerts.app/freegle/post/$msgid/delete", []);
+        list ($status, ) = $this->doCurl("https://api.freebiealerts.app/freegle/post/$msgid/delete", []);
         return $status;
     }
 }
