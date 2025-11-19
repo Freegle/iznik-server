@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  freegle: freegle/tests@1.0.0
+  freegle: freegle/tests@1
 
 workflows:
   pr-tests:
