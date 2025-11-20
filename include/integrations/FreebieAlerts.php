@@ -35,7 +35,7 @@ class FreebieAlerts
 
             $rsp = json_decode($json_response, TRUE);
 
-            if ($status != 200 || !$rsp || !array_key_exists('success', $rsp) || !$rsp['success']) {
+            if ($status != 200 || !is_array($rsp) || !array_key_exists('success', $rsp) || !$rsp['success']) {
                 \Sentry\captureMessage($msg);
             }
         } catch (\Exception $e) {
