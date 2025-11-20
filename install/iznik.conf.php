@@ -145,9 +145,6 @@ switch($host) {
 # We archive to our own hosts, which are fronted by round-robin DNS.
 define('IMAGE_DOMAIN', 'dev.modtools.org');
 define('IMAGE_ARCHIVED_DOMAIN', 'freegle.blob.core.windows.net');
-define('CDN_SSH_USER', 'root');
-define('CDN_SSH_PUBLIC_KEY', '/home/travis/.ssh/id_rsa.pub');
-define('CDN_SSH_PRIVATE_KEY', '/home/travis/.ssh/id_rsa');
 
 # Domain for email addresses for our users
 define('USER_DOMAIN', 'users.ilovefreegle.org');
