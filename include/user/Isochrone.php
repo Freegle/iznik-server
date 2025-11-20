@@ -116,22 +116,38 @@ class Isochrone extends Entity
             }
 
             if ($wkt) {
-                $rc = $this->dbhm->preExec("INSERT INTO isochrones (locationid, transport, minutes, source, polygon) VALUES (?, ?, ?, ?,
-                 CASE WHEN ST_SIMPLIFY(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?) IS NULL THEN ST_GeomFromText(?, {$this->dbhr->SRID()}) ELSE ST_SIMPLIFY(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?) END
-                ) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)", [
-                    $locationid,
-                    $transport,
-                    $minutes,
-                    $source,
-                    $wkt,
-                    self::SIMPLIFY,
-                    $wkt,
-                    $wkt,
-                    self::SIMPLIFY
-                ]);
+                try {
+                    $rc = $this->dbhm->preExec("INSERT INTO isochrones (locationid, transport, minutes, source, polygon) VALUES (?, ?, ?, ?,
+                     CASE WHEN ST_SIMPLIFY(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?) IS NULL THEN ST_GeomFromText(?, {$this->dbhr->SRID()}) ELSE ST_SIMPLIFY(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?) END
+                    ) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)", [
+                        $locationid,
+                        $transport,
+                        $minutes,
+                        $source,
+                        $wkt,
+                        self::SIMPLIFY,
+                        $wkt,
+                        $wkt,
+                        self::SIMPLIFY
+                    ]);
 
-                if ($rc) {
-                    $isochroneid = $this->dbhm->lastInsertId();
+                    if ($rc) {
+                        $isochroneid = $this->dbhm->lastInsertId();
+                    }
+                } catch (\Exception $e) {
+                    // Handle duplicate key error from race condition
+                    if (strpos($e->getMessage(), 'Duplicate entry') !== FALSE || strpos($e->getMessage(), '23000') !== FALSE) {
+                        // Query for the existing record
+                        $existings = $this->dbhr->preQuery("SELECT id FROM isochrones WHERE locationid = ? $transq AND minutes = ? $sourceq ORDER BY timestamp DESC LIMIT 1;", [
+                            $locationid,
+                            $minutes
+                        ]);
+                        if (count($existings)) {
+                            $isochroneid = $existings[0]['id'];
+                        }
+                    } else {
+                        throw $e;
+                    }
                 }
             }
         }
