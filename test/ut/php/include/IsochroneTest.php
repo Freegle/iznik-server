@@ -139,5 +139,153 @@ class IsochroneTest extends IznikTestCase {
             $this->assertNotNull($isochroneid4);
         }
     }
+
+    public function testFindExistingIsochrone() {
+        $i = new Isochrone($this->dbhr, $this->dbhm);
+
+        # Create a location
+        $l = new Location($this->dbhr, $this->dbhm);
+        $lid = $l->findByName('EH3 6SS');
+        $this->assertNotNull($lid);
+
+        # Create an isochrone
+        $isochroneid = $i->ensureIsochroneExists($lid, 10, Isochrone::WALK);
+        $this->assertNotNull($isochroneid);
+
+        # Try to find it - should return the same one
+        $isochroneid2 = $i->ensureIsochroneExists($lid, 10, Isochrone::WALK);
+        $this->assertEquals($isochroneid, $isochroneid2);
+
+        # Different transport should create new one
+        $isochroneid3 = $i->ensureIsochroneExists($lid, 10, Isochrone::CYCLE);
+        $this->assertNotEquals($isochroneid, $isochroneid3);
+    }
+
+    public function testInsertIsochrone() {
+        # Test that isochrone insertion works with geometry simplification
+        $i = new Isochrone($this->dbhr, $this->dbhm);
+
+        $l = new Location($this->dbhr, $this->dbhm);
+        $lid = $l->findByName('EH3 6SS');
+        $this->assertNotNull($lid);
+
+        # Create an isochrone - this will exercise the insertIsochrone private method
+        $isochroneid = $i->ensureIsochroneExists($lid, 15, Isochrone::WALK);
+        $this->assertNotNull($isochroneid);
+
+        # Verify it was created in the database
+        $result = $this->dbhr->preQuery("SELECT * FROM isochrones WHERE id = ?;", [$isochroneid]);
+        $this->assertEquals(1, count($result));
+        $this->assertEquals($lid, $result[0]['locationid']);
+        $this->assertEquals(Isochrone::WALK, $result[0]['transport']);
+        $this->assertEquals(15, $result[0]['minutes']);
+        $this->assertNotNull($result[0]['polygon']);
+    }
+
+    public function testGetTransportModes() {
+        $i = new Isochrone($this->dbhr, $this->dbhm);
+
+        # Use reflection to test private methods
+        $reflection = new \ReflectionClass($i);
+
+        # Test Mapbox transport modes
+        $mapboxMethod = $reflection->getMethod('getMapboxTransportMode');
+        $mapboxMethod->setAccessible(TRUE);
+
+        $this->assertEquals('walking', $mapboxMethod->invoke($i, Isochrone::WALK));
+        $this->assertEquals('cycling', $mapboxMethod->invoke($i, Isochrone::CYCLE));
+        $this->assertEquals('driving', $mapboxMethod->invoke($i, Isochrone::DRIVE));
+        $this->assertEquals('driving', $mapboxMethod->invoke($i, 'unknown'));
+
+        # Test ORS transport modes
+        $orsMethod = $reflection->getMethod('getORSTransportMode');
+        $orsMethod->setAccessible(TRUE);
+
+        $this->assertEquals('foot-walking', $orsMethod->invoke($i, Isochrone::WALK));
+        $this->assertEquals('cycling-regular', $orsMethod->invoke($i, Isochrone::CYCLE));
+        $this->assertEquals('driving-car', $orsMethod->invoke($i, Isochrone::DRIVE));
+        $this->assertEquals('driving-car', $orsMethod->invoke($i, 'unknown'));
+    }
+
+    public function testValidateCurlResult() {
+        $i = new Isochrone($this->dbhr, $this->dbhm);
+
+        # Use reflection to test private method
+        $reflection = new \ReflectionClass($i);
+        $method = $reflection->getMethod('validateCurlResult');
+        $method->setAccessible(TRUE);
+
+        # Test successful result
+        $result = [
+            'response' => '{"test": "data"}',
+            'httpCode' => 200,
+            'error' => ''
+        ];
+        $validated = $method->invoke($i, $result);
+        $this->assertTrue($validated['success']);
+        $this->assertEquals('{"test": "data"}', $validated['data']);
+
+        # Test with cURL error
+        $result = [
+            'response' => '',
+            'httpCode' => 0,
+            'error' => 'Connection timeout'
+        ];
+        $validated = $method->invoke($i, $result);
+        $this->assertFalse($validated['success']);
+        $this->assertStringContainsString('cURL error', $validated['error']);
+
+        # Test with HTTP error
+        $result = [
+            'response' => 'Not Found',
+            'httpCode' => 404,
+            'error' => ''
+        ];
+        $validated = $method->invoke($i, $result);
+        $this->assertFalse($validated['success']);
+        $this->assertStringContainsString('HTTP 404', $validated['error']);
+    }
+
+    public function testIsValidORSResponse() {
+        $i = new Isochrone($this->dbhr, $this->dbhm);
+
+        # Use reflection to test private method
+        $reflection = new \ReflectionClass($i);
+        $method = $reflection->getMethod('isValidORSResponse');
+        $method->setAccessible(TRUE);
+
+        # Test valid response
+        $response = ['features' => []];
+        $this->assertTrue($method->invoke($i, $response));
+
+        # Test null response
+        $this->assertFalse($method->invoke($i, NULL));
+
+        # Test response with error
+        $response = ['error' => 'Something went wrong'];
+        $this->assertFalse($method->invoke($i, $response));
+    }
+
+    public function testConvertGeometryToWkt() {
+        $i = new Isochrone($this->dbhr, $this->dbhm);
+
+        # Use reflection to test private method
+        $reflection = new \ReflectionClass($i);
+        $method = $reflection->getMethod('convertGeometryToWkt');
+        $method->setAccessible(TRUE);
+
+        # Test with null geometry
+        $result = $method->invoke($i, NULL);
+        $this->assertNull($result);
+
+        # Test with valid GeoJSON
+        $geojson = [
+            'type' => 'Point',
+            'coordinates' => [0, 0]
+        ];
+        $result = $method->invoke($i, $geojson);
+        $this->assertNotNull($result);
+        $this->assertStringContainsString('POINT', $result);
+    }
 }
 
