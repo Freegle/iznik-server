@@ -1,6 +1,8 @@
 <?php
 namespace Freegle\Iznik;
 
+use Sentry\Severity;
+
 if (session_status() == PHP_SESSION_NONE) {
     @session_start();
 }
@@ -90,7 +92,7 @@ try {
             'confirmation_code' => $confirmation_code
         );
 
-        \Sentry\CaptureMessage("Facebook Unsubscribe: $user_id");
+        \Sentry\captureMessage("Facebook Unsubscribe: $user_id", Severity::info());
         echo json_encode($data);
     } else {
         echo json_encode(array('error' => 'No user_id supplied'));
