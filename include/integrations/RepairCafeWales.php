@@ -46,27 +46,49 @@ class RepairCafeWales {
     }
 
     private function processEvent($event, $ical, $externalid) {
-        $added = 0;
-        $title = $event->summary;
-        $description = $event->description;
-        $location = $event->location;
-        $url = $event->url;
+        $eventData = $this->extractEventData($event, $ical);
+        $postcode = $this->extractPostcode($eventData['location']);
 
-        $start = $this->formatDateTime($ical->iCalDateToDateTime($event->dtstart_array[3]));
-        $end = $this->formatDateTime($ical->iCalDateToDateTime($event->dtend_array[3]));
-
-        if (preg_match(Utils::POSTCODE_PATTERN, $location, $matches)) {
-            $postcode = strtoupper($matches[0]);
-            error_log("Found postcode $postcode");
-
-            $group = $this->findNearbyGroup($postcode);
-
-            if ($group && $group->getSetting('communityevent', 1)) {
-                $added = $this->createOrUpdateEvent($externalid, $title, $description, $location, $url, $start, $end, $group, $event);
-            }
+        if (!$postcode) {
+            return 0;
         }
 
-        return $added;
+        error_log("Found postcode $postcode");
+        $group = $this->findNearbyGroup($postcode);
+
+        if (!$group || !$group->getSetting('communityevent', 1)) {
+            return 0;
+        }
+
+        return $this->createOrUpdateEvent(
+            $externalid,
+            $eventData['title'],
+            $eventData['description'],
+            $eventData['location'],
+            $eventData['url'],
+            $eventData['start'],
+            $eventData['end'],
+            $group,
+            $event
+        );
+    }
+
+    private function extractEventData($event, $ical) {
+        return [
+            'title' => $event->summary,
+            'description' => $event->description,
+            'location' => $event->location,
+            'url' => $event->url,
+            'start' => $this->formatDateTime($ical->iCalDateToDateTime($event->dtstart_array[3])),
+            'end' => $this->formatDateTime($ical->iCalDateToDateTime($event->dtend_array[3]))
+        ];
+    }
+
+    private function extractPostcode($location) {
+        if (preg_match(Utils::POSTCODE_PATTERN, $location, $matches)) {
+            return strtoupper($matches[0]);
+        }
+        return NULL;
     }
 
     private function formatDateTime($dateTime) {
@@ -171,16 +193,21 @@ class RepairCafeWales {
     }
 
     private function removeOutdatedEvents($now, $externalsSeen) {
-        $existings = $this->dbhr->preQuery("SELECT communityevents.id, externalid FROM communityevents
-                INNER JOIN communityevents_dates ON communityevents.id = communityevents_dates.eventid
-                WHERE externalid LIKE '%repaircafewales%' AND start >= ?", [ $now ]);
+        $existings = $this->dbhr->preQuery(
+            "SELECT communityevents.id, externalid FROM communityevents
+             INNER JOIN communityevents_dates ON communityevents.id = communityevents_dates.eventid
+             WHERE externalid LIKE '%repaircafewales%' AND start >= ?",
+            [$now]
+        );
 
         foreach ($existings as $e) {
-            if (!array_key_exists($e['externalid'], $externalsSeen)) {
-                error_log("...deleting old " . $e['externalid']);
-                $ce = new CommunityEvent($this->dbhr, $this->dbhm, $e['id']);
-                $ce->setPrivate('deleted', 1);
+            if (array_key_exists($e['externalid'], $externalsSeen)) {
+                continue;
             }
+
+            error_log("...deleting old " . $e['externalid']);
+            $ce = new CommunityEvent($this->dbhr, $this->dbhm, $e['id']);
+            $ce->setPrivate('deleted', 1);
         }
     }
 }

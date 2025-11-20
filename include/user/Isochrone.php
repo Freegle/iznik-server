@@ -154,15 +154,20 @@ class Isochrone extends Entity
         $actualMinutes = NULL;
 
         while ($minutes <= $maxMinutes) {
-            $isochroneid = $this->ensureIsochroneExists($locationid, $minutes, $transport, $orsServer);
+            $currentIsochroneid = $this->ensureIsochroneExists($locationid, $minutes, $transport, $orsServer);
 
-            if ($isochroneid) {
-                $actualMinutes = $minutes;
-                $activeUsers = $this->countActiveUsersInIsochrone($isochroneid, $activeSince);
+            if (!$currentIsochroneid) {
+                $minutes += $increment;
+                continue;
+            }
 
-                if ($activeUsers >= $targetUsers) {
-                    break;
-                }
+            $isochroneid = $currentIsochroneid;
+            $actualMinutes = $minutes;
+
+            $activeUsers = $this->countActiveUsersInIsochrone($isochroneid, $activeSince);
+
+            if ($activeUsers >= $targetUsers) {
+                return [$isochroneid, $actualMinutes];
             }
 
             $minutes += $increment;
@@ -282,6 +287,17 @@ class Isochrone extends Entity
 
     public function fetchFromORS($transport, $lng, $lat, $minutes, $orsServer, $timeout = 60) {
         $orsTrans = $this->getORSTransportMode($transport);
+        $response = $this->executeCurlRequest($orsServer, $orsTrans, $lng, $lat, $minutes, $timeout);
+
+        if (!$response['success']) {
+            error_log("ORS fetch failed for lat=$lat, lng=$lng, minutes=$minutes: {$response['error']}");
+            return NULL;
+        }
+
+        return $this->parseORSResponse($response['data'], $lat, $lng, $minutes);
+    }
+
+    private function executeCurlRequest($orsServer, $orsTrans, $lng, $lat, $minutes, $timeout) {
         $seconds = $minutes * 60;
         $url = "$orsServer/v2/isochrones/$orsTrans";
 
@@ -307,15 +323,17 @@ class Isochrone extends Entity
         curl_close($curl);
 
         if ($curlError) {
-            error_log("ORS fetch failed for lat=$lat, lng=$lng, minutes=$minutes: cURL error: $curlError");
-            return NULL;
+            return ['success' => FALSE, 'error' => "cURL error: $curlError"];
         }
 
         if ($httpCode !== 200) {
-            error_log("ORS fetch failed for lat=$lat, lng=$lng, minutes=$minutes: HTTP $httpCode. Response: " . substr($json_response, 0, 500));
-            return NULL;
+            return ['success' => FALSE, 'error' => "HTTP $httpCode. Response: " . substr($json_response, 0, 500)];
         }
 
+        return ['success' => TRUE, 'data' => $json_response];
+    }
+
+    private function parseORSResponse($json_response, $lat, $lng, $minutes) {
         $resp = json_decode($json_response, TRUE);
 
         if (!$resp) {

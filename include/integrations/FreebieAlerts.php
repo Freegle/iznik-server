@@ -12,43 +12,55 @@ class FreebieAlerts
     }
 
     public function doCurl($url, $fields) {
-        $status = NULL;
-        $json_response = NULL;
+        if (!FREEBIE_ALERTS_KEY) {
+            return [NULL, NULL];
+        }
 
         try {
-            $curl = curl_init();
-            curl_setopt($curl, CURLOPT_URL, $url);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 60);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 60);
-            curl_setopt($curl, CURLOPT_HTTPHEADER, [
-                "Content-type: application/json",
-                "Key: " . FREEBIE_ALERTS_KEY
-            ]);
-            curl_setopt($curl, CURLOPT_POST, TRUE);
-            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($fields));
-
-            $json_response = FREEBIE_ALERTS_KEY ? curl_exec($curl) : NULL;
-            $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-
-            $msg = date("Y-m-d H:i:s") . " post to freebies returned $status $json_response";
-
-            $rsp = json_decode($json_response, TRUE);
-
-            $isSuccessful = $status == 200 &&
-                           is_array($rsp) &&
-                           array_key_exists('success', $rsp) &&
-                           $rsp['success'];
-
-            if (!$isSuccessful) {
-                \Sentry\captureMessage($msg);
-            }
+            $response = $this->executeCurlRequest($url, $fields);
+            $this->validateResponse($response);
+            return [$response['status'], $response['body']];
         } catch (\Exception $e) {
             error_log("Failed to update Freebie Alerts " . $e->getMessage());
             \Sentry\captureException($e);
+            return [NULL, NULL];
         }
+    }
 
-        return [ $status, $json_response ];
+    private function executeCurlRequest($url, $fields) {
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 60);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, [
+            "Content-type: application/json",
+            "Key: " . FREEBIE_ALERTS_KEY
+        ]);
+        curl_setopt($curl, CURLOPT_POST, TRUE);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($fields));
+
+        $json_response = curl_exec($curl);
+        $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+
+        return ['status' => $status, 'body' => $json_response];
+    }
+
+    private function validateResponse($response) {
+        $status = $response['status'];
+        $json_response = $response['body'];
+        $rsp = json_decode($json_response, TRUE);
+
+        $isSuccessful = $status == 200 &&
+                       is_array($rsp) &&
+                       array_key_exists('success', $rsp) &&
+                       $rsp['success'];
+
+        if (!$isSuccessful) {
+            $msg = date("Y-m-d H:i:s") . " post to freebies returned $status $json_response";
+            \Sentry\captureMessage($msg);
+        }
     }
 
     public function add($msgid) {
