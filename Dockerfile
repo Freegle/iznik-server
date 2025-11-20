@@ -31,7 +31,9 @@ RUN apt-get update && apt-get install -y dnsutils openssl zip unzip git libxml2-
 # Set mode to develop,coverage to allow both development features and coverage generation
 # The actual mode used will be controlled by the XDEBUG_MODE environment variable at runtime
 RUN echo "zend_extension=xdebug.so" > /etc/php/8.1/mods-available/xdebug.ini \
-    && echo "xdebug.mode=develop,coverage" >> /etc/php/8.1/mods-available/xdebug.ini \
+    && echo "xdebug.mode=develop,coverage,debug" >> /etc/php/8.1/mods-available/xdebug.ini \
+    && echo "xdebug.start_with_request=yes" >> /etc/php/8.1/mods-available/xdebug.ini \
+    && echo "xdebug.discover_client_host=1" >> /etc/php/8.1/mods-available/xdebug.ini \
     && phpenmod xdebug
 
 # Install Node.js and npm
