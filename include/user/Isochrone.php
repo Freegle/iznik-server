@@ -91,65 +91,61 @@ class Isochrone extends Entity
 
     public function ensureIsochroneExists($locationid, $minutes = 10, $transport = NULL, $orsServer = NULL, $orsTimeout = 60) {
         $source = $orsServer ? 'ORS' : 'Mapbox';
+        $isochroneid = $this->findExistingIsochrone($locationid, $minutes, $transport, $source);
 
+        if ($isochroneid) {
+            return $isochroneid;
+        }
+
+        return $this->createNewIsochrone($locationid, $minutes, $transport, $source, $orsServer, $orsTimeout);
+    }
+
+    private function findExistingIsochrone($locationid, $minutes, $transport, $source) {
         $transq = $transport ? (" AND transport = " . $this->dbhr->quote($transport)) : " AND transport IS NULL";
         $sourceq = " AND source = " . $this->dbhr->quote($source);
-        $existings = $this->dbhr->preQuery("SELECT id FROM isochrones WHERE locationid = ? $transq AND minutes = ? $sourceq ORDER BY timestamp DESC LIMIT 1;", [
-            $locationid,
-            $minutes
-        ]);
+        $existings = $this->dbhr->preQuery(
+            "SELECT id FROM isochrones WHERE locationid = ? $transq AND minutes = ? $sourceq ORDER BY timestamp DESC LIMIT 1;",
+            [$locationid, $minutes]
+        );
 
-        $rc = FALSE;
-        $isochroneid = NULL;
+        return count($existings) ? $existings[0]['id'] : NULL;
+    }
 
-        if (count($existings)) {
-            $isochroneid = $existings[0]['id'];
-        } else {
-            $l = new Location($this->dbhr, $this->dbhm, $locationid);
-            $lat = $l->getPrivate('lat');
-            $lng = $l->getPrivate('lng');
+    private function createNewIsochrone($locationid, $minutes, $transport, $source, $orsServer, $orsTimeout) {
+        $l = new Location($this->dbhr, $this->dbhm, $locationid);
+        $lat = $l->getPrivate('lat');
+        $lng = $l->getPrivate('lng');
 
-            if ($orsServer) {
-                $wkt = $this->fetchFromORS($transport, $lng, $lat, $minutes, $orsServer, $orsTimeout);
-            } else {
-                $wkt = $this->fetchFromMapbox($transport, $lng, $lat, $minutes);
-            }
+        $wkt = $orsServer ?
+            $this->fetchFromORS($transport, $lng, $lat, $minutes, $orsServer, $orsTimeout) :
+            $this->fetchFromMapbox($transport, $lng, $lat, $minutes);
 
-            if ($wkt) {
-                $rc = $this->dbhm->preExec("INSERT IGNORE INTO isochrones (locationid, transport, minutes, source, polygon) VALUES (?, ?, ?, ?,
-                 CASE WHEN ST_SIMPLIFY(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?) IS NULL THEN ST_GeomFromText(?, {$this->dbhr->SRID()}) ELSE ST_SIMPLIFY(ST_GeomFromText(?, {$this->dbhr->SRID()}), ?) END
-                                                                         )", [
-                    $locationid,
-                    $transport,
-                    $minutes,
-                    $source,
-                    $wkt,
-                    self::SIMPLIFY,
-                    $wkt,
-                    $wkt,
-                    self::SIMPLIFY
-                ]);
+        if (!$wkt) {
+            return NULL;
+        }
 
-                # If INSERT IGNORE skipped due to duplicate, fetch the existing ID
-                if ($rc) {
-                    $isochroneid = $this->dbhm->lastInsertId();
+        $rc = $this->insertIsochrone($locationid, $transport, $minutes, $source, $wkt);
 
-                    if (!$isochroneid) {
-                        # Insert was ignored, query for existing isochrone
-                        $existings = $this->dbhr->preQuery("SELECT id FROM isochrones WHERE locationid = ? $transq AND minutes = ? $sourceq ORDER BY timestamp DESC LIMIT 1;", [
-                            $locationid,
-                            $minutes
-                        ]);
+        if (!$rc) {
+            return NULL;
+        }
 
-                        if (count($existings)) {
-                            $isochroneid = $existings[0]['id'];
-                        }
-                    }
-                }
-            }
+        $isochroneid = $this->dbhm->lastInsertId();
+
+        if (!$isochroneid) {
+            $isochroneid = $this->findExistingIsochrone($locationid, $minutes, $transport, $source);
         }
 
         return $isochroneid;
+    }
+
+    private function insertIsochrone($locationid, $transport, $minutes, $source, $wkt) {
+        $srid = $this->dbhr->SRID();
+        return $this->dbhm->preExec(
+            "INSERT IGNORE INTO isochrones (locationid, transport, minutes, source, polygon) VALUES (?, ?, ?, ?,
+             CASE WHEN ST_SIMPLIFY(ST_GeomFromText(?, $srid), ?) IS NULL THEN ST_GeomFromText(?, $srid) ELSE ST_SIMPLIFY(ST_GeomFromText(?, $srid), ?) END)",
+            [$locationid, $transport, $minutes, $source, $wkt, self::SIMPLIFY, $wkt, $wkt, self::SIMPLIFY]
+        );
     }
 
     public function ensureIsochroneContainingActiveUsers($locationid, $transport = NULL, $targetUsers = 100, $activeSince = 90, $initialMinutes = 10, $maxMinutes = 60, $increment = 10, $orsServer = NULL) {
@@ -238,18 +234,9 @@ class Isochrone extends Entity
     }
 
     public function fetchFromMapbox($transport, $lng, $lat, $minutes) {
-        $wkt = NULL;
-
-        switch ($transport) {
-            case self::WALK: $mapTrans = 'walking'; break;
-            case self::CYCLE: $mapTrans = 'cycling'; break;
-            case self::DRIVE: $mapTrans = 'driving'; break;
-            default:
-                $mapTrans = 'driving';
-                break;
-        }
-
+        $mapTrans = $this->getMapboxTransportMode($transport);
         $url = "https://api.mapbox.com/isochrone/v1/mapbox/$mapTrans/$lng,$lat.json?polygons=true&contours_minutes=$minutes&access_token=" . MAPBOX_TOKEN;
+
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
@@ -259,31 +246,42 @@ class Isochrone extends Entity
         $resp = json_decode($json_response, TRUE);
 
         if (Utils::pres('features', $resp) && count($resp['features']) == 1) {
-            $geom = $resp['features'][0];
-
-            if ($geom)
-            {
-                $g = new \geoPHP();
-                $p = $g->load(json_encode($geom));
-                $wkt = $p->out('wkt');
-            }
+            return $this->convertGeometryToWkt($resp['features'][0]);
         }
 
-        return $wkt;
+        return NULL;
+    }
+
+    private function getMapboxTransportMode($transport) {
+        switch ($transport) {
+            case self::WALK: return 'walking';
+            case self::CYCLE: return 'cycling';
+            case self::DRIVE: return 'driving';
+            default: return 'driving';
+        }
+    }
+
+    private function getORSTransportMode($transport) {
+        switch ($transport) {
+            case self::WALK: return 'foot-walking';
+            case self::CYCLE: return 'cycling-regular';
+            case self::DRIVE: return 'driving-car';
+            default: return 'driving-car';
+        }
+    }
+
+    private function convertGeometryToWkt($geom) {
+        if (!$geom) {
+            return NULL;
+        }
+
+        $g = new \geoPHP();
+        $p = $g->load(json_encode($geom));
+        return $p->out('wkt');
     }
 
     public function fetchFromORS($transport, $lng, $lat, $minutes, $orsServer, $timeout = 60) {
-        $wkt = NULL;
-
-        switch ($transport) {
-            case self::WALK: $orsTrans = 'foot-walking'; break;
-            case self::CYCLE: $orsTrans = 'cycling-regular'; break;
-            case self::DRIVE: $orsTrans = 'driving-car'; break;
-            default:
-                $orsTrans = 'driving-car';
-                break;
-        }
-
+        $orsTrans = $this->getORSTransportMode($transport);
         $seconds = $minutes * 60;
         $url = "$orsServer/v2/isochrones/$orsTrans";
 
@@ -331,19 +329,11 @@ class Isochrone extends Entity
         }
 
         if (Utils::pres('features', $resp) && count($resp['features']) > 0) {
-            $geom = $resp['features'][0];
-
-            if ($geom)
-            {
-                $g = new \geoPHP();
-                $p = $g->load(json_encode($geom));
-                $wkt = $p->out('wkt');
-            }
-        } else {
-            error_log("ORS fetch failed for lat=$lat, lng=$lng, minutes=$minutes: No features in response");
+            return $this->convertGeometryToWkt($resp['features'][0]);
         }
 
-        return $wkt;
+        error_log("ORS fetch failed for lat=$lat, lng=$lng, minutes=$minutes: No features in response");
+        return NULL;
     }
 
     public function edit($minutes, $transport) {

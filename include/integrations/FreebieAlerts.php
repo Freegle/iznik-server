@@ -35,7 +35,12 @@ class FreebieAlerts
 
             $rsp = json_decode($json_response, TRUE);
 
-            if ($status != 200 || !is_array($rsp) || !array_key_exists('success', $rsp) || !$rsp['success']) {
+            $isSuccessful = $status == 200 &&
+                           is_array($rsp) &&
+                           array_key_exists('success', $rsp) &&
+                           $rsp['success'];
+
+            if (!$isSuccessful) {
                 \Sentry\captureMessage($msg);
             }
         } catch (\Exception $e) {
@@ -50,49 +55,60 @@ class FreebieAlerts
         $m = new Message($this->dbhr, $this->dbhm, $msgid);
         $status = NULL;
 
-        # Only want outstanding OFFERs.
-        if (!$m->hasOutcome() && $m->getPrivate('type') == Message::TYPE_OFFER) {
-            $u = User::get($this->dbhr, $this->dbhm, $m->getFromuser());
-
-            # TN messages are sync'd from TN itself.
-            if (!$u->isTN()) {
-                $atts = $m->getPublic();
-
-                # Skip messages without coordinates or subject - they're not suitable for FreebieAlerts.
-                if ($atts['lat'] === NULL || $atts['lng'] === NULL || !$m->getSubject()) {
-                    error_log(date("Y-m-d H:i:s") . " Skip message $msgid - missing required data (lat/lng or subject)");
-                } else {
-                    $images = [];
-
-                    foreach ($atts['attachments'] as $att) {
-                        $images[] = $att['path'];
-                    }
-
-                    $body = $m->getTextbody();
-                    $body = $body ? $body : 'No description';
-
-                    # We want to pass the date it was approved.
-                    $groups = $m->getGroups(FALSE, FALSE);
-
-                    $params = [
-                        'id' => $msgid,
-                        'title' => $m->getSubject(),
-                        'description' => $body,
-                        'latitude' => $atts['lat'],
-                        'longitude' => $atts['lng'],
-                        'images' => implode(',', $images),
-                        'created_at' => Utils::ISODate(count($groups) ? $groups[0]['arrival'] : $m->getPrivate('arrival'))
-                    ];
-
-                    list ($status, $response) = $this->doCurl('https://api.freebiealerts.app/freegle/post/create', $params);
-                    error_log(date("Y-m-d H:i:s") . " Added $msgid to freebies returned " . $response);
-                }
-            } else {
-                error_log(date("Y-m-d H:i:s") . " Skip TN message " . $u->getEmailPreferred());
-            }
-        } else {
+        if (!$this->isEligibleMessage($m)) {
             error_log(date("Y-m-d H:i:s") . " Skip message " . $m->hasOutcome() . " type " . $m->getPrivate('type'));
+            return $status;
         }
+
+        $u = User::get($this->dbhr, $this->dbhm, $m->getFromuser());
+
+        if ($u->isTN()) {
+            error_log(date("Y-m-d H:i:s") . " Skip TN message " . $u->getEmailPreferred());
+            return $status;
+        }
+
+        $atts = $m->getPublic();
+
+        if (!$this->hasRequiredData($atts, $m)) {
+            error_log(date("Y-m-d H:i:s") . " Skip message $msgid - missing required data (lat/lng or subject)");
+            return $status;
+        }
+
+        return $this->createFreebieAlert($msgid, $m, $atts);
+    }
+
+    private function isEligibleMessage($message) {
+        return !$message->hasOutcome() && $message->getPrivate('type') == Message::TYPE_OFFER;
+    }
+
+    private function hasRequiredData($atts, $message) {
+        return $atts['lat'] !== NULL && $atts['lng'] !== NULL && $message->getSubject();
+    }
+
+    private function createFreebieAlert($msgid, $message, $atts) {
+        $images = [];
+
+        foreach ($atts['attachments'] as $att) {
+            $images[] = $att['path'];
+        }
+
+        $body = $message->getTextbody();
+        $body = $body ? $body : 'No description';
+
+        $groups = $message->getGroups(FALSE, FALSE);
+
+        $params = [
+            'id' => $msgid,
+            'title' => $message->getSubject(),
+            'description' => $body,
+            'latitude' => $atts['lat'],
+            'longitude' => $atts['lng'],
+            'images' => implode(',', $images),
+            'created_at' => Utils::ISODate(count($groups) ? $groups[0]['arrival'] : $message->getPrivate('arrival'))
+        ];
+
+        list ($status, $response) = $this->doCurl('https://api.freebiealerts.app/freegle/post/create', $params);
+        error_log(date("Y-m-d H:i:s") . " Added $msgid to freebies returned " . $response);
 
         return $status;
     }

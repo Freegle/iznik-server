@@ -12,17 +12,8 @@ function stripecreateintent() {
         case 'POST': {
             $amount = floatval(Utils::presdef('amount', $_REQUEST, 0));
             $test = Utils::presbool('test', $_REQUEST, FALSE);
-            $stripe = new \Stripe\StripeClient($test ? STRIPE_SECRET_KEY_TEST : STRIPE_SECRET_KEY);
 
-            $intent = $stripe->paymentIntents->create([
-                                                'amount' => $amount * 100,
-                                                'currency' => 'gbp',
-                                                'automatic_payment_methods' => [
-                                                    'enabled' => TRUE,
-                                                ],
-                                                'metadata' => [ 'uid' => $me ? $me->getId() : NULL ],
-                                            ]);
-
+            $intent = createPaymentIntent($amount, $test, $me);
 
             $ret = [
                 'ret' => 0,
@@ -34,4 +25,18 @@ function stripecreateintent() {
     }
 
     return($ret);
+}
+
+function createPaymentIntent($amount, $isTest, $user) {
+    $secretKey = $isTest ? STRIPE_SECRET_KEY_TEST : STRIPE_SECRET_KEY;
+    $stripe = new \Stripe\StripeClient($secretKey);
+
+    return $stripe->paymentIntents->create([
+        'amount' => $amount * 100,
+        'currency' => 'gbp',
+        'automatic_payment_methods' => [
+            'enabled' => TRUE,
+        ],
+        'metadata' => [ 'uid' => $user ? $user->getId() : NULL ],
+    ]);
 }

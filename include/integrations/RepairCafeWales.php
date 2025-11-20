@@ -110,11 +110,7 @@ class RepairCafeWales {
         error_log("...updated existing " . $eventId);
         $e = new CommunityEvent($this->dbhr, $this->dbhm, $eventId);
 
-        $pending = $e->getPrivate('title') != $title ||
-            $e->getPrivate('location') != $location ||
-            $e->getPrivate('description') != $description;
-
-        if ($pending && !$e->getPrivate('pending')) {
+        if ($this->hasEventChanged($e, $title, $description, $location) && !$e->getPrivate('pending')) {
             $e->setPrivate('pending', 1);
         }
 
@@ -166,6 +162,12 @@ class RepairCafeWales {
                 ]);
             }
         }
+    }
+
+    private function hasEventChanged($event, $title, $description, $location) {
+        return $event->getPrivate('title') != $title ||
+               $event->getPrivate('location') != $location ||
+               $event->getPrivate('description') != $description;
     }
 
     private function removeOutdatedEvents($now, $externalsSeen) {
