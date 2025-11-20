@@ -63,6 +63,8 @@ class isochroneAPITest extends IznikAPITestCase
             'transport' => Isochrone::WALK
         ]);
         $this->assertEquals(0, $ret['ret']);
+        $this->assertNotNull($ret['id']);
+        $id = $ret['id'];
 
         $ret = $this->call('isochrone', 'GET', []);
 
@@ -190,6 +192,8 @@ class isochroneAPITest extends IznikAPITestCase
             'transport' => Isochrone::WALK
         ]);
         $this->assertEquals(0, $ret['ret']);
+        $this->assertNotNull($ret['id']);
+        $id = $ret['id'];
 
         $ret = $this->call('isochrone', 'GET', []);
 

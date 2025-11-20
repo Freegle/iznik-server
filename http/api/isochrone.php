@@ -44,11 +44,12 @@ function isochrone() {
                 $transport = Utils::presdef('transport', $_REQUEST, NULL);
 
                 $i = new Isochrone($dbhr, $dbhm, $id);
-                $i->edit($minutes, $transport);
+                $newId = $i->edit($minutes, $transport);
 
                 $ret = [
                     'ret' => 0,
-                    'status' => 'Success'
+                    'status' => 'Success',
+                    'id' => $newId
                 ];
                 break;
             }
