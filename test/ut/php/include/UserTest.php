@@ -1649,6 +1649,10 @@ class UserTest extends IznikTestCase {
         $u = User::get($this->dbhr, $this->dbhm);
         $id = $u->create('Test', 'User', NULL);
 
+        # Insert Edinburgh into towns table for the test
+        $this->dbhm->preExec("INSERT INTO towns (name, lat, lng, position) VALUES (?, ?, ?, ST_GeomFromText('POINT(-3.15 55.9)', {$this->dbhr->SRID()}))",
+            ['Edinburgh', 55.9, -3.15]);
+
         $settings = [
             'mylocation' => [
                 'id' => 1,
