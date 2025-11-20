@@ -115,34 +115,50 @@ class RepairCafeWales {
     }
 
     private function createOrUpdateEvent($externalid, $title, $description, $location, $url, $start, $end, $group, $event) {
-        $existing = $this->dbhr->preQuery(
-            "SELECT * FROM communityevents WHERE externalid = ?",
+        $existing = $this->findExistingEvent($externalid);
+
+        if ($existing) {
+            $this->updateExistingEvent($existing['id'], $title, $description, $location, $url, $start, $end);
+            return 0;
+        }
+
+        return $this->createNewEvent($title, $description, $location, $url, $start, $end, $externalid, $group, $event);
+    }
+
+    private function findExistingEvent($externalid) {
+        $existings = $this->dbhr->preQuery(
+            "SELECT id FROM communityevents WHERE externalid = ?",
             [$externalid]
         );
 
-        if (count($existing)) {
-            $this->updateExistingEvent($existing[0]['id'], $title, $description, $location, $url, $start, $end);
-            return 0;
-        } else {
-            return $this->createNewEvent($title, $description, $location, $url, $start, $end, $externalid, $group, $event);
-        }
+        return count($existings) ? $existings[0] : NULL;
     }
 
     private function updateExistingEvent($eventId, $title, $description, $location, $url, $start, $end) {
         error_log("...updated existing " . $eventId);
         $e = new CommunityEvent($this->dbhr, $this->dbhm, $eventId);
 
-        if ($this->hasEventChanged($e, $title, $description, $location) && !$e->getPrivate('pending')) {
-            $e->setPrivate('pending', 1);
+        $this->markAsPendingIfChanged($e, $title, $description, $location);
+        $this->updateEventDetails($e, $title, $description, $location, $url);
+        $this->updateEventDates($e, $start, $end);
+    }
+
+    private function markAsPendingIfChanged($event, $title, $description, $location) {
+        if ($this->hasEventChanged($event, $title, $description, $location) && !$event->getPrivate('pending')) {
+            $event->setPrivate('pending', 1);
         }
+    }
 
-        $e->setPrivate('title', $title);
-        $e->setPrivate('location', $location);
-        $e->setPrivate('description', $description);
-        $e->setPrivate('contacturl', $url);
+    private function updateEventDetails($event, $title, $description, $location, $url) {
+        $event->setPrivate('title', $title);
+        $event->setPrivate('location', $location);
+        $event->setPrivate('description', $description);
+        $event->setPrivate('contacturl', $url);
+    }
 
-        $e->removeDates();
-        $e->addDate($start, $end);
+    private function updateEventDates($event, $start, $end) {
+        $event->removeDates();
+        $event->addDate($start, $end);
     }
 
     private function createNewEvent($title, $description, $location, $url, $start, $end, $externalid, $group, $event) {
@@ -193,21 +209,33 @@ class RepairCafeWales {
     }
 
     private function removeOutdatedEvents($now, $externalsSeen) {
-        $existings = $this->dbhr->preQuery(
+        $existings = $this->fetchExistingEvents($now);
+
+        foreach ($existings as $e) {
+            if ($this->eventStillExists($e['externalid'], $externalsSeen)) {
+                continue;
+            }
+
+            $this->deleteEvent($e['id'], $e['externalid']);
+        }
+    }
+
+    private function fetchExistingEvents($now) {
+        return $this->dbhr->preQuery(
             "SELECT communityevents.id, externalid FROM communityevents
              INNER JOIN communityevents_dates ON communityevents.id = communityevents_dates.eventid
              WHERE externalid LIKE '%repaircafewales%' AND start >= ?",
             [$now]
         );
+    }
 
-        foreach ($existings as $e) {
-            if (array_key_exists($e['externalid'], $externalsSeen)) {
-                continue;
-            }
+    private function eventStillExists($externalid, $externalsSeen) {
+        return array_key_exists($externalid, $externalsSeen);
+    }
 
-            error_log("...deleting old " . $e['externalid']);
-            $ce = new CommunityEvent($this->dbhr, $this->dbhm, $e['id']);
-            $ce->setPrivate('deleted', 1);
-        }
+    private function deleteEvent($eventId, $externalid) {
+        error_log("...deleting old " . $externalid);
+        $ce = new CommunityEvent($this->dbhr, $this->dbhm, $eventId);
+        $ce->setPrivate('deleted', 1);
     }
 }

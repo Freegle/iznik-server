@@ -50,17 +50,27 @@ class FreebieAlerts
     private function validateResponse($response) {
         $status = $response['status'];
         $json_response = $response['body'];
-        $rsp = json_decode($json_response, TRUE);
 
-        $isSuccessful = $status == 200 &&
-                       is_array($rsp) &&
-                       array_key_exists('success', $rsp) &&
-                       $rsp['success'];
-
-        if (!$isSuccessful) {
-            $msg = date("Y-m-d H:i:s") . " post to freebies returned $status $json_response";
-            \Sentry\captureMessage($msg);
+        if ($status != 200) {
+            $this->logFailedResponse($status, $json_response);
+            return;
         }
+
+        $rsp = json_decode($json_response, TRUE);
+        if (!$this->isValidSuccessResponse($rsp)) {
+            $this->logFailedResponse($status, $json_response);
+        }
+    }
+
+    private function isValidSuccessResponse($response) {
+        return is_array($response) &&
+               array_key_exists('success', $response) &&
+               $response['success'];
+    }
+
+    private function logFailedResponse($status, $json_response) {
+        $msg = date("Y-m-d H:i:s") . " post to freebies returned $status $json_response";
+        \Sentry\captureMessage($msg);
     }
 
     public function add($msgid) {

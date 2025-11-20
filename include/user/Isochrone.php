@@ -290,23 +290,41 @@ class Isochrone extends Entity
         $response = $this->executeCurlRequest($orsServer, $orsTrans, $lng, $lat, $minutes, $timeout);
 
         if (!$response['success']) {
-            error_log("ORS fetch failed for lat=$lat, lng=$lng, minutes=$minutes: {$response['error']}");
+            $this->logORSError($lat, $lng, $minutes, $response['error']);
             return NULL;
         }
 
         return $this->parseORSResponse($response['data'], $lat, $lng, $minutes);
     }
 
-    private function executeCurlRequest($orsServer, $orsTrans, $lng, $lat, $minutes, $timeout) {
-        $seconds = $minutes * 60;
-        $url = "$orsServer/v2/isochrones/$orsTrans";
+    private function logORSError($lat, $lng, $minutes, $error) {
+        error_log("ORS fetch failed for lat=$lat, lng=$lng, minutes=$minutes: $error");
+    }
 
-        $postData = json_encode([
+    private function executeCurlRequest($orsServer, $orsTrans, $lng, $lat, $minutes, $timeout) {
+        $url = $this->buildORSUrl($orsServer, $orsTrans);
+        $postData = $this->buildORSRequestData($lng, $lat, $minutes);
+
+        $curl = $this->initializeCurlRequest($url, $postData, $timeout);
+        $result = $this->performCurlRequest($curl);
+
+        return $this->validateCurlResult($result);
+    }
+
+    private function buildORSUrl($orsServer, $orsTrans) {
+        return "$orsServer/v2/isochrones/$orsTrans";
+    }
+
+    private function buildORSRequestData($lng, $lat, $minutes) {
+        $seconds = $minutes * 60;
+        return json_encode([
             'locations' => [[$lng, $lat]],
             'range' => [$seconds],
             'range_type' => 'time'
         ]);
+    }
 
+    private function initializeCurlRequest($url, $postData, $timeout) {
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_POST, TRUE);
@@ -317,37 +335,61 @@ class Isochrone extends Entity
             'Content-Type: application/json',
             'Accept: application/geo+json'
         ]);
+        return $curl;
+    }
+
+    private function performCurlRequest($curl) {
         $json_response = curl_exec($curl);
         $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         $curlError = curl_error($curl);
         curl_close($curl);
 
-        if ($curlError) {
-            return ['success' => FALSE, 'error' => "cURL error: $curlError"];
+        return [
+            'response' => $json_response,
+            'httpCode' => $httpCode,
+            'error' => $curlError
+        ];
+    }
+
+    private function validateCurlResult($result) {
+        if ($result['error']) {
+            return ['success' => FALSE, 'error' => "cURL error: {$result['error']}"];
         }
 
-        if ($httpCode !== 200) {
-            return ['success' => FALSE, 'error' => "HTTP $httpCode. Response: " . substr($json_response, 0, 500)];
+        if ($result['httpCode'] !== 200) {
+            $responseSnippet = substr($result['response'], 0, 500);
+            return ['success' => FALSE, 'error' => "HTTP {$result['httpCode']}. Response: $responseSnippet"];
         }
 
-        return ['success' => TRUE, 'data' => $json_response];
+        return ['success' => TRUE, 'data' => $result['response']];
     }
 
     private function parseORSResponse($json_response, $lat, $lng, $minutes) {
         $resp = json_decode($json_response, TRUE);
 
-        if (!$resp) {
+        if (!$this->isValidORSResponse($resp)) {
+            $this->logORSParseError($lat, $lng, $minutes, $resp);
+            return NULL;
+        }
+
+        return $this->extractWktFromORSResponse($resp, $lat, $lng, $minutes);
+    }
+
+    private function isValidORSResponse($response) {
+        return $response && !Utils::pres('error', $response);
+    }
+
+    private function logORSParseError($lat, $lng, $minutes, $response) {
+        if (!$response) {
             error_log("ORS fetch failed for lat=$lat, lng=$lng, minutes=$minutes: Invalid JSON response");
-            return NULL;
+        } elseif (Utils::pres('error', $response)) {
+            error_log("ORS fetch failed for lat=$lat, lng=$lng, minutes=$minutes: ORS error: " . json_encode($response['error']));
         }
+    }
 
-        if (Utils::pres('error', $resp)) {
-            error_log("ORS fetch failed for lat=$lat, lng=$lng, minutes=$minutes: ORS error: " . json_encode($resp['error']));
-            return NULL;
-        }
-
-        if (Utils::pres('features', $resp) && count($resp['features']) > 0) {
-            return $this->convertGeometryToWkt($resp['features'][0]);
+    private function extractWktFromORSResponse($response, $lat, $lng, $minutes) {
+        if (Utils::pres('features', $response) && count($response['features']) > 0) {
+            return $this->convertGeometryToWkt($response['features'][0]);
         }
 
         error_log("ORS fetch failed for lat=$lat, lng=$lng, minutes=$minutes: No features in response");
@@ -355,28 +397,29 @@ class Isochrone extends Entity
     }
 
     public function edit($minutes, $transport) {
-        # We have been passed new minutes and transport values. We want to preserve the id in the isochrones_users
-        # table, but point it at a new isochrone with those values in the isochrones table.
-        #
-        # So first make sure there is one.
         $isochroneid = $this->ensureIsochroneExists($this->isochrone['locationid'], $minutes, $transport);
 
-        # And update this entry.
         if ($isochroneid) {
-            try {
-                $this->dbhm->preExec("UPDATE isochrones_users SET isochroneid = ? WHERE id = ?;", [
-                    $isochroneid,
-                    $this->id
-                ]);
-            } catch (DBException $e) {
-                if (strpos($e->getMessage(), 'Duplicate entry') !== FALSE) {
-                    # This can happen due to a timing window.  We already have an entry for this user/isochrone, so
-                    # we no longer need this one.
-                    $this->dbhm->preExec("DELETE FROM isochrones_users WHERE id = ?;", [
-                        $this->id
-                    ]);
-                }
-            }
+            $this->updateIsochroneUserMapping($isochroneid);
+        }
+    }
+
+    private function updateIsochroneUserMapping($isochroneid) {
+        try {
+            $this->dbhm->preExec("UPDATE isochrones_users SET isochroneid = ? WHERE id = ?;", [
+                $isochroneid,
+                $this->id
+            ]);
+        } catch (DBException $e) {
+            $this->handleDuplicateEntry($e);
+        }
+    }
+
+    private function handleDuplicateEntry($exception) {
+        if (strpos($exception->getMessage(), 'Duplicate entry') !== FALSE) {
+            $this->dbhm->preExec("DELETE FROM isochrones_users WHERE id = ?;", [
+                $this->id
+            ]);
         }
     }
 }
