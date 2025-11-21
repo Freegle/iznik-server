@@ -19,8 +19,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
 	  PHEANSTALK_SERVER=beanstalkd \
 	  IMAGE_DOMAIN=apiv1.localhost
 
-# Packages
-RUN apt-get update && apt-get install -y dnsutils openssl zip unzip git libxml2-dev libzip-dev zlib1g-dev libcurl4-openssl-dev \
+# Packages (with retry for flaky networks)
+RUN apt-get update -o Acquire::Retries=5 && apt-get install -o Acquire::Retries=5 -y dnsutils openssl zip unzip git libxml2-dev libzip-dev zlib1g-dev libcurl4-openssl-dev \
     iputils-ping default-mysql-client vim libpng-dev libgmp-dev libjpeg-turbo8-dev php-xmlrpc php8.1-intl \
     php8.1-xdebug php8.1-mbstring php8.1-simplexml php8.1-curl php8.1-zip postgresql-client php8.1-gd  \
     php8.1-xmlrpc php8.1-redis php8.1-pgsql curl libpq-dev php-pear php-dev libgeoip-dev libcurl4-openssl-dev wget \
@@ -34,12 +34,15 @@ RUN echo "zend_extension=xdebug.so" > /etc/php/8.1/mods-available/xdebug.ini \
     && echo "xdebug.mode=develop,coverage" >> /etc/php/8.1/mods-available/xdebug.ini \
     && phpenmod xdebug
 
-# Install Node.js and npm
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs
+# Install Node.js and npm (with retry for flaky networks)
+RUN for i in 1 2 3 4 5; do curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && break || sleep 10; done \
+    && apt-get install -o Acquire::Retries=5 -y nodejs
 
-# Install Claude Code
-RUN npm install -g @anthropic-ai/claude-code
+# Install Claude Code (with retry for flaky networks)
+RUN npm config set fetch-retries 5 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    npm install -g @anthropic-ai/claude-code
 
 RUN apt-get remove -y apache2* sendmail* mlocate php-ssh2
 
@@ -62,7 +65,7 @@ RUN mkdir -p /var/www \
   && chmod 777 /tmp/iznik.uploadlock
 
 # SSHD
-RUN apt-get -y install openssh-server \
+RUN apt-get -o Acquire::Retries=5 -y install openssh-server \
 	&& mkdir /var/run/sshd \
 	&& echo 'root:password' | chpasswd \
 	&& sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config \
