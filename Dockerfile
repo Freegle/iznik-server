@@ -141,23 +141,33 @@ CMD /etc/init.d/ssh start \
   && sed -ie "s@'SMTP_PORT', [0-9]*@'SMTP_PORT', $SMTP_PORT@" /etc/iznik.conf \
 
   # Setup GeoIP updates - continue even if download limit is reached
+  # Downloads to /var/lib/GeoIP which is where PHP config expects it
+  # Retry up to 5 times with 30 second delays for transient failures
   && rm -f /tmp/geoipupdate.failed \
   && if [ -n "$MAXMIND_ACCOUNT" ] && [ -n "$MAXMIND_KEY" ]; then \
-      mkdir -p /usr/share/GeoIP \
+      mkdir -p /var/lib/GeoIP \
       && echo "AccountID $MAXMIND_ACCOUNT" > /etc/GeoIP.conf \
       && echo "LicenseKey $MAXMIND_KEY" >> /etc/GeoIP.conf \
       && echo "ProductIds GeoLite2-Country GeoLite2-City" >> /etc/GeoIP.conf \
-      && echo "DatabaseDirectory /usr/share/GeoIP" >> /etc/GeoIP.conf \
-      && (geoipupdate -v -f /etc/GeoIP.conf || (echo "GeoIP update failed - continuing startup" && touch /tmp/geoipupdate.failed)) \
+      && echo "DatabaseDirectory /var/lib/GeoIP" >> /etc/GeoIP.conf \
+      && (for i in 1 2 3 4 5; do \
+           echo "GeoIP update attempt $i..." \
+           && geoipupdate -v -f /etc/GeoIP.conf && break \
+           || (echo "Attempt $i failed, waiting 30s..." && sleep 30); \
+         done || (echo "GeoIP update failed after 5 attempts - continuing startup" && touch /tmp/geoipupdate.failed)) \
     ; elif [ -f /run/secrets/MAXMIND_ACCOUNT ] && [ -f /run/secrets/MAXMIND_KEY ]; then \
       export MAXMIND_ACCOUNT=`cat /run/secrets/MAXMIND_ACCOUNT` \
       && export MAXMIND_KEY=`cat /run/secrets/MAXMIND_KEY` \
-      && mkdir -p /usr/share/GeoIP \
+      && mkdir -p /var/lib/GeoIP \
       && echo "AccountID $MAXMIND_ACCOUNT" > /etc/GeoIP.conf \
       && echo "LicenseKey $MAXMIND_KEY" >> /etc/GeoIP.conf \
       && echo "ProductIds GeoLite2-Country GeoLite2-City" >> /etc/GeoIP.conf \
-      && echo "DatabaseDirectory /usr/share/GeoIP" >> /etc/GeoIP.conf \
-      && (geoipupdate -v -f /etc/GeoIP.conf || (echo "GeoIP update failed - continuing startup" && touch /tmp/geoipupdate.failed)) \
+      && echo "DatabaseDirectory /var/lib/GeoIP" >> /etc/GeoIP.conf \
+      && (for i in 1 2 3 4 5; do \
+           echo "GeoIP update attempt $i..." \
+           && geoipupdate -v -f /etc/GeoIP.conf && break \
+           || (echo "Attempt $i failed, waiting 30s..." && sleep 30); \
+         done || (echo "GeoIP update failed after 5 attempts - continuing startup" && touch /tmp/geoipupdate.failed)) \
     ; else \
       echo "MaxMind credentials not found - skipping GeoIP update" && touch /tmp/geoipupdate.failed \
     ; fi \

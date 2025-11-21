@@ -16,6 +16,15 @@ class MailRouterTest extends IznikTestCase {
     private $dbhr, $dbhm;
     private $msgsSent = [];
 
+    /**
+     * Check if GeoIP database is available for country-based spam tests.
+     */
+    private function requiresGeoIP(): void {
+        if (!file_exists(MMDB)) {
+            $this->markTestSkipped('GeoIP database not available at ' . MMDB . ' - skipping country-based spam test');
+        }
+    }
+
     protected function setUp() : void {
         parent::setUp ();
 
@@ -383,6 +392,8 @@ class MailRouterTest extends IznikTestCase {
     }
 
     public function testSpamIP() {
+        $this->requiresGeoIP();
+
         # Sorry, Cameroon folk.
         $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/cameroon');
         $msg = str_replace('freegleplayground@yahoogroups.com', 'b.com', $msg);
@@ -492,6 +503,8 @@ class MailRouterTest extends IznikTestCase {
     }
 
     public function testMultipleUsers() {
+        $this->requiresGeoIP();
+
         for ($i = 0; $i < Spam::USER_THRESHOLD + 2; $i++) {
             $this->log("User $i");
 
@@ -568,6 +581,8 @@ class MailRouterTest extends IznikTestCase {
     }
 
     public function testMultipleGroups() {
+        $this->requiresGeoIP();
+
         # Remove a membership but will still count for spam checking.
         $this->user->removeMembership($this->gid);
 
