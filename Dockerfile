@@ -190,7 +190,6 @@ CMD /etc/init.d/ssh start \
   && cd composer \
   && echo Y | php ../composer.phar install \
   && cd .. \
-  && php install/testenv.php \
   && php scripts/cli/table_autoinc.php \
   && php scripts/cron/get_app_release_versions.php >> /tmp/iznik.get_app_release_versions.out 2>&1 \
 
