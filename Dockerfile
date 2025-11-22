@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ghcr.io/freegle/freegle-base:latest
 
 ARG IZNIK_SERVER_BRANCH=master
 
@@ -19,26 +19,10 @@ ENV DEBIAN_FRONTEND=noninteractive \
 	  PHEANSTALK_SERVER=beanstalkd \
 	  IMAGE_DOMAIN=apiv1.localhost
 
-# Copy retry script for flaky network operations
-COPY --from=scripts retry.sh /usr/local/bin/retry
-RUN chmod +x /usr/local/bin/retry
-
-# Packages (with retry for flaky networks including DNS)
-RUN retry bash -c 'apt-get update && apt-get install -y dnsutils openssl zip unzip git libxml2-dev libzip-dev zlib1g-dev libcurl4-openssl-dev \
-    iputils-ping default-mysql-client vim libpng-dev libgmp-dev libjpeg-turbo8-dev php-xmlrpc php8.1-intl \
-    php8.1-xdebug php8.1-mbstring php8.1-simplexml php8.1-curl php8.1-zip postgresql-client php8.1-gd  \
-    php8.1-xmlrpc php8.1-redis php8.1-pgsql curl libpq-dev php-pear php-dev libgeoip-dev libcurl4-openssl-dev wget \
-    php-mbstring php-mailparse geoip-bin geoip-database php8.1-pdo-mysql cron rsyslog net-tools php8.1-fpm nginx telnet \
-    tesseract-ocr ca-certificates gnupg lsb-release geoipupdate postfix jq netcat'
-
 # Configure xdebug to support coverage mode
-# Set mode to develop,coverage to allow both development features and coverage generation
-# The actual mode used will be controlled by the XDEBUG_MODE environment variable at runtime
 RUN echo "zend_extension=xdebug.so" > /etc/php/8.1/mods-available/xdebug.ini \
     && echo "xdebug.mode=develop,coverage" >> /etc/php/8.1/mods-available/xdebug.ini \
     && phpenmod xdebug
-
-RUN apt-get remove -y apache2* sendmail* mlocate php-ssh2
 
 # Configure Postfix for MailHog relay
 RUN echo "postfix postfix/mailname string localhost" | debconf-set-selections \
@@ -59,8 +43,7 @@ RUN mkdir -p /var/www \
   && chmod 777 /tmp/iznik.uploadlock
 
 # SSHD
-RUN apt-get -o Acquire::Retries=5 -y install openssh-server \
-	&& mkdir /var/run/sshd \
+RUN mkdir /var/run/sshd \
 	&& echo 'root:password' | chpasswd \
 	&& sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config \
 	&& sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd \
