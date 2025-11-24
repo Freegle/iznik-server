@@ -27,6 +27,12 @@ class Item extends Entity
     }
 
     public function create($name) {
+        if (!$name || trim($name) === '') {
+            return NULL;
+        }
+
+        $name = trim($name);
+
         try {
             # If we have a dup, update the name.  This is because the unique index is case insensitive, and it might be
             # that someone is correcting the case.
