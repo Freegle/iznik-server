@@ -22,6 +22,12 @@ class LoveJunk {
         $ret = FALSE;
         $data = $this->getData($id);
 
+        if ($data === NULL) {
+            error_log("Cannot send message $id to LoveJunk: missing required data (postcode, item, or not an OFFER)");
+            $this->recordResult(FALSE, $id, "Missing required data");
+            return FALSE;
+        }
+
         $client = new Client();
 
         try {
