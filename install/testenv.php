@@ -275,3 +275,12 @@ $dbhm->preExec("INSERT IGNORE INTO spam_whitelist_links (domain, count) VALUES (
 $dbhm->preExec("INSERT IGNORE INTO spam_whitelist_links (domain, count) VALUES ('freegle.in', 3);");
 $dbhm->preExec("INSERT IGNORE INTO towns (name, lat, lng, position) VALUES ('Edinburgh', 55.9500,-3.2000, ST_GeomFromText('POINT (-3.2000 55.9500)', {$dbhr->SRID()}));");
 $dbhm->preExec("INSERT IGNORE INTO link_previews (`url`, `title`, `description`) VALUES ('https://www.ilovefreegle.org', 'Freegle', 'Freegle is a UK-wide umbrella organisation for local free reuse groups.');");
+
+# Jobs for jobsAPITest (needs jobs near lat 52.5733189, lng -2.0355619)
+$dbhm->preExec("INSERT IGNORE INTO `jobs` (`location`, `title`, `city`, `state`, `zip`, `country`, `job_type`, `posted_at`, `job_reference`, `company`, `mobile_friendly_apply`, `category`, `html_jobs`, `url`, `body`, `cpc`, `geometry`, `visible`) VALUES
+('Test Location', 'Test Job', 'Test City', 'Test State', '', 'United Kingdom', 'Full Time', NOW(), 'TEST_001', 'TestCompany', 'No', 'Technology', 'No', 'https://example.com/test-job', 'Test job for PHPUnit tests.', '0.15', ST_GeomFromText('POINT(-2.0355619 52.5733189)', {$dbhr->SRID()}), 1);");
+
+# Engage mails for EngageTest (needs engage_mails entries for AtRisk and Inactive engagement)
+$dbhm->preExec("INSERT IGNORE INTO `engage_mails` (`id`, `engagement`, `template`, `subject`, `text`, `shown`, `action`, `rate`, `suggest`) VALUES
+(1, 'AtRisk', 'inactive', 'We will stop sending you emails soon...', 'It looks like you have not been active on Freegle for a while.', 249, 14, 5.62, 1),
+(4, 'Inactive', 'missing', 'We miss you!', 'We do not think you have freegled for a while. Can we tempt you back?', 4681, 63, 1.35, 1);");
