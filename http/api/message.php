@@ -199,6 +199,12 @@ function message() {
 
                                     # Associated the item with the message.  Use the master to avoid replication windows.
                                     $item = Utils::presdef('item', $_REQUEST, NULL);
+
+                                    if (!$item || trim($item) === '') {
+                                        $ret = ['ret' => 3, 'status' => 'Item is required'];
+                                        break;
+                                    }
+
                                     $i = new Item($dbhm, $dbhm);
                                     $itemid = $i->create($item);
                                     $m->deleteItems();
