@@ -821,10 +821,11 @@ HAVING logincount > 0
             $ids = array_unique(array_column($userids, 'id'));
 
             if (count($ids)) {
-                $sql = "$sqlpref 
-                  INNER JOIN users ON users.id = memberships.userid 
-                  LEFT JOIN users_emails ON memberships.userid = users_emails.userid 
-                  WHERE users.id IN (" . implode(',', $ids) . ") AND 
+                $userjoin = $uq ? '' : 'INNER JOIN users ON users.id = memberships.userid';
+                $sql = "$sqlpref
+                  $userjoin
+                  LEFT JOIN users_emails ON memberships.userid = users_emails.userid
+                  WHERE users.id IN (" . implode(',', $ids) . ") AND
                   $groupq $collectionq $addq $opsq";
 
                 $sql .= " ORDER BY memberships.added DESC, memberships.id DESC LIMIT $limit;";
