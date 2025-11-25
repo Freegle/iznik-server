@@ -1724,6 +1724,43 @@ class messageAPITest extends IznikAPITestCase
 
         }
 
+    public function testDraftEmptyItemFails()
+    {
+        # Creating a draft without an item should fail
+        $locid = $this->dbhr->preQuery("SELECT id FROM locations ORDER BY id LIMIT 1;")[0]['id'];
+
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'messagetype' => 'Offer',
+            'item' => '',
+            'textbody' => 'Text body',
+            'locationid' => $locid
+        ]);
+        $this->assertEquals(3, $ret['ret']);
+        $this->assertEquals('Item is required', $ret['status']);
+
+        # Also test with null item (not provided)
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'messagetype' => 'Offer',
+            'textbody' => 'Text body',
+            'locationid' => $locid
+        ]);
+        $this->assertEquals(3, $ret['ret']);
+        $this->assertEquals('Item is required', $ret['status']);
+
+        # Also test with whitespace-only item
+        $ret = $this->call('message', 'PUT', [
+            'collection' => 'Draft',
+            'messagetype' => 'Offer',
+            'item' => '   ',
+            'textbody' => 'Text body',
+            'locationid' => $locid
+        ]);
+        $this->assertEquals(3, $ret['ret']);
+        $this->assertEquals('Item is required', $ret['status']);
+    }
+
     public function testSubmitNative() {
         $email = 'test-' . rand() . '@blackhole.io';
 
