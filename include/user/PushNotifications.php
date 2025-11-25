@@ -22,6 +22,66 @@ class PushNotifications
     const APPTYPE_USER = 'User';
     const PUSH_BROWSER_PUSH = 'BrowserPush';
 
+    // Notification categories - these map to Android channels and iOS categories
+    const CATEGORY_CHAT_MESSAGE = 'CHAT_MESSAGE';
+    const CATEGORY_CHITCHAT_COMMENT = 'CHITCHAT_COMMENT';
+    const CATEGORY_CHITCHAT_REPLY = 'CHITCHAT_REPLY';
+    const CATEGORY_CHITCHAT_LOVED = 'CHITCHAT_LOVED';
+    const CATEGORY_POST_REMINDER = 'POST_REMINDER';
+    const CATEGORY_NEW_POSTS = 'NEW_POSTS';
+    const CATEGORY_COLLECTION = 'COLLECTION';
+    const CATEGORY_EVENT_SUMMARY = 'EVENT_SUMMARY';
+    const CATEGORY_EXHORT = 'EXHORT';
+
+    // Category configuration: iOS interruption level, Android channel ID, Android priority
+    const CATEGORIES = [
+        self::CATEGORY_CHAT_MESSAGE => [
+            'ios_interruption' => 'time-sensitive',
+            'android_channel' => 'chat_messages',
+            'android_priority' => 'high'
+        ],
+        self::CATEGORY_CHITCHAT_COMMENT => [
+            'ios_interruption' => 'passive',
+            'android_channel' => 'social',
+            'android_priority' => 'normal'
+        ],
+        self::CATEGORY_CHITCHAT_REPLY => [
+            'ios_interruption' => 'passive',
+            'android_channel' => 'social',
+            'android_priority' => 'normal'
+        ],
+        self::CATEGORY_CHITCHAT_LOVED => [
+            'ios_interruption' => 'passive',
+            'android_channel' => 'social',
+            'android_priority' => 'normal'
+        ],
+        self::CATEGORY_POST_REMINDER => [
+            'ios_interruption' => 'active',
+            'android_channel' => 'reminders',
+            'android_priority' => 'normal'
+        ],
+        self::CATEGORY_NEW_POSTS => [
+            'ios_interruption' => 'passive',
+            'android_channel' => 'new_posts',
+            'android_priority' => 'normal'
+        ],
+        self::CATEGORY_COLLECTION => [
+            'ios_interruption' => 'active',
+            'android_channel' => 'reminders',
+            'android_priority' => 'normal'
+        ],
+        self::CATEGORY_EVENT_SUMMARY => [
+            'ios_interruption' => 'passive',
+            'android_channel' => 'social',
+            'android_priority' => 'normal'
+        ],
+        self::CATEGORY_EXHORT => [
+            'ios_interruption' => 'passive',
+            'android_channel' => 'tips',
+            'android_priority' => 'normal'
+        ]
+    ];
+
     private $dbhr, $dbhm, $log, $pheanstalk = NULL, $firebase = NULL, $messaging = NULL;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
@@ -157,10 +217,22 @@ class PushNotifications
                                 'data' => $data
                             ]);
 
-                            $message = $message->withAndroidConfig([
+                            # Build Android config with channel_id if category is set
+                            $androidConfig = [
                                 'ttl' => '3600s',
                                 'priority' => 'normal'
-                            ]);
+                            ];
+
+                            $category = Utils::presdef('category', $payload, NULL);
+                            if ($category && isset(self::CATEGORIES[$category])) {
+                                $categoryConfig = self::CATEGORIES[$category];
+                                $androidConfig['priority'] = $categoryConfig['android_priority'];
+                                $androidConfig['notification'] = [
+                                    'channel_id' => $categoryConfig['android_channel']
+                                ];
+                            }
+
+                            $message = $message->withAndroidConfig($androidConfig);
                         } else {
                             # For IOS and browser push notifications.
                             $ios = [
@@ -193,16 +265,25 @@ class PushNotifications
 
                             #error_log("ios is " . var_export($ios, TRUE));
                             $message = CloudMessage::fromArray($ios);
+
+                            $aps = [
+                                'badge' => $payload['count'],
+                                'sound' => "default"
+                            ];
+
+                            # Add interruption-level if category is set (iOS 15+)
+                            $category = Utils::presdef('category', $payload, NULL);
+                            if ($category && isset(self::CATEGORIES[$category])) {
+                                $categoryConfig = self::CATEGORIES[$category];
+                                $aps['interruption-level'] = $categoryConfig['ios_interruption'];
+                            }
+
                             $params = [
                                 'headers' => [
                                     'apns-priority' => '10',
                                 ],
                                 'payload' => [
-                                    'aps' => [
-                                        'badge' => $payload['count'],
-                                        'sound' => "default"
-                                        //'content-available' => 1
-                                    ]
+                                    'aps' => $aps
                                 ],
                             ];
 
@@ -322,7 +403,7 @@ class PushNotifications
                 $payload = NULL;
                 $params = [];
 
-                list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route) = $u->getNotificationPayload($modtools);
+                list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route, $category) = $u->getNotificationPayload($modtools);
 
                 if ($title || $modtools || $total === 0) {
                     $message = ($total === 0) ? "" : $message;
@@ -341,7 +422,8 @@ class PushNotifications
                         'image' => $modtools ? "www/images/modtools_logo.png" : "www/images/user_logo.png",
                         'modtools' => $modtools,
                         'sound' => 'default',
-                        'route' => $route
+                        'route' => $route,
+                        'category' => $category
                     ];
 
                     switch ($notif['type']) {
