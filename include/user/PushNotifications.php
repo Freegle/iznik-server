@@ -230,6 +230,19 @@ class PushNotifications
                                 $androidConfig['notification'] = [
                                     'channel_id' => $categoryConfig['android_channel']
                                 ];
+
+                                # Add thread tag for notification grouping
+                                $threadId = Utils::presdef('threadId', $payload, NULL);
+                                if ($threadId) {
+                                    $androidConfig['notification']['tag'] = $threadId;
+                                }
+
+                                # Add image URL for rich notifications
+                                $image = Utils::presdef('image', $payload, NULL);
+                                if ($image && strpos($image, 'http') === 0) {
+                                    $androidConfig['notification']['image'] = $image;
+                                }
+
                                 # Add channel_id to data so the app can filter on it
                                 $data['channel_id'] = $categoryConfig['android_channel'];
                                 # Update the message with the modified data
@@ -278,13 +291,30 @@ class PushNotifications
                                 'sound' => "default"
                             ];
 
-                            # Add interruption-level if category is set (iOS 15+)
+                            # Add interruption-level and thread-id if category is set (iOS 15+)
                             $category = Utils::presdef('category', $payload, NULL);
                             if ($category && isset(self::CATEGORIES[$category])) {
                                 $categoryConfig = self::CATEGORIES[$category];
                                 $aps['interruption-level'] = $categoryConfig['ios_interruption'];
+
+                                # Add thread-id for notification grouping
+                                $threadId = Utils::presdef('threadId', $payload, NULL);
+                                if ($threadId) {
+                                    $aps['thread-id'] = $threadId;
+                                }
+
                                 # Add channel_id to data so the app can filter on it
                                 $data['channel_id'] = $categoryConfig['android_channel'];
+                                $ios['data'] = $data;
+                                $message = CloudMessage::fromArray($ios);
+                            }
+
+                            # For iOS, add image via mutable-content (requires Notification Service Extension)
+                            $image = Utils::presdef('image', $payload, NULL);
+                            if ($image && strpos($image, 'http') === 0) {
+                                $aps['mutable-content'] = 1;
+                                # Image URL goes in data for the Service Extension to fetch
+                                $data['imageUrl'] = $image;
                                 $ios['data'] = $data;
                                 $message = CloudMessage::fromArray($ios);
                             }
@@ -414,7 +444,7 @@ class PushNotifications
                 $payload = NULL;
                 $params = [];
 
-                list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route, $category) = $u->getNotificationPayload($modtools);
+                list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route, $category, $threadId, $image) = $u->getNotificationPayload($modtools);
 
                 if ($title || $modtools || $total === 0) {
                     $message = ($total === 0) ? "" : $message;
@@ -430,10 +460,11 @@ class PushNotifications
                         'message' => $message,
                         'chatids' => $chatids,
                         'content-available' => $total > 0,
-                        'image' => $modtools ? "www/images/modtools_logo.png" : "www/images/user_logo.png",
+                        'image' => $image ? $image : ($modtools ? "www/images/modtools_logo.png" : "www/images/user_logo.png"),
                         'modtools' => $modtools,
                         'sound' => 'default',
-                        'route' => $route
+                        'route' => $route,
+                        'threadId' => $threadId
                     ];
 
                     switch ($notif['type']) {

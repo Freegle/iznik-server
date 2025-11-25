@@ -4434,6 +4434,8 @@ class User extends Entity
         $chatids = [];
         $route = NULL;
         $category = NULL;
+        $threadId = NULL;
+        $image = NULL;
 
         if (!$modtools) {
             # User notification.  We want to show a count of chat messages, or some of the message if there is just one.
@@ -4466,6 +4468,8 @@ class User extends Entity
 
                 $route = "/chats/" . $unseen[0]['chatid'];
                 $category = PushNotifications::CATEGORY_CHAT_MESSAGE;
+                $threadId = 'chat_' . $unseen[0]['chatid'];
+                $image = Utils::presdef('icon', $atts, NULL);
 
                 if ($notifcount) {
                     $total += $notifcount;
@@ -4474,6 +4478,7 @@ class User extends Entity
                 $title = "You have $total new messages";
                 $route = "/chats";
                 $category = PushNotifications::CATEGORY_CHAT_MESSAGE;
+                $threadId = 'chats';
 
                 if ($notifcount) {
                     $total += $notifcount;
@@ -4492,23 +4497,27 @@ class User extends Entity
 
                         if (count($notifs) > 0) {
                             # For newsfeed notifications sent a route to the right place.
-                            # Also set the appropriate notification category.
+                            # Also set the appropriate notification category and thread ID.
                             switch ($notifs[0]['type']) {
                                 case Notifications::TYPE_COMMENT_ON_YOUR_POST:
                                     $route = '/chitchat/' . $notifs[0]['newsfeedid'];
                                     $category = PushNotifications::CATEGORY_CHITCHAT_COMMENT;
+                                    $threadId = 'chitchat_' . $notifs[0]['newsfeedid'];
                                     break;
                                 case Notifications::TYPE_COMMENT_ON_COMMENT:
                                     $route = '/chitchat/' . $notifs[0]['newsfeedid'];
                                     $category = PushNotifications::CATEGORY_CHITCHAT_REPLY;
+                                    $threadId = 'chitchat_' . $notifs[0]['newsfeedid'];
                                     break;
                                 case Notifications::TYPE_LOVED_COMMENT:
                                 case Notifications::TYPE_LOVED_POST:
                                     $route = '/chitchat/' . $notifs[0]['newsfeedid'];
                                     $category = PushNotifications::CATEGORY_CHITCHAT_LOVED;
+                                    $threadId = 'chitchat_' . $notifs[0]['newsfeedid'];
                                     break;
                                 case Notifications::TYPE_EXHORT:
                                     $category = PushNotifications::CATEGORY_EXHORT;
+                                    $threadId = 'tips';
                                     break;
                             }
                         }
@@ -4555,7 +4564,7 @@ class User extends Entity
         }
 
 
-        return ([$total, $chatcount, $notifcount, $title, $message, array_unique($chatids), $route, $category]);
+        return ([$total, $chatcount, $notifcount, $title, $message, array_unique($chatids), $route, $category, $threadId, $image]);
     }
 
     public function hasPermission($perm)
