@@ -230,6 +230,13 @@ class PushNotifications
                                 $androidConfig['notification'] = [
                                     'channel_id' => $categoryConfig['android_channel']
                                 ];
+                                # Add channel_id to data so the app can filter on it
+                                $data['channel_id'] = $categoryConfig['android_channel'];
+                                # Update the message with the modified data
+                                $message = CloudMessage::fromArray([
+                                    'token' => $endpoint,
+                                    'data' => $data
+                                ]);
                             }
 
                             $message = $message->withAndroidConfig($androidConfig);
@@ -276,6 +283,10 @@ class PushNotifications
                             if ($category && isset(self::CATEGORIES[$category])) {
                                 $categoryConfig = self::CATEGORIES[$category];
                                 $aps['interruption-level'] = $categoryConfig['ios_interruption'];
+                                # Add channel_id to data so the app can filter on it
+                                $data['channel_id'] = $categoryConfig['android_channel'];
+                                $ios['data'] = $data;
+                                $message = CloudMessage::fromArray($ios);
                             }
 
                             $params = [
@@ -410,7 +421,7 @@ class PushNotifications
                     if (is_null($message)) $message = "";
 
                     # badge and/or count are used by the app, possibly when it isn't running, to set the home screen badge.
-                    $payload = [
+                    $basePayload = [
                         'badge' => $total,
                         'count' => $total,
                         'chatcount' => $chatcount,
@@ -422,8 +433,7 @@ class PushNotifications
                         'image' => $modtools ? "www/images/modtools_logo.png" : "www/images/user_logo.png",
                         'modtools' => $modtools,
                         'sound' => 'default',
-                        'route' => $route,
-                        'category' => $category
+                        'route' => $route
                     ];
 
                     switch ($notif['type']) {
@@ -436,9 +446,32 @@ class PushNotifications
                         }
                     }
 
-                    $this->queueSend($userid, $notif['type'], $params, $notif['subscription'], $payload);
-                    #error_log("Queued send {$notif['type']} for $userid");
-                    $count++;
+                    # For mobile apps (Android/iOS), send TWO notifications:
+                    # 1. Legacy notification (no channel_id) - for old app versions
+                    # 2. New notification (with channel_id) - for new app versions
+                    # Each app version filters to only process one type, so no duplicates shown.
+                    $isAppNotification = in_array($notif['type'], [PushNotifications::PUSH_FCM_ANDROID, PushNotifications::PUSH_FCM_IOS]);
+
+                    if ($isAppNotification && $category) {
+                        # Send legacy notification first (no category/channel_id)
+                        $legacyPayload = $basePayload;
+                        $this->queueSend($userid, $notif['type'], $params, $notif['subscription'], $legacyPayload);
+                        $count++;
+
+                        # Send new notification (with category/channel_id)
+                        $newPayload = $basePayload;
+                        $newPayload['category'] = $category;
+                        $this->queueSend($userid, $notif['type'], $params, $notif['subscription'], $newPayload);
+                        $count++;
+                    } else {
+                        # Browser push or no category - send single notification
+                        $payload = $basePayload;
+                        if ($category) {
+                            $payload['category'] = $category;
+                        }
+                        $this->queueSend($userid, $notif['type'], $params, $notif['subscription'], $payload);
+                        $count++;
+                    }
                 }
             }
         }

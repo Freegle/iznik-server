@@ -48,12 +48,16 @@ class PushNotificationsTest extends IznikTestCase {
         $sql = "INSERT INTO users_notifications (`fromuser`, `touser`, `type`, `title`) VALUES (?, ?, ?, 'Test');";
         $this->dbhm->preExec($sql, [ $id, $id, Notifications::TYPE_EXHORT ]);
 
-        $this->assertEquals(1, $mock->notify($id, FALSE));
-        $this->assertEquals(1, $mock->notify($id, FALSE));
+        # For app notifications with a category, we send TWO notifications:
+        # 1. Legacy (no channel_id) for old apps
+        # 2. New (with channel_id) for new apps
+        $this->assertEquals(2, $mock->notify($id, FALSE));
+        $this->assertEquals(2, $mock->notify($id, FALSE));
 
         $n->add($id, PushNotifications::PUSH_FIREFOX, 'test2');
         $this->assertEquals(2, count($n->get($id)));
-        $this->assertEquals(1, $n->notify($id, FALSE));
+        # 2 for FCM_ANDROID (legacy + new) + 1 for FIREFOX = 3 total
+        $this->assertEquals(3, $n->notify($id, FALSE));
 
         # Test notifying mods.
         $this->log("Notify group mods");
@@ -325,6 +329,39 @@ class PushNotificationsTest extends IznikTestCase {
             'category' => NULL
         ]);
         $this->assertNotNull($rc['exception']);
+    }
+
+    public function testDualNotificationSystem() {
+        # Test that app notifications with a category send TWO notifications
+        list($u, $id, $emailid) = $this->createTestUserAndLogin('Test', 'User', NULL, 'test@test.com', 'testpw');
+        list($u2, $id2, $emailid2) = $this->createTestUser('Test', 'User2', NULL, 'test2@test.com', 'testpw2');
+
+        $mock = $this->getMockBuilder('Freegle\Iznik\PushNotifications')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setMethods(array('uthook'))
+            ->getMock();
+        $mock->method('uthook')->willThrowException(new \Exception());
+
+        # Add FCM Android subscription
+        $n = new PushNotifications($this->dbhr, $this->dbhm);
+        $n->add($id, PushNotifications::PUSH_FCM_ANDROID, 'test-android', FALSE);
+
+        # Create a chat message to trigger CHAT_MESSAGE category
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $r->createConversation($id, $id2);
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cm, $banned) = $m->create($rid, $id2, "Test chat message", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
+
+        # Notify should return 2 (legacy + new) for app notification with category
+        $count = $mock->notify($id, FALSE);
+        $this->assertEquals(2, $count);
+
+        # Add browser push subscription
+        $n->add($id, PushNotifications::PUSH_BROWSER_PUSH, 'test-browser', FALSE);
+
+        # Notify should return 3 (2 for Android + 1 for browser)
+        $count = $mock->notify($id, FALSE);
+        $this->assertEquals(3, $count);
     }
 }
 
