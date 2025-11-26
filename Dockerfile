@@ -29,7 +29,9 @@ RUN echo "postfix postfix/mailname string localhost" | debconf-set-selections \
     && echo "postfix postfix/main_mailer_type string 'Satellite system'" | debconf-set-selections \
     && echo "postfix postfix/relayhost string [mailhog]:1025" | debconf-set-selections
 
-RUN mkdir -p /var/www \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+    mkdir -p /var/www \
 	&& cd /var/www \
 	&& apt-get -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false update \
 	&& git clone https://github.com/Freegle/iznik-server.git iznik \
