@@ -4011,26 +4011,51 @@ class User extends Entity
                     $bigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/word_start_bigrams.json'), TRUE);
                     $trigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/trigrams.json'), TRUE);
 
+                    # Build list of words to exclude from invented email - includes name parts and any
+                    # words from %encoded emails (like real%test.com@gtempaccount.com -> "test")
+                    $excludeWords = [];
+
+                    foreach (['firstname', 'lastname', 'fullname'] as $att) {
+                        $words = explode(' ', $this->user[$att]);
+                        foreach ($words as $word) {
+                            $word = trim($word);
+                            if (strlen($word) >= 3 && $word !== '-') {
+                                $excludeWords[] = strtolower($word);
+                            }
+                        }
+                    }
+
+                    # Check for %encoded emails and extract the encoded domain parts
+                    $preferredEmail = $this->getEmailPreferred();
+                    if ($preferredEmail && strpos($preferredEmail, '%') !== FALSE) {
+                        # Extract the LHS before @ which contains the encoded real email
+                        $atPos = strpos($preferredEmail, '@');
+                        if ($atPos !== FALSE) {
+                            $lhs = substr($preferredEmail, 0, $atPos);
+                            # Split on % and . to get individual words
+                            $parts = preg_split('/[%.@]/', $lhs);
+                            foreach ($parts as $part) {
+                                $part = trim($part);
+                                if (strlen($part) >= 3) {
+                                    $excludeWords[] = strtolower($part);
+                                }
+                            }
+                        }
+                    }
+
                     do {
                         $length = \Wordle\array_weighted_rand($lengths);
                         $start = \Wordle\array_weighted_rand($bigrams);
                         $email = strtolower(\Wordle\fill_word($start, $length, $trigrams)) . '-' . $this->id . '@' . USER_DOMAIN;
 
-                        # We might just happen to have invented an email with their personal information in it.  This
-                        # actually happened in the UT with "test".
-                        foreach (['firstname', 'lastname', 'fullname'] as $att) {
-                            $words = explode(' ', $this->user[$att]);
-                            foreach ($words as $word) {
-                                $word = trim($word);
-                                if (strlen($word)) {
-                                    $p = stripos($email, $word);
-                                    $q = strpos($email, '-');
+                        # Check that invented email doesn't contain any excluded words
+                        $q = strpos($email, '-');
+                        $wordPart = substr($email, 0, $q);
 
-                                    if ($word !== '-') {
-                                        # Dash is always present, which is fine.
-                                        $email = ($p !== FALSE && $p < $q) ? NULL : $email;
-                                    }
-                                }
+                        foreach ($excludeWords as $word) {
+                            if (stripos($wordPart, $word) !== FALSE) {
+                                $email = NULL;
+                                break;
                             }
                         }
                     } while (!$email);
