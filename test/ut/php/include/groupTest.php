@@ -221,4 +221,100 @@ class groupTest extends IznikTestCase
             [ FALSE ]
         ];
     }
+
+    public function testGetModsWithAddedAt() {
+        list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_UT);
+
+        // Create a moderator for the group
+        list($u1, $uid1, $eid1) = $this->createTestUser(NULL, NULL, 'Test Mod 1', 'testmod1@test.com', 'testpw');
+        $u1->addMembership($gid, User::ROLE_MODERATOR);
+
+        // Set the membership added date to yesterday
+        $yesterday = date('Y-m-d H:i:s', strtotime('-1 day'));
+        $this->dbhm->preExec("UPDATE memberships SET added = ? WHERE userid = ? AND groupid = ?", [
+            $yesterday,
+            $uid1,
+            $gid
+        ]);
+
+        // Create another moderator added today
+        list($u2, $uid2, $eid2) = $this->createTestUser(NULL, NULL, 'Test Mod 2', 'testmod2@test.com', 'testpw');
+        $u2->addMembership($gid, User::ROLE_MODERATOR);
+
+        // Get all mods - should return both
+        $allMods = $g->getMods();
+        $this->assertCount(2, $allMods);
+        $this->assertContains($uid1, $allMods);
+        $this->assertContains($uid2, $allMods);
+
+        // Get mods added after yesterday - should only return the second one
+        $today = date('Y-m-d H:i:s');
+        $recentMods = $g->getMods([User::ROLE_MODERATOR, User::ROLE_OWNER], $today);
+        $this->assertCount(1, $recentMods);
+        $this->assertContains($uid2, $recentMods);
+        $this->assertNotContains($uid1, $recentMods);
+
+        // Get mods added after 2 days ago - should return both
+        $twoDaysAgo = date('Y-m-d H:i:s', strtotime('-2 days'));
+        $oldMods = $g->getMods([User::ROLE_MODERATOR, User::ROLE_OWNER], $twoDaysAgo);
+        $this->assertCount(2, $oldMods);
+    }
+
+    /**
+     * Test getMods with addedAt parameter - verifies SQL parameter binding fix.
+     * This test specifically validates the fix for Sentry issue where the SQL query
+     * had a placeholder for addedAt but the parameter wasn't passed to preQuery().
+     */
+    public function testGetModsAddedAtParameterBinding() {
+        list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_UT);
+
+        // Create moderators with specific timestamps
+        list($u1, $uid1, $eid1) = $this->createTestUser(NULL, NULL, 'Old Mod', 'oldmod@test.com', 'testpw');
+        $u1->addMembership($gid, User::ROLE_MODERATOR);
+
+        // Set membership to a week ago
+        $weekAgo = date('Y-m-d H:i:s', strtotime('-7 days'));
+        $this->dbhm->preExec("UPDATE memberships SET added = ? WHERE userid = ? AND groupid = ?", [
+            $weekAgo,
+            $uid1,
+            $gid
+        ]);
+
+        list($u2, $uid2, $eid2) = $this->createTestUser(NULL, NULL, 'New Mod', 'newmod@test.com', 'testpw');
+        $u2->addMembership($gid, User::ROLE_MODERATOR);
+
+        // Set membership to an hour ago
+        $hourAgo = date('Y-m-d H:i:s', strtotime('-1 hour'));
+        $this->dbhm->preExec("UPDATE memberships SET added = ? WHERE userid = ? AND groupid = ?", [
+            $hourAgo,
+            $uid2,
+            $gid
+        ]);
+
+        // This call exercises the addedAt parameter binding - if the fix is not in place,
+        // this would throw SQLSTATE[HY093]: Invalid parameter number
+        $threeDaysAgo = date('Y-m-d H:i:s', strtotime('-3 days'));
+        $recentMods = $g->getMods([User::ROLE_MODERATOR, User::ROLE_OWNER], $threeDaysAgo);
+
+        // Should only return the mod added an hour ago, not the one from a week ago
+        $this->assertCount(1, $recentMods);
+        $this->assertContains($uid2, $recentMods);
+        $this->assertNotContains($uid1, $recentMods);
+
+        // Also test with owner role to ensure the types array is handled correctly
+        $u1->setRole(User::ROLE_OWNER, $gid);
+        $recentOwners = $g->getMods([User::ROLE_OWNER], $threeDaysAgo);
+        $this->assertCount(0, $recentOwners);
+
+        // The week-ago mod is now an owner, but still shouldn't appear because added before cutoff
+        $fiveDaysAgo = date('Y-m-d H:i:s', strtotime('-5 days'));
+        $owners = $g->getMods([User::ROLE_OWNER], $fiveDaysAgo);
+        $this->assertCount(0, $owners);
+
+        // But should appear with a cutoff before the week ago date
+        $twoWeeksAgo = date('Y-m-d H:i:s', strtotime('-14 days'));
+        $owners = $g->getMods([User::ROLE_OWNER], $twoWeeksAgo);
+        $this->assertCount(1, $owners);
+        $this->assertContains($uid1, $owners);
+    }
 }
