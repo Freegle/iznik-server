@@ -4700,6 +4700,26 @@ CREATE TABLE `users_push_notifications` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `users_postnotifications_tracking`
+--
+
+DROP TABLE IF EXISTS `users_postnotifications_tracking`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `users_postnotifications_tracking` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `groupid` bigint unsigned NOT NULL,
+  `frequency` int NOT NULL COMMENT 'Digest frequency constant (-1=immediate, 1=hourly, 24=daily, etc.)',
+  `msgdate` timestamp NULL DEFAULT NULL COMMENT 'Arrival of message we have sent notifications up to',
+  `lastsent` timestamp NULL DEFAULT NULL COMMENT 'When we last sent notifications for this group/frequency',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `groupid_frequency` (`groupid`,`frequency`),
+  KEY `groupid` (`groupid`),
+  CONSTRAINT `users_postnotifications_tracking_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tracks which posts we have sent push notifications about';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `users_related`
 --
 
