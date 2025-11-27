@@ -479,6 +479,9 @@ class PushNotifications
                 'chatids' => [(string)$chat['chatid']],  // Array with single chat ID for implode compatibility
                 'chatid' => (string)$chat['chatid'],  // Individual chat ID for this message
                 'messageid' => (string)$chat['id'],    // Message ID for uniqueness
+                // Use chatid for notId so new messages replace old ones for the same chat, preventing notification flooding
+                // even when sending per-message notifications. Each chat gets one notification slot that updates with latest message.
+                'notId' => (int)$chat['chatid'],
                 'timestamp' => strtotime($chat['date']), // Unix timestamp for sorting
                 'content-available' => 1,
                 'image' => $icon,
