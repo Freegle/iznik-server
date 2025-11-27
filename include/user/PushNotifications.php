@@ -217,27 +217,47 @@ class PushNotifications
                                 'data' => $data
                             ]);
 
-                            # Build Android config - data-only notifications
-                            # We handle notification display in the app, so NO notification field
+                            # Build Android config
                             $androidConfig = [
                                 'ttl' => '3600s',
                                 'priority' => 'normal'
                             ];
 
                             $category = Utils::presdef('category', $payload, NULL);
+                            $hasChannelId = !empty($data['channel_id']);
+
                             if ($category && isset(self::CATEGORIES[$category])) {
                                 $categoryConfig = self::CATEGORIES[$category];
                                 $androidConfig['priority'] = $categoryConfig['android_priority'];
 
-                                # Add channel_id and category to DATA (not notification config)
-                                # The app uses these to create rich notifications via NotificationHelper
-                                $data['channel_id'] = $categoryConfig['android_channel'];
-                                $data['category'] = $category;
-                                # Update the message with the modified data
-                                $message = CloudMessage::fromArray([
-                                    'token' => $endpoint,
-                                    'data' => $data
-                                ]);
+                                # NEW notifications (with channel_id): Data-only, app creates notification
+                                if ($hasChannelId) {
+                                    # Add category to data so app can add action buttons
+                                    $data['category'] = $category;
+                                    # Update the message with the modified data
+                                    $message = CloudMessage::fromArray([
+                                        'token' => $endpoint,
+                                        'data' => $data
+                                    ]);
+                                }
+                                # LEGACY notifications (no channel_id): Use androidConfig notification for auto-display
+                                else {
+                                    $androidConfig['notification'] = [
+                                        'channel_id' => $categoryConfig['android_channel']
+                                    ];
+
+                                    # Add thread tag for notification grouping
+                                    $threadId = Utils::presdef('threadId', $payload, NULL);
+                                    if ($threadId) {
+                                        $androidConfig['notification']['tag'] = $threadId;
+                                    }
+
+                                    # Add image for rich notifications
+                                    $image = Utils::presdef('image', $payload, NULL);
+                                    if ($image && strpos($image, 'http') === 0) {
+                                        $androidConfig['notification']['image'] = $image;
+                                    }
+                                }
                             }
 
                             $message = $message->withAndroidConfig($androidConfig);
