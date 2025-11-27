@@ -1346,7 +1346,7 @@ WHERE chat_rooms.id IN $idlist;";
                 $n = new PushNotifications($this->dbhr, $this->dbhm);
                 #error_log("Update roster for $userid set last seen $lastmsgseen from {$_SERVER['REMOTE_ADDR']}");
                 #error_log("Roster notify $userid");
-                $n->notify($userid, Session::modtools());
+                $n->notify($userid, Session::modtools(), FALSE, $this->id);
             }
 
             #error_log("UPDATE chat_roster SET lastmsgseen = $lastmsgseen WHERE chatid = {$this->id} AND userid = $userid AND (lastmsgseen IS NULL OR lastmsgseen < $lastmsgseen);");
@@ -1500,14 +1500,14 @@ WHERE chat_rooms.id IN $idlist;";
         foreach ($fduserids as $userid) {
             if ($userid != $excludeuser) {
                 #error_log("Chat notify FD $userid");
-                $n->notify($userid, FALSE);
+                $n->notify($userid, FALSE, FALSE, $this->id);
             }
         }
 
         foreach ($mtuserids as $userid) {
             if ($userid != $excludeuser) {
                 #error_log("Chat notify MT $userid");
-                $n->notify($userid, TRUE);
+                $n->notify($userid, TRUE, FALSE, $this->id);
             }
         }
 
