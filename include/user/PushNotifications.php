@@ -303,10 +303,12 @@ class PushNotifications
                                 'sound' => "default"
                             ];
 
-                            # Add interruption-level and thread-id if category is set (iOS 15+)
+                            # Add category, interruption-level and thread-id if category is set (iOS 15+)
                             $category = Utils::presdef('category', $payload, NULL);
                             if ($category && isset(self::CATEGORIES[$category])) {
                                 $categoryConfig = self::CATEGORIES[$category];
+                                # Category is required for iOS action buttons to work
+                                $aps['category'] = $category;
                                 $aps['interruption-level'] = $categoryConfig['ios_interruption'];
 
                                 # Add thread-id for notification grouping
