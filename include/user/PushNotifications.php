@@ -243,8 +243,9 @@ class PushNotifications
                                     $androidConfig['notification']['image'] = $image;
                                 }
 
-                                # Add channel_id to data so the app can filter on it
+                                # Add channel_id and category to data so the app can filter and add actions
                                 $data['channel_id'] = $categoryConfig['android_channel'];
+                                $data['category'] = $category;  // Plugin needs this for action buttons
                                 # Update the message with the modified data
                                 $message = CloudMessage::fromArray([
                                     'token' => $endpoint,
