@@ -476,7 +476,7 @@ class PushNotifications
                 'notifcount' => 0,
                 'title' => $sendername,
                 'message' => $message,
-                'chatids' => $chat['chatid'],  // Single chat ID as string for implode compatibility
+                'chatids' => [(string)$chat['chatid']],  // Array with single chat ID for implode compatibility
                 'chatid' => (string)$chat['chatid'],  // Individual chat ID for this message
                 'messageid' => (string)$chat['id'],    // Message ID for uniqueness
                 'timestamp' => strtotime($chat['date']), // Unix timestamp for sorting
