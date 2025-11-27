@@ -22,6 +22,14 @@ class PushNotifications
     const APPTYPE_USER = 'User';
     const PUSH_BROWSER_PUSH = 'BrowserPush';
 
+    // Notification categories
+    const CATEGORY_CHAT_MESSAGE = 'CHAT_MESSAGE';
+    const CATEGORY_CHITCHAT_COMMENT = 'CHITCHAT_COMMENT';
+    const CATEGORY_CHITCHAT_REPLY = 'CHITCHAT_REPLY';
+    const CATEGORY_POST_REMINDER = 'POST_REMINDER';
+    const CATEGORY_NEW_POSTS = 'NEW_POSTS';
+    const CATEGORY_EXHORT = 'EXHORT';
+
     private $dbhr, $dbhm, $log, $pheanstalk = NULL, $firebase = NULL, $messaging = NULL;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
@@ -132,8 +140,10 @@ class PushNotifications
                         $data = $payload;
 
                         # We can only have key => string, so the chatids needs to be converted from an array to
-                        # a string.
-                        $data['chatids'] = implode(',', $data['chatids']);
+                        # a string (if it isn't already).
+                        if (is_array($data['chatids'])) {
+                            $data['chatids'] = implode(',', $data['chatids']);
+                        }
 
                         # And anything that isn't a string needs to pretend to be one.  How dull.
                         foreach ($data as $key => $val) {
@@ -144,7 +154,7 @@ class PushNotifications
 
                         $data['notId'] = (string)floor(microtime(TRUE));
 
-                        #error_log("Data is " . var_export($data, TRUE));
+                        error_log("FCM data channel_id: " . (isset($data['channel_id']) ? $data['channel_id'] : 'NOT SET'));
 
                         if ($notiftype == PushNotifications::PUSH_FCM_ANDROID) {
                             # Need to omit notification for reasons to do with Cordova plugin.
@@ -159,7 +169,7 @@ class PushNotifications
 
                             $message = $message->withAndroidConfig([
                                 'ttl' => '3600s',
-                                'priority' => 'normal'
+                                'priority' => 'high'  // High priority for immediate delivery
                             ]);
                         } else {
                             # For IOS and browser push notifications.
@@ -292,13 +302,111 @@ class PushNotifications
         return $rc;
     }
 
-    public function notify($userid, $modtools, $browserPush = FALSE)
+    private function notifyIndividualMessages($userid, $notifs, $modtools, $chatid = NULL) {
+        // Send individual per-message notifications for admin users (new rich format)
+        // If $chatid is specified, only send notifications for that specific chat
+        $count = 0;
+        $u = User::get($this->dbhr, $this->dbhm, $userid);
+        $email = $u->getEmailPreferred();
+
+        // Get unread chat messages for this user that haven't been notified yet
+        $chatFilter = $chatid ? "AND cm.chatid = ?" : "";
+        $params = [$userid, $userid, $userid, $userid, $userid];
+        if ($chatid) {
+            $params[] = $chatid;
+        }
+
+        $chats = $this->dbhr->preQuery("
+            SELECT cm.id, cm.chatid, cm.userid as senderid, cm.message, cm.date
+            FROM chat_messages cm
+            INNER JOIN chat_rooms cr ON cm.chatid = cr.id
+            LEFT JOIN chat_roster roster ON roster.chatid = cm.chatid AND roster.userid = ?
+            WHERE (cr.user1 = ? OR cr.user2 = ?)
+            AND cm.userid != ?
+            AND cm.reviewrequired = 0
+            AND cm.reviewrejected = 0
+            AND cm.id > COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = cm.chatid AND userid = ?), 0)
+            AND cm.id > COALESCE(roster.lastmsgnotified, 0)
+            $chatFilter
+            ORDER BY cm.date ASC
+            LIMIT 20
+        ", $params);
+
+        $lastMsgId = 0;
+        $chatidsNotified = [];
+
+        foreach ($chats as $chat) {
+            // Get chat room info including icon
+            $r = new ChatRoom($this->dbhr, $this->dbhm, $chat['chatid']);
+            $atts = $r->getPublic($u);
+            $icon = Utils::presdef('icon', $atts, USERLOGO);
+
+            // Get the other user's name (the sender)
+            if (isset($atts['user1']) && $atts['user1']['id'] == $chat['senderid']) {
+                $sendername = $atts['user1']['displayname'];
+            } elseif (isset($atts['user2']) && $atts['user2']['id'] == $chat['senderid']) {
+                $sendername = $atts['user2']['displayname'];
+            } else {
+                $sendername = 'Someone';
+            }
+
+            $message = Utils::decodeEmojis($chat['message']);
+            $messagePreview = strlen($message) > 50 ? (substr($message, 0, 50) . "...") : $message;
+            $message = strlen($message) > 256 ? (substr($message, 0, 256) . "...") : $message;
+
+            error_log("Notify push chat #{$chat['chatid']} $email for $userid message {$chat['id']}: $messagePreview");
+
+            $payload = [
+                'badge' => count($chats),
+                'count' => count($chats),
+                'chatcount' => count($chats),
+                'notifcount' => 0,
+                'title' => $sendername,
+                'message' => $message,
+                'chatids' => [$chat['chatid']],  // Array for executeSend to implode
+                'chatid' => (string)$chat['chatid'],  // Individual chat ID for this message
+                'messageid' => (string)$chat['id'],    // Message ID for uniqueness
+                'timestamp' => strtotime($chat['date']), // Unix timestamp for sorting
+                'content-available' => 1,
+                'image' => $icon,
+                'modtools' => $modtools,
+                'sound' => 'default',
+                'route' => '/chats/' . $chat['chatid'],
+                'channel_id' => 'chat_messages',
+                'thread_id' => 'chat_' . $chat['chatid']
+            ];
+
+            foreach ($notifs as $notif) {
+                $this->queueSend($userid, $notif['type'], [], $notif['subscription'], $payload);
+                $count++;
+            }
+
+            // Track the highest message ID and chats we've notified
+            $lastMsgId = max($lastMsgId, $chat['id']);
+            if (!in_array($chat['chatid'], $chatidsNotified)) {
+                $chatidsNotified[] = $chat['chatid'];
+            }
+        }
+
+        // Update lastmsgnotified for each chat we sent notifications for
+        foreach ($chatidsNotified as $chatid) {
+            $this->dbhm->preExec("
+                INSERT INTO chat_roster (chatid, userid, lastmsgnotified, date)
+                VALUES (?, ?, ?, NOW())
+                ON DUPLICATE KEY UPDATE lastmsgnotified = ?
+            ", [$chatid, $userid, $lastMsgId, $lastMsgId]);
+        }
+
+        return $count;
+    }
+
+    public function notify($userid, $modtools, $browserPush = FALSE, $chatid = NULL)
     {
         $count = 0;
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         $proceedpush = TRUE; // $u->notifsOn(User::NOTIFS_PUSH);
         $proceedapp = $u->notifsOn(User::NOTIFS_APP);
-        #error_log("Notify $userid, push on $proceedpush app on $proceedapp MT $modtools browserPush $browserPush");
+        #error_log("Notify $userid, push on $proceedpush app on $proceedapp MT $modtools browserPush $browserPush chatid $chatid");
 
         if ($browserPush) {
             $notifs = $this->dbhr->preQuery("SELECT * FROM users_push_notifications WHERE userid = ? AND `type` = ?;", [
@@ -310,6 +418,18 @@ class PushNotifications
                 $userid,
                 $modtools ? PushNotifications::APPTYPE_MODTOOLS : PushNotifications::APPTYPE_USER
             ]);
+        }
+
+        // TEMPORARY: For Android Admin users, send individual per-message notifications (new rich format)
+        // iOS still gets legacy summary notifications
+        if ($u->isAdmin() && !$modtools && $proceedapp) {
+            $androidNotifs = array_filter($notifs, function($n) {
+                return $n['type'] === PushNotifications::PUSH_FCM_ANDROID;
+            });
+
+            if (count($androidNotifs) > 0) {
+                return $this->notifyIndividualMessages($userid, $androidNotifs, $modtools, $chatid);
+            }
         }
 
         foreach ($notifs as $notif) {
@@ -338,11 +458,17 @@ class PushNotifications
                         'message' => $message,
                         'chatids' => $chatids,
                         'content-available' => $total > 0,
-                        'image' => $modtools ? "www/images/modtools_logo.png" : "www/images/user_logo.png",
+                        'image' => $modtools ? MODLOGO : USERLOGO,
                         'modtools' => $modtools,
                         'sound' => 'default',
                         'route' => $route
                     ];
+
+                    // TEMPORARY: Only send new-style notifications (with channel_id) to Android Admin users for testing
+                    // iOS still gets legacy notifications without channel_id
+                    if ($u->isAdmin() && $notif['type'] === PushNotifications::PUSH_FCM_ANDROID) {
+                        $payload['channel_id'] = 'chat_messages';
+                    }
 
                     switch ($notif['type']) {
                         case PushNotifications::PUSH_GOOGLE:
