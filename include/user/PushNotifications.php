@@ -470,6 +470,9 @@ class PushNotifications
 
             error_log("Notify push chat #{$chat['chatid']} $email for $userid message {$chat['id']}: $messagePreview");
 
+            // Get channel configuration for this category
+            $categoryConfig = self::CATEGORIES[self::CATEGORY_CHAT_MESSAGE];
+
             $payload = [
                 'badge' => count($chats),
                 'count' => count($chats),
@@ -490,6 +493,7 @@ class PushNotifications
                 'sound' => 'default',
                 'route' => '/chats/' . $chat['chatid'],
                 'category' => self::CATEGORY_CHAT_MESSAGE,
+                'channel_id' => $categoryConfig['android_channel'],  // Required for Android to use correct channel
                 'threadId' => 'chat_' . $chat['chatid']
             ];
 
