@@ -424,11 +424,13 @@ class PushNotifications
 
         // Get unread chat messages for this user that haven't been notified yet
         $chatFilter = $chatid ? "AND cm.chatid = ?" : "";
-        $params = [$userid, $userid, $userid, $userid, $userid];
+        $params = [$userid, $userid, $userid, $userid];
         if ($chatid) {
             $params[] = $chatid;
         }
 
+        // Only check lastmsgnotified, not lastmsgseen - we want to send notifications even if the app
+        // has marked messages as "seen" (which can happen due to background polling or incorrect client logic)
         $chats = $this->dbhr->preQuery("
             SELECT cm.id, cm.chatid, cm.userid as senderid, cm.message, cm.date
             FROM chat_messages cm
@@ -438,7 +440,6 @@ class PushNotifications
             AND cm.userid != ?
             AND cm.reviewrequired = 0
             AND cm.reviewrejected = 0
-            AND cm.id > COALESCE((SELECT lastmsgseen FROM chat_roster WHERE chatid = cm.chatid AND userid = ?), 0)
             AND cm.id > COALESCE(roster.lastmsgnotified, 0)
             $chatFilter
             ORDER BY cm.date ASC
