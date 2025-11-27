@@ -192,8 +192,12 @@ class PushNotifications
                         $data = $payload;
 
                         # We can only have key => string, so the chatids needs to be converted from an array to
-                        # a string.
-                        $data['chatids'] = implode(',', $data['chatids']);
+                        # a string (if it isn't already).
+                        if (is_array($data['chatids'])) {
+                            $data['chatids'] = implode(',', $data['chatids']);
+                        } else {
+                            $data['chatids'] = (string)$data['chatids'];
+                        }
 
                         # And anything that isn't a string needs to pretend to be one.  How dull.
                         foreach ($data as $key => $val) {
