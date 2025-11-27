@@ -217,7 +217,8 @@ class PushNotifications
                                 'data' => $data
                             ]);
 
-                            # Build Android config with channel_id if category is set
+                            # Build Android config - data-only notifications
+                            # We handle notification display in the app, so NO notification field
                             $androidConfig = [
                                 'ttl' => '3600s',
                                 'priority' => 'normal'
@@ -227,25 +228,11 @@ class PushNotifications
                             if ($category && isset(self::CATEGORIES[$category])) {
                                 $categoryConfig = self::CATEGORIES[$category];
                                 $androidConfig['priority'] = $categoryConfig['android_priority'];
-                                $androidConfig['notification'] = [
-                                    'channel_id' => $categoryConfig['android_channel']
-                                ];
 
-                                # Add thread tag for notification grouping
-                                $threadId = Utils::presdef('threadId', $payload, NULL);
-                                if ($threadId) {
-                                    $androidConfig['notification']['tag'] = $threadId;
-                                }
-
-                                # Add image URL for rich notifications
-                                $image = Utils::presdef('image', $payload, NULL);
-                                if ($image && strpos($image, 'http') === 0) {
-                                    $androidConfig['notification']['image'] = $image;
-                                }
-
-                                # Add channel_id and category to data so the app can filter and add actions
+                                # Add channel_id and category to DATA (not notification config)
+                                # The app uses these to create rich notifications via NotificationHelper
                                 $data['channel_id'] = $categoryConfig['android_channel'];
-                                $data['category'] = $category;  // Plugin needs this for action buttons
+                                $data['category'] = $category;
                                 # Update the message with the modified data
                                 $message = CloudMessage::fromArray([
                                     'token' => $endpoint,
