@@ -567,20 +567,6 @@ class PostNotificationsTest extends IznikTestCase {
     }
 
     /**
-     * Helper to create message content from template.
-     */
-    protected function createMessageContent($template, $substitutions = []) {
-        $msgPath = IZNIK_BASE . '/test/ut/php/msgs/' . $template;
-        $content = file_get_contents($msgPath);
-
-        foreach ($substitutions as $find => $replace) {
-            $content = str_ireplace($find, $replace, $content);
-        }
-
-        return $content;
-    }
-
-    /**
      * Helper to create and route a message with custom parameters.
      */
     private function createAndRouteTestMessage($msg, $from, $to) {
