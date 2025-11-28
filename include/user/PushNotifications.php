@@ -554,8 +554,8 @@ class PushNotifications
             ]);
         }
 
-        // For Admin users, send individual per-message notifications (new rich format with action buttons)
-        if ($u->isAdmin() && !$modtools && $proceedapp) {
+        // Send individual per-message notifications (new rich format with action buttons)
+        if (!$modtools && $proceedapp) {
             $appNotifs = array_filter($notifs, function($n) {
                 return $n['type'] === PushNotifications::PUSH_FCM_ANDROID || $n['type'] === PushNotifications::PUSH_FCM_IOS;
             });
