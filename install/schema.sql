@@ -4687,7 +4687,7 @@ CREATE TABLE `users_push_notifications` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `userid` bigint unsigned NOT NULL,
   `added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `type` enum('Google','Firefox','Test','Android','IOS','FCMAndroid','FCMIOS') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Google',
+  `type` enum('Google','Firefox','Test','Android','IOS','FCMAndroid','FCMIOS','BrowserPush') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Google',
   `lastsent` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `subscription` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `apptype` enum('User','ModTools') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'User',

@@ -555,13 +555,20 @@ class PushNotifications
         }
 
         // Send individual per-message notifications (new rich format with action buttons)
+        // This handles chat messages with rich formatting
         if (!$modtools && $proceedapp) {
             $appNotifs = array_filter($notifs, function($n) {
                 return $n['type'] === PushNotifications::PUSH_FCM_ANDROID || $n['type'] === PushNotifications::PUSH_FCM_IOS;
             });
 
             if (count($appNotifs) > 0) {
-                return $this->notifyIndividualMessages($userid, $appNotifs, $modtools, $chatid);
+                $individualCount = $this->notifyIndividualMessages($userid, $appNotifs, $modtools, $chatid);
+                if ($individualCount > 0) {
+                    // We sent chat message notifications, so we're done
+                    return $individualCount;
+                }
+                // If no chat messages were found, fall through to legacy notification path
+                // to handle users_notifications (TYPE_EXHORT, etc.)
             }
         }
 

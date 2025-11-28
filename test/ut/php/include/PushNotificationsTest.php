@@ -54,7 +54,7 @@ class PushNotificationsTest extends IznikTestCase {
         $this->assertEquals(2, $mock->notify($id, FALSE));
         $this->assertEquals(2, $mock->notify($id, FALSE));
 
-        $n->add($id, PushNotifications::PUSH_FIREFOX, 'test2');
+        $n->add($id, PushNotifications::PUSH_FIREFOX, 'test2', FALSE);
         $this->assertEquals(2, count($n->get($id)));
         # 2 for FCM_ANDROID (legacy + new) + 1 for FIREFOX = 3 total
         $this->assertEquals(3, $n->notify($id, FALSE));
@@ -235,7 +235,7 @@ class PushNotificationsTest extends IznikTestCase {
 
         # Create a chat between users
         $r = new ChatRoom($this->dbhr, $this->dbhm);
-        $rid = $r->createConversation($id, $id2);
+        list($rid, $created) = $r->createConversation($id, $id2);
         $m = new ChatMessage($this->dbhr, $this->dbhm);
         list ($cm, $banned) = $m->create($rid, $id2, "Testing chat message", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
 
@@ -254,9 +254,21 @@ class PushNotificationsTest extends IznikTestCase {
         list($u, $id, $emailid) = $this->createTestUserAndLogin('Test', 'User', NULL, 'test@test.com', 'testpw');
         list($u2, $id2, $emailid2) = $this->createTestUser('Test', 'User2', NULL, 'test2@test.com', 'testpw2');
 
+        # Clean up any existing notifications for this user first
+        $this->dbhm->preExec("DELETE FROM users_notifications WHERE touser = ?;", [$id]);
+
+        # Create newsfeed entries first (FK constraint)
+        $nf = new Newsfeed($this->dbhr, $this->dbhm);
+        $nfid1 = $nf->create(Newsfeed::TYPE_MESSAGE, $id, "Test post 1");
+        $nfid2 = $nf->create(Newsfeed::TYPE_MESSAGE, $id, "Test post 2");
+        $nfid3 = $nf->create(Newsfeed::TYPE_MESSAGE, $id, "Test post 3");
+
+        # Clean up any notifications that might have been created by newsfeed creation
+        $this->dbhm->preExec("DELETE FROM users_notifications WHERE touser = ?;", [$id]);
+
         # Create a newsfeed notification for a comment on user's post
-        $this->dbhm->preExec("INSERT INTO users_notifications (`fromuser`, `touser`, `type`, `newsfeedid`) VALUES (?, ?, ?, 1);", [
-            $id2, $id, Notifications::TYPE_COMMENT_ON_YOUR_POST
+        $this->dbhm->preExec("INSERT INTO users_notifications (`fromuser`, `touser`, `type`, `newsfeedid`) VALUES (?, ?, ?, ?);", [
+            $id2, $id, Notifications::TYPE_COMMENT_ON_YOUR_POST, $nfid1
         ]);
 
         # Get notification payload - should return CHITCHAT_COMMENT category with threadId
@@ -264,27 +276,27 @@ class PushNotificationsTest extends IznikTestCase {
 
         $this->assertEquals(1, $notifcount);
         $this->assertEquals(PushNotifications::CATEGORY_CHITCHAT_COMMENT, $category);
-        $this->assertEquals('chitchat_1', $threadId);
+        $this->assertEquals('chitchat_' . $nfid1, $threadId);
 
         # Clean up and test reply category
         $this->dbhm->preExec("DELETE FROM users_notifications WHERE touser = ?;", [$id]);
-        $this->dbhm->preExec("INSERT INTO users_notifications (`fromuser`, `touser`, `type`, `newsfeedid`) VALUES (?, ?, ?, 2);", [
-            $id2, $id, Notifications::TYPE_COMMENT_ON_COMMENT
+        $this->dbhm->preExec("INSERT INTO users_notifications (`fromuser`, `touser`, `type`, `newsfeedid`) VALUES (?, ?, ?, ?);", [
+            $id2, $id, Notifications::TYPE_COMMENT_ON_COMMENT, $nfid2
         ]);
 
         list ($total, $chatcount, $notifcount, $title, $message, $chatids, $route, $category, $threadId, $image) = $u->getNotificationPayload(FALSE);
         $this->assertEquals(PushNotifications::CATEGORY_CHITCHAT_REPLY, $category);
-        $this->assertEquals('chitchat_2', $threadId);
+        $this->assertEquals('chitchat_' . $nfid2, $threadId);
 
         # Clean up and test loved category
         $this->dbhm->preExec("DELETE FROM users_notifications WHERE touser = ?;", [$id]);
-        $this->dbhm->preExec("INSERT INTO users_notifications (`fromuser`, `touser`, `type`, `newsfeedid`) VALUES (?, ?, ?, 3);", [
-            $id2, $id, Notifications::TYPE_LOVED_POST
+        $this->dbhm->preExec("INSERT INTO users_notifications (`fromuser`, `touser`, `type`, `newsfeedid`) VALUES (?, ?, ?, ?);", [
+            $id2, $id, Notifications::TYPE_LOVED_POST, $nfid3
         ]);
 
         list ($total, $chatcount, $notifcount, $title, $message, $chatids, $route, $category, $threadId, $image) = $u->getNotificationPayload(FALSE);
         $this->assertEquals(PushNotifications::CATEGORY_CHITCHAT_LOVED, $category);
-        $this->assertEquals('chitchat_3', $threadId);
+        $this->assertEquals('chitchat_' . $nfid3, $threadId);
     }
 
     public function testExecuteSendWithCategory() {
@@ -357,7 +369,7 @@ class PushNotificationsTest extends IznikTestCase {
 
         # Create a chat message to trigger CHAT_MESSAGE category
         $r = new ChatRoom($this->dbhr, $this->dbhm);
-        $rid = $r->createConversation($id, $id2);
+        list($rid, $created) = $r->createConversation($id, $id2);
         $m = new ChatMessage($this->dbhr, $this->dbhm);
         list ($cm, $banned) = $m->create($rid, $id2, "Test chat message", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
 
