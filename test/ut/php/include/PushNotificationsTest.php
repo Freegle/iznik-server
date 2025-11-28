@@ -48,12 +48,16 @@ class PushNotificationsTest extends IznikTestCase {
         $sql = "INSERT INTO users_notifications (`fromuser`, `touser`, `type`, `title`) VALUES (?, ?, ?, 'Test');";
         $this->dbhm->preExec($sql, [ $id, $id, Notifications::TYPE_EXHORT ]);
 
-        $this->assertEquals(1, $mock->notify($id, FALSE));
-        $this->assertEquals(1, $mock->notify($id, FALSE));
+        # For app notifications with a category, we send TWO notifications:
+        # 1. Legacy (no channel_id) for old apps
+        # 2. New (with channel_id) for new apps
+        $this->assertEquals(2, $mock->notify($id, FALSE));
+        $this->assertEquals(2, $mock->notify($id, FALSE));
 
         $n->add($id, PushNotifications::PUSH_FIREFOX, 'test2');
         $this->assertEquals(2, count($n->get($id)));
-        $this->assertEquals(1, $n->notify($id, FALSE));
+        # 2 for FCM_ANDROID (legacy + new) + 1 for FIREFOX = 3 total
+        $this->assertEquals(3, $n->notify($id, FALSE));
 
         # Test notifying mods.
         $this->log("Notify group mods");
@@ -200,6 +204,173 @@ class PushNotificationsTest extends IznikTestCase {
         $mock->executePoke($id, [ 'ut' => 1 ], FALSE);
 
         $this->assertTrue(TRUE);
+    }
+
+    public function testCategoryConstants() {
+        # Test that category constants are defined correctly
+        $this->assertEquals('CHAT_MESSAGE', PushNotifications::CATEGORY_CHAT_MESSAGE);
+        $this->assertEquals('CHITCHAT_COMMENT', PushNotifications::CATEGORY_CHITCHAT_COMMENT);
+        $this->assertEquals('CHITCHAT_REPLY', PushNotifications::CATEGORY_CHITCHAT_REPLY);
+        $this->assertEquals('CHITCHAT_LOVED', PushNotifications::CATEGORY_CHITCHAT_LOVED);
+        $this->assertEquals('POST_REMINDER', PushNotifications::CATEGORY_POST_REMINDER);
+        $this->assertEquals('NEW_POSTS', PushNotifications::CATEGORY_NEW_POSTS);
+        $this->assertEquals('COLLECTION', PushNotifications::CATEGORY_COLLECTION);
+        $this->assertEquals('EVENT_SUMMARY', PushNotifications::CATEGORY_EVENT_SUMMARY);
+        $this->assertEquals('EXHORT', PushNotifications::CATEGORY_EXHORT);
+
+        # Test that categories config is set up correctly
+        $this->assertArrayHasKey(PushNotifications::CATEGORY_CHAT_MESSAGE, PushNotifications::CATEGORIES);
+        $this->assertEquals('time-sensitive', PushNotifications::CATEGORIES[PushNotifications::CATEGORY_CHAT_MESSAGE]['ios_interruption']);
+        $this->assertEquals('chat_messages', PushNotifications::CATEGORIES[PushNotifications::CATEGORY_CHAT_MESSAGE]['android_channel']);
+        $this->assertEquals('high', PushNotifications::CATEGORIES[PushNotifications::CATEGORY_CHAT_MESSAGE]['android_priority']);
+
+        $this->assertEquals('passive', PushNotifications::CATEGORIES[PushNotifications::CATEGORY_CHITCHAT_COMMENT]['ios_interruption']);
+        $this->assertEquals('social', PushNotifications::CATEGORIES[PushNotifications::CATEGORY_CHITCHAT_COMMENT]['android_channel']);
+    }
+
+    public function testNotificationPayloadCategory() {
+        # Test that getNotificationPayload returns a category for chat messages
+        list($u, $id, $emailid) = $this->createTestUserAndLogin('Test', 'User', NULL, 'test@test.com', 'testpw');
+        list($u2, $id2, $emailid2) = $this->createTestUser('Test', 'User2', NULL, 'test2@test.com', 'testpw2');
+
+        # Create a chat between users
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $r->createConversation($id, $id2);
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cm, $banned) = $m->create($rid, $id2, "Testing chat message", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
+
+        # Get notification payload - should return CHAT_MESSAGE category with threadId and image
+        list ($total, $chatcount, $notifcount, $title, $message, $chatids, $route, $category, $threadId, $image) = $u->getNotificationPayload(FALSE);
+
+        $this->assertEquals(1, $chatcount);
+        $this->assertEquals(PushNotifications::CATEGORY_CHAT_MESSAGE, $category);
+        $this->assertStringContainsString('/chats/', $route);
+        $this->assertEquals('chat_' . $rid, $threadId);
+        $this->assertNotNull($image);
+    }
+
+    public function testNotificationPayloadChitChatCategory() {
+        # Test that getNotificationPayload returns correct category for newsfeed notifications
+        list($u, $id, $emailid) = $this->createTestUserAndLogin('Test', 'User', NULL, 'test@test.com', 'testpw');
+        list($u2, $id2, $emailid2) = $this->createTestUser('Test', 'User2', NULL, 'test2@test.com', 'testpw2');
+
+        # Create a newsfeed notification for a comment on user's post
+        $this->dbhm->preExec("INSERT INTO users_notifications (`fromuser`, `touser`, `type`, `newsfeedid`) VALUES (?, ?, ?, 1);", [
+            $id2, $id, Notifications::TYPE_COMMENT_ON_YOUR_POST
+        ]);
+
+        # Get notification payload - should return CHITCHAT_COMMENT category with threadId
+        list ($total, $chatcount, $notifcount, $title, $message, $chatids, $route, $category, $threadId, $image) = $u->getNotificationPayload(FALSE);
+
+        $this->assertEquals(1, $notifcount);
+        $this->assertEquals(PushNotifications::CATEGORY_CHITCHAT_COMMENT, $category);
+        $this->assertEquals('chitchat_1', $threadId);
+
+        # Clean up and test reply category
+        $this->dbhm->preExec("DELETE FROM users_notifications WHERE touser = ?;", [$id]);
+        $this->dbhm->preExec("INSERT INTO users_notifications (`fromuser`, `touser`, `type`, `newsfeedid`) VALUES (?, ?, ?, 2);", [
+            $id2, $id, Notifications::TYPE_COMMENT_ON_COMMENT
+        ]);
+
+        list ($total, $chatcount, $notifcount, $title, $message, $chatids, $route, $category, $threadId, $image) = $u->getNotificationPayload(FALSE);
+        $this->assertEquals(PushNotifications::CATEGORY_CHITCHAT_REPLY, $category);
+        $this->assertEquals('chitchat_2', $threadId);
+
+        # Clean up and test loved category
+        $this->dbhm->preExec("DELETE FROM users_notifications WHERE touser = ?;", [$id]);
+        $this->dbhm->preExec("INSERT INTO users_notifications (`fromuser`, `touser`, `type`, `newsfeedid`) VALUES (?, ?, ?, 3);", [
+            $id2, $id, Notifications::TYPE_LOVED_POST
+        ]);
+
+        list ($total, $chatcount, $notifcount, $title, $message, $chatids, $route, $category, $threadId, $image) = $u->getNotificationPayload(FALSE);
+        $this->assertEquals(PushNotifications::CATEGORY_CHITCHAT_LOVED, $category);
+        $this->assertEquals('chitchat_3', $threadId);
+    }
+
+    public function testExecuteSendWithCategory() {
+        # Test that executeSend handles category correctly for Android
+        $mock = $this->getMockBuilder('Freegle\Iznik\PushNotifications')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setMethods(array('uthook'))
+            ->getMock();
+        $mock->method('uthook')->willThrowException(new \Exception('UT'));
+
+        # Test Android with chat message category, threadId, and image
+        $rc = $mock->executeSend(0, PushNotifications::PUSH_FCM_ANDROID, [], 'test', [
+            'count' => 1,
+            'title' => 'UT',
+            'message' => 'Test message',
+            'chatids' => [ 1 ],
+            'category' => PushNotifications::CATEGORY_CHAT_MESSAGE,
+            'threadId' => 'chat_123',
+            'image' => 'https://images.ilovefreegle.org/tuimg_123.jpg'
+        ]);
+        $this->assertNotNull($rc['exception']);
+
+        # Test iOS with chat message category, threadId, and image
+        $rc = $mock->executeSend(0, PushNotifications::PUSH_FCM_IOS, [], 'test', [
+            'count' => 1,
+            'title' => 'UT',
+            'message' => 'Test message',
+            'chatids' => [ 1 ],
+            'category' => PushNotifications::CATEGORY_CHAT_MESSAGE,
+            'threadId' => 'chat_123',
+            'image' => 'https://images.ilovefreegle.org/tuimg_123.jpg'
+        ]);
+        $this->assertNotNull($rc['exception']);
+
+        # Test with unknown category (should still work, just no special config)
+        $rc = $mock->executeSend(0, PushNotifications::PUSH_FCM_ANDROID, [], 'test', [
+            'count' => 1,
+            'title' => 'UT',
+            'message' => 'Test message',
+            'chatids' => [ 1 ],
+            'category' => 'UNKNOWN_CATEGORY'
+        ]);
+        $this->assertNotNull($rc['exception']);
+
+        # Test with null category (should still work)
+        $rc = $mock->executeSend(0, PushNotifications::PUSH_FCM_ANDROID, [], 'test', [
+            'count' => 1,
+            'title' => 'UT',
+            'message' => 'Test message',
+            'chatids' => [ 1 ],
+            'category' => NULL
+        ]);
+        $this->assertNotNull($rc['exception']);
+    }
+
+    public function testDualNotificationSystem() {
+        # Test that app notifications with a category send TWO notifications
+        list($u, $id, $emailid) = $this->createTestUserAndLogin('Test', 'User', NULL, 'test@test.com', 'testpw');
+        list($u2, $id2, $emailid2) = $this->createTestUser('Test', 'User2', NULL, 'test2@test.com', 'testpw2');
+
+        $mock = $this->getMockBuilder('Freegle\Iznik\PushNotifications')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setMethods(array('uthook'))
+            ->getMock();
+        $mock->method('uthook')->willThrowException(new \Exception());
+
+        # Add FCM Android subscription
+        $n = new PushNotifications($this->dbhr, $this->dbhm);
+        $n->add($id, PushNotifications::PUSH_FCM_ANDROID, 'test-android', FALSE);
+
+        # Create a chat message to trigger CHAT_MESSAGE category
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $r->createConversation($id, $id2);
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cm, $banned) = $m->create($rid, $id2, "Test chat message", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
+
+        # Notify should return 2 (legacy + new) for app notification with category
+        $count = $mock->notify($id, FALSE);
+        $this->assertEquals(2, $count);
+
+        # Add browser push subscription
+        $n->add($id, PushNotifications::PUSH_BROWSER_PUSH, 'test-browser', FALSE);
+
+        # Notify should return 3 (2 for Android + 1 for browser)
+        $count = $mock->notify($id, FALSE);
+        $this->assertEquals(3, $count);
     }
 }
 
