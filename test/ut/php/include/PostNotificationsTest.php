@@ -89,7 +89,7 @@ class PostNotificationsTest extends IznikTestCase {
         $msg = $this->createMessageContent('basic', $substitutions);
         $msg = $this->unique($msg);
 
-        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, 'sender@test.com', 'to@test.com');
+        list($r, $id, $failok, $rc) = $this->createAndRouteTestMessage($msg,'sender@test.com', 'to@test.com');
         $this->assertNotNull($id);
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -134,7 +134,7 @@ class PostNotificationsTest extends IznikTestCase {
         $msg = $this->createMessageContent('basic', $substitutions);
         $msg = $this->unique($msg);
 
-        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, 'sender@test.com', 'to@test.com');
+        list($r, $id, $failok, $rc) = $this->createAndRouteTestMessage($msg,'sender@test.com', 'to@test.com');
         $this->assertNotNull($id);
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -190,7 +190,7 @@ class PostNotificationsTest extends IznikTestCase {
             $msg = $this->createMessageContent('basic', $substitutions);
             $msg = $this->unique($msg);
 
-            list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, 'sender@test.com', 'to@test.com');
+            list($r, $id, $failok, $rc) = $this->createAndRouteTestMessage($msg,'sender@test.com', 'to@test.com');
             $this->assertNotNull($id);
             $this->assertEquals(MailRouter::APPROVED, $rc);
         }
@@ -242,7 +242,7 @@ class PostNotificationsTest extends IznikTestCase {
         $msg = $this->createMessageContent('basic', $substitutions);
         $msg = $this->unique($msg);
 
-        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, 'sender@test.com', 'to@test.com');
+        list($r, $id, $failok, $rc) = $this->createAndRouteTestMessage($msg,'sender@test.com', 'to@test.com');
         $this->assertNotNull($id);
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -286,7 +286,7 @@ class PostNotificationsTest extends IznikTestCase {
         $msg = $this->createMessageContent('basic', $substitutions);
         $msg = $this->unique($msg);
 
-        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, 'test@test.com', 'to@test.com');
+        list($r, $id, $failok, $rc) = $this->createAndRouteTestMessage($msg,'test@test.com', 'to@test.com');
         $this->assertNotNull($id);
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -328,7 +328,7 @@ class PostNotificationsTest extends IznikTestCase {
         $msg = $this->createMessageContent('basic', $substitutions);
         $msg = $this->unique($msg);
 
-        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, 'sender@test.com', 'to@test.com');
+        list($r, $id, $failok, $rc) = $this->createAndRouteTestMessage($msg,'sender@test.com', 'to@test.com');
         $this->assertNotNull($id);
 
         $callCount = 0;
@@ -395,7 +395,7 @@ class PostNotificationsTest extends IznikTestCase {
         $msg = $this->createMessageContent('basic', $substitutions);
         $msg = $this->unique($msg);
 
-        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, 'sender@test.com', 'to@test.com');
+        list($r, $id, $failok, $rc) = $this->createAndRouteTestMessage($msg,'sender@test.com', 'to@test.com');
         $this->assertNotNull($id);
 
         $self = $this;
@@ -442,7 +442,7 @@ class PostNotificationsTest extends IznikTestCase {
             $msg = $this->createMessageContent('basic', $substitutions);
             $msg = $this->unique($msg);
 
-            list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, 'sender@test.com', 'to@test.com');
+            list($r, $id, $failok, $rc) = $this->createAndRouteTestMessage($msg,'sender@test.com', 'to@test.com');
             $this->assertNotNull($id);
         }
 
@@ -455,7 +455,7 @@ class PostNotificationsTest extends IznikTestCase {
         $msg = $this->createMessageContent('basic', $substitutions);
         $msg = $this->unique($msg);
 
-        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, 'sender@test.com', 'to@test.com');
+        list($r, $id, $failok, $rc) = $this->createAndRouteTestMessage($msg,'sender@test.com', 'to@test.com');
         $this->assertNotNull($id);
 
         $self = $this;
@@ -501,7 +501,7 @@ class PostNotificationsTest extends IznikTestCase {
         $msg = $this->createMessageContent('basic', $substitutions);
         $msg = $this->unique($msg);
 
-        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, 'sender@test.com', 'to@test.com');
+        list($r, $id, $failok, $rc) = $this->createAndRouteTestMessage($msg,'sender@test.com', 'to@test.com');
         $this->assertNotNull($id);
 
         $callCount = 0;
@@ -551,7 +551,7 @@ class PostNotificationsTest extends IznikTestCase {
         $msg = $this->createMessageContent('basic', $substitutions);
         $msg = $this->unique($msg);
 
-        list($r, $id, $failok, $rc) = $this->createAndRouteMessage($msg, 'sender@test.com', 'to@test.com');
+        list($r, $id, $failok, $rc) = $this->createAndRouteTestMessage($msg,'sender@test.com', 'to@test.com');
         $this->assertNotNull($id);
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
@@ -581,9 +581,9 @@ class PostNotificationsTest extends IznikTestCase {
     }
 
     /**
-     * Helper to create and route a message.
+     * Helper to create and route a message with custom parameters.
      */
-    protected function createAndRouteMessage($msg, $from, $to) {
+    private function createAndRouteTestMessage($msg, $from, $to) {
         global $dbhr, $dbhm;
 
         $r = new MailRouter($dbhr, $dbhm);
