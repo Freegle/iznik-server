@@ -13,6 +13,16 @@ function stripecreateintent() {
             $amount = Utils::presint('amount', $_REQUEST, 0);
             $test = Utils::presbool('test', $_REQUEST, FALSE);
             $paymentType = Utils::presdef('paymenttype', $_REQUEST, 'card');
+
+            // Stripe minimum charge for GBP is 30 pence (£0.30)
+            if ($amount < 1) {
+                $ret = [
+                    'ret' => 2,
+                    'status' => 'Amount must be at least £1'
+                ];
+                break;
+            }
+
             $stripe = new \Stripe\StripeClient($test ? STRIPE_SECRET_KEY_TEST : STRIPE_SECRET_KEY);
 
             $intent = $stripe->paymentIntents->create([
