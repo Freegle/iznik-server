@@ -111,9 +111,7 @@ class PostNotificationsTest extends IznikTestCase {
         $g->setPrivate('onhere', 1);
 
         // Create a user with app push subscription
-        // Must be Admin to receive notifications (temporary restriction)
         list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
-        $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
         $u->addMembership($gid, User::ROLE_MEMBER);
         $u->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
 
@@ -166,9 +164,8 @@ class PostNotificationsTest extends IznikTestCase {
         list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
         $g->setPrivate('onhere', 1);
 
-        // Create a user with app push subscription (must be Admin)
+        // Create a user with app push subscription
         list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
-        $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
         $u->addMembership($gid, User::ROLE_MEMBER);
         $u->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
 
@@ -268,9 +265,8 @@ class PostNotificationsTest extends IznikTestCase {
         list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
         $g->setPrivate('onhere', 1);
 
-        // Create a user who will both post and receive (must be Admin)
+        // Create a user who will both post and receive
         list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
-        $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
         $u->addMembership($gid, User::ROLE_MEMBER);
         $u->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
         $u->setMembershipAtt($gid, 'ourPostingStatus', Group::POSTING_DEFAULT);
@@ -309,7 +305,6 @@ class PostNotificationsTest extends IznikTestCase {
         $g->setPrivate('onhere', 1);
 
         list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
-        $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
         $u->addMembership($gid, User::ROLE_MEMBER);
         $u->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
 
@@ -375,7 +370,6 @@ class PostNotificationsTest extends IznikTestCase {
         $g->setPrivate('onhere', 1);
 
         list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
-        $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
         $u->addMembership($gid, User::ROLE_MEMBER);
         $u->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
 
@@ -421,7 +415,6 @@ class PostNotificationsTest extends IznikTestCase {
         $g->setPrivate('onhere', 1);
 
         list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
-        $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
         $u->addMembership($gid, User::ROLE_MEMBER);
         $u->setMembershipAtt($gid, 'emailfrequency', Digest::IMMEDIATE);
 
@@ -482,7 +475,6 @@ class PostNotificationsTest extends IznikTestCase {
         $g->setPrivate('onhere', 1);
 
         list($u, $uid, $emailid) = $this->createTestUser('Test', 'User', NULL, 'test@test.com', 'testpw');
-        $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
         $u->addMembership($gid, User::ROLE_MEMBER);
         $u->setMembershipAtt($gid, 'emailfrequency', Digest::DAILY);
 
@@ -523,9 +515,9 @@ class PostNotificationsTest extends IznikTestCase {
     }
 
     /**
-     * Test that non-Admin users don't receive notifications (temporary restriction).
+     * Test that regular (non-Admin) users receive notifications.
      */
-    public function testNonAdminUsersExcluded() {
+    public function testRegularUsersReceiveNotifications() {
         list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
         $g->setPrivate('onhere', 1);
 
@@ -555,15 +547,15 @@ class PostNotificationsTest extends IznikTestCase {
         $this->assertNotNull($id);
         $this->assertEquals(MailRouter::APPROVED, $rc);
 
-        // Non-Admin should NOT receive notifications
+        // Regular users should receive notifications
         $mock = $this->getMockBuilder('Freegle\Iznik\PostNotifications')
             ->setConstructorArgs([$this->dbhr, $this->dbhm])
             ->setMethods(['queueSend'])
             ->getMock();
-        $mock->expects($this->never())->method('queueSend');
+        $mock->expects($this->once())->method('queueSend');
 
         $count = $mock->send($gid, Digest::IMMEDIATE);
-        $this->assertEquals(0, $count);
+        $this->assertEquals(1, $count);
     }
 
     /**
@@ -573,7 +565,7 @@ class PostNotificationsTest extends IznikTestCase {
         global $dbhr, $dbhm;
 
         $r = new MailRouter($dbhr, $dbhm);
-        list ($id, $failok) = $r->received(\Swift_Message::newInstance()->setTo([$to])->setFrom([$from])->setBody($msg), NULL, NULL, $from);
+        list ($id, $failok) = $r->received(Message::EMAIL, $from, $to, $msg);
 
         $rc = NULL;
         if ($id) {

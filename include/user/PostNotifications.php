@@ -169,7 +169,6 @@ class PostNotifications
         // 2. Have emailfrequency matching the requested frequency
         // 3. Have app push notification subscriptions (FCM Android or iOS)
         // 4. Have app notifications enabled
-        // 5. TEMPORARILY: Are Admins only (remove this filter after testing)
         $sql = "SELECT DISTINCT m.userid
                 FROM memberships m
                 INNER JOIN users_push_notifications upn ON upn.userid = m.userid
@@ -178,16 +177,14 @@ class PostNotifications
                   AND m.emailfrequency = ?
                   AND upn.type IN (?, ?)
                   AND upn.apptype = ?
-                  AND u.deleted IS NULL
-                  AND u.systemrole = ?;";
+                  AND u.deleted IS NULL;";
 
         $users = $this->dbhr->preQuery($sql, [
             $groupid,
             $frequency,
             PushNotifications::PUSH_FCM_ANDROID,
             PushNotifications::PUSH_FCM_IOS,
-            PushNotifications::APPTYPE_USER,
-            User::SYSTEMROLE_ADMIN
+            PushNotifications::APPTYPE_USER
         ]);
 
         return $users;
