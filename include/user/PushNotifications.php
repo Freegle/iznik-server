@@ -554,15 +554,14 @@ class PushNotifications
             ]);
         }
 
-        // TEMPORARY: For Android Admin users, send individual per-message notifications (new rich format)
-        // iOS still gets legacy summary notifications
+        // For Admin users, send individual per-message notifications (new rich format with action buttons)
         if ($u->isAdmin() && !$modtools && $proceedapp) {
-            $androidNotifs = array_filter($notifs, function($n) {
-                return $n['type'] === PushNotifications::PUSH_FCM_ANDROID;
+            $appNotifs = array_filter($notifs, function($n) {
+                return $n['type'] === PushNotifications::PUSH_FCM_ANDROID || $n['type'] === PushNotifications::PUSH_FCM_IOS;
             });
 
-            if (count($androidNotifs) > 0) {
-                return $this->notifyIndividualMessages($userid, $androidNotifs, $modtools, $chatid);
+            if (count($appNotifs) > 0) {
+                return $this->notifyIndividualMessages($userid, $appNotifs, $modtools, $chatid);
             }
         }
 
