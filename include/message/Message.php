@@ -862,9 +862,9 @@ class Message
             $text = preg_replace('/https:\/\/direct.*jpg/m', '', $text);
             $text = preg_replace('/Photos\:[\s\S]*?jpg/', '', $text);
 
-            // FOPs
-            $text = preg_replace('/Fair Offer Policy applies \(see https:\/\/[\s\S]*\)/', '', $text);
-            $text = preg_replace('/Fair Offer Policy:[\s\S]*?reply./', '', $text);
+            // FOPs / FCPs
+            $text = preg_replace('/Fair (Offer|Chance) Policy applies \(see https:\/\/[\s\S]*\)/', '', $text);
+            $text = preg_replace('/Fair (Offer|Chance) Policy:[\s\S]*?reply./', '', $text);
 
             // App footer
             $text = preg_replace('/Freegle app.*[0-9]$/m', '', $text);
@@ -999,7 +999,7 @@ class Message
                 }
 
                 # We have a flag for FOP - but legacy posting methods might put it in the body.
-                $ret['FOP'] = (Utils::pres('textbody', $ret) && (strpos($ret['textbody'], 'Fair Offer Policy') !== FALSE) || $ret['FOP']) ? 1 : 0;
+                $ret['FOP'] = (Utils::pres('textbody', $ret) && (strpos($ret['textbody'], 'Fair Offer Policy') !== FALSE || strpos($ret['textbody'], 'Fair Chance Policy') !== FALSE) || $ret['FOP']) ? 1 : 0;
             }
 
             $ret['fromuserid'] = $msg['fromuser'];
