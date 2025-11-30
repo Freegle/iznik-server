@@ -1154,19 +1154,17 @@ class MessageTest extends IznikTestCase {
 
         $m = new Message($this->dbhr, $this->dbhm, $id);
 
-        # Find a location
-        $l = new Location($this->dbhr, $this->dbhm);
-        $lid = $l->findByName('EH3 6SS');
+        # Create a location directly in DB (avoid remapPostcodes which requires PostgreSQL)
+        $lat = 8.53333;
+        $lng = 179.2167;
+        $this->dbhm->preExec("INSERT INTO locations (name, type, lat, lng, geometry) VALUES (?, ?, ?, ?, ST_GeomFromText('POINT($lng $lat)', {$this->dbhr->SRID()}));", ['TV13 2AA', 'Postcode', $lat, $lng]);
+        $lid = $this->dbhm->lastInsertId();
         $this->assertNotNull($lid);
 
         # Set the message location
         $m->setPrivate('locationid', $lid);
 
         # Get lat/lng for creating test users
-        $lat = $l->getPrivate('lat');
-        $lng = $l->getPrivate('lng');
-
-        # Create some test users near the location
         for ($j = 0; $j < 10; $j++) {
             $u = User::get($this->dbhr, $this->dbhm);
             $uid = $u->create(NULL, NULL, "Test User $j");
@@ -1256,19 +1254,16 @@ class MessageTest extends IznikTestCase {
         $this->assertNotNull($id1);
         $m1 = new Message($this->dbhr, $this->dbhm, $id1);
 
-        # Find a location
-        $l = new Location($this->dbhr, $this->dbhm);
-        $lid = $l->findByName('EH3 6SS');
+        # Create a location directly in DB (avoid remapPostcodes which requires PostgreSQL)
+        $lat = 8.53333;
+        $lng = 179.2167;
+        $this->dbhm->preExec("INSERT INTO locations (name, type, lat, lng, geometry) VALUES (?, ?, ?, ?, ST_GeomFromText('POINT($lng $lat)', {$this->dbhr->SRID()}));", ['TV13 2BB', 'Postcode', $lat, $lng]);
+        $lid = $this->dbhm->lastInsertId();
         $this->assertNotNull($lid);
         $m1->setPrivate('locationid', $lid);
 
-        # Load the location object properly to get lat/lng
-        $l = new Location($this->dbhr, $this->dbhm, $lid);
-        $lat = $l->getPrivate('lat');
-        $lng = $l->getPrivate('lng');
-
-        # Set lat/lng on message in database
-        $this->dbhm->preExec("UPDATE messages SET lat = ?, lng = ? WHERE id = ?;", [$lat, $lng, $id1]);
+        # Set lat/lng and locationid on message in database
+        $this->dbhm->preExec("UPDATE messages SET lat = ?, lng = ?, locationid = ? WHERE id = ?;", [$lat, $lng, $lid, $id1]);
 
         # Create some test users near the location
         for ($j = 0; $j < 10; $j++) {
@@ -1294,7 +1289,7 @@ class MessageTest extends IznikTestCase {
         # Get the group ID from messages_groups
         $msgGroups = $this->dbhr->preQuery("SELECT groupid FROM messages_groups WHERE msgid = ? LIMIT 1;", [$id1]);
         $groupid = $msgGroups[0]['groupid'];
-        $this->dbhm->preExec("INSERT INTO messages_spatial (msgid, point, successful, promised, groupid, msgtype, arrival) VALUES (?, ST_GeomFromText('POINT({$lng} {$lat})', {$this->dbhr->SRID()}), 0, 0, ?, 'Offer', NOW());", [$id1, $groupid]);
+        $this->dbhm->preExec("INSERT INTO messages_spatial (msgid, point, successful, promised, groupid, msgtype, arrival) VALUES (?, ST_GeomFromText('POINT({$lng} {$lat})', {$this->dbhr->SRID()}), 0, 0, ?, 'Offer', NOW()) ON DUPLICATE KEY UPDATE point = ST_GeomFromText('POINT({$lng} {$lat})', {$this->dbhr->SRID()}), successful = 0, promised = 0, groupid = ?, msgtype = 'Offer', arrival = NOW();", [$id1, $groupid, $groupid]);
 
         # Test 1: expandIsochrones should create first isochrone for message with no isochrone
         $expanded = Message::expandIsochrones(60, 3);
@@ -1358,7 +1353,7 @@ class MessageTest extends IznikTestCase {
         $this->dbhm->preExec("UPDATE messages SET lat = ?, lng = ? WHERE id = ?;", [$lat, $lng, $id2]);
         $msgGroups2 = $this->dbhr->preQuery("SELECT groupid FROM messages_groups WHERE msgid = ? LIMIT 1;", [$id2]);
         $groupid2 = $msgGroups2[0]['groupid'];
-        $this->dbhm->preExec("INSERT INTO messages_spatial (msgid, point, successful, promised, groupid, msgtype, arrival) VALUES (?, ST_GeomFromText('POINT({$lng} {$lat})', {$this->dbhr->SRID()}), 0, 0, ?, 'Offer', NOW());", [$id2, $groupid2]);
+        $this->dbhm->preExec("INSERT INTO messages_spatial (msgid, point, successful, promised, groupid, msgtype, arrival) VALUES (?, ST_GeomFromText('POINT({$lng} {$lat})', {$this->dbhr->SRID()}), 0, 0, ?, 'Offer', NOW()) ON DUPLICATE KEY UPDATE point = ST_GeomFromText('POINT({$lng} {$lat})', {$this->dbhr->SRID()}), successful = 0, promised = 0, groupid = ?, msgtype = 'Offer', arrival = NOW();", [$id2, $groupid2, $groupid2]);
 
         # Add some views
         for ($i = 0; $i < 5; $i++) {
