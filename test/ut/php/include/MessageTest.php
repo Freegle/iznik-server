@@ -1146,6 +1146,7 @@ class MessageTest extends IznikTestCase {
      * @group skip
      */
     public function testMessageIsochrones() {
+        // TODO: Mock Mapbox API or add test isochrone data to make this work without external API
         $this->markTestSkipped('Requires external Mapbox API');
         # Clean up
         $this->dbhm->preExec("DELETE FROM messages_isochrones;");

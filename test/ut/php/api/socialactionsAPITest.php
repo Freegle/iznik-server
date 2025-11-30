@@ -202,6 +202,7 @@ class socialactionsAPITest extends IznikAPITestCase
      * @dataProvider trueFalseProvider
      */
     public function testPopular($share) {
+        // TODO: Re-enable when Facebook API access is restored
         $this->markTestSkipped('Social actions API disabled due to Facebook blocking');
 
         $g = Group::get($this->dbhr, $this->dbhm);
