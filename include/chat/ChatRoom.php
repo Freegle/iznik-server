@@ -790,7 +790,7 @@ WHERE chat_rooms.id IN $idlist;";
                         $msg = $chatmsg;
                         $msg = $this->splitEmoji($msg);
 
-                        $ret = substr($msg, 0, 30);
+                        $ret = substr($msg, 0, 100);
                     } else {
                         $ret = 'Item marked as TAKEN';
                     }
@@ -808,7 +808,7 @@ WHERE chat_rooms.id IN $idlist;";
                 $msg = $chatmsg;
                 $msg = $this->splitEmoji($msg);
 
-                $ret = substr($msg, 0, 30);
+                $ret = substr($msg, 0, 100);
                 break;
             }
         }
