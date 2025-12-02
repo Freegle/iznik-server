@@ -43,7 +43,7 @@ foreach ($msgs as $msg) {
 
     # Build the Pollinations.ai URL
     # Use 640x480 as that's what the frontend uses
-    $prompt = urlencode("pencil sketch line drawing of " . $itemName . " simple minimalist style white background");
+    $prompt = urlencode("cute simple line drawing of " . $itemName . " green lines on white background minimalist style");
     $url = "https://image.pollinations.ai/prompt/{$prompt}?model=flux&width=640&height=480&nologo=true";
 
     # Fetch the image with 2 minute timeout
