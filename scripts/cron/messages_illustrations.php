@@ -31,7 +31,7 @@ do {
         AND ma.id IS NULL
         AND m.subject IS NOT NULL
         AND m.subject != ''
-        ORDER BY ms.arrival ASC
+        ORDER BY ms.arrival DESC
         LIMIT 1
     ");
 
