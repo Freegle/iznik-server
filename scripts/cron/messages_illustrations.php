@@ -14,21 +14,32 @@ global $dbhr, $dbhm;
 
 $lockh = Utils::lockScript(basename(__FILE__));
 
-# Find messages in messages_spatial from the last hour that have no attachments
-$msgs = $dbhr->preQuery("
-    SELECT DISTINCT ms.msgid, m.subject
-    FROM messages_spatial ms
-    INNER JOIN messages m ON m.id = ms.msgid
-    LEFT JOIN messages_attachments ma ON ma.msgid = m.id
-    WHERE ms.arrival > DATE_SUB(NOW(), INTERVAL 1 HOUR)
-    AND ma.id IS NULL
-    AND m.subject IS NOT NULL
-    AND m.subject != ''
-    ORDER BY ms.arrival ASC
-    LIMIT 10
-");
+# Keep processing until no messages found or abort requested
+do {
+    if (file_exists('/tmp/iznik.mail.abort')) {
+        error_log("Abort file found, exiting");
+        break;
+    }
 
-foreach ($msgs as $msg) {
+    # Find one message in messages_spatial from the last hour that has no attachments
+    $msgs = $dbhr->preQuery("
+        SELECT DISTINCT ms.msgid, m.subject
+        FROM messages_spatial ms
+        INNER JOIN messages m ON m.id = ms.msgid
+        LEFT JOIN messages_attachments ma ON ma.msgid = m.id
+        WHERE ms.arrival > DATE_SUB(NOW(), INTERVAL 1 HOUR)
+        AND ma.id IS NULL
+        AND m.subject IS NOT NULL
+        AND m.subject != ''
+        ORDER BY ms.arrival ASC
+        LIMIT 1
+    ");
+
+    if (count($msgs) == 0) {
+        break;
+    }
+
+    $msg = $msgs[0];
     $msgid = $msg['msgid'];
     $subject = $msg['subject'];
 
@@ -66,6 +77,6 @@ foreach ($msgs as $msg) {
     } else {
         error_log("Failed to fetch illustration for message $msgid: " . $itemName);
     }
-}
+} while (TRUE);
 
 Utils::unlockScript($lockh);
