@@ -54,7 +54,7 @@ do {
 
     # Build the Pollinations.ai URL
     # Use 640x480 as that's what the frontend uses
-    $prompt = urlencode("friendly cartoon dark green line drawing on white background, simple sketch of " . $itemName . ", minimal shading, cute style");
+    $prompt = urlencode("friendly cartoon dark green line drawing on white background, simple sketch of " . $itemName . ", minimal shading, cute style, no text, no words, no labels");
     $url = "https://image.pollinations.ai/prompt/{$prompt}?width=640&height=480&nologo=true";
 
     # Fetch the image with 2 minute timeout
