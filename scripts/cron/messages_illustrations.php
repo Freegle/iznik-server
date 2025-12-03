@@ -21,13 +21,13 @@ do {
         break;
     }
 
-    # Find one message in messages_spatial from the last hour that has no attachments
+    # Find a message in messages_spatial that has no attachments
     $msgs = $dbhr->preQuery("
         SELECT DISTINCT ms.msgid, m.subject
         FROM messages_spatial ms
         INNER JOIN messages m ON m.id = ms.msgid
         LEFT JOIN messages_attachments ma ON ma.msgid = m.id
-        WHERE ms.arrival > DATE_SUB(NOW(), INTERVAL 1 HOUR)
+        WHERE ms.arrival > DATE_SUB(NOW(), INTERVAL 48 HOUR)
         AND ma.id IS NULL
         AND m.subject IS NOT NULL
         AND m.subject != ''
@@ -54,7 +54,8 @@ do {
 
     # Build the Pollinations.ai URL
     # Use 640x480 as that's what the frontend uses
-    $prompt = urlencode("friendly cartoon dark green line drawing on white background, simple sketch of " . $itemName . ", minimal shading, cute style, no text, no words, no labels");
+    $prompt = urlencode("friendly cartoon dark green line drawing on white background, detailed sketch of " . $itemName .
+                        ", moderate shading, cute style, no text, no words, no labels, UK audience, center drawing in image");
     $url = "https://image.pollinations.ai/prompt/{$prompt}?width=640&height=480&nologo=true";
 
     # Fetch the image with 2 minute timeout
