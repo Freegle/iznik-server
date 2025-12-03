@@ -213,8 +213,7 @@ class sessionTest extends IznikAPITestCase
                 'email' => TRUE,
                 'emailmine' => FALSE,
                 'push' => TRUE,
-                'facebook' => TRUE,
-                'app' => TRUE
+                'facebook' => TRUE
             ],
                          'engagement' => TRUE
         ], $ret['me']['settings']);

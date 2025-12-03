@@ -38,8 +38,7 @@ class exportAPITest extends IznikAPITestCase {
             'email' => TRUE,
             'emailmine' => FALSE,
             'push' => TRUE,
-            'facebook' => TRUE,
-            'app' => TRUE
+            'facebook' => TRUE
         ]));
 
         $this->user->addMembership($this->groupid, User::ROLE_MODERATOR);

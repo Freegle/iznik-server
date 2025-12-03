@@ -75,7 +75,6 @@ class User extends Entity
     const NOTIFS_EMAIL = 'email';
     const NOTIFS_EMAIL_MINE = 'emailmine';
     const NOTIFS_PUSH = 'push';
-    const NOTIFS_APP = 'app';
 
     const INVITE_PENDING = 'Pending';
     const INVITE_ACCEPTED = 'Accepted';
@@ -4435,8 +4434,7 @@ class User extends Entity
         $defs = [
             self::NOTIFS_EMAIL => TRUE,
             self::NOTIFS_EMAIL_MINE => FALSE,
-            self::NOTIFS_PUSH => TRUE,
-            self::NOTIFS_APP => TRUE
+            self::NOTIFS_PUSH => TRUE
         ];
 
         $ret = ($notifs && array_key_exists($type, $notifs)) ? $notifs[$type] : $defs[$type];
@@ -5311,7 +5309,6 @@ class User extends Entity
 
             $d['Notifications']['Send_email_notifications_for_chat_messages'] = Utils::presdef('email', $notifications, TRUE) ? 'Yes' : 'No';
             $d['Notifications']['Send_email_notifications_of_chat_messages_you_send'] = Utils::presdef('emailmine', $notifications, TRUE) ? 'Yes' : 'No';
-            $d['Notifications']['Send_notifications_for_apps'] = Utils::presdef('app', $notifications, TRUE) ? 'Yes' : 'No';
             $d['Notifications']['Send_push_notifications_to_web_browsers'] = Utils::presdef('push', $notifications, TRUE) ? 'Yes' : 'No';
             $d['Notifications']['Send_Facebook_notifications'] = Utils::presdef('facebook', $notifications, TRUE) ? 'Yes' : 'No';
             $d['Notifications']['Send_emails_about_notifications_on_the_site'] = Utils::presdef('notificationmails', $notifications, TRUE) ? 'Yes' : 'No';

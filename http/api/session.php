@@ -143,8 +143,7 @@ function session() {
                             'email' => TRUE,
                             'emailmine' => FALSE,
                             'push' => TRUE,
-                            'facebook' => TRUE,
-                            'app' => TRUE
+                            'facebook' => TRUE
                         ], Utils::presdef('notifications', $settings, []));
 
                         $n = new PushNotifications($dbhr, $dbhm);

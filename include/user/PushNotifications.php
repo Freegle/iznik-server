@@ -539,8 +539,7 @@ class PushNotifications
         $count = 0;
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         $proceedpush = TRUE; // $u->notifsOn(User::NOTIFS_PUSH);
-        $proceedapp = $u->notifsOn(User::NOTIFS_APP);
-        #error_log("Notify $userid, push on $proceedpush app on $proceedapp MT $modtools browserPush $browserPush chatid $chatid");
+        #error_log("Notify $userid, push on $proceedpush MT $modtools browserPush $browserPush chatid $chatid");
 
         if ($browserPush) {
             $notifs = $this->dbhr->preQuery("SELECT * FROM users_push_notifications WHERE userid = ? AND `type` = ?;", [
@@ -556,7 +555,7 @@ class PushNotifications
 
         // Send individual per-message notifications (new rich format with action buttons)
         // This handles chat messages with rich formatting
-        if (!$modtools && $proceedapp) {
+        if (!$modtools) {
             $appNotifs = array_filter($notifs, function($n) {
                 return $n['type'] === PushNotifications::PUSH_FCM_ANDROID || $n['type'] === PushNotifications::PUSH_FCM_IOS;
             });
@@ -576,8 +575,8 @@ class PushNotifications
             #error_log("Consider notif {$notif['id']} proceed $proceedpush type {$notif['type']}");
             if ($proceedpush && in_array($notif['type'],
                     [PushNotifications::PUSH_FIREFOX, PushNotifications::PUSH_GOOGLE, PushNotifications::PUSH_BROWSER_PUSH]) ||
-                ($proceedapp && in_array($notif['type'],
-                        [PushNotifications::PUSH_FCM_ANDROID, PushNotifications::PUSH_FCM_IOS]))) {
+                in_array($notif['type'],
+                        [PushNotifications::PUSH_FCM_ANDROID, PushNotifications::PUSH_FCM_IOS])) {
                 #error_log("Send user $userid {$notif['subscription']} type {$notif['type']} for modtools $modtools");
                 $payload = NULL;
                 $params = [];
