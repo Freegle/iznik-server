@@ -183,37 +183,6 @@ try {
             [$MT_Android_currentVersionReleaseDate, $MT_Android_currentVersionReleaseDate]
         );
     }
-
-    $ok = $gotIOS_FD && $gotIOS_MT && $gotAndroid_FD && $gotAndroid_MT && !$FD_Android_tooOld;
-    if ($ok) {
-        $subject .= "OK";
-    } else {
-        $subject .= "FAIL";
-    }
-    $report = "iOS\r\n\r\n";
-    $report .= "FD: " . $FD_iOS_version . ": " . $FD_iOS_currentVersionReleaseDate . "\r\n";
-    $report .= "MT: " . $MT_iOS_version . ": " . $MT_iOS_currentVersionReleaseDate . "\r\n";
-    $report .= "\r\nAndroid \r\n\r\n";
-    $report .= "FD: " . $FD_Android_version . ": " . $FD_Android_currentVersionReleaseDate;
-    if ($FD_Android_tooOld) {
-        $daysSinceRelease = floor((time() - strtotime($FD_Android_currentVersionReleaseDate)) / 86400);
-        $report .= " [WARNING: $daysSinceRelease days old - exceeds 2 week limit]";
-    }
-    $report .= "\r\n";
-    $report .= "MT: " . $MT_Android_version . ": " . $MT_Android_currentVersionReleaseDate . "\r\n";
-    if ($savefilenamefr) {
-        $report .= "Received file written to: " . $savefilenamefr . "\r\n";
-    }
-    if ($savefilenamemt) {
-        $report .= "Received file written to: " . $savefilenamemt . "\r\n";
-    }
-
-    $report .= $debug;
-
-    if (!$ok) {
-        $sent = mail(GEEKSALERTS_ADDR, $subject, $report, $headers);
-        echo "Mail sent to geeks: " . $sent . "\r\n";
-    }
 } catch (\Exception $e) {
     \Sentry\captureException($e);
 
