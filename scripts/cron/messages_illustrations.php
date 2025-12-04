@@ -68,12 +68,20 @@ do {
     $data = @file_get_contents($url, FALSE, $ctx);
 
     if ($data && strlen($data) > 0) {
-        # Create the attachment
-        $a = new Attachment($dbhr, $dbhm, NULL, Attachment::TYPE_MESSAGE);
-        $ret = $a->create($msgid, $data);
+        # Re-check that message still has no attachments. The fetch takes a long time and the user may
+        # have added their own photo in the meantime.
+        $check = $dbhr->preQuery("SELECT id FROM messages_attachments WHERE msgid = ? LIMIT 1", [$msgid]);
 
-        if ($ret) {
-            error_log("Created illustration for message $msgid: " . $itemName);
+        if (count($check) == 0) {
+            # Create the attachment, marking it as AI-generated via externalmods.
+            $a = new Attachment($dbhr, $dbhm, NULL, Attachment::TYPE_MESSAGE);
+            $ret = $a->create($msgid, $data, NULL, NULL, TRUE, ['ai' => TRUE]);
+
+            if ($ret) {
+                error_log("Created illustration for message $msgid: " . $itemName);
+            }
+        } else {
+            error_log("Skipped illustration for message $msgid - attachments added during fetch");
         }
     } else {
         error_log("Failed to fetch illustration for message $msgid: " . $itemName);
