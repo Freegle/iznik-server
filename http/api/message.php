@@ -667,6 +667,19 @@ function message() {
                                                         # We sent it.
                                                         $ret = ['ret' => 0, 'status' => 'Success', 'groupid' => $groupid];
 
+                                                        # Set deadline and deliverypossible if provided - these are passed
+                                                        # from the client during compose flow to avoid a separate PATCH call.
+                                                        $deadline = Utils::presdef('deadline', $_REQUEST, NULL);
+                                                        $deliverypossible = array_key_exists('deliverypossible', $_REQUEST) ? Utils::presbool('deliverypossible', $_REQUEST, FALSE) : NULL;
+
+                                                        if ($deadline) {
+                                                            $m->setPrivate('deadline', $deadline, TRUE);
+                                                        }
+
+                                                        if (!is_null($deliverypossible)) {
+                                                            $m->setPrivate('deliverypossible', $deliverypossible);
+                                                        }
+
                                                         if ($postcoll == MessageCollection::APPROVED) {
                                                             # We index now; for pending messages we index when they are approved.
                                                             $m->addToSpatialIndex();
