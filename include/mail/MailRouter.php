@@ -408,6 +408,9 @@ class MailRouter
             $email = trim($matches[1]);
         } else if (preg_match('/X-Original-To:(.*);/', $msg, $matches)) {
             $email = trim($matches[1]);
+        } else if (preg_match('/X-HmXmrOriginalRecipient:\s*<([^>]+)>/', $msg, $matches)) {
+            // Microsoft/Hotmail FBL format
+            $email = trim($matches[1]);
         }
 
         if ($email) {
