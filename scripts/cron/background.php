@@ -20,9 +20,23 @@ $lockh = Utils::lockScript($fn);
 $dbhm->setAttribute(\PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, TRUE);
 
 function doSQL($sql) {
-    global $dbhm;
+    global $dbhr, $dbhm;
 
     try {
+        # Optimise View messages - if there's already a recent view, skip it.
+        if (preg_match("/INSERT INTO messages_likes \(msgid, userid, type\) VALUES \((\d+), (\d+), 'View'\)/", $sql, $matches)) {
+            $msgid = $matches[1];
+            $userid = $matches[2];
+            $recent = $dbhr->preQuery("SELECT msgid FROM messages_likes WHERE msgid = ? AND userid = ? AND type = 'View' AND timestamp >= DATE_SUB(NOW(), INTERVAL 30 MINUTE);", [
+                $msgid,
+                $userid
+            ]);
+
+            if (count($recent) > 0) {
+                return;
+            }
+        }
+
         $rc = $dbhm->exec($sql, FALSE);
     } catch (\Exception $e) {
         $msg = $e->getMessage();

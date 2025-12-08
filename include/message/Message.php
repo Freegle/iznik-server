@@ -5339,6 +5339,17 @@ $mq", [
         $this->dbhm->background("INSERT INTO messages_likes (msgid, userid, type) VALUES ({$this->id}, $userid, '$type') ON DUPLICATE KEY UPDATE timestamp = NOW(), count = count + 1 ;");
     }
 
+    public function hasRecentView($userid, $minutes = 30) {
+        # Check if this user has viewed this message recently - used to avoid queueing redundant background writes.
+        $recent = $this->dbhr->preQuery("SELECT msgid FROM messages_likes WHERE msgid = ? AND userid = ? AND type = ? AND timestamp >= DATE_SUB(NOW(), INTERVAL ? MINUTE);", [
+            $this->id,
+            $userid,
+            Message::LIKE_VIEW,
+            $minutes
+        ]);
+        return count($recent) > 0;
+    }
+
     public function unlike($userid, $type) {
         $this->dbhm->preExec("DELETE FROM messages_likes WHERE msgid = ? AND userid = ? AND type = ?;", [
             $this->id,
