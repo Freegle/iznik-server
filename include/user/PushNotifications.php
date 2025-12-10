@@ -567,8 +567,18 @@ class PushNotifications
                     // We sent chat message notifications, so we're done
                     return $individualCount;
                 }
-                // If no chat messages were found, fall through to legacy notification path
-                // to handle users_notifications (TYPE_EXHORT, etc.)
+                // No new chat messages to notify, but we've already checked using lastmsgnotified.
+                // If we're in a chat-specific context (chatid provided), remove app notifications
+                // from $notifs so the legacy path (which uses lastmsgseen via getNotificationPayload)
+                // doesn't re-send notifications for messages that were already notified but not yet
+                // viewed by the user.
+                // When chatid is NOT provided, we keep FCM in the legacy path to handle non-chat
+                // notifications like TYPE_EXHORT.
+                if ($chatid) {
+                    $notifs = array_filter($notifs, function($n) {
+                        return $n['type'] !== PushNotifications::PUSH_FCM_ANDROID && $n['type'] !== PushNotifications::PUSH_FCM_IOS;
+                    });
+                }
             }
         }
 

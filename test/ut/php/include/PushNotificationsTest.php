@@ -352,6 +352,69 @@ class PushNotificationsTest extends IznikTestCase {
         $this->assertNotNull($rc['exception']);
     }
 
+    public function testNoDuplicateNotificationsForUnviewedMessages() {
+        # Test that calling notify() multiple times doesn't send duplicate notifications
+        # for messages that were already notified but not yet viewed by the user.
+        #
+        # This reproduces a bug where the legacy notification path uses lastmsgseen
+        # instead of lastmsgnotified, causing duplicates when:
+        # 1. Message is sent and notified (lastmsgnotified updated)
+        # 2. User doesn't view it (lastmsgseen stays at 0)
+        # 3. Another trigger calls notify() again
+        # 4. Legacy path finds "unseen" messages and re-notifies
+
+        list($u, $id, $emailid) = $this->createTestUserAndLogin('Test', 'User', NULL, 'test@test.com', 'testpw');
+        list($u2, $id2, $emailid2) = $this->createTestUser('Test', 'User2', NULL, 'test2@test.com', 'testpw2');
+
+        $mock = $this->getMockBuilder('Freegle\Iznik\PushNotifications')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setMethods(array('uthook'))
+            ->getMock();
+        $mock->method('uthook')->willThrowException(new \Exception());
+
+        # Add FCM Android subscription for recipient
+        $n = new PushNotifications($this->dbhr, $this->dbhm);
+        $n->add($id, PushNotifications::PUSH_FCM_ANDROID, 'test-android', FALSE);
+
+        # Create a chat and send a message from user2 to user1
+        # Pass $process = FALSE to skip inline notification (14th param)
+        # This lets us control when notifications are sent for testing
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list($rid, $created) = $r->createConversation($id, $id2);
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cm, $banned) = $m->create($rid, $id2, "Test chat message", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL, NULL, FALSE, FALSE, FALSE);
+
+        # Manually mark the message as processed/visible (without triggering notifications)
+        $this->dbhm->preExec("UPDATE chat_messages SET processingrequired = 0, processingsuccessful = 1, reviewrequired = 0 WHERE id = ?", [$cm]);
+
+        # Verify lastmsgnotified is NOT set yet
+        $roster = $this->dbhr->preQuery("SELECT lastmsgnotified, lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ?", [$rid, $id]);
+        $this->assertTrue(
+            count($roster) == 0 || is_null($roster[0]['lastmsgnotified']) || $roster[0]['lastmsgnotified'] == 0,
+            "lastmsgnotified should not be set before first notify"
+        );
+
+        # First notify() should send notifications
+        $count1 = $mock->notify($id, FALSE, FALSE, $rid);
+        $this->assertGreaterThan(0, $count1, "First notify should send notifications");
+
+        # Verify lastmsgnotified was set
+        $roster = $this->dbhr->preQuery("SELECT lastmsgnotified, lastmsgseen FROM chat_roster WHERE chatid = ? AND userid = ?", [$rid, $id]);
+        $this->assertGreaterThan(0, count($roster), "Roster entry should exist after first notify");
+        $this->assertNotNull($roster[0]['lastmsgnotified'], "lastmsgnotified should be set after first notify");
+
+        # User has NOT viewed the message, so lastmsgseen should still be NULL or 0
+        $this->assertTrue(
+            is_null($roster[0]['lastmsgseen']) || $roster[0]['lastmsgseen'] == 0,
+            "lastmsgseen should be NULL or 0 since user hasn't viewed message"
+        );
+
+        # Second notify() should NOT send any notifications - the message was already notified
+        # BUG: Currently this sends duplicates because legacy path checks lastmsgseen not lastmsgnotified
+        $count2 = $mock->notify($id, FALSE, FALSE, $rid);
+        $this->assertEquals(0, $count2, "Second notify should NOT send duplicate notifications for already-notified messages");
+    }
+
     public function testDualNotificationSystem() {
         # Test that app notifications with a category send TWO notifications
         list($u, $id, $emailid) = $this->createTestUserAndLogin('Test', 'User', NULL, 'test@test.com', 'testpw');
