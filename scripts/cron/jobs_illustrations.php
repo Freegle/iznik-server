@@ -37,7 +37,6 @@ do {
         AND j.visible = 1
         AND ai.id IS NULL
         GROUP BY j.title
-        HAVING cnt > 10
         ORDER BY cnt DESC
         LIMIT 1
     ");
