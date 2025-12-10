@@ -58,10 +58,10 @@ do {
     }
 
     # Prompt injection defense (defense in depth):
-    # 1. Strip our delimiter from user input so they can't close it prematurely
-    # 2. Instruct the AI that everything after the delimiter is untrusted user input
-    $itemName = str_replace('ITEM_NAME:', '', $itemName);
-    $itemName = str_replace('IMPORTANT:', '', $itemName);
+    # Strip common prompt injection keywords from user input.
+    # Note: No prompt injection defense is foolproof, but risk here is low (worst case: odd image).
+    $itemName = str_replace('CRITICAL:', '', $itemName);
+    $itemName = str_replace('Draw only', '', $itemName);
 
     # Build the Pollinations.ai URL - use job-appropriate prompt
     $prompt = urlencode(
