@@ -1829,8 +1829,8 @@ class chatRoomsTest extends IznikTestCase {
         # Manually set processingrequired = 1 to simulate unprocessed state
         $this->dbhm->preExec("UPDATE chat_messages SET processingrequired = 1 WHERE id = ?;", [$cm]);
 
-        # Verify the message has processingrequired = 1
-        $msg = $this->dbhr->preQuery("SELECT processingrequired FROM chat_messages WHERE id = ?;", [$cm]);
+        # Verify the message has processingrequired = 1 (use dbhm to read from same connection we wrote to)
+        $msg = $this->dbhm->preQuery("SELECT processingrequired FROM chat_messages WHERE id = ?;", [$cm]);
         $this->assertEquals(1, $msg[0]['processingrequired']);
 
         $rmock = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
@@ -1852,8 +1852,8 @@ class chatRoomsTest extends IznikTestCase {
         # Now set processingrequired = 0 and processingsuccessful = 1 to simulate successful processing
         $this->dbhm->preExec("UPDATE chat_messages SET processingrequired = 0, processingsuccessful = 1 WHERE id = ?;", [$cm]);
 
-        # Verify the message has been marked as processed
-        $msg = $this->dbhr->preQuery("SELECT processingrequired, processingsuccessful FROM chat_messages WHERE id = ?;", [$cm]);
+        # Verify the message has been marked as processed (use dbhm to read from same connection we wrote to)
+        $msg = $this->dbhm->preQuery("SELECT processingrequired, processingsuccessful FROM chat_messages WHERE id = ?;", [$cm]);
         $this->assertEquals(0, $msg[0]['processingrequired']);
         $this->assertEquals(1, $msg[0]['processingsuccessful']);
 
