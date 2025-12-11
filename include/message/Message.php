@@ -1497,7 +1497,14 @@ ORDER BY lastdate DESC;";
 
                         $max = $ongoings[0]['max'];
 
-                        if (!$max || (time() - strtotime($max)) > 6 * 24 * 60 * 60) {
+                        # Also check if the message has been promised - if so, don't auto-expire it.
+                        $promises = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_promises WHERE msgid = ?;", [
+                            $msg['id']
+                        ]);
+
+                        $hasPromise = $promises[0]['count'] > 0;
+
+                        if (!$hasPromise && (!$max || (time() - strtotime($max)) > 6 * 24 * 60 * 60)) {
                             $rets[$msg['id']]['outcomes'] = [
                                 [
                                     'timestamp' => $expiredat,
