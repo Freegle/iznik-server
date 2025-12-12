@@ -1969,6 +1969,14 @@ ORDER BY lastdate DESC;";
     /**
      * @return mixed
      */
+    public function getOriginalMessage()
+    {
+        return $this->originalMessage ?: $this->message;
+    }
+
+    /**
+     * @return mixed
+     */
     public function getTnpostid()
     {
         return $this->tnpostid;
@@ -2156,6 +2164,7 @@ ORDER BY lastdate DESC;";
     public function parse($source, $envelopefrom, $envelopeto, $msg, $groupid = NULL)
     {
         $this->message = $msg;
+        $this->originalMessage = $msg;
         $this->groupid = $groupid;
         $this->source = $source;
 
