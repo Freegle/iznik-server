@@ -135,11 +135,6 @@ CMD /etc/init.d/ssh start \
   && mysql -u root -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'" \
   && mysql -u root -e "use iznik;REPLACE INTO partners_keys (partner, \`key\`) VALUES ('$PARTNER_NAME', '$PARTNER_KEY');" \
   && mysql -u root -e "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));" \
-  && git pull \
-  && php composer.phar self-update \
-  && cd composer \
-  && echo Y | php ../composer.phar install \
-  && cd .. \
   && php scripts/cli/table_autoinc.php \
   && php scripts/cron/get_app_release_versions.php >> /tmp/iznik.get_app_release_versions.out 2>&1 \
 
