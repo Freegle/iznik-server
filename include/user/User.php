@@ -4541,6 +4541,10 @@ class User extends Entity
                                 case Notifications::TYPE_EXHORT:
                                     $category = PushNotifications::CATEGORY_EXHORT;
                                     $threadId = 'tips';
+                                    $message = Utils::presdef('text', $notifs[0], NULL);
+                                    if (Utils::presdef('url', $notifs[0], NULL)) {
+                                        $route = $notifs[0]['url'];
+                                    }
                                     break;
                             }
                         }

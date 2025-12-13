@@ -228,40 +228,18 @@ class PushNotifications
                             ];
 
                             $category = Utils::presdef('category', $payload, NULL);
-                            $hasChannelId = !empty($data['channel_id']);
 
                             if ($category && isset(self::CATEGORIES[$category])) {
                                 $categoryConfig = self::CATEGORIES[$category];
                                 $androidConfig['priority'] = $categoryConfig['android_priority'];
 
-                                # NEW notifications (with channel_id): Data-only, app creates notification
-                                if ($hasChannelId) {
-                                    # Add category to data so app can add action buttons
-                                    $data['category'] = $category;
-                                    # Update the message with the modified data
-                                    $message = CloudMessage::fromArray([
-                                        'token' => $endpoint,
-                                        'data' => $data
-                                    ]);
-                                }
-                                # LEGACY notifications (no channel_id): Use androidConfig notification for auto-display
-                                else {
-                                    $androidConfig['notification'] = [
-                                        'channel_id' => $categoryConfig['android_channel']
-                                    ];
-
-                                    # Add thread tag for notification grouping
-                                    $threadId = Utils::presdef('threadId', $payload, NULL);
-                                    if ($threadId) {
-                                        $androidConfig['notification']['tag'] = $threadId;
-                                    }
-
-                                    # Add image for rich notifications
-                                    $image = Utils::presdef('image', $payload, NULL);
-                                    if ($image && strpos($image, 'http') === 0) {
-                                        $androidConfig['notification']['image'] = $image;
-                                    }
-                                }
+                                # Add category to data so app can add action buttons
+                                $data['category'] = $category;
+                                # Update the message with the modified data
+                                $message = CloudMessage::fromArray([
+                                    'token' => $endpoint,
+                                    'data' => $data
+                                ]);
                             }
 
                             $message = $message->withAndroidConfig($androidConfig);
@@ -625,32 +603,14 @@ class PushNotifications
                         }
                     }
 
-                    # For mobile apps (Android/iOS), send TWO notifications:
-                    # 1. Legacy notification (no channel_id) - for old app versions
-                    # 2. New notification (with channel_id) - for new app versions
-                    # Each app version filters to only process one type, so no duplicates shown.
-                    $isAppNotification = in_array($notif['type'], [PushNotifications::PUSH_FCM_ANDROID, PushNotifications::PUSH_FCM_IOS]);
-
-                    if ($isAppNotification && $category) {
-                        # Send legacy notification first (no category/channel_id)
-                        $legacyPayload = $basePayload;
-                        $this->queueSend($userid, $notif['type'], $params, $notif['subscription'], $legacyPayload);
-                        $count++;
-
-                        # Send new notification (with category/channel_id)
-                        $newPayload = $basePayload;
-                        $newPayload['category'] = $category;
-                        $this->queueSend($userid, $notif['type'], $params, $notif['subscription'], $newPayload);
-                        $count++;
-                    } else {
-                        # Browser push or no category - send single notification
-                        $payload = $basePayload;
-                        if ($category) {
-                            $payload['category'] = $category;
-                        }
-                        $this->queueSend($userid, $notif['type'], $params, $notif['subscription'], $payload);
-                        $count++;
+                    $payload = $basePayload;
+                    if ($category) {
+                        $payload['category'] = $category;
+                        $categoryConfig = self::CATEGORIES[$category];
+                        $payload['channel_id'] = $categoryConfig['android_channel'];
                     }
+                    $this->queueSend($userid, $notif['type'], $params, $notif['subscription'], $payload);
+                    $count++;
                 }
             }
         }
