@@ -555,9 +555,11 @@ class API
             } while ($apicallretries < API_RETRIES);
 
             if (BROWSERTRACKING && (Utils::presdef('type', $_REQUEST, null) != 'GET') &&
-                (gettype($ret) == 'array' && !array_key_exists('nolog', $ret))) {
+                (gettype($ret) == 'array' && !array_key_exists('nolog', $ret)) &&
+                (Utils::presdef('action', $_REQUEST, null) != 'MarkSeen')) {
                 # Save off the API call and result, except for the (very frequent) event tracking calls.  Don't
-                # save GET calls as they don't change the DB and there are a lot of them.
+                # save GET calls as they don't change the DB and there are a lot of them.  Don't save MarkSeen
+                # calls as they are very frequent and not useful for debugging.
                 #
                 # Beanstalk has a limit on the size of job that it accepts; no point trying to log absurdly large
                 # API requests.
