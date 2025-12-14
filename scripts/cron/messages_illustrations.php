@@ -2,7 +2,7 @@
 #
 # Generate AI illustrations for messages without photos.
 # This fetches line drawings from Pollinations.ai for messages that have no attachments.
-# Only processes messages from the last hour in messages_spatial to limit retries.
+# Tracks the max message ID processed to avoid re-adding illustrations that were deleted.
 #
 namespace Freegle\Iznik;
 
@@ -13,6 +13,15 @@ require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
 $lockh = Utils::lockScript(basename(__FILE__));
+
+# Get the max message ID we've already processed. This prevents re-adding illustrations
+# that a mod or user has deleted.
+$CONFIG_KEY = 'illustrations_max_msgid';
+$maxProcessedId = 0;
+$configRow = $dbhr->preQuery("SELECT value FROM config WHERE `key` = ?", [$CONFIG_KEY]);
+if (count($configRow) > 0) {
+    $maxProcessedId = intval($configRow[0]['value']);
+}
 
 # First, clean up any messages that have both AI and non-AI attachments.
 # This can happen if a user adds their own photo after an AI illustration was created.
@@ -43,19 +52,21 @@ do {
         break;
     }
 
-    # Find a message in messages_spatial that has no attachments
+    # Find a message in messages_spatial that has no attachments and hasn't been processed yet.
+    # We only process messages with ID > maxProcessedId to avoid re-adding illustrations
+    # that were deleted by a mod or user.
     $msgs = $dbhr->preQuery("
         SELECT DISTINCT ms.msgid, m.subject
         FROM messages_spatial ms
         INNER JOIN messages m ON m.id = ms.msgid
         LEFT JOIN messages_attachments ma ON ma.msgid = m.id
-        WHERE ms.arrival > DATE_SUB(NOW(), INTERVAL 48 HOUR)
+        WHERE ms.msgid > ?
         AND ma.id IS NULL
         AND m.subject IS NOT NULL
         AND m.subject != ''
-        ORDER BY ms.arrival DESC
+        ORDER BY ms.msgid ASC
         LIMIT 1
-    ");
+    ", [$maxProcessedId]);
 
     if (count($msgs) == 0) {
         break;
@@ -64,6 +75,19 @@ do {
     $msg = $msgs[0];
     $msgid = $msg['msgid'];
     $subject = $msg['subject'];
+
+    # Update the max processed message ID immediately. We do this regardless of whether we add an
+    # illustration or not - the point is we've considered this message and shouldn't process it
+    # again (e.g., if someone deletes the illustration).
+    if ($msgid > $maxProcessedId) {
+        $maxProcessedId = $msgid;
+        $dbhm->preExec("INSERT INTO config (`key`, value) VALUES (?, ?)
+                       ON DUPLICATE KEY UPDATE value = ?", [
+            $CONFIG_KEY,
+            $maxProcessedId,
+            $maxProcessedId
+        ]);
+    }
 
     # Extract just the item name from the subject (remove OFFER/WANTED prefix and location suffix)
     $itemName = preg_replace('/^(OFFER|WANTED|TAKEN|RECEIVED):\s*/i', '', $subject);
