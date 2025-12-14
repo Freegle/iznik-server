@@ -106,7 +106,8 @@ do {
 
         $prompt = urlencode(
             "Draw a single friendly cartoon white line drawing on dark green background, moderate shading, " .
-            "cute and quirky style, UK audience, centered. " .
+            "cute and quirky style, UK audience, centered, gender-neutral, " .
+            "if showing people use abstract non-gendered figures. " .
             "CRITICAL: Do not include any text, words, letters, numbers or labels anywhere in the image. " .
             "Draw only a picture of: " . $cleanName
         );

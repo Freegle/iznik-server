@@ -65,7 +65,8 @@ do {
     # Build the Pollinations.ai URL - use job-appropriate prompt
     $prompt = urlencode(
         "simple cute cartoon " . $itemName . " white line drawing on solid dark forest green background, " .
-        "minimalist icon style, absolutely no text, no words, no letters, no numbers, no labels, " .
+        "minimalist icon style, gender-neutral, if showing people use abstract non-gendered figures, " .
+        "absolutely no text, no words, no letters, no numbers, no labels, " .
         "no writing, no captions, no signs, no speech bubbles, no border, filling the entire frame"
     );
     $url = "https://image.pollinations.ai/prompt/{$prompt}?width=200&height=200&nologo=true&seed=1";
