@@ -16,13 +16,28 @@ class Loki
     private $batchSize = 10;
     private $lastFlush = 0;
     private $flushInterval = 5; // seconds
+    private $jsonFileEnabled = FALSE;
+    private $jsonLogPath = '/var/log/freegle';
 
     private function __construct()
     {
         $this->enabled = getenv('LOKI_ENABLED') === 'true' || getenv('LOKI_ENABLED') === '1';
         $this->url = getenv('LOKI_URL');
 
-        if ($this->enabled && empty($this->url)) {
+        // Enable JSON file logging for Alloy to ship.
+        $this->jsonFileEnabled = getenv('LOKI_JSON_FILE') === 'true' || getenv('LOKI_JSON_FILE') === '1';
+        $jsonPath = getenv('LOKI_JSON_PATH');
+        if (!empty($jsonPath)) {
+            $this->jsonLogPath = $jsonPath;
+        }
+
+        // Enabled if either Loki URL is set or JSON file logging is on.
+        if (!$this->enabled && !$this->jsonFileEnabled) {
+            $this->enabled = FALSE;
+        } elseif ($this->jsonFileEnabled) {
+            // JSON file logging means we're enabled even without URL.
+            $this->enabled = TRUE;
+        } elseif ($this->enabled && empty($this->url)) {
             $this->enabled = FALSE;
         }
     }
@@ -74,7 +89,48 @@ class Loki
         'origin',
         'host',
         'content-length',
+        'x-trace-id',
+        'x-session-id',
+        'x-client-timestamp',
     ];
+
+    /**
+     * Get trace headers from the current request.
+     *
+     * @return array Trace information from headers
+     */
+    public function getTraceHeaders()
+    {
+        $headers = [];
+
+        // Get trace headers from Apache headers or $_SERVER.
+        if (function_exists('apache_request_headers')) {
+            $requestHeaders = apache_request_headers();
+            foreach ($requestHeaders as $name => $value) {
+                $nameLower = strtolower($name);
+                if ($nameLower === 'x-trace-id') {
+                    $headers['trace_id'] = $value;
+                } elseif ($nameLower === 'x-session-id') {
+                    $headers['session_id'] = $value;
+                } elseif ($nameLower === 'x-client-timestamp') {
+                    $headers['client_timestamp'] = $value;
+                }
+            }
+        }
+
+        // Fallback to $_SERVER.
+        if (empty($headers['trace_id']) && !empty($_SERVER['HTTP_X_TRACE_ID'])) {
+            $headers['trace_id'] = $_SERVER['HTTP_X_TRACE_ID'];
+        }
+        if (empty($headers['session_id']) && !empty($_SERVER['HTTP_X_SESSION_ID'])) {
+            $headers['session_id'] = $_SERVER['HTTP_X_SESSION_ID'];
+        }
+        if (empty($headers['client_timestamp']) && !empty($_SERVER['HTTP_X_CLIENT_TIMESTAMP'])) {
+            $headers['client_timestamp'] = $_SERVER['HTTP_X_CLIENT_TIMESTAMP'];
+        }
+
+        return $headers;
+    }
 
     /**
      * Log API request to Loki.
@@ -101,12 +157,15 @@ class Loki
             'status_code' => (string)$statusCode,
         ];
 
+        // Include trace headers for distributed tracing correlation.
+        $traceHeaders = $this->getTraceHeaders();
+
         $logLine = array_merge([
             'endpoint' => $endpoint,
             'duration_ms' => $duration,
             'user_id' => $userId,
             'timestamp' => date('c'),
-        ], $extra);
+        ], $traceHeaders, $extra);
 
         $this->log($labels, $logLine);
     }
@@ -329,7 +388,7 @@ class Loki
     }
 
     /**
-     * Flush batch to Loki.
+     * Flush batch to Loki and/or JSON file.
      */
     public function flush()
     {
@@ -341,7 +400,56 @@ class Loki
         $this->batch = [];
         $this->lastFlush = time();
 
-        $this->sendAsync($payload);
+        // Send to Loki API if URL configured.
+        if (!empty($this->url)) {
+            $this->sendAsync($payload);
+        }
+
+        // Write to JSON file if enabled (for Alloy to ship).
+        if ($this->jsonFileEnabled) {
+            $this->writeToJsonFile($payload);
+        }
+    }
+
+    /**
+     * Write logs to JSON file for Alloy to ship.
+     *
+     * @param array $payload The log payload
+     */
+    private function writeToJsonFile($payload)
+    {
+        // Determine source from first stream for filename.
+        $source = 'api';
+        if (!empty($payload['streams'][0]['stream']['source'])) {
+            $source = $payload['streams'][0]['stream']['source'];
+        }
+
+        $logFile = $this->jsonLogPath . '/' . $source . '.log';
+
+        // Ensure directory exists.
+        $dir = dirname($logFile);
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0755, TRUE);
+        }
+
+        // Write each log entry as a JSON line.
+        foreach ($payload['streams'] as $stream) {
+            foreach ($stream['values'] as $value) {
+                $entry = [
+                    'timestamp' => date('c', (int)($value[0] / 1000000000)),
+                    'labels' => $stream['stream'],
+                    'message' => $value[1],
+                ];
+
+                // Try to decode message if it's JSON.
+                $decoded = json_decode($value[1], TRUE);
+                if ($decoded !== NULL) {
+                    $entry['message'] = $decoded;
+                }
+
+                @file_put_contents($logFile, json_encode($entry) . "\n", FILE_APPEND | LOCK_EX);
+            }
+        }
     }
 
     /**
