@@ -84,6 +84,9 @@ RUN wget https://getcomposer.org/composer-2.phar -O composer.phar \
     && echo Y | php ../composer.phar install \
     && cd ..
 
+# Add Loki environment variables to PHP-FPM pool for web requests
+RUN printf "\n; Loki logging configuration (passed via Docker env)\nenv[LOKI_ENABLED] = \$LOKI_ENABLED\nenv[LOKI_URL] = \$LOKI_URL\n" >> /etc/php/8.1/fpm/pool.d/www.conf
+
 # Cron jobs for background scripts (excluding messages_spatial)
 RUN grep -v "message_spatial.php" install/crontab | crontab -u root -
 

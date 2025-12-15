@@ -4,6 +4,7 @@ namespace Freegle\Iznik;
 
 
 require_once(IZNIK_BASE . '/include/db.php');
+require_once(IZNIK_BASE . '/include/misc/Loki.php');
 global $dbhr, $dbhm;
 
 use GeoIp2\Database\Reader;
@@ -580,6 +581,73 @@ class API
                     ", " . $dbhr->quote($req) . ", " . $dbhr->quote($rsp) . ");";
                 $dbhm->background($sql);
             }
+
+            # Log API request to Loki (fire-and-forget, doesn't block response).
+            # This is done via shutdown function to ensure response is sent first.
+            $lokiLogData = [
+                'call' => $call,
+                'method' => Utils::presdef('type', $_REQUEST, 'GET'),
+                'statusCode' => Utils::presdef('ret', $ret, 0),
+                'duration' => (microtime(TRUE) - $scriptstart) * 1000, // ms
+                'userId' => session_status() !== PHP_SESSION_NONE ? Utils::presdef('id', $_SESSION, NULL) : NULL,
+                'ip' => Utils::presdef('REMOTE_ADDR', $_SERVER, ''),
+            ];
+
+            # Capture request headers from $_SERVER (HTTP_* format).
+            $requestHeaders = [];
+            foreach ($_SERVER as $key => $value) {
+                if (strpos($key, 'HTTP_') === 0) {
+                    # Convert HTTP_USER_AGENT to User-Agent format.
+                    $headerName = str_replace('_', '-', substr($key, 5));
+                    $headerName = ucwords(strtolower($headerName), '-');
+                    $requestHeaders[$headerName] = $value;
+                } elseif (in_array($key, ['CONTENT_TYPE', 'CONTENT_LENGTH'])) {
+                    $headerName = str_replace('_', '-', $key);
+                    $headerName = ucwords(strtolower($headerName), '-');
+                    $requestHeaders[$headerName] = $value;
+                }
+            }
+
+            # Capture response headers (must be done before output).
+            $responseHeaders = [];
+            foreach (headers_list() as $header) {
+                $parts = explode(':', $header, 2);
+                if (count($parts) === 2) {
+                    $responseHeaders[trim($parts[0])] = trim($parts[1]);
+                }
+            }
+
+            $lokiHeaderData = [
+                'requestHeaders' => $requestHeaders,
+                'responseHeaders' => $responseHeaders,
+            ];
+
+            register_shutdown_function(function() use ($lokiLogData, $lokiHeaderData) {
+                $loki = Loki::getInstance();
+                if ($loki->isEnabled()) {
+                    $loki->logApiRequest(
+                        'v1',
+                        $lokiLogData['method'],
+                        $lokiLogData['call'],
+                        $lokiLogData['statusCode'],
+                        $lokiLogData['duration'],
+                        $lokiLogData['userId'],
+                        ['ip' => $lokiLogData['ip']]
+                    );
+
+                    # Log headers separately (7-day retention for debugging).
+                    $loki->logApiHeaders(
+                        'v1',
+                        $lokiLogData['method'],
+                        $lokiLogData['call'],
+                        $lokiHeaderData['requestHeaders'],
+                        $lokiHeaderData['responseHeaders'],
+                        $lokiLogData['userId']
+                    );
+
+                    $loki->flush();
+                }
+            });
 
             # Any outstanding transaction is a bug; force a rollback to avoid locks lasting beyond this call.
             if ($dbhm->inTransaction()) {
