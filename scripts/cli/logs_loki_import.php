@@ -19,7 +19,7 @@ require_once(IZNIK_BASE . '/include/db.php');
 require_once(IZNIK_BASE . '/include/misc/Loki.php');
 
 // Parse command line arguments
-$opts = getopt('i:b:t:vh', ['help', 'dry-run', 'force', 'reset-tracking']);
+$opts = getopt('i:b:t:l:vh', ['help', 'dry-run', 'force', 'reset-tracking', 'direct']);
 
 if (isset($opts['h']) || isset($opts['help'])) {
     echo <<<HELP
@@ -34,23 +34,30 @@ Options:
   -i <file>      Input JSON file (required)
   -b <batch>     Batch size for Loki sends (default: 100)
   -t <file>      Tracking database file (default: /tmp/loki_import_tracking.sqlite)
+  -l <url>       Loki push URL (default: http://loki:3100/loki/api/v1/push)
   -v             Verbose output
   --dry-run      Parse file and show stats without sending to Loki
   --force        Re-import all records, ignoring tracking database
   --reset-tracking  Clear the tracking database before import
+  --direct       Push directly to Loki HTTP API (bypasses JSON files/Alloy)
   -h, --help     Show this help message
 
 Examples:
   php logs_loki_import.php -i /tmp/logs_7days.json -v
   php logs_loki_import.php -i /tmp/logs.json --dry-run
   php logs_loki_import.php -i /tmp/logs.json --force    # Re-import everything
+  php logs_loki_import.php -i /tmp/logs.json --direct   # Push directly to Loki API
 
 Tracking Database:
   The script maintains a SQLite database to track which records have been imported.
   This allows safe re-running without creating duplicates in Loki.
   Location: /tmp/loki_import_tracking.sqlite (or use -t to specify)
 
-Note: Requires LOKI_ENABLED=true and LOKI_URL set in environment.
+Import Methods:
+  Default: Writes to JSON files, which Alloy ships to Loki (may miss historical data)
+  --direct: Pushes directly to Loki HTTP API (best for historical backfill)
+
+Note: Default mode requires LOKI_ENABLED=true and LOKI_JSON_PATH set in environment.
 
 HELP;
     exit(0);
@@ -62,8 +69,10 @@ $verbose = isset($opts['v']);
 $dryRun = isset($opts['dry-run']);
 $force = isset($opts['force']);
 $resetTracking = isset($opts['reset-tracking']);
+$directMode = isset($opts['direct']);
 $batchSize = isset($opts['b']) ? intval($opts['b']) : 100;
 $trackingDb = $opts['t'] ?? '/tmp/loki_import_tracking.sqlite';
+$lokiUrl = $opts['l'] ?? 'http://loki:3100/loki/api/v1/push';
 
 if (!$inputFile) {
     error_log("Error: Input file required (-i option)");
@@ -75,13 +84,17 @@ if (!file_exists($inputFile)) {
     exit(1);
 }
 
-// Check Loki is enabled
+// Check Loki is enabled (skip check for direct mode)
 $loki = Loki::getInstance();
 
-if (!$dryRun && !$loki->isEnabled()) {
-    error_log("Error: Loki is not enabled. Set LOKI_ENABLED=true and LOKI_URL in environment.");
+if (!$dryRun && !$directMode && !$loki->isEnabled()) {
+    error_log("Error: Loki is not enabled. Set LOKI_ENABLED=true and LOKI_JSON_PATH in environment.");
+    error_log("       Or use --direct to push directly to Loki HTTP API.");
     exit(1);
 }
+
+// Direct mode batch buffer
+$directBatch = [];
 
 // Initialize tracking database
 $trackingPdo = NULL;
@@ -126,8 +139,32 @@ if ($verbose) {
     error_log("  Tracking DB: " . ($force ? '(disabled - force mode)' : $trackingDb));
     error_log("  Dry run: " . ($dryRun ? 'yes' : 'no'));
     error_log("  Force mode: " . ($force ? 'yes' : 'no'));
+    error_log("  Direct mode: " . ($directMode ? "yes ($lokiUrl)" : 'no'));
     error_log("  Loki enabled: " . ($loki->isEnabled() ? 'yes' : 'no'));
     error_log("");
+}
+
+/**
+ * Flush direct mode batch to Loki.
+ */
+function flushDirectBatch(&$directBatch, $loki, $lokiUrl, $verbose) {
+    global $stats;
+
+    if (empty($directBatch)) {
+        return TRUE;
+    }
+
+    $success = $loki->pushDirectToLoki($lokiUrl, $directBatch);
+
+    if (!$success) {
+        $stats['errors'] += count($directBatch);
+        if ($verbose) {
+            error_log("  Error pushing batch of " . count($directBatch) . " records to Loki");
+        }
+    }
+
+    $directBatch = [];
+    return $success;
 }
 
 /**
@@ -234,7 +271,15 @@ while (($line = fgets($fp)) !== FALSE) {
         ];
 
         if (!$dryRun) {
-            $loki->logWithTimestamp($labels, $logLine, $record['timestamp']);
+            if ($directMode) {
+                $directBatch[] = [
+                    'labels' => $labels,
+                    'logLine' => $logLine,
+                    'timestamp' => $record['timestamp'],
+                ];
+            } else {
+                $loki->logWithTimestamp($labels, $logLine, $record['timestamp']);
+            }
             markAsImported($trackingPdo, 'logs', $originalId);
         }
 
@@ -274,7 +319,15 @@ while (($line = fgets($fp)) !== FALSE) {
         ];
 
         if (!$dryRun) {
-            $loki->logWithTimestamp($labels, $logLine, $record['timestamp']);
+            if ($directMode) {
+                $directBatch[] = [
+                    'labels' => $labels,
+                    'logLine' => $logLine,
+                    'timestamp' => $record['timestamp'],
+                ];
+            } else {
+                $loki->logWithTimestamp($labels, $logLine, $record['timestamp']);
+            }
             markAsImported($trackingPdo, 'logs_api', $originalId);
         }
 
@@ -291,13 +344,17 @@ while (($line = fgets($fp)) !== FALSE) {
     // Progress output
     if ($verbose && $imported > 0 && $imported % 10000 === 0) {
         $elapsed = microtime(TRUE) - $startTime;
-        $rate = $imported / $elapsed;
-        error_log("  Imported $imported records ({$rate:.0f} records/sec)");
+        $rate = round($imported / $elapsed);
+        error_log("  Imported $imported records ($rate records/sec)");
     }
 
     // Force flush periodically
-    if (!$dryRun && $imported % $batchSize === 0) {
-        $loki->flush();
+    if (!$dryRun && count($directBatch) >= $batchSize) {
+        if ($directMode) {
+            flushDirectBatch($directBatch, $loki, $lokiUrl, $verbose);
+        } else {
+            $loki->flush();
+        }
     }
 }
 
@@ -305,7 +362,11 @@ fclose($fp);
 
 // Final flush
 if (!$dryRun) {
-    $loki->flush();
+    if ($directMode) {
+        flushDirectBatch($directBatch, $loki, $lokiUrl, $verbose);
+    } else {
+        $loki->flush();
+    }
 }
 
 // Summary
@@ -313,12 +374,12 @@ $elapsed = microtime(TRUE) - $startTime;
 error_log("");
 error_log("Import Summary:");
 error_log("  Total imported: $imported");
-error_log("  - logs table records: {$stats['logs']}");
-error_log("  - logs_api table records: {$stats['logs_api']}");
-error_log("  Duplicates skipped: {$stats['duplicates']}");
-error_log("  Unknown source skipped: {$stats['skipped']}");
-error_log("  Errors: {$stats['errors']}");
-error_log("  Time: {$elapsed:.1f} seconds");
+error_log("  - logs table records: " . $stats['logs']);
+error_log("  - logs_api table records: " . $stats['logs_api']);
+error_log("  Duplicates skipped: " . $stats['duplicates']);
+error_log("  Unknown source skipped: " . $stats['skipped']);
+error_log("  Errors: " . $stats['errors']);
+error_log("  Time: " . round($elapsed, 1) . " seconds");
 error_log("  Rate: " . ($elapsed > 0 ? round($imported / $elapsed) : 0) . " records/sec");
 
 if ($dryRun) {
@@ -327,4 +388,8 @@ if ($dryRun) {
 
 if ($force) {
     error_log("  (Force mode - duplicate tracking disabled)");
+}
+
+if ($directMode) {
+    error_log("  (Direct mode - pushed directly to Loki API)");
 }

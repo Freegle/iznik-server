@@ -84,9 +84,6 @@ RUN wget https://getcomposer.org/composer-2.phar -O composer.phar \
     && echo Y | php ../composer.phar install \
     && cd ..
 
-# Add Loki environment variables to PHP-FPM pool for web requests
-RUN printf "\n; Loki logging configuration (passed via Docker env)\nenv[LOKI_ENABLED] = \$LOKI_ENABLED\nenv[LOKI_URL] = \$LOKI_URL\n" >> /etc/php/8.1/fpm/pool.d/www.conf
-
 # Cron jobs for background scripts (excluding messages_spatial)
 RUN grep -v "message_spatial.php" install/crontab | crontab -u root -
 
@@ -124,6 +121,8 @@ CMD /etc/init.d/ssh start \
   && sed -ie "s@'IMAGE_DELIVERY', NULL@'IMAGE_DELIVERY', '$IMAGE_DELIVERY'@" /etc/iznik.conf \
   && sed -ie "s@'SMTP_HOST', '.*'@'SMTP_HOST', '$SMTP_HOST'@" /etc/iznik.conf \
   && sed -ie "s@'SMTP_PORT', [0-9]*@'SMTP_PORT', $SMTP_PORT@" /etc/iznik.conf \
+  && sed -ie "s@'LOKI_ENABLED', FALSE@'LOKI_ENABLED', TRUE@" /etc/iznik.conf \
+  && sed -ie "s@'LOKI_JSON_PATH', '.*'@'LOKI_JSON_PATH', '$LOKI_JSON_PATH'@" /etc/iznik.conf \
 
 	# We need to make some minor schema tweaks otherwise the schema fails to install.
   && sed -ie 's/ROW_FORMAT=DYNAMIC//g' install/schema.sql \

@@ -2,43 +2,28 @@
 namespace Freegle\Iznik;
 
 /**
- * Loki client for sending logs to Grafana Loki.
+ * Loki client for sending logs to Grafana Loki via JSON files.
  *
- * This is a lightweight client that sends logs asynchronously using fire-and-forget
- * HTTP requests to avoid impacting application performance.
+ * Logs are written to JSON files which Alloy ships to Loki.
+ * This approach is resilient (survives Loki downtime) and non-blocking.
  */
 class Loki
 {
     private static $instance = NULL;
     private $enabled = FALSE;
-    private $url = NULL;
-    private $batch = [];
-    private $batchSize = 10;
-    private $lastFlush = 0;
-    private $flushInterval = 5; // seconds
-    private $jsonFileEnabled = FALSE;
     private $jsonLogPath = '/var/log/freegle';
 
     private function __construct()
     {
-        $this->enabled = getenv('LOKI_ENABLED') === 'true' || getenv('LOKI_ENABLED') === '1';
-        $this->url = getenv('LOKI_URL');
+        // Read from constants defined in /etc/iznik.conf.
+        $this->enabled = defined('LOKI_ENABLED') && LOKI_ENABLED;
+        $jsonPath = defined('LOKI_JSON_PATH') ? LOKI_JSON_PATH : NULL;
 
-        // Enable JSON file logging for Alloy to ship.
-        $this->jsonFileEnabled = getenv('LOKI_JSON_FILE') === 'true' || getenv('LOKI_JSON_FILE') === '1';
-        $jsonPath = getenv('LOKI_JSON_PATH');
-        if (!empty($jsonPath)) {
+        if ($this->enabled && empty($jsonPath)) {
+            error_log('Loki enabled but LOKI_JSON_PATH not set, disabling Loki');
+            $this->enabled = FALSE;
+        } elseif (!empty($jsonPath)) {
             $this->jsonLogPath = $jsonPath;
-        }
-
-        // Enabled if either Loki URL is set or JSON file logging is on.
-        if (!$this->enabled && !$this->jsonFileEnabled) {
-            $this->enabled = FALSE;
-        } elseif ($this->jsonFileEnabled) {
-            // JSON file logging means we're enabled even without URL.
-            $this->enabled = TRUE;
-        } elseif ($this->enabled && empty($this->url)) {
-            $this->enabled = FALSE;
         }
     }
 
@@ -218,7 +203,7 @@ class Loki
         foreach ($headers as $name => $value) {
             $nameLower = strtolower($name);
 
-            // Check against sensitive patterns
+            // Check against sensitive patterns.
             $isSensitive = FALSE;
             foreach (self::$sensitiveHeaderPatterns as $pattern) {
                 if (preg_match($pattern, $name)) {
@@ -231,13 +216,13 @@ class Loki
                 continue;
             }
 
-            // For request headers, use allowlist
+            // For request headers, use allowlist.
             if ($useAllowlist) {
                 if (in_array($nameLower, self::$allowedRequestHeaders)) {
                     $filtered[$name] = is_array($value) ? implode(', ', $value) : $value;
                 }
             } else {
-                // For response headers, include all non-sensitive
+                // For response headers, include all non-sensitive.
                 $filtered[$name] = is_array($value) ? implode(', ', $value) : $value;
             }
         }
@@ -346,84 +331,36 @@ class Loki
             return;
         }
 
-        // Convert log line to JSON string if needed
+        // Convert log line to JSON string if needed.
         if (is_array($logLine)) {
             $logLine = json_encode($logLine);
         }
 
-        // Add to batch
-        $labelKey = json_encode($labels);
-        if (!isset($this->batch[$labelKey])) {
-            $this->batch[$labelKey] = [
-                'stream' => $labels,
-                'values' => [],
-            ];
-        }
-
-        // Loki expects timestamp in nanoseconds as string (no scientific notation).
+        // Determine timestamp.
         if ($timestamp === NULL) {
-            // Use current time
-            $tsNano = sprintf('%.0f', microtime(TRUE) * 1000000000);
+            $ts = date('c');
         } elseif (is_string($timestamp)) {
-            // Parse date string to Unix timestamp, then convert to nanoseconds
             $unixTs = strtotime($timestamp);
-            if ($unixTs === FALSE) {
-                // Invalid date string, use current time
-                $tsNano = sprintf('%.0f', microtime(TRUE) * 1000000000);
-            } else {
-                $tsNano = sprintf('%.0f', $unixTs * 1000000000);
-            }
+            $ts = ($unixTs === FALSE) ? date('c') : date('c', $unixTs);
         } else {
-            // Numeric timestamp (seconds, possibly with microseconds)
-            $tsNano = sprintf('%.0f', $timestamp * 1000000000);
+            $ts = date('c', (int)$timestamp);
         }
 
-        $this->batch[$labelKey]['values'][] = [$tsNano, $logLine];
-
-        // Flush if batch is full or interval has passed
-        $now = time();
-        if (count($this->batch) >= $this->batchSize || ($now - $this->lastFlush) >= $this->flushInterval) {
-            $this->flush();
-        }
+        // Write directly to JSON file.
+        $this->writeLogEntry($labels, $logLine, $ts);
     }
 
     /**
-     * Flush batch to Loki and/or JSON file.
-     */
-    public function flush()
-    {
-        if (empty($this->batch) || !$this->enabled) {
-            return;
-        }
-
-        $payload = ['streams' => array_values($this->batch)];
-        $this->batch = [];
-        $this->lastFlush = time();
-
-        // Send to Loki API if URL configured.
-        if (!empty($this->url)) {
-            $this->sendAsync($payload);
-        }
-
-        // Write to JSON file if enabled (for Alloy to ship).
-        if ($this->jsonFileEnabled) {
-            $this->writeToJsonFile($payload);
-        }
-    }
-
-    /**
-     * Write logs to JSON file for Alloy to ship.
+     * Write a single log entry to JSON file.
      *
-     * @param array $payload The log payload
+     * @param array $labels Loki labels
+     * @param string $logLine JSON-encoded log content
+     * @param string $timestamp ISO format timestamp
      */
-    private function writeToJsonFile($payload)
+    private function writeLogEntry($labels, $logLine, $timestamp)
     {
-        // Determine source from first stream for filename.
-        $source = 'api';
-        if (!empty($payload['streams'][0]['stream']['source'])) {
-            $source = $payload['streams'][0]['stream']['source'];
-        }
-
+        // Determine source from labels for filename.
+        $source = $labels['source'] ?? 'api';
         $logFile = $this->jsonLogPath . '/' . $source . '.log';
 
         // Ensure directory exists.
@@ -432,64 +369,108 @@ class Loki
             @mkdir($dir, 0755, TRUE);
         }
 
-        // Write each log entry as a JSON line.
-        foreach ($payload['streams'] as $stream) {
-            foreach ($stream['values'] as $value) {
-                $entry = [
-                    'timestamp' => date('c', (int)($value[0] / 1000000000)),
-                    'labels' => $stream['stream'],
-                    'message' => $value[1],
-                ];
+        // Build entry structure matching what Alloy expects.
+        $entry = [
+            'timestamp' => $timestamp,
+            'labels' => $labels,
+            'message' => json_decode($logLine, TRUE) ?? $logLine,
+        ];
 
-                // Try to decode message if it's JSON.
-                $decoded = json_decode($value[1], TRUE);
-                if ($decoded !== NULL) {
-                    $entry['message'] = $decoded;
-                }
-
-                @file_put_contents($logFile, json_encode($entry) . "\n", FILE_APPEND | LOCK_EX);
-            }
-        }
+        @file_put_contents($logFile, json_encode($entry) . "\n", FILE_APPEND | LOCK_EX);
     }
 
     /**
-     * Send payload to Loki with minimal blocking.
-     * Waits for response status to ensure data was received.
-     *
-     * @param array $payload The Loki push payload
+     * Flush is now a no-op since we write directly to files.
+     * Kept for API compatibility.
      */
-    private function sendAsync($payload)
+    public function flush()
     {
-        $url = $this->url . '/loki/api/v1/push';
-        $json = json_encode($payload);
+        // No-op - we write directly to files now.
+    }
 
-        $parts = parse_url($url);
-        $host = $parts['host'];
-        $port = $parts['port'] ?? ($parts['scheme'] === 'https' ? 443 : 80);
-        $path = $parts['path'];
-
-        $socket = @fsockopen($host, $port, $errno, $errstr, 0.5);
-        if (!$socket) {
-            return;
+    /**
+     * Push log entries directly to Loki HTTP API.
+     * Used for historical backfill where we want immediate ingestion with specific timestamps.
+     *
+     * @param string $lokiUrl Loki push endpoint (e.g. http://loki:3100/loki/api/v1/push)
+     * @param array $entries Array of entries, each with 'labels', 'logLine', 'timestamp' keys
+     * @return bool TRUE on success, FALSE on failure
+     */
+    public function pushDirectToLoki($lokiUrl, $entries)
+    {
+        if (empty($entries)) {
+            return TRUE;
         }
 
-        // Short timeout to minimize latency impact.
-        stream_set_timeout($socket, 1);
+        // Group entries by label set (Loki requires same labels in a stream).
+        $streams = [];
 
-        $request = "POST $path HTTP/1.1\r\n";
-        $request .= "Host: $host\r\n";
-        $request .= "Content-Type: application/json\r\n";
-        $request .= "Content-Length: " . strlen($json) . "\r\n";
-        $request .= "Connection: close\r\n\r\n";
-        $request .= $json;
+        foreach ($entries as $entry) {
+            $labels = $entry['labels'] ?? [];
+            $logLine = $entry['logLine'];
+            $timestamp = $entry['timestamp'];
 
-        @fwrite($socket, $request);
+            // Convert log line to JSON string if needed.
+            if (is_array($logLine)) {
+                $logLine = json_encode($logLine);
+            }
 
-        // Wait for response status line to ensure data was received.
-        // This is minimal blocking but ensures the request completed.
-        @fgets($socket, 128);
+            // Convert timestamp to nanoseconds.
+            if (is_string($timestamp)) {
+                $unixTs = strtotime($timestamp);
+                if ($unixTs === FALSE) {
+                    $unixTs = time();
+                }
+            } else {
+                $unixTs = (int)$timestamp;
+            }
+            $nanoTs = (string)($unixTs * 1000000000);
 
-        @fclose($socket);
+            // Create label key for grouping.
+            ksort($labels);
+            $labelKey = json_encode($labels);
+
+            if (!isset($streams[$labelKey])) {
+                $streams[$labelKey] = [
+                    'stream' => $labels,
+                    'values' => [],
+                ];
+            }
+
+            $streams[$labelKey]['values'][] = [$nanoTs, $logLine];
+        }
+
+        // Build Loki push payload.
+        $payload = [
+            'streams' => array_values($streams),
+        ];
+
+        // Send to Loki.
+        $ch = curl_init($lokiUrl);
+        curl_setopt_array($ch, [
+            CURLOPT_POST => TRUE,
+            CURLOPT_POSTFIELDS => json_encode($payload),
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+            CURLOPT_RETURNTRANSFER => TRUE,
+            CURLOPT_TIMEOUT => 30,
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+
+        if ($error) {
+            error_log("Loki push error: $error");
+            return FALSE;
+        }
+
+        if ($httpCode !== 204 && $httpCode !== 200) {
+            error_log("Loki push failed with HTTP $httpCode: $response");
+            return FALSE;
+        }
+
+        return TRUE;
     }
 
     /**
@@ -497,7 +478,7 @@ class Loki
      */
     private function hashEmail($email)
     {
-        // Keep domain but hash local part for privacy
+        // Keep domain but hash local part for privacy.
         $parts = explode('@', $email);
         if (count($parts) === 2) {
             return substr(md5($parts[0]), 0, 8) . '@' . $parts[1];
@@ -506,10 +487,10 @@ class Loki
     }
 
     /**
-     * Destructor - flush any remaining logs.
+     * Destructor - no-op now since we write directly.
      */
     public function __destruct()
     {
-        $this->flush();
+        // No-op.
     }
 }

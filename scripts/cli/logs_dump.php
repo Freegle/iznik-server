@@ -121,9 +121,9 @@ function exportLogsTable($dbhr, $startDate, $endDate, $batchSize, $verbose, $dry
                 FROM logs
                 WHERE timestamp >= ? AND timestamp <= ?
                 ORDER BY id ASC
-                LIMIT ? OFFSET ?";
+                LIMIT " . intval($batchSize) . " OFFSET " . intval($offset);
 
-        $rows = $dbhr->preQuery($sql, [$startDate, $endDate, $batchSize, $offset]);
+        $rows = $dbhr->preQuery($sql, [$startDate, $endDate]);
 
         if (empty($rows)) {
             break;
@@ -157,8 +157,8 @@ function exportLogsTable($dbhr, $startDate, $endDate, $batchSize, $verbose, $dry
 
         if ($verbose && $exported % 10000 === 0) {
             $elapsed = microtime(TRUE) - $startTime;
-            $rate = $exported / $elapsed;
-            error_log("  Exported $exported logs records ({$rate:.0f} records/sec)");
+            $rate = round($exported / $elapsed);
+            error_log("  Exported $exported logs records ($rate records/sec)");
         }
     }
 
@@ -166,7 +166,7 @@ function exportLogsTable($dbhr, $startDate, $endDate, $batchSize, $verbose, $dry
 
     if ($verbose) {
         $elapsed = microtime(TRUE) - $startTime;
-        error_log("  Completed: $exported logs records in {$elapsed:.1f} seconds");
+        error_log("  Completed: $exported logs records in " . round($elapsed, 1) . " seconds");
     }
 
     return $exported;
@@ -189,9 +189,9 @@ function exportLogsApiTable($dbhr, $startDate, $endDate, $batchSize, $verbose, $
                 FROM logs_api
                 WHERE date >= ? AND date <= ?
                 ORDER BY id ASC
-                LIMIT ? OFFSET ?";
+                LIMIT " . intval($batchSize) . " OFFSET " . intval($offset);
 
-        $rows = $dbhr->preQuery($sql, [$startDate, $endDate, $batchSize, $offset]);
+        $rows = $dbhr->preQuery($sql, [$startDate, $endDate]);
 
         if (empty($rows)) {
             break;
@@ -230,8 +230,8 @@ function exportLogsApiTable($dbhr, $startDate, $endDate, $batchSize, $verbose, $
 
         if ($verbose && $exported % 10000 === 0) {
             $elapsed = microtime(TRUE) - $startTime;
-            $rate = $exported / $elapsed;
-            error_log("  Exported $exported logs_api records ({$rate:.0f} records/sec)");
+            $rate = round($exported / $elapsed);
+            error_log("  Exported $exported logs_api records ($rate records/sec)");
         }
     }
 
@@ -239,7 +239,7 @@ function exportLogsApiTable($dbhr, $startDate, $endDate, $batchSize, $verbose, $
 
     if ($verbose) {
         $elapsed = microtime(TRUE) - $startTime;
-        error_log("  Completed: $exported logs_api records in {$elapsed:.1f} seconds");
+        error_log("  Completed: $exported logs_api records in " . round($elapsed, 1) . " seconds");
     }
 
     return $exported;
@@ -266,14 +266,14 @@ $overallElapsed = microtime(TRUE) - $overallStart;
 error_log("");
 error_log("Export Summary:");
 error_log("  Total records: $totalExported");
-error_log("  - logs table: {$stats['logs']}");
-error_log("  - logs_api table: {$stats['logs_api']}");
-error_log("  Time: {$overallElapsed:.1f} seconds");
+error_log("  - logs table: " . $stats['logs']);
+error_log("  - logs_api table: " . $stats['logs_api']);
+error_log("  Time: " . round($overallElapsed, 1) . " seconds");
 
 if (!$dryRun) {
     $fileSize = filesize($outputFile);
-    $fileSizeMB = $fileSize / (1024 * 1024);
-    error_log("  Output file: $outputFile ({$fileSizeMB:.1f} MB)");
+    $fileSizeMB = round($fileSize / (1024 * 1024), 1);
+    error_log("  Output file: $outputFile ($fileSizeMB MB)");
 } else {
     error_log("  (Dry run - no file written)");
 }
