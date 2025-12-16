@@ -9,9 +9,7 @@ require_once(BASE_DIR . '/include/config.php');
 require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm, $dbconfig;
 
-$dbhback = new LoggedPDO('localhost:3309', $dbconfig['database'], $dbconfig['user'], $dbconfig['pass'], TRUE);
-
-$opts = getopt('e:');
+$opts = getopt('e:b:p:u:w:');
 
 $useridkeywords = [
     'userid',
@@ -21,9 +19,26 @@ $useridkeywords = [
     'user2'
 ];
 
-if (count($opts) < 1) {
-    echo "Usage: php user_restore.php -e <email to restore>\n";
+if (!isset($opts['e'])) {
+    echo "Usage: php user_restore.php -e <email to restore> [-b <backup_host>] [-p <backup_port>] [-u <backup_user>] [-w <backup_password>]\n";
+    echo "\n";
+    echo "Options:\n";
+    echo "  -e  Email address of user to restore (required)\n";
+    echo "  -b  Backup database host (default: localhost)\n";
+    echo "  -p  Backup database port (default: 3309)\n";
+    echo "  -u  Backup database user (default: from config)\n";
+    echo "  -w  Backup database password (default: from config)\n";
+    echo "\n";
+    echo "Example for yesterday system:\n";
+    echo "  php user_restore.php -e user@example.com -b yesterday.ilovefreegle.org -p 3306 -u root -w <password>\n";
+    exit(1);
 } else {
+    $backupHost = $opts['b'] ?? 'localhost';
+    $backupPort = $opts['p'] ?? '3309';
+    $backupUser = $opts['u'] ?? $dbconfig['user'];
+    $backupPass = $opts['w'] ?? $dbconfig['pass'];
+
+    $dbhback = new LoggedPDO("$backupHost:$backupPort", $dbconfig['database'], $backupUser, $backupPass, TRUE);
     $email = $opts['e'];
     $ulive = User::get($dbhr, $dbhm);
     $luid = $ulive->findByEmail($email);
