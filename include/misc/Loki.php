@@ -118,6 +118,48 @@ class Loki
     }
 
     /**
+     * Maximum string length for logged values.
+     */
+    const MAX_STRING_LENGTH = 32;
+
+    /**
+     * Truncate a string to MAX_STRING_LENGTH characters.
+     *
+     * @param string $value String to truncate
+     * @return string Truncated string
+     */
+    private function truncateString($value)
+    {
+        if (strlen($value) <= self::MAX_STRING_LENGTH) {
+            return $value;
+        }
+        return substr($value, 0, self::MAX_STRING_LENGTH) . '...';
+    }
+
+    /**
+     * Recursively truncate all string values in an array.
+     *
+     * @param mixed $data Data to truncate
+     * @return mixed Truncated data
+     */
+    private function truncateData($data)
+    {
+        if (is_string($data)) {
+            return $this->truncateString($data);
+        }
+
+        if (is_array($data)) {
+            $result = [];
+            foreach ($data as $key => $value) {
+                $result[$key] = $this->truncateData($value);
+            }
+            return $result;
+        }
+
+        return $data;
+    }
+
+    /**
      * Log API request to Loki.
      *
      * @param string $version API version (v1 or v2)
@@ -151,6 +193,62 @@ class Loki
             'user_id' => $userId,
             'timestamp' => date('c'),
         ], $traceHeaders, $extra);
+
+        $this->log($labels, $logLine);
+    }
+
+    /**
+     * Log API request with full request/response data to Loki.
+     *
+     * @param string $version API version (v1 or v2)
+     * @param string $method HTTP method
+     * @param string $endpoint API endpoint
+     * @param int $statusCode HTTP status code
+     * @param float $duration Request duration in milliseconds
+     * @param int|null $userId User ID if authenticated
+     * @param array $extra Extra fields to log
+     * @param array $queryParams Query parameters (will be truncated)
+     * @param array|null $requestBody Request body (will be truncated)
+     * @param array|null $responseBody Response body (will be truncated)
+     */
+    public function logApiRequestFull($version, $method, $endpoint, $statusCode, $duration, $userId = NULL, $extra = [], $queryParams = [], $requestBody = NULL, $responseBody = NULL)
+    {
+        if (!$this->enabled) {
+            return;
+        }
+
+        $labels = [
+            'app' => 'freegle',
+            'source' => 'api',
+            'api_version' => $version,
+            'method' => $method,
+            'status_code' => (string)$statusCode,
+        ];
+
+        // Include trace headers for distributed tracing correlation.
+        $traceHeaders = $this->getTraceHeaders();
+
+        $logLine = array_merge([
+            'endpoint' => $endpoint,
+            'duration_ms' => $duration,
+            'user_id' => $userId,
+            'timestamp' => date('c'),
+        ], $traceHeaders, $extra);
+
+        // Add query parameters (truncated).
+        if (!empty($queryParams)) {
+            $logLine['query_params'] = $this->truncateData($queryParams);
+        }
+
+        // Add request body (truncated).
+        if (!empty($requestBody)) {
+            $logLine['request_body'] = $this->truncateData($requestBody);
+        }
+
+        // Add response body (truncated).
+        if (!empty($responseBody)) {
+            $logLine['response_body'] = $this->truncateData($responseBody);
+        }
 
         $this->log($labels, $logLine);
     }

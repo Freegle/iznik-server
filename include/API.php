@@ -591,6 +591,9 @@ class API
                 'duration' => (microtime(TRUE) - $scriptstart) * 1000, // ms
                 'userId' => session_status() !== PHP_SESSION_NONE ? Utils::presdef('id', $_SESSION, NULL) : NULL,
                 'ip' => Utils::presdef('REMOTE_ADDR', $_SERVER, ''),
+                'queryParams' => $_GET,
+                'requestBody' => Utils::presdef('type', $_REQUEST, 'GET') === 'POST' ? $_POST : [],
+                'responseBody' => is_array($ret) ? $ret : [],
             ];
 
             # Capture request headers from $_SERVER (HTTP_* format).
@@ -625,14 +628,17 @@ class API
             register_shutdown_function(function() use ($lokiLogData, $lokiHeaderData) {
                 $loki = Loki::getInstance();
                 if ($loki->isEnabled()) {
-                    $loki->logApiRequest(
+                    $loki->logApiRequestFull(
                         'v1',
                         $lokiLogData['method'],
                         $lokiLogData['call'],
                         $lokiLogData['statusCode'],
                         $lokiLogData['duration'],
                         $lokiLogData['userId'],
-                        ['ip' => $lokiLogData['ip']]
+                        ['ip' => $lokiLogData['ip']],
+                        $lokiLogData['queryParams'],
+                        $lokiLogData['requestBody'],
+                        $lokiLogData['responseBody']
                     );
 
                     # Log headers separately (7-day retention for debugging).
