@@ -499,6 +499,16 @@ class API
 
                             Utils::filterResult($ret);
 
+                            # Set X-User-Role header for HAProxy to exempt mods/support/admin from rate limiting.
+                            # Use whoAmI which caches the user object.
+                            $me = Session::whoAmI($dbhr, $dbhm);
+                            if ($me) {
+                                $systemrole = $me->getPrivate('systemrole');
+                                if ($systemrole && $systemrole != User::SYSTEMROLE_USER) {
+                                    @header('X-User-Role: ' . $systemrole);
+                                }
+                            }
+
                             $encoded_ret = json_encode($ret, JSON_PARTIAL_OUTPUT_ON_ERROR);
                             echo $encoded_ret;
 
