@@ -153,6 +153,12 @@ class API
             # This is an optimisation for User.php.
             if (session_status() !== PHP_SESSION_NONE) {
                 $_SESSION['modorowner'] = Utils::presdef('modorowner', $_SESSION, []);
+
+                # Add X-User-Id header for HAProxy per-user rate limiting.
+                $userId = Utils::presdef('id', $_SESSION, NULL);
+                if ($userId) {
+                    @header('X-User-Id: ' . $userId);
+                }
             }
 
             $encoded_ret = NULL;
