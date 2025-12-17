@@ -584,6 +584,10 @@ class API
 
             # Log API request to Loki (fire-and-forget, doesn't block response).
             # This is done via shutdown function to ensure response is sent first.
+            # Generate a unique request_id to correlate API logs with their headers.
+            # Format: timestamp_ms (hex) + random bytes for uniqueness within same ms.
+            $requestId = dechex((int)(microtime(TRUE) * 1000)) . bin2hex(random_bytes(4));
+
             $lokiLogData = [
                 'call' => $call,
                 'method' => Utils::presdef('type', $_REQUEST, 'GET'),
@@ -594,6 +598,7 @@ class API
                 'queryParams' => $_GET,
                 'requestBody' => Utils::presdef('type', $_REQUEST, 'GET') === 'POST' ? $_POST : [],
                 'responseBody' => is_array($ret) ? $ret : [],
+                'requestId' => $requestId,
             ];
 
             # Capture request headers from $_SERVER (HTTP_* format).
@@ -635,20 +640,25 @@ class API
                         $lokiLogData['statusCode'],
                         $lokiLogData['duration'],
                         $lokiLogData['userId'],
-                        ['ip' => $lokiLogData['ip']],
+                        [
+                            'ip' => $lokiLogData['ip'],
+                            'request_id' => $lokiLogData['requestId'],
+                        ],
                         $lokiLogData['queryParams'],
                         $lokiLogData['requestBody'],
                         $lokiLogData['responseBody']
                     );
 
                     # Log headers separately (7-day retention for debugging).
+                    # Include request_id for correlation with main API log.
                     $loki->logApiHeaders(
                         'v1',
                         $lokiLogData['method'],
                         $lokiLogData['call'],
                         $lokiHeaderData['requestHeaders'],
                         $lokiHeaderData['responseHeaders'],
-                        $lokiLogData['userId']
+                        $lokiLogData['userId'],
+                        $lokiLogData['requestId']
                     );
 
                     $loki->flush();

@@ -262,8 +262,9 @@ class Loki
      * @param array $requestHeaders Request headers
      * @param array $responseHeaders Response headers
      * @param int|null $userId User ID if authenticated
+     * @param string|null $requestId Unique request ID for correlation with main API log
      */
-    public function logApiHeaders($version, $method, $endpoint, $requestHeaders, $responseHeaders, $userId = NULL)
+    public function logApiHeaders($version, $method, $endpoint, $requestHeaders, $responseHeaders, $userId = NULL, $requestId = NULL)
     {
         if (!$this->enabled) {
             return;
@@ -279,6 +280,7 @@ class Loki
         $logLine = [
             'endpoint' => $endpoint,
             'user_id' => $userId,
+            'request_id' => $requestId,
             'request_headers' => $this->filterHeaders($requestHeaders, TRUE),
             'response_headers' => $this->filterHeaders($responseHeaders, FALSE),
             'timestamp' => date('c'),
