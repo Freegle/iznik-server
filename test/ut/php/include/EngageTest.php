@@ -27,6 +27,11 @@ class EngageTest extends IznikTestCase {
 
         $this->tidy();
 
+        // Clean up engage table entries for test users to prevent flaky tests.
+        // The engage table tracks when users were sent engagement emails, and
+        // prevents re-sending within 7 days - this causes test isolation issues.
+        $this->dbhm->preExec("DELETE FROM engage WHERE userid IN (SELECT id FROM users WHERE fullname = 'Test User' OR firstname = 'Test');");
+
         $g = Group::get($this->dbhr, $this->dbhm);
         $this->gid = $g->create("testgroup", Group::GROUP_FREEGLE);
         $this->group = Group::get($this->dbhr, $this->dbhm, $this->gid);
