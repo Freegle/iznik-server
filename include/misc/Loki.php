@@ -77,41 +77,61 @@ class Loki
         'x-trace-id',
         'x-session-id',
         'x-client-timestamp',
+        // Logging context headers.
+        'x-freegle-session',
+        'x-freegle-page',
+        'x-freegle-modal',
+        'x-freegle-site',
     ];
 
     /**
-     * Get trace headers from the current request.
+     * Get trace and context headers from the current request.
      *
-     * @return array Trace information from headers
+     * @return array Trace and context information from headers
      */
     public function getTraceHeaders()
     {
         $headers = [];
 
-        // Get trace headers from Apache headers or $_SERVER.
+        // Header mappings: header name (lowercase) => output key.
+        $headerMappings = [
+            // Legacy trace headers.
+            'x-trace-id' => 'trace_id',
+            'x-session-id' => 'session_id',
+            'x-client-timestamp' => 'client_timestamp',
+            // New logging context headers.
+            'x-freegle-session' => 'freegle_session',
+            'x-freegle-page' => 'freegle_page',
+            'x-freegle-modal' => 'freegle_modal',
+            'x-freegle-site' => 'freegle_site',
+        ];
+
+        // Get headers from Apache headers or $_SERVER.
         if (function_exists('apache_request_headers')) {
             $requestHeaders = apache_request_headers();
             foreach ($requestHeaders as $name => $value) {
                 $nameLower = strtolower($name);
-                if ($nameLower === 'x-trace-id') {
-                    $headers['trace_id'] = $value;
-                } elseif ($nameLower === 'x-session-id') {
-                    $headers['session_id'] = $value;
-                } elseif ($nameLower === 'x-client-timestamp') {
-                    $headers['client_timestamp'] = $value;
+                if (isset($headerMappings[$nameLower])) {
+                    $headers[$headerMappings[$nameLower]] = $value;
                 }
             }
         }
 
-        // Fallback to $_SERVER.
-        if (empty($headers['trace_id']) && !empty($_SERVER['HTTP_X_TRACE_ID'])) {
-            $headers['trace_id'] = $_SERVER['HTTP_X_TRACE_ID'];
-        }
-        if (empty($headers['session_id']) && !empty($_SERVER['HTTP_X_SESSION_ID'])) {
-            $headers['session_id'] = $_SERVER['HTTP_X_SESSION_ID'];
-        }
-        if (empty($headers['client_timestamp']) && !empty($_SERVER['HTTP_X_CLIENT_TIMESTAMP'])) {
-            $headers['client_timestamp'] = $_SERVER['HTTP_X_CLIENT_TIMESTAMP'];
+        // Fallback to $_SERVER for any missing headers.
+        $serverMappings = [
+            'HTTP_X_TRACE_ID' => 'trace_id',
+            'HTTP_X_SESSION_ID' => 'session_id',
+            'HTTP_X_CLIENT_TIMESTAMP' => 'client_timestamp',
+            'HTTP_X_FREEGLE_SESSION' => 'freegle_session',
+            'HTTP_X_FREEGLE_PAGE' => 'freegle_page',
+            'HTTP_X_FREEGLE_MODAL' => 'freegle_modal',
+            'HTTP_X_FREEGLE_SITE' => 'freegle_site',
+        ];
+
+        foreach ($serverMappings as $serverKey => $outputKey) {
+            if (empty($headers[$outputKey]) && !empty($_SERVER[$serverKey])) {
+                $headers[$outputKey] = $_SERVER[$serverKey];
+            }
         }
 
         return $headers;
