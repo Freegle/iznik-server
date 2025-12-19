@@ -204,6 +204,11 @@ class Loki
             'status_code' => (string)$statusCode,
         ];
 
+        // Add user_id as label for indexed queries.
+        if ($userId) {
+            $labels['user_id'] = (string)$userId;
+        }
+
         // Include trace headers for distributed tracing correlation.
         $traceHeaders = $this->getTraceHeaders();
 
@@ -244,6 +249,11 @@ class Loki
             'method' => $method,
             'status_code' => (string)$statusCode,
         ];
+
+        // Add user_id as label for indexed queries.
+        if ($userId) {
+            $labels['user_id'] = (string)$userId;
+        }
 
         // Include trace headers for distributed tracing correlation.
         $traceHeaders = $this->getTraceHeaders();
@@ -407,6 +417,11 @@ class Loki
 
         if (!empty($params['groupid'])) {
             $labels['groupid'] = (string)$params['groupid'];
+        }
+
+        // Add user_id as label for indexed queries.
+        if (!empty($params['user'])) {
+            $labels['user_id'] = (string)$params['user'];
         }
 
         $logLine = [
