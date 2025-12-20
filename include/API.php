@@ -571,33 +571,6 @@ class API
                 }
             } while ($apicallretries < API_RETRIES);
 
-            if (BROWSERTRACKING && (Utils::presdef('type', $_REQUEST, null) != 'GET') &&
-                (gettype($ret) == 'array' && !array_key_exists('nolog', $ret)) &&
-                (Utils::presdef('action', $_REQUEST, null) != 'MarkSeen')) {
-                # Save off the API call and result, except for the (very frequent) event tracking calls.  Don't
-                # save GET calls as they don't change the DB and there are a lot of them.  Don't save MarkSeen
-                # calls as they are very frequent and not useful for debugging.
-                #
-                # Beanstalk has a limit on the size of job that it accepts; no point trying to log absurdly large
-                # API requests.
-                $r = $_REQUEST;
-                $headers = Session::getallheaders();
-                $r['headers'] = $headers;
-                $req = json_encode($r);
-                $rsp = $encoded_ret;
-
-                if (strlen($req) + strlen($rsp) > 180000) {
-                    $req = substr($req, 0, 1000);
-                    $rsp = substr($rsp, 0, 1000);
-                }
-
-                $sql = "INSERT INTO logs_api (`userid`, `ip`, `session`, `request`, `response`) VALUES (" .
-                    (session_status() !== PHP_SESSION_NONE ? Utils::presdef('id', $_SESSION,'NULL') : 'NULL') .
-                    ", '" . Utils::presdef('REMOTE_ADDR', $_SERVER, '') . "', " . $dbhr->quote(session_id()) .
-                    ", " . $dbhr->quote($req) . ", " . $dbhr->quote($rsp) . ");";
-                $dbhm->background($sql);
-            }
-
             # Log API request to Loki (fire-and-forget, doesn't block response).
             # This is done via shutdown function to ensure response is sent first.
             # Generate a unique request_id to correlate API logs with their headers.

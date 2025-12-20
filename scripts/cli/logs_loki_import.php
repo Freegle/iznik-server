@@ -195,7 +195,6 @@ function markAsImported($trackingPdo, $source, $originalId) {
 // Statistics
 $stats = [
     'logs' => 0,
-    'logs_api' => 0,
     'errors' => 0,
     'skipped' => 0,
     'duplicates' => 0,
@@ -286,54 +285,6 @@ while (($line = fgets($fp)) !== FALSE) {
         $stats['logs']++;
         $imported++;
 
-    } elseif ($source === 'logs_api') {
-        $originalId = $record['id'] ?? NULL;
-
-        // Check for duplicates (unless force mode)
-        if (!$force && $originalId && isAlreadyImported($trackingPdo, 'logs_api', $originalId)) {
-            $stats['duplicates']++;
-            continue;
-        }
-
-        // Import from logs_api table
-        $response = $record['response'] ?? [];
-
-        $labels = [
-            'app' => 'freegle',
-            'source' => 'api',
-            'api_version' => 'v1',
-            'method' => $response['method'] ?? 'unknown',
-            'status_code' => (string)($response['ret'] ?? 0),
-        ];
-
-        $logLine = [
-            'userid' => $record['userid'],
-            'ip' => $record['ip'],
-            'session' => $record['session'],
-            'call' => $record['call'] ?? ($response['call'] ?? NULL),
-            'ret' => $record['ret'] ?? ($response['ret'] ?? NULL),
-            'status' => $record['status'] ?? ($response['status'] ?? NULL),
-            'cpucost' => $record['cpucost'] ?? ($response['cpucost'] ?? NULL),
-            'original_id' => $originalId,
-            'timestamp' => $record['timestamp'],
-        ];
-
-        if (!$dryRun) {
-            if ($directMode) {
-                $directBatch[] = [
-                    'labels' => $labels,
-                    'logLine' => $logLine,
-                    'timestamp' => $record['timestamp'],
-                ];
-            } else {
-                $loki->logWithTimestamp($labels, $logLine, $record['timestamp']);
-            }
-            markAsImported($trackingPdo, 'logs_api', $originalId);
-        }
-
-        $stats['logs_api']++;
-        $imported++;
-
     } else {
         $stats['skipped']++;
         if ($verbose && $stats['skipped'] <= 10) {
@@ -375,7 +326,6 @@ error_log("");
 error_log("Import Summary:");
 error_log("  Total imported: $imported");
 error_log("  - logs table records: " . $stats['logs']);
-error_log("  - logs_api table records: " . $stats['logs_api']);
 error_log("  Duplicates skipped: " . $stats['duplicates']);
 error_log("  Unknown source skipped: " . $stats['skipped']);
 error_log("  Errors: " . $stats['errors']);

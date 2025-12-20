@@ -628,4 +628,270 @@ class Loki
     {
         // No-op.
     }
+
+    /**
+     * Query Loki for logs matching a LogQL query.
+     *
+     * @param string $query LogQL query string
+     * @param int $limit Maximum number of results
+     * @param string|null $start Start time (ISO format or relative like "24h")
+     * @param string|null $end End time (ISO format, defaults to now)
+     * @return array Array of log entries with parsed JSON
+     */
+    public function query($query, $limit = 1000, $start = '24h', $end = NULL)
+    {
+        $lokiUrl = defined('LOKI_URL') ? LOKI_URL : 'http://loki:3100';
+
+        // Convert relative time to absolute.
+        if ($end === NULL) {
+            $endTime = time();
+        } else {
+            $endTime = strtotime($end);
+        }
+
+        if (preg_match('/^(\d+)([hdm])$/', $start, $matches)) {
+            $amount = (int)$matches[1];
+            $unit = $matches[2];
+            switch ($unit) {
+                case 'h':
+                    $startTime = $endTime - ($amount * 3600);
+                    break;
+                case 'd':
+                    $startTime = $endTime - ($amount * 86400);
+                    break;
+                case 'm':
+                    $startTime = $endTime - ($amount * 60);
+                    break;
+                default:
+                    $startTime = $endTime - 86400;
+            }
+        } else {
+            $startTime = strtotime($start);
+            if ($startTime === FALSE) {
+                $startTime = $endTime - 86400;
+            }
+        }
+
+        // Build query URL.
+        $params = [
+            'query' => $query,
+            'limit' => $limit,
+            'start' => $startTime . '000000000',
+            'end' => $endTime . '000000000',
+        ];
+
+        $url = $lokiUrl . '/loki/api/v1/query_range?' . http_build_query($params);
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => TRUE,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTPHEADER => ['Accept: application/json'],
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+
+        if ($error) {
+            error_log("Loki query error: $error");
+            return [];
+        }
+
+        if ($httpCode !== 200) {
+            error_log("Loki query failed with HTTP $httpCode: $response");
+            return [];
+        }
+
+        $data = json_decode($response, TRUE);
+        if (!$data || $data['status'] !== 'success') {
+            return [];
+        }
+
+        // Parse results into a flat array of log entries.
+        $results = [];
+        foreach ($data['data']['result'] ?? [] as $stream) {
+            $labels = $stream['stream'] ?? [];
+            foreach ($stream['values'] ?? [] as $value) {
+                $timestamp = $value[0];
+                $logLine = $value[1];
+                $parsed = json_decode($logLine, TRUE) ?? ['raw' => $logLine];
+                $results[] = array_merge($labels, $parsed, [
+                    '_timestamp' => $timestamp,
+                ]);
+            }
+        }
+
+        return $results;
+    }
+
+    /**
+     * Find distinct IPs used by a user from API logs.
+     *
+     * @param int $userId User ID
+     * @param string $lookback How far back to look (default 30d)
+     * @return array Array of IP addresses
+     */
+    public function findUserIPs($userId, $lookback = '30d')
+    {
+        $query = '{app="freegle",source="api",user_id="' . (int)$userId . '"}';
+        $results = $this->query($query, 5000, $lookback);
+
+        $ips = [];
+        foreach ($results as $entry) {
+            $ip = $entry['ip'] ?? $entry['client_ip'] ?? NULL;
+            if ($ip && !in_array($ip, $ips)) {
+                $ips[] = $ip;
+            }
+        }
+
+        return $ips;
+    }
+
+    /**
+     * Find users who have used a specific IP address.
+     *
+     * @param string $ip IP address
+     * @param string $lookback How far back to look (default 30d)
+     * @return array Array of user IDs
+     */
+    public function findUsersForIP($ip, $lookback = '30d')
+    {
+        // Query all API logs and filter by IP in the log line.
+        $query = '{app="freegle",source="api"} |= "' . addslashes($ip) . '"';
+        $results = $this->query($query, 5000, $lookback);
+
+        $userIds = [];
+        foreach ($results as $entry) {
+            $entryIp = $entry['ip'] ?? $entry['client_ip'] ?? NULL;
+            if ($entryIp === $ip) {
+                $userId = $entry['user_id'] ?? NULL;
+                if ($userId && !in_array($userId, $userIds)) {
+                    $userIds[] = (int)$userId;
+                }
+            }
+        }
+
+        return $userIds;
+    }
+
+    /**
+     * Check if a user has successfully accessed from a specific IP.
+     *
+     * @param int $userId User ID
+     * @param string $ip IP address
+     * @param string $lookback How far back to look (default 30d)
+     * @return bool TRUE if user has accessed from this IP with success, or if Loki is not enabled
+     */
+    public function hasUserAccessedFromIP($userId, $ip, $lookback = '30d')
+    {
+        // Skip verification if Loki is not enabled (e.g., in tests).
+        if (!$this->enabled) {
+            return TRUE;
+        }
+
+        $query = '{app="freegle",source="api",user_id="' . (int)$userId . '",status_code="200"} |= "' . addslashes($ip) . '"';
+        $results = $this->query($query, 100, $lookback);
+
+        foreach ($results as $entry) {
+            $entryIp = $entry['ip'] ?? $entry['client_ip'] ?? NULL;
+            if ($entryIp === $ip) {
+                return TRUE;
+            }
+        }
+
+        return FALSE;
+    }
+
+    /**
+     * Find users sharing IPs with a given user within a time window.
+     *
+     * @param int $userId User ID to check
+     * @param int $windowMinutes Time window in minutes (default 5)
+     * @param string $lookback How far back to look (default 7d)
+     * @return array Array of user IDs who shared IPs within the time window
+     */
+    public function findUsersWithSharedIPActivity($userId, $windowMinutes = 5, $lookback = '7d')
+    {
+        // Get all IPs used by this user with timestamps.
+        $query = '{app="freegle",source="api",user_id="' . (int)$userId . '"}';
+        $userLogs = $this->query($query, 5000, $lookback);
+
+        $userActivity = [];
+        foreach ($userLogs as $entry) {
+            $ip = $entry['ip'] ?? $entry['client_ip'] ?? NULL;
+            $timestamp = $entry['timestamp'] ?? NULL;
+            if ($ip && $timestamp) {
+                $userActivity[] = [
+                    'ip' => $ip,
+                    'time' => strtotime($timestamp),
+                ];
+            }
+        }
+
+        if (empty($userActivity)) {
+            return [];
+        }
+
+        // Get unique IPs.
+        $ips = array_unique(array_column($userActivity, 'ip'));
+
+        $sharedUsers = [];
+        foreach ($ips as $ip) {
+            $otherUsers = $this->findUsersForIP($ip, $lookback);
+            foreach ($otherUsers as $otherUserId) {
+                if ($otherUserId != $userId && !in_array($otherUserId, $sharedUsers)) {
+                    // Check if activity was within the time window.
+                    $otherQuery = '{app="freegle",source="api",user_id="' . (int)$otherUserId . '"} |= "' . addslashes($ip) . '"';
+                    $otherLogs = $this->query($otherQuery, 1000, $lookback);
+
+                    foreach ($otherLogs as $otherEntry) {
+                        $otherIp = $otherEntry['ip'] ?? $otherEntry['client_ip'] ?? NULL;
+                        $otherTime = strtotime($otherEntry['timestamp'] ?? '');
+
+                        if ($otherIp === $ip && $otherTime) {
+                            foreach ($userActivity as $ua) {
+                                if ($ua['ip'] === $ip) {
+                                    $diff = abs($ua['time'] - $otherTime);
+                                    if ($diff <= $windowMinutes * 60) {
+                                        $sharedUsers[] = $otherUserId;
+                                        break 2;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return array_unique($sharedUsers);
+    }
+
+    /**
+     * Check if an IP has been used by a moderator.
+     *
+     * @param string $ip IP address
+     * @param string $lookback How far back to look (default 30d)
+     * @return bool TRUE if a mod has used this IP
+     */
+    public function hasModUsedIP($ip, $lookback = '30d')
+    {
+        global $dbhr;
+
+        $userIds = $this->findUsersForIP($ip, $lookback);
+
+        if (empty($userIds)) {
+            return FALSE;
+        }
+
+        $placeholders = implode(',', array_fill(0, count($userIds), '?'));
+        $mods = $dbhr->preQuery(
+            "SELECT id FROM users WHERE id IN ($placeholders) AND systemrole != ?",
+            array_merge($userIds, [User::SYSTEMROLE_USER])
+        );
+
+        return count($mods) > 0;
+    }
 }

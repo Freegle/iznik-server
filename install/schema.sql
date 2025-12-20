@@ -1227,10 +1227,11 @@ CREATE TABLE `isochrones` (
   `locationid` bigint unsigned DEFAULT NULL,
   `transport` enum('Walk','Cycle','Drive') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `minutes` int NOT NULL,
+  `source` varchar(50) DEFAULT NULL,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `polygon` geometry NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `userid_2` (`locationid`,`transport`,`minutes`),
+  UNIQUE KEY `userid_2` (`locationid`,`transport`,`minutes`,`source`),
   KEY `locationid` (`locationid`),
   KEY `locationid_2` (`locationid`,`transport`,`minutes`),
   CONSTRAINT `isochrones_ibfk_2` FOREIGN KEY (`locationid`) REFERENCES `locations` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
@@ -1599,30 +1600,6 @@ CREATE TABLE `logs` (
   KEY `msgid` (`msgid`),
   KEY `timestamp_2` (`timestamp`,`type`,`subtype`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1751298304 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Logs.  Not guaranteed against loss';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `logs_api`
---
-
-DROP TABLE IF EXISTS `logs_api`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `logs_api` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `userid` bigint DEFAULT NULL,
-  `ip` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `session` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `request` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `response` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `id` (`id`),
-  KEY `session` (`session`),
-  KEY `date` (`date`),
-  KEY `userid` (`userid`),
-  KEY `ip` (`ip`)
-) ENGINE=InnoDB AUTO_INCREMENT=1751307775 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci KEY_BLOCK_SIZE=8 COMMENT='Log of all API requests and responses';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --

@@ -3,9 +3,8 @@
  * Export logs from database to JSON file for Loki migration.
  *
  * Usage:
- *   php logs_dump.php -d 7 -t logs -o /tmp/logs.json       # Last 7 days of logs table
- *   php logs_dump.php -s "2025-12-01" -e "2025-12-15"      # Date range, both tables
- *   php logs_dump.php -d 1 -t logs_api -v                  # Verbose, API logs only
+ *   php logs_dump.php -d 7 -o /tmp/logs.json       # Last 7 days
+ *   php logs_dump.php -s "2025-12-01" -e "2025-12-15"      # Date range
  */
 
 namespace Freegle\Iznik;
@@ -17,7 +16,7 @@ require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
 // Parse command line arguments
-$opts = getopt('s:e:d:t:o:b:vh', ['help', 'dry-run']);
+$opts = getopt('s:e:d:o:b:vh', ['help', 'dry-run']);
 
 if (isset($opts['h']) || isset($opts['help'])) {
     echo <<<HELP
@@ -29,7 +28,6 @@ Options:
   -s <start>     Start date (YYYY-MM-DD or YYYY-MM-DD HH:MM:SS)
   -e <end>       End date (YYYY-MM-DD or YYYY-MM-DD HH:MM:SS)
   -d <days>      Days ago (alternative to start/end)
-  -t <table>     Table: 'logs', 'logs_api', or 'both' (default: both)
   -o <file>      Output file path (default: logs_export_YYYYMMDD_HHMMSS.json)
   -b <batch>     Batch size for DB queries (default: 10000)
   -v             Verbose output
@@ -37,8 +35,8 @@ Options:
   -h, --help     Show this help message
 
 Examples:
-  php logs_dump.php -d 7 -t logs -o /tmp/logs_7days.json
-  php logs_dump.php -s "2025-12-01" -e "2025-12-15" -t both
+  php logs_dump.php -d 7 -o /tmp/logs_7days.json
+  php logs_dump.php -s "2025-12-01" -e "2025-12-15"
   php logs_dump.php -d 1 --dry-run -v
 
 HELP;
@@ -49,7 +47,6 @@ HELP;
 $verbose = isset($opts['v']);
 $dryRun = isset($opts['dry-run']);
 $batchSize = isset($opts['b']) ? intval($opts['b']) : 10000;
-$table = $opts['t'] ?? 'both';
 
 // Determine date range
 $startDate = NULL;
@@ -74,25 +71,13 @@ if ($verbose) {
     error_log("Configuration:");
     error_log("  Start date: $startDate");
     error_log("  End date: $endDate");
-    error_log("  Table(s): $table");
     error_log("  Output file: $outputFile");
     error_log("  Batch size: $batchSize");
     error_log("  Dry run: " . ($dryRun ? 'yes' : 'no'));
     error_log("");
 }
 
-// Validate table option
-if (!in_array($table, ['logs', 'logs_api', 'both'])) {
-    error_log("Error: Invalid table option. Must be 'logs', 'logs_api', or 'both'");
-    exit(1);
-}
-
 $totalExported = 0;
-$stats = [
-    'logs' => 0,
-    'logs_api' => 0,
-    'errors' => 0,
-];
 
 // Open output file
 $fp = NULL;
@@ -107,7 +92,7 @@ if (!$dryRun) {
 /**
  * Export logs table
  */
-function exportLogsTable($dbhr, $startDate, $endDate, $batchSize, $verbose, $dryRun, $fp, &$stats) {
+function exportLogsTable($dbhr, $startDate, $endDate, $batchSize, $verbose, $dryRun, $fp) {
     $offset = 0;
     $exported = 0;
     $startTime = microtime(TRUE);
@@ -162,8 +147,6 @@ function exportLogsTable($dbhr, $startDate, $endDate, $batchSize, $verbose, $dry
         }
     }
 
-    $stats['logs'] = $exported;
-
     if ($verbose) {
         $elapsed = microtime(TRUE) - $startTime;
         error_log("  Completed: $exported logs records in " . round($elapsed, 1) . " seconds");
@@ -172,89 +155,9 @@ function exportLogsTable($dbhr, $startDate, $endDate, $batchSize, $verbose, $dry
     return $exported;
 }
 
-/**
- * Export logs_api table
- */
-function exportLogsApiTable($dbhr, $startDate, $endDate, $batchSize, $verbose, $dryRun, $fp, &$stats) {
-    $offset = 0;
-    $exported = 0;
-    $startTime = microtime(TRUE);
-
-    if ($verbose) {
-        error_log("Exporting logs_api table...");
-    }
-
-    while (TRUE) {
-        $sql = "SELECT id, date, userid, ip, session, request, response
-                FROM logs_api
-                WHERE date >= ? AND date <= ?
-                ORDER BY id ASC
-                LIMIT " . intval($batchSize) . " OFFSET " . intval($offset);
-
-        $rows = $dbhr->preQuery($sql, [$startDate, $endDate]);
-
-        if (empty($rows)) {
-            break;
-        }
-
-        foreach ($rows as $row) {
-            // Parse request/response JSON to extract useful fields
-            $request = json_decode($row['request'], TRUE);
-            $response = json_decode($row['response'], TRUE);
-
-            $record = [
-                'source' => 'logs_api',
-                'id' => $row['id'],
-                'timestamp' => $row['date'],
-                'userid' => $row['userid'],
-                'ip' => $row['ip'],
-                'session' => $row['session'],
-                // Include parsed request/response for better querying
-                'call' => $response['call'] ?? NULL,
-                'ret' => $response['ret'] ?? NULL,
-                'status' => $response['status'] ?? NULL,
-                'cpucost' => $response['cpucost'] ?? NULL,
-                // Store full request/response for completeness
-                'request' => $request,
-                'response' => $response,
-            ];
-
-            if (!$dryRun && $fp) {
-                fwrite($fp, json_encode($record) . "\n");
-            }
-
-            $exported++;
-        }
-
-        $offset += $batchSize;
-
-        if ($verbose && $exported % 10000 === 0) {
-            $elapsed = microtime(TRUE) - $startTime;
-            $rate = round($exported / $elapsed);
-            error_log("  Exported $exported logs_api records ($rate records/sec)");
-        }
-    }
-
-    $stats['logs_api'] = $exported;
-
-    if ($verbose) {
-        $elapsed = microtime(TRUE) - $startTime;
-        error_log("  Completed: $exported logs_api records in " . round($elapsed, 1) . " seconds");
-    }
-
-    return $exported;
-}
-
-// Execute exports
+// Execute export
 $overallStart = microtime(TRUE);
-
-if ($table === 'logs' || $table === 'both') {
-    $totalExported += exportLogsTable($dbhr, $startDate, $endDate, $batchSize, $verbose, $dryRun, $fp, $stats);
-}
-
-if ($table === 'logs_api' || $table === 'both') {
-    $totalExported += exportLogsApiTable($dbhr, $startDate, $endDate, $batchSize, $verbose, $dryRun, $fp, $stats);
-}
+$totalExported = exportLogsTable($dbhr, $startDate, $endDate, $batchSize, $verbose, $dryRun, $fp);
 
 // Close file
 if ($fp) {
@@ -266,8 +169,6 @@ $overallElapsed = microtime(TRUE) - $overallStart;
 error_log("");
 error_log("Export Summary:");
 error_log("  Total records: $totalExported");
-error_log("  - logs table: " . $stats['logs']);
-error_log("  - logs_api table: " . $stats['logs_api']);
 error_log("  Time: " . round($overallElapsed, 1) . " seconds");
 
 if (!$dryRun) {

@@ -5789,7 +5789,7 @@ class User extends Entity
         #     messages_promises, users_modmails, modnotifs, users_dashboard,
         #     users_nudges
         # - Transient logging data
-        #     logs_emails, logs_sql, logs_api, logs_errors, logs_src
+        #     logs_emails, logs_sql, logs_errors, logs_src
         # - Not provided by the user themselves
         #     user_comments, messages_reneged, spam_users, users_banned, users_stories_requested,
         #     users_thanks

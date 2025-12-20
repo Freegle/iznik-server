@@ -318,22 +318,6 @@ try {
     \Sentry\captureException($e);
 }
 
-$start = date('Y-m-d', strtotime("48 hours ago"));
-
-try {
-    error_log("API logs:");
-    $total = 0;
-    do {
-        $count = $dbhm->exec("DELETE FROM logs_api WHERE `date` < '$start' LIMIT 1000;");
-        $total += $count;
-        error_log("...$total");
-        set_time_limit(600);
-    } while ($count > 0);
-} catch (\Exception $e) {
-    error_log("Failed to delete API logs " . $e->getMessage());
-    \Sentry\captureException($e);
-}
-
 $start = date('Y-m-d', strtotime("4 hours ago"));
 
 try {

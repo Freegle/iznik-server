@@ -702,18 +702,16 @@ class Spam {
             $spammer['sameip'] = [];
 
             if (strpos($spammer['user']['email'], '@user.trashnothing.com') === FALSE) {
-                $ips = $this->dbhr->preQuery("SELECT DISTINCT(ip) FROM logs_api WHERE userid = ?;", [
-                    $spammer['userid']
-                ]);
+                $loki = Loki::getInstance();
+                $ips = $loki->findUserIPs($spammer['userid']);
 
                 foreach ($ips as $ip) {
-                    $otherusers = $this->dbhr->preQuery("SELECT DISTINCT userid FROM logs_api WHERE ip = ? AND userid != ?;", [
-                        $ip['ip'],
-                        $spammer['userid']
-                    ]);
+                    $otherusers = $loki->findUsersForIP($ip);
 
-                    foreach ($otherusers as $otheruser) {
-                        $spammer['sameip'][] = $otheruser['userid'];
+                    foreach ($otherusers as $otherUserId) {
+                        if ($otherUserId != $spammer['userid']) {
+                            $spammer['sameip'][] = $otherUserId;
+                        }
                     }
                 }
 
@@ -1080,5 +1078,101 @@ AND reviewrejected != 1;");
         }
 
         return [ $suspect, $reason, $suspectgroups ];
+    }
+
+    /**
+     * Find and flag users who share IPs with known spammers or muted users.
+     * This replaces the logic from spam_toddlers.php cron job.
+     *
+     * @param array $processedUsers Array of user IDs already processed (passed by reference, will be updated)
+     * @return array Results with counts and actions taken
+     */
+    public function findRelatedSpammers(&$processedUsers = [])
+    {
+        $results = [
+            'muted_users_checked' => 0,
+            'spammers_checked' => 0,
+            'users_flagged' => 0,
+            'users_muted' => 0,
+            'actions' => [],
+        ];
+
+        $loki = Loki::getInstance();
+
+        # Find active users who are muted on ChitChat.
+        $mutedUsers = $this->dbhr->preQuery(
+            "SELECT DISTINCT id AS userid FROM users WHERE newsfeedmodstatus = ?",
+            [User::NEWSFEED_SUPPRESSED]
+        );
+
+        foreach ($mutedUsers as &$user) {
+            $user['newsfeed'] = TRUE;
+        }
+        $results['muted_users_checked'] = count($mutedUsers);
+
+        # Find active users who are on the spammer list.
+        $spammers = $this->dbhr->preQuery(
+            "SELECT DISTINCT userid FROM spam_users WHERE collection = ?",
+            [Spam::TYPE_SPAMMER]
+        );
+
+        foreach ($spammers as &$spammer) {
+            $spammer['spam'] = TRUE;
+        }
+        $results['spammers_checked'] = count($spammers);
+
+        foreach (array_merge($spammers, $mutedUsers) as $user) {
+            # Find users who shared IPs with this user within a 5 minute window.
+            $sharedUsers = $loki->findUsersWithSharedIPActivity($user['userid'], 5, '7d');
+
+            foreach ($sharedUsers as $otherUserId) {
+                if (!array_key_exists($otherUserId, $processedUsers)) {
+                    $processedUsers[$otherUserId] = 1;
+                    $u = User::get($this->dbhr, $this->dbhm, $otherUserId);
+
+                    if ($u->getPrivate('systemrole') === User::SYSTEMROLE_USER) {
+                        # Check that the shared IPs haven't been used by a mod.
+                        $ips = $loki->findUserIPs($otherUserId, '7d');
+                        $modUsedIP = FALSE;
+
+                        foreach ($ips as $ip) {
+                            if ($loki->hasModUsedIP($ip, '30d')) {
+                                $modUsedIP = TRUE;
+                                break;
+                            }
+                        }
+
+                        if (!$modUsedIP) {
+                            $reason = "User $otherUserId used same IP within 5 minutes of {$user['userid']}";
+
+                            if (Utils::pres('spam', $user)) {
+                                $reason .= " who is on the spammer list.";
+                                $this->addSpammer($otherUserId, Spam::TYPE_PENDING_ADD, $reason);
+                                $results['users_flagged']++;
+                                $results['actions'][] = [
+                                    'type' => 'flagged',
+                                    'userid' => $otherUserId,
+                                    'reason' => $reason,
+                                ];
+                            } else {
+                                $reason .= " who is muted on ChitChat.";
+
+                                if ($u->getPrivate('newsfeedmodstatus') != User::NEWSFEED_SUPPRESSED) {
+                                    $u->setPrivate('newsfeedmodstatus', User::NEWSFEED_SUPPRESSED);
+                                    $results['users_muted']++;
+                                    $results['actions'][] = [
+                                        'type' => 'muted',
+                                        'userid' => $otherUserId,
+                                        'reason' => $reason,
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $results;
     }
 }

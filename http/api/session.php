@@ -550,14 +550,10 @@ function session() {
                                 # check prevents that.
                                 $foundip = FALSE;
                                 $ip = $_SERVER['REMOTE_ADDR'];
+                                $loki = Loki::getInstance();
 
                                 foreach ($userlist as $userid) {
-                                    $logs = $dbhr->preQuery("SELECT * FROM logs_api WHERE userid = ? AND ip = ?  AND response LIKE '%Success%' AND request NOT LIKE '%View%' AND request NOT LIKE '%Related%'", [
-                                        $userid,
-                                        $ip
-                                    ]);
-
-                                    if (count($logs)) {
+                                    if ($loki->hasUserAccessedFromIP($userid, $ip)) {
                                         $foundip = TRUE;
                                     } else {
                                         $ret = array('ret' => 2, 'status' => 'Not from recently active IP');

@@ -682,12 +682,7 @@ class sessionTest extends IznikAPITestCase
         list($u2, $id2, $emailid2) = $this->createTestUser('Test', 'User', NULL, 'test2@test.com', 'testpw');
         $this->assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
-        # Need to ensure that there is a log from the IP that we're about to check.
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $this->dbhm->preExec("INSERT INTO logs_api (`userid`, `ip`, `session`, `request`, `response`) VALUES (?, ?, '123', '', 'Success');", [
-            $id1,
-            '127.0.0.1'
-        ]);
 
         $ret = $this->call('session', 'POST', [
             'action' => 'Related',
@@ -764,12 +759,7 @@ class sessionTest extends IznikAPITestCase
         list($u2, $id2, $emailid2) = $this->createTestUserWithMembership($gid, User::ROLE_MEMBER, 'Test', 'User', NULL, 'test2@test.com', 'testpw');
         $this->assertGreaterThan(0, $u2->addLogin(User::LOGIN_NATIVE, NULL, 'testpw'));
 
-        # Need to ensure that there is a log from the IP that we're about to check.
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $this->dbhm->preExec("INSERT INTO logs_api (`userid`, `ip`, `session`, `request`, `response`) VALUES (?, ?, '123', '', 'Success');", [
-            $id1,
-            '127.0.0.1'
-        ]);
 
         $ret = $this->call('session', 'POST', [
             'action' => 'Related',
