@@ -459,7 +459,7 @@ CREATE TABLE `chat_messages` (
   `facebookid` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `scheduleid` bigint unsigned DEFAULT NULL,
   `replyexpected` tinyint(1) DEFAULT NULL,
-  `replyreceived` tinyint(1) NOT NULL DEFAULT '0',
+  `replyreceived` tinyint(1) NOT NULL,
   `processingrequired` tinyint(1) NOT NULL DEFAULT '0',
   `processingsuccessful` tinyint(1) NOT NULL DEFAULT '0',
   `confirmrequired` tinyint(1) NOT NULL DEFAULT '0',
@@ -584,7 +584,6 @@ CREATE TABLE `chat_roster` (
   `lastmsgseen` bigint unsigned DEFAULT NULL,
   `lastemailed` timestamp NULL DEFAULT NULL,
   `lastmsgemailed` bigint unsigned DEFAULT NULL,
-  `lastmsgnotified` bigint unsigned DEFAULT NULL,
   `lastip` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `lasttype` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -593,7 +592,6 @@ CREATE TABLE `chat_roster` (
   KEY `userid` (`userid`),
   KEY `date` (`date`),
   KEY `lastmsg` (`lastmsgseen`),
-  KEY `lastmsgnotified` (`lastmsgnotified`),
   KEY `lastip` (`lastip`),
   KEY `status` (`status`),
   CONSTRAINT `chat_roster_ibfk_1` FOREIGN KEY (`chatid`) REFERENCES `chat_rooms` (`id`) ON DELETE CASCADE,
@@ -710,8 +708,7 @@ CREATE TABLE `config` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `key` varchar(255) NOT NULL,
   `value` text NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `key` (`key`)
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1750987774 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -766,6 +763,91 @@ CREATE TABLE `ebay_favourites` (
   `rival` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1751017774 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `email_tracking`
+--
+
+DROP TABLE IF EXISTS `email_tracking`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `email_tracking` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `tracking_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Type of email: Digest, Chat, Alert, etc.',
+  `userid` bigint unsigned DEFAULT NULL,
+  `groupid` bigint unsigned DEFAULT NULL,
+  `recipient_email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `subject` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `metadata` json DEFAULT NULL COMMENT 'Additional context like message_id, etc.',
+  `sent_at` timestamp NULL DEFAULT NULL,
+  `delivered_at` timestamp NULL DEFAULT NULL,
+  `bounced_at` timestamp NULL DEFAULT NULL,
+  `bounce_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `opened_at` timestamp NULL DEFAULT NULL,
+  `opened_via` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'pixel, image, mdn, click',
+  `clicked_at` timestamp NULL DEFAULT NULL,
+  `clicked_link` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `scroll_depth_percent` tinyint unsigned DEFAULT NULL,
+  `images_loaded` smallint unsigned NOT NULL DEFAULT '0',
+  `links_clicked` smallint unsigned NOT NULL DEFAULT '0',
+  `unsubscribed_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `tracking_id` (`tracking_id`),
+  KEY `email_type` (`email_type`),
+  KEY `userid` (`userid`),
+  KEY `groupid` (`groupid`),
+  KEY `sent_at` (`sent_at`),
+  KEY `opened_at` (`opened_at`),
+  KEY `created_at` (`created_at`),
+  CONSTRAINT `email_tracking_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `email_tracking_ibfk_2` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Email delivery and engagement tracking';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `email_tracking_clicks`
+--
+
+DROP TABLE IF EXISTS `email_tracking_clicks`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `email_tracking_clicks` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `email_tracking_id` bigint unsigned NOT NULL,
+  `link_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `link_position` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'e.g., item_1, cta_button',
+  `action` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'e.g., unsubscribe, cta, view_item',
+  `ip_address` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `user_agent` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `clicked_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `email_tracking_id` (`email_tracking_id`),
+  KEY `action` (`action`),
+  CONSTRAINT `email_tracking_clicks_ibfk_1` FOREIGN KEY (`email_tracking_id`) REFERENCES `email_tracking` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Individual click events for email tracking';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `email_tracking_images`
+--
+
+DROP TABLE IF EXISTS `email_tracking_images`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `email_tracking_images` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `email_tracking_id` bigint unsigned NOT NULL,
+  `image_position` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'e.g., header, item_1, footer',
+  `estimated_scroll_percent` tinyint unsigned DEFAULT NULL,
+  `loaded_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `email_tracking_id` (`email_tracking_id`),
+  CONSTRAINT `email_tracking_images_ibfk_1` FOREIGN KEY (`email_tracking_id`) REFERENCES `email_tracking` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Image load events for scroll depth tracking';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1145,13 +1227,12 @@ CREATE TABLE `isochrones` (
   `locationid` bigint unsigned DEFAULT NULL,
   `transport` enum('Walk','Cycle','Drive') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `minutes` int NOT NULL,
-  `source` enum('Mapbox','OSM','Valhalla','GraphHopper','ORS') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'Mapbox' COMMENT 'Isochrone data source',
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `polygon` geometry NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `userid_2` (`locationid`,`transport`,`minutes`,`source`),
+  UNIQUE KEY `userid_2` (`locationid`,`transport`,`minutes`),
   KEY `locationid` (`locationid`),
-  KEY `locationid_2` (`locationid`,`transport`,`minutes`,`source`),
+  KEY `locationid_2` (`locationid`,`transport`,`minutes`),
   CONSTRAINT `isochrones_ibfk_2` FOREIGN KEY (`locationid`) REFERENCES `locations` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
 ) ENGINE=InnoDB AUTO_INCREMENT=1751137774 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1175,158 +1256,6 @@ CREATE TABLE `isochrones_users` (
   CONSTRAINT `isochrones_users_ibfk_1` FOREIGN KEY (`isochroneid`) REFERENCES `isochrones` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `isochrones_users_ibfk_2` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
 ) ENGINE=InnoDB AUTO_INCREMENT=1751147774 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `messages_isochrones`
---
-
-DROP TABLE IF EXISTS `messages_isochrones`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `messages_isochrones` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `msgid` bigint unsigned NOT NULL,
-  `isochroneid` bigint unsigned NOT NULL,
-  `minutes` int NOT NULL,
-  `activeUsers` int NOT NULL DEFAULT '0' COMMENT 'Number of active users in isochrone when created',
-  `replies` int NOT NULL DEFAULT '0' COMMENT 'Number of replies when isochrone was created',
-  `views` int NOT NULL DEFAULT '0' COMMENT 'Number of views when isochrone was created',
-  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `msgid` (`msgid`),
-  KEY `isochroneid` (`isochroneid`),
-  KEY `timestamp` (`timestamp`),
-  CONSTRAINT `messages_isochrones_ibfk_1` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
-  CONSTRAINT `messages_isochrones_ibfk_2` FOREIGN KEY (`isochroneid`) REFERENCES `isochrones` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `simulation_message_isochrones_runs`
---
-
-DROP TABLE IF EXISTS `simulation_message_isochrones_runs`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `simulation_message_isochrones_runs` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) DEFAULT NULL,
-  `description` text,
-  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `completed` timestamp NULL DEFAULT NULL,
-  `status` enum('pending','running','completed','failed') DEFAULT 'pending',
-  `parameters` json NOT NULL COMMENT 'Simulation parameters',
-  `filters` json NOT NULL COMMENT 'Date range, groupid filter',
-  `message_count` int DEFAULT 0,
-  `metrics` json DEFAULT NULL COMMENT 'Aggregate metrics across all messages',
-  PRIMARY KEY (`id`),
-  KEY `status` (`status`),
-  KEY `created` (`created`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `simulation_message_isochrones_messages`
---
-
-DROP TABLE IF EXISTS `simulation_message_isochrones_messages`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `simulation_message_isochrones_messages` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `runid` bigint unsigned NOT NULL,
-  `msgid` bigint unsigned NOT NULL,
-  `sequence` int NOT NULL COMMENT 'Order in run (0-based)',
-  `arrival` timestamp NOT NULL,
-  `subject` varchar(255) DEFAULT NULL,
-  `locationid` bigint unsigned DEFAULT NULL,
-  `lat` decimal(10,6) DEFAULT NULL,
-  `lng` decimal(10,6) DEFAULT NULL,
-  `groupid` bigint unsigned NOT NULL,
-  `groupname` varchar(255) DEFAULT NULL,
-  `group_cga_polygon` json DEFAULT NULL COMMENT 'Group coverage area GeoJSON',
-  `total_group_users` int DEFAULT 0,
-  `total_replies_actual` int DEFAULT 0,
-  `metrics` json DEFAULT NULL COMMENT 'Summary metrics for this message',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `runid_msgid` (`runid`,`msgid`),
-  KEY `runid_sequence` (`runid`,`sequence`),
-  KEY `msgid` (`msgid`),
-  CONSTRAINT `simulation_message_isochrones_messages_ibfk_1` FOREIGN KEY (`runid`) REFERENCES `simulation_message_isochrones_runs` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `simulation_message_isochrones_expansions`
---
-
-DROP TABLE IF EXISTS `simulation_message_isochrones_expansions`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `simulation_message_isochrones_expansions` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `sim_msgid` bigint unsigned NOT NULL COMMENT 'FK to simulation_message_isochrones_messages',
-  `sequence` int NOT NULL COMMENT 'Expansion number (0 = initial)',
-  `timestamp` timestamp NOT NULL,
-  `minutes_after_arrival` int NOT NULL,
-  `minutes` int NOT NULL COMMENT 'Isochrone size in minutes',
-  `transport` enum('walk','cycle','drive') DEFAULT 'walk',
-  `isochrone_polygon` json DEFAULT NULL COMMENT 'Isochrone GeoJSON',
-  `users_in_isochrone` int DEFAULT 0,
-  `new_users_reached` int DEFAULT 0,
-  `replies_at_time` int DEFAULT 0,
-  `replies_in_isochrone` int DEFAULT 0,
-  PRIMARY KEY (`id`),
-  KEY `sim_msgid_sequence` (`sim_msgid`,`sequence`),
-  CONSTRAINT `simulation_message_isochrones_expansions_ibfk_1` FOREIGN KEY (`sim_msgid`) REFERENCES `simulation_message_isochrones_messages` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `simulation_message_isochrones_users`
---
-
-DROP TABLE IF EXISTS `simulation_message_isochrones_users`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `simulation_message_isochrones_users` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `sim_msgid` bigint unsigned NOT NULL,
-  `user_hash` varchar(64) NOT NULL COMMENT 'Anonymized user ID',
-  `lat` decimal(10,6) NOT NULL COMMENT 'Blurred location from users_approxlocs',
-  `lng` decimal(10,6) NOT NULL,
-  `in_group` tinyint(1) DEFAULT 1,
-  `replied` tinyint(1) DEFAULT 0,
-  `reply_time` timestamp NULL DEFAULT NULL,
-  `reply_minutes` int DEFAULT NULL COMMENT 'Minutes after message arrival',
-  `distance_km` decimal(10,2) DEFAULT NULL COMMENT 'Distance from message location',
-  PRIMARY KEY (`id`),
-  KEY `sim_msgid` (`sim_msgid`),
-  KEY `replied` (`replied`),
-  CONSTRAINT `simulation_message_isochrones_users_ibfk_1` FOREIGN KEY (`sim_msgid`) REFERENCES `simulation_message_isochrones_messages` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `simulation_message_isochrones_sessions`
---
-
-DROP TABLE IF EXISTS `simulation_message_isochrones_sessions`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `simulation_message_isochrones_sessions` (
-  `id` varchar(32) NOT NULL,
-  `runid` bigint unsigned NOT NULL,
-  `userid` bigint unsigned NOT NULL,
-  `current_index` int DEFAULT 0,
-  `created` timestamp DEFAULT CURRENT_TIMESTAMP,
-  `expires` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `userid` (`userid`),
-  KEY `expires` (`expires`),
-  CONSTRAINT `simulation_message_isochrones_sessions_ibfk_1` FOREIGN KEY (`runid`) REFERENCES `simulation_message_isochrones_runs` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1442,24 +1371,6 @@ CREATE TABLE `jobs_keywords` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `keyword` (`keyword`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1751197774 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `ai_images`
---
-
-DROP TABLE IF EXISTS `ai_images`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `ai_images` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `externaluid` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `name` (`name`),
-  KEY `created` (`created`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1639,94 +1550,6 @@ CREATE TABLE `locations_spatial` (
   SPATIAL KEY `geometry` (`geometry`),
   CONSTRAINT `locations_spatial_ibfk_1` FOREIGN KEY (`locationid`) REFERENCES `locations` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `transport_postcode_classification`
---
-
-DROP TABLE IF EXISTS `transport_postcode_classification`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `transport_postcode_classification` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `postcode` varchar(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Postcode without spaces, e.g. AB101XG',
-  `postcode_space` varchar(9) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Original postcode with space, e.g. AB10 1XG',
-  `ru_category` varchar(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Rural-Urban Classification 2011: A1, B1, C1, C2, D1, D2, E1, E2, F1, F2',
-  `region_code` varchar(9) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'ONS Region code, e.g. E12000001',
-  `region_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Region name for reference',
-  `lat` decimal(10,6) DEFAULT NULL,
-  `lng` decimal(10,6) DEFAULT NULL,
-  `imported_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `last_seen` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `postcode` (`postcode`),
-  KEY `ru_category` (`ru_category`),
-  KEY `region_code` (`region_code`),
-  KEY `ru_region` (`ru_category`,`region_code`),
-  KEY `lat_lng` (`lat`,`lng`),
-  KEY `last_seen` (`last_seen`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Postcode to Rural-Urban Classification and Region mapping from ONSPD';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `transport_duration_model`
---
-
-DROP TABLE IF EXISTS `transport_duration_model`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `transport_duration_model` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `ru_category` varchar(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'A1, B1, C1, C2, D1, D2, E1, E2, F1, F2',
-  `region_code` varchar(9) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'E12000001, etc.',
-  `ru_description` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Human-readable description',
-  `walk_speed_mph` decimal(4,2) NOT NULL DEFAULT '3.00' COMMENT 'Average walking speed in mph',
-  `cycle_speed_mph` decimal(4,2) NOT NULL DEFAULT '10.00' COMMENT 'Average cycling speed in mph',
-  `drive_speed_mph` decimal(4,2) NOT NULL DEFAULT '20.00' COMMENT 'Average driving speed in mph',
-  `walk_base_mins` int NOT NULL DEFAULT '18' COMMENT 'NTS 2024 average walk trip duration',
-  `cycle_base_mins` int NOT NULL DEFAULT '24' COMMENT 'NTS 2024 average cycle trip duration',
-  `drive_base_mins` int NOT NULL DEFAULT '22' COMMENT 'NTS 2024 average drive trip duration',
-  `time_adjustment_factor` decimal(4,2) NOT NULL DEFAULT '1.00' COMMENT 'Rural adjustment factor (1.0=urban, 1.33=rural)',
-  `avg_walk_distance_miles` decimal(5,2) DEFAULT NULL COMMENT 'Average walk trip distance from NTS',
-  `avg_cycle_distance_miles` decimal(5,2) DEFAULT NULL COMMENT 'Average cycle trip distance from NTS',
-  `avg_drive_distance_miles` decimal(5,2) DEFAULT NULL COMMENT 'Average drive trip distance from NTS',
-  `data_source` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'NTS2024' COMMENT 'Source of the data',
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `last_seen` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `ru_region` (`ru_category`,`region_code`),
-  KEY `ru_category` (`ru_category`),
-  KEY `last_seen` (`last_seen`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Transport speed and duration parameters by area type and region';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `transport_mode_probabilities`
---
-
-DROP TABLE IF EXISTS `transport_mode_probabilities`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `transport_mode_probabilities` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `ru_category` varchar(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `region_code` varchar(9) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `walk_pct` decimal(5,2) DEFAULT '0.00' COMMENT 'Percentage of trips by walking',
-  `cycle_pct` decimal(5,2) DEFAULT '0.00' COMMENT 'Percentage of trips by cycling',
-  `drive_pct` decimal(5,2) DEFAULT '0.00' COMMENT 'Percentage of trips by driving',
-  `bus_pct` decimal(5,2) DEFAULT '0.00' COMMENT 'Percentage of trips by bus',
-  `rail_pct` decimal(5,2) DEFAULT '0.00' COMMENT 'Percentage of trips by rail',
-  `other_pct` decimal(5,2) DEFAULT '0.00' COMMENT 'Percentage of trips by other modes',
-  `avg_trips_per_year` int DEFAULT NULL COMMENT 'Average trips per person per year',
-  `data_source` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'NTS2024' COMMENT 'Source: NTS9903',
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `last_seen` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `ru_region` (`ru_category`,`region_code`),
-  KEY `ru_category` (`ru_category`),
-  KEY `last_seen` (`last_seen`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Transport mode choice probabilities by area type from NTS';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4705,7 +4528,7 @@ CREATE TABLE `users_push_notifications` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `userid` bigint unsigned NOT NULL,
   `added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `type` enum('Google','Firefox','Test','Android','IOS','FCMAndroid','FCMIOS','BrowserPush') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Google',
+  `type` enum('Google','Firefox','Test','Android','IOS','FCMAndroid','FCMIOS') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Google',
   `lastsent` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `subscription` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `apptype` enum('User','ModTools') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'User',
@@ -4717,26 +4540,6 @@ CREATE TABLE `users_push_notifications` (
   KEY `type` (`type`),
   CONSTRAINT `users_push_notifications_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=1752547774 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='For sending push notifications to users';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `users_postnotifications_tracking`
---
-
-DROP TABLE IF EXISTS `users_postnotifications_tracking`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `users_postnotifications_tracking` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `groupid` bigint unsigned NOT NULL,
-  `frequency` int NOT NULL COMMENT 'Digest frequency constant (-1=immediate, 1=hourly, 24=daily, etc.)',
-  `msgdate` timestamp NULL DEFAULT NULL COMMENT 'Arrival of message we have sent notifications up to',
-  `lastsent` timestamp NULL DEFAULT NULL COMMENT 'When we last sent notifications for this group/frequency',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `groupid_frequency` (`groupid`,`frequency`),
-  KEY `groupid` (`groupid`),
-  CONSTRAINT `users_postnotifications_tracking_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tracks which posts we have sent push notifications about';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
