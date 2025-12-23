@@ -292,6 +292,24 @@ CREATE TABLE `alerts_tracking` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `batch_email_progress`
+--
+
+DROP TABLE IF EXISTS `batch_email_progress`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `batch_email_progress` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `job_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Type of batch job: welcome, digest, donation_ask, etc.',
+  `last_processed_id` bigint unsigned DEFAULT NULL COMMENT 'Last user/message ID successfully processed',
+  `last_processed_at` timestamp NULL DEFAULT NULL COMMENT 'When last batch completed',
+  `started_at` timestamp NULL DEFAULT NULL COMMENT 'When current batch started',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `job_type` (`job_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tracks progress of batch email jobs using high-water mark pattern';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `authorities`
 --
 

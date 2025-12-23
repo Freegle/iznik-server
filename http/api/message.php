@@ -570,7 +570,7 @@ function message() {
                                                     }
                                                 } else {
                                                     $u->login($pw);
-                                                    $u->welcome($email, $pw);
+                                                    // Welcome mail is now sent asynchronously by Laravel batch.
                                                 }
                                             }
                                         } else if ($myid && $myid != $uid) {
