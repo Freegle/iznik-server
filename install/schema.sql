@@ -1278,6 +1278,133 @@ CREATE TABLE `isochrones_users` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `simulation_message_isochrones_runs`
+--
+
+DROP TABLE IF EXISTS `simulation_message_isochrones_runs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `simulation_message_isochrones_runs` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) DEFAULT NULL,
+  `description` text,
+  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `completed` timestamp NULL DEFAULT NULL,
+  `status` enum('pending','running','completed','failed') DEFAULT 'pending',
+  `parameters` json NOT NULL COMMENT 'Simulation parameters',
+  `filters` json NOT NULL COMMENT 'Date range, groupid filter',
+  `message_count` int DEFAULT 0,
+  `metrics` json DEFAULT NULL COMMENT 'Aggregate metrics across all messages',
+  PRIMARY KEY (`id`),
+  KEY `status` (`status`),
+  KEY `created` (`created`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `simulation_message_isochrones_messages`
+--
+
+DROP TABLE IF EXISTS `simulation_message_isochrones_messages`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `simulation_message_isochrones_messages` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `runid` bigint unsigned NOT NULL,
+  `msgid` bigint unsigned NOT NULL,
+  `sequence` int NOT NULL COMMENT 'Order in run (0-based)',
+  `arrival` timestamp NOT NULL,
+  `subject` varchar(255) DEFAULT NULL,
+  `locationid` bigint unsigned DEFAULT NULL,
+  `lat` decimal(10,6) DEFAULT NULL,
+  `lng` decimal(10,6) DEFAULT NULL,
+  `groupid` bigint unsigned NOT NULL,
+  `groupname` varchar(255) DEFAULT NULL,
+  `group_cga_polygon` json DEFAULT NULL COMMENT 'Group coverage area GeoJSON',
+  `total_group_users` int DEFAULT 0,
+  `total_replies_actual` int DEFAULT 0,
+  `metrics` json DEFAULT NULL COMMENT 'Summary metrics for this message',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `runid_msgid` (`runid`,`msgid`),
+  KEY `runid_sequence` (`runid`,`sequence`),
+  KEY `msgid` (`msgid`),
+  CONSTRAINT `simulation_message_isochrones_messages_ibfk_1` FOREIGN KEY (`runid`) REFERENCES `simulation_message_isochrones_runs` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `simulation_message_isochrones_expansions`
+--
+
+DROP TABLE IF EXISTS `simulation_message_isochrones_expansions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `simulation_message_isochrones_expansions` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `sim_msgid` bigint unsigned NOT NULL COMMENT 'FK to simulation_message_isochrones_messages',
+  `sequence` int NOT NULL COMMENT 'Expansion number (0 = initial)',
+  `timestamp` timestamp NOT NULL,
+  `minutes_after_arrival` int NOT NULL,
+  `minutes` int NOT NULL COMMENT 'Isochrone size in minutes',
+  `transport` enum('walk','cycle','drive') DEFAULT 'walk',
+  `isochrone_polygon` json DEFAULT NULL COMMENT 'Isochrone GeoJSON',
+  `users_in_isochrone` int DEFAULT 0,
+  `new_users_reached` int DEFAULT 0,
+  `replies_at_time` int DEFAULT 0,
+  `replies_in_isochrone` int DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `sim_msgid_sequence` (`sim_msgid`,`sequence`),
+  CONSTRAINT `simulation_message_isochrones_expansions_ibfk_1` FOREIGN KEY (`sim_msgid`) REFERENCES `simulation_message_isochrones_messages` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `simulation_message_isochrones_users`
+--
+
+DROP TABLE IF EXISTS `simulation_message_isochrones_users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `simulation_message_isochrones_users` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `sim_msgid` bigint unsigned NOT NULL,
+  `user_hash` varchar(64) NOT NULL COMMENT 'Anonymized user ID',
+  `lat` decimal(10,6) NOT NULL COMMENT 'Blurred location from users_approxlocs',
+  `lng` decimal(10,6) NOT NULL,
+  `in_group` tinyint(1) DEFAULT 1,
+  `replied` tinyint(1) DEFAULT 0,
+  `reply_time` timestamp NULL DEFAULT NULL,
+  `reply_minutes` int DEFAULT NULL COMMENT 'Minutes after message arrival',
+  `distance_km` decimal(10,2) DEFAULT NULL COMMENT 'Distance from message location',
+  PRIMARY KEY (`id`),
+  KEY `sim_msgid` (`sim_msgid`),
+  KEY `replied` (`replied`),
+  CONSTRAINT `simulation_message_isochrones_users_ibfk_1` FOREIGN KEY (`sim_msgid`) REFERENCES `simulation_message_isochrones_messages` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `simulation_message_isochrones_sessions`
+--
+
+DROP TABLE IF EXISTS `simulation_message_isochrones_sessions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `simulation_message_isochrones_sessions` (
+  `id` varchar(32) NOT NULL,
+  `runid` bigint unsigned NOT NULL,
+  `userid` bigint unsigned NOT NULL,
+  `current_index` int DEFAULT 0,
+  `created` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `expires` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `userid` (`userid`),
+  KEY `expires` (`expires`),
+  CONSTRAINT `simulation_message_isochrones_sessions_ibfk_1` FOREIGN KEY (`runid`) REFERENCES `simulation_message_isochrones_runs` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `items`
 --
 
