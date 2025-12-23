@@ -495,7 +495,7 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
 
     public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL, $facebookid = NULL, $forcereview = FALSE, $suppressmodnotif = FALSE, $process = TRUE) {
         // Create the message, requiring processing.
-        $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, spamscore, reportreason, refchatid, imageid, facebookid, processingrequired) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,1);", [
+        $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, spamscore, reportreason, refchatid, imageid, facebookid, processingrequired, replyreceived) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,1,0);", [
             $chatid,
             $userid,
             $message,
@@ -887,6 +887,32 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
                 $id,
                 $myid
             ]);
+
+            # Notify mods on groups where the recipient is a member.
+            $this->notifyGroupModsForChatMessage($id);
+        }
+    }
+
+    private function notifyGroupModsForChatMessage($id) {
+        # Get the chat message, chat room, and find the recipient's groups.
+        $msgs = $this->dbhr->preQuery("SELECT chat_messages.userid, chat_rooms.user1, chat_rooms.user2
+            FROM chat_messages
+            INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid
+            WHERE chat_messages.id = ?;", [$id]);
+
+        foreach ($msgs as $msg) {
+            # The recipient is whichever user in the chat room is NOT the sender.
+            $recipientid = ($msg['userid'] == $msg['user1']) ? $msg['user2'] : $msg['user1'];
+
+            # Get the recipient's group memberships.
+            $groups = $this->dbhr->preQuery("SELECT groupid FROM memberships
+                INNER JOIN `groups` ON memberships.groupid = groups.id AND groups.type = ?
+                WHERE userid = ?;", [Group::GROUP_FREEGLE, $recipientid]);
+
+            $notif = new PushNotifications($this->dbhr, $this->dbhm);
+            foreach ($groups as $group) {
+                $notif->notifyGroupMods($group['groupid']);
+            }
         }
     }
 
@@ -896,8 +922,8 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
         if ($me && $me->isModerator()) {
             $myid = $me->getId();
 
-            $sql = "SELECT chat_messages.*, chat_messages_held.userid AS heldbyuser FROM chat_messages 
-        INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid 
+            $sql = "SELECT chat_messages.*, chat_messages_held.userid AS heldbyuser FROM chat_messages
+        INNER JOIN chat_rooms ON reviewrequired = 1 AND chat_rooms.id = chat_messages.chatid
         LEFT JOIN chat_messages_held ON chat_messages_held.msgid = chat_messages_held.msgid
         WHERE chat_messages.id = ?;";
             $msgs = $this->dbhr->preQuery($sql, [$id]);
@@ -910,6 +936,9 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
                     $this->dbhm->preExec("DELETE FROM chat_messages_held WHERE msgid = ?;", [
                         $id
                     ]);
+
+                    # Notify mods on groups where the recipient is a member.
+                    $this->notifyGroupModsForChatMessage($id);
                 }
             }
         }
