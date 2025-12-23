@@ -541,18 +541,13 @@ class PushNotifications
 
             if (count($appNotifs) > 0) {
                 $individualCount = $this->notifyIndividualMessages($userid, $appNotifs, $modtools, $chatid);
-                if ($individualCount > 0) {
-                    // We sent chat message notifications, so we're done
-                    return $individualCount;
-                }
-                // No new chat messages to notify, but we've already checked using lastmsgnotified.
-                // If we're in a chat-specific context (chatid provided), remove app notifications
-                // from $notifs so the legacy path (which uses lastmsgseen via getNotificationPayload)
-                // doesn't re-send notifications for messages that were already notified but not yet
-                // viewed by the user.
-                // When chatid is NOT provided, we keep FCM in the legacy path to handle non-chat
-                // notifications like TYPE_EXHORT.
-                if ($chatid) {
+                $count += $individualCount;
+
+                // Remove FCM from legacy path if:
+                // 1. We actually sent chat notifications (to avoid duplicates), OR
+                // 2. A specific chatid was requested (this is a chat-only notification, don't fall back to legacy)
+                // Only let FCM fall through to legacy for general notifications (no chatid) with no chat messages.
+                if ($individualCount > 0 || $chatid !== NULL) {
                     $notifs = array_filter($notifs, function($n) {
                         return $n['type'] !== PushNotifications::PUSH_FCM_ANDROID && $n['type'] !== PushNotifications::PUSH_FCM_IOS;
                     });

@@ -434,6 +434,10 @@ class PushNotificationsTest extends IznikTestCase {
         $m = new ChatMessage($this->dbhr, $this->dbhm);
         list ($cm, $banned) = $m->create($rid, $id2, "Test chat message", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
 
+        # Clear lastmsgnotified so the test's notify() call finds the message.
+        # Internal processing may have already notified via real PushNotifications instances.
+        $this->dbhm->preExec("UPDATE chat_roster SET lastmsgnotified = NULL WHERE chatid = ? AND userid = ?", [$rid, $id]);
+
         # Notify should return 1 for app notification with category
         $count = $mock->notify($id, FALSE);
         $this->assertEquals(1, $count);
@@ -442,8 +446,10 @@ class PushNotificationsTest extends IznikTestCase {
         $n->add($id, PushNotifications::PUSH_BROWSER_PUSH, 'test-browser', FALSE);
 
         # Create a NEW message so there's something to notify about
-        # (the previous message was already notified and lastmsgnotified was updated)
         list ($cm2, $banned2) = $m->create($rid, $id2, "Another test message", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
+
+        # Clear lastmsgnotified so the test's notify() call finds the message.
+        $this->dbhm->preExec("UPDATE chat_roster SET lastmsgnotified = NULL WHERE chatid = ? AND userid = ?", [$rid, $id]);
 
         # Notify should return 2 (1 for Android + 1 for browser) for the new message
         $count = $mock->notify($id, FALSE);
