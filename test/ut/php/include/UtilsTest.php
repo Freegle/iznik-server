@@ -79,5 +79,73 @@ class UtilsTest extends IznikTestCase {
             yield $res;
         };
     }
+
+    public function testDecodeEmojisNull() {
+        $this->assertNull(Utils::decodeEmojis(NULL));
+    }
+
+    public function testDecodeEmojisEmptyString() {
+        $this->assertEquals('', Utils::decodeEmojis(''));
+    }
+
+    public function testDecodeEmojisNoEmojis() {
+        $input = 'Hello, this is a test message.';
+        $this->assertEquals($input, Utils::decodeEmojis($input));
+    }
+
+    public function testDecodeEmojisSingleEmoji() {
+        // \u1f600\u should decode to 😀
+        $input = 'Hello \\u1f600\\u world';
+        $expected = 'Hello 😀 world';
+        $this->assertEquals($expected, Utils::decodeEmojis($input));
+    }
+
+    public function testDecodeEmojisMultipleEmojis() {
+        // Multiple emojis in the same string.
+        $input = '\\u1f600\\u test \\u2764\\u';
+        $expected = '😀 test ❤';
+        $this->assertEquals($expected, Utils::decodeEmojis($input));
+    }
+
+    public function testDecodeEmojisCompoundEmojiWithSkinTone() {
+        // 👍🏻 = 1f44d-1f3fb (thumbs up with light skin tone)
+        $input = 'Good job \\u1f44d-1f3fb\\u';
+        $expected = 'Good job 👍🏻';
+        $this->assertEquals($expected, Utils::decodeEmojis($input));
+    }
+
+    public function testDecodeEmojisFlagEmoji() {
+        // 🇬🇧 = 1f1ec-1f1e7 (UK flag)
+        $input = 'From \\u1f1ec-1f1e7\\u';
+        $expected = 'From 🇬🇧';
+        $this->assertEquals($expected, Utils::decodeEmojis($input));
+    }
+
+    public function testDecodeEmojisHeartWithVariationSelector() {
+        // ❤️ = 2764-fe0f (red heart with variation selector)
+        $input = 'Love \\u2764-fe0f\\u';
+        $expected = 'Love ❤️';
+        $this->assertEquals($expected, Utils::decodeEmojis($input));
+    }
+
+    public function testDecodeEmojisHighCodePoint() {
+        // 🧡 = 1f9e1 (orange heart - outside BMP, this was the bug)
+        $input = 'Orange \\u1f9e1\\u heart';
+        $expected = 'Orange 🧡 heart';
+        $this->assertEquals($expected, Utils::decodeEmojis($input));
+    }
+
+    public function testDecodeEmojisAdjacentEmojis() {
+        $input = '\\u1f600\\u\\u2764\\u';
+        $expected = '😀❤';
+        $this->assertEquals($expected, Utils::decodeEmojis($input));
+    }
+
+    public function testDecodeEmojisPreservesExistingUnicode() {
+        // Already-decoded emojis or other Unicode should be preserved.
+        $input = 'Hello 😀 and café \\u2764\\u';
+        $expected = 'Hello 😀 and café ❤';
+        $this->assertEquals($expected, Utils::decodeEmojis($input));
+    }
 }
 
