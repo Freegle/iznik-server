@@ -199,3 +199,9 @@ define('REACH_USER', NULL);
 define('REACH_PASSWORD', NULL);
 define('STRIPE_SECRET_KEY', 'zzz');
 define('STRIPE_SECRET_KEY_TEST', 'zzz');
+
+# Email types disabled in iznik-server (being migrated to iznik-batch).
+# Comma-separated list of email type names, e.g., 'Welcome,Chat'.
+# When a type is listed here, iznik-server will NOT send it.
+# See Mail.php DESCRIPTIONS for valid type names.
+define('IZNIK_MAIL_DISABLED', '');

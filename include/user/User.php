@@ -3733,6 +3733,11 @@ class User extends Entity
 
     public function welcome($email, $password)
     {
+        # Check if Welcome emails are disabled in iznik-server (migrated to iznik-batch).
+        if (!Mail::isEnabled(Mail::WELCOME)) {
+            return;
+        }
+
         $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
         $twig = new \Twig_Environment($loader);
 
