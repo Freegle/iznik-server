@@ -3206,6 +3206,12 @@ ORDER BY lastdate DESC;";
                 'msgid' => $this->id,
                 'byuser' => $me ? $me->getId() : NULL
             ]);
+
+            # Notify mods on all groups this message is on.
+            $groups = $this->getGroups();
+            foreach ($groups as $groupid) {
+                $this->notif->notifyGroupMods($groupid);
+            }
         }
     }
 
@@ -3222,6 +3228,12 @@ ORDER BY lastdate DESC;";
                 'msgid' => $this->id,
                 'byuser' => $me ? $me->getId() : NULL
             ]);
+
+            # Notify mods on all groups this message is on.
+            $groups = $this->getGroups();
+            foreach ($groups as $groupid) {
+                $this->notif->notifyGroupMods($groupid);
+            }
         }
     }
 
