@@ -441,9 +441,133 @@ class PushNotificationsTest extends IznikTestCase {
         # Add browser push subscription
         $n->add($id, PushNotifications::PUSH_BROWSER_PUSH, 'test-browser', FALSE);
 
-        # Notify should return 2 (1 for Android + 1 for browser)
+        # Create a NEW message so there's something to notify about
+        # (the previous message was already notified and lastmsgnotified was updated)
+        list ($cm2, $banned2) = $m->create($rid, $id2, "Another test message", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
+
+        # Notify should return 2 (1 for Android + 1 for browser) for the new message
         $count = $mock->notify($id, FALSE);
         $this->assertEquals(2, $count);
+    }
+
+    public function testMessageHoldReleaseNotifiesGroupMods() {
+        # Test that hold/release on a message triggers notifyGroupMods.
+        list($g, $groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
+
+        # Create a moderator with push notifications enabled.
+        list($mod, $modid) = $this->createTestUserWithMembership($groupid, User::ROLE_MODERATOR, 'Test Mod', 'testmod@test.com', 'testpw');
+        $n = new PushNotifications($this->dbhr, $this->dbhm);
+        $n->add($modid, PushNotifications::PUSH_GOOGLE, 'test-mod-push', TRUE);
+
+        # Create a member with test@test.com email (matching the basic msg From header).
+        # Set posting status to MODERATED so messages go to pending queue.
+        list($member, $memberid) = $this->createTestUserWithMembership($groupid, User::ROLE_MEMBER, 'Test Member', 'test@test.com', 'testpw');
+        $member->setMembershipAtt($groupid, 'ourPostingStatus', Group::POSTING_MODERATED);
+        User::clearCache();
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        list($msgid, $failok) = $r->received(Message::EMAIL, 'test@test.com', 'to@test.com', $msg);
+        $rc = $r->route();
+        $this->assertEquals(MailRouter::PENDING, $rc);
+
+        # Login as mod.
+        $this->assertTrue($mod->login('testpw'));
+
+        # Hold the message - should trigger notification.
+        $m = new Message($this->dbhr, $this->dbhm, $msgid);
+        $m->hold();
+
+        # Check that notification was queued by verifying the message is held.
+        $m = new Message($this->dbhr, $this->dbhm, $msgid);
+        $this->assertEquals($modid, $m->getPrivate('heldby'));
+
+        # Release the message - should also trigger notification.
+        $m->release();
+        $m = new Message($this->dbhr, $this->dbhm, $msgid);
+        $this->assertNull($m->getPrivate('heldby'));
+    }
+
+    public function testChatMessageHoldReleaseNotifiesGroupMods() {
+        # Test that hold/release on a chat message for review triggers notifyGroupMods.
+        list($g, $groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
+
+        # Create a moderator with push notifications enabled.
+        list($mod, $modid) = $this->createTestUserWithMembership($groupid, User::ROLE_MODERATOR, 'Test Mod', 'testmod2@test.com', 'testpw');
+        $n = new PushNotifications($this->dbhr, $this->dbhm);
+        $n->add($modid, PushNotifications::PUSH_GOOGLE, 'test-mod-push', TRUE);
+
+        # Create two members for the chat.
+        list($user1, $user1id) = $this->createTestUserWithMembership($groupid, User::ROLE_MEMBER, 'Test User1', 'testuser1@test.com', 'testpw');
+        list($user2, $user2id) = $this->createTestUserWithMembership($groupid, User::ROLE_MEMBER, 'Test User2', 'testuser2@test.com', 'testpw');
+
+        # Create a chat message that requires review.
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list($rid, $created) = $r->createConversation($user1id, $user2id);
+
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list($cmid, $banned) = $m->create($rid, $user1id, "Test message", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
+
+        # Manually mark it as requiring review.
+        $this->dbhm->preExec("UPDATE chat_messages SET reviewrequired = 1, processingrequired = 0, processingsuccessful = 1 WHERE id = ?", [$cmid]);
+
+        # Login as mod.
+        $this->assertTrue($mod->login('testpw'));
+
+        # Hold the chat message.
+        $cm = new ChatMessage($this->dbhr, $this->dbhm);
+        $cm->hold($cmid);
+
+        # Verify it was held.
+        $held = $this->dbhr->preQuery("SELECT * FROM chat_messages_held WHERE msgid = ?", [$cmid]);
+        $this->assertEquals(1, count($held));
+        $this->assertEquals($modid, $held[0]['userid']);
+
+        # Release the chat message.
+        $cm->release($cmid);
+
+        # Verify it was released.
+        $held = $this->dbhr->preQuery("SELECT * FROM chat_messages_held WHERE msgid = ?", [$cmid]);
+        $this->assertEquals(0, count($held));
+    }
+
+    public function testMemberReviewHoldReleaseNotifiesGroupMods() {
+        # Test that ReviewHold/ReviewRelease on memberships triggers notifyGroupMods.
+        list($g, $groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
+
+        # Create a moderator with push notifications enabled.
+        list($mod, $modid) = $this->createTestUserWithMembership($groupid, User::ROLE_MODERATOR, 'Test Mod', 'testmod3@test.com', 'testpw');
+        $n = new PushNotifications($this->dbhr, $this->dbhm);
+        $n->add($modid, PushNotifications::PUSH_GOOGLE, 'test-mod-push', TRUE);
+
+        # Create a member to review.
+        list($member, $memberid) = $this->createTestUserWithMembership($groupid, User::ROLE_MEMBER, 'Test Member', 'testmember3@test.com', 'testpw');
+
+        # Get the membership ID.
+        $memberships = $this->dbhr->preQuery("SELECT id FROM memberships WHERE userid = ? AND groupid = ?", [$memberid, $groupid]);
+        $membershipid = $memberships[0]['id'];
+
+        # Login as mod and hold the member review.
+        $this->assertTrue($mod->login('testpw'));
+
+        # Call the setMembershipAttId directly and then trigger notification.
+        $member->setMembershipAttId($membershipid, 'heldby', $modid);
+        $notif = new PushNotifications($this->dbhr, $this->dbhm);
+        $notif->notifyGroupMods($groupid);
+
+        # Verify the membership was held.
+        $memberships = $this->dbhr->preQuery("SELECT heldby FROM memberships WHERE id = ?", [$membershipid]);
+        $this->assertEquals($modid, $memberships[0]['heldby']);
+
+        # Release the member review.
+        $member->setMembershipAttId($membershipid, 'heldby', NULL);
+        $notif->notifyGroupMods($groupid);
+
+        # Verify the membership was released.
+        $memberships = $this->dbhr->preQuery("SELECT heldby FROM memberships WHERE id = ?", [$membershipid]);
+        $this->assertNull($memberships[0]['heldby']);
     }
 }
 

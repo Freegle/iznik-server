@@ -389,6 +389,9 @@ class dbTest extends IznikTestCase {
     }
 
     public function testPrex() {
+        # Ensure table is empty before test (handle any stale data from background queries)
+        $this->dbhm->exec('TRUNCATE TABLE test;');
+
         $rc = $this->dbhm->preExec('INSERT INTO test VALUES ();');
         $this->assertEquals(1, $rc);
 
