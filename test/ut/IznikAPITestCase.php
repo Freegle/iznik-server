@@ -42,26 +42,14 @@ abstract class IznikAPITestCase extends IznikTestCase {
         $dbhm->preExec("DELETE FROM `groups` WHERE nameshort LIKE 'testgroup%';");
 
         # Stop background mail scripts to prevent race conditions in chat tests
-        $this->stopBackgroundMailScripts();
+        $this->stopBackgroundScripts();
     }
 
     protected function tearDown() : void {
         # Restart background mail scripts
-        $this->startBackgroundMailScripts();
+        $this->startBackgroundScripts();
 
         parent::tearDown();
-    }
-
-    protected function stopBackgroundMailScripts() {
-        # Create abort file to signal background mail scripts to exit
-        touch('/tmp/iznik.mail.abort');
-        # Give scripts time to see the abort file and exit (they check every second)
-        sleep(2);
-    }
-
-    protected function startBackgroundMailScripts() {
-        # Remove abort file to allow background mail scripts to restart
-        @unlink('/tmp/iznik.mail.abort');
     }
 
     public function call($call, $type, $params, $decode = TRUE) {

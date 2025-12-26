@@ -125,6 +125,36 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
 
         }
 
+    protected function stopBackgroundScripts() {
+        # Create abort file to signal background scripts to exit
+        touch('/tmp/iznik.mail.abort');
+
+        # Wait for background scripts to exit, checking every 100ms.
+        # Scripts check the abort file roughly every second, so they should exit quickly.
+        $maxWaitMs = 3000;
+        $waitedMs = 0;
+        $sleepMs = 100;
+
+        while ($waitedMs < $maxWaitMs) {
+            # Check if any background mail/chat scripts are still running.
+            $output = [];
+            @exec('pgrep -f "scripts/cron/(chat_|spool|digest)" 2>/dev/null', $output);
+
+            if (empty($output)) {
+                # No background scripts running, we can proceed.
+                return;
+            }
+
+            usleep($sleepMs * 1000);
+            $waitedMs += $sleepMs;
+        }
+    }
+
+    protected function startBackgroundScripts() {
+        # Remove abort file to allow background scripts to restart
+        @unlink('/tmp/iznik.mail.abort');
+    }
+
     public function unique($msg) {
 
         $unique = time() . rand(1,1000000) . IznikTestCase::$unique++;
