@@ -228,8 +228,9 @@ if (!$gid) {
             error_log("Approved message $id");
 
             # Add to messages_spatial for Go tests
+            # Use ST_GeomFromText with SRID directly (matching Message.php approach - degrees with 3857 tag)
             $dbhm->preExec("INSERT IGNORE INTO messages_spatial (msgid, point, successful, promised, groupid, msgtype, arrival)
-                            SELECT m.id, ST_Transform(ST_SRID(POINT(m.lng, m.lat), 4326), 3857), 0, 0, mg.groupid, m.type, mg.arrival
+                            SELECT m.id, ST_GeomFromText(CONCAT('POINT(', m.lng, ' ', m.lat, ')'), {$dbhr->SRID()}), 0, 0, mg.groupid, m.type, mg.arrival
                             FROM messages m
                             JOIN messages_groups mg ON m.id = mg.msgid
                             WHERE m.id = ? AND m.lat IS NOT NULL AND m.lng IS NOT NULL", [$id]);
