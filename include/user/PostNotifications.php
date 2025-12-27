@@ -311,6 +311,7 @@ class PostNotifications
         // Or we can just queue it directly via Pheanstalk
         try {
             $pheanstalk = \Pheanstalk\Pheanstalk::create(PHEANSTALK_SERVER);
+            $pheanstalk = $pheanstalk->useTube(PHEANSTALK_TUBE);
 
             $str = json_encode([
                 'type' => 'webpush',

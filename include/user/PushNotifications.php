@@ -155,6 +155,7 @@ class PushNotifications
 
             if (!$this->pheanstalk) {
                 $this->pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
+                $this->pheanstalk = $this->pheanstalk->useTube(PHEANSTALK_TUBE);
             }
 
             $str = json_encode(array(
@@ -665,6 +666,7 @@ class PushNotifications
 
             if (!$this->pheanstalk) {
                 $this->pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
+                $this->pheanstalk = $this->pheanstalk->useTube(PHEANSTALK_TUBE);
             }
 
             $str = json_encode(array(

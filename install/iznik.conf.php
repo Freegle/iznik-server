@@ -95,6 +95,7 @@ define('GEOCODER', 'geocode.ilovefreegle.org');
 
 # We use beanstalk for backgrounding.
 define('PHEANSTALK_SERVER', '127.0.0.1');
+define('PHEANSTALK_TUBE', getenv('PHEANSTALK_TUBE') ?: 'default');
 
 # Host to monitor
 define('MONIT_HOST', 'zzz');

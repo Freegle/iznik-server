@@ -172,9 +172,10 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
         $start = microtime(TRUE);
 
         $pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
+        $pheanstalk = $pheanstalk->watchOnly(PHEANSTALK_TUBE);
         $count = 0;
         do {
-            $stats = $pheanstalk->stats();
+            $stats = $pheanstalk->statsTube(PHEANSTALK_TUBE);
             $ready = $stats['current-jobs-ready'];
             $reserved = $stats['current-jobs-reserved'];
 
