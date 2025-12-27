@@ -86,9 +86,15 @@ CMD /etc/init.d/ssh start \
   # Set up the environment we need. Putting this here means it gets reset each time we start the container.
   && cp install/nginx.conf /etc/nginx/sites-available/default \
   && /etc/init.d/nginx start \
-	&& /etc/init.d/cron start \
 	&& /etc/init.d/php8.1-fpm start \
 	&& /etc/init.d/postfix start \
+
+  # Update crontab with PHEANSTALK_TUBE from environment (defaults to 'default')
+  && TUBE=${PHEANSTALK_TUBE:-default} \
+  && crontab -l > /tmp/current_crontab \
+  && echo "PHEANSTALK_TUBE=$TUBE" | cat - /tmp/current_crontab | crontab - \
+  && rm /tmp/current_crontab \
+	&& /etc/init.d/cron start \
 
   && export LOVE_JUNK_API=`cat /run/secrets/LOVE_JUNK_API` \
   && export LOVE_JUNK_SECRET=`cat /run/secrets/LOVE_JUNK_SECRET` \
