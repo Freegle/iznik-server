@@ -115,6 +115,8 @@ CMD /etc/init.d/ssh start \
   && sed -ie "s@'SMTP_PORT', [0-9]*@'SMTP_PORT', $SMTP_PORT@" /etc/iznik.conf \
   && sed -ie "s@'LOKI_ENABLED', FALSE@'LOKI_ENABLED', TRUE@" /etc/iznik.conf \
   && sed -ie "s@'LOKI_JSON_PATH', '.*'@'LOKI_JSON_PATH', '$LOKI_JSON_PATH'@" /etc/iznik.conf \
+  # Update database name from environment variable \
+  && sed -ie "s@'SQLDB', '.*'@'SQLDB', '$SQLDB'@" /etc/iznik.conf \
 
 	# We need to make some minor schema tweaks otherwise the schema fails to install.
   && sed -ie 's/ROW_FORMAT=DYNAMIC//g' install/schema.sql \
@@ -122,17 +124,15 @@ CMD /etc/init.d/ssh start \
   && sed -ie 's/timestamp(6)/timestamp/g' install/schema.sql \
   && sed -ie 's/CURRENT_TIMESTAMP(3)/CURRENT_TIMESTAMP/g' install/schema.sql \
   && sed -ie 's/CURRENT_TIMESTAMP(6)/CURRENT_TIMESTAMP/g' install/schema.sql \
-	&& mysql -u root -e 'CREATE DATABASE IF NOT EXISTS iznik;' \
-  && mysql -u root iznik < install/schema.sql \
-  && mysql -u root iznik < install/functions.sql \
-  && mysql -u root iznik < install/damlevlim.sql \
+	&& mysql -u root -e "CREATE DATABASE IF NOT EXISTS $SQLDB;" \
+  && mysql -u root $SQLDB < install/schema.sql \
+  && mysql -u root $SQLDB < install/functions.sql \
+  && mysql -u root $SQLDB < install/damlevlim.sql \
   && mysql -u root -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'" \
-  && mysql -u root -e "use iznik;REPLACE INTO partners_keys (partner, \`key\`) VALUES ('$PARTNER_NAME', '$PARTNER_KEY');" \
+  && mysql -u root -e "use $SQLDB;REPLACE INTO partners_keys (partner, \`key\`) VALUES ('$PARTNER_NAME', '$PARTNER_KEY');" \
   && mysql -u root -e "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));" \
   && php scripts/cli/table_autoinc.php \
-  && php scripts/cron/get_app_release_versions.php >> /tmp/iznik.get_app_release_versions.out 2>&1 \
-
-  # Start messages_spatial loop in background and keep container alive
+  && if [ "$SQLDB" != "iznik_phpunit_test" ]; then php scripts/cron/get_app_release_versions.php >> /tmp/iznik.get_app_release_versions.out 2>&1; fi \
   && sh -c 'nohup sh -c "while true; do cd /var/www/iznik/scripts/cron && php ./message_spatial.php >> /tmp/iznik.message_spatial.out 2>&1; sleep 10; done" </dev/null >/dev/null 2>&1 & exec sleep infinity'
 
 EXPOSE 80
