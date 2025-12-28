@@ -130,7 +130,8 @@ class newsfeedAPITest extends IznikAPITestCase {
 
         # Get this individual one.
         # Insert a mock preview into the database to avoid network access to google.co.uk in CI.
-        $this->dbhm->preExec("INSERT INTO link_previews (url, title, description, image, retrieved) VALUES (?, ?, ?, ?, NOW())", [
+        # Use REPLACE to handle case where record already exists from previous test run.
+        $this->dbhm->preExec("REPLACE INTO link_previews (url, title, description, image, retrieved) VALUES (?, ?, ?, ?, NOW())", [
             'https://google.co.uk',
             'Google',
             'Search the world\'s information',
