@@ -800,7 +800,6 @@ class MailRouter
                 $u->addEmail($envfrom, 0);
                 $pw = $u->inventPassword();
                 $u->addLogin(User::LOGIN_NATIVE, $uid, $pw);
-                $u->welcome($envfrom, $pw);
             }
 
             $u = new User($this->dbhr, $this->dbhm, $uid);

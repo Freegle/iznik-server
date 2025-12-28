@@ -3731,42 +3731,6 @@ class User extends Entity
         return ($uid2);
     }
 
-    public function welcome($email, $password)
-    {
-        # Check if Welcome emails are disabled in iznik-server (migrated to iznik-batch).
-        if (!Mail::isEnabled(Mail::WELCOME)) {
-            return;
-        }
-
-        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
-        $twig = new \Twig_Environment($loader);
-
-        $html = $twig->render('welcome/welcome.html', [
-            'email' => $email,
-            'password' => $password
-        ]);
-
-        $message = \Swift_Message::newInstance()
-            ->setSubject("Welcome to " . SITE_NAME . "!")
-            ->setFrom([NOREPLY_ADDR => SITE_NAME])
-            ->setTo($email)
-            ->setBody("Thanks for joining" . SITE_NAME . "!" . ($password ? "  Here's your password: $password." : ''));
-
-        # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-        # Outlook.
-        $htmlPart = \Swift_MimePart::newInstance();
-        $htmlPart->setCharset('utf-8');
-        $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
-        $htmlPart->setContentType('text/html');
-        $htmlPart->setBody($html);
-        $message->attach($htmlPart);
-
-        Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::WELCOME, $this->getId());
-
-        list ($transport, $mailer) = Mail::getMailer();
-        $this->sendIt($mailer, $message);
-    }
-
     public function FBL()
     {
         $settings = $this->loginLink(USER_SITE, $this->id, '/settings', User::SRC_FBL, TRUE);
