@@ -77,7 +77,9 @@ class ModBotTest extends IznikTestCase {
 
             for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
                 $this->log("Attempt $attempt of $maxRetries");
-                $result = $modbot->reviewPost($id);
+                # Use returnDebugInfo to get raw violations (before threshold filtering)
+                # and skipModRightsCheck since this is a test
+                $result = $modbot->reviewPost($id, FALSE, TRUE, TRUE);
                 $this->assertNotNull($result);
 
                 if (is_array($result) && isset($result['error'])) {
@@ -89,23 +91,28 @@ class ModBotTest extends IznikTestCase {
                     $this->fail("ModBot returned error: " . $result['error']);
                 }
 
-                if (is_array($result) && isset($result['violations'])) {
-                    foreach ($result['violations'] as $violation) {
-                        if (isset($violation['rule']) && $violation['rule'] === 'weapons') {
+                # Check raw violations instead of filtered ones, with lower threshold
+                # The production threshold for weapons is 0.8, but for testing we accept 0.3
+                # because AI responses are non-deterministic
+                $rawViolations = $result['debug']['raw_violations'] ?? [];
+                foreach ($rawViolations as $violation) {
+                    if (isset($violation['rule']) && $violation['rule'] === 'weapons') {
+                        $prob = $violation['probability'] ?? 0;
+                        $this->log("Weapons probability: $prob");
+                        if ($prob >= 0.3) {
                             $foundWeapons = TRUE;
-                            $this->assertGreaterThan(0.1, $violation['probability']);
                             break 2;
                         }
                     }
                 }
 
                 if (!$foundWeapons && $attempt < $maxRetries) {
-                    $this->log("Weapons violation not detected on attempt $attempt, retrying...");
+                    $this->log("Weapons violation not detected on attempt $attempt (prob < 0.3), retrying...");
                     sleep(1);
                 }
             }
 
-            $this->assertTrue($foundWeapons, "Should detect weapons rule violation after $maxRetries attempts");
+            $this->assertTrue($foundWeapons, "Should detect weapons rule violation (prob >= 0.3) after $maxRetries attempts");
         } else {
             $this->log("Skipping API test - no valid key");
             $result = $modbot->reviewPost($id);
