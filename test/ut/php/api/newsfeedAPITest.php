@@ -128,9 +128,15 @@ class newsfeedAPITest extends IznikAPITestCase {
         ]);
         $this->assertEquals(0, $ret['ret']);
 
-        # Get this individual one
-        # Don't call updatePreviews() as it requires network access to google.co.uk which may fail in CI.
-        # The test below already handles the case where preview fetching fails (invalid=1).
+        # Get this individual one.
+        # Insert a mock preview into the database to avoid network access to google.co.uk in CI.
+        $this->dbhm->preExec("INSERT INTO link_previews (url, title, description, image, retrieved) VALUES (?, ?, ?, ?, NOW())", [
+            'https://google.co.uk',
+            'Google',
+            'Search the world\'s information',
+            'https://www.google.co.uk/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png'
+        ]);
+        $n->updatePreviews();
 
         $ret = $this->call('newsfeed', 'GET', [
             'id' => $nid
