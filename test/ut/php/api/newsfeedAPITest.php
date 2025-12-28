@@ -129,7 +129,12 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->assertEquals(0, $ret['ret']);
 
         # Get this individual one
-        $n->updatePreviews();
+        # Mock the preview since URL fetching may fail in test environment
+        $n->setPrivate('preview', json_encode([
+            'title' => 'Google',
+            'description' => 'Search the world\'s information',
+            'image' => 'https://www.google.co.uk/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png'
+        ]));
 
         $ret = $this->call('newsfeed', 'GET', [
             'id' => $nid
