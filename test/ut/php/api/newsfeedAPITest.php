@@ -129,12 +129,8 @@ class newsfeedAPITest extends IznikAPITestCase {
         $this->assertEquals(0, $ret['ret']);
 
         # Get this individual one
-        # Mock the preview since URL fetching may fail in test environment
-        $n->setPrivate('preview', json_encode([
-            'title' => 'Google',
-            'description' => 'Search the world\'s information',
-            'image' => 'https://www.google.co.uk/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png'
-        ]));
+        # Don't call updatePreviews() as it requires network access to google.co.uk which may fail in CI.
+        # The test below already handles the case where preview fetching fails (invalid=1).
 
         $ret = $this->call('newsfeed', 'GET', [
             'id' => $nid
