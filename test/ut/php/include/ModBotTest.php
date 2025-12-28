@@ -56,7 +56,8 @@ class ModBotTest extends IznikTestCase {
         $this->log(__METHOD__ );
 
         # Create a test message that should trigger rule violations
-        list ($r, $id, $failok, $rc) = $this->createCustomTestMessage('Test message about knives and weapons for sale', 'testgroup', 'test@test.com', 'to@test.com', 'I have some kitchen knives and hunting weapons to give away', MailRouter::PENDING);
+        # Use explicit weapons language (not kitchen knives which are legitimate household items)
+        list ($r, $id, $failok, $rc) = $this->createCustomTestMessage('OFFER: Hunting rifle and crossbow', 'testgroup', 'test@test.com', 'to@test.com', 'I have a hunting rifle and a crossbow that I want to give away. Also have some ammunition.', MailRouter::PENDING);
 
         # Log in as ModBot user before review
         $this->assertTrue($this->modBotUser->login('modbotpw'));
