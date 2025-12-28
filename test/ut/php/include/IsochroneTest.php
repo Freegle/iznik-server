@@ -27,6 +27,11 @@ class IsochroneTest extends IznikTestCase {
         $this->dbhm = $dbhm;
         $this->dbhm->preExec("DELETE FROM isochrones;");
         $this->dbhm->preExec("DELETE FROM users_approxlocs;");
+
+        // Skip tests if MAPBOX_TOKEN is not properly configured.
+        if (!defined('MAPBOX_TOKEN') || MAPBOX_TOKEN === '' || MAPBOX_TOKEN === 'zzzz') {
+            $this->markTestSkipped('MAPBOX_TOKEN not configured - set MAPBOX_KEY environment variable');
+        }
     }
 
     public function testBasic() {
