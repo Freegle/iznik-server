@@ -54,7 +54,7 @@ RUN cp install/iznik.conf.php /etc/iznik.conf \
     && sed -ie "s/'SQLHOSTS_MOD', '.*'/'SQLHOSTS_MOD', '$SQLHOST:$SQLPORT'/" /etc/iznik.conf \
     && sed -ie "s/'SQLUSER', '.*'/'SQLUSER', '$SQLUSER'/" /etc/iznik.conf \
     && sed -ie "s/'SQLPASSWORD', '.*'/'SQLPASSWORD', '$SQLPASSWORD'/" /etc/iznik.conf \
-    && sed -ie "s/'SQLDB', '.*'/'SQLDB', '$PGSQLDB'/" /etc/iznik.conf \
+    && sed -ie "s/\\\$sqldb = 'iznik'/\\\$sqldb = '$SQLDB'/" /etc/iznik.conf \
     && sed -ie "s/'PGSQLHOST', '.*'/'PGSQLHOST', '$PGSQLHOST:$PGSQLPORT'/" /etc/iznik.conf \
     && sed -ie "s/'PGSQLUSER', '.*'/'PGSQLUSER', '$PGSQLUSER'/" /etc/iznik.conf \
     && sed -ie "s/'PGSQLPASSWORD', '.*'/'PGSQLPASSWORD', '$PGSQLPASSWORD'/" /etc/iznik.conf \
@@ -121,8 +121,8 @@ CMD /etc/init.d/ssh start \
   && sed -ie "s@'SMTP_PORT', [0-9]*@'SMTP_PORT', $SMTP_PORT@" /etc/iznik.conf \
   && sed -ie "s@'LOKI_ENABLED', FALSE@'LOKI_ENABLED', TRUE@" /etc/iznik.conf \
   && sed -ie "s@'LOKI_JSON_PATH', '.*'@'LOKI_JSON_PATH', '$LOKI_JSON_PATH'@" /etc/iznik.conf \
-  # Update database name from environment variable \
-  && sed -ie "s@'SQLDB', '.*'@'SQLDB', '$SQLDB'@" /etc/iznik.conf \
+  # Update database name from environment variable (uses $sqldb variable for TEST_TOKEN support) \
+  && sed -ie "s@\\\$sqldb = '.*'@\\\$sqldb = '$SQLDB'@" /etc/iznik.conf \
 
 	# We need to make some minor schema tweaks otherwise the schema fails to install.
   && sed -ie 's/ROW_FORMAT=DYNAMIC//g' install/schema.sql \

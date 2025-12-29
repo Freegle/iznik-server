@@ -274,30 +274,50 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
     }
 
     /**
-     * Create a test group with standard settings, or return existing one
+     * Get a unique suffix for parallel test execution.
+     * Uses TEST_TOKEN environment variable set by paratest.
+     */
+    protected function getParallelToken() {
+        $token = getenv('TEST_TOKEN');
+        return $token !== FALSE ? "_p$token" : '';
+    }
+
+    /**
+     * Make a name unique for parallel test execution
+     */
+    protected function parallelName($name) {
+        return $name . $this->getParallelToken();
+    }
+
+    /**
+     * Create a test group with standard settings, or return existing one.
+     * In parallel mode, appends TEST_TOKEN to ensure isolation.
      */
     protected function createTestGroup($name, $type) {
+        // Make name unique per parallel process
+        $uniqueName = $this->parallelName($name);
+
         $g = Group::get($this->dbhr, $this->dbhm);
         $this->assertNotNull($g, "Failed to get Group instance");
 
         // First check if the group already exists using findByShortName
-        $groupid = $g->findByShortName($name);
+        $groupid = $g->findByShortName($uniqueName);
 
         if ($groupid) {
             // Group exists, return it
             $existingGroup = Group::get($this->dbhr, $this->dbhm, $groupid);
-            $this->assertNotNull($existingGroup, "Failed to retrieve existing group '$name'");
+            $this->assertNotNull($existingGroup, "Failed to retrieve existing group '$uniqueName'");
             return [$existingGroup, $groupid];
         }
 
         // Group doesn't exist, create it
-        $groupid = $g->create($name, $type);
-        $this->assertGreaterThan(0, $groupid, "Failed to create group '$name'");
+        $groupid = $g->create($uniqueName, $type);
+        $this->assertGreaterThan(0, $groupid, "Failed to create group '$uniqueName'");
 
         // Verify the group was created correctly
         $createdGroup = Group::get($this->dbhr, $this->dbhm, $groupid);
         $this->assertNotNull($createdGroup, "Failed to retrieve created group");
-        $this->assertEquals($name, $createdGroup->getPrivate('nameshort'), "Group name mismatch");
+        $this->assertEquals($uniqueName, $createdGroup->getPrivate('nameshort'), "Group name mismatch");
         $this->assertEquals($type, $createdGroup->getPrivate('type'), "Group type mismatch");
 
         return [$createdGroup, $groupid];

@@ -3,7 +3,18 @@
 define('SQLHOST', '127.0.0.1');
 define('SQLHOSTS_READ', '127.0.0.1:3307,127.0.0.1:3306');
 define('SQLHOSTS_MOD', '127.0.0.1:3307,127.0.0.1:3306');
-define('SQLDB', 'iznik');
+
+# Base database name - can be modified by Dockerfile sed commands.
+# WORKAROUND: PHPUnit tests are not properly isolated - they share database state
+# and don't clean up after themselves. To run tests in parallel with paratest,
+# each worker needs its own database instance. TEST_TOKEN (set by paratest)
+# selects a per-worker database (e.g., iznik_phpunit_test_1, _2, _3, _4).
+$sqldb = 'iznik';
+$testToken = getenv('TEST_TOKEN');
+if ($testToken !== FALSE && $testToken !== '' && is_numeric($testToken)) {
+    $sqldb = $sqldb . '_' . $testToken;
+}
+define('SQLDB', $sqldb);
 define('SQLUSER', 'root');
 define('SQLPASSWORD', '');
 define('PASSWORD_SALT', 'zzzz');
@@ -95,7 +106,17 @@ define('GEOCODER', 'geocode.ilovefreegle.org');
 
 # We use beanstalk for backgrounding.
 define('PHEANSTALK_SERVER', '127.0.0.1');
-define('PHEANSTALK_TUBE', getenv('PHEANSTALK_TUBE') ?: 'default');
+
+# Base tube name - can be modified by environment or Dockerfile.
+# WORKAROUND: Same isolation issue as database - tests share the Beanstalkd
+# job queue and can interfere with each other. Each paratest worker uses
+# its own tube (e.g., phpunit_1, phpunit_2) to avoid conflicts.
+$pheanstalkTube = getenv('PHEANSTALK_TUBE') ?: 'iznik';
+$testToken = getenv('TEST_TOKEN');
+if ($testToken !== FALSE && $testToken !== '' && is_numeric($testToken)) {
+    $pheanstalkTube = $pheanstalkTube . '_' . $testToken;
+}
+define('PHEANSTALK_TUBE', $pheanstalkTube);
 
 # Host to monitor
 define('MONIT_HOST', 'zzz');
