@@ -87,20 +87,12 @@ if [ -f /tmp/schema.sql ] && [ -s /tmp/schema.sql ]; then
         echo "  PAF reference data copied."
         rm -f /tmp/paf_data.sql
     fi
-
-    # Run testenv.php for each worker database to create fixture data (FreeglePlayground, etc.)
-    # NOTE: Don't pipe to head -3 as this kills PHP via SIGPIPE before testenv.php completes
-    echo "Setting up test environment in worker databases..."
-    for i in 1 2 3 4; do
-        echo "  Running testenv.php for iznik_$i..."
-        (cd /var/www/iznik && TEST_TOKEN=$i php install/testenv.php 2>&1)
-    done
-    echo "  Test environment setup complete."
 else
     echo "  WARNING: Failed to export schema from $MAIN_DB - worker databases may be out of sync"
 fi
 
-# Set up PostgreSQL databases for each worker (to avoid cross-worker location contamination)
+# Set up PostgreSQL databases for each worker BEFORE testenv.php runs
+# (testenv.php connects to PostgreSQL and will fail if the database doesn't exist)
 echo "Setting up PostgreSQL worker databases..."
 PGPASSWORD=iznik
 export PGPASSWORD
@@ -125,6 +117,16 @@ if [ -f /tmp/pgsql_schema.sql ] && [ -s /tmp/pgsql_schema.sql ]; then
 else
     echo "  WARNING: Failed to get PostgreSQL schema - location tests may fail"
 fi
+
+# Run testenv.php for each worker database to create fixture data (FreeglePlayground, etc.)
+# NOTE: Don't pipe to head -3 as this kills PHP via SIGPIPE before testenv.php completes
+# This must run AFTER PostgreSQL databases are created (testenv.php connects to PG)
+echo "Setting up test environment in worker databases..."
+for i in 1 2 3 4; do
+    echo "  Running testenv.php for iznik_$i..."
+    (cd /var/www/iznik && TEST_TOKEN=$i php install/testenv.php 2>&1)
+done
+echo "  Test environment setup complete."
 
 # Kill any existing background workers and clear stop files
 echo "Stopping any existing background workers..."
