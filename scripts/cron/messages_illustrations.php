@@ -6,6 +6,8 @@
 # Uses messages_groups.arrival rather than msgid so that moderated messages (which arrive later)
 # are still processed.
 #
+# Uses batch fetching to detect rate-limiting before saving any images.
+#
 namespace Freegle\Iznik;
 
 define('BASE_DIR', dirname(__FILE__) . '/../..');
@@ -15,6 +17,9 @@ require_once(IZNIK_BASE . '/include/db.php');
 global $dbhr, $dbhm;
 
 $lockh = Utils::lockScript(basename(__FILE__));
+
+# Batch size for fetching new images.
+const BATCH_SIZE = 5;
 
 # Get the last arrival time we've processed. This prevents re-adding illustrations
 # that a mod or user has deleted. We use arrival time rather than msgid because
@@ -64,11 +69,9 @@ do {
         break;
     }
 
-    # Find a message that has no attachments and hasn't been processed yet.
+    # Find messages that have no attachments and haven't been processed yet.
     # We use messages_groups.arrival to track progress, so that moderated messages
     # (which may have lower msgids but arrive later) are still processed.
-    # Multiple messages can arrive at the same time, so we may re-check messages
-    # that already have illustrations - that's fine, we just skip them.
     $msgs = $dbhr->preQuery("
         SELECT DISTINCT mg.msgid, m.subject, mg.arrival
         FROM messages_groups mg
@@ -81,25 +84,125 @@ do {
         AND m.subject IS NOT NULL
         AND m.subject != ''
         ORDER BY mg.arrival ASC, mg.msgid ASC
-        LIMIT 1
-    ", [$lastArrival]);
+        LIMIT ?
+    ", [$lastArrival, BATCH_SIZE * 2]);
 
     if (count($msgs) == 0) {
         break;
     }
 
-    $msg = $msgs[0];
-    $msgid = $msg['msgid'];
-    $subject = $msg['subject'];
-    $arrival = $msg['arrival'];
+    # Separate messages into those with cached images and those needing new images.
+    $cachedMessages = [];
+    $newMessages = [];
+    $maxArrival = $lastArrival;
 
-    # Update the last processed arrival time immediately. We do this regardless of whether we add an
-    # illustration or not - the point is we've considered this message and shouldn't process it
-    # again (e.g., if someone deletes the illustration).
-    # We use > not >= in the comparison because multiple messages can have the same arrival time,
-    # and we want to process all of them before advancing.
-    if ($arrival > $lastArrival) {
-        $lastArrival = $arrival;
+    foreach ($msgs as $msg) {
+        $msgid = $msg['msgid'];
+        $subject = $msg['subject'];
+        $arrival = $msg['arrival'];
+
+        if ($arrival > $maxArrival) {
+            $maxArrival = $arrival;
+        }
+
+        # Extract just the item name from the subject.
+        $itemName = preg_replace('/^(OFFER|WANTED|TAKEN|RECEIVED):\s*/i', '', $subject);
+        $itemName = preg_replace('/\s*\([^)]+\)\s*$/', '', $itemName);
+        $itemName = trim($itemName);
+
+        if (empty($itemName)) {
+            continue;
+        }
+
+        # Check if we already have a cached image for this item name.
+        $cached = $dbhr->preQuery("SELECT externaluid FROM ai_images WHERE name = ?", [$itemName]);
+
+        if (count($cached) > 0 && $cached[0]['externaluid']) {
+            $cachedMessages[] = [
+                'msgid' => $msgid,
+                'itemName' => $itemName,
+                'uid' => $cached[0]['externaluid']
+            ];
+        } else {
+            # Only collect up to BATCH_SIZE new messages.
+            if (count($newMessages) < BATCH_SIZE) {
+                $newMessages[] = [
+                    'msgid' => $msgid,
+                    'itemName' => $itemName
+                ];
+            }
+        }
+    }
+
+    # Process cached messages immediately.
+    foreach ($cachedMessages as $cached) {
+        $check = $dbhr->preQuery("SELECT id FROM messages_attachments WHERE msgid = ? LIMIT 1", [$cached['msgid']]);
+
+        if (count($check) == 0) {
+            $dbhm->preExec("INSERT INTO messages_attachments (msgid, externaluid, externalmods, contenttype) VALUES (?, ?, ?, ?)", [
+                $cached['msgid'],
+                $cached['uid'],
+                json_encode(['ai' => TRUE]),
+                'image/jpeg'
+            ]);
+            error_log("Used cached illustration for message {$cached['msgid']}: {$cached['itemName']}");
+        }
+    }
+
+    # Process new messages in a batch.
+    if (count($newMessages) > 0) {
+        # Build batch request.
+        $batchItems = [];
+        foreach ($newMessages as $msg) {
+            $batchItems[] = [
+                'name' => $msg['itemName'],
+                'prompt' => Pollinations::buildMessagePrompt($msg['itemName']),
+                'width' => 640,
+                'height' => 480,
+                'msgid' => $msg['msgid']
+            ];
+        }
+
+        error_log("Fetching batch of " . count($batchItems) . " illustrations");
+        $results = Pollinations::fetchBatch($batchItems, 120);
+
+        if ($results === FALSE) {
+            # Rate-limited - wait before trying again.
+            error_log("Batch rate-limited, waiting 60 seconds");
+            sleep(60);
+            continue;
+        }
+
+        # Save all successful images.
+        foreach ($results as $i => $result) {
+            $msgid = $batchItems[$i]['msgid'];
+            $itemName = $result['name'];
+            $data = $result['data'];
+            $hash = $result['hash'];
+
+            # Re-check that message still has no attachments.
+            $check = $dbhr->preQuery("SELECT id FROM messages_attachments WHERE msgid = ? LIMIT 1", [$msgid]);
+
+            if (count($check) == 0) {
+                $a = new Attachment($dbhr, $dbhm, NULL, Attachment::TYPE_MESSAGE);
+                $ret = $a->create($msgid, $data, NULL, NULL, TRUE, ['ai' => TRUE]);
+
+                if ($ret) {
+                    $uid = $a->getExternalUid();
+                    if ($uid) {
+                        Pollinations::cacheImage($itemName, $uid, $hash);
+                    }
+                    error_log("Created illustration for message $msgid: $itemName");
+                }
+            } else {
+                error_log("Skipped illustration for message $msgid - attachments added during fetch");
+            }
+        }
+    }
+
+    # Update the last processed arrival time.
+    if ($maxArrival > $lastArrival) {
+        $lastArrival = $maxArrival;
         $dbhm->preExec("INSERT INTO config (`key`, value) VALUES (?, ?)
                        ON DUPLICATE KEY UPDATE value = ?", [
             $CONFIG_KEY,
@@ -108,93 +211,11 @@ do {
         ]);
     }
 
-    # Extract just the item name from the subject (remove OFFER/WANTED prefix and location suffix)
-    $itemName = preg_replace('/^(OFFER|WANTED|TAKEN|RECEIVED):\s*/i', '', $subject);
-    $itemName = preg_replace('/\s*\([^)]+\)\s*$/', '', $itemName);
-    $itemName = trim($itemName);
-
-    if (empty($itemName)) {
-        continue;
+    # If we only had cached messages and no new ones, we're done with this batch.
+    if (count($newMessages) == 0 && count($cachedMessages) == 0) {
+        break;
     }
 
-    # Check if we already have a cached image for this item name
-    $cached = $dbhr->preQuery("SELECT externaluid FROM ai_images WHERE name = ?", [$itemName]);
-
-    if (count($cached) > 0 && $cached[0]['externaluid']) {
-        # Use the cached image
-        $uid = $cached[0]['externaluid'];
-
-        # Re-check that message still has no attachments
-        $check = $dbhr->preQuery("SELECT id FROM messages_attachments WHERE msgid = ? LIMIT 1", [$msgid]);
-
-        if (count($check) == 0) {
-            # Create the attachment using the cached image uid
-            $dbhm->preExec("INSERT INTO messages_attachments (msgid, externaluid, externalmods) VALUES (?, ?, ?)", [
-                $msgid,
-                $uid,
-                json_encode(['ai' => TRUE])
-            ]);
-
-            error_log("Used cached illustration for message $msgid: " . $itemName);
-        }
-    } else {
-        # No cached image - fetch from Pollinations
-        error_log("Fetching illustration for message $msgid: " . $itemName);
-
-        # Prompt injection defense (defense in depth):
-        # Strip common prompt injection keywords from user input.
-        # Note: No prompt injection defense is foolproof, but risk here is low (worst case: odd image).
-        $cleanName = str_replace('CRITICAL:', '', $itemName);
-        $cleanName = str_replace('Draw only', '', $cleanName);
-
-        $prompt = urlencode(
-            "Draw a single friendly cartoon white line drawing on dark green background, moderate shading, " .
-            "cute and quirky style, UK audience, centered, gender-neutral, " .
-            "if showing people use abstract non-gendered figures. " .
-            "CRITICAL: Do not include any text, words, letters, numbers or labels anywhere in the image. " .
-            "Draw only a picture of: " . $cleanName
-        );
-        $url = "https://image.pollinations.ai/prompt/{$prompt}?width=640&height=480&nologo=true&seed=1";
-
-        # Fetch the image with 2 minute timeout
-        $ctx = stream_context_create([
-            'http' => [
-                'timeout' => 120
-            ]
-        ]);
-
-        $data = @file_get_contents($url, FALSE, $ctx);
-
-        if ($data && strlen($data) > 0) {
-            # Re-check that message still has no attachments. The fetch takes a long time and the user may
-            # have added their own photo in the meantime.
-            $check = $dbhr->preQuery("SELECT id FROM messages_attachments WHERE msgid = ? LIMIT 1", [$msgid]);
-
-            if (count($check) == 0) {
-                # Create the attachment, marking it as AI-generated via externalmods.
-                $a = new Attachment($dbhr, $dbhm, NULL, Attachment::TYPE_MESSAGE);
-                $ret = $a->create($msgid, $data, NULL, NULL, TRUE, ['ai' => TRUE]);
-
-                if ($ret) {
-                    # Also cache in ai_images for future reuse
-                    $uid = $a->getExternalUid();
-                    if ($uid) {
-                        $dbhm->preExec("INSERT INTO ai_images (name, externaluid) VALUES (?, ?)
-                                       ON DUPLICATE KEY UPDATE externaluid = VALUES(externaluid), created = NOW()", [
-                            $itemName,
-                            $uid
-                        ]);
-                    }
-
-                    error_log("Created illustration for message $msgid: " . $itemName);
-                }
-            } else {
-                error_log("Skipped illustration for message $msgid - attachments added during fetch");
-            }
-        } else {
-            error_log("Failed to fetch illustration for message $msgid: " . $itemName);
-        }
-    }
 } while (TRUE);
 
 Utils::unlockScript($lockh);

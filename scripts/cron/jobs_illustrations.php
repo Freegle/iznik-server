@@ -4,8 +4,7 @@
 # This fetches line drawings from Pollinations.ai for popular job titles.
 # Scans for job titles with >10 occurrences and caches images in ai_images table.
 #
-# Structured to process messages for preference - only fetches one job image per loop iteration
-# to avoid blocking message processing for hours.
+# Uses batch fetching to detect rate-limiting before saving any images.
 #
 namespace Freegle\Iznik;
 
@@ -17,6 +16,9 @@ global $dbhr, $dbhm;
 
 $lockh = Utils::lockScript(basename(__FILE__));
 
+# Batch size for fetching new images.
+const BATCH_SIZE = 5;
+
 # Keep processing until no jobs found or abort requested
 do {
     if (file_exists('/tmp/iznik.mail.abort')) {
@@ -24,9 +26,9 @@ do {
         break;
     }
 
-    # Find a job title that:
-    # 1. Has more than 10 occurrences in the jobs table
-    # 2. Doesn't already have a cached image in ai_images
+    # Find job titles that:
+    # 1. Have more than 10 occurrences in the jobs table
+    # 2. Don't already have a cached image in ai_images
     # Order by count descending so we process most common titles first
     $titles = $dbhr->preQuery("
         SELECT j.title, COUNT(*) as cnt
@@ -38,77 +40,62 @@ do {
         AND ai.id IS NULL
         GROUP BY j.title
         ORDER BY cnt DESC
-        LIMIT 1
-    ");
+        LIMIT ?
+    ", [BATCH_SIZE]);
 
     if (count($titles) == 0) {
         # No more job titles to process
         break;
     }
 
-    $title = $titles[0]['title'];
-    $count = $titles[0]['cnt'];
+    # Build batch request.
+    $batchItems = [];
+    foreach ($titles as $row) {
+        $title = $row['title'];
+        $count = $row['cnt'];
+        $itemName = trim($title);
 
-    # Clean up the title for use in prompt
-    $itemName = trim($title);
+        if (empty($itemName)) {
+            continue;
+        }
 
-    if (empty($itemName)) {
+        $batchItems[] = [
+            'name' => $title,
+            'prompt' => Pollinations::buildJobPrompt($itemName),
+            'width' => 200,
+            'height' => 200,
+            'count' => $count
+        ];
+    }
+
+    if (count($batchItems) == 0) {
+        break;
+    }
+
+    error_log("Fetching batch of " . count($batchItems) . " job illustrations");
+    $results = Pollinations::fetchBatch($batchItems, 120);
+
+    if ($results === FALSE) {
+        # Rate-limited - wait before trying again.
+        error_log("Batch rate-limited, waiting 60 seconds");
+        sleep(60);
         continue;
     }
 
-    # Prompt injection defense (defense in depth):
-    # Strip common prompt injection keywords from user input.
-    # Note: No prompt injection defense is foolproof, but risk here is low (worst case: odd image).
-    $itemName = str_replace('CRITICAL:', '', $itemName);
-    $itemName = str_replace('Draw only', '', $itemName);
+    # Save all successful images.
+    foreach ($results as $i => $result) {
+        $title = $result['name'];
+        $data = $result['data'];
+        $hash = $result['hash'];
+        $count = $batchItems[$i]['count'];
 
-    # Build the Pollinations.ai URL - use job-appropriate prompt
-    $prompt = urlencode(
-        "simple cute cartoon " . $itemName . " white line drawing on solid dark forest green background, " .
-        "minimalist icon style, gender-neutral, if showing people use abstract non-gendered figures, " .
-        "absolutely no text, no words, no letters, no numbers, no labels, " .
-        "no writing, no captions, no signs, no speech bubbles, no border, filling the entire frame"
-    );
-    $url = "https://image.pollinations.ai/prompt/{$prompt}?width=200&height=200&nologo=true&seed=1";
+        $uid = Pollinations::uploadAndCache($title, $data, $hash);
 
-    error_log("Fetching illustration for job title '$title' (count: $count)");
-
-    # Fetch the image with 2 minute timeout
-    $ctx = stream_context_create([
-        'http' => [
-            'timeout' => 120
-        ]
-    ]);
-
-    $data = @file_get_contents($url, FALSE, $ctx);
-
-    if ($data && strlen($data) > 0) {
-        # Upload to tusd
-        $t = new Tus();
-        $tusUrl = $t->upload(NULL, 'image/jpeg', $data);
-
-        if ($tusUrl) {
-            $uid = 'freegletusd-' . basename($tusUrl);
-
-            # Cache in ai_images table
-            $dbhm->preExec("INSERT INTO ai_images (name, externaluid) VALUES (?, ?)
-                           ON DUPLICATE KEY UPDATE externaluid = VALUES(externaluid), created = NOW()", [
-                $title,
-                $uid
-            ]);
-
-            error_log("Created illustration for job title '$title': $uid");
-        } else {
-            error_log("Failed to upload illustration for job title '$title'");
-            sleep(5);
+        if ($uid) {
+            error_log("Created illustration for job title '$title' (count: $count): $uid");
         }
-    } else {
-        error_log("Failed to fetch illustration for job title '$title'");
-        sleep(5);
     }
 
-    # Only process one job image per iteration - this allows messages to be processed between
-    # job image fetches, so we don't block message processing for hours
 } while (TRUE);
 
 Utils::unlockScript($lockh);
