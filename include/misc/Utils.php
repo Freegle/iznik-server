@@ -419,7 +419,10 @@ class Utils {
     }
 
     public static function lockScript($fn) {
-        $lock = "/tmp/iznik_lock_$fn.lock";
+        // Include TEST_TOKEN in lock filename to allow parallel test workers
+        $testToken = getenv('TEST_TOKEN');
+        $tokenSuffix = ($testToken !== FALSE && $testToken !== '') ? "_$testToken" : '';
+        $lock = "/tmp/iznik_lock_$fn$tokenSuffix.lock";
         $lockh = fopen($lock, 'wa');
 
         try {

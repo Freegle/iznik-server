@@ -19,6 +19,49 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
     private $dbhr, $dbhm;
     public static $unique = 1;
 
+    /**
+     * Get the TEST_TOKEN environment variable for parallel test workers.
+     * Returns empty string if not set (for sequential test runs).
+     * @return string The TEST_TOKEN value or empty string
+     */
+    protected function getTestToken(): string {
+        $token = getenv('TEST_TOKEN');
+        return ($token !== FALSE && $token !== '') ? $token : '';
+    }
+
+    /**
+     * Make an email address unique per test worker by adding TEST_TOKEN suffix.
+     * Example: 'test@test.com' becomes 'test_2@test.com' for worker 2.
+     * @param string $email Base email address
+     * @return string Unique email address for this worker
+     */
+    protected function uniqueEmail(string $email): string {
+        $token = $this->getTestToken();
+        if ($token === '') {
+            return $email;
+        }
+        // Insert token before @ symbol: test@test.com -> test_2@test.com
+        $parts = explode('@', $email);
+        if (count($parts) !== 2) {
+            return $email;
+        }
+        return $parts[0] . '_' . $token . '@' . $parts[1];
+    }
+
+    /**
+     * Make a group name unique per test worker by adding TEST_TOKEN suffix.
+     * Example: 'testgroup' becomes 'testgroup_2' for worker 2.
+     * @param string $name Base group name
+     * @return string Unique group name for this worker
+     */
+    protected function uniqueGroupName(string $name): string {
+        $token = $this->getTestToken();
+        if ($token === '') {
+            return $name;
+        }
+        return $name . '_' . $token;
+    }
+
     public function log($str) {
         if (IznikTestCase::DEBUG) {
             error_log($str);
