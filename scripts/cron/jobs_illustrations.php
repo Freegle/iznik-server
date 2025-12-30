@@ -40,8 +40,8 @@ do {
         AND ai.id IS NULL
         GROUP BY j.title
         ORDER BY cnt DESC
-        LIMIT ?
-    ", [BATCH_SIZE]);
+        LIMIT " . BATCH_SIZE . "
+    ", []);
 
     if (count($titles) == 0) {
         # No more job titles to process

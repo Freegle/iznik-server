@@ -84,8 +84,8 @@ do {
         AND m.subject IS NOT NULL
         AND m.subject != ''
         ORDER BY mg.arrival ASC, mg.msgid ASC
-        LIMIT ?
-    ", [$lastArrival, BATCH_SIZE * 2]);
+        LIMIT " . (BATCH_SIZE * 2) . "
+    ", [$lastArrival]);
 
     if (count($msgs) == 0) {
         break;
