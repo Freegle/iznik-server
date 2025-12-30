@@ -76,6 +76,18 @@ if [ -f /tmp/schema.sql ] && [ -s /tmp/schema.sql ]; then
     echo "  Schema sync complete."
     rm -f /tmp/schema.sql
 
+    # Copy PAF reference data to worker databases (needed for address-related tests)
+    echo "  Copying PAF reference data to worker databases..."
+    PAF_TABLES="paf_addresses paf_buildingname paf_departmentname paf_dependentlocality paf_dependentthoroughfaredescriptor paf_doubledependentlocality paf_organisationname paf_pobox paf_posttown paf_subbuildingname paf_thoroughfaredescriptor locations_excluded postcodes"
+    mysqldump $MYSQL_OPTS --no-create-info --skip-triggers $MAIN_DB $PAF_TABLES 2>/dev/null > /tmp/paf_data.sql
+    if [ -f /tmp/paf_data.sql ] && [ -s /tmp/paf_data.sql ]; then
+        for db in $WORKER_DBS; do
+            mysql $MYSQL_OPTS $db < /tmp/paf_data.sql 2>/dev/null
+        done
+        echo "  PAF reference data copied."
+        rm -f /tmp/paf_data.sql
+    fi
+
     # Run testenv.php for each worker database to create fixture data (FreeglePlayground, etc.)
     echo "Setting up test environment in worker databases..."
     for i in 1 2 3 4; do
