@@ -176,15 +176,23 @@ export XDEBUG_MODE=coverage
 echo "Debug: Running paratest with 4 workers"
 echo "Debug: Test path: $TEST_PATH"
 
-# Run paratest with 4 workers
-php -d memory_limit=-1 -d max_execution_time=0 \
+# Run paratest with 4 workers and verbose output
+# Use timeout to prevent infinite hanging (50 minutes max)
+timeout --signal=SIGTERM --kill-after=60s 3000 \
+    php -d memory_limit=-1 -d max_execution_time=0 \
     /var/www/iznik/composer/vendor/bin/paratest \
     -p 4 \
+    --verbose \
     --configuration /var/www/iznik/test/ut/php/phpunit.xml \
     --coverage-clover /tmp/phpunit-coverage.xml \
     $TEST_PATH 2>&1
 
 TEST_EXIT_CODE=$?
+
+if [ $TEST_EXIT_CODE -eq 124 ]; then
+    echo "ERROR: Paratest timed out after 50 minutes!"
+    echo "Some tests may be hanging. Check verbose output above for details."
+fi
 
 echo "Debug: Test execution completed with exit code: $TEST_EXIT_CODE"
 
