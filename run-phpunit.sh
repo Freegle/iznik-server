@@ -89,10 +89,11 @@ if [ -f /tmp/schema.sql ] && [ -s /tmp/schema.sql ]; then
     fi
 
     # Run testenv.php for each worker database to create fixture data (FreeglePlayground, etc.)
+    # NOTE: Don't pipe to head -3 as this kills PHP via SIGPIPE before testenv.php completes
     echo "Setting up test environment in worker databases..."
     for i in 1 2 3 4; do
         echo "  Running testenv.php for iznik_$i..."
-        (cd /var/www/iznik && TEST_TOKEN=$i php install/testenv.php 2>&1 | head -3)
+        (cd /var/www/iznik && TEST_TOKEN=$i php install/testenv.php 2>&1)
     done
     echo "  Test environment setup complete."
 else
@@ -199,10 +200,15 @@ echo "Debug: Test execution completed with exit code: $TEST_EXIT_CODE"
 # Signal background workers to stop via stop file and cleanup
 echo "Stopping background workers..."
 touch /tmp/stop_background_workers
-sleep 2
+# Kill background processes - this will cause the while loops to check the stop file and exit
 pkill -f "background.php" 2>/dev/null
 pkill -f "exports.php" 2>/dev/null
-rm -f /tmp/stop_background_workers
+# Wait for subshell processes to exit (they check stop file after pkill)
+sleep 3
+# Kill any remaining stubborn processes
+pkill -9 -f "background.php" 2>/dev/null
+pkill -9 -f "exports.php" 2>/dev/null
+# NOTE: Don't remove stop_background_workers - leave it to prevent race conditions
 
 # Check coverage file
 if [ ! -f /tmp/phpunit-coverage.xml ]; then
