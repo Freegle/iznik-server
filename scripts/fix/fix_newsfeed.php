@@ -13,18 +13,8 @@ $storys = $dbhr->preQuery("SELECT * FROM users_stories WHERE `date` > '$mysqltim
 foreach ($storys as $story) {
     $exists = $dbhr->preQuery("SELECT * FROM newsfeed WHERE storyid = ?;", [ $story['id'] ]);
     if (count($exists) == 0) {
-        if ($n->create(Newsfeed::TYPE_STORY, $story['userid'], NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, $story['id'])) {
+        if ($n->create(Newsfeed::TYPE_STORY, $story['userid'], NULL, NULL, NULL, NULL, NULL, NULL, NULL, $story['id'])) {
             $n->setPrivate('timestamp', date ("Y-m-d H:i:s", strtotime($story['date'])));
-        }
-    }
-}
-
-$publicitys = $dbhr->preQuery("SELECT * FROM groups_facebook_toshare WHERE `date` > '$mysqltime'");
-foreach ($publicitys as $publicity) {
-    $exists = $dbhr->preQuery("SELECT * FROM newsfeed WHERE publicityid = ?;", [ $publicity['id'] ]);
-    if (count($exists) == 0) {
-        if ($n->create(Newsfeed::TYPE_CENTRAL_PUBLICITY, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, $publicity['id'])) {
-            $n->setPrivate('timestamp', date ("Y-m-d H:i:s", strtotime($publicity['date'])));
         }
     }
 }
@@ -33,7 +23,7 @@ $events = $dbhr->preQuery("SELECT * FROM communityevents WHERE added > '$mysqlti
 foreach ($events as $event) {
     $exists = $dbhr->preQuery("SELECT * FROM newsfeed WHERE eventid = ?;", [ $event['id'] ]);
     if (count($exists) == 0) {
-        if ($n->create(Newsfeed::TYPE_COMMUNITY_EVENT, $event['userid'], NULL, NULL, NULL, NULL, NULL, $event['id'], NULL, NULL)) {
+        if ($n->create(Newsfeed::TYPE_COMMUNITY_EVENT, $event['userid'], NULL, NULL, NULL, NULL, NULL, $event['id'], NULL)) {
             $n->setPrivate('timestamp', date ("Y-m-d H:i:s", strtotime($event['added'])));
         }
     }
@@ -45,7 +35,7 @@ foreach ($volunteerings as $volunteering) {
     if (count($exists) == 0) {
         $u = User::get($dbhr, $dbhm, $volunteering['userid']);
         if ($u->getId()) {
-            $n->create(Newsfeed::TYPE_VOLUNTEER_OPPORTUNITY, $volunteering['userid'], NULL, NULL, NULL, NULL, NULL, NULL, $volunteering['id'], NULL);
+            $n->create(Newsfeed::TYPE_VOLUNTEER_OPPORTUNITY, $volunteering['userid'], NULL, NULL, NULL, NULL, NULL, NULL, $volunteering['id']);
             $n->setPrivate('timestamp', date ("Y-m-d H:i:s", strtotime($volunteering['added'])));
         }
     }
