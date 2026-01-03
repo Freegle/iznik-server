@@ -72,15 +72,18 @@ do {
     # Find messages that have no attachments and haven't been processed yet.
     # We use messages_groups.arrival to track progress, so that moderated messages
     # (which may have lower msgids but arrive later) are still processed.
+    # Also exclude messages where the user explicitly declined an AI illustration during compose.
     $msgs = $dbhr->preQuery("
         SELECT DISTINCT mg.msgid, m.subject, mg.arrival
         FROM messages_groups mg
         INNER JOIN messages m ON m.id = mg.msgid
         INNER JOIN messages_spatial ms ON ms.msgid = mg.msgid
         LEFT JOIN messages_attachments ma ON ma.msgid = m.id
+        LEFT JOIN messages_ai_declined maid ON maid.msgid = m.id
         WHERE mg.arrival >= ?
         AND mg.collection = 'Approved'
         AND ma.id IS NULL
+        AND maid.msgid IS NULL
         AND m.subject IS NOT NULL
         AND m.subject != ''
         ORDER BY mg.arrival ASC, mg.msgid ASC

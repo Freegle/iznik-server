@@ -698,6 +698,13 @@ function message() {
                                                             $m->addToSpatialIndex();
                                                             $m->index();
                                                         }
+
+                                                        # If the user declined an AI illustration during compose,
+                                                        # record this so the background job doesn't add one later.
+                                                        $aiDeclined = array_key_exists('ai_declined', $_REQUEST) ? Utils::presbool('ai_declined', $_REQUEST, FALSE) : FALSE;
+                                                        if ($aiDeclined) {
+                                                            $dbhm->preExec("INSERT IGNORE INTO messages_ai_declined (msgid) VALUES (?)", [$draft['msgid']]);
+                                                        }
                                                     }
                                                 }
                                             }
