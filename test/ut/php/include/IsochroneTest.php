@@ -10,6 +10,27 @@ require_once(UT_DIR . '/../../include/db.php');
 
 
 /**
+ * Mock Isochrone class that returns predefined WKT polygons instead of calling Mapbox API
+ */
+class MockIsochrone extends Isochrone {
+    /**
+     * Return a mock WKT polygon instead of calling the Mapbox API.
+     * The polygon represents a simple square around the given coordinates.
+     */
+    public function fetchFromMapbox($transport, $lng, $lat, $minutes) {
+        $offset = $minutes * 0.001;
+
+        $minLng = $lng - $offset;
+        $maxLng = $lng + $offset;
+        $minLat = $lat - $offset;
+        $maxLat = $lat + $offset;
+
+        return "POLYGON(($minLng $minLat, $maxLng $minLat, $maxLng $maxLat, $minLng $maxLat, $minLng $minLat))";
+    }
+}
+
+
+/**
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
@@ -27,15 +48,11 @@ class IsochroneTest extends IznikTestCase {
         $this->dbhm = $dbhm;
         $this->dbhm->preExec("DELETE FROM isochrones;");
         $this->dbhm->preExec("DELETE FROM users_approxlocs;");
-
-        // Skip tests if MAPBOX_TOKEN is not properly configured.
-        if (!defined('MAPBOX_TOKEN') || MAPBOX_TOKEN === '' || MAPBOX_TOKEN === 'zzzz') {
-            $this->markTestSkipped('MAPBOX_TOKEN not configured - set MAPBOX_KEY environment variable');
-        }
     }
 
     public function testBasic() {
-        $i = new Isochrone($this->dbhr, $this->dbhm);
+        // Use MockIsochrone to avoid external Mapbox API calls
+        $i = new MockIsochrone($this->dbhr, $this->dbhm);
         $u = User::get($this->dbhr, $this->dbhm);
         $uid = $u->create(NULL, NULL, 'Test User');
 
@@ -45,7 +62,7 @@ class IsochroneTest extends IznikTestCase {
 
         $id = $i->create($uid, Isochrone::WALK, Isochrone::DEFAULT_TIME, NULL, $lid);
         $this->assertEquals($id, $i->getPublic()['id']);
-        $i = new Isochrone($this->dbhr, $this->dbhm, $id);
+        $i = new MockIsochrone($this->dbhr, $this->dbhm, $id);
         $this->assertEquals($id, $i->getPublic()['id']);
         $this->assertNotNull($i->getPublic()['polygon']);
 
@@ -95,7 +112,8 @@ class IsochroneTest extends IznikTestCase {
         }
 
         # Test basic functionality - function should return [isochrone ID, minutes]
-        $i = new Isochrone($this->dbhr, $this->dbhm);
+        # Use MockIsochrone to avoid external Mapbox API calls
+        $i = new MockIsochrone($this->dbhr, $this->dbhm);
         list($isochroneid, $minutes) = $i->ensureIsochroneContainingActiveUsers($lid, Isochrone::WALK, 5, 90, 10, 60);
         $this->assertNotNull($isochroneid);
         $this->assertGreaterThanOrEqual(10, $minutes);

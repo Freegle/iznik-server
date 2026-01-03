@@ -246,27 +246,6 @@ function session() {
                         }
 
                         if ($modtools) {
-                            # If we have many groups this can generate many DB calls, so quicker to prefetch for
-                            # Facebook, even though that makes the code hackier.
-                            $facebooks = GroupFacebook::listForGroups($dbhr, $dbhm, $gids);
-
-                            foreach ($ret['groups'] as &$group) {
-                                if ($group['role'] == User::ROLE_MODERATOR || $group['role'] == User::ROLE_OWNER) {
-                                    # Return info on Facebook status.  This isn't secret info - we don't put anything confidential
-                                    # in here - but it's of no interest to members so there's no point delaying them by
-                                    # fetching it.
-                                    #
-                                    # Similar code in group.php.
-                                    if (array_key_exists($group['id'], $facebooks)) {
-                                        $group['facebook'] = [];
-
-                                        foreach ($facebooks[$group['id']] as $atts) {
-                                            $group['facebook'][] = $atts;
-                                        }
-                                    }
-                                }
-                            }
-
                             if (!$components || in_array('work', $components)) {
                                 $ret['work'] = $me->getWorkCounts($ret['groups']);
 

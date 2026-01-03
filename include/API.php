@@ -319,9 +319,6 @@ class API
                         case 'profile':
                             $ret = profile();
                             break;
-                        case 'socialactions':
-                            $ret = socialactions();
-                            break;
                         case 'messages':
                             $ret = messages();
                             break;

@@ -4533,8 +4533,6 @@ class User extends Entity
             $types = [
                 'pendingvolunteering' => [ 'volunteer op', 'volunteerops', '/modtools/volunteering' ],
                 'pendingevents' => [ 'event', 'events', '/modtools/communityevents' ],
-                'socialactions' => [ 'publicity item', 'publicity items', '/modtools/publicity' ],
-                'popularposts' => [ 'publicity item', 'publicity items', '/modtools/publicity' ],
                 'stories' => [ 'story', 'stories', '/modtools/members/stories' ],
                 'newsletterstories' => [ 'newsletter story', 'newsletter stories', '/modtools/members/newsletter' ],
                 'chatreview' => [ 'chat message to review', 'chat messages to review', '/modtools/chats/review' ],
@@ -6637,14 +6635,6 @@ memberships.groupid IN $groupq
         $ret['spammerpendingadd'] = $spamcounts[Spam::TYPE_PENDING_ADD];
         $ret['spammerpendingremove'] = $spamcounts[Spam::TYPE_PENDING_REMOVE];
 
-        # Show social actions from last 4 days.
-        $ctx = NULL;
-        $f = new GroupFacebook($this->dbhr, $this->dbhm);
-        $ret['socialactions'] = 0; // FB DISABLED = count($f->listSocialActions($ctx,$this));
-
-        $g = new Group($this->dbhr, $this->dbhm);
-        $ret['popularposts'] = 0; // FB DISABLED count($g->getPopularMessages());
-
         if ($this->hasPermission(User::PERM_GIFTAID)) {
             $d = new Donations($this->dbhr, $this->dbhm);
             $ret['giftaid'] = $d->countGiftAidReview();
@@ -6673,8 +6663,6 @@ memberships.groupid IN $groupq
         // All the types of work which are worth nagging about.
         $worktypes = [
             'pendingvolunteering',
-            'socialactions',
-            'popularposts',
             'chatreview',
             'relatedmembers',
             'stories',

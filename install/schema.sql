@@ -1115,81 +1115,6 @@ CREATE TABLE `groups_digests` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `groups_facebook`
---
-
-DROP TABLE IF EXISTS `groups_facebook`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `groups_facebook` (
-  `uid` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `groupid` bigint unsigned NOT NULL,
-  `name` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `type` enum('Page','Group') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Page',
-  `id` varchar(60) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `token` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  `authdate` timestamp NULL DEFAULT NULL,
-  `msgid` bigint unsigned DEFAULT NULL COMMENT 'Last message posted',
-  `msgarrival` timestamp NULL DEFAULT NULL COMMENT 'Time of last message posted',
-  `eventid` bigint unsigned DEFAULT NULL COMMENT 'Last event tweeted',
-  `valid` tinyint NOT NULL DEFAULT '1',
-  `lasterror` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  `lasterrortime` timestamp NULL DEFAULT NULL,
-  `sharefrom` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '134117207097' COMMENT 'Facebook page to republish from',
-  `lastupdated` timestamp NULL DEFAULT NULL COMMENT 'From Graph API',
-  `postablecount` int NOT NULL DEFAULT '0',
-  PRIMARY KEY (`uid`),
-  UNIQUE KEY `groupid_2` (`groupid`,`id`),
-  KEY `msgid` (`msgid`),
-  KEY `eventid` (`eventid`),
-  KEY `groupid` (`groupid`),
-  CONSTRAINT `groups_facebook_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1751067774 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `groups_facebook_shares`
---
-
-DROP TABLE IF EXISTS `groups_facebook_shares`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `groups_facebook_shares` (
-  `uid` bigint unsigned NOT NULL,
-  `groupid` bigint unsigned NOT NULL,
-  `postid` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `status` enum('Shared','Hidden','','') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Shared',
-  UNIQUE KEY `groupid` (`uid`,`postid`),
-  KEY `date` (`date`),
-  KEY `postid` (`postid`),
-  KEY `uid` (`uid`),
-  KEY `groupid_2` (`groupid`),
-  CONSTRAINT `groups_facebook_shares_ibfk_1` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `groups_facebook_shares_ibfk_2` FOREIGN KEY (`uid`) REFERENCES `groups_facebook` (`uid`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `groups_facebook_toshare`
---
-
-DROP TABLE IF EXISTS `groups_facebook_toshare`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `groups_facebook_toshare` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `sharefrom` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Page to share from',
-  `postid` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Facebook postid',
-  `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `data` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `postid` (`postid`),
-  KEY `date` (`date`)
-) ENGINE=InnoDB AUTO_INCREMENT=1751087774 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Stores central posts for sharing out to group pages';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `groups_images`
 --
 
@@ -2538,30 +2463,6 @@ CREATE TABLE `messages_outcomes_intended` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `messages_popular`
---
-
-DROP TABLE IF EXISTS `messages_popular`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `messages_popular` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `msgid` bigint unsigned NOT NULL,
-  `groupid` bigint unsigned NOT NULL,
-  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `shared` tinyint(1) NOT NULL DEFAULT '0',
-  `declined` tinyint(1) NOT NULL DEFAULT '0',
-  `expired` tinyint(1) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`),
-  KEY `msgid` (`msgid`),
-  KEY `groupid` (`groupid`) USING BTREE,
-  KEY `timestamp` (`timestamp`),
-  CONSTRAINT `messages_popular_ibfk_1` FOREIGN KEY (`msgid`) REFERENCES `messages` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
-  CONSTRAINT `messages_popular_ibfk_2` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE=InnoDB AUTO_INCREMENT=1751587774 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Recent popular messages';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `messages_postings`
 --
 
@@ -2707,7 +2608,6 @@ CREATE TABLE `microactions` (
   `version` int NOT NULL DEFAULT '1' COMMENT 'For when we make changes which affect the validity of the data',
   `item1` bigint unsigned DEFAULT NULL,
   `item2` bigint unsigned DEFAULT NULL,
-  `facebook_post` bigint unsigned DEFAULT NULL,
   `rotatedimage` bigint unsigned DEFAULT NULL,
   `score_positive` decimal(10,4) NOT NULL DEFAULT '0.0000',
   `score_negative` decimal(10,4) NOT NULL,
@@ -2716,14 +2616,12 @@ CREATE TABLE `microactions` (
   UNIQUE KEY `userid_2` (`userid`,`msgid`),
   UNIQUE KEY `userid_3` (`userid`,`searchterm1`,`searchterm2`),
   UNIQUE KEY `userid_4` (`userid`,`item1`,`item2`),
-  UNIQUE KEY `userid_5` (`userid`,`facebook_post`),
   KEY `userid` (`userid`),
   KEY `msgid` (`msgid`),
   KEY `searchterm1` (`searchterm1`),
   KEY `searchterm2` (`searchterm2`),
   KEY `item1` (`item1`),
   KEY `item2` (`item2`),
-  KEY `facebook_post` (`facebook_post`),
   KEY `rotatedimage` (`rotatedimage`),
   KEY `timestamp` (`timestamp`),
   CONSTRAINT `microactions_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE,
@@ -2732,7 +2630,6 @@ CREATE TABLE `microactions` (
   CONSTRAINT `microactions_ibfk_4` FOREIGN KEY (`searchterm2`) REFERENCES `search_terms` (`id`) ON DELETE CASCADE,
   CONSTRAINT `microactions_ibfk_5` FOREIGN KEY (`item1`) REFERENCES `items` (`id`) ON DELETE CASCADE,
   CONSTRAINT `microactions_ibfk_6` FOREIGN KEY (`item2`) REFERENCES `items` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `microactions_ibfk_7` FOREIGN KEY (`facebook_post`) REFERENCES `groups_facebook_toshare` (`id`) ON DELETE CASCADE,
   CONSTRAINT `microactions_ibfk_8` FOREIGN KEY (`rotatedimage`) REFERENCES `messages_attachments` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=1751657774 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Micro-volunteering tasks';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -2882,7 +2779,6 @@ CREATE TABLE `newsfeed` (
   `groupid` bigint unsigned DEFAULT NULL,
   `eventid` bigint unsigned DEFAULT NULL,
   `volunteeringid` bigint unsigned DEFAULT NULL,
-  `publicityid` bigint unsigned DEFAULT NULL,
   `storyid` bigint unsigned DEFAULT NULL,
   `message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `position` geometry NOT NULL /*!80003 SRID 3857 */,
@@ -2902,7 +2798,6 @@ CREATE TABLE `newsfeed` (
   KEY `replyto` (`replyto`),
   KEY `groupid` (`groupid`),
   KEY `volunteeringid` (`volunteeringid`),
-  KEY `publicityid` (`publicityid`),
   KEY `storyid` (`storyid`),
   KEY `pinned` (`pinned`,`timestamp`),
   KEY `eventid` (`eventid`) USING BTREE,
@@ -2913,7 +2808,6 @@ CREATE TABLE `newsfeed` (
   CONSTRAINT `newsfeed_ibfk_3` FOREIGN KEY (`groupid`) REFERENCES `groups` (`id`) ON DELETE CASCADE,
   CONSTRAINT `newsfeed_ibfk_4` FOREIGN KEY (`eventid`) REFERENCES `communityevents` (`id`) ON DELETE CASCADE,
   CONSTRAINT `newsfeed_ibfk_5` FOREIGN KEY (`volunteeringid`) REFERENCES `volunteering` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `newsfeed_ibfk_6` FOREIGN KEY (`publicityid`) REFERENCES `groups_facebook_toshare` (`id`) ON DELETE CASCADE,
   CONSTRAINT `newsfeed_ibfk_7` FOREIGN KEY (`storyid`) REFERENCES `users_stories` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=1751717781 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

@@ -802,22 +802,6 @@ class sessionTest extends IznikAPITestCase
         $this->assertEquals(0, $ret['work']['relatedmembers']);
     }
 
-    public function testFacebookPage() {
-        list($g, $gid) = $this->createTestGroup('testgroup', Group::GROUP_UT);
-
-        $f = new GroupFacebook($this->dbhr, $this->dbhm, $gid);
-        $f->add($gid, '123', 'test', 123, GroupFacebook::TYPE_PAGE);
-
-        list($u, $uid) = $this->createTestUserWithMembership($gid, User::ROLE_MODERATOR, NULL, NULL, 'Test User', 'test@test.com', 'testpw');
-        $_SESSION['id'] = $uid;
-
-        $ret = $this->call('session', 'GET', []);
-        $this->assertEquals(0, $ret['ret']);
-
-        $this->assertEquals('test', $ret['groups'][0]['facebook'][0]['name']);
-    }
-
-
     public function testVersion() {
         list($u, $id, $emailid) = $this->createTestUserAndLogin('Test', 'User', NULL, 'test@test.com', 'testpw');
 
