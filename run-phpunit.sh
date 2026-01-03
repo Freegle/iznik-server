@@ -66,24 +66,27 @@ echo "  Exporting schema from $MAIN_DB..."
 mysqldump $MYSQL_OPTS --no-data --routines --triggers $MAIN_DB 2>/dev/null > /tmp/schema.sql
 
 if [ -f /tmp/schema.sql ] && [ -s /tmp/schema.sql ]; then
+    # Apply schema to all worker databases in parallel
     for db in $WORKER_DBS; do
-        echo "  Syncing schema to $db..."
-        # Create database if it doesn't exist
-        mysql $MYSQL_OPTS -e "CREATE DATABASE IF NOT EXISTS $db;" 2>/dev/null
-        # Apply schema (DROP TABLE IF EXISTS ensures clean sync)
-        mysql $MYSQL_OPTS $db < /tmp/schema.sql 2>/dev/null
+        (
+            echo "  Syncing schema to $db..."
+            mysql $MYSQL_OPTS -e "CREATE DATABASE IF NOT EXISTS $db;" 2>/dev/null
+            mysql $MYSQL_OPTS $db < /tmp/schema.sql 2>/dev/null
+        ) &
     done
+    wait
     echo "  Schema sync complete."
     rm -f /tmp/schema.sql
 
-    # Copy PAF reference data to worker databases (needed for address-related tests)
+    # Copy PAF reference data to worker databases in parallel
     echo "  Copying PAF reference data to worker databases..."
     PAF_TABLES="paf_addresses paf_buildingname paf_departmentname paf_dependentlocality paf_dependentthoroughfaredescriptor paf_doubledependentlocality paf_organisationname paf_pobox paf_posttown paf_subbuildingname paf_thoroughfaredescriptor locations_excluded postcodes"
     mysqldump $MYSQL_OPTS --no-create-info --skip-triggers $MAIN_DB $PAF_TABLES 2>/dev/null > /tmp/paf_data.sql
     if [ -f /tmp/paf_data.sql ] && [ -s /tmp/paf_data.sql ]; then
         for db in $WORKER_DBS; do
-            mysql $MYSQL_OPTS $db < /tmp/paf_data.sql 2>/dev/null
+            (mysql $MYSQL_OPTS $db < /tmp/paf_data.sql 2>/dev/null) &
         done
+        wait
         echo "  PAF reference data copied."
         rm -f /tmp/paf_data.sql
     fi
@@ -102,30 +105,37 @@ echo "  Getting PostgreSQL schema..."
 pg_dump -h postgres -U root -s iznik > /tmp/pgsql_schema.sql 2>/dev/null
 
 if [ -f /tmp/pgsql_schema.sql ] && [ -s /tmp/pgsql_schema.sql ]; then
+    # Set up all PostgreSQL worker databases in parallel
     for i in 1 2 3 4; do
-        PGDB="iznik_$i"
-        echo "  Setting up PostgreSQL database $PGDB..."
-        # Drop and recreate database to ensure clean state
-        psql -h postgres -U root -d postgres -c "DROP DATABASE IF EXISTS $PGDB;" 2>/dev/null
-        psql -h postgres -U root -d postgres -c "CREATE DATABASE $PGDB;" 2>/dev/null
-        psql -h postgres -U root -d postgres -c "GRANT ALL PRIVILEGES ON DATABASE $PGDB TO root;" 2>/dev/null
-        # Apply schema
-        psql -h postgres -U root -d $PGDB < /tmp/pgsql_schema.sql 2>/dev/null
+        (
+            PGDB="iznik_$i"
+            echo "  Setting up PostgreSQL database $PGDB..."
+            # Drop and recreate database to ensure clean state
+            psql -h postgres -U root -d postgres -c "DROP DATABASE IF EXISTS $PGDB;" 2>/dev/null
+            psql -h postgres -U root -d postgres -c "CREATE DATABASE $PGDB;" 2>/dev/null
+            psql -h postgres -U root -d postgres -c "GRANT ALL PRIVILEGES ON DATABASE $PGDB TO root;" 2>/dev/null
+            # Apply schema
+            psql -h postgres -U root -d $PGDB < /tmp/pgsql_schema.sql 2>/dev/null
+        ) &
     done
+    wait
     rm -f /tmp/pgsql_schema.sql
     echo "  PostgreSQL worker databases ready."
 else
     echo "  WARNING: Failed to get PostgreSQL schema - location tests may fail"
 fi
 
-# Run testenv.php for each worker database to create fixture data (FreeglePlayground, etc.)
+# Run testenv.php for each worker database in parallel to create fixture data
 # NOTE: Don't pipe to head -3 as this kills PHP via SIGPIPE before testenv.php completes
 # This must run AFTER PostgreSQL databases are created (testenv.php connects to PG)
-echo "Setting up test environment in worker databases..."
+echo "Setting up test environment in worker databases (parallel)..."
 for i in 1 2 3 4; do
-    echo "  Running testenv.php for iznik_$i..."
-    (cd /var/www/iznik && TEST_TOKEN=$i php install/testenv.php 2>&1)
+    (
+        echo "  Running testenv.php for iznik_$i..."
+        cd /var/www/iznik && TEST_TOKEN=$i php install/testenv.php 2>&1
+    ) &
 done
+wait
 echo "  Test environment setup complete."
 
 # Kill any existing background workers and clear stop files
