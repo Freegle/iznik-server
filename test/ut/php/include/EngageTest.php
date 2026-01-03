@@ -120,7 +120,17 @@ class EngageTest extends IznikTestCase {
 
         $e->updateEngagement($uid);
         $u = new User($this->dbhr, $this->dbhm, $uid);
-        $this->assertEquals(Engage::ENGAGEMENT_OCCASIONAL, $u->getPrivate('engagement'));
+        $actualEngagement = $u->getPrivate('engagement');
+        if ($actualEngagement !== Engage::ENGAGEMENT_OCCASIONAL) {
+            $this->log("DEBUG testEngagement failed at OCCASIONAL check");
+            $this->log("DEBUG expected=" . Engage::ENGAGEMENT_OCCASIONAL . ", actual=$actualEngagement");
+            $this->log("DEBUG user=$uid, message id=$id1, lastaccess=" . $u->getPrivate('lastaccess'));
+            $msgCount = $this->dbhr->preQuery("SELECT COUNT(*) as cnt FROM messages WHERE fromuser = ?", [$uid]);
+            $this->log("DEBUG message count for user: " . $msgCount[0]['cnt']);
+            $msgs = $this->dbhr->preQuery("SELECT id, arrival, fromuser FROM messages WHERE fromuser = ? ORDER BY arrival DESC LIMIT 5", [$uid]);
+            $this->log("DEBUG recent messages: " . json_encode($msgs));
+        }
+        $this->assertEquals(Engage::ENGAGEMENT_OCCASIONAL, $actualEngagement);
 
         # Post more, should become frequent.
         list ($r, $id2, $failok, $rc) = $this->createSimpleTestMessage('OFFER: Thing 2 (Place)', 'testgroup', 'from@test.com', 'to@test.com');
