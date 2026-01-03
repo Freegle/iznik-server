@@ -1630,6 +1630,18 @@ class UserTest extends IznikTestCase {
         $u = new User($this->dbhr, $this->dbhm);
         $u->getPublicLogs($u, $logs, FALSE, $ctx, FALSE, TRUE);
         $log = $this->findLog(Log::TYPE_USER, Log::SUBTYPE_POSTCODECHANGE, $logs[$uid]['logs']);
+        if ($log === NULL) {
+            $this->log("DEBUG testSetPostcode failed - no POSTCODECHANGE log found for user $uid");
+            $this->log("DEBUG location id=$pcid, settings=" . json_encode($settings));
+            $logTypes = [];
+            if (isset($logs[$uid]['logs'])) {
+                foreach ($logs[$uid]['logs'] as $l) {
+                    $logTypes[] = ($l['type'] ?? 'unknown') . ':' . ($l['subtype'] ?? 'unknown');
+                }
+            }
+            $this->log("DEBUG available logs: " . json_encode($logTypes));
+            $this->log("DEBUG full logs: " . json_encode($logs[$uid]['logs'] ?? []));
+        }
         $this->assertNotNull($log);
     }
 

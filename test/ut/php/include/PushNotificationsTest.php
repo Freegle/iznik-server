@@ -72,7 +72,16 @@ class PushNotificationsTest extends IznikTestCase {
         list ($cm, $banned) = $m->create($rid, $id2, "Testing", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->assertNotNull($cm);
 
-        $this->assertEquals(1, $mock->notifyGroupMods($this->groupid));
+        $notifyCount = $mock->notifyGroupMods($this->groupid);
+        if ($notifyCount !== 1) {
+            $this->log("DEBUG notifyGroupMods returned $notifyCount, expected 1");
+            $this->log("DEBUG groupid={$this->groupid}, mod userid=$id, chat room=$rid, chat message=$cm");
+            $pushNotifs = $n->get($id);
+            $this->log("DEBUG push notifications for mod: " . json_encode($pushNotifs));
+            $membership = $u->getMembershipAtt($this->groupid, 'role');
+            $this->log("DEBUG mod membership role: $membership");
+        }
+        $this->assertEquals(1, $notifyCount);
 
         $n->remove($id);
         $this->assertEquals([], $n->get($id));
