@@ -1251,6 +1251,22 @@ class MailRouterTest extends IznikTestCase {
         $logs = [ $u->getId() => [ 'id' => $u->getId() ] ];
         $u->getPublicLogs($u, $logs, FALSE, $ctx);
         $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_JOINED, $logs[$u->getId()]['logs']);
+
+        # Debug logging for flaky test - remove once root cause is found.
+        if (!$log) {
+            $this->log("testSubMailUnsub FAILED - Debug info:");
+            $this->log("  - this->uid (setUp user): {$this->uid}");
+            $this->log("  - uid (found by email): $uid");
+            $this->log("  - this->gid: {$this->gid}");
+            $this->log("  - Logs returned: " . count($logs[$u->getId()]['logs'] ?? []));
+            $allLogs = $this->dbhm->preQuery("SELECT id, type, subtype, user, groupid, timestamp FROM logs WHERE user = ? ORDER BY id DESC LIMIT 20", [$uid]);
+            $this->log("  - All logs for user $uid: " . json_encode($allLogs));
+            $memberships = $this->dbhm->preQuery("SELECT * FROM memberships WHERE userid = ?", [$uid]);
+            $this->log("  - Current memberships: " . json_encode($memberships));
+            $allUsersWithEmail = $this->dbhm->preQuery("SELECT userid FROM users_emails WHERE email = 'test@test.com'");
+            $this->log("  - All users with test@test.com: " . json_encode($allUsersWithEmail));
+        }
+
         $this->assertEquals($this->gid, $log['group']['id']);
 
         # Mail - first to pending for new member, moderated by default, then to approved for group settings.
