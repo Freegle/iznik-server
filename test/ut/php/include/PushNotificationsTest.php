@@ -74,12 +74,23 @@ class PushNotificationsTest extends IznikTestCase {
 
         $notifyCount = $mock->notifyGroupMods($this->groupid);
         if ($notifyCount !== 1) {
-            $this->log("DEBUG notifyGroupMods returned $notifyCount, expected 1");
-            $this->log("DEBUG groupid={$this->groupid}, mod userid=$id, chat room=$rid, chat message=$cm");
+            # Debug logging for flaky test - output to both log and stdout.
+            $debug = [];
+            $debug[] = "DEBUG notifyGroupMods returned $notifyCount, expected 1";
+            $debug[] = "DEBUG groupid={$this->groupid}, mod userid=$id, chat room=$rid, chat message=$cm";
             $pushNotifs = $n->get($id);
-            $this->log("DEBUG push notifications for mod: " . json_encode($pushNotifs));
+            $debug[] = "DEBUG push notifications for mod: " . json_encode($pushNotifs);
             $membership = $u->getMembershipAtt($this->groupid, 'role');
-            $this->log("DEBUG mod membership role: $membership");
+            $debug[] = "DEBUG mod membership role: $membership";
+            $mods = $this->dbhm->preQuery("SELECT userid, role FROM memberships WHERE groupid = ? AND role IN ('Owner', 'Moderator')", [$this->groupid]);
+            $debug[] = "DEBUG mods query result: " . json_encode($mods);
+            $allPush = $this->dbhm->preQuery("SELECT * FROM users_push_notifications WHERE userid = ?", [$id]);
+            $debug[] = "DEBUG all push notifications for user $id: " . json_encode($allPush);
+
+            foreach ($debug as $line) {
+                $this->log($line);
+                fwrite(STDERR, $line . "\n");
+            }
         }
         $this->assertEquals(1, $notifyCount);
 
