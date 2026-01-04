@@ -886,12 +886,13 @@ class MailRouterTest extends IznikTestCase {
         }
 
         # Now mark the message as complete - should put a message in the chatroom.
-        $this->log("Mark $origid as TAKEN");
-        $m = new Message($this->dbhm, $this->dbhm, $origid);
+        $this->log("Mark $origid as TAKEN using tube " . PHEANSTALK_TUBE);
+        $m = new Message($this->dbhr, $this->dbhm, $origid);
         $m->mark(Message::OUTCOME_TAKEN, "Thanks", User::HAPPY, NULL);
         $this->waitBackground();
         list($msgs, $users) = $c->getMessages();
-        $this->log("Chat messages " . var_export($msgs, TRUE));
+        $this->log("Chat messages after mark - count " . count($msgs) . " " . var_export($msgs, TRUE));
+        self::assertCount(2, $msgs, "Expected 2 messages in chat: original reply + TYPE_COMPLETED");
         self::assertEquals(ChatMessage::TYPE_COMPLETED, $msgs[1]['type']);
     }
 
