@@ -4461,7 +4461,6 @@ INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid AND chat_rooms.cha
 LEFT JOIN messages_by ON messages_by.msgid = chat_messages.refmsgid AND messages_by.userid IN (chat_rooms.user1, chat_rooms.user2)
 WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND messages_by.id IS NULL;";
         $replies = $this->dbhr->preQuery($sql, [ ChatRoom::TYPE_USER2USER, $this->id, ChatMessage::TYPE_INTERESTED ]);
-        error_log("backgroundMark: Message {$this->id} found " . count($replies) . " chats to notify of completion");
 
         $cm = new ChatMessage($this->dbhr, $this->dbhm);
 
