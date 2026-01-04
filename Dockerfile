@@ -1,5 +1,8 @@
 FROM ghcr.io/freegle/freegle-base:latest
 
+# Build arg to bust Docker layer cache - set to current timestamp during build
+ARG CACHE_BUST=1
+
 ENV DEBIAN_FRONTEND=noninteractive \
 	  TZ='UTZ' \
 	  NOTVISIBLE="in users profile" \
@@ -28,6 +31,9 @@ RUN echo "postfix postfix/mailname string localhost" | debconf-set-selections \
     && echo "postfix postfix/relayhost string [mailhog]:1025" | debconf-set-selections
 
 # Copy iznik-server from local submodule (build context is ./iznik-server)
+# Use build arg to bust cache - any change to CACHE_BUST invalidates this layer
+ARG CACHE_BUST=1
+RUN echo "Cache bust: $CACHE_BUST"
 COPY . /var/www/iznik
 
 RUN touch /var/www/iznik/standalone \
