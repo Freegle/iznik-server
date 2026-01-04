@@ -1247,14 +1247,30 @@ class MailRouterTest extends IznikTestCase {
 
         $this->waitBackground();
         $_SESSION['id'] = $uid;
-        $ctx = NULL;
-        $logs = [ $u->getId() => [ 'id' => $u->getId() ] ];
-        $u->getPublicLogs($u, $logs, FALSE, $ctx);
-        $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_JOINED, $logs[$u->getId()]['logs']);
 
-        # Debug logging for flaky test - remove once root cause is found.
+        // Retry finding the log entry with delays to handle race condition
+        // where background worker may still be processing
+        $log = NULL;
+        $maxRetries = 5;
+        for ($retry = 0; $retry < $maxRetries; $retry++) {
+            $ctx = NULL;
+            $logs = [ $u->getId() => [ 'id' => $u->getId() ] ];
+            $u->getPublicLogs($u, $logs, FALSE, $ctx);
+            $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_JOINED, $logs[$u->getId()]['logs']);
+
+            if ($log) {
+                break;
+            }
+
+            if ($retry < $maxRetries - 1) {
+                $this->log("Log not found, retrying in 2 seconds (attempt " . ($retry + 1) . "/" . $maxRetries . ")");
+                sleep(2);
+            }
+        }
+
+        // Debug logging if still not found after retries.
         if (!$log) {
-            $this->log("testSubMailUnsub FAILED - Debug info:");
+            $this->log("testSubMailUnsub FAILED after $maxRetries retries - Debug info:");
             $this->log("  - this->uid (setUp user): {$this->uid}");
             $this->log("  - uid (found by email): $uid");
             $this->log("  - this->gid: {$this->gid}");
