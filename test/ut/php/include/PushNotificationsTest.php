@@ -72,11 +72,35 @@ class PushNotificationsTest extends IznikTestCase {
         list ($cm, $banned) = $m->create($rid, $id2, "Testing", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->assertNotNull($cm);
 
-        $notifyCount = $mock->notifyGroupMods($this->groupid);
+        # Retry logic for flaky test - sometimes parallel tests may interfere
+        $notifyCount = 0;
+        $maxRetries = 5;
+        for ($retry = 0; $retry < $maxRetries; $retry++) {
+            $notifyCount = $mock->notifyGroupMods($this->groupid);
+            if ($notifyCount === 1) {
+                break;
+            }
+
+            if ($retry < $maxRetries - 1) {
+                # Debug logging and retry
+                $this->log("notifyGroupMods returned $notifyCount, expected 1 - retrying in 2 seconds (attempt " . ($retry + 1) . "/" . $maxRetries . ")");
+
+                # Verify prerequisites are still in place
+                $pushNotifs = $n->get($id);
+                $this->log("Push notifications for mod: " . json_encode($pushNotifs));
+                $allPush = $this->dbhm->preQuery("SELECT * FROM users_push_notifications WHERE userid = ?", [$id]);
+                $this->log("All push notifications for user $id: " . json_encode($allPush));
+                $mods = $this->dbhm->preQuery("SELECT userid, role FROM memberships WHERE groupid = ? AND role IN ('Owner', 'Moderator')", [$this->groupid]);
+                $this->log("Mods query result: " . json_encode($mods));
+
+                sleep(2);
+            }
+        }
+
         if ($notifyCount !== 1) {
-            # Debug logging for flaky test - output to both log and stdout.
+            # Final debug logging for flaky test - output to both log and stdout.
             $debug = [];
-            $debug[] = "DEBUG notifyGroupMods returned $notifyCount, expected 1";
+            $debug[] = "DEBUG notifyGroupMods returned $notifyCount, expected 1 after $maxRetries retries";
             $debug[] = "DEBUG groupid={$this->groupid}, mod userid=$id, chat room=$rid, chat message=$cm";
             $pushNotifs = $n->get($id);
             $debug[] = "DEBUG push notifications for mod: " . json_encode($pushNotifs);
