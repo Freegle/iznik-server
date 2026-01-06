@@ -126,8 +126,8 @@ class MailTest extends IznikTestCase {
         // Should start with 'freegle'.
         $this->assertStringStartsWith('freegle', $id);
 
-        // Should handle negative qualifier (100 + qualifier).
-        $this->assertStringContainsString('099', $id);
+        // Should handle negative qualifier (100 + qualifier = 99, then str_pad pads right to '990').
+        $this->assertStringContainsString('990', $id);
     }
 
     public function testMatchingIdZeroQualifier() {
