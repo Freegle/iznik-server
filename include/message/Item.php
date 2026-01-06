@@ -26,12 +26,19 @@ class Item extends Entity
         $this->dbhm = $dbhm;
     }
 
+    const MAX_ITEM_NAME_LENGTH = 60;
+
     public function create($name) {
         if (!$name || trim($name) === '') {
             return NULL;
         }
 
         $name = trim($name);
+
+        // Truncate item names to MAX_ITEM_NAME_LENGTH characters.
+        if (strlen($name) > self::MAX_ITEM_NAME_LENGTH) {
+            $name = substr($name, 0, self::MAX_ITEM_NAME_LENGTH);
+        }
 
         try {
             # If we have a dup, update the name.  This is because the unique index is case insensitive, and it might be
