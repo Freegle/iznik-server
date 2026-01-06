@@ -97,4 +97,64 @@ class JobsTest extends IznikTestCase
         ]);
         $this->assertEquals(1, $found[0]['count']);
     }
+
+    public function testGetKeywordsEmpty() {
+        // Empty string should return empty array.
+        $result = Jobs::getKeywords('');
+        $this->assertEquals([], $result);
+    }
+
+    public function testGetKeywordsSingleWord() {
+        // Single word should return empty array (no bigrams).
+        $result = Jobs::getKeywords('developer');
+        $this->assertEquals([], $result);
+    }
+
+    public function testGetKeywordsTwoWords() {
+        // Two words should return one bigram.
+        $result = Jobs::getKeywords('software developer');
+        $this->assertEquals(['software developer'], $result);
+    }
+
+    public function testGetKeywordsMultipleWords() {
+        // Multiple words should return all bigrams.
+        $result = Jobs::getKeywords('senior software developer position');
+        $this->assertEquals(['senior software', 'software developer', 'developer position'], $result);
+    }
+
+    public function testGetKeywordsLowercase() {
+        // Keywords should be lowercase.
+        $result = Jobs::getKeywords('Senior Developer');
+        $this->assertEquals(['senior developer'], $result);
+    }
+
+    public function testGetKeywordsSpecialCharacters() {
+        // Special characters should be removed.
+        $result = Jobs::getKeywords('full-time developer (remote)');
+        $this->assertEquals(['fulltime developer', 'developer remote'], $result);
+    }
+
+    public function testGetKeywordsShortWords() {
+        // Words with 2 or fewer characters should be filtered out.
+        $result = Jobs::getKeywords('a to be developer');
+        $this->assertEquals(['developer'], $result);
+    }
+
+    public function testGetKeywordsNumbers() {
+        // Numbers should be filtered out.
+        $result = Jobs::getKeywords('Level 3 support engineer');
+        $this->assertEquals(['support engineer'], $result);
+    }
+
+    public function testGetKeywordsExtraSpaces() {
+        // Extra spaces should be handled.
+        $result = Jobs::getKeywords('software   developer');
+        $this->assertEquals(['software developer'], $result);
+    }
+
+    public function testGetKeywordsMixedCase() {
+        // Mixed case should be normalized to lowercase.
+        $result = Jobs::getKeywords('PHP Developer WANTED');
+        $this->assertEquals(['php developer', 'developer wanted'], $result);
+    }
 }

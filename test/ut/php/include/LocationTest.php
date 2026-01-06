@@ -316,5 +316,57 @@ class LocationTest extends IznikTestCase {
         $this->assertFalse(in_array($gid, $groups));
 
     }
+
+    public function testGetDistanceSamePoint() {
+        // Same point should have zero distance.
+        $distance = Location::getDistance(51.5074, -0.1278, 51.5074, -0.1278);
+        $this->assertEquals(0, $distance);
+    }
+
+    public function testGetDistanceLondonToEdinburgh() {
+        // London to Edinburgh is approximately 330 miles.
+        $distance = Location::getDistance(51.5074, -0.1278, 55.9533, -3.1883);
+        // Allow some tolerance for the calculation.
+        $this->assertGreaterThan(300, $distance);
+        $this->assertLessThan(400, $distance);
+    }
+
+    public function testGetDistanceNewYorkToLosAngeles() {
+        // New York to Los Angeles is approximately 2450 miles.
+        $distance = Location::getDistance(40.7128, -74.0060, 34.0522, -118.2437);
+        $this->assertGreaterThan(2400, $distance);
+        $this->assertLessThan(2500, $distance);
+    }
+
+    public function testGetDistanceSymmetric() {
+        // Distance should be the same in both directions.
+        $distance1 = Location::getDistance(51.5074, -0.1278, 48.8566, 2.3522);
+        $distance2 = Location::getDistance(48.8566, 2.3522, 51.5074, -0.1278);
+        $this->assertEquals($distance1, $distance2);
+    }
+
+    public function testGetDistanceAcrossPrimeMeridian() {
+        // Test crossing the prime meridian (London to Paris).
+        $distance = Location::getDistance(51.5074, -0.1278, 48.8566, 2.3522);
+        // London to Paris is approximately 210 miles.
+        $this->assertGreaterThan(200, $distance);
+        $this->assertLessThan(230, $distance);
+    }
+
+    public function testGetDistanceAcrossEquator() {
+        // Test crossing the equator.
+        $distance = Location::getDistance(1.0, 0.0, -1.0, 0.0);
+        // 2 degrees of latitude is about 138 miles.
+        $this->assertGreaterThan(130, $distance);
+        $this->assertLessThan(145, $distance);
+    }
+
+    public function testGetDistanceShortDistance() {
+        // Very short distance (within same city).
+        $distance = Location::getDistance(51.5074, -0.1278, 51.5080, -0.1285);
+        // Should be less than 1 mile.
+        $this->assertLessThan(1, $distance);
+        $this->assertGreaterThan(0, $distance);
+    }
 }
 

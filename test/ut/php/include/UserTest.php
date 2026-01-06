@@ -1785,5 +1785,77 @@ class UserTest extends IznikTestCase {
         $this->assertStringContainsString('14 days', $this->msgsSent[0]);
         $this->assertStringContainsString('reactivate', $this->msgsSent[0]);
     }
+
+    public function testRemoveTNGroupBasic() {
+        // Test basic group suffix removal.
+        $this->assertEquals('John Smith', User::removeTNGroup('John Smith-g123'));
+        $this->assertEquals('Jane Doe', User::removeTNGroup('Jane Doe-g99999'));
+    }
+
+    public function testRemoveTNGroupNoSuffix() {
+        // Name without group suffix should remain unchanged.
+        $this->assertEquals('John Smith', User::removeTNGroup('John Smith'));
+        $this->assertEquals('Jane', User::removeTNGroup('Jane'));
+    }
+
+    public function testRemoveTNGroupSingleDigit() {
+        // Single digit group number.
+        $this->assertEquals('Test User', User::removeTNGroup('Test User-g1'));
+    }
+
+    public function testRemoveTNGroupMultipleHyphens() {
+        // Name with multiple hyphens should only remove the -gXXX part.
+        $this->assertEquals('Mary-Jane Smith', User::removeTNGroup('Mary-Jane Smith-g42'));
+    }
+
+    public function testRemoveTNGroupNotGroupSuffix() {
+        // Names with -g but not followed by only numbers should not be modified.
+        $this->assertEquals('Test-group', User::removeTNGroup('Test-group'));
+        $this->assertEquals('Name-general', User::removeTNGroup('Name-general'));
+    }
+
+    public function testRemoveTNGroupEmptyString() {
+        // Empty string should return empty.
+        $this->assertEquals('', User::removeTNGroup(''));
+    }
+
+    public function testDecodeIdBasic() {
+        // Test basic decoding.
+        $enc = '-~-';
+        $decoded = User::decodeId($enc);
+        $this->assertIsNumeric($decoded);
+        // 010 in binary = 2
+        $this->assertEquals(2, $decoded);
+    }
+
+    public function testDecodeIdZero() {
+        // Test decoding zero (all zeros).
+        $enc = '---';
+        $decoded = User::decodeId($enc);
+        $this->assertEquals(0, $decoded);
+    }
+
+    public function testDecodeIdOne() {
+        // Test decoding one.
+        $enc = '~';
+        $decoded = User::decodeId($enc);
+        $this->assertEquals(1, $decoded);
+    }
+
+    public function testDecodeIdLarger() {
+        // Test decoding a larger number.
+        // Binary 111 = 7
+        $enc = '~~~';
+        $decoded = User::decodeId($enc);
+        $this->assertEquals(7, $decoded);
+    }
+
+    public function testDecodeIdWithWhitespace() {
+        // Whitespace should be trimmed.
+        $enc = ' ~~ ';
+        $decoded = User::decodeId($enc);
+        // Binary 11 = 3
+        $this->assertEquals(3, $decoded);
+    }
 }
 

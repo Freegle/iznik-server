@@ -147,5 +147,194 @@ class UtilsTest extends IznikTestCase {
         $expected = 'Hello 😀 and café ❤';
         $this->assertEquals($expected, Utils::decodeEmojis($input));
     }
+
+    public function testCodeToCountryValid() {
+        $this->assertEquals('United Kingdom', Utils::code_to_country('GB'));
+        $this->assertEquals('United States of America', Utils::code_to_country('US'));
+        $this->assertEquals('France, French Republic', Utils::code_to_country('FR'));
+    }
+
+    public function testCodeToCountryLowerCase() {
+        // Should handle lowercase codes.
+        $this->assertEquals('United Kingdom', Utils::code_to_country('gb'));
+        $this->assertEquals('Germany', Utils::code_to_country('de'));
+    }
+
+    public function testCodeToCountryInvalid() {
+        // Invalid code should return the code itself.
+        $this->assertEquals('XX', Utils::code_to_country('XX'));
+        $this->assertEquals('ZZ', Utils::code_to_country('ZZ'));
+    }
+
+    public function testPresWithValue() {
+        $arr = ['key' => 'value', 'empty' => ''];
+        $this->assertEquals('value', Utils::pres('key', $arr));
+    }
+
+    public function testPresMissingKey() {
+        $arr = ['key' => 'value'];
+        $this->assertFalse(Utils::pres('missing', $arr));
+    }
+
+    public function testPresEmptyValue() {
+        $arr = ['empty' => ''];
+        $this->assertFalse(Utils::pres('empty', $arr));
+    }
+
+    public function testPresNullArray() {
+        $this->assertFalse(Utils::pres('key', NULL));
+    }
+
+    public function testPresdefWithValue() {
+        $arr = ['key' => 'value'];
+        $this->assertEquals('value', Utils::presdef('key', $arr, 'default'));
+    }
+
+    public function testPresdefMissingKey() {
+        $arr = ['key' => 'value'];
+        $this->assertEquals('default', Utils::presdef('missing', $arr, 'default'));
+    }
+
+    public function testPresintWithValue() {
+        $arr = ['num' => '42', 'float' => '3.14'];
+        $this->assertEquals(42, Utils::presint('num', $arr, 0));
+        $this->assertEquals(3, Utils::presint('float', $arr, 0));
+    }
+
+    public function testPresintMissingKey() {
+        $arr = ['key' => 'value'];
+        $this->assertEquals(99, Utils::presint('missing', $arr, 99));
+    }
+
+    public function testPresfloatWithValue() {
+        $arr = ['float' => '3.14'];
+        $this->assertEqualsWithDelta(3.14, Utils::presfloat('float', $arr, 0), 0.001);
+    }
+
+    public function testPresfloatMissingKey() {
+        $arr = ['key' => 'value'];
+        $this->assertEqualsWithDelta(1.5, Utils::presfloat('missing', $arr, 1.5), 0.001);
+    }
+
+    public function testPresboolTrue() {
+        $arr = ['bool' => 'true', 'one' => '1', 'yes' => 'yes'];
+        $this->assertTrue(Utils::presbool('bool', $arr, FALSE));
+        $this->assertTrue(Utils::presbool('one', $arr, FALSE));
+        $this->assertTrue(Utils::presbool('yes', $arr, FALSE));
+    }
+
+    public function testPresboolFalse() {
+        $arr = ['bool' => 'false', 'zero' => '0', 'no' => 'no'];
+        $this->assertFalse(Utils::presbool('bool', $arr, TRUE));
+        $this->assertFalse(Utils::presbool('zero', $arr, TRUE));
+        $this->assertFalse(Utils::presbool('no', $arr, TRUE));
+    }
+
+    public function testPresboolDefault() {
+        $arr = [];
+        $this->assertTrue(Utils::presbool('missing', $arr, TRUE));
+        $this->assertFalse(Utils::presbool('missing', $arr, FALSE));
+    }
+
+    public function testISODate() {
+        $result = Utils::ISODate('2025-01-01 12:00:00');
+        $this->assertStringContainsString('2025-01-01', $result);
+        $this->assertStringContainsString('T12:00:00', $result);
+    }
+
+    public function testISODateNull() {
+        $this->assertNull(Utils::ISODate(NULL));
+    }
+
+    public function testRandstrLength() {
+        $result = Utils::randstr(20);
+        $this->assertEquals(20, strlen($result));
+
+        $result = Utils::randstr(5);
+        $this->assertEquals(5, strlen($result));
+    }
+
+    public function testRandstrDefaultLength() {
+        $result = Utils::randstr();
+        $this->assertEquals(10, strlen($result));
+    }
+
+    public function testCanonWordSimple() {
+        $this->assertEquals('abc', Utils::canonWord('ABC'));
+        $this->assertEquals('abc', Utils::canonWord('abc'));
+    }
+
+    public function testCanonWordSortsLongWords() {
+        // Words > 3 chars are sorted.
+        $this->assertEquals('abcd', Utils::canonWord('dcba'));
+        $this->assertEquals('hello', Utils::canonWord('hello'));
+    }
+
+    public function testCanonWordStripsNonAlphanumeric() {
+        $this->assertEquals('abc123', Utils::canonWord('abc-123!'));
+    }
+
+    public function testCanonSentence() {
+        $result = Utils::canonSentence('Hello World');
+        $this->assertContains('ehllo', $result);
+        $this->assertContains('dlorw', $result);
+    }
+
+    public function testWordsInCommonIdentical() {
+        $percent = Utils::wordsInCommon('hello world', 'hello world');
+        $this->assertEquals(100, $percent);
+    }
+
+    public function testWordsInCommonNoMatch() {
+        $percent = Utils::wordsInCommon('hello world', 'foo bar');
+        $this->assertEquals(0, $percent);
+    }
+
+    public function testWordsInCommonPartial() {
+        $percent = Utils::wordsInCommon('hello world', 'hello foo');
+        $this->assertGreaterThan(0, $percent);
+        $this->assertLessThan(100, $percent);
+    }
+
+    public function testBlurNoBlur() {
+        list($lat, $lng) = Utils::blur(51.5074, -0.1278, NULL);
+        $this->assertEqualsWithDelta(51.5074, $lat, 0.0001);
+        $this->assertEqualsWithDelta(-0.1278, $lng, 0.0001);
+    }
+
+    public function testBlurWithDistance() {
+        list($lat, $lng) = Utils::blur(51.5074, -0.1278, 1000);
+        // Should be different from original.
+        $this->assertNotEquals(51.5074, $lat);
+    }
+
+    public function testGetBoxPoly() {
+        $result = Utils::getBoxPoly(51.0, -0.5, 52.0, 0.5);
+        $this->assertStringContainsString('POLYGON', $result);
+        $this->assertStringContainsString('51', $result);
+        $this->assertStringContainsString('52', $result);
+    }
+
+    public function testLevensteinSubstringContainsExact() {
+        $this->assertTrue(Utils::levensteinSubstringContains('hello', 'say hello world'));
+    }
+
+    public function testLevensteinSubstringContainsFuzzy() {
+        // 'helo' is 1 edit from 'hello'.
+        $this->assertTrue(Utils::levensteinSubstringContains('helo', 'say hello world', 1));
+    }
+
+    public function testLevensteinSubstringContainsTooFar() {
+        // 'hxxx' is too far from 'hello'.
+        $this->assertFalse(Utils::levensteinSubstringContains('hxxx', 'say hello world', 1));
+    }
+
+    public function testLevensteinSubstringContainsCaseInsensitive() {
+        $this->assertTrue(Utils::levensteinSubstringContains('HELLO', 'say hello world', 0, TRUE));
+    }
+
+    public function testLevensteinSubstringContainsNeedleTooLong() {
+        $this->assertFalse(Utils::levensteinSubstringContains('verylongstring', 'short'));
+    }
 }
 
