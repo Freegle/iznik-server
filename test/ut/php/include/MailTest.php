@@ -91,10 +91,10 @@ class MailTest extends IznikTestCase {
     public function testGetDescriptionReturnsValue() {
         // Test that getDescription returns a value for valid types.
         $types = [
-            Mail::EVENTS_DIGEST,
-            Mail::VOLUNTEERING_DIGEST,
-            Mail::SEND_CHAT,
-            Mail::SEND_NOTIFICATION
+            Mail::EVENTS,
+            Mail::VOLUNTEERING,
+            Mail::CHAT,
+            Mail::NOTIFICATIONS
         ];
 
         foreach ($types as $type) {
@@ -106,22 +106,22 @@ class MailTest extends IznikTestCase {
 
     public function testMatchingIdFormat() {
         // Test that matchingId returns a properly formatted string.
-        $id = Mail::matchingId(Mail::EVENTS_DIGEST, 123);
+        $id = Mail::matchingId(Mail::EVENTS, 123);
 
         // Should start with 'freegle'.
         $this->assertStringStartsWith('freegle', $id);
 
         // Should contain the type.
-        $this->assertStringContainsString((string)Mail::EVENTS_DIGEST, $id);
+        $this->assertStringContainsString((string)Mail::EVENTS, $id);
 
         // Should be consistent for the same inputs (based on week).
-        $id2 = Mail::matchingId(Mail::EVENTS_DIGEST, 123);
+        $id2 = Mail::matchingId(Mail::EVENTS, 123);
         $this->assertEquals($id, $id2);
     }
 
     public function testMatchingIdNegativeQualifier() {
         // Test matchingId with a negative qualifier.
-        $id = Mail::matchingId(Mail::SEND_CHAT, -1);
+        $id = Mail::matchingId(Mail::CHAT, -1);
 
         // Should start with 'freegle'.
         $this->assertStringStartsWith('freegle', $id);
@@ -132,7 +132,7 @@ class MailTest extends IznikTestCase {
 
     public function testMatchingIdZeroQualifier() {
         // Test matchingId with zero qualifier.
-        $id = Mail::matchingId(Mail::SEND_CHAT, 0);
+        $id = Mail::matchingId(Mail::CHAT, 0);
 
         // Should start with 'freegle'.
         $this->assertStringStartsWith('freegle', $id);

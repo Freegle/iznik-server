@@ -265,13 +265,14 @@ class UtilsTest extends IznikTestCase {
     }
 
     public function testCanonWordSortsLongWords() {
-        // Words > 3 chars are sorted.
+        // Words > 3 chars are sorted alphabetically.
         $this->assertEquals('abcd', Utils::canonWord('dcba'));
-        $this->assertEquals('hello', Utils::canonWord('hello'));
+        $this->assertEquals('ehllo', Utils::canonWord('hello'));
     }
 
     public function testCanonWordStripsNonAlphanumeric() {
-        $this->assertEquals('abc123', Utils::canonWord('abc-123!'));
+        // Non-alphanumeric stripped, then sorted (length > 3).
+        $this->assertEquals('123abc', Utils::canonWord('abc-123!'));
     }
 
     public function testCanonSentence() {

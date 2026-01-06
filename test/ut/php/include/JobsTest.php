@@ -136,14 +136,15 @@ class JobsTest extends IznikTestCase
 
     public function testGetKeywordsShortWords() {
         // Words with 2 or fewer characters should be filtered out.
+        // Since only 'developer' remains, no bigrams can be formed.
         $result = Jobs::getKeywords('a to be developer');
-        $this->assertEquals(['developer'], $result);
+        $this->assertEquals([], $result);
     }
 
     public function testGetKeywordsNumbers() {
-        // Numbers should be filtered out.
+        // Numbers are stripped, remaining words form bigrams.
         $result = Jobs::getKeywords('Level 3 support engineer');
-        $this->assertEquals(['support engineer'], $result);
+        $this->assertEquals(['level support', 'support engineer'], $result);
     }
 
     public function testGetKeywordsExtraSpaces() {
