@@ -20,10 +20,12 @@ ENV DEBIAN_FRONTEND=noninteractive \
 	  PHEANSTALK_SERVER=beanstalkd \
 	  IMAGE_DOMAIN=apiv1.localhost
 
-# Configure xdebug to support coverage mode
-RUN echo "zend_extension=xdebug.so" > /etc/php/8.1/mods-available/xdebug.ini \
-    && echo "xdebug.mode=develop,coverage" >> /etc/php/8.1/mods-available/xdebug.ini \
-    && phpenmod xdebug
+# Install PCOV for code coverage (faster than Xdebug)
+# Disable xdebug from base image - PCOV is faster for coverage-only use
+RUN apt-get update && apt-get install -y php8.1-pcov && rm -rf /var/lib/apt/lists/* \
+    && phpdismod xdebug \
+    && phpenmod pcov \
+    && echo "pcov.directory=/var/www/iznik" >> /etc/php/8.1/cli/conf.d/20-pcov.ini
 
 # Configure Postfix for MailHog relay
 RUN echo "postfix postfix/mailname string localhost" | debconf-set-selections \
