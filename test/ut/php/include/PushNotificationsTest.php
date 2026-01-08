@@ -83,7 +83,26 @@ class PushNotificationsTest extends IznikTestCase {
         list ($cm, $banned) = $m->create($rid, $id2, "Testing", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->assertNotNull($cm);
 
+        # Debug: Verify the notification is visible via both db handles right before notifyGroupMods
+        $dbhmNotifs = $this->dbhm->preQuery("SELECT * FROM users_push_notifications WHERE userid = ? AND apptype = ?", [$id, PushNotifications::APPTYPE_MODTOOLS]);
+        $this->log("Debug before notifyGroupMods: dbhm query found " . count($dbhmNotifs) . " notifications for user $id");
+        $dbhrNotifs = $this->dbhr->preQuery("SELECT * FROM users_push_notifications WHERE userid = ? AND apptype = ?", [$id, PushNotifications::APPTYPE_MODTOOLS]);
+        $this->log("Debug before notifyGroupMods: dbhr query found " . count($dbhrNotifs) . " notifications for user $id");
+
+        # Debug: Verify moderator is found by the same query notifyGroupMods uses
+        $mods = $this->dbhr->preQuery("SELECT DISTINCT userid FROM memberships WHERE groupid = ? AND role IN ('Owner', 'Moderator');", [$this->groupid]);
+        $this->log("Debug: Found " . count($mods) . " mods for group $this->groupid: " . json_encode($mods));
+        $this->assertEquals(1, count($mods), "Should find 1 moderator");
+        $this->assertEquals($id, $mods[0]['userid'], "Moderator should be user $id");
+
+        # Debug: Check the mod's pushnotify setting
+        $settings = $u->getGroupSettings($this->groupid);
+        $pushnotify = !array_key_exists('pushnotify', $settings) || $settings['pushnotify'];
+        $this->log("Debug: pushnotify setting for user $id in group $this->groupid: " . ($pushnotify ? 'TRUE' : 'FALSE'));
+        $this->assertTrue($pushnotify, "pushnotify should be enabled (default TRUE)");
+
         $notifyCount = $mock->notifyGroupMods($this->groupid);
+        $this->log("Debug: notifyGroupMods returned $notifyCount");
         $this->assertEquals(1, $notifyCount);
 
         $n->remove($id);
