@@ -6386,7 +6386,7 @@ class User extends Entity
     public function getJobAds() {
         # We want to show a few job ads from nearby.
         $search = NULL;
-        $ret = '<span class="jobads">';
+        $ret = '<table style="width:100%; border-collapse:collapse;">';
 
         list ($lat, $lng) = $this->getLatLng();
 
@@ -6396,15 +6396,33 @@ class User extends Entity
 
             foreach ($jobs as $job) {
                 $loc = Utils::presdef('location', $job, '');
-                $title = "{$job['title']}" . ($loc !== ' ' ? " ($loc)" : '');
 
                 # Link via our site to avoid spam trap warnings.
                 $url = "https://" . USER_SITE . "/job/{$job['id']}";
-                $ret .= '<a href="' . $url . '" target="_blank" style="color:black; font-weight:bold;">' . htmlentities($title) . '</a><br />';
+                $image = Utils::presdef('image', $job, '');
+
+                $ret .= '<tr style="vertical-align:top;">';
+
+                # Image column - small fixed width.
+                if ($image) {
+                    $ret .= '<td style="width:70px; padding:5px 10px 5px 0;">';
+                    $ret .= '<a href="' . $url . '" target="_blank"><img src="' . htmlspecialchars($image) . '" alt="" style="width:60px; height:60px; object-fit:cover;"></a>';
+                    $ret .= '</td>';
+                }
+
+                # Text column - title and location.
+                $ret .= '<td style="padding:5px 0;">';
+                $ret .= '<a href="' . $url . '" target="_blank" style="color:#004085; font-weight:bold; text-decoration:none;">' . htmlentities($job['title']) . '</a>';
+                if ($loc && trim($loc) !== '') {
+                    $ret .= '<br><span style="color:#666; font-size:14px;">' . htmlentities($loc) . '</span>';
+                }
+                $ret .= '</td>';
+
+                $ret .= '</tr>';
             }
         }
 
-        $ret .= '</span>';
+        $ret .= '</table>';
 
         return([
             'location' => $search,
