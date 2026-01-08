@@ -145,7 +145,7 @@ if (!$gid) {
 
     # Create test users with all required relationships
     $uid = createTestUser($dbhr, $dbhm, 'Test', 'User', 'test@test.com', 'User', $gid, $pcid, $volid, $eventid);
-    $uid2 = createTestUser($dbhr, $dbhm, 'Test', 'Moderator', 'testmod@test.com', 'User', $gid, $pcid, $volid, $eventid, User::ROLE_MODERATOR);
+    $uid2 = createTestUser($dbhr, $dbhm, 'Test', 'Moderator', 'testmod@test.com', 'Admin', $gid, $pcid, $volid, $eventid, User::ROLE_MODERATOR);
     $uid3 = createTestUser($dbhr, $dbhm, 'Test', 'User3', 'test3@test.com', 'User', $gid, $pcid, $volid, $eventid);
     $adminUid = createTestUser($dbhr, $dbhm, 'Admin', 'User', 'admin@test.com', 'Admin', $gid, $pcid, $volid, $eventid);
     $supportUid = createTestUser($dbhr, $dbhm, 'Support', 'User', 'support@test.com', 'Support', $gid, $pcid, $volid, $eventid);
