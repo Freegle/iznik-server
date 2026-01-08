@@ -26,9 +26,13 @@ class PushNotificationsTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        list($u2, $id2, $emailid2) = $this->createTestUser('Test', 'User', NULL, 'test2@test.com', 'testpw2');
-        list($u, $id, $emailid) = $this->createTestUserAndLogin('Test', 'User', NULL, 'test@test.com', 'testpw');
-        $this->log("Created $id");
+        # Use unique email addresses to avoid conflicts with parallel tests.
+        $unique = microtime(TRUE);
+        $email1 = "test-pushnotif-$unique@test.com";
+        $email2 = "test2-pushnotif-$unique@test.com";
+        list($u2, $id2, $emailid2) = $this->createTestUser('Test', 'User', NULL, $email2, 'testpw2');
+        list($u, $id, $emailid) = $this->createTestUserAndLogin('Test', 'User', NULL, $email1, 'testpw');
+        $this->log("Created $id with email $email1");
 
         $mock = $this->getMockBuilder('Freegle\Iznik\PushNotifications')
             ->setConstructorArgs(array($this->dbhr, $this->dbhm))
@@ -38,7 +42,10 @@ class PushNotificationsTest extends IznikTestCase {
 
         $n = new PushNotifications($this->dbhr, $this->dbhm);
         $this->log("Send app User.");
-        $n->add($id, PushNotifications::PUSH_FCM_ANDROID, 'test', FALSE);
+        # Use unique subscription names to avoid conflicts with parallel tests.
+        $subscription1 = "test-$unique-$id";
+        $subscription2 = "test2-$unique-$id";
+        $n->add($id, PushNotifications::PUSH_FCM_ANDROID, $subscription1, FALSE);
         $this->assertEquals(1, count($n->get($id)));
 
         # Nothing to notify on MT.
@@ -52,7 +59,7 @@ class PushNotificationsTest extends IznikTestCase {
         $this->assertEquals(1, $mock->notify($id, FALSE));
         $this->assertEquals(1, $mock->notify($id, FALSE));
 
-        $n->add($id, PushNotifications::PUSH_FIREFOX, 'test2', FALSE);
+        $n->add($id, PushNotifications::PUSH_FIREFOX, $subscription2, FALSE);
         $this->assertEquals(2, count($n->get($id)));
         # 1 for FCM_ANDROID + 1 for FIREFOX = 2 total
         $this->assertEquals(2, $n->notify($id, FALSE));
