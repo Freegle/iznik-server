@@ -34,13 +34,16 @@ class PushNotificationsTest extends IznikTestCase {
         list($u, $id, $emailid) = $this->createTestUserAndLogin('Test', 'User', NULL, $email1, 'testpw');
         $this->log("Created $id with email $email1");
 
+        // Use dbhm for both read and write to avoid read replica lag issues.
+        // The test writes data via dbhm but the mock queries via dbhr, which can
+        // have replication lag in CI environments with separate read/write hosts.
         $mock = $this->getMockBuilder('Freegle\Iznik\PushNotifications')
-            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setConstructorArgs(array($this->dbhm, $this->dbhm))
             ->setMethods(array('uthook'))
             ->getMock();
         $mock->method('uthook')->willThrowException(new \Exception());
 
-        $n = new PushNotifications($this->dbhr, $this->dbhm);
+        $n = new PushNotifications($this->dbhm, $this->dbhm);
         $this->log("Send app User.");
         # Use unique subscription names to avoid conflicts with parallel tests.
         $subscription1 = "test-$unique-$id";
