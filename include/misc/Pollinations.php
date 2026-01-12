@@ -17,6 +17,15 @@ class Pollinations {
     # Cache expiry in seconds (24 hours).
     const CACHE_EXPIRY = 86400;
 
+    # File-based cache for failed items.
+    const FAILED_CACHE_FILE = '/tmp/pollinations_failed.json';
+
+    # Max failures before permanently skipping an item.
+    const MAX_FAILURES = 3;
+
+    # Failed items cache expiry (1 day - give items a chance to work later).
+    const FAILED_CACHE_EXPIRY = 86400;
+
     /**
      * Load the file-based hash cache.
      * @return array Hash => [prompt, timestamp] mapping.
@@ -96,6 +105,103 @@ class Pollinations {
         ];
 
         self::saveFileCache($cache);
+    }
+
+    /**
+     * Load the failed items cache.
+     * @return array itemName => ['count' => int, 'timestamp' => int]
+     */
+    private static function loadFailedCache() {
+        if (!file_exists(self::FAILED_CACHE_FILE)) {
+            return [];
+        }
+
+        $data = @file_get_contents(self::FAILED_CACHE_FILE);
+        if (!$data) {
+            return [];
+        }
+
+        $cache = @json_decode($data, TRUE);
+        if (!is_array($cache)) {
+            return [];
+        }
+
+        # Remove expired entries.
+        $now = time();
+        $cache = array_filter($cache, function($entry) use ($now) {
+            return isset($entry['timestamp']) && ($now - $entry['timestamp']) < self::FAILED_CACHE_EXPIRY;
+        });
+
+        return $cache;
+    }
+
+    /**
+     * Save the failed items cache.
+     * @param array $cache itemName => ['count' => int, 'timestamp' => int]
+     */
+    private static function saveFailedCache($cache) {
+        $fp = @fopen(self::FAILED_CACHE_FILE, 'c');
+        if (!$fp) {
+            return;
+        }
+
+        if (flock($fp, LOCK_EX)) {
+            ftruncate($fp, 0);
+            fwrite($fp, json_encode($cache));
+            fflush($fp);
+            flock($fp, LOCK_UN);
+        }
+
+        fclose($fp);
+    }
+
+    /**
+     * Record a failure for an item. Returns TRUE if item should be skipped (too many failures).
+     * @param string $itemName The item name that failed.
+     * @return bool TRUE if item has exceeded max failures and should be skipped.
+     */
+    public static function recordFailure($itemName) {
+        $cache = self::loadFailedCache();
+
+        if (!isset($cache[$itemName])) {
+            $cache[$itemName] = ['count' => 0, 'timestamp' => time()];
+        }
+
+        $cache[$itemName]['count']++;
+        $cache[$itemName]['timestamp'] = time();
+
+        self::saveFailedCache($cache);
+
+        $shouldSkip = $cache[$itemName]['count'] >= self::MAX_FAILURES;
+        if ($shouldSkip) {
+            error_log("Item '$itemName' has failed " . $cache[$itemName]['count'] . " times, will skip for 1 day");
+        }
+
+        return $shouldSkip;
+    }
+
+    /**
+     * Check if an item should be skipped due to previous failures.
+     * @param string $itemName The item name to check.
+     * @return bool TRUE if item should be skipped.
+     */
+    public static function shouldSkipItem($itemName) {
+        $cache = self::loadFailedCache();
+
+        if (!isset($cache[$itemName])) {
+            return FALSE;
+        }
+
+        return $cache[$itemName]['count'] >= self::MAX_FAILURES;
+    }
+
+    /**
+     * Clear the failed items cache (mainly for testing/maintenance).
+     */
+    public static function clearFailedCache() {
+        if (file_exists(self::FAILED_CACHE_FILE)) {
+            @unlink(self::FAILED_CACHE_FILE);
+        }
     }
 
     /**
@@ -266,19 +372,23 @@ class Pollinations {
     }
 
     /**
-     * Fetch a batch of images and only return them if all are unique.
-     * This detects rate-limiting before any images are saved.
+     * Fetch a batch of images, returning successful results and tracking failures.
+     * Individual item failures (no data returned) do NOT fail the batch - only actual
+     * rate-limiting (HTTP 429 or duplicate images) fails the entire batch.
      *
      * @param array $items Array of ['name' => string, 'prompt' => string, 'width' => int, 'height' => int]
      * @param int $timeout Timeout per request in seconds.
-     * @return array|false Array of ['name' => string, 'data' => string, 'hash' => string] on success, FALSE if rate-limited.
+     * @return array|false Array with 'results' and 'failed' keys on success, FALSE if rate-limited.
+     *                     'results' => [['name' => string, 'data' => string, 'hash' => string], ...]
+     *                     'failed' => [name => TRUE, ...] items that failed to fetch (not rate-limited)
      */
     public static function fetchBatch($items, $timeout = 120) {
         if (empty($items)) {
-            return [];
+            return ['results' => [], 'failed' => []];
         }
 
         $results = [];
+        $failed = [];
         $batchHashes = [];
 
         foreach ($items as $item) {
@@ -299,7 +409,7 @@ class Pollinations {
             error_log("Batch fetching image for: $name");
             $data = @file_get_contents($url, FALSE, $ctx);
 
-            # Check for HTTP 429.
+            # Check for HTTP 429 - this is real rate-limiting, fail entire batch.
             if (isset($http_response_header)) {
                 foreach ($http_response_header as $header) {
                     if (preg_match('/^HTTP\/\d+\.?\d*\s+429/', $header)) {
@@ -309,14 +419,18 @@ class Pollinations {
                 }
             }
 
+            # No data returned - this is an individual failure, NOT rate-limiting.
+            # Skip this item but continue with others.
             if (!$data || strlen($data) == 0) {
-                error_log("Pollinations failed to return data for batch item: $name");
-                return FALSE;
+                error_log("Pollinations failed to return data for batch item: $name (skipping)");
+                $failed[$name] = TRUE;
+                continue;
             }
 
             $hash = md5($data);
 
             # Check if this hash already appeared in this batch for a different item.
+            # This IS rate-limiting - fail entire batch.
             if (isset($batchHashes[$hash]) && $batchHashes[$hash] !== $name) {
                 error_log("Pollinations rate limited (batch duplicate) for: $name (same as: " . $batchHashes[$hash] . ")");
                 # Clean up any recently added entries with this hash.
@@ -324,7 +438,7 @@ class Pollinations {
                 return FALSE;
             }
 
-            # Check file cache.
+            # Check file cache - this IS rate-limiting.
             $existingPrompt = self::checkFileCache($hash, $name);
             if ($existingPrompt !== FALSE) {
                 error_log("Pollinations rate limited (file cache) for batch item: $name (same as: $existingPrompt)");
@@ -332,7 +446,7 @@ class Pollinations {
                 return FALSE;
             }
 
-            # Check database for historical duplicates.
+            # Check database for historical duplicates - this IS rate-limiting.
             global $dbhr;
             if ($dbhr) {
                 $existing = $dbhr->preQuery(
@@ -352,20 +466,22 @@ class Pollinations {
             $results[] = [
                 'name' => $name,
                 'data' => $data,
-                'hash' => $hash
+                'hash' => $hash,
+                'msgid' => $item['msgid'] ?? NULL,
+                'jobid' => $item['jobid'] ?? NULL
             ];
 
             # Small delay between requests.
             sleep(1);
         }
 
-        # All images in batch are unique - add to caches.
+        # Add successful images to caches.
         foreach ($results as $result) {
             self::$seenHashes[$result['hash']] = $result['name'];
             self::addToFileCache($result['hash'], $result['name']);
         }
 
-        return $results;
+        return ['results' => $results, 'failed' => $failed];
     }
 
     /**
