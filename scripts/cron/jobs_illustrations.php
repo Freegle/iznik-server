@@ -48,7 +48,7 @@ do {
         break;
     }
 
-    # Build batch request.
+    # Build batch request, skipping items that have failed too many times.
     $batchItems = [];
     foreach ($titles as $row) {
         $title = $row['title'];
@@ -59,12 +59,19 @@ do {
             continue;
         }
 
+        # Check if this item has failed too many times - skip it.
+        if (Pollinations::shouldSkipItem($itemName)) {
+            error_log("Skipping job title '$itemName' due to previous failures");
+            continue;
+        }
+
         $batchItems[] = [
             'name' => $title,
             'prompt' => Pollinations::buildJobPrompt($itemName),
             'width' => 200,
             'height' => 200,
-            'count' => $count
+            'count' => $count,
+            'jobid' => NULL
         ];
     }
 
@@ -73,26 +80,30 @@ do {
     }
 
     error_log("Fetching batch of " . count($batchItems) . " job illustrations");
-    $results = Pollinations::fetchBatch($batchItems, 120);
+    $batchResult = Pollinations::fetchBatch($batchItems, 120);
 
-    if ($results === FALSE) {
+    if ($batchResult === FALSE) {
         # Rate-limited - wait before trying again.
         error_log("Batch rate-limited, waiting 60 seconds");
         sleep(60);
         continue;
     }
 
+    # Record failures for items that failed.
+    foreach ($batchResult['failed'] as $failedName => $dummy) {
+        Pollinations::recordFailure($failedName);
+    }
+
     # Save all successful images.
-    foreach ($results as $i => $result) {
+    foreach ($batchResult['results'] as $result) {
         $title = $result['name'];
         $data = $result['data'];
         $hash = $result['hash'];
-        $count = $batchItems[$i]['count'];
 
         $uid = Pollinations::uploadAndCache($title, $data, $hash);
 
         if ($uid) {
-            error_log("Created illustration for job title '$title' (count: $count): $uid");
+            error_log("Created illustration for job title '$title': $uid");
         }
     }
 

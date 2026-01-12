@@ -117,6 +117,12 @@ do {
             continue;
         }
 
+        # Check if this item has failed too many times - skip it.
+        if (Pollinations::shouldSkipItem($itemName)) {
+            error_log("Skipping item '$itemName' due to previous failures");
+            continue;
+        }
+
         # Check if we already have a cached image for this item name.
         $cached = $dbhr->preQuery("SELECT externaluid FROM ai_images WHERE name = ?", [$itemName]);
 
@@ -167,18 +173,23 @@ do {
         }
 
         error_log("Fetching batch of " . count($batchItems) . " illustrations");
-        $results = Pollinations::fetchBatch($batchItems, 120);
+        $batchResult = Pollinations::fetchBatch($batchItems, 120);
 
-        if ($results === FALSE) {
+        if ($batchResult === FALSE) {
             # Rate-limited - wait before trying again.
             error_log("Batch rate-limited, waiting 60 seconds");
             sleep(60);
             continue;
         }
 
+        # Record failures for items that failed.
+        foreach ($batchResult['failed'] as $failedName => $dummy) {
+            Pollinations::recordFailure($failedName);
+        }
+
         # Save all successful images.
-        foreach ($results as $i => $result) {
-            $msgid = $batchItems[$i]['msgid'];
+        foreach ($batchResult['results'] as $result) {
+            $msgid = $result['msgid'];
             $itemName = $result['name'];
             $data = $result['data'];
             $hash = $result['hash'];
