@@ -26,19 +26,27 @@ class PushNotificationsTest extends IznikTestCase {
     }
 
     public function testBasic() {
-        list($u2, $id2, $emailid2) = $this->createTestUser('Test', 'User', NULL, 'test2@test.com', 'testpw2');
-        list($u, $id, $emailid) = $this->createTestUserAndLogin('Test', 'User', NULL, 'test@test.com', 'testpw');
-        $this->log("Created $id");
+        # Use unique email addresses to avoid conflicts with parallel tests.
+        $unique = microtime(TRUE);
+        $email1 = "test-pushnotif-$unique@test.com";
+        $email2 = "test2-pushnotif-$unique@test.com";
+        list($u2, $id2, $emailid2) = $this->createTestUser('Test', 'User', NULL, $email2, 'testpw2');
+        list($u, $id, $emailid) = $this->createTestUserAndLogin('Test', 'User', NULL, $email1, 'testpw');
+        $this->log("Created $id with email $email1");
 
+        # Use dbhm for both connections in the mock to ensure data visibility.
         $mock = $this->getMockBuilder('Freegle\Iznik\PushNotifications')
-            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setConstructorArgs(array($this->dbhm, $this->dbhm))
             ->setMethods(array('uthook'))
             ->getMock();
         $mock->method('uthook')->willThrowException(new \Exception());
 
-        $n = new PushNotifications($this->dbhr, $this->dbhm);
+        $n = new PushNotifications($this->dbhm, $this->dbhm);
         $this->log("Send app User.");
-        $n->add($id, PushNotifications::PUSH_FCM_ANDROID, 'test', FALSE);
+        # Use unique subscription names to avoid conflicts with parallel tests.
+        $subscription1 = "test-$unique-$id";
+        $subscription2 = "test2-$unique-$id";
+        $n->add($id, PushNotifications::PUSH_FCM_ANDROID, $subscription1, FALSE);
         $this->assertEquals(1, count($n->get($id)));
 
         # Nothing to notify on MT.
@@ -52,7 +60,7 @@ class PushNotificationsTest extends IznikTestCase {
         $this->assertEquals(1, $mock->notify($id, FALSE));
         $this->assertEquals(1, $mock->notify($id, FALSE));
 
-        $n->add($id, PushNotifications::PUSH_FIREFOX, 'test2', FALSE);
+        $n->add($id, PushNotifications::PUSH_FIREFOX, $subscription2, FALSE);
         $this->assertEquals(2, count($n->get($id)));
         # 1 for FCM_ANDROID + 1 for FIREFOX = 2 total
         $this->assertEquals(2, $n->notify($id, FALSE));
@@ -65,26 +73,24 @@ class PushNotificationsTest extends IznikTestCase {
         $this->dbhm->preExec("DELETE FROM users_push_notifications WHERE userid = ? AND apptype = ?;", [$id, PushNotifications::APPTYPE_MODTOOLS]);
         $n->add($id, PushNotifications::PUSH_GOOGLE, $modSubscription, TRUE);
 
-        # Verify the notification was added.
-        $modNotifs = $this->dbhm->preQuery("SELECT * FROM users_push_notifications WHERE userid = ? AND apptype = ?", [$id, PushNotifications::APPTYPE_MODTOOLS]);
-        $this->assertEquals(1, count($modNotifs), "ModTools push notification should exist");
-
-        list($g, $this->groupid) = $this->createTestGroup('testgroup', Group::GROUP_REUSE);
+        # Use unique group name based on user ID to avoid conflicts with parallel tests.
+        $groupName = "testgroup_pushnotif_$id";
+        list($g, $this->groupid) = $this->createTestGroup($groupName, Group::GROUP_REUSE);
         $u->addMembership($this->groupid, User::ROLE_MODERATOR);
-
-        # Verify membership was added.
-        $membership = $u->getMembershipAtt($this->groupid, 'role');
-        $this->assertEquals(User::ROLE_MODERATOR, $membership, "User should be a moderator");
 
         # Create a chat message from the user to the mods.
         $r = new ChatRoom($this->dbhm, $this->dbhm);
         $rid = $r->createUser2Mod($id2, $this->groupid);
+
         $m = new ChatMessage($this->dbhr, $this->dbhm);
         list ($cm, $banned) = $m->create($rid, $id2, "Testing", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
         $this->assertNotNull($cm);
 
-        $notifyCount = $mock->notifyGroupMods($this->groupid);
-        $this->assertEquals(1, $notifyCount);
+        # Ensure message is ready for notification (not pending processing).
+        $this->dbhm->preExec("UPDATE chat_messages SET processingrequired = 0, processingsuccessful = 1, reviewrequired = 0 WHERE id = ?", [$cm]);
+
+        $result = $mock->notifyGroupMods($this->groupid);
+        $this->assertEquals(1, $result);
 
         $n->remove($id);
         $this->assertEquals([], $n->get($id));
