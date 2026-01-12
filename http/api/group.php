@@ -58,24 +58,6 @@ function group() {
 
                     $partner = Utils::pres('partner', $_SESSION);
 
-                    if ($me && $me->isModerator() || $partner) {
-                        # Return info on Facebook status.  This isn't secret info - we don't put anything confidential
-                        # in here - but it's of no interest to members so there's no point delaying them by
-                        # fetching it.
-                        #
-                        # Similar code in session.php
-                        $uids = GroupFacebook::listForGroup($dbhr, $dbhm, $id);
-                        $ret['group']['facebook'] = [];
-
-                        foreach ($uids as $uid) {
-                            $f = new GroupFacebook($dbhr, $dbhm, $uid);
-                            $atts = $f->getPublic();
-                            unset($atts['token']);
-                            $atts['authdate'] = Utils::ISODate($atts['authdate']);
-                            $ret['group']['facebook'][] =  $atts;
-                        }
-                    }
-
                     if (Utils::presdef('polygon', $_REQUEST, FALSE)) {
                         $ret['group']['cga'] = $g->getPrivate('polyofficial');
                         $ret['group']['dpa'] = $g->getPrivate('poly');
@@ -302,19 +284,7 @@ function group() {
 
                         break;
                     }
-
-                    case 'RemoveFacebook': {
-                        $uid = (Utils::presint('uid', $_REQUEST, NULL));
-                        $ret = ['ret' => 2, 'status' => 'Invalid parameters'];
-
-                        if ($uid) {
-                            $f = new GroupFacebook($dbhr, $dbhm);
-                            $f->remove($uid);
-                            $ret = ['ret' => 0, 'status' => 'Success'];
-                        }
-
-                        break;
-                    }                }
+                }
 
                 break;
             }

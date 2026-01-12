@@ -128,6 +128,24 @@ class Mail {
         return($matchingid);
     }
 
+    /**
+     * Check if a mail type is enabled (not in the disabled list).
+     *
+     * @param int $type Mail type constant (e.g., Mail::WELCOME)
+     * @return bool TRUE if email should be sent, FALSE if disabled
+     */
+    public static function isEnabled($type) {
+        // Check if IZNIK_MAIL_DISABLED is defined with a list of disabled types.
+        if (!defined('IZNIK_MAIL_DISABLED') || empty(IZNIK_MAIL_DISABLED)) {
+            return TRUE;
+        }
+
+        $typeName = self::getDescription($type);
+        $disabledTypes = array_map('trim', explode(',', IZNIK_MAIL_DISABLED));
+
+        return !in_array($typeName, $disabledTypes, TRUE);
+    }
+
     public static function addHeaders($dbhr, $dbhm, $msg, $type, $userid = 0, $qualifier = 0) {
         $headers = $msg->getHeaders();
 

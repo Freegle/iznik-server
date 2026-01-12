@@ -95,6 +95,7 @@ define('GEOCODER', 'geocode.ilovefreegle.org');
 
 # We use beanstalk for backgrounding.
 define('PHEANSTALK_SERVER', '127.0.0.1');
+define('PHEANSTALK_TUBE', getenv('PHEANSTALK_TUBE') ?: 'default');
 
 # Host to monitor
 define('MONIT_HOST', 'zzz');
@@ -190,8 +191,18 @@ define('LOVE_JUNK_SECRET', 'LOVE_JUNK_SECRET');
 define('IMAGE_DELIVERY', NULL);
 define('TUS_UPLOADER', getenv('TUS_UPLOADER') ?: "https://tusd.tusdemo.net/files/");
 
+# Loki logging - logs are written to JSON files that Alloy ships to Loki.
+define('LOKI_ENABLED', FALSE);
+define('LOKI_JSON_PATH', '/var/log/freegle');
+
 define('REACH_FEED', NULL);
 define('REACH_USER', NULL);
 define('REACH_PASSWORD', NULL);
 define('STRIPE_SECRET_KEY', 'zzz');
 define('STRIPE_SECRET_KEY_TEST', 'zzz');
+
+# Email types disabled in iznik-server (being migrated to iznik-batch).
+# Comma-separated list of email type names, e.g., 'Welcome,Chat'.
+# When a type is listed here, iznik-server will NOT send it.
+# See Mail.php DESCRIPTIONS for valid type names.
+define('IZNIK_MAIL_DISABLED', '');

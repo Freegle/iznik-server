@@ -83,17 +83,32 @@ try {
     $user_id = $data['user_id'] ?? null;
 
     if ($user_id) {
-        // Start data deletion
-        $status_url = "https://" . USER_SITE . "/facebook/unsubscribe/$user_id"; // URL to track the deletion
-        $confirmation_code = $user_id; // unique code for the deletion request
+        // Look up the Freegle user by their Facebook login
+        $u = User::get($dbhr, $dbhm);
+        $freegle_user_id = $u->findByLogin('Facebook', $user_id);
 
-        $data = array(
-            'url' => $status_url,
-            'confirmation_code' => $confirmation_code
-        );
+        if ($freegle_user_id) {
+            // Found the user - return status URL with Freegle user ID
+            $status_url = "https://" . USER_SITE . "/facebook/unsubscribe/$freegle_user_id";
+            $confirmation_code = $freegle_user_id;
 
-        \Sentry\captureMessage("Facebook Unsubscribe: $user_id", Severity::info());
-        echo json_encode($data);
+            $data = array(
+                'url' => $status_url,
+                'confirmation_code' => $confirmation_code
+            );
+
+            \Sentry\captureMessage("Facebook Unsubscribe: Facebook ID $user_id -> Freegle ID $freegle_user_id", Severity::info());
+            echo json_encode($data);
+        } else {
+            // User not found - they may have already been deleted or never existed
+            $data = array(
+                'url' => "https://" . USER_SITE . "/facebook/unsubscribe",
+                'confirmation_code' => $user_id
+            );
+
+            \Sentry\captureMessage("Facebook Unsubscribe: Facebook ID $user_id not found", Severity::info());
+            echo json_encode($data);
+        }
     } else {
         echo json_encode(array('error' => 'No user_id supplied'));
     }

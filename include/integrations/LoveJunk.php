@@ -306,7 +306,8 @@ class LoveJunk {
                     } catch (\Exception $e) {
                         // Ignore errors that can legitimately happen.
                         if (strpos($e->getMessage(), 'not active or could not find relevant freegle info') === FALSE &&
-                            strpos($e->getMessage(), 'Could not create reuse offer message thread for offer') === FALSE) {
+                            strpos($e->getMessage(), 'Could not create reuse offer message thread for offer') === FALSE &&
+                            strpos($e->getMessage(), 'cannot write to thread') === FALSE) {
                             error_log("Exception {$e->getMessage()}");
                             \Sentry\captureException($e);
                         }

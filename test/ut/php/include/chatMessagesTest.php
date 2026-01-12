@@ -45,21 +45,6 @@ class chatMessagesTest extends IznikTestCase {
         parent::tearDown();
     }
 
-    protected function stopBackgroundScripts() {
-        # Create abort file to signal background scripts to exit
-        error_log("TEST setUp: Creating abort file at " . date("Y-m-d H:i:s"));
-        touch('/tmp/iznik.mail.abort');
-        # Give scripts time to see the abort file and exit (they check every second)
-        sleep(2);
-        error_log("TEST setUp: Background scripts should be stopped at " . date("Y-m-d H:i:s"));
-    }
-
-    protected function startBackgroundScripts() {
-        # Remove abort file to allow background scripts to restart
-        error_log("TEST tearDown: Removing abort file at " . date("Y-m-d H:i:s"));
-        @unlink('/tmp/iznik.mail.abort');
-    }
-
     public function testGroup() {
         $r = new ChatRoom($this->dbhr, $this->dbhm);
         $id = $r->createGroupChat('test', $this->groupid);

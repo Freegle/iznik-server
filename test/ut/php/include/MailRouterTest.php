@@ -887,11 +887,12 @@ class MailRouterTest extends IznikTestCase {
 
         # Now mark the message as complete - should put a message in the chatroom.
         $this->log("Mark $origid as TAKEN");
-        $m = new Message($this->dbhm, $this->dbhm, $origid);
+        $m = new Message($this->dbhr, $this->dbhm, $origid);
         $m->mark(Message::OUTCOME_TAKEN, "Thanks", User::HAPPY, NULL);
         $this->waitBackground();
         list($msgs, $users) = $c->getMessages();
         $this->log("Chat messages " . var_export($msgs, TRUE));
+        self::assertCount(2, $msgs);
         self::assertEquals(ChatMessage::TYPE_COMPLETED, $msgs[1]['type']);
     }
 
@@ -1247,10 +1248,42 @@ class MailRouterTest extends IznikTestCase {
 
         $this->waitBackground();
         $_SESSION['id'] = $uid;
-        $ctx = NULL;
-        $logs = [ $u->getId() => [ 'id' => $u->getId() ] ];
-        $u->getPublicLogs($u, $logs, FALSE, $ctx);
-        $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_JOINED, $logs[$u->getId()]['logs']);
+
+        // Retry finding the log entry with delays to handle race condition
+        // where background worker may still be processing
+        $log = NULL;
+        $maxRetries = 5;
+        for ($retry = 0; $retry < $maxRetries; $retry++) {
+            $ctx = NULL;
+            $logs = [ $u->getId() => [ 'id' => $u->getId() ] ];
+            $u->getPublicLogs($u, $logs, FALSE, $ctx);
+            $log = $this->findLog(Log::TYPE_GROUP, Log::SUBTYPE_JOINED, $logs[$u->getId()]['logs']);
+
+            if ($log) {
+                break;
+            }
+
+            if ($retry < $maxRetries - 1) {
+                $this->log("Log not found, retrying in 2 seconds (attempt " . ($retry + 1) . "/" . $maxRetries . ")");
+                sleep(2);
+            }
+        }
+
+        // Debug logging if still not found after retries.
+        if (!$log) {
+            $this->log("testSubMailUnsub FAILED after $maxRetries retries - Debug info:");
+            $this->log("  - this->uid (setUp user): {$this->uid}");
+            $this->log("  - uid (found by email): $uid");
+            $this->log("  - this->gid: {$this->gid}");
+            $this->log("  - Logs returned: " . count($logs[$u->getId()]['logs'] ?? []));
+            $allLogs = $this->dbhm->preQuery("SELECT id, type, subtype, user, groupid, timestamp FROM logs WHERE user = ? ORDER BY id DESC LIMIT 20", [$uid]);
+            $this->log("  - All logs for user $uid: " . json_encode($allLogs));
+            $memberships = $this->dbhm->preQuery("SELECT * FROM memberships WHERE userid = ?", [$uid]);
+            $this->log("  - Current memberships: " . json_encode($memberships));
+            $allUsersWithEmail = $this->dbhm->preQuery("SELECT userid FROM users_emails WHERE email = 'test@test.com'");
+            $this->log("  - All users with test@test.com: " . json_encode($allUsersWithEmail));
+        }
+
         $this->assertEquals($this->gid, $log['group']['id']);
 
         # Mail - first to pending for new member, moderated by default, then to approved for group settings.

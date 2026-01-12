@@ -9,6 +9,53 @@ require_once(UT_DIR . '/../../include/config.php');
 require_once(UT_DIR . '/../../include/db.php');
 
 /**
+ * Mock response object for Gemini API
+ */
+class MockGeminiResponse {
+    private $text;
+
+    public function __construct($text) {
+        $this->text = $text;
+    }
+
+    public function text() {
+        return $this->text;
+    }
+}
+
+/**
+ * Mock Gemini client for testing ModBot without external API calls
+ */
+class MockGeminiClient {
+    private $responses = [];
+    private $currentIndex = 0;
+
+    public function setResponse($response) {
+        $this->responses[] = $response;
+    }
+
+    public function withV1BetaVersion() {
+        return $this;
+    }
+
+    public function generativeModel($model) {
+        return $this;
+    }
+
+    public function withSystemInstruction($instruction) {
+        return $this;
+    }
+
+    public function generateContent($content) {
+        $response = $this->responses[$this->currentIndex] ?? '[]';
+        if ($this->currentIndex < count($this->responses) - 1) {
+            $this->currentIndex++;
+        }
+        return new MockGeminiResponse($response);
+    }
+}
+
+/**
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
@@ -29,7 +76,7 @@ class ModBotTest extends IznikTestCase {
         $this->dbhm->preExec("DELETE FROM users WHERE fullname = 'Test User';");
         $this->dbhm->preExec("DELETE FROM `groups` WHERE nameshort = 'testgroup';");
         $this->dbhm->preExec("DELETE FROM messages WHERE subject LIKE 'Test message%';");
-        
+
         # Set up group and user following MessageTest pattern
         list($this->group, $this->gid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
         $this->group->setPrivate('onhere', 1);
@@ -44,7 +91,7 @@ class ModBotTest extends IznikTestCase {
         $this->user->addMembership($this->gid, User::ROLE_MEMBER);
         $this->user->setMembershipAtt($this->gid, 'ourPostingStatus', Group::POSTING_MODERATED);
         User::clearCache();
-        
+
         # Create ModBot user
         list($this->modBotUser, $this->modBotUid, $emailid2) = $this->createTestUser('ModBot', 'User', 'ModBot User', MODBOT_USER, 'modbotpw');
         $this->assertGreaterThan(0, $this->modBotUser->addLogin(User::LOGIN_NATIVE, NULL, 'modbotpw'));
@@ -52,71 +99,114 @@ class ModBotTest extends IznikTestCase {
         User::clearCache();
     }
 
-    public function testReviewPost() {
-        $this->log(__METHOD__ );
+    public function testReviewPostWithMock() {
+        $this->log(__METHOD__);
 
         # Create a test message that should trigger rule violations
-        list ($r, $id, $failok, $rc) = $this->createCustomTestMessage('Test message about knives and weapons for sale', 'testgroup', 'test@test.com', 'to@test.com', 'I have some kitchen knives and hunting weapons to give away', MailRouter::PENDING);
+        list ($r, $id, $failok, $rc) = $this->createCustomTestMessage('OFFER: Hunting rifle and crossbow', 'testgroup', 'test@test.com', 'to@test.com', 'I have a hunting rifle and a crossbow that I want to give away. Also have some ammunition.', MailRouter::PENDING);
 
         # Log in as ModBot user before review
         $this->assertTrue($this->modBotUser->login('modbotpw'));
 
-        # Test ModBot review
-        $modbot = new ModBot($this->dbhr, $this->dbhm);
+        # Create mock client with predefined response
+        $mockClient = new MockGeminiClient();
+        $mockClient->setResponse(json_encode([
+            ['rule' => 'weapons', 'probability' => 0.95, 'reason' => 'Post mentions hunting rifle, crossbow, and ammunition which are weapons.'],
+            ['rule' => 'alcohol', 'probability' => 0.0, 'reason' => 'No alcohol mentioned in the post.']
+        ]));
 
-        # Note: This test requires a valid Google Gemini API key to fully work
-        # In a real environment, we would mock the API call for testing
-        if (defined('GOOGLE_GEMINI_API_KEY') && GOOGLE_GEMINI_API_KEY !== 'zzzz') {
-            $this->log("Testing with real API key");
+        # Test ModBot review with mock client
+        $modbot = new ModBot($this->dbhr, $this->dbhm, $mockClient);
+        $result = $modbot->reviewPost($id, FALSE, TRUE, TRUE);
 
-            # Add retries since AI detection can be unreliable
-            $foundWeapons = FALSE;
-            $maxRetries = 3;
-            $result = NULL;
+        $this->assertNotNull($result);
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('violations', $result);
+        $this->assertArrayHasKey('debug', $result);
 
-            for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
-                $this->log("Attempt $attempt of $maxRetries");
-                $result = $modbot->reviewPost($id);
-                $this->assertNotNull($result);
-
-                if (is_array($result) && isset($result['error'])) {
-                    if ($attempt < $maxRetries) {
-                        $this->log("Error on attempt $attempt: " . $result['error']);
-                        sleep(1);
-                        continue;
-                    }
-                    $this->fail("ModBot returned error: " . $result['error']);
-                }
-
-                if (is_array($result) && isset($result['violations'])) {
-                    foreach ($result['violations'] as $violation) {
-                        if (isset($violation['rule']) && $violation['rule'] === 'weapons') {
-                            $foundWeapons = TRUE;
-                            $this->assertGreaterThan(0.1, $violation['probability']);
-                            break 2;
-                        }
-                    }
-                }
-
-                if (!$foundWeapons && $attempt < $maxRetries) {
-                    $this->log("Weapons violation not detected on attempt $attempt, retrying...");
-                    sleep(1);
-                }
+        # Check that weapons violation was detected
+        $foundWeapons = FALSE;
+        foreach ($result['violations'] as $violation) {
+            if ($violation['rule'] === 'weapons' && $violation['probability'] >= 0.8) {
+                $foundWeapons = TRUE;
+                break;
             }
-
-            $this->assertTrue($foundWeapons, "Should detect weapons rule violation after $maxRetries attempts");
-        } else {
-            $this->log("Skipping API test - no valid key");
-            $result = $modbot->reviewPost($id);
-            $this->assertTrue(is_array($result) || is_null($result));
         }
+        $this->assertTrue($foundWeapons, 'Should detect weapons rule violation with mocked response');
+
+        $this->log("ModBot mock test completed successfully");
+    }
+
+    public function testReviewPostNoViolations() {
+        $this->log(__METHOD__);
+
+        # Create an innocent test message
+        list ($r, $id, $failok, $rc) = $this->createCustomTestMessage('OFFER: Children\'s books', 'testgroup', 'test@test.com', 'to@test.com', 'I have a collection of children\'s picture books, all in good condition. Free to a good home!', MailRouter::PENDING);
+
+        # Log in as ModBot user before review
+        $this->assertTrue($this->modBotUser->login('modbotpw'));
+
+        # Create mock client with no violations
+        $mockClient = new MockGeminiClient();
+        $mockClient->setResponse(json_encode([
+            ['rule' => 'weapons', 'probability' => 0.0, 'reason' => 'No weapons mentioned.'],
+            ['rule' => 'alcohol', 'probability' => 0.0, 'reason' => 'No alcohol mentioned.']
+        ]));
+
+        # Test ModBot review with mock client
+        $modbot = new ModBot($this->dbhr, $this->dbhm, $mockClient);
+        $result = $modbot->reviewPost($id, FALSE, TRUE, TRUE);
+
+        $this->assertNotNull($result);
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('violations', $result);
+        $this->assertEmpty($result['violations'], 'No violations should be detected for innocent post');
+
+        $this->log("ModBot no violations test completed successfully");
+    }
+
+    public function testReviewPostNonExistent() {
+        $this->log(__METHOD__);
+
+        # Log in as ModBot user before review
+        $this->assertTrue($this->modBotUser->login('modbotpw'));
+
+        # Create mock client (won't be called since message doesn't exist)
+        $mockClient = new MockGeminiClient();
+        $modbot = new ModBot($this->dbhr, $this->dbhm, $mockClient);
 
         # Test with non-existent message
-        $resultNonExistent = $modbot->reviewPost(999999);
-        $this->assertIsArray($resultNonExistent);
-        $this->assertEquals('message_not_found', $resultNonExistent['error']);
+        $result = $modbot->reviewPost(999999);
+        $this->assertIsArray($result);
+        $this->assertEquals('message_not_found', $result['error']);
 
-        $this->log("ModBot test completed successfully");
+        $this->log("ModBot non-existent message test completed successfully");
+    }
+
+    public function testCostEstimation() {
+        $this->log(__METHOD__);
+
+        # Log in as ModBot user
+        $this->assertTrue($this->modBotUser->login('modbotpw'));
+
+        # Create mock client
+        $mockClient = new MockGeminiClient();
+        $modbot = new ModBot($this->dbhr, $this->dbhm, $mockClient);
+
+        # Test cost estimation
+        $inputText = "This is a test prompt with about 50 characters.";
+        $outputText = "This is a response with about 40 characters.";
+        $cost = $modbot->estimateCost($inputText, $outputText);
+
+        $this->assertArrayHasKey('input_tokens', $cost);
+        $this->assertArrayHasKey('output_tokens', $cost);
+        $this->assertArrayHasKey('input_cost', $cost);
+        $this->assertArrayHasKey('output_cost', $cost);
+        $this->assertArrayHasKey('total_cost', $cost);
+        $this->assertGreaterThan(0, $cost['input_tokens']);
+        $this->assertGreaterThan(0, $cost['output_tokens']);
+
+        $this->log("ModBot cost estimation test completed successfully");
     }
 
 }

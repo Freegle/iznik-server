@@ -3948,6 +3948,10 @@ class messageAPITest extends IznikAPITestCase
     }
 
     public function testDeadline() {
+        # Create an admin user first so we can access any message.
+        list($u, $this->uid) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
+        $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
+
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
         $msg = str_replace('Basic test', '[hertford_freegle] Offered - Grey Driveway Blocks - Hoddesdon', $msg);
         $m = new Message($this->dbhr, $this->dbhm);
@@ -3967,10 +3971,6 @@ class messageAPITest extends IznikAPITestCase
         $this->assertEquals(1, count($ret['message']['outcomes']));
 
         $this->assertEquals($deadline, $m->getPublic()['deadline']);
-
-        $u = new User($this->dbhr, $this->dbhm);
-        list($u, $this->uid) = $this->createTestUserAndLogin(NULL, NULL, 'Test User', 'test@test.com', 'testpw');
-        $u->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
 
         # Set the deadline to the future - should no longer have an outcome.
         $ret = $this->call('message', 'PATCH', [

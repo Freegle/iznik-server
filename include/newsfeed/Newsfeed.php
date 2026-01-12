@@ -8,7 +8,7 @@ require_once(IZNIK_BASE . '/lib/GreatCircle.php');
 class Newsfeed extends Entity
 {
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'timestamp', 'added', 'type', 'userid', 'imageid', 'msgid', 'replyto', 'groupid', 'eventid', 'storyid', 'volunteeringid', 'publicityid', 'message', 'position', 'deleted', 'closed', 'html', 'pinned', 'hidden', 'location');
+    var $publicatts = array('id', 'timestamp', 'added', 'type', 'userid', 'imageid', 'msgid', 'replyto', 'groupid', 'eventid', 'storyid', 'volunteeringid', 'message', 'position', 'deleted', 'closed', 'html', 'pinned', 'hidden', 'location');
 
     /** @var  $log Log */
     private $log;
@@ -19,7 +19,6 @@ class Newsfeed extends Entity
     const TYPE_MESSAGE = 'Message';
     const TYPE_COMMUNITY_EVENT = 'CommunityEvent';
     const TYPE_VOLUNTEER_OPPORTUNITY = 'VolunteerOpportunity';
-    const TYPE_CENTRAL_PUBLICITY = 'CentralPublicity';
     const TYPE_ALERT = 'Alert';
     const TYPE_STORY = 'Story';
     const TYPE_REFER_TO_WANTED = 'ReferToWanted';
@@ -39,7 +38,7 @@ class Newsfeed extends Entity
         $this->fetch($dbhr, $dbhm, $id, 'newsfeed', 'feed', $this->publicatts);
     }
 
-    public function create($type, $userid = NULL, $message = NULL, $imageid = NULL, $msgid = NULL, $replyto = NULL, $groupid = NULL, $eventid = NULL, $volunteeringid = NULL, $publicityid = NULL, $storyid = NULL, $lat = NULL, $lng = NULL) {
+    public function create($type, $userid = NULL, $message = NULL, $imageid = NULL, $msgid = NULL, $replyto = NULL, $groupid = NULL, $eventid = NULL, $volunteeringid = NULL, $storyid = NULL, $lat = NULL, $lng = NULL) {
         $id = NULL;
 
         $u = User::get($this->dbhr, $this->dbhm, $userid);
@@ -64,7 +63,6 @@ class Newsfeed extends Entity
 #        error_log("Create at $lat, $lng");
 
         if ($lat || $lng ||
-            $type == Newsfeed::TYPE_CENTRAL_PUBLICITY ||
             $type == Newsfeed::TYPE_ALERT ||
             $type == Newsfeed::TYPE_REFER_TO_WANTED ||
             $type == Newsfeed::TYPE_REFER_TO_OFFER ||
@@ -84,7 +82,7 @@ class Newsfeed extends Entity
                 $location = $userid ? $u->getPublicLocation()['display'] : NULL;
                 $location = $location ? $location : NULL;
 
-                $this->dbhm->preExec("INSERT INTO newsfeed (`type`, userid, imageid, msgid, replyto, groupid, eventid, volunteeringid, publicityid, storyid, message, position, hidden, location) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, $pos, $hidden, ?);", [
+                $this->dbhm->preExec("INSERT INTO newsfeed (`type`, userid, imageid, msgid, replyto, groupid, eventid, volunteeringid, storyid, message, position, hidden, location) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, $pos, $hidden, ?);", [
                     $type,
                     $userid,
                     $imageid,
@@ -93,7 +91,6 @@ class Newsfeed extends Entity
                     $groupid,
                     $eventid,
                     $volunteeringid,
-                    $publicityid,
                     $storyid,
                     $message,
                     $location
@@ -371,27 +368,6 @@ class Newsfeed extends Entity
                         if (!$v->getPrivate('pending') && !$v->getPrivate('deleted')) {
                             $use = TRUE;
                             $entries[$entindex]['volunteering'] = $v->getPublic();
-                        }
-                    }
-
-                    if (Utils::pres('publicityid', $entries[$entindex])) {
-                        $pubs = $this->dbhr->preQuery("SELECT postid, data FROM groups_facebook_toshare WHERE id = ?;", [ $entries[$entindex]['publicityid'] ]);
-
-                        if (preg_match('/(.*)_(.*)/', $pubs[0]['postid'], $matches)) {
-                            # Create the iframe version of the Facebook plugin.
-                            $pageid = $matches[1];
-                            $postid = $matches[2];
-
-                            $data = json_decode($pubs[0]['data'], TRUE);
-
-                            $entries[$entindex]['publicity'] = [
-                                'id' => $entries[$entindex]['publicityid'],
-                                'postid' => $pubs[0]['postid'],
-                                'iframe' => '<iframe class="completefull" src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2F' . $pageid . '%2Fposts%2F' . $postid . '%2F&width=auto&show_text=TRUE&appId=' . FBGRAFFITIAPP_ID . '&height=500" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="TRUE"></iframe>',
-                                'full_picture' => Utils::presdef('full_picture', $data, NULL),
-                                'message' => Utils::presdef('message', $data, NULL),
-                                'type' => Utils::presdef('type', $data, NULL)
-                            ];
                         }
                     }
 
@@ -768,7 +744,7 @@ class Newsfeed extends Entity
             $box = "ST_GeomFromText('POLYGON(({$sw['lng']} {$sw['lat']}, {$sw['lng']} {$ne['lat']}, {$ne['lng']} {$ne['lat']}, {$ne['lng']} {$sw['lat']}, {$sw['lng']} {$sw['lat']}))', {$this->dbhr->SRID()})";
 
             # We return most recent first.
-            $first = $dist ? ("(MBRContains($box, position) OR `type` IN ('" . Newsfeed::TYPE_CENTRAL_PUBLICITY . "', '" . Newsfeed::TYPE_ALERT . "')) AND") : '';
+            $first = $dist ? ("(MBRContains($box, position) OR `type` = '" . Newsfeed::TYPE_ALERT . "') AND") : '';
 
             # Only recent.
             $mysqltime = date ("Y-m-d", strtotime("Midnight 7 days ago"));

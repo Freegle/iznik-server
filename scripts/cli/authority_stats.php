@@ -116,8 +116,11 @@ if (count($opts) < 1) {
         }
 
         # Output results.
-        # Benefit of reuse per tonne is £711 and CO2 impact is -0.51tCO2eq based on WRAP figures.
+        # Benefit of reuse per tonne and CO2 impact based on WRAP figures.
         # https://wrap.org.uk/resources/tool/environmental-and-economic-benefits-re-use
+        # The benefit value is inflation-adjusted to current year prices.
+        $benefitPerTonne = ReuseBenefit::getBenefitPerTonne();
+        $co2PerTonne = ReuseBenefit::CO2_PER_TONNE;
         $op = '';
         $op .= sprintf(", %s, %s, %s, Total\n", $months[0]['formatted'], $months[1]['formatted'], $months[2]['formatted']);
         $sheet->setCellValue('B8', $months[0]['formatted']);
@@ -136,17 +139,17 @@ if (count($opts) < 1) {
         $sheet->setCellValue('D10', $months[2][Stats::WEIGHT]);
         $sheet->setCellValue('E10', $months[0][Stats::WEIGHT] + $months[1][Stats::WEIGHT] + $months[2][Stats::WEIGHT]);
         
-        $op .= sprintf("CO2 saved (tonnes), %d, %d, %d, %d\n", round($months[0][Stats::WEIGHT] * 0.51 / 100) / 10, round($months[1][Stats::WEIGHT] * 0.51 / 100) / 10, round($months[2][Stats::WEIGHT] * 0.51 / 100) / 10, round(($months[0][Stats::WEIGHT] + $months[1][Stats::WEIGHT] + $months[2][Stats::WEIGHT]) * 0.51 / 100) / 10);
-        $sheet->setCellValue('B11', round($months[0][Stats::WEIGHT] * 0.51 / 100) / 10);
-        $sheet->setCellValue('C11', round($months[1][Stats::WEIGHT] * 0.51 / 100) / 10);
-        $sheet->setCellValue('D11', round($months[2][Stats::WEIGHT] * 0.51 / 100) / 10);
-        $sheet->setCellValue('E11', round(($months[0][Stats::WEIGHT] + $months[1][Stats::WEIGHT] + $months[2][Stats::WEIGHT]) * 0.51 / 100) / 10);
-        
-        $op .= sprintf("Benefit (GBP), %d, %d, %d, %d\n", round($months[0][Stats::WEIGHT] * 711 / 100) / 10, round($months[1][Stats::WEIGHT] * 711 / 100) / 10, round($months[2][Stats::WEIGHT] * 711 / 100) / 10, round(($months[0][Stats::WEIGHT] + $months[1][Stats::WEIGHT] + $months[2][Stats::WEIGHT]) * 711 / 100) / 10);
-        $sheet->setCellValue('B12', round($months[0][Stats::WEIGHT] * 711 / 100) / 10);
-        $sheet->setCellValue('C12', round($months[1][Stats::WEIGHT] * 711 / 100) / 10);
-        $sheet->setCellValue('D12', round($months[2][Stats::WEIGHT] * 711 / 100) / 10);
-        $sheet->setCellValue('E12', round(($months[0][Stats::WEIGHT] + $months[1][Stats::WEIGHT] + $months[2][Stats::WEIGHT]) * 711 / 100) / 10);
+        $op .= sprintf("CO2 saved (tonnes), %d, %d, %d, %d\n", round($months[0][Stats::WEIGHT] * $co2PerTonne / 100) / 10, round($months[1][Stats::WEIGHT] * $co2PerTonne / 100) / 10, round($months[2][Stats::WEIGHT] * $co2PerTonne / 100) / 10, round(($months[0][Stats::WEIGHT] + $months[1][Stats::WEIGHT] + $months[2][Stats::WEIGHT]) * $co2PerTonne / 100) / 10);
+        $sheet->setCellValue('B11', round($months[0][Stats::WEIGHT] * $co2PerTonne / 100) / 10);
+        $sheet->setCellValue('C11', round($months[1][Stats::WEIGHT] * $co2PerTonne / 100) / 10);
+        $sheet->setCellValue('D11', round($months[2][Stats::WEIGHT] * $co2PerTonne / 100) / 10);
+        $sheet->setCellValue('E11', round(($months[0][Stats::WEIGHT] + $months[1][Stats::WEIGHT] + $months[2][Stats::WEIGHT]) * $co2PerTonne / 100) / 10);
+
+        $op .= sprintf("Benefit (GBP), %d, %d, %d, %d\n", round($months[0][Stats::WEIGHT] * $benefitPerTonne / 100) / 10, round($months[1][Stats::WEIGHT] * $benefitPerTonne / 100) / 10, round($months[2][Stats::WEIGHT] * $benefitPerTonne / 100) / 10, round(($months[0][Stats::WEIGHT] + $months[1][Stats::WEIGHT] + $months[2][Stats::WEIGHT]) * $benefitPerTonne / 100) / 10);
+        $sheet->setCellValue('B12', round($months[0][Stats::WEIGHT] * $benefitPerTonne / 100) / 10);
+        $sheet->setCellValue('C12', round($months[1][Stats::WEIGHT] * $benefitPerTonne / 100) / 10);
+        $sheet->setCellValue('D12', round($months[2][Stats::WEIGHT] * $benefitPerTonne / 100) / 10);
+        $sheet->setCellValue('E12', round(($months[0][Stats::WEIGHT] + $months[1][Stats::WEIGHT] + $months[2][Stats::WEIGHT]) * $benefitPerTonne / 100) / 10);
 
         $op .= sprintf("Number of gifts made, %d, %d, %d, %d\n", $months[0][Stats::OUTCOMES], $months[1][Stats::OUTCOMES], $months[2][Stats::OUTCOMES], $months[0][Stats::OUTCOMES] + $months[1][Stats::OUTCOMES] + $months[2][Stats::OUTCOMES]);
         $sheet->setCellValue('B13', round($months[0][Stats::OUTCOMES]));
@@ -191,15 +194,15 @@ if (count($opts) < 1) {
                 $sheet->setCellValue("H$grouprow", round($months[2][$gid][Stats::WEIGHT]));
                 $sheet->setCellValue("I$grouprow", round($months[0][$gid][Stats::WEIGHT] + $months[1][$gid][Stats::WEIGHT] + $months[2][$gid][Stats::WEIGHT]));
 
-                $sheet->setCellValue("J$grouprow", round($months[0][$gid][Stats::WEIGHT] * 0.51 / 100) / 10);
-                $sheet->setCellValue("K$grouprow", round($months[1][$gid][Stats::WEIGHT] * 0.51 / 100) / 10);
-                $sheet->setCellValue("L$grouprow", round($months[2][$gid][Stats::WEIGHT] * 0.51 / 100) / 10);
-                $sheet->setCellValue("M$grouprow", round(($months[0][$gid][Stats::WEIGHT] + $months[1][$gid][Stats::WEIGHT] + $months[2][$gid][Stats::WEIGHT]) * 0.51 / 100) / 10);
+                $sheet->setCellValue("J$grouprow", round($months[0][$gid][Stats::WEIGHT] * $co2PerTonne / 100) / 10);
+                $sheet->setCellValue("K$grouprow", round($months[1][$gid][Stats::WEIGHT] * $co2PerTonne / 100) / 10);
+                $sheet->setCellValue("L$grouprow", round($months[2][$gid][Stats::WEIGHT] * $co2PerTonne / 100) / 10);
+                $sheet->setCellValue("M$grouprow", round(($months[0][$gid][Stats::WEIGHT] + $months[1][$gid][Stats::WEIGHT] + $months[2][$gid][Stats::WEIGHT]) * $co2PerTonne / 100) / 10);
 
-                $sheet->setCellValue("N$grouprow", round($months[0][$gid][Stats::WEIGHT] * 711 / 100) / 10);
-                $sheet->setCellValue("O$grouprow", round($months[1][$gid][Stats::WEIGHT] * 711 / 100) / 10);
-                $sheet->setCellValue("P$grouprow", round($months[2][$gid][Stats::WEIGHT] * 711 / 100) / 10);
-                $sheet->setCellValue("Q$grouprow", round(($months[0][$gid][Stats::WEIGHT] + $months[1][$gid][Stats::WEIGHT] + $months[2][$gid][Stats::WEIGHT]) * 711 / 100) / 10);
+                $sheet->setCellValue("N$grouprow", round($months[0][$gid][Stats::WEIGHT] * $benefitPerTonne / 100) / 10);
+                $sheet->setCellValue("O$grouprow", round($months[1][$gid][Stats::WEIGHT] * $benefitPerTonne / 100) / 10);
+                $sheet->setCellValue("P$grouprow", round($months[2][$gid][Stats::WEIGHT] * $benefitPerTonne / 100) / 10);
+                $sheet->setCellValue("Q$grouprow", round(($months[0][$gid][Stats::WEIGHT] + $months[1][$gid][Stats::WEIGHT] + $months[2][$gid][Stats::WEIGHT]) * $benefitPerTonne / 100) / 10);
 
                 $sheet->setCellValue("R$grouprow", round($months[0][$gid][Stats::OUTCOMES]));
                 $sheet->setCellValue("S$grouprow", round($months[1][$gid][Stats::OUTCOMES]));
@@ -214,8 +217,8 @@ if (count($opts) < 1) {
                                $group['namedisplay'] . ($group['overlap'] < 1 ? ' *' : ''),
                                round($months[0][$gid][Stats::APPROVED_MEMBER_COUNT]), round($months[1][$gid][Stats::APPROVED_MEMBER_COUNT]), round($months[2][$gid][Stats::APPROVED_MEMBER_COUNT]), round($months[2][$gid][Stats::APPROVED_MEMBER_COUNT]),
                                round($months[0][$gid][Stats::WEIGHT]), round($months[1][$gid][Stats::WEIGHT]), round($months[2][$gid][Stats::WEIGHT]), round($months[0][$gid][Stats::WEIGHT] + $months[1][$gid][Stats::WEIGHT] + $months[2][$gid][Stats::WEIGHT]),
-                               round($months[0][$gid][Stats::WEIGHT] * 0.51 / 100) / 10, round($months[1][$gid][Stats::WEIGHT] * 0.51 / 100) / 10, round($months[2][$gid][Stats::WEIGHT] * 0.51 / 100) / 10, round(($months[0][$gid][Stats::WEIGHT] + $months[1][$gid][Stats::WEIGHT] + $months[2][$gid][Stats::WEIGHT]) * 0.51 / 100) / 10,
-                               round($months[0][$gid][Stats::WEIGHT] * 711 / 100) / 10, round($months[1][$gid][Stats::WEIGHT] * 711 / 100) / 10, round($months[2][$gid][Stats::WEIGHT] * 711 / 100) / 10, round(($months[0][$gid][Stats::WEIGHT] + $months[1][$gid][Stats::WEIGHT] + $months[2][$gid][Stats::WEIGHT]) * 711 / 100) / 10,
+                               round($months[0][$gid][Stats::WEIGHT] * $co2PerTonne / 100) / 10, round($months[1][$gid][Stats::WEIGHT] * $co2PerTonne / 100) / 10, round($months[2][$gid][Stats::WEIGHT] * $co2PerTonne / 100) / 10, round(($months[0][$gid][Stats::WEIGHT] + $months[1][$gid][Stats::WEIGHT] + $months[2][$gid][Stats::WEIGHT]) * $co2PerTonne / 100) / 10,
+                               round($months[0][$gid][Stats::WEIGHT] * $benefitPerTonne / 100) / 10, round($months[1][$gid][Stats::WEIGHT] * $benefitPerTonne / 100) / 10, round($months[2][$gid][Stats::WEIGHT] * $benefitPerTonne / 100) / 10, round(($months[0][$gid][Stats::WEIGHT] + $months[1][$gid][Stats::WEIGHT] + $months[2][$gid][Stats::WEIGHT]) * $benefitPerTonne / 100) / 10,
                                round($months[0][$gid][Stats::OUTCOMES]), round($months[1][$gid][Stats::OUTCOMES]), round($months[2][$gid][Stats::OUTCOMES]), round($months[0][$gid][Stats::OUTCOMES] + $months[1][$gid][Stats::OUTCOMES] + $months[2][$gid][Stats::OUTCOMES])
                 );
 
@@ -289,8 +292,8 @@ if (count($opts) < 1) {
             $sheet->setCellValue("D$row", $stat[Stats::SEARCHES]);
             $sheet->setCellValue("E$row", $stat[Stats::OUTCOMES]);
             $sheet->setCellValue("F$row", round($stat[Stats::WEIGHT], 1));
-            $sheet->setCellValue("G$row", round($stat[Stats::WEIGHT] * 0.51, 2));
-            $sheet->setCellValue("H$row", round($stat[Stats::WEIGHT] * 711 / 10) / 100);
+            $sheet->setCellValue("G$row", round($stat[Stats::WEIGHT] * $co2PerTonne, 2));
+            $sheet->setCellValue("H$row", round($stat[Stats::WEIGHT] * $benefitPerTonne / 10) / 100);
             $row++;
         }
 

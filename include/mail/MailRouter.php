@@ -201,7 +201,7 @@ class MailRouter
             if ($log) { error_log("Twitter info, drop"); }
             $ret = MailRouter::DROPPED;
         } else if (strpos($to, FBL_ADDR) === 0) {
-            $ret = $this->FBL();
+            $ret = $this->FBL($this->msg->getOriginalMessage());
         } else if (preg_match('/digestoff-(.*)-(.*)@/', $to, $matches) == 1) {
             $ret = $this->turnDigestOff($matches, $ret);
         } else if (preg_match('/readreceipt-(.*)-(.*)-(.*)@/', $to, $matches) == 1) {
@@ -396,17 +396,21 @@ class MailRouter
         $mailer->send($message);
     }
 
-    private function FBL() {
+    private function FBL($originalMessage = NULL) {
         if ($this->log) { error_log("FBL report"); }
 
         // Find the email address that the FBL was about, in a hacky regex way.
+        // Use the original unpruned message if provided, as the pruning process
+        // may have removed the message/rfc822 part containing the header we need.
         $handled = FALSE;
-        $msg = $this->msg->getMessage();
+        $msg = $originalMessage ?: $this->msg->getMessage();
         $email = NULL;
 
         if (preg_match('/Original-Rcpt-To:(.*)/', $msg, $matches)) {
             $email = trim($matches[1]);
         } else if (preg_match('/X-Original-To:(.*);/', $msg, $matches)) {
+            $email = trim($matches[1]);
+        } else if (preg_match('/X-HmXmrOriginalRecipient:(.*)/', $msg, $matches)) {
             $email = trim($matches[1]);
         }
 
@@ -432,7 +436,7 @@ class MailRouter
                 'log@ehibbert.org.uk',
                 NOREPLY_ADDR,
                 "Unprocessed FBL report received",
-                $this->msg->getMessage(),
+                $msg,
                 Mail::MODMAIL,
                 0
             );
@@ -796,7 +800,6 @@ class MailRouter
                 $u->addEmail($envfrom, 0);
                 $pw = $u->inventPassword();
                 $u->addLogin(User::LOGIN_NATIVE, $uid, $pw);
-                $u->welcome($envfrom, $pw);
             }
 
             $u = new User($this->dbhr, $this->dbhm, $uid);

@@ -55,7 +55,6 @@ if (count($opts) < 1) {
                      'users_searches' => [ 'userid' ],
                      'memberships_history' => [ 'userid' ],
                      'logs' => [ 'user' ],
-                     'logs_api' => [ 'userid' ],
                      'logs_sql' => [ 'userid' ],
                      'newsfeed' => [ 'userid' ]
                  ] as $table => $keys) {

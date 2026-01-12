@@ -1,6 +1,12 @@
 <?php
 namespace Freegle\Iznik;
 
+// TODO: DEPRECATED - POST operations (Seen, AllSeen) have been migrated to v2 Go API
+// Can be retired once all FD/MT clients are using v2
+// Migrated: 2025-12-13
+// V2 endpoints: POST /notification/seen, POST /notification/allseen
+// Used by: Both FD and MT for marking notifications as seen
+
 function notification() {
     global $dbhr, $dbhm;
 

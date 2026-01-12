@@ -145,7 +145,7 @@ if (!$gid) {
 
     # Create test users with all required relationships
     $uid = createTestUser($dbhr, $dbhm, 'Test', 'User', 'test@test.com', 'User', $gid, $pcid, $volid, $eventid);
-    $uid2 = createTestUser($dbhr, $dbhm, 'Test', 'Moderator', 'testmod@test.com', 'User', $gid, $pcid, $volid, $eventid, User::ROLE_MODERATOR);
+    $uid2 = createTestUser($dbhr, $dbhm, 'Test', 'Moderator', 'testmod@test.com', 'Admin', $gid, $pcid, $volid, $eventid, User::ROLE_MODERATOR);
     $uid3 = createTestUser($dbhr, $dbhm, 'Test', 'User3', 'test3@test.com', 'User', $gid, $pcid, $volid, $eventid);
     $adminUid = createTestUser($dbhr, $dbhm, 'Admin', 'User', 'admin@test.com', 'Admin', $gid, $pcid, $volid, $eventid);
     $supportUid = createTestUser($dbhr, $dbhm, 'Support', 'User', 'support@test.com', 'Support', $gid, $pcid, $volid, $eventid);
@@ -228,8 +228,9 @@ if (!$gid) {
             error_log("Approved message $id");
 
             # Add to messages_spatial for Go tests
+            # Use ST_GeomFromText with SRID directly (matching Message.php approach - degrees with 3857 tag)
             $dbhm->preExec("INSERT IGNORE INTO messages_spatial (msgid, point, successful, promised, groupid, msgtype, arrival)
-                            SELECT m.id, ST_Transform(ST_SRID(POINT(m.lng, m.lat), 4326), 3857), 0, 0, mg.groupid, m.type, mg.arrival
+                            SELECT m.id, ST_GeomFromText(CONCAT('POINT(', m.lng, ' ', m.lat, ')'), {$dbhr->SRID()}), 0, 0, mg.groupid, m.type, mg.arrival
                             FROM messages m
                             JOIN messages_groups mg ON m.id = mg.msgid
                             WHERE m.id = ? AND m.lat IS NOT NULL AND m.lng IS NOT NULL", [$id]);
@@ -251,10 +252,6 @@ if (!$gid) {
     $i = new Item($dbhr, $dbhm);
     $i->create('chair');
 
-    # Add spam keywords
-    $dbhm->preExec("INSERT ignore INTO `spam_keywords` (`id`, `word`, `exclude`, `action`, `type`) VALUES (8, 'viagra', NULL, 'Spam', 'Literal'), (76, 'weight loss', NULL, 'Spam', 'Literal'), (77, 'spamspamspam', NULL, 'Review', 'Literal');");
-    $dbhm->preExec('REPLACE INTO `spam_keywords` (`id`, `word`, `exclude`, `action`, `type`) VALUES (272, \'(?<!\\\\bwater\\\\W)\\\\bbutt\\\\b(?!\\\\s+rd)\', NULL, \'Review\', \'Regex\');');
-
     # Add locations
     $dbhm->preExec("INSERT IGNORE INTO `locations` (`id`, `osm_id`, `name`, `type`, `osm_place`, `geometry`, `ourgeometry`, `gridid`, `postcodeid`, `areaid`, `canon`, `popularity`, `osm_amenity`, `osm_shop`, `maxdimension`, `lat`, `lng`, `timestamp`) VALUES
 (303768, '1929174', 'Edinburgh', 'Line', NULL, ST_GeomFromText('POINT(-3.1883000 55.9533000)'), NULL, NULL, NULL, NULL, 'edinburgh', 100, NULL, NULL, NULL, 55.9533000, -3.1883000, '2024-10-18 17:51:48');");
@@ -266,6 +263,11 @@ if (!$gid) {
 
 # Add required test data for PHPUnit tests (hardcoded IDs used by tests)
 # These always run since tests expect specific IDs
+
+# Add spam keywords - needed for spam detection tests
+$dbhm->preExec("INSERT IGNORE INTO `spam_keywords` (`id`, `word`, `exclude`, `action`, `type`) VALUES (8, 'viagra', NULL, 'Spam', 'Literal'), (76, 'weight loss', NULL, 'Spam', 'Literal'), (77, 'spamspamspam', NULL, 'Review', 'Literal');");
+$dbhm->preExec('REPLACE INTO `spam_keywords` (`id`, `word`, `exclude`, `action`, `type`) VALUES (272, \'(?<!\\\\bwater\\\\W)\\\\bbutt\\\\b(?!\\\\s+rd)\', NULL, \'Review\', \'Regex\');');
+
 $dbhm->preExec("INSERT IGNORE INTO `locations` (`id`, `osm_id`, `name`, `type`, `osm_place`, `geometry`, `ourgeometry`, `gridid`, `postcodeid`, `areaid`, `canon`, `popularity`, `osm_amenity`, `osm_shop`, `maxdimension`, `lat`, `lng`, `timestamp`) VALUES
   (1687412, '189543628', 'SA65 9ET', 'Postcode', 0, ST_GeomFromText('POINT(-4.939858 52.006292)', {$dbhr->SRID()}), NULL, NULL, NULL, NULL, 'sa659et', 0, 0, 0, '0.002916', '52.006292', '-4.939858', '2016-08-23 06:01:25');");
 $dbhm->preExec("INSERT IGNORE INTO `paf_addresses` (`id`, `postcodeid`, `udprn`) VALUES (102367696, 1687412, 50464672);");

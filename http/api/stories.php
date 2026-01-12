@@ -129,7 +129,7 @@ function stories() {
                 if (!$newsfeedbefore && $newsfeedafter && !$s->getPrivate('fromnewsfeed')) {
                     # We have reviewed a public story which wasn't originally on the newsfeed.  We can push it to the newsfeed.
                     $n = new Newsfeed($dbhr, $dbhm);
-                    $n->create(Newsfeed::TYPE_STORY, $s->getPrivate('userid'), NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, $s->getPrivate('id'));
+                    $n->create(Newsfeed::TYPE_STORY, $s->getPrivate('userid'), NULL, NULL, NULL, NULL, NULL, NULL, NULL, $s->getPrivate('id'));
                 }
             }
             break;

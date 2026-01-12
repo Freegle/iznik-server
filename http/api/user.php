@@ -146,7 +146,7 @@ function user() {
                         $rc = $u->addEmail($email);
 
                         if ($rc) {
-                            $u->welcome($email, $pwtomail);
+                            // Welcome mail is now sent asynchronously by Laravel batch.
                             $rc = $u->addLogin(User::LOGIN_NATIVE, $id, $password);
 
                             if ($rc) {

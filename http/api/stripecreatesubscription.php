@@ -15,14 +15,6 @@ function stripecreatesubscription() {
             if ($me) {
                 $amount = Utils::presint('amount', $_REQUEST, 0);
                 $test = Utils::presbool('test', $_REQUEST, FALSE);
-                $stripe = new \Stripe\StripeClient($test ? STRIPE_SECRET_KEY_TEST : STRIPE_SECRET_KEY);
-
-                # TODO Email and uid might change - how to handle?
-                $customer = $stripe->customers->create([
-                                                           'email' => $me->getEmailPreferred(),
-                                                           'name' => $me->getName(),
-                                                           'metadata' => [ 'uid' => $me->getId() ],
-                                                       ]);
 
                 $price = NULL;
 
@@ -52,6 +44,22 @@ function stripecreatesubscription() {
                         break;
                     }
                 }
+
+                if (!$price) {
+                    $ret = [
+                        'ret' => 2,
+                        'status' => 'Invalid amount - must be 1, 2, 5, 10, 15, or 25'
+                    ];
+                    break;
+                }
+
+                $stripe = new \Stripe\StripeClient($test ? STRIPE_SECRET_KEY_TEST : STRIPE_SECRET_KEY);
+
+                $customer = $stripe->customers->create([
+                                                           'email' => $me->getEmailPreferred(),
+                                                           'name' => $me->getName(),
+                                                           'metadata' => [ 'uid' => $me->getId() ],
+                                                       ]);
 
                 $subscription = $stripe->subscriptions->create([
                                                                    'customer' => $customer->id,

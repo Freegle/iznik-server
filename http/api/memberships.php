@@ -301,10 +301,14 @@ function memberships() {
                         }
                         case 'ReviewHold': {
                             $u->setMembershipAttId($membershipid, 'heldby', $me->getId());
+                            $n = new PushNotifications($dbhr, $dbhm);
+                            $n->notifyGroupMods($groupid);
                             break;
                         }
                         case 'ReviewRelease': {
                             $u->setMembershipAttId($membershipid, 'heldby', NULL);
+                            $n = new PushNotifications($dbhr, $dbhm);
+                            $n->notifyGroupMods($groupid);
                             break;
                         }
                     }

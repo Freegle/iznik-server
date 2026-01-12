@@ -225,5 +225,43 @@ class FacebookTest extends IznikTestCase {
         $fb = $f->getFB();
         $this->assertNotNull($fb);
     }
+
+    public function testTNUserCannotAddFacebook() {
+        # Create a TN user (has tnuserid set).
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id = $u->create('TN', 'User', 'TN User');
+        $u->addEmail('tnuser@test.com');
+        $u->setPrivate('tnuserid', 12345);
+
+        # Mock a Facebook login attempt with the TN user's email.
+        $mock = $this->getMockBuilder('Freegle\Iznik\Facebook')
+            ->setConstructorArgs([$this->dbhr, $this->dbhm])
+            ->setMethods(array('getFB'))
+            ->getMock();
+
+        $mock->method('getFB')->willReturn($this);
+        $this->getLongLivedAccessTokenException = FALSE;
+        $this->getLongLivedAccessFacebookException = FALSE;
+        $this->asArrayException = FALSE;
+
+        $this->accessToken = '1234';
+        $this->facebookId = 999;  # New Facebook ID (not linked yet).
+        $this->facebookFirstName = 'TN';
+        $this->facebookLastName = 'User';
+        $this->facebookName = 'TN User';
+        $this->facebookEmail = 'tnuser@test.com';  # Matches TN user's email.
+
+        # This should fail because we're trying to add Facebook login to a TN user.
+        # The exception is caught and returns ret=1 with the error message.
+        list($session, $ret) = $mock->login();
+        $this->log("TN user Facebook login attempt returned " . var_export($ret, TRUE));
+        $this->assertNotEquals(0, $ret['ret']);
+        $this->assertStringContainsString('TrashNothing', $ret['status']);
+
+        # Verify no Facebook login was added.
+        $u = User::get($this->dbhr, $this->dbhm, $id);
+        $logins = $u->getLogins();
+        $this->assertEquals(0, count($logins));
+    }
 }
 

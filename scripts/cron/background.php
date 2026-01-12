@@ -20,9 +20,23 @@ $lockh = Utils::lockScript($fn);
 $dbhm->setAttribute(\PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, TRUE);
 
 function doSQL($sql) {
-    global $dbhm;
+    global $dbhr, $dbhm;
 
     try {
+        # Optimise View messages - if there's already a recent view, skip it.
+        if (preg_match("/INSERT INTO messages_likes \(msgid, userid, type\) VALUES \((\d+), (\d+), 'View'\)/", $sql, $matches)) {
+            $msgid = $matches[1];
+            $userid = $matches[2];
+            $recent = $dbhr->preQuery("SELECT msgid FROM messages_likes WHERE msgid = ? AND userid = ? AND type = 'View' AND timestamp >= DATE_SUB(NOW(), INTERVAL 30 MINUTE);", [
+                $msgid,
+                $userid
+            ]);
+
+            if (count($recent) > 0) {
+                return;
+            }
+        }
+
         $rc = $dbhm->exec($sql, FALSE);
     } catch (\Exception $e) {
         $msg = $e->getMessage();
@@ -47,6 +61,7 @@ try {
             // Pheanstalk doesn't recovery well after an error, so recreate each time.
             error_reporting(0);
             $pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
+            $pheanstalk = $pheanstalk->watchOnly(PHEANSTALK_TUBE);
             $job = $pheanstalk->reserve();
             error_reporting(E_ALL & ~E_WARNING & ~E_DEPRECATED & ~E_NOTICE);
         } catch (\Exception $e) {
@@ -139,6 +154,13 @@ try {
                                 $data['happiness'],
                                 $data['userid'],
                                 $data['messageForOthers']);
+                            break;
+                        }
+
+                        case 'testmarker': {
+                            // Used by test suite - write marker file to signal that all prior
+                            // queue items have been processed.
+                            touch($data['file']);
                             break;
                         }
 

@@ -17,19 +17,19 @@ class ModBot extends Entity
     const INPUT_TOKEN_COST = 0.10 / 1000000;  // $0.10 per 1M input tokens
     const OUTPUT_TOKEN_COST = 0.40 / 1000000; // $0.40 per 1M output tokens
 
-    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
+    function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm, $geminiClient = NULL)
     {
         $this->dbhr = $dbhr;
         $this->dbhm = $dbhm;
-        
+
         $this->user = User::get($this->dbhr, $this->dbhm);
         $botUserId = $this->user->findByEmail(MODBOT_USER);
         if ($botUserId) {
             $this->user = User::get($this->dbhr, $this->dbhm, $botUserId);
         }
-        
-        // Initialize Gemini client
-        $this->geminiClient = new Client(GOOGLE_GEMINI_API_KEY);
+
+        // Initialize Gemini client (injectable for testing)
+        $this->geminiClient = $geminiClient ?? new Client(GOOGLE_GEMINI_API_KEY);
     }
 
     public function reviewPost($postId, $createMicrovolunteering = FALSE, $returnDebugInfo = FALSE, $skipModRightsCheck = FALSE)
