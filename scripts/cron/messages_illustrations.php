@@ -176,7 +176,10 @@ do {
         $batchResult = Pollinations::fetchBatch($batchItems, 120);
 
         if ($batchResult === FALSE) {
-            # Rate-limited - wait before trying again.
+            # Rate-limited - record failures for all items in batch so they eventually get skipped.
+            foreach ($batchItems as $item) {
+                Pollinations::recordFailure($item['name']);
+            }
             error_log("Batch rate-limited, waiting 60 seconds");
             sleep(60);
             continue;
