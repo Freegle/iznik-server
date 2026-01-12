@@ -205,6 +205,40 @@ class Pollinations {
     }
 
     /**
+     * Build the HTTP context for Pollinations API requests.
+     *
+     * @param int $timeout Timeout in seconds.
+     * @return resource Stream context for HTTP requests.
+     */
+    private static function buildHttpContext($timeout) {
+        return stream_context_create([
+            'http' => [
+                'timeout' => $timeout
+            ]
+        ]);
+    }
+
+    /**
+     * Build the Pollinations image URL with optional API key.
+     *
+     * @param string $prompt The prompt (will be URL-encoded).
+     * @param int $width Image width.
+     * @param int $height Image height.
+     * @return string The full URL.
+     */
+    private static function buildImageUrl($prompt, $width, $height) {
+        $url = "https://image.pollinations.ai/prompt/" . urlencode($prompt) .
+               "?width={$width}&height={$height}&nologo=true&seed=1";
+
+        # Add API key if configured.
+        if (defined('POLLINATIONS_API_KEY') && POLLINATIONS_API_KEY) {
+            $url .= "&key=" . urlencode(POLLINATIONS_API_KEY);
+        }
+
+        return $url;
+    }
+
+    /**
      * Fetch an image from Pollinations.ai for the given prompt.
      * Returns image data on success, or FALSE if rate-limited/failed.
      *
@@ -218,14 +252,9 @@ class Pollinations {
     public static function fetchImage($prompt, $fullPrompt, $width = 640, $height = 480, $timeout = 120) {
         global $dbhr;
 
-        $url = "https://image.pollinations.ai/prompt/" . urlencode($fullPrompt) .
-               "?width={$width}&height={$height}&nologo=true&seed=1";
+        $url = self::buildImageUrl($fullPrompt, $width, $height);
 
-        $ctx = stream_context_create([
-            'http' => [
-                'timeout' => $timeout
-            ]
-        ]);
+        $ctx = self::buildHttpContext($timeout);
 
         $data = @file_get_contents($url, FALSE, $ctx);
 
@@ -397,14 +426,9 @@ class Pollinations {
             $width = $item['width'] ?? 640;
             $height = $item['height'] ?? 480;
 
-            $url = "https://image.pollinations.ai/prompt/" . urlencode($prompt) .
-                   "?width={$width}&height={$height}&nologo=true&seed=1";
+            $url = self::buildImageUrl($prompt, $width, $height);
 
-            $ctx = stream_context_create([
-                'http' => [
-                    'timeout' => $timeout
-                ]
-            ]);
+            $ctx = self::buildHttpContext($timeout);
 
             error_log("Batch fetching image for: $name");
             $data = @file_get_contents($url, FALSE, $ctx);
