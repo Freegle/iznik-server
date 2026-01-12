@@ -210,58 +210,43 @@ abstract class IznikTestCase extends \PHPUnit\Framework\TestCase {
     }
 
     public function waitBackground() {
-        # We wait until either the queue is empty, or the first item on it has been put there since we started
-        # waiting (and therefore anything we put on has been handled).
-        $start = microtime(TRUE);
+        # Send a marker item to the queue and wait for it to be processed.
+        # When the marker is processed, we know all prior queue items have been handled.
+        $markerFile = '/tmp/waitbackground_' . getmypid() . '_' . microtime(TRUE);
+        @unlink($markerFile);
 
         $pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
-        $pheanstalk = $pheanstalk->watchOnly(PHEANSTALK_TUBE);
+        $pheanstalk = $pheanstalk->useTube(PHEANSTALK_TUBE);
+
+        $pheanstalk->put(json_encode([
+            'type' => 'testmarker',
+            'file' => $markerFile,
+            'queued' => microtime(TRUE),
+            'ttr' => Utils::PHEANSTALK_TTR
+        ]));
+
+        $this->log("Waiting for background marker file: $markerFile");
+
+        $start = microtime(TRUE);
+        $timeout = IznikTestCase::LOG_SLEEP * 5;
         $count = 0;
-        do {
-            $stats = $pheanstalk->statsTube(PHEANSTALK_TUBE);
-            $ready = $stats['current-jobs-ready'];
-            $reserved = $stats['current-jobs-reserved'];
 
-            $this->log("...waiting for background work, current $ready/$reserved, try $count");
-
-            if ($ready + $reserved == 0) {
-                $this->log("Queue is empty, exit");
-                break;
+        while (!file_exists($markerFile)) {
+            $elapsed = microtime(TRUE) - $start;
+            if ($elapsed > $timeout) {
+                $this->assertFalse(TRUE, "Timeout waiting for background marker after {$elapsed}s");
             }
 
-            try {
-                $job = $pheanstalk->peekReady();
-
-                if ($job) {
-                    $data = json_decode($job->getData(), TRUE);
-
-                    if ($data['queued'] > $start) {
-                        $this->log("Queue now newer than when we started");
-                        sleep(2);
-                        break;
-                    }
-                }
-            } catch (\Exception $e) {
-                if (strpos($e->getMessage(), "NOT_FOUND: There are no jobs in the 'ready' status") !== FALSE) {
-                    if ($reserved) {
-                        $this->log("...no jobs ready but $reserved reserved, continue");
-                    } else {
-                        $this->log("...no jobs ready and no reserved");
-                        break;
-                    }
-                } else {
-                    error_log("Exception waiting for background " . $e->getMessage());
-                }
+            if ($count % 50 == 0) {
+                $this->log("...waiting for marker, elapsed " . round($elapsed, 1) . "s");
             }
 
-            sleep(5);
+            usleep(100000);
             $count++;
-
-        } while ($count < IznikTestCase::LOG_SLEEP);
-
-        if ($count >= IznikTestCase::LOG_SLEEP) {
-            $this->assertFalse(TRUE, 'Failed to complete background work');
         }
+
+        $this->log("Background marker file appeared after " . round(microtime(TRUE) - $start, 2) . "s");
+        @unlink($markerFile);
     }
 
     public function findLog($type, $subtype, $logs) {

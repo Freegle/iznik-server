@@ -1251,19 +1251,10 @@ class UserTest extends IznikTestCase {
         User::clearCache();
         $this->waitBackground();
 
-        # The log is written via background queue. Even after waitBackground() returns,
-        # there may be a brief delay before the log is visible in the database.
-        # Retry a few times with a small delay to handle this race condition.
-        $log = NULL;
-        for ($retry = 0; $retry < 10 && !$log; $retry++) {
-            $ctx = NULL;
-            $logs = [ $u->getId() => [ 'id' => $u->getId() ] ];
-            $u->getPublicLogs($u, $logs, FALSE, $ctx);
-            $log = $this->findLog(Log::TYPE_USER, Log::SUBTYPE_DELETED, $logs[$u->getId()]['logs']);
-            if (!$log) {
-                usleep(100000); // 100ms
-            }
-        }
+        $ctx = NULL;
+        $logs = [ $u->getId() => [ 'id' => $u->getId() ] ];
+        $u->getPublicLogs($u, $logs, FALSE, $ctx);
+        $log = $this->findLog(Log::TYPE_USER, Log::SUBTYPE_DELETED, $logs[$u->getId()]['logs']);
         $this->assertNotNull($log);
 
         # Get logs for coverage.

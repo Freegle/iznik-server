@@ -157,6 +157,13 @@ try {
                             break;
                         }
 
+                        case 'testmarker': {
+                            // Used by test suite - write marker file to signal that all prior
+                            // queue items have been processed.
+                            touch($data['file']);
+                            break;
+                        }
+
                         default: {
                             error_log("Unknown job type {$data['type']} " . var_export($data, TRUE));
                         }
