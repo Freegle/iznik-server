@@ -205,6 +205,40 @@ class Pollinations {
     }
 
     /**
+     * Build the HTTP context for Pollinations API requests.
+     *
+     * @param int $timeout Timeout in seconds.
+     * @return resource Stream context for HTTP requests.
+     */
+    private static function buildHttpContext($timeout) {
+        return stream_context_create([
+            'http' => [
+                'timeout' => $timeout
+            ]
+        ]);
+    }
+
+    /**
+     * Build the Pollinations image URL with optional API key.
+     *
+     * @param string $prompt The prompt (will be URL-encoded).
+     * @param int $width Image width.
+     * @param int $height Image height.
+     * @return string The full URL.
+     */
+    private static function buildImageUrl($prompt, $width, $height) {
+        $url = "https://gen.pollinations.ai/image/" . urlencode($prompt) .
+               "?width={$width}&height={$height}&nologo=true&seed=1&model=turbo";
+
+        # Add API key if configured.
+        if (defined('POLLINATIONS_API_KEY') && POLLINATIONS_API_KEY) {
+            $url .= "&key=" . urlencode(POLLINATIONS_API_KEY);
+        }
+
+        return $url;
+    }
+
+    /**
      * Fetch an image from Pollinations.ai for the given prompt.
      * Returns image data on success, or FALSE if rate-limited/failed.
      *
@@ -218,14 +252,9 @@ class Pollinations {
     public static function fetchImage($prompt, $fullPrompt, $width = 640, $height = 480, $timeout = 120) {
         global $dbhr;
 
-        $url = "https://image.pollinations.ai/prompt/" . urlencode($fullPrompt) .
-               "?width={$width}&height={$height}&nologo=true&seed=1";
+        $url = self::buildImageUrl($fullPrompt, $width, $height);
 
-        $ctx = stream_context_create([
-            'http' => [
-                'timeout' => $timeout
-            ]
-        ]);
+        $ctx = self::buildHttpContext($timeout);
 
         $data = @file_get_contents($url, FALSE, $ctx);
 
@@ -348,11 +377,8 @@ class Pollinations {
         $cleanName = str_replace('CRITICAL:', '', $itemName);
         $cleanName = str_replace('Draw only', '', $cleanName);
 
-        return "Draw a single friendly cartoon white line drawing on dark green background, moderate shading, " .
-               "cute and quirky style, UK audience, centered, gender-neutral, " .
-               "if showing people use abstract non-gendered figures. " .
-               "CRITICAL: Do not include any text, words, letters, numbers or labels anywhere in the image. " .
-               "Draw only a picture of: " . $cleanName;
+        return "single friendly cartoon white line drawing of " . $cleanName .
+               " on dark green background, cute and quirky style, centered, no text";
     }
 
     /**
@@ -365,10 +391,8 @@ class Pollinations {
         $cleanName = str_replace('CRITICAL:', '', $jobTitle);
         $cleanName = str_replace('Draw only', '', $cleanName);
 
-        return "simple cute cartoon " . $cleanName . " white line drawing on solid dark forest green background, " .
-               "minimalist icon style, gender-neutral, if showing people use abstract non-gendered figures, " .
-               "absolutely no text, no words, no letters, no numbers, no labels, " .
-               "no writing, no captions, no signs, no speech bubbles, no border, filling the entire frame";
+        return "cute friendly cartoon " . $cleanName .
+               ", white line drawing on solid dark green background, single figure, centered, quirky style, no text";
     }
 
     /**
@@ -397,14 +421,9 @@ class Pollinations {
             $width = $item['width'] ?? 640;
             $height = $item['height'] ?? 480;
 
-            $url = "https://image.pollinations.ai/prompt/" . urlencode($prompt) .
-                   "?width={$width}&height={$height}&nologo=true&seed=1";
+            $url = self::buildImageUrl($prompt, $width, $height);
 
-            $ctx = stream_context_create([
-                'http' => [
-                    'timeout' => $timeout
-                ]
-            ]);
+            $ctx = self::buildHttpContext($timeout);
 
             error_log("Batch fetching image for: $name");
             $data = @file_get_contents($url, FALSE, $ctx);
