@@ -98,6 +98,26 @@ class chatRoomsAPITest extends IznikAPITestCase
 
         }
 
+    public function testChattypesAsString()
+    {
+        # Test that chattypes can be passed as a string instead of an array.
+        # This was a bug where in_array() would fail with TypeError if chattypes was a string.
+        list($u, $uid, $emailid) = $this->createTestUser(NULL, NULL, 'Test User', 'teststring@test.com', 'testpw');
+
+        $c = new ChatRoom($this->dbhr, $this->dbhm);
+        list ($rid, $blocked) = $c->createConversation($this->uid, $uid);
+
+        $this->addLoginAndLogin($this->user, 'testpw');
+
+        # Pass chattypes as string (simulating ?chattypes=User2User instead of ?chattypes[]=User2User).
+        $ret = $this->call('chatrooms', 'GET', [
+            'chattypes' => ChatRoom::TYPE_USER2USER  # String, not array
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertEquals(1, count($ret['chatrooms']));
+        $this->assertEquals($rid, $ret['chatrooms'][0]['id']);
+    }
+
     public function testMod2Mod()
     {
         # Logged out - no rooms

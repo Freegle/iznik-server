@@ -11,6 +11,7 @@ function chatrooms() {
     $userid = (Utils::presint('userid', $_REQUEST, NULL));
     $r = new ChatRoom($dbhr, $dbhm, $id);
     $chattypes = Utils::presdef('chattypes', $_REQUEST, [ ChatRoom::TYPE_USER2USER ]);
+    $chattypes = is_array($chattypes) ? $chattypes : [ $chattypes ];
     $chattype = Utils::presdef('chattype', $_REQUEST, ChatRoom::TYPE_USER2USER);
     $groupid = (Utils::presint('groupid', $_REQUEST, NULL));
     $search = Utils::presdef('search', $_REQUEST, NULL);
