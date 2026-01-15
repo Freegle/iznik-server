@@ -118,6 +118,20 @@ class chatRoomsAPITest extends IznikAPITestCase
         $this->assertEquals($rid, $ret['chatrooms'][0]['id']);
     }
 
+    public function testInvalidChattype()
+    {
+        # Test that passing an invalid chattype returns empty result, not SQL error.
+        # This was a bug where empty SQL query was passed to PDO::prepare().
+        $this->addLoginAndLogin($this->user, 'testpw');
+
+        $ret = $this->call('chatrooms', 'GET', [
+            'chattypes' => [ 'InvalidType' ]
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+        $this->assertIsArray($ret['chatrooms']);
+        $this->assertEmpty($ret['chatrooms']);
+    }
+
     public function testMod2Mod()
     {
         # Logged out - no rooms
