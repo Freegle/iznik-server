@@ -138,8 +138,7 @@ class PushNotificationsTest extends IznikTestCase {
             $debug[] = "=== END DEBUG ===";
 
             foreach ($debug as $line) {
-                $this->log($line);
-                fwrite(STDERR, $line . "\n");
+                error_log($line);
             }
         }
 
