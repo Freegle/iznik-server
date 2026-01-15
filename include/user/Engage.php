@@ -330,8 +330,8 @@ class Engage
 
         $r = Utils::randomFloat();
 
-        if ($r < 0.1) {
-            # The 10% case we choose a random one of the other options.
+        if ($r < 0.1 && count($variants) > 1) {
+            # The 10% case we choose a random one of the other options (only if we have more than one).
             $s = rand(1, count($variants) - 1);
             $variant = $variants[$s];
         } else {

@@ -339,6 +339,14 @@ class Facebook
         $id = $eid ? $eid : $fid;
         #error_log("Login id $id from $eid and $fid");
 
+        # Check if we're trying to add a Facebook login to a TN user.
+        if ($id && !$fid) {
+            $u = User::get($this->dbhr, $this->dbhm, $id);
+            if ($u->getPrivate('tnuserid')) {
+                throw new \Exception('Cannot add social signin to TrashNothing user');
+            }
+        }
+
         if (!$id) {
             # We don't know them.  Create a user.
             #

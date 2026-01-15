@@ -51,7 +51,13 @@ function donations() {
                 ];
 
                 if ($u->getId() == $uid) {
-                    $id = $d->add($uid, $u->getEmailPreferred(), $u->getName(), $date, 'External for #' . $uid . ' added at ' . date("Y-m-d H:i:s", time()) . Donations::SOURCE_BANK_TRANSFER, $amount, Donations::TYPE_EXTERNAL, NULL, Donations::SOURCE_BANK_TRANSFER);
+                    // Try external email first, fall back to our domain email (e.g. for social login users)
+                    $email = $u->getEmailPreferred();
+                    if (!$email) {
+                        $email = $u->getEmailPreferred(TRUE);
+                    }
+
+                    $id = $d->add($uid, $email, $u->getName(), $date, 'External for #' . $uid . ' added at ' . date("Y-m-d H:i:s", time()) . Donations::SOURCE_BANK_TRANSFER, $amount, Donations::TYPE_EXTERNAL, NULL, Donations::SOURCE_BANK_TRANSFER);
 
                     $ret = [
                         'ret' => 3,

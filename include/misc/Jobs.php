@@ -106,6 +106,33 @@ class Jobs {
 
         $ret = array_slice($ret, 0, $limit);
 
+        # Look up cached AI images for job titles
+        $titles = array_unique(array_column($ret, 'title'));
+        $imageCache = [];
+
+        if (count($titles)) {
+            $placeholders = implode(',', array_fill(0, count($titles), '?'));
+            $images = $this->dbhr->preQuery(
+                "SELECT name, externaluid FROM ai_images WHERE name IN ($placeholders)",
+                array_values($titles)
+            );
+
+            foreach ($images as $img) {
+                $imageCache[$img['name']] = $img['externaluid'];
+            }
+        }
+
+        # Add image URL to each job
+        foreach ($ret as &$job) {
+            if (isset($imageCache[$job['title']])) {
+                $uid = $imageCache[$job['title']];
+                $p = strrpos($uid, 'freegletusd-');
+                if ($p !== FALSE) {
+                    $job['image'] = IMAGE_DELIVERY . "?url=" . TUS_UPLOADER . "/" . substr($uid, $p + strlen('freegletusd-')) . "/";
+                }
+            }
+        }
+
         return $ret;
     }
 

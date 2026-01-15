@@ -790,7 +790,7 @@ WHERE chat_rooms.id IN $idlist;";
                         $msg = $chatmsg;
                         $msg = $this->splitEmoji($msg);
 
-                        $ret = substr($msg, 0, 30);
+                        $ret = substr($msg, 0, 100);
                     } else {
                         $ret = 'Item marked as TAKEN';
                     }
@@ -808,7 +808,7 @@ WHERE chat_rooms.id IN $idlist;";
                 $msg = $chatmsg;
                 $msg = $this->splitEmoji($msg);
 
-                $ret = substr($msg, 0, 30);
+                $ret = substr($msg, 0, 100);
                 break;
             }
         }
@@ -1043,6 +1043,11 @@ WHERE chat_rooms.id IN $idlist;";
                 #error_log("Group chats $sql, $userid");
                 $sql = $sql == '' ? $thissql : "$sql UNION $thissql";
                 #error_log("Add " . count($rooms) . " group chats using $sql");
+            }
+
+            # If no valid chattypes matched, return empty result.
+            if ($sql === '') {
+                return [];
             }
 
             $rooms = $this->dbhr->preQuery($sql);
@@ -1346,7 +1351,7 @@ WHERE chat_rooms.id IN $idlist;";
                 $n = new PushNotifications($this->dbhr, $this->dbhm);
                 #error_log("Update roster for $userid set last seen $lastmsgseen from {$_SERVER['REMOTE_ADDR']}");
                 #error_log("Roster notify $userid");
-                $n->notify($userid, Session::modtools());
+                $n->notify($userid, Session::modtools(), FALSE, $this->id);
             }
 
             #error_log("UPDATE chat_roster SET lastmsgseen = $lastmsgseen WHERE chatid = {$this->id} AND userid = $userid AND (lastmsgseen IS NULL OR lastmsgseen < $lastmsgseen);");
@@ -1500,14 +1505,14 @@ WHERE chat_rooms.id IN $idlist;";
         foreach ($fduserids as $userid) {
             if ($userid != $excludeuser) {
                 #error_log("Chat notify FD $userid");
-                $n->notify($userid, FALSE);
+                $n->notify($userid, FALSE, FALSE, $this->id);
             }
         }
 
         foreach ($mtuserids as $userid) {
             if ($userid != $excludeuser) {
                 #error_log("Chat notify MT $userid");
-                $n->notify($userid, TRUE);
+                $n->notify($userid, TRUE, FALSE, $this->id);
             }
         }
 
@@ -1534,6 +1539,11 @@ WHERE chat_rooms.id IN $idlist;";
             $groupids = [$groupid];
         } else {
             $groupids = $user->getModeratorships($user->getId(), TRUE);
+        }
+
+        # If the user has no moderator groups, they can't review any messages.
+        if (empty($groupids)) {
+            return [];
         }
 
         $groupq1 = "AND m1.groupid IN (" . implode(',', $groupids) . ")";
@@ -1833,121 +1843,6 @@ WHERE chat_messages.id > ? $wideq AND chat_messages_held.id IS NULL AND chat_mes
         return ($ret);
     }
 
-    public function getMembersStatus($lastmessage, $forceall = FALSE)
-    {
-        $ret = [];
-        #error_log("Get not seen {$this->chatroom['chattype']}");
-
-        if ($this->chatroom['chattype'] == ChatRoom::TYPE_USER2USER) {
-            # This is a conversation between two users.  They're both in the roster so we can see what their last
-            # seen message was and decide who to chase.  If they've blocked this chat we don't want to see it.
-            #
-            # Only pluck out the users the chat is between; we might have a roster entry for a mod.
-            $readyq = $forceall ? '' : "HAVING lastemailed IS NULL OR lastmsgemailed < ? ";
-            $sql = "SELECT chat_roster.* FROM chat_roster 
-                 INNER JOIN chat_rooms ON chat_rooms.id = chat_roster.chatid 
-                 WHERE chatid = ? AND
-                       chat_roster.userid IN (chat_rooms.user1, chat_rooms.user2) AND
-                       (status IS NULL OR status != ?) $readyq;";
-            #error_log("$sql {$this->id}, $lastmessage");
-            $users = $this->dbhr->preQuery($sql, $forceall ? [$this->id, ChatRoom::STATUS_BLOCKED] : [$this->id, ChatRoom::STATUS_BLOCKED, $lastmessage]);
-
-            foreach ($users as $user) {
-                # What's the max message this user has either seen or been mailed?
-                #error_log("Last mailed to user #{$user['userid']} message {$user['lastmsgemailed']}, last message in chat $lastmessage");
-                $maxseen = $forceall ? 0 : Utils::presdef('lastmsgseen', $user, 0);
-                $maxmailed = $forceall ? 0 : Utils::presdef('lastmsgemailed', $user, 0);
-                $max = max($maxseen, $maxmailed);
-                #error_log("Max seen $maxseen mailed $maxmailed max $max VS $lastmessage");
-
-                if ($maxmailed < $lastmessage) {
-                    # This user hasn't seen or been mailed all the messages.
-                    #error_log("Need to see this");
-                    $ret[] = [
-                        'userid' => $user['userid'],
-                        'lastmsgseen' => $user['lastmsgseen'],
-                        'lastmsgemailed' => $user['lastmsgemailed'],
-                        'lastmsgseenormailed' => $max,
-                        'role' => User::ROLE_MEMBER
-                    ];
-                }
-            }
-        } else if ($this->chatroom['chattype'] == ChatRoom::TYPE_USER2MOD) {
-            # This is a conversation between a user, and the mods of a group.  We chase the user if they've not
-            # seen/been chased, and all the mods if none of them have seen/been chased.
-            #
-            # First the user.
-            $readyq = $forceall ? '' : "HAVING lastemailed IS NULL OR lastmsgemailed < ? ";
-            $sql = "SELECT chat_roster.* FROM chat_roster INNER JOIN chat_rooms ON chat_rooms.id = chat_roster.chatid WHERE chatid = ? AND chat_roster.userid = chat_rooms.user1 $readyq;";
-            #error_log("Check User2Mod $sql, {$this->id}, $lastmessage");
-            $users = $this->dbhr->preQuery($sql, $forceall ? [$this->id] : [$this->id, $lastmessage]);
-
-            foreach ($users as $user) {
-                $maxseen = $forceall ? 0 : Utils::presdef('lastmsgseen', $user, 0);
-                $maxmailed = $forceall ? 0 : Utils::presdef('lastmsgemailed', $user, 0);
-                $max = max($maxseen, $maxmailed);
-
-                #error_log("User in User2Mod max $maxmailed vs $lastmessage");
-
-                if ($maxmailed < $lastmessage) {
-                    # We've not been mailed any messages, or some but not this one.
-                    $ret[] = [
-                        'userid' => $user['userid'],
-                        'lastmsgseen' => $user['lastmsgseen'],
-                        'lastmsgemailed' => $user['lastmsgemailed'],
-                        'lastmsgseenormailed' => $max,
-                        'role' => User::ROLE_MEMBER
-                    ];
-                }
-            }
-
-            # Now the mods.
-            #
-            # First get the mods.
-            $mods = $this->dbhr->preQuery("SELECT DISTINCT userid FROM memberships WHERE groupid = ? AND role IN ('Owner', 'Moderator');", [
-                $this->chatroom['groupid']
-            ]);
-
-            $modids = [];
-
-            foreach ($mods as $mod) {
-                $modids[] = $mod['userid'];
-            }
-
-            if (count($modids) > 0) {
-                # If for some reason we have no mods, we can't mail them.
-                # First add any remaining mods into the roster so that we can record
-                # what we do.
-                foreach ($mods as $mod) {
-                    $sql = "INSERT IGNORE INTO chat_roster (chatid, userid) VALUES (?, ?);";
-                    $this->dbhm->preExec($sql, [$this->id, $mod['userid']]);
-                }
-
-                # Now return info to trigger mails to all mods.
-                $rosters = $this->dbhr->preQuery("SELECT * FROM chat_roster WHERE chatid = ? AND userid IN (" . implode(',', $modids) . ");",
-                    [
-                        $this->id
-                    ]);
-                foreach ($rosters as $roster) {
-                    $maxseen = $forceall ? 0 : Utils::presdef('lastmsgseen', $roster, 0);
-                    $maxmailed = $forceall ? 0 : Utils::presdef('lastemailed', $roster, 0);
-                    $max = max($maxseen, $maxmailed);
-                    #error_log("Return {$roster['userid']} maxmailed {$roster['lastmsgemailed']} from " . var_export($roster, TRUE));
-
-                    $ret[] = [
-                        'userid' => $roster['userid'],
-                        'lastmsgseen' => $roster['lastmsgseen'],
-                        'lastmsgemailed' => $roster['lastmsgemailed'],
-                        'lastmsgseenormailed' => $max,
-                        'role' => User::ROLE_MODERATOR
-                    ];
-                }
-            }
-        }
-
-        return ($ret);
-    }
-
     private function prepareForTwig($chattype, $notifyingmember, $groupid, $unmailedmsg, $sendingto, $sendingfrom, &$textsummary, $thisone, &$userlist) {
         $u = new User($this->dbhr, $this->dbhm);
         $thistwig = [];
@@ -2110,272 +2005,6 @@ WHERE chat_messages.id > ? $wideq AND chat_messages_held.id IS NULL AND chat_mes
         }
 
         return $thisone;
-    }
-
-    public function notifyByEmail($chatid = NULL, $chattype = NULL, $emailoverride = NULL, $delay = ChatRoom::DELAY, $since = "24 hours ago", $forceall = FALSE, $sendAndExit = NULL)
-    {
-        # We want to find chatrooms with messages which haven't been mailed to people.
-        #
-        # We don't email until a message is older than $delay.  This allows the client to keep messages from
-        # being mailed if the user is still typing the next one, so that we will then combine them.
-        #
-        # These could either be a group chatroom, or a conversation.  There aren't too many of the former, but there
-        # could be a large number of the latter.  However we don't want to keep nagging people forever - so we are
-        # only interested in rooms containing a message which was posted recently and which has not been mailed all
-        # members - which is a much smaller set.
-        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
-        $twig = new \Twig_Environment($loader);
-
-        # We don't need to check too far back.  This keeps it quick.
-        #
-        # Anything before $since won't get spotted and therefore won't get emailed.  This means that if a message
-        # is held for a review for longer than this time, it won't go out by email once it's reviewed.  So
-        # $since should never be set too short.  Longer than a day or so the message is often
-        # no longer worth mailing out anyway.
-        $reviewq = $chattype ==  ChatRoom::TYPE_USER2MOD ? '' : " AND reviewrequired = 0 AND processingrequired = 0 AND processingsuccessful = 1 ";
-        $allq = $forceall ? '' : "AND mailedtoall = 0 AND seenbyall = 0 AND reviewrejected = 0";
-        $start = date('Y-m-d H:i:s', strtotime($since));
-        $end = date('Y-m-d H:i:s', time() - $delay);
-        $chatq = $chatid ? " AND chatid = $chatid " : '';
-        $sql = "SELECT DISTINCT chatid, chat_rooms.chattype, chat_rooms.groupid, chat_rooms.user1 FROM chat_messages
-    INNER JOIN chat_rooms ON chat_messages.chatid = chat_rooms.id
-    WHERE date >= ? AND date <= ? $allq $reviewq AND chattype = ? $chatq;";
-        $chats = $this->dbhr->preQuery($sql, [$start, $end, $chattype]);
-        $notified = 0;
-        $userlist = [];
-
-        foreach ($chats as $chat) {
-            # Different members of the chat might have been mailed different messages.
-            $r = new ChatRoom($this->dbhr, $this->dbhm, $chat['chatid']);
-            $chatatts = $r->getPublic();
-            $lastmaxmailed = $r->lastMailedToAll();
-            $sentsome = FALSE;
-            $notmailed = $r->getMembersStatus($chatatts['lastmsg'], $forceall);
-            $outcometaken = '';
-            $outcomewithdrawn= '';
-
-            foreach ($notmailed as $member) {
-                # Now we have a member who has not been mailed the messages in this chat.  That's who we're sending to.
-                $sendingto = User::get($this->dbhr, $this->dbhm, $member['userid']);
-                $other = $member['userid'] == $chatatts['user1']['id'] ? Utils::presdef('id', $chatatts['user2'], NULL) : $chatatts['user1']['id'];
-                $sendingfrom = User::get($this->dbhr, $this->dbhm, $other);
-
-                # For User2Mod chats we do different things based on whether we're notifying the member or the mods.
-                $notifyingmember = $chattype ==  ChatRoom::TYPE_USER2MOD && $member['role'] == User::ROLE_MEMBER;
-
-                # We email them if they have mails turned on, and even if they don't have any current memberships.
-                # Although that runs the risk of annoying them if they've left, we also have to be able to handle
-                # the case where someone replies from a different email which isn't a group membership, and we
-                # want to notify that email.
-                #
-                # If this is a conversation between the user and a mod, we always mail the user.
-                #
-                # And we always mail TN members, without batching.
-                $sendingtoTN = $sendingto->isTN();
-                $emailnotifson = $sendingto->notifsOn(User::NOTIFS_EMAIL, $r->getPrivate('groupid'));
-                $forcemailfrommod = ($chat['chattype'] ==  ChatRoom::TYPE_USER2MOD && $chat['user1'] ==  $member['userid']);
-                $mailson = $emailnotifson || $forcemailfrommod || $sendingtoTN;
-                $sendingown  = $sendingto->notifsOn(User::NOTIFS_EMAIL_MINE);
-
-                # Now collect a summary of what they've missed.  Don't include anything stupid old, in case they
-                # have changed settings.
-                #
-                # For TN members we only want to mail 1 message at a time.
-                #
-                # For user2mod chats we want to mail messages even if they are held for chat review, because
-                # chat review only shows user2user chats, and if we don't do this we could delay chats with mods
-                # until the mod next visits the site.
-                #
-                # Don't mail messages from deleted users.
-                $limitq = $sendingtoTN ? " LIMIT 1 " : "";
-                $mysqltime = date("Y-m-d", strtotime("Midnight 90 days ago"));
-                $readyq = $forceall ? '' : "AND chat_messages.id > ? $reviewq AND reviewrejected = 0 AND chat_messages.date >= ?";
-                $ownq = $sendingown ? '' : (" AND chat_messages.userid != " . $sendingto->getId() . " ");
-                $sql = "SELECT chat_messages.*, messages.type AS msgtype, messages.subject FROM chat_messages 
-    LEFT JOIN messages ON chat_messages.refmsgid = messages.id
-    INNER JOIN users ON users.id = chat_messages.userid                                                               
-    WHERE chatid = ? AND users.deleted IS NULL $readyq $ownq 
-    ORDER BY id ASC $limitq;";
-                #error_log("Query $sql");
-                $unmailedmsgs = $this->dbhr->preQuery($sql,
-                    $forceall ? [ $chat['chatid'] ] :
-                    [
-                        $chat['chatid'],
-                        $member['lastmsgemailed'] ? $member['lastmsgemailed'] : 0,
-                        $mysqltime
-                    ]);
-
-                #error_log("Unseen by {$sendingto->getId()} {$sendingto->getName()} from {$member['lastmsgemailed']} " . var_export($unmailedmsgs, TRUE));
-
-                if (count($unmailedmsgs) > 0) {
-                    $textsummary = '';
-                    $twigmessages = [];
-                    $lastmsgemailed = 0;
-                    $lastmsg = NULL;
-                    $justmine = TRUE;
-                    $firstid = NULL;
-                    $fromname = NULL;
-                    $firstmsg = NULL;
-                    $refmsgs = [];
-
-                    foreach ($unmailedmsgs as $unmailedmsg) {
-                        $this->processUnmailedMessage(
-                            $unmailedmsg,
-                            $refmsgs,
-                            $mailson,
-                            $firstid,
-                            $sendingto,
-                            $sendingfrom,
-                            $unmailedmsgs,
-                            $intsubj,
-                            $outcometaken,
-                            $outcomewithdrawn,
-                            $justmine,
-                            $firstmsg,
-                            $lastmsg,
-                            $chattype,
-                            $notifyingmember,
-                            $chat['groupid'],
-                            $textsummary,
-                            $userlist,
-                            $twigmessages,
-                            $lastmsgemailed,
-                            $fromname,
-                            $chatatts['user1']['id']
-                        );
-                    }
-
-                    #error_log("Consider justmine $justmine TN $sendingtoTN vs " . $sendingto->notifsOn(User::NOTIFS_EMAIL_MINE) . " for " . $sendingto->getId());
-
-                    if (!$justmine || $sendingtoTN || $sendingown) {
-                        if (count($twigmessages)) {
-                            $groupid = $chat['groupid'];
-
-                            list($subject, $site, $g) = $this->getChatEmailSubject(
-                                $chat['chatid'],
-                                $groupid,
-                                $chattype,
-                                $member['role'],
-                                $sendingfrom
-                            );
-
-                            list($to, $html, $sendname, $notified) = $this->constructTwigMessage(
-                                $firstid,
-                                $chat['chatid'],
-                                $chat['groupid'],
-                                $chattype,
-                                $notifyingmember,
-                                $sendingto,
-                                $sendingfrom,
-                                $intsubj,
-                                $userlist,
-                                $site,
-                                $member['userid'],
-                                $twigmessages,
-                                $unmailedmsg['userid'],
-                                $twig,
-                                $fromname,
-                                $outcometaken,
-                                $outcomewithdrawn,
-                                $justmine,
-                                $notified,
-                                $lastmsgemailed
-                            );
-
-                            if (strlen($html)) {
-                                $this->constructSwiftMessageAndSend(
-                                    $chat['chatid'],
-                                    $member['userid'],
-                                    $to,
-                                    $subject,
-                                    $lastmsgemailed,
-                                    $lastmaxmailed,
-                                    $chattype,
-                                    $r,
-                                    $textsummary,
-                                    $sendingto,
-                                    $sendAndExit,
-                                    $emailoverride,
-                                    $sendname,
-                                    $html,
-                                    $sendingfrom,
-                                    $member['role'] == User::ROLE_MEMBER ? $groupid : NULL,
-                                    $refmsgs,
-                                    $justmine,
-                                    $sentsome,
-                                    $site,
-                                    $notified,
-                                    TRUE
-                                );
-                            }
-                        }
-                    }
-                }
-            }
-
-            if ($sentsome) {
-                # We have now mailed some more.  Note that this is resilient to new messages arriving while we were
-                # looping above, because of lastmaxmailed, and we will mail those next time.
-                $this->updateMaxMailed($chattype, $chat['chatid'], $lastmaxmailed);
-
-                # Reduce occupancy.
-                User::clearCache();
-                gc_collect_cycles();
-            }
-        }
-
-        return ($notified);
-    }
-
-    public function updateMaxMailed($chattype, $chatid, $lastmaxmailed) {
-        # Find the max message we have mailed to all members of the chat.  Note that this might be less than
-        # the max message we just sent.  We might have mailed a message to one user in the chat but not another
-        # because we might have thought it was too soon to mail again.  So we need to get it from the roster.
-        $mailedtoall = PHP_INT_MAX;
-        $maxes = $this->dbhm->preQuery("SELECT lastmsgemailed, userid FROM chat_roster WHERE chatid = ? GROUP BY userid", [
-            $chatid
-        ]);
-
-        foreach ($maxes as $max) {
-            $mailedtoall = min($mailedtoall, $max['lastmsgemailed']);
-        }
-
-        $lastmaxmailed = $lastmaxmailed ? $lastmaxmailed : 0;
-        #error_log("Set mailedto all for $lastmaxmailed to $maxmailednow for {$chat['chatid']}");
-        $this->dbhm->preExec("UPDATE chat_messages SET mailedtoall = 1 WHERE id > ? AND id <= ? AND chatid = ?;", [
-            $lastmaxmailed,
-            $mailedtoall,
-            $chatid
-        ]);
-    }
-
-    public function splitAndQuote($str) {
-        # We want to split the text into lines, without breaking words, and quote them.
-        $inlines = preg_split("/(\r\n|\n|\r)/", trim($str));
-        $outlines = [];
-
-        foreach ($inlines as $inline) {
-            do {
-                $inline = trim($inline);
-
-                if (strlen($inline) <= 60) {
-                    # Easy.
-                    $outlines[] = '> ' . $inline;
-                } else {
-                    # See if we can find a word break.
-                    $p = strrpos(substr($inline, 0, 60), ' ');
-                    $splitat = ($p !== FALSE && $p < 60) ? $p : 60;
-                    $outlines[] = '> ' . trim(substr($inline, 0, $splitat));
-                    $inline = trim(substr($inline, $splitat));
-
-                    if (strlen($inline) && strlen($inline) <= 60) {
-                        $outlines[] = '> ' . trim($inline);
-                    }
-                }
-            } while (strlen($inline) > 60);
-        }
-
-        return(implode("\r\n", $outlines));
     }
 
     public function chaseupMods($id = NULL, $age = 566400)

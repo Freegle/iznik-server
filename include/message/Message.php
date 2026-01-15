@@ -206,6 +206,7 @@ class Message
     private function getPheanstalk() {
         if (!$this->pheanstalk) {
             $this->pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
+            $this->pheanstalk = $this->pheanstalk->useTube(PHEANSTALK_TUBE);
         }
     }
 
@@ -862,9 +863,9 @@ class Message
             $text = preg_replace('/https:\/\/direct.*jpg/m', '', $text);
             $text = preg_replace('/Photos\:[\s\S]*?jpg/', '', $text);
 
-            // FOPs
-            $text = preg_replace('/Fair Offer Policy applies \(see https:\/\/[\s\S]*\)/', '', $text);
-            $text = preg_replace('/Fair Offer Policy:[\s\S]*?reply./', '', $text);
+            // FOPs / FCPs
+            $text = preg_replace('/Fair (Offer|Chance) Policy applies \(see https:\/\/[\s\S]*\)/', '', $text);
+            $text = preg_replace('/Fair (Offer|Chance) Policy:[\s\S]*?reply./', '', $text);
 
             // App footer
             $text = preg_replace('/Freegle app.*[0-9]$/m', '', $text);
@@ -999,7 +1000,7 @@ class Message
                 }
 
                 # We have a flag for FOP - but legacy posting methods might put it in the body.
-                $ret['FOP'] = (Utils::pres('textbody', $ret) && (strpos($ret['textbody'], 'Fair Offer Policy') !== FALSE) || $ret['FOP']) ? 1 : 0;
+                $ret['FOP'] = (Utils::pres('textbody', $ret) && (strpos($ret['textbody'], 'Fair Offer Policy') !== FALSE || strpos($ret['textbody'], 'Fair Chance Policy') !== FALSE) || $ret['FOP']) ? 1 : 0;
             }
 
             $ret['fromuserid'] = $msg['fromuser'];
@@ -1497,7 +1498,14 @@ ORDER BY lastdate DESC;";
 
                         $max = $ongoings[0]['max'];
 
-                        if (!$max || (time() - strtotime($max)) > 6 * 24 * 60 * 60) {
+                        # Also check if the message has been promised - if so, don't auto-expire it.
+                        $promises = $this->dbhr->preQuery("SELECT COUNT(*) AS count FROM messages_promises WHERE msgid = ?;", [
+                            $msg['id']
+                        ]);
+
+                        $hasPromise = $promises[0]['count'] > 0;
+
+                        if (!$hasPromise && (!$max || (time() - strtotime($max)) > 6 * 24 * 60 * 60)) {
                             $rets[$msg['id']]['outcomes'] = [
                                 [
                                     'timestamp' => $expiredat,
@@ -1962,6 +1970,14 @@ ORDER BY lastdate DESC;";
     /**
      * @return mixed
      */
+    public function getOriginalMessage()
+    {
+        return $this->originalMessage ?: $this->message;
+    }
+
+    /**
+     * @return mixed
+     */
     public function getTnpostid()
     {
         return $this->tnpostid;
@@ -2149,6 +2165,7 @@ ORDER BY lastdate DESC;";
     public function parse($source, $envelopefrom, $envelopeto, $msg, $groupid = NULL)
     {
         $this->message = $msg;
+        $this->originalMessage = $msg;
         $this->groupid = $groupid;
         $this->source = $source;
 
@@ -3190,6 +3207,12 @@ ORDER BY lastdate DESC;";
                 'msgid' => $this->id,
                 'byuser' => $me ? $me->getId() : NULL
             ]);
+
+            # Notify mods on all groups this message is on.
+            $groups = $this->getGroups();
+            foreach ($groups as $groupid) {
+                $this->notif->notifyGroupMods($groupid);
+            }
         }
     }
 
@@ -3206,6 +3229,12 @@ ORDER BY lastdate DESC;";
                 'msgid' => $this->id,
                 'byuser' => $me ? $me->getId() : NULL
             ]);
+
+            # Notify mods on all groups this message is on.
+            $groups = $this->getGroups();
+            foreach ($groups as $groupid) {
+                $this->notif->notifyGroupMods($groupid);
+            }
         }
     }
 
@@ -4427,9 +4456,9 @@ ORDER BY lastdate DESC;";
 
         # Let anyone who was interested (replied referencing the message), and who didn't get it (not now in
         # messages_by), know that it is no longer available.
-        $sql = "SELECT DISTINCT chatid FROM chat_messages 
-INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid AND chat_rooms.chattype = ? 
-LEFT JOIN messages_by ON messages_by.msgid = chat_messages.refmsgid AND messages_by.userid IN (chat_rooms.user1, chat_rooms.user2) 
+        $sql = "SELECT DISTINCT chatid FROM chat_messages
+INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid AND chat_rooms.chattype = ?
+LEFT JOIN messages_by ON messages_by.msgid = chat_messages.refmsgid AND messages_by.userid IN (chat_rooms.user1, chat_rooms.user2)
 WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND messages_by.id IS NULL;";
         $replies = $this->dbhr->preQuery($sql, [ ChatRoom::TYPE_USER2USER, $this->id, ChatMessage::TYPE_INTERESTED ]);
 
@@ -5337,6 +5366,17 @@ $mq", [
     public function like($userid, $type) {
         # Background for performance.
         $this->dbhm->background("INSERT INTO messages_likes (msgid, userid, type) VALUES ({$this->id}, $userid, '$type') ON DUPLICATE KEY UPDATE timestamp = NOW(), count = count + 1 ;");
+    }
+
+    public function hasRecentView($userid, $minutes = 30) {
+        # Check if this user has viewed this message recently - used to avoid queueing redundant background writes.
+        $recent = $this->dbhr->preQuery("SELECT msgid FROM messages_likes WHERE msgid = ? AND userid = ? AND type = ? AND timestamp >= DATE_SUB(NOW(), INTERVAL ? MINUTE);", [
+            $this->id,
+            $userid,
+            Message::LIKE_VIEW,
+            $minutes
+        ]);
+        return count($recent) > 0;
     }
 
     public function unlike($userid, $type) {

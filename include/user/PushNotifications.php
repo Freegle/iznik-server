@@ -22,6 +22,66 @@ class PushNotifications
     const APPTYPE_USER = 'User';
     const PUSH_BROWSER_PUSH = 'BrowserPush';
 
+    // Notification categories - these map to Android channels and iOS categories
+    const CATEGORY_CHAT_MESSAGE = 'CHAT_MESSAGE';
+    const CATEGORY_CHITCHAT_COMMENT = 'CHITCHAT_COMMENT';
+    const CATEGORY_CHITCHAT_REPLY = 'CHITCHAT_REPLY';
+    const CATEGORY_CHITCHAT_LOVED = 'CHITCHAT_LOVED';
+    const CATEGORY_POST_REMINDER = 'POST_REMINDER';
+    const CATEGORY_NEW_POSTS = 'NEW_POSTS';
+    const CATEGORY_COLLECTION = 'COLLECTION';
+    const CATEGORY_EVENT_SUMMARY = 'EVENT_SUMMARY';
+    const CATEGORY_EXHORT = 'EXHORT';
+
+    // Category configuration: iOS interruption level, Android channel ID, Android priority
+    const CATEGORIES = [
+        self::CATEGORY_CHAT_MESSAGE => [
+            'ios_interruption' => 'time-sensitive',
+            'android_channel' => 'chat_messages',
+            'android_priority' => 'high'
+        ],
+        self::CATEGORY_CHITCHAT_COMMENT => [
+            'ios_interruption' => 'passive',
+            'android_channel' => 'social',
+            'android_priority' => 'normal'
+        ],
+        self::CATEGORY_CHITCHAT_REPLY => [
+            'ios_interruption' => 'passive',
+            'android_channel' => 'social',
+            'android_priority' => 'normal'
+        ],
+        self::CATEGORY_CHITCHAT_LOVED => [
+            'ios_interruption' => 'passive',
+            'android_channel' => 'social',
+            'android_priority' => 'normal'
+        ],
+        self::CATEGORY_POST_REMINDER => [
+            'ios_interruption' => 'active',
+            'android_channel' => 'reminders',
+            'android_priority' => 'normal'
+        ],
+        self::CATEGORY_NEW_POSTS => [
+            'ios_interruption' => 'passive',
+            'android_channel' => 'new_posts',
+            'android_priority' => 'normal'
+        ],
+        self::CATEGORY_COLLECTION => [
+            'ios_interruption' => 'active',
+            'android_channel' => 'reminders',
+            'android_priority' => 'normal'
+        ],
+        self::CATEGORY_EVENT_SUMMARY => [
+            'ios_interruption' => 'passive',
+            'android_channel' => 'social',
+            'android_priority' => 'normal'
+        ],
+        self::CATEGORY_EXHORT => [
+            'ios_interruption' => 'passive',
+            'android_channel' => 'tips',
+            'android_priority' => 'normal'
+        ]
+    ];
+
     private $dbhr, $dbhm, $log, $pheanstalk = NULL, $firebase = NULL, $messaging = NULL;
 
     function __construct(LoggedPDO $dbhr, LoggedPDO $dbhm)
@@ -95,6 +155,7 @@ class PushNotifications
 
             if (!$this->pheanstalk) {
                 $this->pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
+                $this->pheanstalk = $this->pheanstalk->useTube(PHEANSTALK_TUBE);
             }
 
             $str = json_encode(array(
@@ -132,8 +193,12 @@ class PushNotifications
                         $data = $payload;
 
                         # We can only have key => string, so the chatids needs to be converted from an array to
-                        # a string.
-                        $data['chatids'] = implode(',', $data['chatids']);
+                        # a string (if it isn't already).
+                        if (is_array($data['chatids'])) {
+                            $data['chatids'] = implode(',', $data['chatids']);
+                        } else {
+                            $data['chatids'] = (string)$data['chatids'];
+                        }
 
                         # And anything that isn't a string needs to pretend to be one.  How dull.
                         foreach ($data as $key => $val) {
@@ -157,10 +222,28 @@ class PushNotifications
                                 'data' => $data
                             ]);
 
-                            $message = $message->withAndroidConfig([
+                            # Build Android config
+                            $androidConfig = [
                                 'ttl' => '3600s',
                                 'priority' => 'normal'
-                            ]);
+                            ];
+
+                            $category = Utils::presdef('category', $payload, NULL);
+
+                            if ($category && isset(self::CATEGORIES[$category])) {
+                                $categoryConfig = self::CATEGORIES[$category];
+                                $androidConfig['priority'] = $categoryConfig['android_priority'];
+
+                                # Add category to data so app can add action buttons
+                                $data['category'] = $category;
+                                # Update the message with the modified data
+                                $message = CloudMessage::fromArray([
+                                    'token' => $endpoint,
+                                    'data' => $data
+                                ]);
+                            }
+
+                            $message = $message->withAndroidConfig($androidConfig);
                         } else {
                             # For IOS and browser push notifications.
                             $ios = [
@@ -193,16 +276,48 @@ class PushNotifications
 
                             #error_log("ios is " . var_export($ios, TRUE));
                             $message = CloudMessage::fromArray($ios);
+
+                            $aps = [
+                                'badge' => $payload['count'],
+                                'sound' => "default"
+                            ];
+
+                            # Add category, interruption-level and thread-id if category is set (iOS 15+)
+                            $category = Utils::presdef('category', $payload, NULL);
+                            if ($category && isset(self::CATEGORIES[$category])) {
+                                $categoryConfig = self::CATEGORIES[$category];
+                                # Category is required for iOS action buttons to work
+                                $aps['category'] = $category;
+                                $aps['interruption-level'] = $categoryConfig['ios_interruption'];
+
+                                # Add thread-id for notification grouping
+                                $threadId = Utils::presdef('threadId', $payload, NULL);
+                                if ($threadId) {
+                                    $aps['thread-id'] = $threadId;
+                                }
+
+                                # Add channel_id to data so the app can filter on it
+                                $data['channel_id'] = $categoryConfig['android_channel'];
+                                $ios['data'] = $data;
+                                $message = CloudMessage::fromArray($ios);
+                            }
+
+                            # For iOS, add image via mutable-content (requires Notification Service Extension)
+                            $image = Utils::presdef('image', $payload, NULL);
+                            if ($image && strpos($image, 'http') === 0) {
+                                $aps['mutable-content'] = 1;
+                                # Image URL goes in data for the Service Extension to fetch
+                                $data['imageUrl'] = $image;
+                                $ios['data'] = $data;
+                                $message = CloudMessage::fromArray($ios);
+                            }
+
                             $params = [
                                 'headers' => [
                                     'apns-priority' => '10',
                                 ],
                                 'payload' => [
-                                    'aps' => [
-                                        'badge' => $payload['count'],
-                                        'sound' => "default"
-                                        //'content-available' => 1
-                                    ]
+                                    'aps' => $aps
                                 ],
                             ];
 
@@ -292,13 +407,119 @@ class PushNotifications
         return $rc;
     }
 
-    public function notify($userid, $modtools, $browserPush = FALSE)
+    private function notifyIndividualMessages($userid, $notifs, $modtools, $chatid = NULL) {
+        // Send individual per-message notifications for admin users (new rich format)
+        // If $chatid is specified, only send notifications for that specific chat
+        $count = 0;
+        $u = User::get($this->dbhr, $this->dbhm, $userid);
+        $email = $u->getEmailPreferred();
+
+        // Get unread chat messages for this user that haven't been notified yet
+        $chatFilter = $chatid ? "AND cm.chatid = ?" : "";
+        $params = [$userid, $userid, $userid, $userid];
+        if ($chatid) {
+            $params[] = $chatid;
+        }
+
+        // Only check lastmsgnotified, not lastmsgseen - we want to send notifications even if the app
+        // has marked messages as "seen" (which can happen due to background polling or incorrect client logic)
+        $chats = $this->dbhr->preQuery("
+            SELECT cm.id, cm.chatid, cm.userid as senderid, cm.message, cm.date
+            FROM chat_messages cm
+            INNER JOIN chat_rooms cr ON cm.chatid = cr.id
+            LEFT JOIN chat_roster roster ON roster.chatid = cm.chatid AND roster.userid = ?
+            WHERE (cr.user1 = ? OR cr.user2 = ?)
+            AND cm.userid != ?
+            AND cm.reviewrequired = 0
+            AND cm.reviewrejected = 0
+            AND cm.id > COALESCE(roster.lastmsgnotified, 0)
+            AND cm.date >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+            $chatFilter
+            ORDER BY cm.date ASC
+            LIMIT 20
+        ", $params);
+
+        $lastMsgId = 0;
+        $chatidsNotified = [];
+
+        foreach ($chats as $chat) {
+            // Get chat room info including icon
+            $r = new ChatRoom($this->dbhr, $this->dbhm, $chat['chatid']);
+            $atts = $r->getPublic($u);
+            $icon = Utils::presdef('icon', $atts, USERLOGO);
+
+            // Get the other user's name (the sender)
+            if (isset($atts['user1']) && $atts['user1']['id'] == $chat['senderid']) {
+                $sendername = $atts['user1']['displayname'];
+            } elseif (isset($atts['user2']) && $atts['user2']['id'] == $chat['senderid']) {
+                $sendername = $atts['user2']['displayname'];
+            } else {
+                $sendername = 'Someone';
+            }
+
+            $message = Utils::decodeEmojis($chat['message']);
+            $messagePreview = strlen($message) > 50 ? (substr($message, 0, 50) . "...") : $message;
+            $message = strlen($message) > 256 ? (substr($message, 0, 256) . "...") : $message;
+
+            error_log("Notify push chat #{$chat['chatid']} $email for $userid message {$chat['id']}: $messagePreview");
+
+            // Get channel configuration for this category
+            $categoryConfig = self::CATEGORIES[self::CATEGORY_CHAT_MESSAGE];
+
+            $payload = [
+                'badge' => count($chats),
+                'count' => count($chats),
+                'chatcount' => count($chats),
+                'notifcount' => 0,
+                'title' => $sendername,
+                'message' => $message,
+                'chatids' => [(string)$chat['chatid']],  // Array with single chat ID for implode compatibility
+                'chatid' => (string)$chat['chatid'],  // Individual chat ID for this message
+                'messageid' => (string)$chat['id'],    // Message ID for uniqueness
+                // Use chatid for notId so new messages replace old ones for the same chat, preventing notification flooding
+                // even when sending per-message notifications. Each chat gets one notification slot that updates with latest message.
+                'notId' => (int)$chat['chatid'],
+                'timestamp' => strtotime($chat['date']), // Unix timestamp for sorting
+                'content-available' => 1,
+                'image' => $icon,
+                'modtools' => $modtools,
+                'sound' => 'default',
+                'route' => '/chats/' . $chat['chatid'],
+                'category' => self::CATEGORY_CHAT_MESSAGE,
+                'channel_id' => $categoryConfig['android_channel'],  // Required for Android to use correct channel
+                'threadId' => 'chat_' . $chat['chatid']
+            ];
+
+            foreach ($notifs as $notif) {
+                $this->queueSend($userid, $notif['type'], [], $notif['subscription'], $payload);
+                $count++;
+            }
+
+            // Track the highest message ID and chats we've notified
+            $lastMsgId = max($lastMsgId, $chat['id']);
+            if (!in_array($chat['chatid'], $chatidsNotified)) {
+                $chatidsNotified[] = $chat['chatid'];
+            }
+        }
+
+        // Update lastmsgnotified for each chat we sent notifications for
+        foreach ($chatidsNotified as $cid) {
+            $this->dbhm->preExec("
+                INSERT INTO chat_roster (chatid, userid, lastmsgnotified, date)
+                VALUES (?, ?, ?, NOW())
+                ON DUPLICATE KEY UPDATE lastmsgnotified = ?
+            ", [$cid, $userid, $lastMsgId, $lastMsgId]);
+        }
+
+        return $count;
+    }
+
+    public function notify($userid, $modtools, $browserPush = FALSE, $chatid = NULL)
     {
         $count = 0;
         $u = User::get($this->dbhr, $this->dbhm, $userid);
         $proceedpush = TRUE; // $u->notifsOn(User::NOTIFS_PUSH);
-        $proceedapp = $u->notifsOn(User::NOTIFS_APP);
-        #error_log("Notify $userid, push on $proceedpush app on $proceedapp MT $modtools browserPush $browserPush");
+        #error_log("Notify $userid, push on $proceedpush MT $modtools browserPush $browserPush chatid $chatid");
 
         if ($browserPush) {
             $notifs = $this->dbhr->preQuery("SELECT * FROM users_push_notifications WHERE userid = ? AND `type` = ?;", [
@@ -312,24 +533,47 @@ class PushNotifications
             ]);
         }
 
+        // Send individual per-message notifications (new rich format with action buttons)
+        // This handles chat messages with rich formatting
+        if (!$modtools) {
+            $appNotifs = array_filter($notifs, function($n) {
+                return $n['type'] === PushNotifications::PUSH_FCM_ANDROID || $n['type'] === PushNotifications::PUSH_FCM_IOS;
+            });
+
+            if (count($appNotifs) > 0) {
+                $individualCount = $this->notifyIndividualMessages($userid, $appNotifs, $modtools, $chatid);
+                $count += $individualCount;
+
+                // Remove FCM from legacy path if:
+                // 1. We actually sent chat notifications (to avoid duplicates), OR
+                // 2. A specific chatid was requested (this is a chat-only notification, don't fall back to legacy)
+                // Only let FCM fall through to legacy for general notifications (no chatid) with no chat messages.
+                if ($individualCount > 0 || $chatid !== NULL) {
+                    $notifs = array_filter($notifs, function($n) {
+                        return $n['type'] !== PushNotifications::PUSH_FCM_ANDROID && $n['type'] !== PushNotifications::PUSH_FCM_IOS;
+                    });
+                }
+            }
+        }
+
         foreach ($notifs as $notif) {
             #error_log("Consider notif {$notif['id']} proceed $proceedpush type {$notif['type']}");
             if ($proceedpush && in_array($notif['type'],
                     [PushNotifications::PUSH_FIREFOX, PushNotifications::PUSH_GOOGLE, PushNotifications::PUSH_BROWSER_PUSH]) ||
-                ($proceedapp && in_array($notif['type'],
-                        [PushNotifications::PUSH_FCM_ANDROID, PushNotifications::PUSH_FCM_IOS]))) {
+                in_array($notif['type'],
+                        [PushNotifications::PUSH_FCM_ANDROID, PushNotifications::PUSH_FCM_IOS])) {
                 #error_log("Send user $userid {$notif['subscription']} type {$notif['type']} for modtools $modtools");
                 $payload = NULL;
                 $params = [];
 
-                list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route) = $u->getNotificationPayload($modtools);
+                list ($total, $chatcount, $notifscount, $title, $message, $chatids, $route, $category, $threadId, $image) = $u->getNotificationPayload($modtools);
 
                 if ($title || $modtools || $total === 0) {
                     $message = ($total === 0) ? "" : $message;
                     if (is_null($message)) $message = "";
 
                     # badge and/or count are used by the app, possibly when it isn't running, to set the home screen badge.
-                    $payload = [
+                    $basePayload = [
                         'badge' => $total,
                         'count' => $total,
                         'chatcount' => $chatcount,
@@ -338,10 +582,11 @@ class PushNotifications
                         'message' => $message,
                         'chatids' => $chatids,
                         'content-available' => $total > 0,
-                        'image' => $modtools ? "www/images/modtools_logo.png" : "www/images/user_logo.png",
+                        'image' => $image ? $image : ($modtools ? "www/images/modtools_logo.png" : "www/images/user_logo.png"),
                         'modtools' => $modtools,
                         'sound' => 'default',
-                        'route' => $route
+                        'route' => $route,
+                        'threadId' => $threadId
                     ];
 
                     switch ($notif['type']) {
@@ -354,8 +599,13 @@ class PushNotifications
                         }
                     }
 
+                    $payload = $basePayload;
+                    if ($category) {
+                        $payload['category'] = $category;
+                        $categoryConfig = self::CATEGORIES[$category];
+                        $payload['channel_id'] = $categoryConfig['android_channel'];
+                    }
                     $this->queueSend($userid, $notif['type'], $params, $notif['subscription'], $payload);
-                    #error_log("Queued send {$notif['type']} for $userid");
                     $count++;
                 }
             }
@@ -416,6 +666,7 @@ class PushNotifications
 
             if (!$this->pheanstalk) {
                 $this->pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
+                $this->pheanstalk = $this->pheanstalk->useTube(PHEANSTALK_TUBE);
             }
 
             $str = json_encode(array(

@@ -390,30 +390,5 @@ class groupAPITest extends IznikAPITestCase {
         $this->assertEquals(1, count($ret['group']['sponsors']));
         $this->assertEquals('testsponsor', $ret['group']['sponsors'][0]['name']);
     }
-
-    public function testRemoveFacebook() {
-        $gf = new GroupFacebook($this->dbhr, $this->dbhm);
-        $uid = $gf->add($this->groupid, 'UT', 'UT', 1);
-
-        $this->user->setPrivate('systemrole', User::ROLE_MODERATOR);
-        $this->addLoginAndLogin($this->user, 'testpw');
-
-        $ret = $this->call('group', 'GET', [
-            'id' => $this->groupid
-        ]);
-        $this->assertEquals(1, count($ret['group']['facebook']));
-
-        $ret = $this->call('group', 'POST', [
-            'action' => 'RemoveFacebook',
-            'groupid' => $this->groupid,
-            'uid' => $uid
-        ]);
-        $this->assertEquals(0, $ret['ret']);
-
-        $ret = $this->call('group', 'GET', [
-            'id' => $this->groupid
-        ]);
-        $this->assertEquals(0, count($ret['group']['facebook']));
-    }
 }
 

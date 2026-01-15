@@ -116,7 +116,42 @@ class GoogleTest extends IznikTestCase {
         $this->log("Logins " . var_export($logins, TRUE));
         $this->assertEquals(1, count($logins));
         $this->assertEquals(1, $logins[0]['uid']);
+    }
 
-        }
+    public function testTNUserCannotAddGoogle() {
+        # Create a TN user (has tnuserid set).
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id = $u->create('TN', 'User', 'TN User');
+        $u->addEmail('tnuser@test.com');
+        $u->setPrivate('tnuserid', 12345);
+
+        # Mock a Google login attempt with the TN user's email.
+        $mock = $this->getMockBuilder('Freegle\Iznik\Google')
+            ->setConstructorArgs([$this->dbhr, $this->dbhm, FALSE])
+            ->setMethods(array('getClient', 'getUserDetails'))
+            ->getMock();
+
+        $mock->method('getClient')->willReturn($this);
+        $mock->method('getUserDetails')->willReturn($this);
+        $this->people = $this;
+
+        $this->accessToken = json_encode([ 'access_token' => '1234' ]);
+        $this->id = 999;  # New Google ID (not linked yet).
+        $this->given_name = 'TN';
+        $this->family_name = 'User';
+        $this->name = 'TN User';
+        $this->email = 'tnuser@test.com';  # Matches TN user's email.
+
+        # This should fail because we're trying to add Google login to a TN user.
+        list($session, $ret) = $mock->login(1);
+        $this->log("TN user Google login attempt returned " . var_export($ret, TRUE));
+        $this->assertEquals(2, $ret['ret']);
+        $this->assertStringContainsString('TrashNothing', $ret['status']);
+
+        # Verify no Google login was added.
+        $u = User::get($this->dbhr, $this->dbhm, $id);
+        $logins = $u->getLogins();
+        $this->assertEquals(0, count($logins));
+    }
 }
 

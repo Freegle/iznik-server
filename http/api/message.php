@@ -199,6 +199,12 @@ function message() {
 
                                     # Associated the item with the message.  Use the master to avoid replication windows.
                                     $item = Utils::presdef('item', $_REQUEST, NULL);
+
+                                    if (!$item || trim($item) === '') {
+                                        $ret = ['ret' => 3, 'status' => 'Item is required'];
+                                        break;
+                                    }
+
                                     $i = new Item($dbhm, $dbhm);
                                     $itemid = $i->create($item);
                                     $m->deleteItems();
@@ -397,7 +403,10 @@ function message() {
                             $m->unlike($myid, Message::LIKE_LAUGH);
                             $ret = [ 'ret' => 0, 'status' => 'Success' ];
                         } else if ($action == 'View') {
-                            $m->like($myid, Message::LIKE_VIEW);
+                            # Skip if there's a recent view to avoid queueing redundant background writes.
+                            if (!$m->hasRecentView($myid)) {
+                                $m->like($myid, Message::LIKE_VIEW);
+                            }
                             $ret = ['ret' => 0, 'status' => 'Success'];
                         }
                     } else if ($action == 'View') {
@@ -450,8 +459,9 @@ function message() {
                             # that reduces friction.  If there is abuse of this, then we will find other ways to block the
                             # abuse.
                             $ret = ['ret' => 3, 'status' => 'Not our message'];
+                            # Use master ($dbhm) to avoid replication lag - we just updated this row.
                             $sql = "SELECT * FROM messages_drafts WHERE msgid = ?;";
-                            $drafts = $dbhr->preQuery($sql, [$id]);
+                            $drafts = $dbhm->preQuery($sql, [$id]);
                             $newuser = NULL;
                             $pw = NULL;
                             $hitwindow = FALSE;
@@ -472,14 +482,23 @@ function message() {
 
                                 // @codeCoverageIgnoreStart
                                 if (defined('USER_GROUP_OVERRIDE') && !Utils::pres('ignoregroupoverride', $_REQUEST)) {
-                                    # We're in testing mode
+                                    # We're in testing mode - but only use override if the group exists.
                                     $g = new Group($dbhr, $dbhm);
-                                    $nears = [ $g->findByShortName(USER_GROUP_OVERRIDE) ];
+                                    $overrideGroupId = $g->findByShortName(USER_GROUP_OVERRIDE);
+                                    if ($overrideGroupId) {
+                                        $nears = [ $overrideGroupId ];
+                                    }
                                 }
                                 // @codeCoverageIgnoreEnd
 
                                 if (count($nears) > 0) {
                                     $groupid = $nears[0];
+
+                                    if (!$groupid) {
+                                        # The group lookup returned a null/empty group id.
+                                        $ret = ['ret' => 4, 'status' => 'No valid group found for this location'];
+                                        break;
+                                    }
 
                                     # Now we know which group we'd like to post on.  Make sure we have a user set up.
                                     $email = Utils::presdef('email', $_REQUEST, NULL);
@@ -551,7 +570,7 @@ function message() {
                                                     }
                                                 } else {
                                                     $u->login($pw);
-                                                    $u->welcome($email, $pw);
+                                                    // Welcome mail is now sent asynchronously by Laravel batch.
                                                 }
                                             }
                                         } else if ($myid && $myid != $uid) {
@@ -661,10 +680,30 @@ function message() {
                                                         # We sent it.
                                                         $ret = ['ret' => 0, 'status' => 'Success', 'groupid' => $groupid];
 
+                                                        # Set deadline and deliverypossible if provided - these are passed
+                                                        # from the client during compose flow to avoid a separate PATCH call.
+                                                        $deadline = Utils::presdef('deadline', $_REQUEST, NULL);
+                                                        $deliverypossible = array_key_exists('deliverypossible', $_REQUEST) ? Utils::presbool('deliverypossible', $_REQUEST, FALSE) : NULL;
+
+                                                        if ($deadline) {
+                                                            $m->setPrivate('deadline', $deadline, TRUE);
+                                                        }
+
+                                                        if (!is_null($deliverypossible)) {
+                                                            $m->setPrivate('deliverypossible', $deliverypossible);
+                                                        }
+
                                                         if ($postcoll == MessageCollection::APPROVED) {
                                                             # We index now; for pending messages we index when they are approved.
                                                             $m->addToSpatialIndex();
                                                             $m->index();
+                                                        }
+
+                                                        # If the user declined an AI illustration during compose,
+                                                        # record this so the background job doesn't add one later.
+                                                        $aiDeclined = array_key_exists('ai_declined', $_REQUEST) ? Utils::presbool('ai_declined', $_REQUEST, FALSE) : FALSE;
+                                                        if ($aiDeclined) {
+                                                            $dbhm->preExec("INSERT IGNORE INTO messages_ai_declined (msgid) VALUES (?)", [$draft['msgid']]);
                                                         }
                                                     }
                                                 }

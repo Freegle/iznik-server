@@ -419,7 +419,10 @@ class Utils {
     }
 
     public static function lockScript($fn) {
-        $lock = "/tmp/iznik_lock_$fn.lock";
+        // Include TEST_TOKEN in lock filename to allow parallel test workers
+        $testToken = getenv('TEST_TOKEN');
+        $tokenSuffix = ($testToken !== FALSE && $testToken !== '') ? "_$testToken" : '';
+        $lock = "/tmp/iznik_lock_$fn$tokenSuffix.lock";
         $lockh = fopen($lock, 'wa');
 
         try {
@@ -661,7 +664,12 @@ class Utils {
                 $codePoints = explode('-', $matches[1]);
                 $emoji = '';
                 foreach ($codePoints as $codePoint) {
-                    $emoji .= mb_convert_encoding('&#x' . $codePoint . ';', 'UTF-8', 'HTML-ENTITIES');
+                    // Use mb_chr instead of mb_convert_encoding as it properly handles
+                    // code points outside the Basic Multilingual Plane (>0xFFFF).
+                    $intCodePoint = hexdec($codePoint);
+                    if ($intCodePoint > 0) {
+                        $emoji .= mb_chr($intCodePoint, 'UTF-8');
+                    }
                 }
                 return $emoji;
             },

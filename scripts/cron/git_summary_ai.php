@@ -256,7 +256,7 @@ class GitSummaryAI {
 
         $prompt .= "\n\nPlease provide a structured summary organized by user impact.\n\n";
         $prompt .= "Start with a brief intro paragraph (2-3 sentences) that:\n";
-        $prompt .= "- Explains this is an AI-generated summary to make code changes easier to understand than raw git commits\n";
+        $prompt .= "- Explains this is an AI-generated summary of recent code changes\n";
         $prompt .= "- Uses British English spelling and phrasing (e.g., 'organised' not 'organized', 'whilst' is acceptable)\n";
         $prompt .= "- Has a straightforward, matter-of-fact tone - not overly enthusiastic or promotional\n\n";
 

@@ -75,7 +75,6 @@ class User extends Entity
     const NOTIFS_EMAIL = 'email';
     const NOTIFS_EMAIL_MINE = 'emailmine';
     const NOTIFS_PUSH = 'push';
-    const NOTIFS_APP = 'app';
 
     const INVITE_PENDING = 'Pending';
     const INVITE_ACCEPTED = 'Accepted';
@@ -3732,37 +3731,6 @@ class User extends Entity
         return ($uid2);
     }
 
-    public function welcome($email, $password)
-    {
-        $loader = new \Twig_Loader_Filesystem(IZNIK_BASE . '/mailtemplates/twig');
-        $twig = new \Twig_Environment($loader);
-
-        $html = $twig->render('welcome/welcome.html', [
-            'email' => $email,
-            'password' => $password
-        ]);
-
-        $message = \Swift_Message::newInstance()
-            ->setSubject("Welcome to " . SITE_NAME . "!")
-            ->setFrom([NOREPLY_ADDR => SITE_NAME])
-            ->setTo($email)
-            ->setBody("Thanks for joining" . SITE_NAME . "!" . ($password ? "  Here's your password: $password." : ''));
-
-        # Add HTML in base-64 as default quoted-printable encoding leads to problems on
-        # Outlook.
-        $htmlPart = \Swift_MimePart::newInstance();
-        $htmlPart->setCharset('utf-8');
-        $htmlPart->setEncoder(new \Swift_Mime_ContentEncoder_Base64ContentEncoder);
-        $htmlPart->setContentType('text/html');
-        $htmlPart->setBody($html);
-        $message->attach($htmlPart);
-
-        Mail::addHeaders($this->dbhr, $this->dbhm, $message, Mail::WELCOME, $this->getId());
-
-        list ($transport, $mailer) = Mail::getMailer();
-        $this->sendIt($mailer, $message);
-    }
-
     public function FBL()
     {
         $settings = $this->loginLink(USER_SITE, $this->id, '/settings', User::SRC_FBL, TRUE);
@@ -4011,26 +3979,51 @@ class User extends Entity
                     $bigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/word_start_bigrams.json'), TRUE);
                     $trigrams = json_decode(file_get_contents(IZNIK_BASE . '/lib/wordle/data/trigrams.json'), TRUE);
 
+                    # Build list of words to exclude from invented email - includes name parts and any
+                    # words from %encoded emails (like real%test.com@gtempaccount.com -> "test")
+                    $excludeWords = [];
+
+                    foreach (['firstname', 'lastname', 'fullname'] as $att) {
+                        $words = explode(' ', $this->user[$att]);
+                        foreach ($words as $word) {
+                            $word = trim($word);
+                            if (strlen($word) >= 3 && $word !== '-') {
+                                $excludeWords[] = strtolower($word);
+                            }
+                        }
+                    }
+
+                    # Check for %encoded emails and extract the encoded domain parts
+                    $preferredEmail = $this->getEmailPreferred();
+                    if ($preferredEmail && strpos($preferredEmail, '%') !== FALSE) {
+                        # Extract the LHS before @ which contains the encoded real email
+                        $atPos = strpos($preferredEmail, '@');
+                        if ($atPos !== FALSE) {
+                            $lhs = substr($preferredEmail, 0, $atPos);
+                            # Split on % and . to get individual words
+                            $parts = preg_split('/[%.@]/', $lhs);
+                            foreach ($parts as $part) {
+                                $part = trim($part);
+                                if (strlen($part) >= 3) {
+                                    $excludeWords[] = strtolower($part);
+                                }
+                            }
+                        }
+                    }
+
                     do {
                         $length = \Wordle\array_weighted_rand($lengths);
                         $start = \Wordle\array_weighted_rand($bigrams);
                         $email = strtolower(\Wordle\fill_word($start, $length, $trigrams)) . '-' . $this->id . '@' . USER_DOMAIN;
 
-                        # We might just happen to have invented an email with their personal information in it.  This
-                        # actually happened in the UT with "test".
-                        foreach (['firstname', 'lastname', 'fullname'] as $att) {
-                            $words = explode(' ', $this->user[$att]);
-                            foreach ($words as $word) {
-                                $word = trim($word);
-                                if (strlen($word)) {
-                                    $p = stripos($email, $word);
-                                    $q = strpos($email, '-');
+                        # Check that invented email doesn't contain any excluded words
+                        $q = strpos($email, '-');
+                        $wordPart = substr($email, 0, $q);
 
-                                    if ($word !== '-') {
-                                        # Dash is always present, which is fine.
-                                        $email = ($p !== FALSE && $p < $q) ? NULL : $email;
-                                    }
-                                }
+                        foreach ($excludeWords as $word) {
+                            if (stripos($wordPart, $word) !== FALSE) {
+                                $email = NULL;
+                                break;
                             }
                         }
                     } while (!$email);
@@ -4410,8 +4403,7 @@ class User extends Entity
         $defs = [
             self::NOTIFS_EMAIL => TRUE,
             self::NOTIFS_EMAIL_MINE => FALSE,
-            self::NOTIFS_PUSH => TRUE,
-            self::NOTIFS_APP => TRUE
+            self::NOTIFS_PUSH => TRUE
         ];
 
         $ret = ($notifs && array_key_exists($type, $notifs)) ? $notifs[$type] : $defs[$type];
@@ -4433,6 +4425,9 @@ class User extends Entity
         $message = NULL;
         $chatids = [];
         $route = NULL;
+        $category = NULL;
+        $threadId = NULL;
+        $image = NULL;
 
         if (!$modtools) {
             # User notification.  We want to show a count of chat messages, or some of the message if there is just one.
@@ -4464,6 +4459,9 @@ class User extends Entity
                 }
 
                 $route = "/chats/" . $unseen[0]['chatid'];
+                $category = PushNotifications::CATEGORY_CHAT_MESSAGE;
+                $threadId = 'chat_' . $unseen[0]['chatid'];
+                $image = Utils::presdef('icon', $atts, NULL);
 
                 if ($notifcount) {
                     $total += $notifcount;
@@ -4471,6 +4469,8 @@ class User extends Entity
             } else if ($total > 1) {
                 $title = "You have $total new messages";
                 $route = "/chats";
+                $category = PushNotifications::CATEGORY_CHAT_MESSAGE;
+                $threadId = 'chats';
 
                 if ($notifcount) {
                     $total += $notifcount;
@@ -4489,12 +4489,31 @@ class User extends Entity
 
                         if (count($notifs) > 0) {
                             # For newsfeed notifications sent a route to the right place.
+                            # Also set the appropriate notification category and thread ID.
                             switch ($notifs[0]['type']) {
-                                case Notifications::TYPE_COMMENT_ON_COMMENT:
                                 case Notifications::TYPE_COMMENT_ON_YOUR_POST:
+                                    $route = '/chitchat/' . $notifs[0]['newsfeedid'];
+                                    $category = PushNotifications::CATEGORY_CHITCHAT_COMMENT;
+                                    $threadId = 'chitchat_' . $notifs[0]['newsfeedid'];
+                                    break;
+                                case Notifications::TYPE_COMMENT_ON_COMMENT:
+                                    $route = '/chitchat/' . $notifs[0]['newsfeedid'];
+                                    $category = PushNotifications::CATEGORY_CHITCHAT_REPLY;
+                                    $threadId = 'chitchat_' . $notifs[0]['newsfeedid'];
+                                    break;
                                 case Notifications::TYPE_LOVED_COMMENT:
                                 case Notifications::TYPE_LOVED_POST:
                                     $route = '/chitchat/' . $notifs[0]['newsfeedid'];
+                                    $category = PushNotifications::CATEGORY_CHITCHAT_LOVED;
+                                    $threadId = 'chitchat_' . $notifs[0]['newsfeedid'];
+                                    break;
+                                case Notifications::TYPE_EXHORT:
+                                    $category = PushNotifications::CATEGORY_EXHORT;
+                                    $threadId = 'tips';
+                                    $message = Utils::presdef('text', $notifs[0], NULL);
+                                    if (Utils::presdef('url', $notifs[0], NULL)) {
+                                        $route = $notifs[0]['url'];
+                                    }
                                     break;
                             }
                         }
@@ -4514,8 +4533,6 @@ class User extends Entity
             $types = [
                 'pendingvolunteering' => [ 'volunteer op', 'volunteerops', '/modtools/volunteering' ],
                 'pendingevents' => [ 'event', 'events', '/modtools/communityevents' ],
-                'socialactions' => [ 'publicity item', 'publicity items', '/modtools/publicity' ],
-                'popularposts' => [ 'publicity item', 'publicity items', '/modtools/publicity' ],
                 'stories' => [ 'story', 'stories', '/modtools/members/stories' ],
                 'newsletterstories' => [ 'newsletter story', 'newsletter stories', '/modtools/members/newsletter' ],
                 'chatreview' => [ 'chat message to review', 'chat messages to review', '/modtools/chats/review' ],
@@ -4541,7 +4558,7 @@ class User extends Entity
         }
 
 
-        return ([$total, $chatcount, $notifcount, $title, $message, array_unique($chatids), $route]);
+        return ([$total, $chatcount, $notifcount, $title, $message, array_unique($chatids), $route, $category, $threadId, $image]);
     }
 
     public function hasPermission($perm)
@@ -5263,7 +5280,6 @@ class User extends Entity
 
             $d['Notifications']['Send_email_notifications_for_chat_messages'] = Utils::presdef('email', $notifications, TRUE) ? 'Yes' : 'No';
             $d['Notifications']['Send_email_notifications_of_chat_messages_you_send'] = Utils::presdef('emailmine', $notifications, TRUE) ? 'Yes' : 'No';
-            $d['Notifications']['Send_notifications_for_apps'] = Utils::presdef('app', $notifications, TRUE) ? 'Yes' : 'No';
             $d['Notifications']['Send_push_notifications_to_web_browsers'] = Utils::presdef('push', $notifications, TRUE) ? 'Yes' : 'No';
             $d['Notifications']['Send_Facebook_notifications'] = Utils::presdef('facebook', $notifications, TRUE) ? 'Yes' : 'No';
             $d['Notifications']['Send_emails_about_notifications_on_the_site'] = Utils::presdef('notificationmails', $notifications, TRUE) ? 'Yes' : 'No';
@@ -5740,7 +5756,7 @@ class User extends Entity
         #     messages_promises, users_modmails, modnotifs, users_dashboard,
         #     users_nudges
         # - Transient logging data
-        #     logs_emails, logs_sql, logs_api, logs_errors, logs_src
+        #     logs_emails, logs_sql, logs_errors, logs_src
         # - Not provided by the user themselves
         #     user_comments, messages_reneged, spam_users, users_banned, users_stories_requested,
         #     users_thanks
@@ -6370,7 +6386,7 @@ class User extends Entity
     public function getJobAds() {
         # We want to show a few job ads from nearby.
         $search = NULL;
-        $ret = '<span class="jobads">';
+        $ret = '<table style="width:100%; border-collapse:collapse;">';
 
         list ($lat, $lng) = $this->getLatLng();
 
@@ -6380,15 +6396,33 @@ class User extends Entity
 
             foreach ($jobs as $job) {
                 $loc = Utils::presdef('location', $job, '');
-                $title = "{$job['title']}" . ($loc !== ' ' ? " ($loc)" : '');
 
                 # Link via our site to avoid spam trap warnings.
                 $url = "https://" . USER_SITE . "/job/{$job['id']}";
-                $ret .= '<a href="' . $url . '" target="_blank" style="color:black; font-weight:bold;">' . htmlentities($title) . '</a><br />';
+                $image = Utils::presdef('image', $job, '');
+
+                $ret .= '<tr style="vertical-align:top;">';
+
+                # Image column - small fixed width.
+                if ($image) {
+                    $ret .= '<td style="width:70px; padding:5px 10px 5px 0;">';
+                    $ret .= '<a href="' . $url . '" target="_blank"><img src="' . htmlspecialchars($image) . '" alt="" style="width:60px; height:60px; object-fit:cover;"></a>';
+                    $ret .= '</td>';
+                }
+
+                # Text column - title and location.
+                $ret .= '<td style="padding:5px 0;">';
+                $ret .= '<a href="' . $url . '" target="_blank" style="color:#004085; font-weight:bold; text-decoration:none;">' . htmlentities($job['title']) . '</a>';
+                if ($loc && trim($loc) !== '') {
+                    $ret .= '<br><span style="color:#666; font-size:14px;">' . htmlentities($loc) . '</span>';
+                }
+                $ret .= '</td>';
+
+                $ret .= '</tr>';
             }
         }
 
-        $ret .= '</span>';
+        $ret .= '</table>';
 
         return([
             'location' => $search,
@@ -6619,14 +6653,6 @@ memberships.groupid IN $groupq
         $ret['spammerpendingadd'] = $spamcounts[Spam::TYPE_PENDING_ADD];
         $ret['spammerpendingremove'] = $spamcounts[Spam::TYPE_PENDING_REMOVE];
 
-        # Show social actions from last 4 days.
-        $ctx = NULL;
-        $f = new GroupFacebook($this->dbhr, $this->dbhm);
-        $ret['socialactions'] = 0; // FB DISABLED = count($f->listSocialActions($ctx,$this));
-
-        $g = new Group($this->dbhr, $this->dbhm);
-        $ret['popularposts'] = 0; // FB DISABLED count($g->getPopularMessages());
-
         if ($this->hasPermission(User::PERM_GIFTAID)) {
             $d = new Donations($this->dbhr, $this->dbhm);
             $ret['giftaid'] = $d->countGiftAidReview();
@@ -6655,8 +6681,6 @@ memberships.groupid IN $groupq
         // All the types of work which are worth nagging about.
         $worktypes = [
             'pendingvolunteering',
-            'socialactions',
-            'popularposts',
             'chatreview',
             'relatedmembers',
             'stories',

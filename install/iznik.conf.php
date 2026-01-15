@@ -95,6 +95,7 @@ define('GEOCODER', 'geocode.ilovefreegle.org');
 
 # We use beanstalk for backgrounding.
 define('PHEANSTALK_SERVER', '127.0.0.1');
+define('PHEANSTALK_TUBE', getenv('PHEANSTALK_TUBE') ?: 'default');
 
 # Host to monitor
 define('MONIT_HOST', 'zzz');
@@ -145,9 +146,6 @@ switch($host) {
 # We archive to our own hosts, which are fronted by round-robin DNS.
 define('IMAGE_DOMAIN', 'dev.modtools.org');
 define('IMAGE_ARCHIVED_DOMAIN', 'freegle.blob.core.windows.net');
-define('CDN_SSH_USER', 'root');
-define('CDN_SSH_PUBLIC_KEY', '/home/travis/.ssh/id_rsa.pub');
-define('CDN_SSH_PRIVATE_KEY', '/home/travis/.ssh/id_rsa');
 
 # Domain for email addresses for our users
 define('USER_DOMAIN', 'users.ilovefreegle.org');
@@ -193,8 +191,18 @@ define('LOVE_JUNK_SECRET', 'LOVE_JUNK_SECRET');
 define('IMAGE_DELIVERY', NULL);
 define('TUS_UPLOADER', getenv('TUS_UPLOADER') ?: "https://tusd.tusdemo.net/files/");
 
+# Loki logging - logs are written to JSON files that Alloy ships to Loki.
+define('LOKI_ENABLED', FALSE);
+define('LOKI_JSON_PATH', '/var/log/freegle');
+
 define('REACH_FEED', NULL);
 define('REACH_USER', NULL);
 define('REACH_PASSWORD', NULL);
 define('STRIPE_SECRET_KEY', 'zzz');
 define('STRIPE_SECRET_KEY_TEST', 'zzz');
+
+# Email types disabled in iznik-server (being migrated to iznik-batch).
+# Comma-separated list of email type names, e.g., 'Welcome,Chat'.
+# When a type is listed here, iznik-server will NOT send it.
+# See Mail.php DESCRIPTIONS for valid type names.
+define('IZNIK_MAIL_DISABLED', '');

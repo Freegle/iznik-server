@@ -654,6 +654,7 @@ class LoggedPDO {
                 # world if we drop it, or duplicate it.
                 if (!$this->pheanstalk) {
                     $this->pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
+                    $this->pheanstalk = $this->pheanstalk->useTube(PHEANSTALK_TUBE);
                 }
 
                 if (strlen($sql) > LoggedPDO::MAX_BACKGROUND_SIZE) {

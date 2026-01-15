@@ -1,6 +1,7 @@
-FROM ubuntu:22.04
+FROM ghcr.io/freegle/freegle-base:latest
 
-ARG IZNIK_SERVER_BRANCH=master
+# Build arg to bust Docker layer cache - set to current timestamp during build
+ARG CACHE_BUST=1
 
 ENV DEBIAN_FRONTEND=noninteractive \
 	  TZ='UTZ' \
@@ -19,53 +20,32 @@ ENV DEBIAN_FRONTEND=noninteractive \
 	  PHEANSTALK_SERVER=beanstalkd \
 	  IMAGE_DOMAIN=apiv1.localhost
 
-# Packages
-RUN apt-get update && apt-get install -y dnsutils openssl zip unzip git libxml2-dev libzip-dev zlib1g-dev libcurl4-openssl-dev \
-    iputils-ping default-mysql-client vim libpng-dev libgmp-dev libjpeg-turbo8-dev php-xmlrpc php8.1-intl \
-    php8.1-xdebug php8.1-mbstring php8.1-simplexml php8.1-curl php8.1-zip postgresql-client php8.1-gd  \
-    php8.1-xmlrpc php8.1-redis php8.1-pgsql curl libpq-dev php-pear php-dev libgeoip-dev libcurl4-openssl-dev wget \
-    php-mbstring php-mailparse geoip-bin geoip-database php8.1-pdo-mysql cron rsyslog net-tools php8.1-fpm nginx telnet \
-    tesseract-ocr ca-certificates gnupg lsb-release geoipupdate postfix jq netcat
-
-# Configure xdebug to support coverage mode
-# Set mode to develop,coverage to allow both development features and coverage generation
-# The actual mode used will be controlled by the XDEBUG_MODE environment variable at runtime
-RUN echo "zend_extension=xdebug.so" > /etc/php/8.1/mods-available/xdebug.ini \
-    && echo "xdebug.mode=develop,coverage,debug" >> /etc/php/8.1/mods-available/xdebug.ini \
-    && echo "xdebug.start_with_request=yes" >> /etc/php/8.1/mods-available/xdebug.ini \
-    && echo "xdebug.discover_client_host=1" >> /etc/php/8.1/mods-available/xdebug.ini \
-    && phpenmod xdebug
-
-# Install Node.js and npm
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs
-
-# Install Claude Code
-RUN npm install -g @anthropic-ai/claude-code
-
-RUN apt-get remove -y apache2* sendmail* mlocate php-ssh2
+# Install PCOV for code coverage (faster than Xdebug)
+# Disable xdebug from base image - PCOV is faster for coverage-only use
+RUN apt-get update && apt-get install -y php8.1-pcov && rm -rf /var/lib/apt/lists/* \
+    && phpdismod xdebug \
+    && phpenmod pcov \
+    && echo "pcov.directory=/var/www/iznik" >> /etc/php/8.1/cli/conf.d/20-pcov.ini
 
 # Configure Postfix for MailHog relay
 RUN echo "postfix postfix/mailname string localhost" | debconf-set-selections \
     && echo "postfix postfix/main_mailer_type string 'Satellite system'" | debconf-set-selections \
     && echo "postfix postfix/relayhost string [mailhog]:1025" | debconf-set-selections
 
-RUN mkdir -p /var/www \
-	&& cd /var/www \
-	&& apt-get -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false update \
-	&& git clone https://github.com/Freegle/iznik-server.git iznik \
-	&& cd iznik \
-	&& git checkout ${IZNIK_SERVER_BRANCH} \
-	&& cd /var/www \
-  && touch iznik/standalone \
-  && mkdir /var/www/iznik/spool \
+# Copy iznik-server from local submodule (build context is ./iznik-server)
+# Use build arg to bust cache - any change to CACHE_BUST invalidates this layer
+ARG CACHE_BUST=1
+RUN echo "Cache bust: $CACHE_BUST"
+COPY . /var/www/iznik
+
+RUN touch /var/www/iznik/standalone \
+  && mkdir -p /var/www/iznik/spool \
   && chown www-data:www-data /var/www/iznik/spool \
   && touch /tmp/iznik.uploadlock \
   && chmod 777 /tmp/iznik.uploadlock
 
 # SSHD
-RUN apt-get -y install openssh-server \
-	&& mkdir /var/run/sshd \
+RUN mkdir /var/run/sshd \
 	&& echo 'root:password' | chpasswd \
 	&& sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config \
 	&& sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd \
@@ -114,9 +94,15 @@ CMD /etc/init.d/ssh start \
   # Set up the environment we need. Putting this here means it gets reset each time we start the container.
   && cp install/nginx.conf /etc/nginx/sites-available/default \
   && /etc/init.d/nginx start \
-	&& /etc/init.d/cron start \
 	&& /etc/init.d/php8.1-fpm start \
 	&& /etc/init.d/postfix start \
+
+  # Update crontab with PHEANSTALK_TUBE from environment (defaults to 'default')
+  && TUBE=${PHEANSTALK_TUBE:-default} \
+  && crontab -l > /tmp/current_crontab \
+  && echo "PHEANSTALK_TUBE=$TUBE" | cat - /tmp/current_crontab | crontab - \
+  && rm /tmp/current_crontab \
+	&& /etc/init.d/cron start \
 
   && export LOVE_JUNK_API=`cat /run/secrets/LOVE_JUNK_API` \
   && export LOVE_JUNK_SECRET=`cat /run/secrets/LOVE_JUNK_SECRET` \
@@ -141,28 +127,10 @@ CMD /etc/init.d/ssh start \
   && sed -ie "s@'IMAGE_DELIVERY', NULL@'IMAGE_DELIVERY', '$IMAGE_DELIVERY'@" /etc/iznik.conf \
   && sed -ie "s@'SMTP_HOST', '.*'@'SMTP_HOST', '$SMTP_HOST'@" /etc/iznik.conf \
   && sed -ie "s@'SMTP_PORT', [0-9]*@'SMTP_PORT', $SMTP_PORT@" /etc/iznik.conf \
-
-  # Setup GeoIP updates - continue even if download limit is reached
-  && rm -f /tmp/geoipupdate.failed \
-  && if [ -n "$MAXMIND_ACCOUNT" ] && [ -n "$MAXMIND_KEY" ]; then \
-      mkdir -p /usr/share/GeoIP \
-      && echo "AccountID $MAXMIND_ACCOUNT" > /etc/GeoIP.conf \
-      && echo "LicenseKey $MAXMIND_KEY" >> /etc/GeoIP.conf \
-      && echo "ProductIds GeoLite2-Country GeoLite2-City" >> /etc/GeoIP.conf \
-      && echo "DatabaseDirectory /usr/share/GeoIP" >> /etc/GeoIP.conf \
-      && (geoipupdate -v -f /etc/GeoIP.conf || (echo "GeoIP update failed - continuing startup" && touch /tmp/geoipupdate.failed)) \
-    ; elif [ -f /run/secrets/MAXMIND_ACCOUNT ] && [ -f /run/secrets/MAXMIND_KEY ]; then \
-      export MAXMIND_ACCOUNT=`cat /run/secrets/MAXMIND_ACCOUNT` \
-      && export MAXMIND_KEY=`cat /run/secrets/MAXMIND_KEY` \
-      && mkdir -p /usr/share/GeoIP \
-      && echo "AccountID $MAXMIND_ACCOUNT" > /etc/GeoIP.conf \
-      && echo "LicenseKey $MAXMIND_KEY" >> /etc/GeoIP.conf \
-      && echo "ProductIds GeoLite2-Country GeoLite2-City" >> /etc/GeoIP.conf \
-      && echo "DatabaseDirectory /usr/share/GeoIP" >> /etc/GeoIP.conf \
-      && (geoipupdate -v -f /etc/GeoIP.conf || (echo "GeoIP update failed - continuing startup" && touch /tmp/geoipupdate.failed)) \
-    ; else \
-      echo "MaxMind credentials not found - skipping GeoIP update" && touch /tmp/geoipupdate.failed \
-    ; fi \
+  && sed -ie "s@'LOKI_ENABLED', FALSE@'LOKI_ENABLED', TRUE@" /etc/iznik.conf \
+  && sed -ie "s@'LOKI_JSON_PATH', '.*'@'LOKI_JSON_PATH', '$LOKI_JSON_PATH'@" /etc/iznik.conf \
+  # Update database name from environment variable \
+  && sed -ie "s@'SQLDB', '.*'@'SQLDB', '$SQLDB'@" /etc/iznik.conf \
 
 	# We need to make some minor schema tweaks otherwise the schema fails to install.
   && sed -ie 's/ROW_FORMAT=DYNAMIC//g' install/schema.sql \
@@ -170,23 +138,15 @@ CMD /etc/init.d/ssh start \
   && sed -ie 's/timestamp(6)/timestamp/g' install/schema.sql \
   && sed -ie 's/CURRENT_TIMESTAMP(3)/CURRENT_TIMESTAMP/g' install/schema.sql \
   && sed -ie 's/CURRENT_TIMESTAMP(6)/CURRENT_TIMESTAMP/g' install/schema.sql \
-	&& mysql -u root -e 'CREATE DATABASE IF NOT EXISTS iznik;' \
-  && mysql -u root iznik < install/schema.sql \
-  && mysql -u root iznik < install/functions.sql \
-  && mysql -u root iznik < install/damlevlim.sql \
+	&& mysql -u root -e "CREATE DATABASE IF NOT EXISTS $SQLDB;" \
+  && mysql -u root $SQLDB < install/schema.sql \
+  && mysql -u root $SQLDB < install/functions.sql \
+  && mysql -u root $SQLDB < install/damlevlim.sql \
   && mysql -u root -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'" \
-  && mysql -u root -e "use iznik;REPLACE INTO partners_keys (partner, \`key\`) VALUES ('$PARTNER_NAME', '$PARTNER_KEY');" \
+  && mysql -u root -e "use $SQLDB;REPLACE INTO partners_keys (partner, \`key\`) VALUES ('$PARTNER_NAME', '$PARTNER_KEY');" \
   && mysql -u root -e "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));" \
-  && git pull \
-  && php composer.phar self-update \
-  && cd composer \
-  && echo Y | php ../composer.phar install \
-  && cd .. \
-  && php install/testenv.php \
   && php scripts/cli/table_autoinc.php \
-  && php scripts/cron/get_app_release_versions.php >> /tmp/iznik.get_app_release_versions.out 2>&1 \
-
-  # Start messages_spatial loop in background and keep container alive
+  && if [ "$SQLDB" != "iznik_phpunit_test" ]; then php scripts/cron/get_app_release_versions.php >> /tmp/iznik.get_app_release_versions.out 2>&1; fi \
   && sh -c 'nohup sh -c "while true; do cd /var/www/iznik/scripts/cron && php ./message_spatial.php >> /tmp/iznik.message_spatial.out 2>&1; sleep 10; done" </dev/null >/dev/null 2>&1 & exec sleep infinity'
 
 EXPOSE 80

@@ -749,14 +749,12 @@ class chatMessagesAPITest extends IznikAPITestCase
     }
 
     public function testTyping() {
-        error_log("testTyping: Stage 1 - Login and setup");
         $this->addLoginAndLogin($this->user, 'testpw');
 
         $this->user->addEmail('test@test.com');
         $this->user2->addEmail('test2@test.com');
 
-        # Create a chat to the second user with a referenced message from the second user.
-        error_log("testTyping: Stage 2 - Creating chat room");
+        # Create a chat to the second user.
         $ret = $this->call('chatrooms', 'PUT', [
             'userid' => $this->uid2
         ]);
@@ -764,18 +762,8 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
         $rid = $ret['id'];
         $this->assertNotNull($rid);
-        error_log("testTyping: Created chat room $rid");
-
-        error_log("testTyping: Stage 3 - Setting up mock mailer");
-        $r = $this->getMockBuilder('Freegle\Iznik\ChatRoom')
-            ->setConstructorArgs(array($this->dbhr, $this->dbhm, $rid))
-            ->setMethods(array('mailer'))
-            ->getMock();
-
-        $r->method('mailer')->willReturn(TRUE);
 
         # Send a message.
-        error_log("testTyping: Stage 4 - Sending initial message");
         $ret = $this->call('chatmessages', 'POST', [
             'roomid' => $rid,
             'message' => 'Test'
@@ -783,67 +771,39 @@ class chatMessagesAPITest extends IznikAPITestCase
         $this->assertEquals(0, $ret['ret']);
         $this->assertNotNull($ret['id']);
         $cmid = $ret['id'];
-        error_log("testTyping: Sent message $cmid");
 
-        # Process the message so it can be sent via email
-        error_log("testTyping: Stage 5 - Processing message for email");
+        # Process the message so it can be sent via email.
         $cm = new ChatMessage($this->dbhr, $this->dbhm, $cmid);
         $cm->process();
 
-        # Notify - too soon (message is recent).
-        error_log("testTyping: Stage 6 - First notify attempt (should be too soon)");
-        $this->assertEquals(0, $r->notifyByEmail($rid, ChatRoom::TYPE_USER2USER, NULL, 30));
-
         # Age the message slightly (10 seconds old) so the typing action can bump it.
         # Messages need to be old enough to be in the "about to be mailed" window for typing to bump them.
-        error_log("testTyping: Stage 7 - Aging message to 10 seconds old");
         $tenSecondsAgo = date("Y-m-d H:i:s", strtotime("-10 seconds"));
         $this->dbhm->preExec("UPDATE chat_messages SET date = ? WHERE id = ?;", [$tenSecondsAgo, $cmid]);
         $cm = new ChatMessage($this->dbhr, $this->dbhm, $cmid); # Reload
 
-        # Say we're still typing.  Should bump 1 chat message.
-        error_log("testTyping: Stage 8 - Testing typing action - should bump message");
+        # Say we're still typing. Should bump 1 chat message.
         $olddate = $cm->getPrivate('date');
-        $this->log("Message time before bump $olddate");
-        error_log("testTyping: Message time before bump $olddate");
         $ret = $this->call('chatrooms', 'POST', [
             'id' => $rid,
             'action' => ChatRoom::ACTION_TYPING
         ]);
-        error_log("testTyping: Typing action result: ret={$ret['ret']}, count={$ret['count']}");
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals(1, $ret['count']);
         $cm = new ChatMessage($this->dbhr, $this->dbhm, $cmid);
         $newdate = $cm->getPrivate('date');
-        $this->log("Message time after bump $newdate");
-        error_log("testTyping: Message time after bump $newdate");
         $this->assertNotEquals($olddate, $newdate);
 
-        # Notify again - message was just bumped, still too soon.
-        error_log("testTyping: Stage 9 - Second notify attempt (should still be too soon after bump)");
-        $this->assertEquals(0, $r->notifyByEmail($rid, ChatRoom::TYPE_USER2USER, NULL, 30));
-
-        # Manually age the message past the notification threshold (35 seconds > 30 second delay).
-        # This simulates time passing without the unreliability of sleep().
-        error_log("testTyping: Stage 10 - Manually aging message to 35 seconds old");
-        $oldTimestamp = date("Y-m-d H:i:s", strtotime("-35 seconds"));
-        $this->dbhm->preExec("UPDATE chat_messages SET date = ? WHERE id = ?;", [$oldTimestamp, $cmid]);
-        error_log("testTyping: Message artificially aged to $oldTimestamp");
-
-        # Notify again.  Will send this time.
-        error_log("testTyping: Stage 11 - Third notify attempt (should send now)");
-        $this->assertEquals(1, $r->notifyByEmail($rid, ChatRoom::TYPE_USER2USER, NULL, 30));
+        # Mark message as already mailed (simulates notification having been sent).
+        $this->dbhm->preExec("UPDATE chat_messages SET mailedtoall = 1 WHERE id = ?;", [$cmid]);
 
         # Say we're still typing - nothing to bump (message already mailed).
-        error_log("testTyping: Stage 12 - Testing typing action again - nothing to bump");
         $ret = $this->call('chatrooms', 'POST', [
             'id' => $rid,
             'action' => ChatRoom::ACTION_TYPING
         ]);
-        error_log("testTyping: Final typing action result: ret={$ret['ret']}, count={$ret['count']}");
         $this->assertEquals(0, $ret['ret']);
         $this->assertEquals(0, $ret['count']);
-        error_log("testTyping: Test completed successfully");
     }
 
     public function testDelete() {

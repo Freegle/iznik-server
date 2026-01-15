@@ -1,7 +1,7 @@
 <?php
 namespace Freegle\Iznik;
 
-
+require_once(dirname(__FILE__) . '/Loki.php');
 
 # Logging.  This is not guaranteed against loss in the event of serious failure.
 class Log
@@ -89,6 +89,12 @@ class Log
 
         # No need to check return code - if it doesn't work, nobody dies.
         $this->dbhm->background($sql);
+
+        # Also log to Loki (fire-and-forget, async).
+        $loki = Loki::getInstance();
+        if ($loki->isEnabled()) {
+            $loki->logFromLogsTable($params);
+        }
     }
 
     public function get($types, $subtypes, $groupid, $userid, $date, $search, $limit, &$ctx, $uid = NULL) {

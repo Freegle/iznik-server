@@ -66,6 +66,14 @@ class Apple
                 $id = $eid ? $eid : $aid;
                 #error_log("Login id $id from $eid and $gid");
 
+                # Check if we're trying to add an Apple login to a TN user.
+                if ($id && !$aid) {
+                    $u = User::get($this->dbhr, $this->dbhm, $id);
+                    if ($u->getPrivate('tnuserid')) {
+                        return ([NULL, ['ret' => 2, 'status' => 'Cannot add social signin to TrashNothing user']]);
+                    }
+                }
+
                 if (!$id) {
                     # We don't know them.  Create a user.
                     #

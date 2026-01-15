@@ -164,5 +164,51 @@ class AppleTest extends IznikTestCase {
             $this->assertEquals("Wrong number of segments", $e->getMessage());
         }
     }
+
+    public function testTNUserCannotAddApple() {
+        # Create a TN user (has tnuserid set).
+        $u = User::get($this->dbhr, $this->dbhm);
+        $id = $u->create('TN', 'User', 'TN User');
+        $u->addEmail('tnuser@test.com');
+        $u->setPrivate('tnuserid', 12345);
+
+        # Mock an Apple login attempt with the TN user's email.
+        $this->email = 'tnuser@test.com';
+
+        $mock = $this->getMockBuilder('Freegle\Iznik\Apple')
+            ->setMethods(['getPayload'])
+            ->setConstructorArgs([$this->dbhr, $this->dbhm])
+            ->getMock();
+
+        $mock->method('getPayload')->willReturn($this);
+
+        $credentials = [
+            "authorizationCode" => "UT",
+            "email" => "",
+            "fullName" => [
+                "familyName" => "User",
+                "givenName" => "TN",
+                "middleName" => "",
+                "namePrefix" => "",
+                "nameSuffix" => "",
+                "nickname" => "",
+                "phoneticRepresentation" => []
+            ],
+            "identityToken" => "UT",
+            "state" => "",
+            "user" => "UT_NEW_APPLE_ID"  # New Apple ID (not linked yet).
+        ];
+
+        # This should fail because we're trying to add Apple login to a TN user.
+        list($session, $ret) = $mock->login($credentials);
+        $this->log("TN user Apple login attempt returned " . var_export($ret, TRUE));
+        $this->assertEquals(2, $ret['ret']);
+        $this->assertStringContainsString('TrashNothing', $ret['status']);
+
+        # Verify no Apple login was added.
+        $u = User::get($this->dbhr, $this->dbhm, $id);
+        $logins = $u->getLogins();
+        $this->assertEquals(0, count($logins));
+    }
 }
 

@@ -116,6 +116,16 @@ class Google
                 $id = $eid ? $eid : $gid;
                 #error_log("Login id $id from $eid and $gid");
 
+                # Check if we're trying to add a Google login to a TN user.
+                if ($id && !$gid)
+                {
+                    $u = User::get($this->dbhr, $this->dbhm, $id);
+                    if ($u->getPrivate('tnuserid'))
+                    {
+                        return ([NULL, ['ret' => 2, 'status' => 'Cannot add social signin to TrashNothing user']]);
+                    }
+                }
+
                 if (!$id)
                 {
                     # We don't know them.  Create a user.
@@ -257,6 +267,14 @@ class Google
                     $id = $eid ? $eid : $gid;
                     #error_log("Login id $id from $eid and $gid");
                     $status = 'No user id found';
+
+                    # Check if we're trying to add a Google login to a TN user.
+                    if ($id && !$gid) {
+                        $u = User::get($this->dbhr, $this->dbhm, $id);
+                        if ($u->getPrivate('tnuserid')) {
+                            return ([NULL, ['ret' => 2, 'status' => 'Cannot add social signin to TrashNothing user']]);
+                        }
+                    }
 
                     if (!$id) {
                         # We don't know them.  Create a user.

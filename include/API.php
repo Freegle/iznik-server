@@ -4,6 +4,7 @@ namespace Freegle\Iznik;
 
 
 require_once(IZNIK_BASE . '/include/db.php');
+require_once(IZNIK_BASE . '/include/misc/Loki.php');
 global $dbhr, $dbhm;
 
 use GeoIp2\Database\Reader;
@@ -152,6 +153,12 @@ class API
             # This is an optimisation for User.php.
             if (session_status() !== PHP_SESSION_NONE) {
                 $_SESSION['modorowner'] = Utils::presdef('modorowner', $_SESSION, []);
+
+                # Add X-User-Id header for HAProxy per-user rate limiting.
+                $userId = Utils::presdef('id', $_SESSION, NULL);
+                if ($userId) {
+                    @header('X-User-Id: ' . $userId);
+                }
             }
 
             $encoded_ret = NULL;
@@ -311,9 +318,6 @@ class API
                             break;
                         case 'profile':
                             $ret = profile();
-                            break;
-                        case 'socialactions':
-                            $ret = socialactions();
                             break;
                         case 'messages':
                             $ret = messages();
@@ -492,6 +496,16 @@ class API
 
                             Utils::filterResult($ret);
 
+                            # Set X-User-Role header for HAProxy to exempt mods/support/admin from rate limiting.
+                            # Use whoAmI which caches the user object.
+                            $me = Session::whoAmI($dbhr, $dbhm);
+                            if ($me) {
+                                $systemrole = $me->getPrivate('systemrole');
+                                if ($systemrole && $systemrole != User::SYSTEMROLE_USER) {
+                                    @header('X-User-Role: ' . $systemrole);
+                                }
+                            }
+
                             $encoded_ret = json_encode($ret, JSON_PARTIAL_OUTPUT_ON_ERROR);
                             echo $encoded_ret;
 
@@ -554,30 +568,88 @@ class API
                 }
             } while ($apicallretries < API_RETRIES);
 
-            if (BROWSERTRACKING && (Utils::presdef('type', $_REQUEST, null) != 'GET') &&
-                (gettype($ret) == 'array' && !array_key_exists('nolog', $ret))) {
-                # Save off the API call and result, except for the (very frequent) event tracking calls.  Don't
-                # save GET calls as they don't change the DB and there are a lot of them.
-                #
-                # Beanstalk has a limit on the size of job that it accepts; no point trying to log absurdly large
-                # API requests.
-                $r = $_REQUEST;
-                $headers = Session::getallheaders();
-                $r['headers'] = $headers;
-                $req = json_encode($r);
-                $rsp = $encoded_ret;
+            # Log API request to Loki (fire-and-forget, doesn't block response).
+            # This is done via shutdown function to ensure response is sent first.
+            # Generate a unique request_id to correlate API logs with their headers.
+            # Format: timestamp_ms (hex) + random bytes for uniqueness within same ms.
+            $requestId = dechex((int)(microtime(TRUE) * 1000)) . bin2hex(random_bytes(4));
 
-                if (strlen($req) + strlen($rsp) > 180000) {
-                    $req = substr($req, 0, 1000);
-                    $rsp = substr($rsp, 0, 1000);
+            $lokiLogData = [
+                'call' => $call,
+                'method' => Utils::presdef('type', $_REQUEST, 'GET'),
+                'statusCode' => Utils::presdef('ret', $ret, 0),
+                'duration' => (microtime(TRUE) - $scriptstart) * 1000, // ms
+                'userId' => session_status() !== PHP_SESSION_NONE ? Utils::presdef('id', $_SESSION, NULL) : NULL,
+                'ip' => Utils::presdef('REMOTE_ADDR', $_SERVER, ''),
+                'queryParams' => $_GET,
+                'requestBody' => Utils::presdef('type', $_REQUEST, 'GET') === 'POST' ? $_POST : [],
+                'responseBody' => is_array($ret) ? $ret : [],
+                'requestId' => $requestId,
+            ];
+
+            # Capture request headers from $_SERVER (HTTP_* format).
+            $requestHeaders = [];
+            foreach ($_SERVER as $key => $value) {
+                if (strpos($key, 'HTTP_') === 0) {
+                    # Convert HTTP_USER_AGENT to User-Agent format.
+                    $headerName = str_replace('_', '-', substr($key, 5));
+                    $headerName = ucwords(strtolower($headerName), '-');
+                    $requestHeaders[$headerName] = $value;
+                } elseif (in_array($key, ['CONTENT_TYPE', 'CONTENT_LENGTH'])) {
+                    $headerName = str_replace('_', '-', $key);
+                    $headerName = ucwords(strtolower($headerName), '-');
+                    $requestHeaders[$headerName] = $value;
                 }
-
-                $sql = "INSERT INTO logs_api (`userid`, `ip`, `session`, `request`, `response`) VALUES (" .
-                    (session_status() !== PHP_SESSION_NONE ? Utils::presdef('id', $_SESSION,'NULL') : 'NULL') .
-                    ", '" . Utils::presdef('REMOTE_ADDR', $_SERVER, '') . "', " . $dbhr->quote(session_id()) .
-                    ", " . $dbhr->quote($req) . ", " . $dbhr->quote($rsp) . ");";
-                $dbhm->background($sql);
             }
+
+            # Capture response headers (must be done before output).
+            $responseHeaders = [];
+            foreach (headers_list() as $header) {
+                $parts = explode(':', $header, 2);
+                if (count($parts) === 2) {
+                    $responseHeaders[trim($parts[0])] = trim($parts[1]);
+                }
+            }
+
+            $lokiHeaderData = [
+                'requestHeaders' => $requestHeaders,
+                'responseHeaders' => $responseHeaders,
+            ];
+
+            register_shutdown_function(function() use ($lokiLogData, $lokiHeaderData) {
+                $loki = Loki::getInstance();
+                if ($loki->isEnabled()) {
+                    $loki->logApiRequestFull(
+                        'v1',
+                        $lokiLogData['method'],
+                        $lokiLogData['call'],
+                        $lokiLogData['statusCode'],
+                        $lokiLogData['duration'],
+                        $lokiLogData['userId'],
+                        [
+                            'ip' => $lokiLogData['ip'],
+                            'request_id' => $lokiLogData['requestId'],
+                        ],
+                        $lokiLogData['queryParams'],
+                        $lokiLogData['requestBody'],
+                        $lokiLogData['responseBody']
+                    );
+
+                    # Log headers separately (7-day retention for debugging).
+                    # Include request_id for correlation with main API log.
+                    $loki->logApiHeaders(
+                        'v1',
+                        $lokiLogData['method'],
+                        $lokiLogData['call'],
+                        $lokiHeaderData['requestHeaders'],
+                        $lokiHeaderData['responseHeaders'],
+                        $lokiLogData['userId'],
+                        $lokiLogData['requestId']
+                    );
+
+                    $loki->flush();
+                }
+            });
 
             # Any outstanding transaction is a bug; force a rollback to avoid locks lasting beyond this call.
             if ($dbhm->inTransaction()) {
