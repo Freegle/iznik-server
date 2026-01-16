@@ -659,9 +659,11 @@ class Newsfeed extends Entity
             ]);
 
             # We want to notify the original poster.  The type depends on whether this was the start of a thread or
-            # a comment on it.
-            $n = new Notifications($this->dbhr, $this->dbhm);
-            $n->add($me->getId(), $this->feed['userid'], $this->feed['replyto'] ? Notifications::TYPE_LOVED_COMMENT : Notifications::TYPE_LOVED_POST, $this->id, $this->threadId());
+            # a comment on it.  Only notify if we have a valid userid.
+            if ($this->feed['userid']) {
+                $n = new Notifications($this->dbhr, $this->dbhm);
+                $n->add($me->getId(), $this->feed['userid'], $this->feed['replyto'] ? Notifications::TYPE_LOVED_COMMENT : Notifications::TYPE_LOVED_POST, $this->id, $this->threadId());
+            }
         }
     }
 
