@@ -92,7 +92,7 @@ class Isochrone extends Entity
     public function ensureIsochroneExists($locationid, $minutes = 10, $transport = NULL, $orsServer = NULL, $orsTimeout = 60) {
         $source = $orsServer ? 'ORS' : 'Mapbox';
 
-        $transq = $transport ? (" AND transport = " . $this->dbhr->quote($transport)) : " AND transport IS NULL";
+        $transq = $transport ? (" AND transport = " . $this->dbhr->quote($transport)) : "";
         $sourceq = " AND source = " . $this->dbhr->quote($source);
         $existings = $this->dbhr->preQuery("SELECT id FROM isochrones WHERE locationid = ? $transq AND minutes = ? $sourceq ORDER BY timestamp DESC LIMIT 1;", [
             $locationid,

@@ -868,6 +868,7 @@ CREATE TABLE `email_tracking` (
   `images_loaded` smallint unsigned NOT NULL DEFAULT '0',
   `links_clicked` smallint unsigned NOT NULL DEFAULT '0',
   `unsubscribed_at` timestamp NULL DEFAULT NULL,
+  `has_amp` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Whether email had AMP version',
   `replied_at` timestamp NULL DEFAULT NULL,
   `replied_via` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'amp, web, etc.',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,

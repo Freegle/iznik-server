@@ -3466,6 +3466,11 @@ class User extends Entity
         $comments = [];
         $ctxq = '';
 
+        // Validate context is an array before use
+        if (!is_array($ctx)) {
+            $ctx = [];
+        }
+
         if ($ctx && Utils::pres('reviewed', $ctx)) {
             $ctxq = "users_comments.reviewed < " . $this->dbhr->quote($ctx['reviewed']) . " AND ";
         }

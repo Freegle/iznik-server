@@ -999,6 +999,11 @@ HAVING logincount > 0
         $ret = [];
         $filterq = '';
 
+        // Validate context is an array before use
+        if (!is_null($ctx) && !is_array($ctx)) {
+            $ctx = NULL;
+        }
+
         if ($filter) {
             foreach ([ User::HAPPY, User::UNHAPPY, User::FINE] as $val) {
                 if ($filter == $val) {
@@ -1020,9 +1025,9 @@ HAVING logincount > 0
         # We want unreviewed first, then most recent.
         $ctxq = is_null($ctx) ? " WHERE messages_outcomes.timestamp > '$start' " :
             (" WHERE
-            messages_outcomes.reviewed >= " . intval($ctx['reviewed']) . " AND   
-            messages_outcomes.timestamp > '$start' AND 
-            (messages_outcomes.timestamp < '" . Utils::safedate($ctx['timestamp']) . "' OR 
+            messages_outcomes.reviewed >= " . intval($ctx['reviewed']) . " AND
+            messages_outcomes.timestamp > '$start' AND
+            (messages_outcomes.timestamp < '" . Utils::safedate($ctx['timestamp']) . "' OR
                 (messages_outcomes.timestamp = '" . Utils::safedate($ctx['timestamp']) . "' AND
                  messages_outcomes.id < " . intval($ctx['id']) . "))");
 

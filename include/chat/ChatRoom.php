@@ -1045,6 +1045,11 @@ WHERE chat_rooms.id IN $idlist;";
                 #error_log("Add " . count($rooms) . " group chats using $sql");
             }
 
+            # If no valid chattypes matched, return empty result.
+            if ($sql === '') {
+                return [];
+            }
+
             $rooms = $this->dbhr->preQuery($sql);
 
             if (count($rooms) > 0) {
@@ -1534,6 +1539,11 @@ WHERE chat_rooms.id IN $idlist;";
             $groupids = [$groupid];
         } else {
             $groupids = $user->getModeratorships($user->getId(), TRUE);
+        }
+
+        # If the user has no moderator groups, they can't review any messages.
+        if (empty($groupids)) {
+            return [];
         }
 
         $groupq1 = "AND m1.groupid IN (" . implode(',', $groupids) . ")";

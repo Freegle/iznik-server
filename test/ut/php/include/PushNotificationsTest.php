@@ -84,7 +84,65 @@ class PushNotificationsTest extends IznikTestCase {
         $this->assertNotNull($cm);
 
         $notifyCount = $mock->notifyGroupMods($this->groupid);
-        $this->assertEquals(1, $notifyCount);
+
+        # Debug logging for flaky test - output diagnostic info when test fails.
+        if ($notifyCount !== 1) {
+            $debug = [];
+            $debug[] = "=== DEBUG: PushNotificationsTest::testBasic FAILED ===";
+            $debug[] = "notifyGroupMods returned $notifyCount, expected 1";
+            $debug[] = "groupid={$this->groupid}, mod userid=$id, sender userid=$id2";
+            $debug[] = "chat room=$rid, chat message=$cm";
+
+            # Check push notifications for the mod user.
+            $pushNotifs = $n->get($id);
+            $debug[] = "Push notifications for mod user $id: " . json_encode($pushNotifs);
+
+            # Check all push notifications in DB for this user.
+            $allPush = $this->dbhm->preQuery("SELECT * FROM users_push_notifications WHERE userid = ?", [$id]);
+            $debug[] = "All DB push notifications for user $id: " . json_encode($allPush);
+
+            # Check ModTools push notifications specifically.
+            $mtPush = $this->dbhm->preQuery("SELECT * FROM users_push_notifications WHERE userid = ? AND apptype = ?", [$id, PushNotifications::APPTYPE_MODTOOLS]);
+            $debug[] = "ModTools push notifications: " . json_encode($mtPush);
+
+            # Check membership.
+            $membership = $u->getMembershipAtt($this->groupid, 'role');
+            $debug[] = "Mod membership role for group {$this->groupid}: $membership";
+
+            # Check all moderators for this group.
+            $mods = $this->dbhm->preQuery("SELECT userid, role FROM memberships WHERE groupid = ? AND role IN ('Owner', 'Moderator')", [$this->groupid]);
+            $debug[] = "All mods for group {$this->groupid}: " . json_encode($mods);
+
+            # Check chat room details.
+            $roomInfo = $this->dbhm->preQuery("SELECT * FROM chat_rooms WHERE id = ?", [$rid]);
+            $debug[] = "Chat room $rid details: " . json_encode($roomInfo);
+
+            # Check chat message details.
+            $msgInfo = $this->dbhm->preQuery("SELECT * FROM chat_messages WHERE id = ?", [$cm]);
+            $debug[] = "Chat message $cm details: " . json_encode($msgInfo);
+
+            # Check if there are any unnotified messages for this mod.
+            $unnotified = $this->dbhm->preQuery(
+                "SELECT cm.id, cm.userid, cm.date, cr.groupid, cro.userid as roster_userid, cro.lastmsgnotified
+                 FROM chat_messages cm
+                 INNER JOIN chat_rooms cr ON cm.chatid = cr.id
+                 INNER JOIN chat_roster cro ON cr.id = cro.chatid
+                 WHERE cr.chattype = 'User2Mod'
+                 AND cr.groupid = ?
+                 AND cro.userid = ?
+                 AND (cro.lastmsgnotified IS NULL OR cro.lastmsgnotified < cm.id)",
+                [$this->groupid, $id]
+            );
+            $debug[] = "Unnotified messages for mod $id in group {$this->groupid}: " . json_encode($unnotified);
+
+            $debug[] = "=== END DEBUG ===";
+
+            foreach ($debug as $line) {
+                error_log($line);
+            }
+        }
+
+        $this->assertEquals(1, $notifyCount, "notifyGroupMods should return 1");
 
         $n->remove($id);
         $this->assertEquals([], $n->get($id));

@@ -389,6 +389,22 @@ class chatRoomsTest extends IznikTestCase {
         $this->assertEquals(MailRouter::DROPPED, $rc);
     }
 
+    public function testGetMessagesForReviewNoModGroups() {
+        # Test that getMessagesForReview returns empty array for non-moderator.
+        # This was a bug where an empty IN () clause caused SQL syntax error.
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid = $u->create(NULL, NULL, "Test User");
+        $u = User::get($this->dbhr, $this->dbhm, $uid);
+
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $ctx = NULL;
+
+        # User with no moderatorships should get empty result, not SQL error.
+        $msgs = $r->getMessagesForReview($u, NULL, $ctx);
+        $this->assertIsArray($msgs);
+        $this->assertEmpty($msgs);
+    }
+
     public function trueFalseProvider() {
         return [
             [ TRUE ],

@@ -801,6 +801,11 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
                 }
             }
 
+            # If the user has no moderator groups, they can't review any messages.
+            if (empty($groupids)) {
+                return $showcounts;
+            }
+
             $groupq1 = "AND memberships.groupid IN (" . implode(',', $groupids) . ")";
             $groupq2 = "AND m2.groupid IN (" . implode(',', $groupids) . ") ";
 
