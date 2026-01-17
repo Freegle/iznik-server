@@ -266,7 +266,7 @@ class MailRouter
                         $ret = MailRouter::DROPPED;
                     } else if (preg_match('/replyto-(.*)-(.*)' . USER_DOMAIN . '/', $to, $matches)) {
                         $ret = $this->replyToSingleMessage($matches, $log, $ret, $spamfound);
-                    } else if (preg_match('/notify-(.*)-(.*)@/', $to, $matches)) {
+                    } else if (preg_match('/notify-(\d+)-(\d+)(?:-(\d+))?@/', $to, $matches)) {
                         $ret = $this->replyToChatNotification($matches, $log, $ret, $spamfound);
                     } else if (!$this->msg->isAutoreply()) {
                         $ret = $this->directMailToUser($u, $to, $log, $spamscore, $spamfound);
@@ -1441,6 +1441,16 @@ class MailRouter
 
                             # Add any photos.
                             $this->addPhotosToChat($chatid);
+
+                            # If we have a tracking ID from the email reply-to address, update the
+                            # email_tracking table to record this reply.
+                            if (isset($matches[3]) && $matches[3]) {
+                                $trackingDbId = intval($matches[3]);
+                                $this->dbhm->preExec(
+                                    "UPDATE email_tracking SET replied_at = NOW(), replied_via = 'email' WHERE id = ? AND replied_at IS NULL",
+                                    [$trackingDbId]
+                                );
+                            }
 
                             # It might be nice to suppress email notifications if the message has already
                             # been promised or is complete, but we don't really know which message this
