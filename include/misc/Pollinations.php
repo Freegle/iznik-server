@@ -379,7 +379,9 @@ class Pollinations {
 
         return "Draw a single friendly cartoon white line drawing on dark green background, moderate shading, " .
                "cute and quirky style, UK audience, centered, gender-neutral, " .
-               "if showing people use abstract non-gendered figures. " .
+               "NOT photorealistic, NOT a photograph, simple illustration style. " .
+               "If showing people use abstract non-gendered fully-clothed figures, no skin visible, no nudity, " .
+               "no underwear being worn, no swimwear being worn. For clothing items draw the item laid flat or on a hanger, not being worn. " .
                "CRITICAL: Do not include any text, words, letters, numbers or labels anywhere in the image. " .
                "Draw only a picture of: " . $cleanName;
     }
