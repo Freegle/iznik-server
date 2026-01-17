@@ -533,6 +533,15 @@ class PushNotifications
             ]);
         }
 
+        // Debug: Log found notifications for CI diagnosis
+        if (defined('PHPUNIT_RUNNING')) {
+            $apptype = $modtools ? PushNotifications::APPTYPE_MODTOOLS : PushNotifications::APPTYPE_USER;
+            fwrite(STDERR, "[notify] userid=$userid, modtools=$modtools, browserPush=$browserPush, apptype=$apptype, found " . count($notifs) . " notifs\n");
+            if (count($notifs) > 0) {
+                fwrite(STDERR, "[notify] notifs: " . json_encode(array_map(function($n) { return ['id' => $n['id'], 'type' => $n['type'], 'apptype' => $n['apptype']]; }, $notifs)) . "\n");
+            }
+        }
+
         // Send individual per-message notifications (new rich format with action buttons)
         // This handles chat messages with rich formatting
         if (!$modtools) {
@@ -620,14 +629,29 @@ class PushNotifications
         $mods = $this->dbhr->preQuery("SELECT DISTINCT userid FROM memberships WHERE groupid = ? AND role IN ('Owner', 'Moderator');",
             [$groupid]);
 
+        // Debug: Log found mods for CI diagnosis
+        if (defined('PHPUNIT_RUNNING')) {
+            fwrite(STDERR, "[notifyGroupMods] groupid=$groupid, found " . count($mods) . " mods: " . json_encode($mods) . "\n");
+        }
+
         foreach ($mods as $mod) {
             $u = User::get($this->dbhr, $this->dbhm, $mod['userid']);
             $settings = $u->getGroupSettings($groupid);
 
             if (!array_key_exists('pushnotify', $settings) || $settings['pushnotify']) {
                 #error_log("Notify {$mod['userid']} for $groupid notify " . Utils::presdef('pushnotify', $settings, TRUE) . " settings " . var_export($settings, TRUE));
-                $count += $this->notify($mod['userid'], TRUE);
+                $notifyResult = $this->notify($mod['userid'], TRUE);
+                if (defined('PHPUNIT_RUNNING')) {
+                    fwrite(STDERR, "[notifyGroupMods] notify({$mod['userid']}, TRUE) returned $notifyResult\n");
+                }
+                $count += $notifyResult;
+            } else if (defined('PHPUNIT_RUNNING')) {
+                fwrite(STDERR, "[notifyGroupMods] Skipped mod {$mod['userid']} due to pushnotify setting\n");
             }
+        }
+
+        if (defined('PHPUNIT_RUNNING')) {
+            fwrite(STDERR, "[notifyGroupMods] Total count=$count\n");
         }
 
         return ($count);
