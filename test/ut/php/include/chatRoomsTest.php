@@ -389,6 +389,93 @@ class chatRoomsTest extends IznikTestCase {
         $this->assertEquals(MailRouter::DROPPED, $rc);
     }
 
+    public function testEmailReplyWithTrackingId() {
+        # Test that when an email reply includes a tracking ID in the notify- format,
+        # the email_tracking table is updated with replied_at and replied_via='email'.
+
+        # Set up a chatroom
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addEmail('test1@test.com');
+        $u->addEmail('test1@' . USER_DOMAIN);
+
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
+
+        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $this->assertNotNull($id);
+
+        # Add a message so the chat is active.
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cm, $banned) = $m->create($id, $u1, "Testing", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
+        $this->log("Created chat message $cm");
+
+        # Create an email_tracking record to simulate an email that was sent with tracking.
+        $trackingId = 'test_tracking_id_' . uniqid();
+        $this->dbhm->preExec("INSERT INTO email_tracking (tracking_id, email_type, userid, recipient_email, sent_at) VALUES (?, ?, ?, ?, NOW())", [
+            $trackingId,
+            'ChatNotification',
+            $u2,
+            'test2@test.com'
+        ]);
+        $trackingRow = $this->dbhr->preQuery("SELECT id FROM email_tracking WHERE tracking_id = ?", [$trackingId]);
+        $this->assertCount(1, $trackingRow);
+        $trackingDbId = $trackingRow[0]['id'];
+        $this->log("Created email_tracking record with id=$trackingDbId, tracking_id=$trackingId");
+
+        # Verify replied_at is initially NULL.
+        $before = $this->dbhr->preQuery("SELECT replied_at, replied_via FROM email_tracking WHERE id = ?", [$trackingDbId]);
+        $this->assertNull($before[0]['replied_at']);
+        $this->assertNull($before[0]['replied_via']);
+
+        # Now send an email reply to the notification with the tracking ID included.
+        # Format: notify-{chatid}-{userid}-{trackingid}@domain
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
+        $mr = new MailRouter($this->dbhm, $this->dbhm);
+        list ($mid, $failok) = $mr->received(Message::EMAIL, 'test2@test.com', "notify-$id-$u2-$trackingDbId@" . USER_DOMAIN, $msg);
+        $rc = $mr->route();
+        $this->assertEquals(MailRouter::TO_USER, $rc);
+
+        # Verify the email_tracking record was updated.
+        $after = $this->dbhr->preQuery("SELECT replied_at, replied_via FROM email_tracking WHERE id = ?", [$trackingDbId]);
+        $this->assertNotNull($after[0]['replied_at'], "replied_at should be set after email reply");
+        $this->assertEquals('email', $after[0]['replied_via'], "replied_via should be 'email'");
+
+        # Clean up.
+        $this->dbhm->preExec("DELETE FROM email_tracking WHERE id = ?", [$trackingDbId]);
+    }
+
+    public function testEmailReplyWithoutTrackingId() {
+        # Test that email replies without a tracking ID still work (backwards compatibility).
+
+        # Set up a chatroom
+        $u = User::get($this->dbhr, $this->dbhm);
+        $u1 = $u->create(NULL, NULL, "Test User 1");
+        $u->addEmail('test1@test.com');
+        $u->addEmail('test1@' . USER_DOMAIN);
+
+        $u2 = $u->create(NULL, NULL, "Test User 2");
+        $u->addEmail('test2@test.com');
+        $u->addEmail('test2@' . USER_DOMAIN);
+
+        list ($r, $id, $blocked) = $this->createTestConversation($u1, $u2);
+        $this->assertNotNull($id);
+
+        # Add a message so the chat is active.
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cm, $banned) = $m->create($id, $u1, "Testing", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
+        $this->log("Created chat message $cm");
+
+        # Send an email reply using the OLD format (no tracking ID).
+        # Format: notify-{chatid}-{userid}@domain
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/notif_reply_text'));
+        $mr = new MailRouter($this->dbhm, $this->dbhm);
+        list ($mid, $failok) = $mr->received(Message::EMAIL, 'test2@test.com', "notify-$id-$u2@" . USER_DOMAIN, $msg);
+        $rc = $mr->route();
+        $this->assertEquals(MailRouter::TO_USER, $rc, "Old format without tracking ID should still work");
+    }
+
     public function testGetMessagesForReviewNoModGroups() {
         # Test that getMessagesForReview returns empty array for non-moderator.
         # This was a bug where an empty IN () clause caused SQL syntax error.
