@@ -331,14 +331,16 @@ class Group extends Entity
 
     public function getMods($types = [ User::ROLE_MODERATOR, User::ROLE_OWNER ], $addedAt = NULL) {
         $addedq = '';
+        $params = [ $this->id ];
 
         if ($addedAt) {
             # We only want mods added after this date.
             $addedq = ' AND memberships.added >= ?';
+            $params[] = $addedAt;
         }
 
         $sql = "SELECT users.id FROM users INNER JOIN memberships ON users.id = memberships.userid AND memberships.groupid = ? AND role IN ('" . implode("','", $types) . "') $addedq;";
-        $mods = $this->dbhr->preQuery($sql, [ $this->id ]);
+        $mods = $this->dbhr->preQuery($sql, $params);
         $ret = [];
         foreach ($mods as $mod) {
             $ret[] = $mod['id'];
