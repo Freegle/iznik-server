@@ -41,7 +41,10 @@ if (!defined('IZNIK_BASE')) {
         }
     });
 
-    define('DUPLICATE_POST_PROTECTION', 10); # Set to 0 to disable
+    # Duplicate POST protection - Redis TTL in seconds. Prevents identical POSTs within this window.
+    # Set to 30 seconds to allow for CI execution delays that could cause timing-sensitive tests to fail.
+    # If the second POST arrives after the TTL expires, it won't be detected as a duplicate.
+    define('DUPLICATE_POST_PROTECTION', 30); # Set to 0 to disable
     define('API_RETRIES', 5);
     define('REDIS_TTL', 30);
 
