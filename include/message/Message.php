@@ -3988,6 +3988,18 @@ ORDER BY lastdate DESC;";
 
         foreach ($oldids as $oldid) {
             #error_log("Replace attachments - delete $oldid for {$this->id}");
+
+            # Check if this is an AI-generated attachment before deleting.
+            # If so, record the decline to prevent the cron job from re-adding it.
+            $att = $this->dbhr->preQuery("SELECT externalmods FROM messages_attachments WHERE id = ?", [$oldid]);
+            if (count($att) > 0 && $att[0]['externalmods']) {
+                $mods = json_decode($att[0]['externalmods'], TRUE);
+                if ($mods && isset($mods['ai']) && $mods['ai'] === TRUE) {
+                    # This is an AI attachment being removed - record the decline
+                    $this->dbhm->preExec("INSERT IGNORE INTO messages_ai_declined (msgid) VALUES (?)", [$this->id]);
+                }
+            }
+
             $this->dbhm->preExec("DELETE FROM messages_attachments WHERE id = ?;", [ $oldid ]);
         }
     }

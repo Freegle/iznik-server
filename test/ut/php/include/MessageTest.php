@@ -1243,5 +1243,84 @@ class MessageTest extends IznikTestCase {
         $result = $m3->createOrExpandIsochrone(5, 90, 60);
         $this->assertNull($result);
     }
+
+    public function testReplaceAttachmentsRecordsAiDecline() {
+        # Create a message
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list ($msgid, $failok) = $m->save();
+        $this->assertNotNull($msgid);
+
+        # Add an AI attachment directly to the database
+        $this->dbhm->preExec("INSERT INTO messages_attachments (msgid, externaluid, externalmods) VALUES (?, ?, ?)", [
+            $msgid,
+            'freegletusd-test-ai-image',
+            json_encode(['ai' => TRUE])
+        ]);
+        $aiAttId = $this->dbhm->lastInsertId();
+        $this->assertNotNull($aiAttId);
+
+        # Verify attachment was created with AI flag
+        $atts = $this->dbhr->preQuery("SELECT * FROM messages_attachments WHERE msgid = ?", [$msgid]);
+        $this->assertEquals(1, count($atts));
+        $externalmods = json_decode($atts[0]['externalmods'], TRUE);
+        $this->assertTrue($externalmods['ai']);
+
+        # Verify no decline record exists yet
+        $declined = $this->dbhr->preQuery("SELECT * FROM messages_ai_declined WHERE msgid = ?", [$msgid]);
+        $this->assertEquals(0, count($declined));
+
+        # Now call replaceAttachments with an empty array - simulating user/moderator removing the AI image
+        $m = new Message($this->dbhr, $this->dbhm, $msgid);
+        $m->replaceAttachments([]);
+
+        # Verify the attachment was deleted
+        $atts = $this->dbhr->preQuery("SELECT * FROM messages_attachments WHERE msgid = ?", [$msgid]);
+        $this->assertEquals(0, count($atts));
+
+        # The fix: verify that messages_ai_declined now has an entry for this message
+        $declined = $this->dbhr->preQuery("SELECT * FROM messages_ai_declined WHERE msgid = ?", [$msgid]);
+        $this->assertEquals(1, count($declined), "Should record AI decline when AI attachment is removed via replaceAttachments");
+    }
+
+    public function testReplaceAttachmentsDoesNotRecordDeclineForNonAiAttachment() {
+        # Create a message
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('Basic test', 'OFFER: Test item (location)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+
+        $m = new Message($this->dbhr, $this->dbhm);
+        $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
+        list ($msgid, $failok) = $m->save();
+        $this->assertNotNull($msgid);
+
+        # Add a regular (non-AI) attachment directly to the database
+        $this->dbhm->preExec("INSERT INTO messages_attachments (msgid, externaluid) VALUES (?, ?)", [
+            $msgid,
+            'freegletusd-test-regular-image'
+        ]);
+        $attId = $this->dbhm->lastInsertId();
+        $this->assertNotNull($attId);
+
+        # Verify attachment was created
+        $atts = $this->dbhr->preQuery("SELECT * FROM messages_attachments WHERE msgid = ?", [$msgid]);
+        $this->assertEquals(1, count($atts));
+
+        # Call replaceAttachments with an empty array - simulating removal
+        $m = new Message($this->dbhr, $this->dbhm, $msgid);
+        $m->replaceAttachments([]);
+
+        # Verify the attachment was deleted
+        $atts = $this->dbhr->preQuery("SELECT * FROM messages_attachments WHERE msgid = ?", [$msgid]);
+        $this->assertEquals(0, count($atts));
+
+        # Should NOT record a decline for non-AI attachments
+        $declined = $this->dbhr->preQuery("SELECT * FROM messages_ai_declined WHERE msgid = ?", [$msgid]);
+        $this->assertEquals(0, count($declined), "Should NOT record AI decline for non-AI attachment removal");
+    }
 }
 
