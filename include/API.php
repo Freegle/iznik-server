@@ -467,6 +467,10 @@ class API
                             $dbhm->beginTransaction();
 
                             break;
+                        case 'test':
+                            // TODO Finnbarr: this route should only be available when NOT prod.
+                            $ret = test();
+                            break;
                     }
 
                     # If we get here, everything worked.
