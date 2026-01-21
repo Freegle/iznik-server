@@ -370,7 +370,14 @@ class Spam {
         if (!$check && preg_match_all(Message::EMAIL_REGEXP, $message, $matches)) {
             foreach ($matches as $val) {
                 foreach ($val as $email) {
-                    if (!Mail::ourDomain($email) && strpos($email, 'trashnothing') === FALSE && strpos($email, 'yahoogroups') === FALSE) {
+                    # Exclude our domains, partner domains, and our noreply addresses
+                    $isNoreplyOnOurDomain = stripos($email, 'noreply@') === 0 &&
+                        stripos($email, 'ilovefreegle.org') !== FALSE;
+
+                    if (!Mail::ourDomain($email) &&
+                        strpos($email, 'trashnothing') === FALSE &&
+                        strpos($email, 'yahoogroups') === FALSE &&
+                        !$isNoreplyOnOurDomain) {
                         $check = self::REASON_EMAIL;
                     }
                 }
