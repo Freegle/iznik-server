@@ -176,7 +176,10 @@ class groupTest extends IznikTestCase
             $gid
         ]);
 
-        // Create another moderator added today
+        // Capture the cutoff time BEFORE adding moderator 2
+        $cutoffTime = date('Y-m-d H:i:s');
+
+        // Create another moderator added after the cutoff time
         list($u2, $uid2, $eid2) = $this->createTestUser(NULL, NULL, 'Test Mod 2', 'testmod2@test.com', 'testpw');
         $u2->addMembership($gid, User::ROLE_MODERATOR);
 
@@ -187,9 +190,8 @@ class groupTest extends IznikTestCase
         $this->assertContains((int)$uid1, $allMods);
         $this->assertContains((int)$uid2, $allMods);
 
-        // Get mods added after yesterday - should only return the second one
-        $today = date('Y-m-d H:i:s');
-        $recentMods = $g->getMods([User::ROLE_MODERATOR, User::ROLE_OWNER], $today);
+        // Get mods added on or after the cutoff time - should only return the second one
+        $recentMods = $g->getMods([User::ROLE_MODERATOR, User::ROLE_OWNER], $cutoffTime);
         $this->assertCount(1, $recentMods);
         $this->assertContains((int)$uid2, $recentMods);
         $this->assertNotContains((int)$uid1, $recentMods);
