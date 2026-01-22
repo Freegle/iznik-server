@@ -75,6 +75,45 @@ class chatMessagesTest extends IznikTestCase {
 
         }
 
+    public function testPipeCharacterPreserved() {
+        # Test that pipe characters in messages are not stripped.
+        # Pipe characters should only be stripped when they appear at the
+        # START of a line (email quote convention), not in the middle of text.
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $id = $r->createGroupChat('test', $this->groupid);
+        $this->assertNotNull($id);
+
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+
+        # Test pipe character in middle of text - should be preserved
+        $messageWithPipe = 'I want a chest|upright, size and colour';
+        list ($mid, $banned) = $m->create($id, $this->uid, $messageWithPipe);
+        $this->assertNotNull($mid);
+
+        $atts = $m->getPublic();
+        $this->assertEquals($messageWithPipe, $atts['message'], 'Pipe character in middle of text should be preserved');
+
+        # Test multiple pipes in text - should all be preserved
+        $m2 = new ChatMessage($this->dbhr, $this->dbhm);
+        $messageWithMultiplePipes = 'Options: A|B|C|D';
+        list ($mid2, $banned) = $m2->create($id, $this->uid, $messageWithMultiplePipes);
+        $this->assertNotNull($mid2);
+
+        $atts2 = $m2->getPublic();
+        $this->assertEquals($messageWithMultiplePipes, $atts2['message'], 'Multiple pipes should be preserved');
+
+        # Test pipe at start of line (email quote) - should be stripped
+        $m3 = new ChatMessage($this->dbhr, $this->dbhm);
+        $messageWithQuote = "My reply\n| This is a quoted line";
+        list ($mid3, $banned) = $m3->create($id, $this->uid, $messageWithQuote);
+        $this->assertNotNull($mid3);
+
+        $atts3 = $m3->getPublic();
+        $this->assertEquals("My reply", $atts3['message'], 'Pipe at start of line (quote) should be stripped');
+
+        $this->assertEquals(1, $r->delete());
+    }
+
     public function testSpamReply() {
         # Put a valid message on a group.
         $this->log("Put valid message on");
