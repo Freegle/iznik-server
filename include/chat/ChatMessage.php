@@ -581,7 +581,9 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
         }
 
         # Strip any remaining quoted text in replies.
-        $ret['message'] = trim(preg_replace('/\|.*$/m', "", $ret['message']));
+        # The ^ anchor ensures we only strip lines that START with | (email quote convention),
+        # not pipe characters appearing in the middle of text.
+        $ret['message'] = trim(preg_replace('/^\|.*$/m', "", $ret['message']));
         $ret['message'] = trim(preg_replace('/^\>.*$/m', "", $ret['message']));
         $ret['message'] = trim(preg_replace('/\#yiv.*$/m', "", $ret['message']));
 
