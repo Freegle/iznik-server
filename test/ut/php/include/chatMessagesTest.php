@@ -467,6 +467,24 @@ class chatMessagesTest extends IznikTestCase {
         $this->assertNull($m->checkReview("something in butt rd"));
     }
 
+    public function testNoReplyEmailNotFlagged() {
+        # noreply@ilovefreegle.org should NOT trigger review - it's a system address
+        # that appears in automated emails. See Spam::checkReview email detection.
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+
+        # External email should trigger review
+        $this->assertEquals(ChatMessage::REVIEW_SPAM, $m->checkReview("Test email@external.com email"));
+
+        # USER_DOMAIN email should NOT trigger review
+        $this->assertNull($m->checkReview("Test email@" . USER_DOMAIN . " email"));
+
+        # NOREPLY_ADDR should NOT trigger review (this is the bug fix)
+        $this->assertNull($m->checkReview("Test " . NOREPLY_ADDR . " email"));
+
+        # But noreply at external domains SHOULD still trigger review (security check)
+        $this->assertEquals(ChatMessage::REVIEW_SPAM, $m->checkReview("Test noreply@evil.com email"));
+    }
+
     public function testCheckSpam() {
         $m = new ChatMessage($this->dbhr, $this->dbhm);
 
