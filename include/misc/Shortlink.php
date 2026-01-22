@@ -143,13 +143,17 @@ class Shortlink extends Entity
 
         try {
             # Timeout - if a shortener doesn't return in time we'll filter out the URL.
-            $opts['http']['timeout'] = 5;
+            # Use a longer timeout (10s) to handle slow external sites.
+            $opts['http']['timeout'] = 10;
             # Show warnings - e.g. from get_headers.
             error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
 
             $context = stream_context_create($opts);
 
-            $retries = 10;
+            $maxRetries = 5;
+            $retries = $maxRetries;
+            $backoffMs = 200; // Start with 200ms, will double each retry (exponential backoff)
+
             do {
                 $response = @get_headers($url, 1, $context);
 
@@ -157,10 +161,13 @@ class Shortlink extends Entity
                     $retries--;
 
                     if (!$retries) {
+                        error_log("expandExternal: All $maxRetries retries exhausted for $url");
                         break;
                     }
 
-                    usleep(100000);
+                    error_log("expandExternal: Retry " . ($maxRetries - $retries) . "/$maxRetries for $url, backing off {$backoffMs}ms");
+                    usleep($backoffMs * 1000);
+                    $backoffMs = min($backoffMs * 2, 3000); // Cap at 3 seconds
                 }
             } while (!$response);
 
