@@ -530,12 +530,26 @@ class Pollinations {
 
     /**
      * Upload image to TUS and cache in ai_images table.
+     * Applies duotone filter before uploading to ensure consistent appearance in emails.
      * @param string $name The item/job name.
      * @param string $data Image data.
      * @param string $hash Image hash.
      * @return string|false The externaluid on success, FALSE on failure.
      */
     public static function uploadAndCache($name, $data, $hash) {
+        # Apply duotone filter to ensure consistent green/white color scheme.
+        # This bakes the effect into the image so it works in emails where CSS filters don't.
+        $img = new Image($data);
+        if ($img->img) {
+            $img->duotoneGreen();
+            $data = $img->getData(90);
+
+            if (!$data) {
+                error_log("Failed to apply duotone filter for: $name");
+                return FALSE;
+            }
+        }
+
         $t = new Tus();
         $tusUrl = $t->upload(NULL, 'image/jpeg', $data);
 

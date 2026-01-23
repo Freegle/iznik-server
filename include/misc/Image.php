@@ -89,6 +89,61 @@ class Image {
         return($data);
     }
 
+    /**
+     * Apply a duotone effect to the image.
+     * Converts the image to grayscale, then maps grayscale values to a color gradient
+     * between two specified colors.
+     *
+     * @param int $darkR Red component of dark color (0-255)
+     * @param int $darkG Green component of dark color (0-255)
+     * @param int $darkB Blue component of dark color (0-255)
+     * @param int $lightR Red component of light color (0-255)
+     * @param int $lightG Green component of light color (0-255)
+     * @param int $lightB Blue component of light color (0-255)
+     */
+    public function duotone($darkR, $darkG, $darkB, $lightR, $lightG, $lightB) {
+        if (!$this->img) {
+            return;
+        }
+
+        $width = imagesx($this->img);
+        $height = imagesy($this->img);
+
+        for ($y = 0; $y < $height; $y++) {
+            for ($x = 0; $x < $width; $x++) {
+                $rgb = imagecolorat($this->img, $x, $y);
+
+                # Extract RGB components.
+                $r = ($rgb >> 16) & 0xFF;
+                $g = ($rgb >> 8) & 0xFF;
+                $b = $rgb & 0xFF;
+
+                # Convert to grayscale using luminance formula.
+                $gray = intval(0.299 * $r + 0.587 * $g + 0.114 * $b);
+
+                # Map grayscale to duotone gradient.
+                # gray=0 -> dark color, gray=255 -> light color
+                $t = $gray / 255.0;
+                $newR = intval($darkR + $t * ($lightR - $darkR));
+                $newG = intval($darkG + $t * ($lightG - $darkG));
+                $newB = intval($darkB + $t * ($lightB - $darkB));
+
+                $newColor = imagecolorallocate($this->img, $newR, $newG, $newB);
+                imagesetpixel($this->img, $x, $y, $newColor);
+            }
+        }
+    }
+
+    /**
+     * Apply the standard Freegle AI image duotone effect.
+     * Converts to dark green (#0D3311) to white (#FFFFFF) gradient.
+     */
+    public function duotoneGreen() {
+        # Dark green: #0D3311 = RGB(13, 51, 17)
+        # White: #FFFFFF = RGB(255, 255, 255)
+        $this->duotone(13, 51, 17, 255, 255, 255);
+    }
+
     public function circle($radius) {
         $d = imagecreatetruecolor($radius, $radius);
         imagecopy($d, $this->img, 0, 0, 0, 0, $radius, $radius);
