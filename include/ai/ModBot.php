@@ -13,7 +13,8 @@ class ModBot extends Entity
     private $user;
     private $geminiClient;
     
-    // Gemini 2.0 Flash-Lite pricing (as of 2025)
+    // Gemini Flash-Lite pricing (approximate, varies by model version)
+    // Model is now selected dynamically via GeminiHelper::getBestFlashModel()
     const INPUT_TOKEN_COST = 0.10 / 1000000;  // $0.10 per 1M input tokens
     const OUTPUT_TOKEN_COST = 0.40 / 1000000; // $0.40 per 1M output tokens
 
@@ -259,8 +260,9 @@ class ModBot extends Entity
         
         while ($attempt < $maxRetries) {
             try {
+                $model = GeminiHelper::getBestFlashModel('lite');
                 $response = $this->geminiClient->withV1BetaVersion()
-                    ->generativeModel('gemini-2.0-flash-lite')
+                    ->generativeModel($model)
                     ->withSystemInstruction(
                         'You are a community moderator assistant analyzing posts for rule violations. ' .
                         'Analyze the provided post against the community rules and return your assessment in JSON format. ' .
