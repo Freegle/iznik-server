@@ -43,8 +43,13 @@ if (!$tusUploader) {
     exit(1);
 }
 
-# Query all AI images.
-$sql = "SELECT id, name, externaluid, imagehash FROM ai_images WHERE externaluid LIKE 'freegletusd-%'";
+# Query all AI images, ordered by most frequently used first.
+$sql = "SELECT ai.id, ai.name, ai.externaluid, ai.imagehash, COUNT(ma.id) AS usage_count
+        FROM ai_images ai
+        LEFT JOIN messages_attachments ma ON ma.externaluid = ai.externaluid
+        WHERE ai.externaluid LIKE 'freegletusd-%'
+        GROUP BY ai.id, ai.name, ai.externaluid, ai.imagehash
+        ORDER BY usage_count DESC";
 if ($limit) {
     $sql .= " LIMIT $limit";
 }
@@ -61,8 +66,9 @@ foreach ($images as $image) {
     $id = $image['id'];
     $name = $image['name'];
     $oldUid = $image['externaluid'];
+    $usageCount = $image['usage_count'];
 
-    echo "Processing: $name (ID: $id)\n";
+    echo "Processing: $name (ID: $id, used $usageCount times)\n";
 
     # Extract TUS filename from externaluid.
     $tusFile = str_replace('freegletusd-', '', $oldUid);
