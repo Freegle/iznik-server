@@ -42,6 +42,9 @@ define('GOOGLE_PROJECT', 'zzz');
 define('GOOGLE_PUSH_KEY', 'zzzz');
 define('GOOGLE_GEMINI_API_KEY', 'zzzz');
 
+# OpenAI API key for AI image safety checks (detects people in generated images).
+define('OPENAI_API_KEY', NULL);
+
 # Other Google keys
 define('GOOGLE_VISION_KEY', 'zzz');
 define('GOOGLE_CLIENT_ID', 'zzz');

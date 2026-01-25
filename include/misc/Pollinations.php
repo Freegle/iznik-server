@@ -26,6 +26,9 @@ class Pollinations {
     # Failed items cache expiry (1 day - give items a chance to work later).
     const FAILED_CACHE_EXPIRY = 86400;
 
+    # OpenAI API endpoint for vision.
+    const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
+
     /**
      * Load the file-based hash cache.
      * @return array Hash => [prompt, timestamp] mapping.
@@ -377,13 +380,13 @@ class Pollinations {
         $cleanName = str_replace('CRITICAL:', '', $itemName);
         $cleanName = str_replace('Draw only', '', $cleanName);
 
-        return "Draw a single friendly cartoon white line drawing on dark green background, moderate shading, " .
-               "cute and quirky style, UK audience, centered, " .
-               "NOT photorealistic, NOT a photograph, simple illustration style. " .
-               "CRITICAL: Focus ONLY on the object itself - do NOT include any people, hands, or human figures. " .
-               "For clothing items draw the item laid flat or on a hanger, not being worn. " .
-               "Do not include any text, words, letters, numbers or labels anywhere in the image. " .
-               "Draw only the object: " . $cleanName;
+        # Use positive framing only - negative prompts can backfire with diffusion models.
+        # Avoid mentioning specific item categories (clothing, furniture) as this can cause
+        # the model to include them even when the actual item is unrelated.
+        return "Product illustration: single isolated " . $cleanName . " centered on plain dark green background. " .
+               "Style: friendly cartoon white line drawing, moderate shading, cute and quirky, UK audience. " .
+               "The object sits alone on a simple surface or floats in space. " .
+               "Simple illustration style, clean lines, single object only.";
     }
 
     /**
@@ -396,10 +399,12 @@ class Pollinations {
         $cleanName = str_replace('CRITICAL:', '', $jobTitle);
         $cleanName = str_replace('Draw only', '', $cleanName);
 
-        return "simple cute cartoon " . $cleanName . " white line drawing on solid dark forest green background, " .
-               "minimalist icon style, gender-neutral, if showing people use abstract non-gendered figures, " .
-               "absolutely no text, no words, no letters, no numbers, no labels, " .
-               "no writing, no captions, no signs, no speech bubbles, no border, filling the entire frame";
+        # Use positive framing only - negative prompts can backfire with diffusion models.
+        # Explicitly request a single person to avoid group scenes.
+        return "Job illustration: single " . $cleanName . " figure centered on plain dark green background. " .
+               "Style: friendly cartoon white line drawing, moderate shading, cute and quirky, UK audience. " .
+               "One person only, gender-neutral abstract figure, simple pose. " .
+               "Minimalist icon style, clean lines, fills the frame.";
     }
 
     /**
@@ -486,6 +491,14 @@ class Pollinations {
                     self::cleanupRateLimitedHash($hash);
                     return FALSE;
                 }
+            }
+
+            # Safety check: verify image doesn't contain people.
+            $hasPeople = self::checkForPeople($data, $name);
+            if ($hasPeople === TRUE) {
+                error_log("Rejecting image for '$name' - contains people");
+                $failed[$name] = TRUE;
+                continue;
             }
 
             $batchHashes[$hash] = $name;
@@ -587,5 +600,93 @@ class Pollinations {
         if (file_exists(self::CACHE_FILE)) {
             @unlink(self::CACHE_FILE);
         }
+    }
+
+    /**
+     * Check if an image contains people using GPT-4o-mini vision.
+     * Only runs if OPENAI_API_KEY is defined in config.
+     *
+     * @param string $imageData Raw image data (not base64 encoded).
+     * @param string $itemName Item name for logging.
+     * @return bool|null TRUE if people detected, FALSE if not, NULL if check unavailable/failed.
+     */
+    public static function checkForPeople($imageData, $itemName = '') {
+        # Only run check if OpenAI API key is configured.
+        if (!defined('OPENAI_API_KEY') || !OPENAI_API_KEY) {
+            return NULL;
+        }
+
+        # Convert image to base64 data URL.
+        $base64 = base64_encode($imageData);
+        $mimeType = 'image/jpeg';
+
+        # Try to detect actual mime type.
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $detected = $finfo->buffer($imageData);
+        if ($detected && strpos($detected, 'image/') === 0) {
+            $mimeType = $detected;
+        }
+
+        $dataUrl = "data:{$mimeType};base64,{$base64}";
+
+        $payload = [
+            'model' => 'gpt-4o-mini',
+            'messages' => [
+                [
+                    'role' => 'user',
+                    'content' => [
+                        [
+                            'type' => 'text',
+                            'text' => 'Does this image contain any people, human figures, hands, arms, legs, or body parts? Answer only YES or NO.'
+                        ],
+                        [
+                            'type' => 'image_url',
+                            'image_url' => [
+                                'url' => $dataUrl,
+                                'detail' => 'low'
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            'max_tokens' => 10
+        ];
+
+        $ch = curl_init(self::OPENAI_API_URL);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => TRUE,
+            CURLOPT_POST => TRUE,
+            CURLOPT_POSTFIELDS => json_encode($payload),
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . OPENAI_API_KEY
+            ],
+            CURLOPT_TIMEOUT => 30
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 200 || !$response) {
+            error_log("OpenAI vision check failed for '$itemName': HTTP $httpCode");
+            return NULL;
+        }
+
+        $data = json_decode($response, TRUE);
+
+        if (!isset($data['choices'][0]['message']['content'])) {
+            error_log("OpenAI vision check failed for '$itemName': unexpected response format");
+            return NULL;
+        }
+
+        $answer = strtoupper(trim($data['choices'][0]['message']['content']));
+        $hasPeople = strpos($answer, 'YES') !== FALSE;
+
+        if ($hasPeople) {
+            error_log("OpenAI safety check: people detected in image for '$itemName'");
+        }
+
+        return $hasPeople;
     }
 }
