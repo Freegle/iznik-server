@@ -224,7 +224,7 @@ function message() {
                                     $m->setPrivate('subject', $item);
                                     $m->setPrivate('fromuser', $fromuser);
                                     $m->setPrivate('textbody', $textbody);
-                                    $m->setPrivate('fromip', Utils::presdef('REMOTE_ADDR', $_SERVER, NULL));
+                                    $m->setPrivate('fromip', Utils::getClientIp() ?: NULL);
 
                                     $availablenow = Utils::presint('availablenow', $_REQUEST, 1);
                                     $m->setPrivate('availableinitially', $availablenow);
