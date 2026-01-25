@@ -381,7 +381,7 @@ function session() {
                     # Don't log in TN users via link login - block IP and send warning email
                     $email = $u->getEmailPreferred();
                     $username = $u->getName();
-                    $ip = $_SERVER['REMOTE_ADDR'];
+                    $ip = Utils::getClientIp();
                     $timestamp = date('Y-m-d H:i:s');
 
                     # Block the IP address
@@ -528,7 +528,7 @@ function session() {
                                 # time on the same crawler, then we would get a report of related users.  This IP
                                 # check prevents that.
                                 $foundip = FALSE;
-                                $ip = $_SERVER['REMOTE_ADDR'];
+                                $ip = Utils::getClientIp();
                                 $loki = Loki::getInstance();
 
                                 foreach ($userlist as $userid) {
