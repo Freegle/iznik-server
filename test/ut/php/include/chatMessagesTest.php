@@ -798,21 +798,27 @@ class chatMessagesTest extends IznikTestCase {
         }
     }
 
-    private function createTestImageWithText($text, $width = 400, $height = 50) {
-        # Create a simple image with text using GD library
+    private function createTestImageWithText($text, $width = NULL, $height = 50) {
+        # Create a simple image with text using GD library.
+        # Auto-calculate width based on text length if not specified.
+        # Font 5 is approximately 9 pixels per character.
+        if ($width === NULL) {
+            $width = max(400, strlen($text) * 10 + 20);
+        }
+
         $image = imagecreate($width, $height);
         $bgColor = imagecolorallocate($image, 255, 255, 255); // White background
         $textColor = imagecolorallocate($image, 0, 0, 0); // Black text
-        
+
         # Add text to image
         imagestring($image, 5, 10, 15, $text, $textColor);
-        
+
         # Capture image data
         ob_start();
         imagepng($image);
         $imageData = ob_get_contents();
         ob_end_clean();
-        
+
         imagedestroy($image);
         return $imageData;
     }
