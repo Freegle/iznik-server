@@ -1092,5 +1092,68 @@ class userAPITest extends IznikAPITestCase {
         $this->assertEquals('Test User', $ret['user']['fullname']);
         $this->assertEquals('Test User', $ret['user']['displayname']);
     }
+
+    public function testChatModStatus() {
+        # A moderator should be able to set chatmodstatus to Moderated or Unmoderated.
+        $this->user->setRole(User::ROLE_MODERATOR, $this->groupid);
+
+        $ret = $this->call('user', 'PATCH', [
+            'id' => $this->uid2,
+            'groupid' => $this->groupid,
+            'chatmodstatus' => User::CHAT_MODSTATUS_UNMODERATED
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+
+        $u2 = User::get($this->dbhr, $this->dbhm, $this->uid2);
+        $this->assertEquals(User::CHAT_MODSTATUS_UNMODERATED, $u2->getPrivate('chatmodstatus'));
+
+        # But a moderator should NOT be able to set chatmodstatus to Fully - only Admin/Support can do that.
+        $ret = $this->call('user', 'PATCH', [
+            'id' => $this->uid2,
+            'groupid' => $this->groupid,
+            'chatmodstatus' => User::CHAT_MODSTATUS_FULLY
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+
+        # Should still be Unmoderated, not Fully.
+        $u2 = User::get($this->dbhr, $this->dbhm, $this->uid2);
+        $this->assertEquals(User::CHAT_MODSTATUS_UNMODERATED, $u2->getPrivate('chatmodstatus'));
+
+        # An Admin should be able to set it to Fully.
+        $this->user->setPrivate('systemrole', User::SYSTEMROLE_ADMIN);
+
+        $ret = $this->call('user', 'PATCH', [
+            'id' => $this->uid2,
+            'groupid' => $this->groupid,
+            'chatmodstatus' => User::CHAT_MODSTATUS_FULLY
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+
+        $u2 = User::get($this->dbhr, $this->dbhm, $this->uid2);
+        $this->assertEquals(User::CHAT_MODSTATUS_FULLY, $u2->getPrivate('chatmodstatus'));
+
+        # Support should also be able to set it to Fully.
+        $this->user->setPrivate('systemrole', User::SYSTEMROLE_SUPPORT);
+
+        $ret = $this->call('user', 'PATCH', [
+            'id' => $this->uid2,
+            'groupid' => $this->groupid,
+            'chatmodstatus' => User::CHAT_MODSTATUS_MODERATED
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+
+        $u2 = User::get($this->dbhr, $this->dbhm, $this->uid2);
+        $this->assertEquals(User::CHAT_MODSTATUS_MODERATED, $u2->getPrivate('chatmodstatus'));
+
+        $ret = $this->call('user', 'PATCH', [
+            'id' => $this->uid2,
+            'groupid' => $this->groupid,
+            'chatmodstatus' => User::CHAT_MODSTATUS_FULLY
+        ]);
+        $this->assertEquals(0, $ret['ret']);
+
+        $u2 = User::get($this->dbhr, $this->dbhm, $this->uid2);
+        $this->assertEquals(User::CHAT_MODSTATUS_FULLY, $u2->getPrivate('chatmodstatus'));
+    }
 }
 

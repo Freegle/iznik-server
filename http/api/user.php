@@ -292,7 +292,11 @@ function user() {
                 }
 
                 if (!is_null($chatmodstatus)) {
-                    $u->setPrivate('chatmodstatus', $chatmodstatus);
+                    # Only Admin/Support can set chatmodstatus to 'Fully' - this is effectively
+                    # a shadow ban where all messages go to mod review.
+                    if ($chatmodstatus !== User::CHAT_MODSTATUS_FULLY || $me->isAdminOrSupport()) {
+                        $u->setPrivate('chatmodstatus', $chatmodstatus);
+                    }
                 }
 
                 $ret = [
