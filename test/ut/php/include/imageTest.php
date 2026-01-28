@@ -179,5 +179,145 @@ class imageTest extends IznikTestCase {
         $this->assertGreaterThan(0, $i->width());
         $this->assertGreaterThan(0, $i->height());
     }
+
+    public function testDuotone() {
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/Tile.jpg');
+        $i = new Image($data);
+
+        $origWidth = $i->width();
+        $origHeight = $i->height();
+
+        // Apply duotone with red to blue gradient.
+        $i->duotone(255, 0, 0, 0, 0, 255);
+
+        // Dimensions should not change.
+        $this->assertEquals($origWidth, $i->width());
+        $this->assertEquals($origHeight, $i->height());
+
+        // Image should still be valid.
+        $output = $i->getData();
+        $this->assertNotNull($output);
+        $this->assertGreaterThan(0, strlen($output));
+
+        // Check that pixels are within the red-blue gradient.
+        // Sample a few pixels to verify they're in the expected color range.
+        $testImg = imagecreatefromstring($output);
+        $this->assertNotFalse($testImg);
+
+        // Sample center pixel.
+        $rgb = imagecolorat($testImg, intval($origWidth / 2), intval($origHeight / 2));
+        $r = ($rgb >> 16) & 0xFF;
+        $g = ($rgb >> 8) & 0xFF;
+        $b = $rgb & 0xFF;
+
+        // Green should be near zero (since our gradient is red to blue).
+        $this->assertLessThan(30, $g);
+
+        // Red and blue should complement each other (r + b should be ~255).
+        $this->assertGreaterThan(200, $r + $b);
+    }
+
+    public function testDuotoneGreen() {
+        $data = file_get_contents(IZNIK_BASE . '/test/ut/php/images/Tile.jpg');
+        $i = new Image($data);
+
+        $origWidth = $i->width();
+        $origHeight = $i->height();
+
+        // Apply standard green duotone.
+        $i->duotoneGreen();
+
+        // Dimensions should not change.
+        $this->assertEquals($origWidth, $i->width());
+        $this->assertEquals($origHeight, $i->height());
+
+        // Image should still be valid.
+        $output = $i->getData();
+        $this->assertNotNull($output);
+        $this->assertGreaterThan(0, strlen($output));
+
+        // Check that pixels are within the green-white gradient.
+        $testImg = imagecreatefromstring($output);
+        $this->assertNotFalse($testImg);
+
+        // Sample center pixel.
+        $rgb = imagecolorat($testImg, intval($origWidth / 2), intval($origHeight / 2));
+        $r = ($rgb >> 16) & 0xFF;
+        $g = ($rgb >> 8) & 0xFF;
+        $b = $rgb & 0xFF;
+
+        // For green duotone (dark green #0D3311 to white #FFFFFF):
+        // - Green component should always be >= red component (since dark green has more G than R).
+        // - Blue should be similar to red (both scale from low to 255).
+        $this->assertGreaterThanOrEqual($r, $g);
+    }
+
+    public function testDuotoneWithInvalidImage() {
+        // Test with invalid image data.
+        $i = new Image('not valid image data');
+
+        // Should not throw.
+        $i->duotone(255, 0, 0, 0, 0, 255);
+
+        // getData should still return NULL.
+        $output = $i->getData();
+        $this->assertNull($output);
+    }
+
+    public function testDuotoneBlackToWhite() {
+        // Create a simple test image with known colors.
+        $testImg = imagecreatetruecolor(10, 10);
+        $black = imagecolorallocate($testImg, 0, 0, 0);
+        $white = imagecolorallocate($testImg, 255, 255, 255);
+        $gray = imagecolorallocate($testImg, 128, 128, 128);
+
+        // Fill with specific colors.
+        imagefilledrectangle($testImg, 0, 0, 3, 9, $black);
+        imagefilledrectangle($testImg, 4, 0, 6, 9, $gray);
+        imagefilledrectangle($testImg, 7, 0, 9, 9, $white);
+
+        // Get image data.
+        ob_start();
+        imagejpeg($testImg, NULL, 100);
+        $data = ob_get_contents();
+        ob_end_clean();
+
+        $i = new Image($data);
+
+        // Apply duotone: black maps to red, white maps to blue.
+        $i->duotone(255, 0, 0, 0, 0, 255);
+
+        $output = $i->getData(100);
+        $resultImg = imagecreatefromstring($output);
+
+        // Check black area (should now be red).
+        $rgb = imagecolorat($resultImg, 1, 5);
+        $r = ($rgb >> 16) & 0xFF;
+        $g = ($rgb >> 8) & 0xFF;
+        $b = $rgb & 0xFF;
+        $this->assertGreaterThan(200, $r);
+        $this->assertLessThan(50, $g);
+        $this->assertLessThan(50, $b);
+
+        // Check white area (should now be blue).
+        $rgb = imagecolorat($resultImg, 8, 5);
+        $r = ($rgb >> 16) & 0xFF;
+        $g = ($rgb >> 8) & 0xFF;
+        $b = $rgb & 0xFF;
+        $this->assertLessThan(50, $r);
+        $this->assertLessThan(50, $g);
+        $this->assertGreaterThan(200, $b);
+
+        // Check gray area (should be purple-ish - mix of red and blue).
+        $rgb = imagecolorat($resultImg, 5, 5);
+        $r = ($rgb >> 16) & 0xFF;
+        $g = ($rgb >> 8) & 0xFF;
+        $b = $rgb & 0xFF;
+        $this->assertGreaterThan(80, $r);
+        $this->assertLessThan(180, $r);
+        $this->assertLessThan(50, $g);
+        $this->assertGreaterThan(80, $b);
+        $this->assertLessThan(180, $b);
+    }
 }
 

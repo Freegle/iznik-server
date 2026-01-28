@@ -680,8 +680,9 @@ class Attachment {
         $data = file_get_contents($url);
 
         $client = new Client(GOOGLE_GEMINI_API_KEY);
+        $model = GeminiHelper::getBestFlashModel('lite');
         $response = $client->withV1BetaVersion()
-            ->generativeModel('gemini-2.0-flash-lite')
+            ->generativeModel($model)
             ->withSystemInstruction(
                 'Identify the primary item in each image. ' .
                 'All items in images are likely to be second-hand household items.' .

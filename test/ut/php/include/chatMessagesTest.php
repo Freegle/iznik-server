@@ -75,6 +75,45 @@ class chatMessagesTest extends IznikTestCase {
 
         }
 
+    public function testPipeCharacterPreserved() {
+        # Test that pipe characters in messages are not stripped.
+        # Pipe characters should only be stripped when they appear at the
+        # START of a line (email quote convention), not in the middle of text.
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $id = $r->createGroupChat('test', $this->groupid);
+        $this->assertNotNull($id);
+
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+
+        # Test pipe character in middle of text - should be preserved
+        $messageWithPipe = 'I want a chest|upright, size and colour';
+        list ($mid, $banned) = $m->create($id, $this->uid, $messageWithPipe);
+        $this->assertNotNull($mid);
+
+        $atts = $m->getPublic();
+        $this->assertEquals($messageWithPipe, $atts['message'], 'Pipe character in middle of text should be preserved');
+
+        # Test multiple pipes in text - should all be preserved
+        $m2 = new ChatMessage($this->dbhr, $this->dbhm);
+        $messageWithMultiplePipes = 'Options: A|B|C|D';
+        list ($mid2, $banned) = $m2->create($id, $this->uid, $messageWithMultiplePipes);
+        $this->assertNotNull($mid2);
+
+        $atts2 = $m2->getPublic();
+        $this->assertEquals($messageWithMultiplePipes, $atts2['message'], 'Multiple pipes should be preserved');
+
+        # Test pipe at start of line (email quote) - should be stripped
+        $m3 = new ChatMessage($this->dbhr, $this->dbhm);
+        $messageWithQuote = "My reply\n| This is a quoted line";
+        list ($mid3, $banned) = $m3->create($id, $this->uid, $messageWithQuote);
+        $this->assertNotNull($mid3);
+
+        $atts3 = $m3->getPublic();
+        $this->assertEquals("My reply", $atts3['message'], 'Pipe at start of line (quote) should be stripped');
+
+        $this->assertEquals(1, $r->delete());
+    }
+
     public function testSpamReply() {
         # Put a valid message on a group.
         $this->log("Put valid message on");
@@ -467,6 +506,24 @@ class chatMessagesTest extends IznikTestCase {
         $this->assertNull($m->checkReview("something in butt rd"));
     }
 
+    public function testNoReplyEmailNotFlagged() {
+        # noreply@ilovefreegle.org should NOT trigger review - it's a system address
+        # that appears in automated emails. See Spam::checkReview email detection.
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+
+        # External email should trigger review
+        $this->assertEquals(ChatMessage::REVIEW_SPAM, $m->checkReview("Test email@external.com email"));
+
+        # USER_DOMAIN email should NOT trigger review
+        $this->assertNull($m->checkReview("Test email@" . USER_DOMAIN . " email"));
+
+        # NOREPLY_ADDR should NOT trigger review (this is the bug fix)
+        $this->assertNull($m->checkReview("Test " . NOREPLY_ADDR . " email"));
+
+        # But noreply at external domains SHOULD still trigger review (security check)
+        $this->assertEquals(ChatMessage::REVIEW_SPAM, $m->checkReview("Test noreply@evil.com email"));
+    }
+
     public function testCheckSpam() {
         $m = new ChatMessage($this->dbhr, $this->dbhm);
 
@@ -741,21 +798,27 @@ class chatMessagesTest extends IznikTestCase {
         }
     }
 
-    private function createTestImageWithText($text, $width = 400, $height = 50) {
-        # Create a simple image with text using GD library
+    private function createTestImageWithText($text, $width = NULL, $height = 50) {
+        # Create a simple image with text using GD library.
+        # Auto-calculate width based on text length if not specified.
+        # Font 5 is approximately 9 pixels per character.
+        if ($width === NULL) {
+            $width = max(400, strlen($text) * 10 + 20);
+        }
+
         $image = imagecreate($width, $height);
         $bgColor = imagecolorallocate($image, 255, 255, 255); // White background
         $textColor = imagecolorallocate($image, 0, 0, 0); // Black text
-        
+
         # Add text to image
         imagestring($image, 5, 10, 15, $text, $textColor);
-        
+
         # Capture image data
         ob_start();
         imagepng($image);
         $imageData = ob_get_contents();
         ob_end_clean();
-        
+
         imagedestroy($image);
         return $imageData;
     }

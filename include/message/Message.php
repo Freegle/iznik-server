@@ -2132,7 +2132,7 @@ ORDER BY lastdate DESC;";
         $rc = $this->dbhm->preExec("INSERT INTO messages (source, sourceheader, date, fromip, message) VALUES(?,?, NOW(), ?, '');", [
             Message::PLATFORM,
             $sourceheader,
-            Utils::presdef('REMOTE_ADDR', $_SERVER, NULL)
+            Utils::getClientIp() ?: NULL
         ]);
 
         $id = $rc ? $this->dbhm->lastInsertId() : NULL;
@@ -4308,7 +4308,7 @@ ORDER BY lastdate DESC;";
             $this->dbhm->preExec("DELETE FROM messages_outcomes_intended WHERE msgid = ?;", [ $this-> id ]);
 
             # The from IP and country.
-            $ip = Utils::presdef('REMOTE_ADDR', $_SERVER, NULL);
+            $ip = Utils::getClientIp() ?: NULL;
 
             if ($ip) {
                 $this->setPrivate('fromip', $ip);

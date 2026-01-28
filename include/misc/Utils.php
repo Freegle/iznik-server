@@ -676,4 +676,36 @@ class Utils {
             $str
         );
     }
+
+    /**
+     * Get the real client IP address, checking proxy headers first.
+     *
+     * When behind a load balancer or reverse proxy (HAProxy, Traefik, nginx),
+     * the REMOTE_ADDR will be the proxy's IP. The real client IP is passed
+     * in headers like X-Forwarded-For or X-Real-IP.
+     *
+     * @return string The client IP address
+     */
+    public static function getClientIp() {
+        // X-Forwarded-For can contain multiple IPs: "client, proxy1, proxy2"
+        // The first IP is the original client.
+        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+            $clientIp = trim($ips[0]);
+            if (filter_var($clientIp, FILTER_VALIDATE_IP)) {
+                return $clientIp;
+            }
+        }
+
+        // X-Real-IP is typically set by nginx to the real client IP.
+        if (!empty($_SERVER['HTTP_X_REAL_IP'])) {
+            $clientIp = trim($_SERVER['HTTP_X_REAL_IP']);
+            if (filter_var($clientIp, FILTER_VALIDATE_IP)) {
+                return $clientIp;
+            }
+        }
+
+        // Fall back to REMOTE_ADDR.
+        return Utils::presdef('REMOTE_ADDR', $_SERVER, '');
+    }
 }

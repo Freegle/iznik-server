@@ -34,7 +34,7 @@ class API
     {
         global $dbhr, $dbhm;
 
-        $ip = Utils::presdef('REMOTE_ADDR', $_SERVER, '');
+        $ip = Utils::getClientIp();
 
         if (file_exists("/tmp/noheaders-$ip")) {
             echo json_encode(array('ret' => 1, 'status' => 'Not  logged in'));
@@ -97,7 +97,7 @@ class API
         // @codeCoverageIgnoreEnd
 
         # Check if IP is blocked
-        $ip = Utils::presdef('REMOTE_ADDR', $_SERVER, '');
+        $ip = Utils::getClientIp();
         $ipBlocker = new IPBlocker($dbhr, $dbhm);
 
         if ($ipBlocker->isBlocked($ip)) {
@@ -113,11 +113,6 @@ class API
         # All API calls come through here.
         #error_log("Request " . var_export($_REQUEST, TRUE));
         #error_log("Server " . var_export($_SERVER, TRUE));
-
-        if (Utils::pres('HTTP_X_REAL_IP', $_SERVER)) {
-            # We jump through hoops to get the real IP address. This is one of them.
-            $_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_X_REAL_IP'];
-        }
 
         if (array_key_exists('model', $_REQUEST)) {
             # Used by Backbone's emulateJSON to work around servers which don't handle requests encoded as
@@ -168,7 +163,7 @@ class API
                     # Check that we're not posting from a blocked country.
                     try {
                         $reader = new Reader(MMDB);
-                        $ip = Utils::presdef('REMOTE_ADDR', $_SERVER, null);
+                        $ip = Utils::getClientIp();
 
                         if ($ip) {
                             $record = $reader->country($ip);
@@ -202,7 +197,7 @@ class API
                     $reqData['call'] = preg_replace('/(\?|&)requestid=[0-9]+?/', '', $reqData['call']);
                     $url = preg_replace('/(\?|&)requestid=[0-9]+?/', '', $_SERVER['REQUEST_URI']);
                     $req = $url . serialize($reqData);
-                    $ip = Utils::presdef('REMOTE_ADDR', $_SERVER, NULL);
+                    $ip = Utils::getClientIp();
                     $lockkey = "POST_LOCK_$ip";
                     $datakey = "POST_DATA_$ip";
                     $uid = uniqid('', TRUE);
@@ -584,7 +579,7 @@ class API
                 'statusCode' => Utils::presdef('ret', $ret, 0),
                 'duration' => (microtime(TRUE) - $scriptstart) * 1000, // ms
                 'userId' => session_status() !== PHP_SESSION_NONE ? Utils::presdef('id', $_SESSION, NULL) : NULL,
-                'ip' => Utils::presdef('REMOTE_ADDR', $_SERVER, ''),
+                'ip' => Utils::getClientIp(),
                 'queryParams' => $_GET,
                 'requestBody' => Utils::presdef('type', $_REQUEST, 'GET') === 'POST' ? $_POST : [],
                 'responseBody' => is_array($ret) ? $ret : [],

@@ -1282,8 +1282,8 @@ WHERE chat_rooms.id IN $idlist;";
             [
                 $this->id,
                 $userid,
-                $userid == $myid ? Utils::presdef('REMOTE_ADDR', $_SERVER, NULL) : NULL,
-                $userid == $myid ? Utils::presdef('REMOTE_ADDR', $_SERVER, NULL) : NULL,
+                $userid == $myid ? (Utils::getClientIp() ?: NULL) : NULL,
+                $userid == $myid ? (Utils::getClientIp() ?: NULL) : NULL,
             ],
             FALSE);
 
