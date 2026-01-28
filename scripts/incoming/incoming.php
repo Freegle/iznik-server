@@ -104,8 +104,11 @@ function saveIncomingArchive($dbhr, $envfrom, $envto, $rawEmail, $routingOutcome
 
     if ($messageId) {
         # Query the message to get additional details
-        $msg = $dbhr->preQuery("SELECT fromuser, groupid, spamtype, spamreason, subject, fromaddr
-                                FROM messages WHERE id = ?", [$messageId]);
+        # groupid is in messages_groups, not messages
+        $msg = $dbhr->preQuery("SELECT m.fromuser, mg.groupid, m.spamtype, m.spamreason, m.subject, m.fromaddr
+                                FROM messages m
+                                LEFT JOIN messages_groups mg ON mg.msgid = m.id
+                                WHERE m.id = ?", [$messageId]);
         if (count($msg) > 0) {
             $userId = $msg[0]['fromuser'];
             $groupId = $msg[0]['groupid'];
