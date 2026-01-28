@@ -101,6 +101,10 @@ function saveIncomingArchive($dbhr, $envfrom, $envto, $rawEmail, $routingOutcome
     $spamReason = NULL;
     $subject = NULL;
     $fromAddress = NULL;
+    $ourPostingStatus = NULL;
+    $membershipRole = NULL;
+    $groupModerated = NULL;
+    $overrideModeration = NULL;
 
     if ($messageId) {
         # Query the message to get additional details
@@ -116,11 +120,29 @@ function saveIncomingArchive($dbhr, $envfrom, $envto, $rawEmail, $routingOutcome
             $spamReason = $msg[0]['spamreason'];
             $subject = $msg[0]['subject'];
             $fromAddress = $msg[0]['fromaddr'];
+
+            # Capture membership and group state at routing time for shadow testing diagnostics.
+            # These values can change after routing (e.g. moderator changes posting status),
+            # so capturing them now avoids ambiguity when comparing with new code.
+            if ($userId && $groupId) {
+                $memb = $dbhr->preQuery("SELECT ourPostingStatus, role FROM memberships WHERE userid = ? AND groupid = ?", [$userId, $groupId]);
+                if (count($memb) > 0) {
+                    $ourPostingStatus = $memb[0]['ourPostingStatus'];
+                    $membershipRole = $memb[0]['role'];
+                }
+
+                $grp = $dbhr->preQuery("SELECT settings, overridemoderation FROM `groups` WHERE id = ?", [$groupId]);
+                if (count($grp) > 0) {
+                    $settings = json_decode($grp[0]['settings'], TRUE);
+                    $groupModerated = isset($settings['moderated']) ? (bool)$settings['moderated'] : NULL;
+                    $overrideModeration = $grp[0]['overridemoderation'];
+                }
+            }
         }
     }
 
     $archive = [
-        'version' => 1,
+        'version' => 2,
         'timestamp' => gmdate('Y-m-d\TH:i:s\Z'),
         'envelope' => [
             'from' => $envfrom,
@@ -136,6 +158,10 @@ function saveIncomingArchive($dbhr, $envfrom, $envto, $rawEmail, $routingOutcome
             'spam_reason' => $spamReason,
             'subject' => $subject,
             'from_address' => $fromAddress,
+            'our_posting_status' => $ourPostingStatus,
+            'membership_role' => $membershipRole,
+            'group_moderated' => $groupModerated,
+            'override_moderation' => $overrideModeration,
         ],
     ];
 
