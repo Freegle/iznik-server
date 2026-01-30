@@ -88,7 +88,7 @@ class ReachVolunteeringTest extends IznikTestCase {
         
         $opportunity = $result[0];
         $this->assertEquals('Test Volunteer Role', $opportunity['title']);
-        $this->assertEquals('Test description for volunteer role', $opportunity['description']);
+        $this->assertEquals("Posted by Test Organisation.\n\nTest description for volunteer role", $opportunity['description']);
         $this->assertEquals('https://test.example.com/apply', $opportunity['contacturl']);
         $this->assertEquals('Test Location EH3 6SS', $opportunity['location']);
         $this->assertEquals('Test other details', $opportunity['timecommitment']);
@@ -125,9 +125,9 @@ class ReachVolunteeringTest extends IznikTestCase {
         
         $opportunity = $result[0];
         $this->assertEquals('Test New Format Role', $opportunity['title']);
-        $this->assertEquals('Test new description for volunteer role', $opportunity['description']);
+        $this->assertEquals("Posted by Test New Organisation.\n\nTest new description for volunteer role", $opportunity['description']);
         $this->assertEquals('https://test-new.example.com/apply', $opportunity['contacturl']);
-        $this->assertEquals('Test Town, EH3 6SS, United Kingdom', $opportunity['location']);
+        $this->assertEquals('Test Town, EH3 6SS', $opportunity['location']);
         $this->assertEquals('Test new other details', $opportunity['timecommitment']);
     }
 
@@ -261,13 +261,13 @@ class ReachVolunteeringTest extends IznikTestCase {
         // Check first opportunity (garden)
         $garden = $results[1]; // reach-test-garden-123 comes second alphabetically
         $this->assertEquals('Community Garden Volunteer', $garden['title']);
-        $this->assertEquals('Edinburgh EH3 6SS, United Kingdom', $garden['location']);
+        $this->assertEquals('Edinburgh EH3 6SS', $garden['location']);
         $this->assertEquals('https://example.com/volunteer/garden-123', $garden['contacturl']);
-        
+
         // Check second opportunity (digital)
-        $digital = $results[0]; // reach-test-digital-456 comes first alphabetically  
+        $digital = $results[0]; // reach-test-digital-456 comes first alphabetically
         $this->assertEquals('Digital Skills Trainer', $digital['title']);
-        $this->assertEquals('Edinburgh EH3 6SS, United Kingdom', $garden['location']);
+        $this->assertEquals('Edinburgh EH3 6SS', $digital['location']);
         $this->assertEquals('https://example.com/volunteer/digital-456', $digital['contacturl']);
     }
 
@@ -302,7 +302,9 @@ class ReachVolunteeringTest extends IznikTestCase {
             if (preg_match(Utils::POSTCODE_PATTERN, $location)) {
                 // Should be created if valid postcode found
                 $this->assertEquals(1, count($result), "Location '$location' should have been processed");
-                $this->assertEquals($location, $result[0]['location'], "Location should match exactly");
+                // Country suffix is stripped by processFeed
+                $expectedLocation = preg_replace('/,\s*(United Kingdom|UK|England|Scotland|Wales|Northern Ireland)\s*$/i', '', $location);
+                $this->assertEquals($expectedLocation, $result[0]['location'], "Location should match with country stripped");
             } else {
                 // Should be skipped if no valid postcode
                 $this->assertEquals(0, count($result), "Location '$location' should have been skipped (no valid postcode)");
