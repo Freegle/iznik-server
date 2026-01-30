@@ -125,7 +125,13 @@ class ReachVolunteering {
                         $html = new \Html2Text\Html2Text($descriptionRaw);
                         $description = $html->getText();
 
-                        $location = $loc;
+                        $organisation = Utils::presdef($fieldMap['organisation'], $opp, NULL);
+                        if ($organisation) {
+                            $description = "Posted by $organisation.\n\n" . $description;
+                        }
+
+                        # Strip country suffix from location (e.g. ", United Kingdom")
+                        $location = preg_replace('/,\s*(United Kingdom|UK|England|Scotland|Wales|Northern Ireland)\s*$/i', '', $loc);
                         $commitment = Utils::presdef($fieldMap['other_details'], $opp, NULL);
 
                         if (count($existing)) {
