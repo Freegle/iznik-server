@@ -11,6 +11,532 @@ class Pollinations {
     # Track hashes we've seen in this process, keyed by hash => prompt.
     private static $seenHashes = [];
 
+    /**
+     * Canonical job categories mapped to their iconic object for image generation.
+     * Each key is a canonical job title, value is the object to illustrate.
+     */
+    const CANONICAL_JOBS = [
+        'Accountant' => 'calculator',
+        'Account Manager' => 'briefcase',
+        'Activities Coordinator' => 'clipboard',
+        'Administrator' => 'filing cabinet',
+        'Architect' => 'blueprint',
+        'Area Manager' => 'map with pins',
+        'Assistant Manager' => 'name badge',
+        'Bartender' => 'cocktail shaker',
+        'Bid Manager' => 'sealed envelope',
+        'Bookkeeper' => 'ledger book',
+        'Branch Manager' => 'desk nameplate',
+        'Bricklayer' => 'brick trowel',
+        'Building Inspector' => 'spirit level',
+        'Building Surveyor' => 'theodolite',
+        'Bus Driver' => 'steering wheel',
+        'Business Analyst' => 'flowchart diagram',
+        'Business Development Manager' => 'handshake icon',
+        'Buyer' => 'purchase order',
+        'CAD Technician' => 'technical drawing',
+        'Care Assistant' => 'stethoscope',
+        'Care Coordinator' => 'care plan folder',
+        'Care Worker' => 'medical gloves',
+        'Carpenter' => 'wood plane',
+        'Cashier' => 'cash register',
+        'Catering Assistant' => 'serving tray',
+        'Chef' => 'chef hat',
+        'Cleaner' => 'mop and bucket',
+        'Clinical Assessor' => 'medical clipboard',
+        'CNC Machinist' => 'CNC milling machine',
+        'Communications Engineer' => 'satellite dish',
+        'Compliance Officer' => 'checklist on clipboard',
+        'Construction Manager' => 'hard hat',
+        'Contracts Manager' => 'signed contract',
+        'Cook' => 'saucepan',
+        'Counsellor' => 'comfortable armchair',
+        'Credit Controller' => 'invoice stamp',
+        'Customer Service Advisor' => 'headset',
+        'Data Analyst' => 'bar chart',
+        'Data Architect' => 'database server',
+        'Data Engineer' => 'data pipeline diagram',
+        'Delivery Driver' => 'delivery van',
+        'Dental Nurse' => 'dental mirror',
+        'Deputy Manager' => 'deputy badge',
+        'Design Engineer' => 'engineering compass',
+        'Design Manager' => 'design palette',
+        'Digital Marketing Executive' => 'computer screen with analytics',
+        'Document Controller' => 'document folder',
+        'Door Canvasser' => 'clipboard with petition',
+        'Ecologist' => 'binoculars',
+        'Electrical Engineer' => 'circuit board',
+        'Electrician' => 'wire strippers',
+        'Embedded Software Engineer' => 'microchip',
+        'Engineering Apprentice' => 'spanner set',
+        'Estimator' => 'measuring tape and calculator',
+        'Factory Operative' => 'conveyor belt',
+        'Female Support Worker' => 'support badge',
+        'Field Sales Representative' => 'sales sample case',
+        'Field Service Engineer' => 'tool bag',
+        'Finance Assistant' => 'spreadsheet printout',
+        'Finance Business Partner' => 'financial report',
+        'Finance Manager' => 'balance sheet',
+        'Financial Controller' => 'accounting ledger',
+        'Forklift Driver' => 'forklift',
+        'Fundraiser' => 'collection tin',
+        'Gas Engineer' => 'gas boiler',
+        'General Manager' => 'office desk',
+        'Groundworker' => 'shovel',
+        'Head of Finance' => 'financial dashboard',
+        'Head of Marketing' => 'megaphone',
+        'Healthcare Assistant' => 'blood pressure monitor',
+        'HGV Class 1 Driver' => 'articulated lorry',
+        'HGV Class 2 Driver' => 'rigid lorry',
+        'HGV Technician' => 'truck engine',
+        'Home Manager' => 'care home building',
+        'Housekeeper' => 'vacuum cleaner',
+        'HR Advisor' => 'employee handbook',
+        'HR Business Partner' => 'HR policy document',
+        'Installer' => 'power drill',
+        'IT Support' => 'computer keyboard',
+        'IT Apprentice' => 'laptop computer',
+        'Kitchen Assistant' => 'kitchen knife set',
+        'Kitchen Designer' => 'kitchen floor plan',
+        'Labourer' => 'wheelbarrow',
+        'Lecturer' => 'lectern',
+        'Legal Secretary' => 'legal documents',
+        'Lifeguard' => 'lifeguard float',
+        'Machine Learning Engineer' => 'neural network diagram',
+        'Machine Operator' => 'industrial machine',
+        'Maintenance Electrician' => 'multimeter',
+        'Maintenance Engineer' => 'wrench and gears',
+        'Maintenance Manager' => 'maintenance toolkit',
+        'Maintenance Technician' => 'toolbox',
+        'Management Accountant' => 'financial spreadsheet',
+        'Manufacturing Engineer' => 'factory robot arm',
+        'Marketing Manager' => 'marketing campaign board',
+        'Maths Teacher' => 'protractor and compass',
+        'Mechanical Design Engineer' => 'mechanical gear drawing',
+        'Mechanical Engineer' => 'mechanical gears',
+        'Mechanical Fitter' => 'pipe wrench',
+        'Mechanic' => 'car jack',
+        'Mobile Tyre Fitter' => 'tyre and wheel',
+        'Mortgage Advisor' => 'house keys',
+        'Multi Trade Operative' => 'multi-tool',
+        'Nursery Manager' => 'toy building blocks',
+        'Nursery Practitioner' => 'childrens storybook',
+        'Nurse' => 'nurses cap',
+        'Operations Manager' => 'operations dashboard',
+        'Painter' => 'paint roller',
+        'Parts Advisor' => 'car parts catalogue',
+        'Passenger Assistant' => 'bus ticket machine',
+        'Payroll Administrator' => 'payslip',
+        'Payroll Specialist' => 'payroll software screen',
+        'Personal Advisor' => 'advisory notepad',
+        'Planning Officer' => 'town plan',
+        'Plasterer' => 'plastering trowel',
+        'Plumber' => 'pipe wrench and pipes',
+        'Primary Teacher' => 'school bell',
+        'Production Manager' => 'production line',
+        'Production Operative' => 'assembly line component',
+        'Production Supervisor' => 'quality control gauge',
+        'Project Engineer' => 'project gantt chart',
+        'Project Manager' => 'project plan board',
+        'Property Manager' => 'set of property keys',
+        'Quality Engineer' => 'caliper gauge',
+        'Quality Inspector' => 'magnifying glass',
+        'Quality Manager' => 'quality certificate',
+        'Quantity Surveyor' => 'measuring tape and blueprints',
+        'Reach Truck Driver' => 'reach truck',
+        'Receptionist' => 'reception desk bell',
+        'Recruitment Consultant' => 'CV document',
+        'Refrigeration Engineer' => 'refrigeration unit',
+        'Regional Sales Manager' => 'sales territory map',
+        'Registered Manager' => 'care home registration certificate',
+        'Research Associate' => 'microscope',
+        'Residential Support Worker' => 'house key with lanyard',
+        'Restaurant Team Member' => 'restaurant order pad',
+        'Roofer' => 'roofing hammer',
+        'Rough Sleeping Outreach Worker' => 'sleeping bag',
+        'Sales Administrator' => 'sales order form',
+        'Sales Advisor' => 'price tag',
+        'Sales Consultant' => 'sales presentation',
+        'Sales Engineer' => 'technical sales brochure',
+        'Sales Executive' => 'business card',
+        'Sales Manager' => 'sales trophy',
+        'Sales Representative' => 'product sample kit',
+        'Scaffolder' => 'scaffolding poles',
+        'School Crossing Patrol' => 'lollipop stop sign',
+        'Science Teacher' => 'laboratory flask',
+        'Security Officer' => 'security badge',
+        'SEN Teacher' => 'special education resource kit',
+        'Senior Care Assistant' => 'medication trolley',
+        'Service Advisor' => 'service desk terminal',
+        'Service Engineer' => 'service toolbox',
+        'Service Manager' => 'service level agreement',
+        'Shift Engineer' => 'shift rota board',
+        'Shift Leader' => 'team leader whistle',
+        'Site Manager' => 'site plan',
+        'Social Worker' => 'case file folder',
+        'Software Engineer' => 'computer code on screen',
+        'Solution Architect' => 'architecture diagram',
+        'Store Manager' => 'retail shop front',
+        'Structural Engineer' => 'structural beam drawing',
+        'Supervisor' => 'supervisor clipboard',
+        'Supply Teacher' => 'classroom whiteboard',
+        'Support Worker' => 'support lanyard badge',
+        'Teaching Assistant' => 'school exercise book',
+        'Team Leader' => 'team whiteboard',
+        'Technical Author' => 'technical manual',
+        'Tiler' => 'tile cutter',
+        'Transport Manager' => 'fleet management board',
+        'Transport Planner' => 'route map',
+        'Van Driver' => 'white van',
+        'Vehicle Technician' => 'car diagnostic tool',
+        'Warehouse Operative' => 'pallet of boxes',
+        'Welder' => 'welding mask',
+        'Window Installer' => 'window frame',
+        'Workshop Controller' => 'workshop job board',
+        'Workshop Technician' => 'workshop bench',
+    ];
+
+    /**
+     * Keyword patterns for mapping job titles to canonical categories.
+     * Each entry: [patterns, canonical_title]
+     * patterns is an array of keyword sets - if ALL keywords in any set are found, it matches.
+     * Checked in order; first match wins. More specific patterns should come first.
+     */
+    const JOB_KEYWORD_MAP = [
+        # Driving - specific first
+        [['hgv', 'class 1'], 'HGV Class 1 Driver'],
+        [['hgv', 'class 2'], 'HGV Class 2 Driver'],
+        [['class 1'], 'HGV Class 1 Driver'],
+        [['class 2'], 'HGV Class 2 Driver'],
+        [['7.5t'], 'Delivery Driver'],
+        [['7.5 tonne'], 'Delivery Driver'],
+        [['delivery driver'], 'Delivery Driver'],
+        [['hgv driver'], 'HGV Class 1 Driver'],
+        [['hgv technician'], 'HGV Technician'],
+        [['van driver'], 'Van Driver'],
+        [['bus driver'], 'Bus Driver'],
+        [['trade plate driver'], 'Van Driver'],
+        [['forklift'], 'Forklift Driver'],
+        [['flt driver'], 'Forklift Driver'],
+        [['reach truck'], 'Reach Truck Driver'],
+        [['driver rep'], 'Delivery Driver'],
+
+        # Engineering - specific first
+        [['embedded software'], 'Embedded Software Engineer'],
+        [['machine learning'], 'Machine Learning Engineer'],
+        [['software engineer'], 'Software Engineer'],
+        [['solution architect'], 'Solution Architect'],
+        [['data architect'], 'Data Architect'],
+        [['data engineer'], 'Data Engineer'],
+        [['data analyst'], 'Data Analyst'],
+        [['electrical design'], 'Electrical Engineer'],
+        [['mechanical design'], 'Mechanical Design Engineer'],
+        [['structural engineer'], 'Structural Engineer'],
+        [['electrical engineer'], 'Electrical Engineer'],
+        [['mechanical engineer'], 'Mechanical Engineer'],
+        [['communications engineer'], 'Communications Engineer'],
+        [['refrigeration engineer'], 'Refrigeration Engineer'],
+        [['field service engineer'], 'Field Service Engineer'],
+        [['service engineer'], 'Service Engineer'],
+        [['shift engineer'], 'Shift Engineer'],
+        [['gas engineer'], 'Gas Engineer'],
+        [['project engineer'], 'Project Engineer'],
+        [['design engineer'], 'Design Engineer'],
+        [['manufacturing engineer'], 'Manufacturing Engineer'],
+        [['quality engineer'], 'Quality Engineer'],
+        [['sales engineer'], 'Sales Engineer'],
+        [['automation engineer'], 'Mechanical Engineer'],
+        [['battery', 'engineer'], 'Electrical Engineer'],
+        [['multi skilled', 'engineer'], 'Maintenance Engineer'],
+        [['multi-skilled', 'engineer'], 'Maintenance Engineer'],
+        [['maintenance engineer'], 'Maintenance Engineer'],
+        [['maintenance technician'], 'Maintenance Technician'],
+        [['maintenance electrician'], 'Maintenance Electrician'],
+        [['shift technician'], 'Maintenance Technician'],
+        [['electrical technician'], 'Electrical Engineer'],
+        [['mechanical technician'], 'Mechanical Engineer'],
+
+        # Construction & trades
+        [['quantity surveyor'], 'Quantity Surveyor'],
+        [['building surveyor'], 'Building Surveyor'],
+        [['building inspector'], 'Building Inspector'],
+        [['site manager'], 'Site Manager'],
+        [['construction', 'manager'], 'Construction Manager'],
+        [['contracts manager'], 'Contracts Manager'],
+        [['groundworker'], 'Groundworker'],
+        [['scaffolder'], 'Scaffolder'],
+        [['bricklayer'], 'Bricklayer'],
+        [['plasterer'], 'Plasterer'],
+        [['roofer'], 'Roofer'],
+        [['tiler'], 'Tiler'],
+        [['painter', 'decorator'], 'Painter'],
+        [['paint sprayer'], 'Painter'],
+        [['window', 'door', 'installer'], 'Window Installer'],
+        [['window', 'installer'], 'Window Installer'],
+        [['carpenter'], 'Carpenter'],
+        [['multi trade'], 'Multi Trade Operative'],
+        [['labourer'], 'Labourer'],
+        [['cscs'], 'Labourer'],
+
+        # Welding & machining
+        [['cnc'], 'CNC Machinist'],
+        [['tig welder'], 'Welder'],
+        [['welder'], 'Welder'],
+        [['fabricator'], 'Welder'],
+        [['machine operator'], 'Machine Operator'],
+
+        # Healthcare & care
+        [['registered nurse'], 'Nurse'],
+        [['dental nurse'], 'Dental Nurse'],
+        [['nurse'], 'Nurse'],
+        [['complex care'], 'Care Assistant'],
+        [['care assistant'], 'Care Assistant'],
+        [['care worker'], 'Care Worker'],
+        [['care coordinator'], 'Care Coordinator'],
+        [['care team leader'], 'Senior Care Assistant'],
+        [['senior care'], 'Senior Care Assistant'],
+        [['healthcare assistant'], 'Healthcare Assistant'],
+        [['clinical assessor'], 'Clinical Assessor'],
+        [['functional assessor'], 'Clinical Assessor'],
+        [['support worker'], 'Support Worker'],
+        [['residential', 'support'], 'Residential Support Worker'],
+        [['outreach worker'], 'Rough Sleeping Outreach Worker'],
+
+        # Social work
+        [['social worker'], 'Social Worker'],
+        [['personal advisor'], 'Personal Advisor'],
+
+        # Education
+        [['teaching assistant'], 'Teaching Assistant'],
+        [['sen teacher'], 'SEN Teacher'],
+        [['sen teaching'], 'Teaching Assistant'],
+        [['supply teacher'], 'Supply Teacher'],
+        [['primary teacher'], 'Primary Teacher'],
+        [['english teacher'], 'Primary Teacher'],
+        [['maths teacher'], 'Maths Teacher'],
+        [['science teacher'], 'Science Teacher'],
+        [['lecturer'], 'Lecturer'],
+        [['headteacher'], 'Primary Teacher'],
+        [['head of construction'], 'Lecturer'],
+        [['cover supervisor'], 'Teaching Assistant'],
+        [['learning support'], 'Teaching Assistant'],
+        [['behaviour mentor'], 'Teaching Assistant'],
+
+        # Sales - specific first
+        [['field sales'], 'Field Sales Representative'],
+        [['door to door'], 'Door Canvasser'],
+        [['canvasser'], 'Door Canvasser'],
+        [['car sales'], 'Sales Executive'],
+        [['sales engineer'], 'Sales Engineer'],
+        [['regional sales'], 'Regional Sales Manager'],
+        [['area sales'], 'Regional Sales Manager'],
+        [['sales manager'], 'Sales Manager'],
+        [['sales director'], 'Sales Manager'],
+        [['sales consultant'], 'Sales Consultant'],
+        [['sales advisor'], 'Sales Advisor'],
+        [['sales executive'], 'Sales Executive'],
+        [['sales administrator'], 'Sales Administrator'],
+        [['sales representative'], 'Sales Representative'],
+        [['business development'], 'Business Development Manager'],
+        [['account manager'], 'Account Manager'],
+        [['key account'], 'Account Manager'],
+        [['customer account'], 'Account Manager'],
+
+        # Management
+        [['general manager'], 'General Manager'],
+        [['operations manager'], 'Operations Manager'],
+        [['area manager'], 'Area Manager'],
+        [['deputy manager'], 'Deputy Manager'],
+        [['assistant manager'], 'Assistant Manager'],
+        [['store manager'], 'Store Manager'],
+        [['assistant store'], 'Assistant Manager'],
+        [['branch manager'], 'Branch Manager'],
+        [['home manager'], 'Home Manager'],
+        [['registered manager'], 'Registered Manager'],
+        [['nursery manager'], 'Nursery Manager'],
+        [['property manager'], 'Property Manager'],
+        [['project manager'], 'Project Manager'],
+        [['design manager'], 'Design Manager'],
+        [['marketing manager'], 'Marketing Manager'],
+        [['finance manager'], 'Finance Manager'],
+        [['transport manager'], 'Transport Manager'],
+        [['maintenance manager'], 'Maintenance Manager'],
+        [['production manager'], 'Production Manager'],
+        [['service manager'], 'Service Manager'],
+        [['aftersales manager'], 'General Manager'],
+        [['bid manager'], 'Bid Manager'],
+        [['commercial manager'], 'Contracts Manager'],
+
+        # Finance & accounting
+        [['financial controller'], 'Financial Controller'],
+        [['management accountant'], 'Management Accountant'],
+        [['finance business partner'], 'Finance Business Partner'],
+        [['head of finance'], 'Head of Finance'],
+        [['credit controller'], 'Credit Controller'],
+        [['accountant'], 'Accountant'],
+        [['accounts assistant'], 'Finance Assistant'],
+        [['finance assistant'], 'Finance Assistant'],
+        [['payroll specialist'], 'Payroll Specialist'],
+        [['payroll administrator'], 'Payroll Administrator'],
+        [['payroll'], 'Payroll Administrator'],
+        [['estimator'], 'Estimator'],
+        [['buyer'], 'Buyer'],
+        [['mortgage'], 'Mortgage Advisor'],
+
+        # HR
+        [['hr business partner'], 'HR Business Partner'],
+        [['hr advisor'], 'HR Advisor'],
+        [['hr manager'], 'HR Advisor'],
+        [['recruitment consultant'], 'Recruitment Consultant'],
+        [['trainee recruitment'], 'Recruitment Consultant'],
+        [['job coach'], 'Recruitment Consultant'],
+
+        # Customer service
+        [['customer service'], 'Customer Service Advisor'],
+        [['customer relations'], 'Customer Service Advisor'],
+        [['receptionist'], 'Receptionist'],
+        [['helpdesk'], 'Receptionist'],
+
+        # IT
+        [['it apprentice'], 'IT Apprentice'],
+        [['it support'], 'IT Support'],
+        [['cyber security'], 'IT Support'],
+        [['technical architect'], 'Solution Architect'],
+        [['technical specialist'], 'IT Support'],
+
+        # Hospitality & retail
+        [['chef'], 'Chef'],
+        [['cook'], 'Cook'],
+        [['kitchen assistant'], 'Kitchen Assistant'],
+        [['kitchen designer'], 'Kitchen Designer'],
+        [['chip shop'], 'Cook'],
+        [['food & beverage'], 'Catering Assistant'],
+        [['food coordinator'], 'Catering Assistant'],
+        [['restaurant team'], 'Restaurant Team Member'],
+        [['bar team'], 'Bartender'],
+        [['pizza venue'], 'Cook'],
+        [['burger venue'], 'Cook'],
+        [['supermarket team'], 'Cashier'],
+        [['customer assistant'], 'Cashier'],
+        [['housekeeper'], 'Housekeeper'],
+        [['housekeeping'], 'Housekeeper'],
+
+        # Automotive
+        [['vehicle technician'], 'Vehicle Technician'],
+        [['motor vehicle'], 'Vehicle Technician'],
+        [['mechanic'], 'Mechanic'],
+        [['tyre fitter'], 'Mobile Tyre Fitter'],
+        [['parts advisor'], 'Parts Advisor'],
+        [['service advisor'], 'Service Advisor'],
+        [['workshop controller'], 'Workshop Controller'],
+        [['workshop technician'], 'Workshop Technician'],
+
+        # Warehouse & logistics
+        [['warehouse'], 'Warehouse Operative'],
+        [['transport planner'], 'Transport Planner'],
+
+        # Security
+        [['security officer'], 'Security Officer'],
+        [['security'], 'Security Officer'],
+        [['sia'], 'Security Officer'],
+
+        # Production & manufacturing
+        [['production operative'], 'Production Operative'],
+        [['production supervisor'], 'Production Supervisor'],
+        [['cleaning operative'], 'Cleaner'],
+        [['cleaner'], 'Cleaner'],
+        [['cleaning'], 'Cleaner'],
+
+        # Research & academic
+        [['research'], 'Research Associate'],
+        [['postdoctoral'], 'Research Associate'],
+        [['professor'], 'Lecturer'],
+
+        # Children & nursery
+        [['nursery practitioner'], 'Nursery Practitioner'],
+        [['nursery'], 'Nursery Practitioner'],
+
+        # Other specific roles
+        [['plumber'], 'Plumber'],
+        [['electrician'], 'Electrician'],
+        [['mechanical fitter'], 'Mechanical Fitter'],
+        [['installer'], 'Installer'],
+        [['document controller'], 'Document Controller'],
+        [['technical author'], 'Technical Author'],
+        [['digital marketing'], 'Digital Marketing Executive'],
+        [['head of marketing'], 'Head of Marketing'],
+        [['cad technician'], 'CAD Technician'],
+        [['architectural'], 'Architect'],
+        [['architect'], 'Architect'],
+        [['ecologist'], 'Ecologist'],
+        [['lifeguard'], 'Lifeguard'],
+        [['fundraiser'], 'Fundraiser'],
+        [['compliance'], 'Compliance Officer'],
+        [['planning officer'], 'Planning Officer'],
+        [['planning enforcement'], 'Planning Officer'],
+        [['housing officer'], 'Property Manager'],
+        [['library assistant'], 'Administrator'],
+        [['contractor escort'], 'Security Officer'],
+        [['school crossing'], 'School Crossing Patrol'],
+        [['passenger assistant'], 'Passenger Assistant'],
+        [['activities coordinator'], 'Activities Coordinator'],
+        [['activities team'], 'Activities Coordinator'],
+        [['team leader'], 'Team Leader'],
+        [['shift leader'], 'Shift Leader'],
+        [['supervisor'], 'Supervisor'],
+        [['administrator'], 'Administrator'],
+        [['admin'], 'Administrator'],
+        [['coordinator'], 'Administrator'],
+        [['legal secretary'], 'Legal Secretary'],
+        [['secretary'], 'Legal Secretary'],
+        [['costs draftsperson'], 'Legal Secretary'],
+        [['surveyor'], 'Building Surveyor'],
+        [['engineer'], 'Maintenance Engineer'],
+        [['technician'], 'Maintenance Technician'],
+        [['operative'], 'Factory Operative'],
+        [['driver'], 'Delivery Driver'],
+        [['manager'], 'General Manager'],
+        [['assistant'], 'Administrator'],
+        [['teacher'], 'Primary Teacher'],
+        [['worker'], 'Support Worker'],
+
+        # Catch-all broader patterns (must be last)
+        [['multi-skilled', 'engineer'], 'Maintenance Engineer'],
+        [['green & clean'], 'Cleaner'],
+        [['green and clean'], 'Cleaner'],
+        [['children\'s home'], 'Residential Support Worker'],
+        [['childrens home'], 'Residential Support Worker'],
+        [['tenancy support'], 'Support Worker'],
+        [['process technologist'], 'Quality Engineer'],
+        [['digital transformation'], 'IT Support'],
+        [['software developer'], 'Software Engineer'],
+        [['data scientist'], 'Data Analyst'],
+        [['kitchen porter'], 'Kitchen Assistant'],
+        [['merchandiser'], 'Sales Advisor'],
+        [['joiner'], 'Carpenter'],
+        [['marketing executive'], 'Digital Marketing Executive'],
+        [['conveyancer'], 'Legal Secretary'],
+        [['valeter'], 'Cleaner'],
+        [['site agent'], 'Site Manager'],
+        [['consultant'], 'Account Manager'],
+        [['analyst'], 'Data Analyst'],
+        [['clerk'], 'Finance Assistant'],
+        [['developer'], 'Software Engineer'],
+        [['director'], 'General Manager'],
+        [['officer'], 'Administrator'],
+        [['adviser'], 'Customer Service Advisor'],
+        [['advisor'], 'Customer Service Advisor'],
+        [['carer'], 'Care Worker'],
+        [['porter'], 'Warehouse Operative'],
+        [['agent'], 'Sales Advisor'],
+        [['member'], 'Cashier'],
+        [['registrar'], 'Administrator'],
+        [['principal'], 'General Manager'],
+        [['head of'], 'General Manager'],
+        [['senior'], 'General Manager'],
+        [['lead'], 'General Manager'],
+    ];
+
     # File-based cache location.
     const CACHE_FILE = '/tmp/pollinations_hashes.json';
 
@@ -387,6 +913,72 @@ class Pollinations {
                "Style: friendly cartoon white line drawing, moderate shading, cute and quirky, UK audience. " .
                "The object sits alone on a simple surface or floats in space. " .
                "Simple illustration style, clean lines, single object only.";
+    }
+
+    /**
+     * Map a job title to a canonical job category using pure PHP keyword matching.
+     * No API calls. Returns NULL for unmapped titles.
+     *
+     * @param string $title The raw job title.
+     * @return string|null The canonical job title, or NULL if no match.
+     */
+    public static function canonicalJobTitle($title) {
+        if (empty($title)) {
+            return NULL;
+        }
+
+        # Clean: lowercase, strip location suffixes, ref numbers, trim.
+        $clean = strtolower(trim($title));
+
+        # Strip location suffixes like "- Portsmouth", "- Durham", "- Haven"
+        # Require space before dash to avoid matching hyphenated words like "Multi-Skilled"
+        $clean = preg_replace('/\s+-\s+[A-Z][a-zA-Z\s&\']+$/', '', trim($title));
+        $clean = strtolower(trim($clean));
+
+        # Strip parenthetical locations like "(Nottingham, Nottinghamshire, GB, NG1 1DQ)"
+        $clean = preg_replace('/\s*\([^)]*\)\s*/', ' ', $clean);
+
+        # Strip "IKEA xxx Store" suffixes
+        $clean = preg_replace('/\s*-\s*ikea\s+\w+\s+store$/i', '', $clean);
+
+        # Strip trailing location with postcodes
+        $clean = preg_replace('/\s*-\s*[a-z]+,?\s+[a-z]+shire$/i', '', $clean);
+
+        # Strip "- Haven" type suffixes that may remain
+        $clean = preg_replace('/\s*-\s*haven$/i', '', $clean);
+
+        # Strip college/institution suffixes
+        $clean = preg_replace('/\s*-\s*\w+\s+college\s*.*$/i', '', $clean);
+
+        $clean = trim($clean);
+
+        # First: check if cleaned title exactly matches a canonical title (case-insensitive).
+        foreach (self::CANONICAL_JOBS as $canonical => $object) {
+            if (strtolower($canonical) === $clean) {
+                return $canonical;
+            }
+        }
+
+        # Second: keyword pattern matching.
+        foreach (self::JOB_KEYWORD_MAP as $entry) {
+            $patterns = $entry[0];
+            $canonical = $entry[1];
+
+            # All keywords in the pattern must be present in the cleaned title.
+            $allMatch = TRUE;
+            foreach ($patterns as $keyword) {
+                if (strpos($clean, strtolower($keyword)) === FALSE) {
+                    $allMatch = FALSE;
+                    break;
+                }
+            }
+
+            if ($allMatch) {
+                return $canonical;
+            }
+        }
+
+        return NULL;
     }
 
     /**
