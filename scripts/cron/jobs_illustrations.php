@@ -1,9 +1,12 @@
 <?php
 #
 # Generate AI illustrations for job ads.
-# This fetches line drawings from Pollinations.ai for popular job titles.
-# Scans for job titles with >10 occurrences and caches images in ai_images table.
+# Uses a two-step approach:
+#   1. Ask GPT to map job title -> iconic inanimate object/tool
+#   2. Generate an image of that object using the same prompt as message illustrations
+# This avoids generating images of people.
 #
+# Scans for job titles with >=5 occurrences and caches images in ai_images table.
 # Uses batch fetching to detect rate-limiting before saving any images.
 #
 namespace Freegle\Iznik;
@@ -19,6 +22,9 @@ $lockh = Utils::lockScript(basename(__FILE__));
 # Batch size for fetching new images.
 const BATCH_SIZE = 5;
 
+# Minimum number of job occurrences before we generate an image.
+const MIN_COUNT = 5;
+
 # Keep processing until no jobs found or abort requested
 do {
     if (file_exists('/tmp/iznik.mail.abort')) {
@@ -27,7 +33,7 @@ do {
     }
 
     # Find job titles that:
-    # 1. Have more than 10 occurrences in the jobs table
+    # 1. Have at least MIN_COUNT occurrences in the jobs table
     # 2. Don't already have a cached image in ai_images
     # Order by count descending so we process most common titles first
     $titles = $dbhr->preQuery("
@@ -39,6 +45,7 @@ do {
         AND j.visible = 1
         AND ai.id IS NULL
         GROUP BY j.title
+        HAVING cnt >= " . MIN_COUNT . "
         ORDER BY cnt DESC
         LIMIT " . BATCH_SIZE . "
     ", []);
@@ -48,7 +55,7 @@ do {
         break;
     }
 
-    # Build batch request, skipping items that have failed too many times.
+    # Step 1: Use GPT to map each job title to an iconic object, then build image prompts.
     $batchItems = [];
     foreach ($titles as $row) {
         $title = $row['title'];
@@ -65,9 +72,21 @@ do {
             continue;
         }
 
+        # Map job title to an inanimate object via LLM.
+        $object = Pollinations::objectForJob($itemName);
+
+        if (!$object) {
+            error_log("Failed to map job title '$itemName' to object, skipping");
+            Pollinations::recordFailure($itemName);
+            continue;
+        }
+
+        error_log("Job '$itemName' => object '$object'");
+
+        # Step 2: Build image prompt using the object name (same as message illustrations).
         $batchItems[] = [
             'name' => $title,
-            'prompt' => Pollinations::buildJobPrompt($itemName),
+            'prompt' => Pollinations::buildJobPrompt($object),
             'width' => 200,
             'height' => 200,
             'count' => $count,
