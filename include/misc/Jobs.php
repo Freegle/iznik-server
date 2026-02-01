@@ -68,7 +68,7 @@ class Jobs {
             $sql = "SELECT $ambit AS ambit, 
        ST_Distance(geometry, ST_GeomFromText('POINT($lng $lat)', {$this->dbhr->SRID()})) AS dist,
        CASE WHEN ST_Dimension(geometry) < 2 THEN 0 ELSE ST_Area(geometry) END AS area,
-       jobs.id, jobs.url, jobs.title, jobs.location, jobs.body, jobs.job_reference, jobs.cpc, jobs.clickability
+       jobs.id, jobs.url, jobs.title, jobs.location, jobs.body, jobs.job_reference, jobs.cpc, jobs.clickability, jobs.canonical_title
         FROM `jobs`
         WHERE ST_Within(geometry, ST_GeomFromText('$poly', {$this->dbhr->SRID()})) 
             AND (ST_Dimension(geometry) < 2 OR ST_Area(geometry) / ST_Area(ST_GeomFromText('$poly', {$this->dbhr->SRID()})) < 2)
@@ -106,45 +106,28 @@ class Jobs {
 
         $ret = array_slice($ret, 0, $limit);
 
-        # Look up cached AI images for job titles via canonical mapping.
-        # Map each title to its canonical form, then look up images by canonical title.
-        $titles = array_unique(array_column($ret, 'title'));
-        $canonicalMap = [];
-
-        foreach ($titles as $t) {
-            $c = Pollinations::canonicalJobTitle($t);
-            if ($c) {
-                $canonicalMap[$t] = $c;
-            }
-        }
+        # Look up cached AI images using the pre-computed canonical_title column.
+        $canonicalTitles = array_unique(array_filter(array_column($ret, 'canonical_title')));
 
         $imageCache = [];
-        $uniqueCanonical = array_unique(array_values($canonicalMap));
 
-        if (count($uniqueCanonical)) {
-            $placeholders = implode(',', array_fill(0, count($uniqueCanonical), '?'));
+        if (count($canonicalTitles)) {
+            $placeholders = implode(',', array_fill(0, count($canonicalTitles), '?'));
             $images = $this->dbhr->preQuery(
                 "SELECT name, externaluid FROM ai_images WHERE name IN ($placeholders)",
-                array_values($uniqueCanonical)
+                array_values($canonicalTitles)
             );
 
-            $canonicalImages = [];
             foreach ($images as $img) {
-                $canonicalImages[$img['name']] = $img['externaluid'];
-            }
-
-            # Map back: original title → canonical → externaluid
-            foreach ($canonicalMap as $original => $canonical) {
-                if (isset($canonicalImages[$canonical])) {
-                    $imageCache[$original] = $canonicalImages[$canonical];
-                }
+                $imageCache[$img['name']] = $img['externaluid'];
             }
         }
 
         # Add image URL to each job
         foreach ($ret as &$job) {
-            if (isset($imageCache[$job['title']])) {
-                $uid = $imageCache[$job['title']];
+            $canonical = $job['canonical_title'] ?? NULL;
+            if ($canonical && isset($imageCache[$canonical])) {
+                $uid = $imageCache[$canonical];
                 $p = strrpos($uid, 'freegletusd-');
                 if ($p !== FALSE) {
                     $job['image'] = IMAGE_DELIVERY . "?url=" . TUS_UPLOADER . "/" . substr($uid, $p + strlen('freegletusd-')) . "/";
@@ -628,6 +611,9 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
                             # location, title, city, state, zip, country, job_type, posted_at, job_reference, company,
                             # mobile_friendly_apply, category, html_jobs, url, body, cpc, geometry, clickability,
                             # bodyhash, seenat
+                            # Map title to canonical form for AI image lookup.
+                            $canonicalTitle = Pollinations::canonicalJobTitle($title);
+
                             fputcsv($out, [
                                 $id,
                                 $location ? html_entity_decode($location) : NULL,
@@ -650,7 +636,8 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
                                 $clickability,
                                 md5($body),
                                 $now,
-                                1
+                                1,
+                                $canonicalTitle
                             ]);
 
                             $new++;
@@ -707,7 +694,7 @@ temp WHERE temp.row_num = ROUND (.95* @row_num);");
             LINES TERMINATED BY '\n'
             (id, location, title, city, state, zip, country, job_type, posted_at, job_reference, company,
              mobile_friendly_apply, category, html_jobs, url, body, cpc, @GEOM, clickability,
-             bodyhash, seenat, visible) SET geometry = ST_GeomFromText(@GEOM, " . $this->dbhm->SRID() . ");");
+             bodyhash, seenat, visible, canonical_title) SET geometry = ST_GeomFromText(@GEOM, " . $this->dbhm->SRID() . ");");
             error_log(date("Y-m-d H:i:s", time()) . "...loaded file $fn");
         }
         error_log(date("Y-m-d H:i:s", time()) . "...finished file load");

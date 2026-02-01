@@ -1478,13 +1478,15 @@ CREATE TABLE `jobs` (
   `clickability` int NOT NULL DEFAULT '0',
   `bodyhash` varchar(32) DEFAULT NULL,
   `visible` tinyint(1) NOT NULL DEFAULT '0',
+  `canonical_title` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `job_reference` (`job_reference`),
   UNIQUE KEY `job_reference_2` (`job_reference`),
   UNIQUE KEY `location` (`location`,`title`),
   KEY `bodyhash` (`bodyhash`),
   SPATIAL KEY `geometry` (`geometry`),
-  KEY `seenat` (`seenat`)
+  KEY `seenat` (`seenat`),
+  KEY `canonical_title` (`canonical_title`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1751187774 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
