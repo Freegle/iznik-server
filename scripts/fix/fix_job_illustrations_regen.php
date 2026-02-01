@@ -1,12 +1,7 @@
 <?php
 #
-# Regenerate AI illustrations for job ads using the two-step approach:
-#   1. Ask GPT to map job title -> iconic inanimate object/tool
-#   2. Generate an image of that object (same prompt as message illustrations)
-#
-# This replaces images generated with the old prompt which often contained people.
-# When multiple job titles map to the same object, the image is fetched once and
-# reused for all of them.
+# Regenerate AI illustrations for all canonical job categories.
+# Uses the pre-mapped objects from Pollinations::CANONICAL_JOBS - no GPT calls needed.
 #
 # Usage:
 #   php fix_job_illustrations_regen.php [--limit N] [--dry-run]
@@ -31,100 +26,58 @@ foreach ($argv as $i => $arg) {
     }
 }
 
-# Check for OpenAI API key (needed for objectForJob).
-if (!defined('OPENAI_API_KEY') || !OPENAI_API_KEY) {
-    error_log("ERROR: OPENAI_API_KEY not defined in config.");
-    exit(1);
-}
+$allCanonical = Pollinations::CANONICAL_JOBS;
+$total = count($allCanonical);
 
-# Find all ai_images entries that correspond to job titles.
-$sql = "SELECT DISTINCT ai.id, ai.name, ai.externaluid
-        FROM ai_images ai
-        INNER JOIN jobs j ON j.title = ai.name AND j.visible = 1
-        ORDER BY ai.id ASC";
 if ($limit) {
-    $sql .= " LIMIT $limit";
+    $allCanonical = array_slice($allCanonical, 0, $limit, TRUE);
 }
 
-$images = $dbhr->preQuery($sql);
-$total = count($images);
-echo "Found $total job images to regenerate.\n\n";
+echo "Regenerating " . count($allCanonical) . " canonical job images (of $total total).\n\n";
 
 if ($dryRun) {
-    foreach ($images as $img) {
-        echo "  [{$img['id']}] {$img['name']}\n";
+    foreach ($allCanonical as $title => $object) {
+        echo "  $title => $object\n";
     }
     exit(0);
 }
 
-$tusBase = rtrim(TUS_UPLOADER, '/') . '/';
 $regenerated = 0;
-$reused = 0;
 $failed = 0;
+$idx = 0;
 
-# Cache of object name -> image data+hash, so we fetch each object only once.
-$objectCache = [];
-
-foreach ($images as $idx => $image) {
-    $id = $image['id'];
-    $name = $image['name'];
-    $oldUid = $image['externaluid'];
-    $num = $idx + 1;
+foreach ($allCanonical as $canonicalTitle => $object) {
+    $idx++;
 
     if (file_exists('/tmp/iznik.mail.abort')) {
         echo "Abort file found, stopping.\n";
         break;
     }
 
-    echo "[$num/$total] $name: ";
+    echo "[$idx/" . count($allCanonical) . "] $canonicalTitle ($object): ";
 
-    # Step 1: Map job title to object via LLM.
-    $object = Pollinations::objectForJob($name);
+    # Fetch image directly from Pollinations.
+    $prompt = Pollinations::buildJobPrompt($object);
+    $url = "https://image.pollinations.ai/prompt/" . urlencode($prompt) .
+           "?width=200&height=200&nologo=true&seed=1";
+    if (defined('POLLINATIONS_API_KEY') && POLLINATIONS_API_KEY) {
+        $url .= "&key=" . urlencode(POLLINATIONS_API_KEY);
+    }
 
-    if (!$object) {
-        echo "FAILED (LLM mapping)\n";
+    $ctx = stream_context_create(['http' => ['timeout' => 120]]);
+    $data = @file_get_contents($url, FALSE, $ctx);
+
+    if (!$data || strlen($data) < 1000) {
+        echo "FAILED (image fetch)\n";
         $failed++;
+        sleep(5);
         continue;
     }
 
-    echo "$object -> ";
+    $hash = Pollinations::getImageHash($data);
 
-    # Step 2: Get image data - either from cache or fetch new.
-    # We bypass Pollinations::fetchImage() because its duplicate hash detection
-    # would flag different job titles that map to the same object as rate-limited.
-    if (isset($objectCache[$object])) {
-        # Reuse previously fetched image for this object.
-        $data = $objectCache[$object]['data'];
-        $hash = $objectCache[$object]['hash'];
-        echo "(reused) -> ";
-    } else {
-        # Fetch raw image directly from Pollinations.
-        $prompt = Pollinations::buildJobPrompt($object);
-        $url = "https://image.pollinations.ai/prompt/" . urlencode($prompt) .
-               "?width=200&height=200&nologo=true&seed=1";
-        if (defined('POLLINATIONS_API_KEY') && POLLINATIONS_API_KEY) {
-            $url .= "&key=" . urlencode(POLLINATIONS_API_KEY);
-        }
-
-        $ctx = stream_context_create(['http' => ['timeout' => 120]]);
-        $data = @file_get_contents($url, FALSE, $ctx);
-
-        if (!$data || strlen($data) < 1000) {
-            echo "FAILED (image fetch)\n";
-            $failed++;
-            sleep(5);
-            continue;
-        }
-
-        $hash = Pollinations::getImageHash($data);
-        $objectCache[$object] = ['data' => $data, 'hash' => $hash];
-
-        # Small delay between Pollinations requests.
-        sleep(3);
-    }
-
-    # Upload and cache under this job title.
-    $uid = Pollinations::uploadAndCache($name, $data, $hash);
+    # Upload and cache under the canonical title.
+    $uid = Pollinations::uploadAndCache($canonicalTitle, $data, $hash);
 
     if (!$uid) {
         echo "FAILED (upload)\n";
@@ -134,9 +87,12 @@ foreach ($images as $idx => $image) {
 
     echo "OK ($uid)\n";
     $regenerated++;
+
+    # Small delay between requests.
+    sleep(3);
 }
 
 echo "\n=== COMPLETE ===\n";
 echo "Regenerated: $regenerated\n";
 echo "Failed: $failed\n";
-echo "Total: $total\n";
+echo "Total: " . count($allCanonical) . "\n";

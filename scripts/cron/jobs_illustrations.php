@@ -1,12 +1,8 @@
 <?php
 #
-# Generate AI illustrations for job ads.
-# Uses a two-step approach:
-#   1. Ask GPT to map job title -> iconic inanimate object/tool
-#   2. Generate an image of that object using the same prompt as message illustrations
-# This avoids generating images of people.
-#
-# Scans for job titles with >=5 occurrences and caches images in ai_images table.
+# Generate AI illustrations for canonical job categories.
+# Iterates over the ~200 canonical job titles defined in Pollinations::CANONICAL_JOBS.
+# Each canonical title has a pre-mapped object for image generation - no GPT calls needed.
 # Uses batch fetching to detect rate-limiting before saving any images.
 #
 namespace Freegle\Iznik;
@@ -22,74 +18,51 @@ $lockh = Utils::lockScript(basename(__FILE__));
 # Batch size for fetching new images.
 const BATCH_SIZE = 5;
 
-# Minimum number of job occurrences before we generate an image.
-const MIN_COUNT = 5;
-
-# Keep processing until no jobs found or abort requested
+# Keep processing until all canonical jobs have images or abort requested.
 do {
     if (file_exists('/tmp/iznik.mail.abort')) {
         error_log("Abort file found, exiting");
         break;
     }
 
-    # Find job titles that:
-    # 1. Have at least MIN_COUNT occurrences in the jobs table
-    # 2. Don't already have a cached image in ai_images
-    # Order by count descending so we process most common titles first
-    $titles = $dbhr->preQuery("
-        SELECT j.title, COUNT(*) as cnt
-        FROM jobs j
-        LEFT JOIN ai_images ai ON ai.name = j.title
-        WHERE j.title IS NOT NULL
-        AND j.title != ''
-        AND j.visible = 1
-        AND ai.id IS NULL
-        GROUP BY j.title
-        HAVING cnt >= " . MIN_COUNT . "
-        ORDER BY cnt DESC
-        LIMIT " . BATCH_SIZE . "
-    ", []);
+    # Find canonical job titles that don't already have a cached image.
+    $allCanonical = array_keys(Pollinations::CANONICAL_JOBS);
+    $placeholders = implode(',', array_fill(0, count($allCanonical), '?'));
+    $existing = $dbhr->preQuery(
+        "SELECT name FROM ai_images WHERE name IN ($placeholders)",
+        array_values($allCanonical)
+    );
 
-    if (count($titles) == 0) {
-        # No more job titles to process
+    $existingNames = array_column($existing, 'name');
+    $missing = array_diff($allCanonical, $existingNames);
+
+    if (count($missing) == 0) {
+        # All canonical jobs have images.
         break;
     }
 
-    # Step 1: Use GPT to map each job title to an iconic object, then build image prompts.
+    error_log(count($missing) . " canonical job titles still need images");
+
+    # Take next batch.
+    $batch = array_slice($missing, 0, BATCH_SIZE);
     $batchItems = [];
-    foreach ($titles as $row) {
-        $title = $row['title'];
-        $count = $row['cnt'];
-        $itemName = trim($title);
 
-        if (empty($itemName)) {
-            continue;
-        }
-
+    foreach ($batch as $canonicalTitle) {
         # Check if this item has failed too many times - skip it.
-        if (Pollinations::shouldSkipItem($itemName)) {
-            error_log("Skipping job title '$itemName' due to previous failures");
+        if (Pollinations::shouldSkipItem($canonicalTitle)) {
+            error_log("Skipping canonical title '$canonicalTitle' due to previous failures");
             continue;
         }
 
-        # Map job title to an inanimate object via LLM.
-        $object = Pollinations::objectForJob($itemName);
+        $object = Pollinations::CANONICAL_JOBS[$canonicalTitle];
 
-        if (!$object) {
-            error_log("Failed to map job title '$itemName' to object, skipping");
-            Pollinations::recordFailure($itemName);
-            continue;
-        }
+        error_log("Canonical job '$canonicalTitle' => object '$object'");
 
-        error_log("Job '$itemName' => object '$object'");
-
-        # Step 2: Build image prompt using the object name (same as message illustrations).
         $batchItems[] = [
-            'name' => $title,
+            'name' => $canonicalTitle,
             'prompt' => Pollinations::buildJobPrompt($object),
             'width' => 200,
             'height' => 200,
-            'count' => $count,
             'jobid' => NULL
         ];
     }
@@ -125,7 +98,7 @@ do {
         $uid = Pollinations::uploadAndCache($title, $data, $hash);
 
         if ($uid) {
-            error_log("Created illustration for job title '$title': $uid");
+            error_log("Created illustration for canonical job '$title': $uid");
         }
     }
 

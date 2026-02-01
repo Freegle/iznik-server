@@ -106,19 +106,38 @@ class Jobs {
 
         $ret = array_slice($ret, 0, $limit);
 
-        # Look up cached AI images for job titles
+        # Look up cached AI images for job titles via canonical mapping.
+        # Map each title to its canonical form, then look up images by canonical title.
         $titles = array_unique(array_column($ret, 'title'));
-        $imageCache = [];
+        $canonicalMap = [];
 
-        if (count($titles)) {
-            $placeholders = implode(',', array_fill(0, count($titles), '?'));
+        foreach ($titles as $t) {
+            $c = Pollinations::canonicalJobTitle($t);
+            if ($c) {
+                $canonicalMap[$t] = $c;
+            }
+        }
+
+        $imageCache = [];
+        $uniqueCanonical = array_unique(array_values($canonicalMap));
+
+        if (count($uniqueCanonical)) {
+            $placeholders = implode(',', array_fill(0, count($uniqueCanonical), '?'));
             $images = $this->dbhr->preQuery(
                 "SELECT name, externaluid FROM ai_images WHERE name IN ($placeholders)",
-                array_values($titles)
+                array_values($uniqueCanonical)
             );
 
+            $canonicalImages = [];
             foreach ($images as $img) {
-                $imageCache[$img['name']] = $img['externaluid'];
+                $canonicalImages[$img['name']] = $img['externaluid'];
+            }
+
+            # Map back: original title → canonical → externaluid
+            foreach ($canonicalMap as $original => $canonical) {
+                if (isset($canonicalImages[$canonical])) {
+                    $imageCache[$original] = $canonicalImages[$canonical];
+                }
             }
         }
 
