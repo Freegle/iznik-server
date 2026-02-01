@@ -390,21 +390,75 @@ class Pollinations {
     }
 
     /**
-     * Build a prompt for a job illustration.
+     * Use GPT to map a job title to an iconic inanimate object/tool for that job.
+     * This avoids generating images of people by never mentioning the profession
+     * in the image prompt.
+     *
      * @param string $jobTitle The job title.
-     * @return string The full prompt.
+     * @return string|false The object name, or FALSE on failure.
      */
-    public static function buildJobPrompt($jobTitle) {
-        # Prompt injection defense.
+    public static function objectForJob($jobTitle) {
+        if (!defined('OPENAI_API_KEY') || !OPENAI_API_KEY) {
+            return FALSE;
+        }
+
         $cleanName = str_replace('CRITICAL:', '', $jobTitle);
         $cleanName = str_replace('Draw only', '', $cleanName);
 
-        # Use positive framing only - negative prompts can backfire with diffusion models.
-        # Explicitly request a single person to avoid group scenes.
-        return "Job illustration: single " . $cleanName . " figure centered on plain dark green background. " .
-               "Style: friendly cartoon white line drawing, moderate shading, cute and quirky, UK audience. " .
-               "One person only, gender-neutral abstract figure, simple pose. " .
-               "Minimalist icon style, clean lines, fills the frame.";
+        $payload = [
+            'model' => 'gpt-4o-mini',
+            'messages' => [
+                [
+                    'role' => 'system',
+                    'content' => 'You map job titles to a single iconic inanimate object or tool associated with that job. Reply with ONLY the object name, nothing else. No people, no body parts, no living things. Just the object.'
+                ],
+                [
+                    'role' => 'user',
+                    'content' => $cleanName
+                ]
+            ],
+            'max_tokens' => 20
+        ];
+
+        $ch = curl_init(self::OPENAI_API_URL);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => TRUE,
+            CURLOPT_POST => TRUE,
+            CURLOPT_POSTFIELDS => json_encode($payload),
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . OPENAI_API_KEY
+            ],
+            CURLOPT_TIMEOUT => 15
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 200 || !$response) {
+            error_log("objectForJob failed for '$jobTitle': HTTP $httpCode");
+            return FALSE;
+        }
+
+        $data = json_decode($response, TRUE);
+
+        if (!isset($data['choices'][0]['message']['content'])) {
+            error_log("objectForJob failed for '$jobTitle': unexpected response");
+            return FALSE;
+        }
+
+        return trim($data['choices'][0]['message']['content']);
+    }
+
+    /**
+     * Build a prompt for a job illustration.
+     * Uses the same object-focused prompt as messages to avoid generating people.
+     * @param string $objectName The object name (from objectForJob).
+     * @return string The full prompt.
+     */
+    public static function buildJobPrompt($objectName) {
+        return self::buildMessagePrompt($objectName);
     }
 
     /**
