@@ -175,7 +175,7 @@ class VolunteeringDigest
                             '{{settings}}' => $u->loginLink(USER_SITE, $u->getId(), '/settings', User::SRC_DIGEST),
                             '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe', User::SRC_VOLUNTEERING_DIGEST),
                             '{{email}}' => $email,
-                            '{{noemail}}' => 'volunteeringoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
+                            '{{noemail}}' => '',
                             '{{post}}' => "https://" . USER_SITE . "/volunteering",
                             '{{visit}}' => "https://" . USER_SITE . "/browse",
                             '{{jobads}}' => $jobads['jobs'],

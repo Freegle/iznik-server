@@ -250,8 +250,8 @@ class Relevant {
                     #error_log("Number of messages " . count($msgs) . " from " . var_export($ints, TRUE) . " and " . var_export($msgs, TRUE));;
 
                     if (count($msgs) > 0) {
-                        $noemail = 'relevantoff-' . $user['id'] . "@" . USER_DOMAIN;
-                        $textbody = "Based on what you've offered or searched for, we thought you might be interested in these recent messages.\r\nIf you don't want to get these suggestions, mail $noemail.";
+                        $noemail = '';
+                        $textbody = "Based on what you've offered or searched for, we thought you might be interested in these recent messages.\r\nIf you don't want to get these suggestions, you can change your settings on the site.";
                         $offers = [];
                         $wanteds = [];
                         $hoffers = [];

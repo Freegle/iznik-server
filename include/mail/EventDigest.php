@@ -199,7 +199,7 @@ class EventDigest
                         '{{settings}}' => $u->loginLink(USER_SITE, $u->getId(), '/settings', User::SRC_DIGEST),
                         '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe', User::SRC_EVENT_DIGEST),
                         '{{email}}' => $email,
-                        '{{noemail}}' => 'eventsoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
+                        '{{noemail}}' => '',
                         '{{post}}' => "https://" . USER_SITE . "/communityevents",
                         '{{visit}}' => "https://" . USER_SITE . "/browse",
                         '{{jobads}}' => $jobads['jobs'],
