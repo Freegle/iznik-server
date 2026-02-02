@@ -451,7 +451,7 @@ class Digest
                                 '{{unsubscribe}}' => $u->loginLink(USER_SITE, $u->getId(), '/unsubscribe', User::SRC_DIGEST),
                                 '{{email}}' => $email,
                                 '{{frequency}}' => $this->freqText[$frequency],
-                                '{{noemail}}' => 'digestoff-' . $user['userid'] . "-$groupid@" . USER_DOMAIN,
+                                '{{noemail}}' => '',
                                 '{{post}}' => $u->loginLink(USER_SITE, $u->getId(), '/', User::SRC_DIGEST),
                                 '{{visit}}' => $u->loginLink(USER_SITE, $u->getId(), '/browse', User::SRC_DIGEST),
                                 '{{creds}}' => $creds,
