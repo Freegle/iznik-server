@@ -6408,12 +6408,15 @@ class User extends Entity
 
                 $ret .= '<tr style="vertical-align:top;">';
 
-                # Image column - small fixed width.
+                # Image column - small fixed width.  Always render to keep table layout consistent.
+                $ret .= '<td style="width:70px; padding:5px 10px 5px 0;">';
                 if ($image) {
-                    $ret .= '<td style="width:70px; padding:5px 10px 5px 0;">';
-                    $ret .= '<a href="' . $url . '" target="_blank"><img src="' . htmlspecialchars($image) . '" alt="" style="width:60px; height:60px; object-fit:cover;"></a>';
-                    $ret .= '</td>';
+                    $ret .= '<a href="' . $url . '" target="_blank"><img src="' . htmlspecialchars($image) . '" alt="" style="width:60px; height:60px; object-fit:cover; border-radius:4px;"></a>';
+                } else {
+                    # Placeholder: briefcase image, same as used on the web.
+                    $ret .= '<a href="' . $url . '" target="_blank"><img src="https://' . USER_SITE . '/emailimages/briefcase.png" alt="" style="width:60px; height:60px; object-fit:cover; border-radius:4px;"></a>';
                 }
+                $ret .= '</td>';
 
                 # Text column - title and location.
                 $ret .= '<td style="padding:5px 0;">';
