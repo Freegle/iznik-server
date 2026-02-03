@@ -35,7 +35,36 @@ foreach ($transaction as $key => $value) {
 }
 
 if (Utils::pres('mc_gross', $transaction)) {
-    $eid = $u->findByEmail($transaction['payer_email']);
+    $eid = NULL;
+
+    # Check if this is a PayPal-through-Stripe payment. The custom field contains the Stripe PaymentIntent ID
+    # in format: acct_xxx:pi_xxx:hash. We can use this to look up the user ID from Stripe metadata,
+    # which handles the case where the PayPal email differs from the user's Freegle account email.
+    if (Utils::pres('custom', $transaction)) {
+        $custom = $transaction['custom'];
+
+        if (preg_match('/pi_[A-Za-z0-9_]+/', $custom, $matches)) {
+            $paymentIntentId = $matches[0];
+            error_log("IPN: Found Stripe PaymentIntent ID: $paymentIntentId");
+
+            try {
+                \Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY);
+                $pi = \Stripe\PaymentIntent::retrieve($paymentIntentId);
+
+                if ($pi->metadata->uid) {
+                    $eid = $pi->metadata->uid;
+                    error_log("IPN: Found user ID from Stripe metadata: $eid");
+                }
+            } catch (\Exception $e) {
+                error_log("IPN: Failed to retrieve Stripe PaymentIntent: " . $e->getMessage());
+            }
+        }
+    }
+
+    # Fallback to email lookup if we didn't get user ID from Stripe
+    if (!$eid) {
+        $eid = $u->findByEmail($transaction['payer_email']);
+    }
 
     $first = FALSE;
 
@@ -61,12 +90,14 @@ if (Utils::pres('mc_gross', $transaction)) {
 
     $recurring = $transaction['txn_type'] == 'recurring_payment' || $transaction['txn_type'] == 'subscr_payment';
 
-    $giftaid = $d->getGiftAid($u->getId());
+    if ($eid) {
+        $giftaid = $d->getGiftAid($eid);
 
-    if (!$giftaid || $giftaid['period'] == Donations::PERIOD_THIS) {
-        # Ask them to complete a gift aid form.
-        $n = new Notifications($dbhr, $dbhm);
-        $n->add(NULL, $u->getId(), Notifications::TYPE_GIFTAID, NULL);
+        if (!$giftaid || $giftaid['period'] == Donations::PERIOD_THIS) {
+            # Ask them to complete a gift aid form.
+            $n = new Notifications($dbhr, $dbhm);
+            $n->add(NULL, $eid, Notifications::TYPE_GIFTAID, NULL);
+        }
     }
 
     # Don't ask for thanks for the PayPal Giving Fund transactions.  Do ask for first recurring or larger one-off.
