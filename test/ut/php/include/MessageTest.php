@@ -1142,6 +1142,74 @@ class MessageTest extends IznikTestCase {
         $this->assertEquals(0, $warncount);
     }
 
+    public function testBackToDraftClearsExpiredDeadline() {
+        # Create a message with a deadline in the past
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $this->user->addEmail($email);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('test@test.com', $email, $msg);
+        $msg = str_replace('Basic test', 'OFFER: Test item (Tuvalu High Street)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $m->setPrivate('source', Message::PLATFORM);
+        $rc = $r->route();
+        $this->assertEquals(MailRouter::APPROVED, $rc);
+
+        # Set a deadline in the past (like the bug report: Dec 2025 when reposting in Feb 2026)
+        $pastDeadline = date('Y-m-d', strtotime('-30 days'));
+        $m->setPrivate('deadline', $pastDeadline);
+        $this->assertEquals($pastDeadline, $m->getPrivate('deadline'));
+
+        # Log in as the user who owns the message
+        $this->assertTrue($this->user->login('testpw'));
+
+        # Call backToDraft - this should clear the expired deadline
+        $rc = $m->backToDraft();
+        $this->assertTrue($rc);
+
+        # The deadline should now be NULL because it was in the past
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $this->assertNull($m->getPrivate('deadline'), 'Expired deadline should be cleared when converting back to draft');
+    }
+
+    public function testBackToDraftKeepsFutureDeadline() {
+        # Create a message with a deadline in the future
+        $email = 'ut-' . rand() . '@' . USER_DOMAIN;
+        $this->user->addEmail($email);
+
+        $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/basic'));
+        $msg = str_replace('test@test.com', $email, $msg);
+        $msg = str_replace('Basic test', 'OFFER: Test item future (Tuvalu High Street)', $msg);
+        $msg = str_ireplace('freegleplayground', 'testgroup', $msg);
+
+        $r = new MailRouter($this->dbhr, $this->dbhm);
+        list ($id, $failok) = $r->received(Message::EMAIL, $email, 'to@test.com', $msg);
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $m->setPrivate('source', Message::PLATFORM);
+        $rc = $r->route();
+        $this->assertEquals(MailRouter::APPROVED, $rc);
+
+        # Set a deadline in the future
+        $futureDeadline = date('Y-m-d', strtotime('+30 days'));
+        $m->setPrivate('deadline', $futureDeadline);
+        $this->assertEquals($futureDeadline, $m->getPrivate('deadline'));
+
+        # Log in as the user who owns the message
+        $this->assertTrue($this->user->login('testpw'));
+
+        # Call backToDraft - this should keep the future deadline
+        $rc = $m->backToDraft();
+        $this->assertTrue($rc);
+
+        # The deadline should still be set because it's in the future
+        $m = new Message($this->dbhr, $this->dbhm, $id);
+        $this->assertEquals($futureDeadline, $m->getPrivate('deadline'), 'Future deadline should be preserved when converting back to draft');
+    }
+
     /**
      * @group skip
      */

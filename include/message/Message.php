@@ -4585,6 +4585,13 @@ WHERE refmsgid = ? AND chat_messages.type = ? AND reviewrejected = 0 AND message
                         if ($rc) {
                             $rollback = FALSE;
 
+                            # Clear deadline if it's in the past or today - an old deadline is no longer
+                            # relevant when reposting and would cause the message to appear expired.
+                            $deadline = $this->getPrivate('deadline');
+                            if ($deadline && $deadline <= date('Y-m-d')) {
+                                $this->setPrivate('deadline', NULL, TRUE);
+                            }
+
                             # Repost started.
                             $this->log->log([
                                                 'type' => Log::TYPE_MESSAGE,
