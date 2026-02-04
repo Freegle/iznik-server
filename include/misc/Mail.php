@@ -52,9 +52,6 @@ class Mail {
     const REPORTED_NEWSFEED = 50;
     const CALENDAR = 51;
     const FBL_OFF = 52;
-    const PLEDGE_SIGNUP = 53;
-    const PLEDGE_SUCCESS = 54;
-    const PLEDGE_REMINDER = 55;
     const LIMBO = 56;
 
     const DESCRIPTIONS = [
@@ -107,9 +104,6 @@ class Mail {
         Mail::REPORTED_NEWSFEED => 'ReportedNewsfeed',
         Mail::CALENDAR => 'Calendar',
         Mail::FBL_OFF => 'FBLOff',
-        Mail::PLEDGE_SIGNUP => 'PledgeSignup',
-        Mail::PLEDGE_SUCCESS => 'PledgeSuccess',
-        Mail::PLEDGE_REMINDER => 'PledgeReminder',
         Mail::LIMBO => 'Limbo',
     ];
 
