@@ -52,6 +52,10 @@ function address() {
                 break;
             }
 
+            // DEPRECATED - PUT/PATCH/DELETE migrated to v2 Go API.
+            // Migrated: 2026-02-07
+            // V2 endpoints: POST /apiv2/address, PATCH /apiv2/address, DELETE /apiv2/address/:id
+            // DO NOT REMOVE until v2 confirmed live in production.
             case 'PUT':
                 $id = $a->create($myid,
                     (Utils::presint('pafid', $_REQUEST, NULL)),
