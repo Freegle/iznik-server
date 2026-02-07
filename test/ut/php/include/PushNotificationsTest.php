@@ -77,11 +77,17 @@ class PushNotificationsTest extends IznikTestCase {
         $this->assertEquals(User::ROLE_MODERATOR, $membership, "User should be a moderator");
 
         # Create a chat message from the user to the mods.
-        $r = new ChatRoom($this->dbhm, $this->dbhm);
+        # Pass $process = FALSE to prevent inline notification processing, which would
+        # call executeSend() on the real PushNotifications object, fail to send (no valid
+        # Firebase token in test), and delete the push subscription as cleanup.
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
         $rid = $r->createUser2Mod($id2, $this->groupid);
         $m = new ChatMessage($this->dbhr, $this->dbhm);
-        list ($cm, $banned) = $m->create($rid, $id2, "Testing", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
+        list ($cm, $banned) = $m->create($rid, $id2, "Testing", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL, NULL, FALSE, FALSE, FALSE);
         $this->assertNotNull($cm);
+
+        # Manually mark the message as processed/visible (without triggering notifications).
+        $this->dbhm->preExec("UPDATE chat_messages SET processingrequired = 0, processingsuccessful = 1, reviewrequired = 0 WHERE id = ?", [$cm]);
 
         $notifyCount = $mock->notifyGroupMods($this->groupid);
 
