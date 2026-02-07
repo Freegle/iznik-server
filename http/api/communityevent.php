@@ -61,6 +61,10 @@ function communityevent() {
                 break;
             }
 
+            // DEPRECATED - POST/PUT/PATCH/DELETE migrated to v2 Go API.
+            // Migrated: 2026-02-07
+            // V2 endpoints: POST /apiv2/communityevent, PATCH /apiv2/communityevent, DELETE /apiv2/communityevent/:id
+            // DO NOT REMOVE until v2 confirmed live in production.
             case 'POST': {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
