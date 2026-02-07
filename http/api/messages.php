@@ -246,6 +246,10 @@ function messages() {
                     'status' => 'Invalid action'
                 ];
 
+                // DEPRECATED - MarkSeen migrated to v2 Go API.
+                // Migrated: 2026-02-07
+                // V2 endpoint: POST /apiv2/messages/markseen
+                // DO NOT REMOVE until v2 confirmed live in production.
                 if ($action == 'MarkSeen') {
                     $mids = Utils::presdef('ids', $_REQUEST, NULL);
 
