@@ -58,6 +58,10 @@ function comment() {
             break;
         }
 
+        // DEPRECATED - POST/PUT/DELETE migrated to v2 Go API.
+        // Migrated: 2026-02-07
+        // V2 endpoints: POST /apiv2/comment, PATCH /apiv2/comment, DELETE /apiv2/comment/:id
+        // DO NOT REMOVE until v2 confirmed live in production.
         case 'POST':
         {
             $id = $u->addComment($groupid,
