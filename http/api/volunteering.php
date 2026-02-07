@@ -63,6 +63,10 @@ function volunteering() {
                 break;
             }
 
+            // DEPRECATED - POST/PUT/PATCH/DELETE migrated to v2 Go API.
+            // Migrated: 2026-02-07
+            // V2 endpoints: POST /apiv2/volunteering, PATCH /apiv2/volunteering, DELETE /apiv2/volunteering/:id
+            // DO NOT REMOVE until v2 confirmed live in production.
             case 'POST': {
                 $ret = ['ret' => 1, 'status' => 'Not logged in'];
 
