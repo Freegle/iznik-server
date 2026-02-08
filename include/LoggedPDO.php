@@ -526,7 +526,11 @@ class LoggedPDO {
 
         $time = microtime(TRUE);
         if ($this->inTransaction()) {
-            $rc = $this->_db->rollBack();
+            try {
+                $rc = $this->_db->rollBack();
+            } catch (\PDOException $e) {
+                throw new DBException("rollBack failed: " . $e->getMessage(), 999, $e);
+            }
         }
 
         $duration = microtime(TRUE) - $time;
@@ -548,7 +552,13 @@ class LoggedPDO {
     public function beginTransaction() {
         $this->doConnect();
         $this->transactionStart = microtime(TRUE);
-        $ret = $this->_db->beginTransaction();
+
+        try {
+            $ret = $this->_db->beginTransaction();
+        } catch (\PDOException $e) {
+            throw new DBException("beginTransaction failed: " . $e->getMessage(), 999, $e);
+        }
+
         $duration = microtime(TRUE) - $this->transactionStart;
         $this->dbwaittime += $duration;
 
