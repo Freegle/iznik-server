@@ -81,7 +81,7 @@ do {
         LEFT JOIN messages_attachments ma ON ma.msgid = m.id
         LEFT JOIN messages_ai_declined maid ON maid.msgid = m.id
         WHERE mg.arrival >= ?
-        AND mg.collection = 'Approved'
+        AND mg.collection IN ('Approved', 'Pending')
         AND ma.id IS NULL
         AND maid.msgid IS NULL
         AND m.subject IS NOT NULL
