@@ -132,9 +132,9 @@ CMD /etc/init.d/ssh start \
   # Update database name from environment variable \
   && sed -ie "s@'SQLDB', '.*'@'SQLDB', '$SQLDB'@" /etc/iznik.conf \
 
-  # Wait for database to be initialized by batch container migrations (single source of truth)
-  && echo "Waiting for database to be initialized by migrations..." \
-  && for i in $(seq 1 120); do mysql -u root -e "SELECT 1 FROM $SQLDB.groups LIMIT 1" 2>/dev/null && break; sleep 2; done \
+  # Wait for database to be ready (batch container migrations complete before apiv1 starts via depends_on)
+  && echo "Waiting for database..." \
+  && for i in $(seq 1 120); do mysql -u root -e "SELECT 1 FROM $SQLDB.partners_keys LIMIT 1" 2>/dev/null && break; sleep 2; done \
   && mysql -u root -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'" \
   && mysql -u root -e "use $SQLDB;REPLACE INTO partners_keys (partner, \`key\`) VALUES ('$PARTNER_NAME', '$PARTNER_KEY');" \
   && mysql -u root -e "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));" \
