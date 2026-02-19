@@ -132,20 +132,12 @@ CMD /etc/init.d/ssh start \
   # Update database name from environment variable \
   && sed -ie "s@'SQLDB', '.*'@'SQLDB', '$SQLDB'@" /etc/iznik.conf \
 
-	# We need to make some minor schema tweaks otherwise the schema fails to install.
-  && sed -ie 's/ROW_FORMAT=DYNAMIC//g' install/schema.sql \
-  && sed -ie 's/timestamp(3)/timestamp/g' install/schema.sql \
-  && sed -ie 's/timestamp(6)/timestamp/g' install/schema.sql \
-  && sed -ie 's/CURRENT_TIMESTAMP(3)/CURRENT_TIMESTAMP/g' install/schema.sql \
-  && sed -ie 's/CURRENT_TIMESTAMP(6)/CURRENT_TIMESTAMP/g' install/schema.sql \
-	&& mysql -u root -e "CREATE DATABASE IF NOT EXISTS $SQLDB;" \
-  && mysql -u root $SQLDB < install/schema.sql \
-  && mysql -u root $SQLDB < install/functions.sql \
-  && mysql -u root $SQLDB < install/damlevlim.sql \
+  # Wait for database to be initialized by batch container migrations (single source of truth)
+  && echo "Waiting for database to be initialized by migrations..." \
+  && for i in $(seq 1 120); do mysql -u root -e "SELECT 1 FROM $SQLDB.groups LIMIT 1" 2>/dev/null && break; sleep 2; done \
   && mysql -u root -e "SET GLOBAL sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'" \
   && mysql -u root -e "use $SQLDB;REPLACE INTO partners_keys (partner, \`key\`) VALUES ('$PARTNER_NAME', '$PARTNER_KEY');" \
   && mysql -u root -e "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));" \
-  && php scripts/cli/table_autoinc.php \
   && if [ "$SQLDB" != "iznik_phpunit_test" ]; then php scripts/cron/get_app_release_versions.php >> /tmp/iznik.get_app_release_versions.out 2>&1; fi \
   && sh -c 'nohup sh -c "while true; do cd /var/www/iznik/scripts/cron && php ./message_spatial.php >> /tmp/iznik.message_spatial.out 2>&1; sleep 10; done" </dev/null >/dev/null 2>&1 & exec sleep infinity'
 
