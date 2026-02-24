@@ -79,8 +79,8 @@ class ShortlinkTest extends IznikTestCase {
         self::assertEquals(Spam::URL_REMOVED, $ret);
         $ret = $s->expandExternal('http://www.ilovefreegle.org/mobile');
         self::assertEquals('https://www.ilovefreegle.org/mobile', $ret);
-        $ret = $s->expandExternal('www.shivatrust.org');
-        self::assertEquals('https://www.shivatrust.org/', $ret);
+        $ret = $s->expandExternal('www.ilovefreegle.org');
+        self::assertEquals('https://www.ilovefreegle.org/', $ret);
     }
 }
 
