@@ -102,7 +102,7 @@ while ($line = fgets($fh)) {
                 logIt($msgs[$msgid]);
                 unset($msgs[$msgid]);
             } else {
-                if (preg_match('/info\: header Subject\: (.*) from localhost/', $line, $matches)) {
+                if (preg_match('/info\: header Subject\: (.*) from /', $line, $matches)) {
                     $msgs[$msgid]['subject'] = $matches[1];
                 } else if (preg_match('/message-id=\<(.*)\>/', $line, $matches)) {
                     $msgs[$msgid]['messageid'] = $matches[1];
