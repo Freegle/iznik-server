@@ -1345,6 +1345,16 @@ class MailRouter
         $userid = intval($matches[2]);
 
         $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
+
+        # Follow redirect if this chat was merged into another.
+        if (!$r->getId()) {
+            $redirects = $this->dbhr->preQuery("SELECT new_id FROM chat_room_redirects WHERE old_id = ?", [$chatid]);
+            if (count($redirects) > 0) {
+                $chatid = $redirects[0]['new_id'];
+                $r = new ChatRoom($this->dbhr, $this->dbhm, $chatid);
+            }
+        }
+
         $u = User::get($this->dbhr, $this->dbhm, $userid);
 
         # We want to filter out autoreplies.  But occasionally a genuine message can contain auto
