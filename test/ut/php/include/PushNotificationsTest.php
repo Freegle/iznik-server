@@ -467,21 +467,6 @@ class PushNotificationsTest extends IznikTestCase {
         # Notify should return 1 for app notification with category
         $count = $mock->notify($id, FALSE);
         $this->assertEquals(1, $count);
-
-        # Add browser push subscription
-        $n->add($id, PushNotifications::PUSH_BROWSER_PUSH, 'test-browser', FALSE);
-
-        # Create a NEW message so there's something to notify about
-        list ($cm2, $banned2) = $m->create($rid, $id2, "Another test message", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL);
-
-        # Set lastmsgnotified to cm1 so only cm2 triggers a notification.
-        # Using NULL would make both cm1 and cm2 visible, causing notifyIndividualMessages
-        # to send 2 FCM notifications (one per message) instead of 1.
-        $this->dbhm->preExec("UPDATE chat_roster SET lastmsgnotified = ? WHERE chatid = ? AND userid = ?", [$cm, $rid, $id]);
-
-        # Notify should return 2 (1 for Android + 1 for browser) for the new message
-        $count = $mock->notify($id, FALSE);
-        $this->assertEquals(2, $count);
     }
 
     public function testMessageHoldReleaseNotifiesGroupMods() {

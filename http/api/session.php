@@ -607,7 +607,6 @@ function session() {
                             case PushNotifications::PUSH_FIREFOX:
                             case PushNotifications::PUSH_FCM_ANDROID:
                             case PushNotifications::PUSH_FCM_IOS:
-                            case PushNotifications::PUSH_BROWSER_PUSH:
                                 $n->add($uid, $push['type'], $push['subscription']);
                                 break;
                         }
