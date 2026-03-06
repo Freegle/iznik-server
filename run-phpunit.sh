@@ -5,6 +5,14 @@ echo "Stopping chat_notify background job..."
 touch /tmp/iznik.mail.abort
 pkill -f chat_notifyemail_user2user.php 2>/dev/null
 
+# Refresh iznik_phpunit_test from iznik to pick up any new migrations
+# (iznik has the latest schema from Laravel migrations; iznik_phpunit_test may be stale)
+echo "Refreshing iznik_phpunit_test schema from iznik..."
+MYSQL_OPTS="-h percona -u root -piznik"
+mysql $MYSQL_OPTS -e "DROP DATABASE IF EXISTS iznik_phpunit_test; CREATE DATABASE iznik_phpunit_test;" 2>/dev/null
+mysqldump $MYSQL_OPTS --no-data --routines --triggers iznik 2>/dev/null | mysql $MYSQL_OPTS iznik_phpunit_test 2>/dev/null
+echo "  iznik_phpunit_test refreshed."
+
 # Update iznik.conf FIRST to use per-worker databases (needed before testenv.php runs)
 echo "Configuring per-worker MySQL database, PostgreSQL database, and Beanstalkd tube..."
 
@@ -59,7 +67,6 @@ fi
 echo "Syncing schema from main database to worker databases..."
 MAIN_DB="iznik_phpunit_test"
 WORKER_DBS="iznik_1 iznik_2 iznik_3 iznik_4"
-MYSQL_OPTS="-h percona -u root -piznik"
 
 # Export schema (no data) from main database
 echo "  Exporting schema from $MAIN_DB..."
@@ -67,10 +74,11 @@ mysqldump $MYSQL_OPTS --no-data --routines --triggers $MAIN_DB 2>/dev/null > /tm
 
 if [ -f /tmp/schema.sql ] && [ -s /tmp/schema.sql ]; then
     # Apply schema to all worker databases in parallel
+    # Drop and recreate each DB to ensure clean schema (avoids stale tables missing new columns)
     for db in $WORKER_DBS; do
         (
             echo "  Syncing schema to $db..."
-            mysql $MYSQL_OPTS -e "CREATE DATABASE IF NOT EXISTS $db;" 2>/dev/null
+            mysql $MYSQL_OPTS -e "DROP DATABASE IF EXISTS $db; CREATE DATABASE $db;" 2>/dev/null
             mysql $MYSQL_OPTS $db < /tmp/schema.sql 2>/dev/null
         ) &
     done
