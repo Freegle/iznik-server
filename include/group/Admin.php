@@ -8,8 +8,8 @@ class Admin extends Entity
     const SPOOLNAME = '/spool_admin_';
 
     /** @var  $dbhm LoggedPDO */
-    var $publicatts = array('id', 'groupid', 'created', 'complete', 'subject', 'text', 'ctatext', 'ctalink', 'createdby', 'pending', 'parentid', 'heldby', 'heldat', 'activeonly', 'sendafter', 'essential');
-    var $settableatts = [ 'subject', 'text', 'pending', 'ctatext', 'ctalink', 'sendafter', 'essential' ];
+    var $publicatts = array('id', 'groupid', 'created', 'complete', 'subject', 'text', 'ctatext', 'ctalink', 'createdby', 'pending', 'parentid', 'heldby', 'heldat', 'activeonly', 'sendafter', 'essential', 'template', 'editprotected');
+    var $settableatts = [ 'subject', 'text', 'pending', 'ctatext', 'ctalink', 'sendafter', 'essential', 'template', 'editprotected' ];
 
     /** @var  $log Log */
     private $log;
