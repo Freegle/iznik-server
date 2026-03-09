@@ -156,6 +156,7 @@ class Alert extends Entity
             case 'info': $from = INFO_ADDR; break;
             case 'geeks': $from = GEEKS_ADDR; break;
             case 'board': $from = BOARD_ADDR; break;
+            case 'chair': $from = CHAIR_ADDR; break;
             case 'mentors': $from = MENTORS_ADDR; break;
             case 'newgroups': $from = NEWGROUPS_ADDR; break;
             case 'ro': $from = RO_ADDR; break;

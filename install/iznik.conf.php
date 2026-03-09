@@ -162,6 +162,7 @@ define('INFO_ADDR', 'info@ilovefreegle.org');
 define('LJ_SUPPORT_ADDR', 'support@lovejunk.com');
 define('GEEKS_ADDR', 'geeks@ilovefreegle.org');
 define('BOARD_ADDR', 'board@ilovefreegle.org');
+define('CHAIR_ADDR', 'chair@ilovefreegle.org');
 define('MENTORS_ADDR', 'mentors@ilovefreegle.org');
 define('OMBUDSMAN_ADDR', 'ombudsman@ilovefreegle.org');
 define('NEWGROUPS_ADDR', 'newgroups@ilovefreegle.org');
