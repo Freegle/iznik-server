@@ -71,10 +71,10 @@ class Alert extends Entity
         return($ret);
     }
 
-    public function constructMessage($to, $toname, $touid, $from, $subject, $text, $html) {
+    public function constructMessage($to, $toname, $touid, $from, $subject, $text, $html, $fromName = NULL) {
         $message = \Swift_Message::newInstance()
             ->setSubject($subject)
-            ->setFrom([$from])
+            ->setFrom($fromName ? [$from => $fromName] : [$from])
             ->setTo([$to => $toname])
             ->setBody($text);
 
@@ -114,10 +114,10 @@ class Alert extends Entity
         foreach ($alerts as $alert) {
             $a = new Alert($this->dbhr, $this->dbhm, $alert['id']);
 
-            # This alert might be for a specific group, or all Freegle groups.  We only process a single group in this
-            # pass.  If it's for multiple, we'll update the progress and do the next one next time.
+            # This alert might be for a specific group, or all Freegle groups.  We process a batch of groups in this
+            # pass.  If it's for multiple, we'll update the progress and do the next batch next time.
             $groupid = $a->getPrivate('groupid');
-            $groupq =  $groupid ? " WHERE id = $groupid " : (" WHERE `type` = '$type' AND id > {$alert['groupprogress']} AND publish = 1 ORDER BY id ASC LIMIT 1");
+            $groupq =  $groupid ? " WHERE id = $groupid " : (" WHERE `type` = '$type' AND id > {$alert['groupprogress']} AND publish = 1 ORDER BY id ASC LIMIT 50");
 
             $groups = $this->dbhr->preQuery("SELECT id, nameshort FROM `groups` $groupq;");
             $complete = count($groups) == 0;
@@ -150,22 +150,23 @@ class Alert extends Entity
 
     public function getFrom() {
         $from = NULL;
-        
+        $fromName = NULL;
+
         switch ($this->alert['from']) {
-            case 'support': $from = SUPPORT_ADDR; break;
-            case 'info': $from = INFO_ADDR; break;
-            case 'geeks': $from = GEEKS_ADDR; break;
-            case 'board': $from = BOARD_ADDR; break;
-            case 'chair': $from = CHAIR_ADDR; break;
-            case 'mentors': $from = MENTORS_ADDR; break;
-            case 'newgroups': $from = NEWGROUPS_ADDR; break;
-            case 'ro': $from = RO_ADDR; break;
-            case 'volunteers': $from = VOLUNTEERS_ADDR; break;
-            case 'centralmods': $from = CENTRALMODS_ADDR; break;
-            case 'councils': $from = COUNCILS_ADDR; break;
+            case 'support': $from = SUPPORT_ADDR; $fromName = 'Freegle Support'; break;
+            case 'info': $from = INFO_ADDR; $fromName = 'Freegle Info'; break;
+            case 'geeks': $from = GEEKS_ADDR; $fromName = 'Freegle Geeks'; break;
+            case 'board': $from = BOARD_ADDR; $fromName = 'Freegle Board'; break;
+            case 'chair': $from = CHAIR_ADDR; $fromName = 'Freegle Chair'; break;
+            case 'mentors': $from = MENTORS_ADDR; $fromName = 'Freegle Mentors'; break;
+            case 'newgroups': $from = NEWGROUPS_ADDR; $fromName = 'Freegle New Groups'; break;
+            case 'ro': $from = RO_ADDR; $fromName = 'Freegle Returning Officer'; break;
+            case 'volunteers': $from = VOLUNTEERS_ADDR; $fromName = 'Freegle Volunteers'; break;
+            case 'centralmods': $from = CENTRALMODS_ADDR; $fromName = 'Freegle Volunteer Support'; break;
+            case 'councils': $from = COUNCILS_ADDR; $fromName = 'Freegle Partnerships'; break;
         }
 
-        return($from);
+        return([$from, $fromName]);
     }
 
     public function getStats() {
@@ -240,7 +241,7 @@ class Alert extends Entity
         $done = 0;
 
         $g = Group::get($this->dbhr, $this->dbhm, $groupid);
-        $from = $this->getFrom();
+        list($from, $fromName) = $this->getFrom();
 
         # Mail the mods individually.  We only want to mail each emailid once per alert, otherwise it's horrible for
         # people on many groups.
@@ -298,7 +299,7 @@ class Alert extends Entity
                                     'https://' . USER_SITE . "/alert/viewed/$trackid";
                             }
 
-                            $msg = $this->constructMessage($email['email'], $u->getName(), $u->getId(), $from, $this->alert['subject'], $text, $html);
+                            $msg = $this->constructMessage($email['email'], $u->getName(), $u->getId(), $from, $this->alert['subject'], $text, $html, $fromName);
                             Mail::addHeaders($this->dbhr, $this->dbhm, $msg, Mail::ALERT, $u->getId());
 
                             $mailer->send($msg);
@@ -342,7 +343,7 @@ class Alert extends Entity
                         'https://' . USER_SITE . "/alert/viewed/$trackid";
                 }
 
-                $msg = $this->constructMessage($g->getPrivate('contactmail'), $toname, NULL, $from, $this->alert['subject'], $text, $html);
+                $msg = $this->constructMessage($g->getPrivate('contactmail'), $toname, NULL, $from, $this->alert['subject'], $text, $html, $fromName);
                 Mail::addHeaders($this->dbhr, $this->dbhm, $msg, Mail::ALERT);
                 $mailer->send($msg);
                 $done++;
@@ -366,7 +367,7 @@ class Alert extends Entity
                 $global);
 
             $text = $this->alert['text'];
-            $msg = $this->constructMessage($from, $g->getPrivate('nameshort'), NULL, $from, $this->alert['subject'], $text, $html);
+            $msg = $this->constructMessage($from, $g->getPrivate('nameshort'), NULL, $from, $this->alert['subject'], $text, $html, $fromName);
             Mail::addHeaders($this->dbhr, $this->dbhm, $msg, Mail::ALERT);
             $mailer->send($msg);
         }
