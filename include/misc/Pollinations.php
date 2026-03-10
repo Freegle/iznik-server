@@ -742,7 +742,8 @@ class Pollinations {
     private static function buildHttpContext($timeout) {
         return stream_context_create([
             'http' => [
-                'timeout' => $timeout
+                'timeout' => $timeout,
+                'ignore_errors' => TRUE
             ]
         ]);
     }
@@ -787,12 +788,20 @@ class Pollinations {
 
         $data = @file_get_contents($url, FALSE, $ctx);
 
-        # Check for HTTP 429 rate limiting.
+        # Check HTTP status code.
         if (isset($http_response_header)) {
             foreach ($http_response_header as $header) {
                 if (preg_match('/^HTTP\/\d+\.?\d*\s+429/', $header)) {
                     error_log("Pollinations rate limited (HTTP 429) for: " . $prompt);
                     return FALSE;
+                }
+
+                if (preg_match('/^HTTP\/\d+\.?\d*\s+(\d+)/', $header, $matches)) {
+                    $httpCode = (int)$matches[1];
+                    if ($httpCode >= 400) {
+                        error_log("Pollinations HTTP $httpCode for: " . $prompt);
+                        return FALSE;
+                    }
                 }
             }
         }
@@ -1086,12 +1095,21 @@ class Pollinations {
             error_log("Batch fetching image for: $name");
             $data = @file_get_contents($url, FALSE, $ctx);
 
-            # Check for HTTP 429 - this is real rate-limiting, fail entire batch.
+            # Check HTTP status code.
             if (isset($http_response_header)) {
                 foreach ($http_response_header as $header) {
                     if (preg_match('/^HTTP\/\d+\.?\d*\s+429/', $header)) {
                         error_log("Pollinations rate limited (HTTP 429) for batch item: $name");
                         return FALSE;
+                    }
+
+                    if (preg_match('/^HTTP\/\d+\.?\d*\s+(\d+)/', $header, $matches)) {
+                        $httpCode = (int)$matches[1];
+                        if ($httpCode >= 400) {
+                            error_log("Pollinations HTTP $httpCode for batch item: $name (skipping)");
+                            $failed[$name] = TRUE;
+                            continue 2;
+                        }
                     }
                 }
             }
