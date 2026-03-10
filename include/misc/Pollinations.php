@@ -811,6 +811,12 @@ class Pollinations {
             return FALSE;
         }
 
+        # Check image dimensions match what we requested. Pollinations returns a
+        # 1024x1024 "rate limit reached" image instead of HTTP 429 when throttled.
+        if (self::isRateLimitImage($data, $width, $height, $prompt)) {
+            return FALSE;
+        }
+
         # Compute hash of received image.
         $hash = md5($data);
 
@@ -854,6 +860,34 @@ class Pollinations {
         self::addToFileCache($hash, $prompt);
 
         return $data;
+    }
+
+    /**
+     * Detect Pollinations rate-limit images by checking dimensions.
+     * When rate-limited, Pollinations returns a 1024x1024 "RATE LIMIT REACHED" image
+     * instead of HTTP 429, so hash-based detection won't catch it.
+     * @param string $data Raw image data.
+     * @param int $expectedWidth The width we requested.
+     * @param int $expectedHeight The height we requested.
+     * @param string $name Item name for logging.
+     * @return bool TRUE if this is a rate-limit image.
+     */
+    private static function isRateLimitImage($data, $expectedWidth, $expectedHeight, $name) {
+        $img = @imagecreatefromstring($data);
+        if (!$img) {
+            return FALSE;
+        }
+
+        $actualWidth = imagesx($img);
+        $actualHeight = imagesy($img);
+        imagedestroy($img);
+
+        if ($actualWidth !== $expectedWidth || $actualHeight !== $expectedHeight) {
+            error_log("Pollinations rate limited (dimension mismatch) for: $name - expected {$expectedWidth}x{$expectedHeight}, got {$actualWidth}x{$actualHeight}");
+            return TRUE;
+        }
+
+        return FALSE;
     }
 
     /**
@@ -1120,6 +1154,12 @@ class Pollinations {
                 error_log("Pollinations failed to return data for batch item: $name (skipping)");
                 $failed[$name] = TRUE;
                 continue;
+            }
+
+            # Check image dimensions match what we requested. Pollinations returns a
+            # 1024x1024 "rate limit reached" image instead of HTTP 429 when throttled.
+            if (self::isRateLimitImage($data, $width, $height, $name)) {
+                return FALSE;
             }
 
             $hash = md5($data);
