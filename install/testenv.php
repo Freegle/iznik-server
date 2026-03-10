@@ -148,6 +148,12 @@ if (!$gid) {
     # Create test users with all required relationships
     $uid = createTestUser($dbhr, $dbhm, 'Test', 'User', 'test@test.com', 'User', $gid, $pcid, $volid, $eventid);
     $uid2 = createTestUser($dbhr, $dbhm, 'Test', 'Moderator', 'testmod@test.com', 'Admin', $gid, $pcid, $volid, $eventid, User::ROLE_MODERATOR);
+
+    # Also add testmod as moderator of FreeglePlayground2 (for move-message E2E test)
+    $u2 = new User($dbhr, $dbhm, $uid2);
+    $u2->addMembership($gid2, User::ROLE_MODERATOR);
+    error_log("Added testmod (ID: $uid2) as Moderator of FreeglePlayground2 (ID: $gid2)");
+
     $uid3 = createTestUser($dbhr, $dbhm, 'Test', 'User3', 'test3@test.com', 'User', $gid, $pcid, $volid, $eventid);
     $adminUid = createTestUser($dbhr, $dbhm, 'Admin', 'User', 'admin@test.com', 'Admin', $gid, $pcid, $volid, $eventid);
     $supportUid = createTestUser($dbhr, $dbhm, 'Support', 'User', 'support@test.com', 'Support', $gid, $pcid, $volid, $eventid);
