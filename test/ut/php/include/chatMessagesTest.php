@@ -888,23 +888,11 @@ class chatMessagesTest extends IznikTestCase {
         list ($imageId, $dummy) = $a->create(NULL, $imageData);
         $this->assertNotNull($imageId);
 
-        # Create image message
+        # Create image message with inline processing ($process = TRUE).
+        # This avoids race conditions with the background chat_process.php worker.
         $m = new ChatMessage($this->dbhr, $this->dbhm);
-        error_log("TEST: About to create message with imageid=$imageId at " . date("Y-m-d H:i:s"));
-        list ($mid, $banned) = $m->create($chatid, $uid1, '', ChatMessage::TYPE_IMAGE, NULL, TRUE, NULL, NULL, NULL, $imageId, NULL, NULL, FALSE, FALSE);
+        list ($mid, $banned) = $m->create($chatid, $uid1, '', ChatMessage::TYPE_IMAGE, NULL, TRUE, NULL, NULL, NULL, $imageId, NULL, NULL, FALSE, TRUE);
         $this->assertNotNull($mid);
-        error_log("TEST: Created message id=$mid at " . date("Y-m-d H:i:s"));
-        $m->setPrivate('imageid', $imageId);
-
-        $m = new ChatMessage($this->dbhr, $this->dbhm, $mid);
-
-        # Don't assert processingrequired = 1 here — the background chat_process.php
-        # worker may have already picked it up and processed it (race condition).
-        # process() is idempotent so calling it again is safe.
-
-        # Process the message
-        $result = $m->process();
-        $this->assertTrue($result, "Processing should succeed for: $description");
 
         # Verify processing completed
         $m = new ChatMessage($this->dbhr, $this->dbhm, $mid);
