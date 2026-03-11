@@ -897,9 +897,10 @@ class chatMessagesTest extends IznikTestCase {
         $m->setPrivate('imageid', $imageId);
 
         $m = new ChatMessage($this->dbhr, $this->dbhm, $mid);
-        $processingrequired = $m->getPrivate('processingrequired');
-        error_log("TEST: Checking message $mid, processingrequired=$processingrequired at " . date("Y-m-d H:i:s") . " for test: $description");
-        $this->assertEquals(1, $processingrequired);
+
+        # Don't assert processingrequired = 1 here — the background chat_process.php
+        # worker may have already picked it up and processed it (race condition).
+        # process() is idempotent so calling it again is safe.
 
         # Process the message
         $result = $m->process();
