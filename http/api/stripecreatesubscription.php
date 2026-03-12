@@ -16,39 +16,10 @@ function stripecreatesubscription() {
                 $amount = Utils::presint('amount', $_REQUEST, 0);
                 $test = Utils::presbool('test', $_REQUEST, FALSE);
 
-                $price = NULL;
-
-                switch ($amount) {
-                    case 1: {
-                        $price = 'price_1QPo6pP3oIVajsTkjR41BjuL';
-                        break;
-                    }
-                    case 2: {
-                        $price = 'price_1QK244P3oIVajsTkYcUs6kEM';
-                        break;
-                    }
-                    case 5: {
-                        $price = 'price_1QPo7cP3oIVajsTkdGnF7kI4';
-                        break;
-                    }
-                    case 10: {
-                        $price = 'price_1QJv7GP3oIVajsTkTG7RGAUA';
-                        break;
-                    }
-                    case 15: {
-                        $price = 'price_1QK24rP3oIVajsTkwkXPms9B';
-                        break;
-                    }
-                    case 25: {
-                        $price = 'price_1QK24VP3oIVajsTk3e57kF5S';
-                        break;
-                    }
-                }
-
-                if (!$price) {
+                if ($amount < 1 || $amount > 100) {
                     $ret = [
                         'ret' => 2,
-                        'status' => 'Invalid amount - must be 1, 2, 5, 10, 15, or 25'
+                        'status' => 'Invalid amount - must be between 1 and 100'
                     ];
                     break;
                 }
@@ -61,10 +32,21 @@ function stripecreatesubscription() {
                                                            'metadata' => [ 'uid' => $me->getId() ],
                                                        ]);
 
+                $product = $stripe->products->create([
+                                                          'name' => 'Freegle Monthly Donation - £' . $amount,
+                                                      ]);
+
                 $subscription = $stripe->subscriptions->create([
                                                                    'customer' => $customer->id,
                                                                    'items' => [[
-                                                                       'price' => $price
+                                                                       'price_data' => [
+                                                                           'currency' => 'gbp',
+                                                                           'unit_amount' => $amount * 100,
+                                                                           'recurring' => [
+                                                                               'interval' => 'month',
+                                                                           ],
+                                                                           'product' => $product->id,
+                                                                       ],
                                                                    ]],
                                                                    'payment_behavior' => 'default_incomplete',
                                                                    'payment_settings' => ['save_default_payment_method' => 'on_subscription'],
