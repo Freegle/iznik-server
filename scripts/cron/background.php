@@ -60,8 +60,8 @@ try {
         try {
             // Pheanstalk doesn't recovery well after an error, so recreate each time.
             error_reporting(0);
-            $pheanstalk = Pheanstalk::create(PHEANSTALK_SERVER);
-            $pheanstalk = $pheanstalk->watchOnly(PHEANSTALK_TUBE);
+            $pheanstalk = Pheanstalk::create(\PHEANSTALK_SERVER);
+            $pheanstalk = $pheanstalk->watchOnly(\PHEANSTALK_TUBE);
             $job = $pheanstalk->reserve();
             error_reporting(E_ALL & ~E_WARNING & ~E_DEPRECATED & ~E_NOTICE);
         } catch (\Exception $e) {
@@ -112,7 +112,7 @@ try {
                                 case PushNotifications::PUSH_GOOGLE:
                                 {
                                     $params = [
-                                        'GCM' => GOOGLE_PUSH_KEY
+                                        'GCM' => \GOOGLE_PUSH_KEY
                                     ];
                                     break;
                                 }
