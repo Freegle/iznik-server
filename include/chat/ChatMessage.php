@@ -231,7 +231,7 @@ class ChatMessage extends Entity
     }
 
     public function process($forcereview = FALSE, $suppressmodnotif = FALSE) {
-        # Process a chat message which was created with processingrequired = 1.  By doing this stuff
+        # Process a chat message.  By doing this stuff
         # in the background we can keep chat message creation fast.
         #
         # First, expand any URLs which are redirects.  This mitigates use by spammers of shortening services and
@@ -494,8 +494,11 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
     }
 
     public function create($chatid, $userid, $message, $type = ChatMessage::TYPE_DEFAULT, $refmsgid = NULL, $platform = TRUE, $spamscore = NULL, $reportreason = NULL, $refchatid = NULL, $imageid = NULL, $facebookid = NULL, $forcereview = FALSE, $suppressmodnotif = FALSE, $process = TRUE) {
-        // Create the message, requiring processing.
-        $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, spamscore, reportreason, refchatid, imageid, facebookid, processingrequired, replyreceived) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,1,0);", [
+        // Create the message.  If $process is TRUE we process inline, so insert with
+        // processingrequired = 0 to prevent the background worker from picking it up.
+        // If $process is FALSE the background worker will handle it.
+        $processingrequired = $process ? 0 : 1;
+        $rc = $this->dbhm->preExec("INSERT INTO chat_messages (chatid, userid, message, type, refmsgid, platform, reviewrequired, spamscore, reportreason, refchatid, imageid, facebookid, processingrequired, replyreceived) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,0);", [
             $chatid,
             $userid,
             $message,
@@ -507,7 +510,8 @@ WHERE chat_messages.chatid = ? AND chat_messages.userid != ? AND seenbyall = 0 A
             $reportreason,
             $refchatid,
             $imageid,
-            $facebookid
+            $facebookid,
+            $processingrequired
         ]);
 
         $id = $this->dbhm->lastInsertId();
