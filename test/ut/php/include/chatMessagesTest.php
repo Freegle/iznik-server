@@ -798,20 +798,58 @@ class chatMessagesTest extends IznikTestCase {
         }
     }
 
-    private function createTestImageWithText($text, $width = NULL, $height = 50) {
-        # Create a simple image with text using GD library.
-        # Auto-calculate width based on text length if not specified.
-        # Font 5 is approximately 9 pixels per character.
-        if ($width === NULL) {
-            $width = max(400, strlen($text) * 10 + 20);
+    private function createTestImageWithText($text, $width = NULL, $height = NULL) {
+        # Create a large, clear image with text that Tesseract OCR can read reliably.
+        # Use imagettftext with a TrueType font for better OCR results.
+        $fontSize = 24;
+
+        # Try to find a TrueType font
+        $fontPaths = [
+            '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+            '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
+            '/usr/share/fonts/truetype/freefont/FreeSans.ttf',
+            '/usr/share/fonts/dejavu/DejaVuSans.ttf',
+        ];
+        $font = NULL;
+        foreach ($fontPaths as $path) {
+            if (file_exists($path)) {
+                $font = $path;
+                break;
+            }
         }
 
-        $image = imagecreate($width, $height);
-        $bgColor = imagecolorallocate($image, 255, 255, 255); // White background
-        $textColor = imagecolorallocate($image, 0, 0, 0); // Black text
+        if ($font) {
+            # Use TrueType font for clear, OCR-friendly text
+            $bbox = imagettfbbox($fontSize, 0, $font, $text);
+            $textWidth = abs($bbox[2] - $bbox[0]);
+            $textHeight = abs($bbox[7] - $bbox[1]);
+            if ($width === NULL) {
+                $width = $textWidth + 40;
+            }
+            if ($height === NULL) {
+                $height = $textHeight + 40;
+            }
 
-        # Add text to image
-        imagestring($image, 5, 10, 15, $text, $textColor);
+            $image = imagecreatetruecolor($width, $height);
+            $bgColor = imagecolorallocate($image, 255, 255, 255);
+            $textColor = imagecolorallocate($image, 0, 0, 0);
+            imagefilledrectangle($image, 0, 0, $width, $height, $bgColor);
+            imagettftext($image, $fontSize, 0, 20, $height - 20, $textColor, $font, $text);
+        } else {
+            # Fallback: use GD built-in font scaled up for better OCR
+            if ($width === NULL) {
+                $width = max(600, strlen($text) * 20 + 40);
+            }
+            if ($height === NULL) {
+                $height = 100;
+            }
+
+            $image = imagecreatetruecolor($width, $height);
+            $bgColor = imagecolorallocate($image, 255, 255, 255);
+            $textColor = imagecolorallocate($image, 0, 0, 0);
+            imagefilledrectangle($image, 0, 0, $width, $height, $bgColor);
+            imagestring($image, 5, 20, 40, $text, $textColor);
+        }
 
         # Capture image data
         ob_start();
@@ -884,6 +922,15 @@ class chatMessagesTest extends IznikTestCase {
 
         # Create test image with the provided text
         $imageData = $this->createTestImageWithText($text);
+
+        # Verify Tesseract can read the image directly
+        $tempFile = tempnam(sys_get_temp_dir(), 'test_ocr_');
+        file_put_contents($tempFile, $imageData);
+        $tesseract = new \thiagoalessio\TesseractOCR\TesseractOCR($tempFile);
+        $ocrText = $tesseract->run();
+        unlink($tempFile);
+        $this->assertNotEmpty($ocrText, "Tesseract should extract text from image containing: $text");
+
         $a = new Attachment($this->dbhr, $this->dbhm, NULL, Attachment::TYPE_CHAT_MESSAGE);
         list ($imageId, $dummy) = $a->create(NULL, $imageData);
         $this->assertNotNull($imageId);
@@ -896,8 +943,8 @@ class chatMessagesTest extends IznikTestCase {
 
         # Verify processing completed
         $m = new ChatMessage($this->dbhr, $this->dbhm, $mid);
-        $this->assertEquals(0, $m->getPrivate('processingrequired'));
-        $this->assertEquals(1, $m->getPrivate('processingsuccessful'));
+        $this->assertSame(0, $m->getPrivate('processingrequired'));
+        $this->assertSame(1, $m->getPrivate('processingsuccessful'));
 
         # Verify review status
         if ($shouldBeReviewed) {
