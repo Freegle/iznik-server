@@ -6406,23 +6406,22 @@ class User extends Entity
                 $url = "https://" . USER_SITE . "/job/{$job['id']}";
                 $image = Utils::presdef('image', $job, '');
 
-                $ret .= '<tr style="vertical-align:top;">';
+                $ret .= '<tr style="vertical-align:middle;">';
 
-                # Image column - small fixed width.  Always render to keep table layout consistent.
-                $ret .= '<td style="width:70px; padding:5px 10px 5px 0;">';
+                # Image column - compact.
+                $ret .= '<td style="width:40px; padding:4px 8px 4px 0;">';
                 if ($image) {
-                    $ret .= '<a href="' . $url . '" target="_blank"><img src="' . htmlspecialchars($image) . '" alt="" style="width:60px; height:60px; object-fit:cover; border-radius:4px;"></a>';
+                    $ret .= '<a href="' . $url . '" target="_blank"><img src="' . htmlspecialchars($image) . '" alt="" style="width:36px; height:36px; object-fit:cover; border-radius:4px;"></a>';
                 } else {
-                    # Placeholder: briefcase image, same as used on the web.
-                    $ret .= '<a href="' . $url . '" target="_blank"><img src="https://' . USER_SITE . '/emailimages/briefcase.png" alt="" style="width:60px; height:60px; object-fit:cover; border-radius:4px;"></a>';
+                    $ret .= '<a href="' . $url . '" target="_blank"><img src="https://' . USER_SITE . '/emailimages/briefcase.png" alt="" style="width:36px; height:36px; object-fit:cover; border-radius:4px;"></a>';
                 }
                 $ret .= '</td>';
 
-                # Text column - title and location.
-                $ret .= '<td style="padding:5px 0;">';
-                $ret .= '<a href="' . $url . '" target="_blank" style="color:#004085; font-weight:bold; text-decoration:none;">' . htmlentities($job['title']) . '</a>';
+                # Text column - title and location on one line where possible.
+                $ret .= '<td style="padding:4px 0; font-size:13px; line-height:1.3;">';
+                $ret .= '<a href="' . $url . '" target="_blank" style="color:#004085; text-decoration:none;">' . htmlentities($job['title']) . '</a>';
                 if ($loc && trim($loc) !== '') {
-                    $ret .= '<br><span style="color:#666; font-size:14px;">' . htmlentities($loc) . '</span>';
+                    $ret .= ' <span style="color:#888;">· ' . htmlentities($loc) . '</span>';
                 }
                 $ret .= '</td>';
 
