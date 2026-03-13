@@ -269,6 +269,49 @@ if (!$gid) {
     error_log("Test environment already exists (group FreeglePlayground ID: $gid)");
 }
 
+# Create pending test messages (for ModTools pending messages E2E tests).
+# Always runs — creates pending messages if none exist on FreeglePlayground.
+$pendingCount = $dbhr->preQuery("SELECT COUNT(*) AS cnt FROM messages_groups WHERE groupid = ? AND collection = 'Pending'", [$gid]);
+if (!$pendingCount || $pendingCount[0]['cnt'] == 0) {
+    error_log("Creating pending messages for ModTools E2E tests");
+
+    # Look up location for the group
+    $pcRows = $dbhr->preQuery("SELECT id FROM locations WHERE name = 'EH3 6SS' LIMIT 1");
+    $pcid_pending = $pcRows ? $pcRows[0]['id'] : NULL;
+
+    if ($pcid_pending) {
+        static $pendingCounter = 100;
+
+        foreach (['OFFER: Pending sofa (Tuvalu High Street)', 'OFFER: Pending bookshelf (Tuvalu High Street)'] as $subject) {
+            $msg = file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/attachment');
+            $uniqueId = time() . rand(1, 1000000) . $pendingCounter++;
+            $msg = preg_replace('/Message-Id: <[^>]+>/i', 'Message-Id: <' . $uniqueId . '@testenv-pending>', $msg);
+            $msg = str_replace('Test att', $subject, $msg);
+            $msg = str_replace('22 Aug 2015', '28 Aug 2035', $msg);
+
+            $mr = new MailRouter($dbhr, $dbhm);
+            list ($pid, $failok) = $mr->received(Message::EMAIL, 'test@test.com', 'test@test.com', $msg);
+            $rc = $mr->route();
+            error_log("Created pending message '$subject' (ID: $pid, route result: $rc)");
+
+            if ($pid) {
+                $m = new Message($dbhr, $dbhm, $pid);
+                $m->setPrivate('lat', 55.9533);
+                $m->setPrivate('lng', -3.1883);
+                $m->setPrivate('locationid', $pcid_pending);
+
+                # Set as Pending (not Approved)
+                $dbhm->preExec("UPDATE messages_groups SET collection = 'Pending' WHERE msgid = ?", [$pid]);
+                error_log("Set message $pid as Pending on group $gid");
+            }
+        }
+    } else {
+        error_log("WARNING: Could not find location 'EH3 6SS' for pending messages");
+    }
+} else {
+    error_log("Pending messages already exist on group $gid (count: {$pendingCount[0]['cnt']})");
+}
+
 # Add required test data for PHPUnit tests (hardcoded IDs used by tests)
 # These always run since tests expect specific IDs
 
