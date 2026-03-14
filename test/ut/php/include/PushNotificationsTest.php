@@ -552,6 +552,48 @@ class PushNotificationsTest extends IznikTestCase {
         $this->assertEquals(0, count($held));
     }
 
+    public function testBlockedChatNoNotifications() {
+        # Test that blocking a chat prevents push notifications for messages from the blocked user.
+        # This reproduces a bug where notifyIndividualMessages() did not filter out chats
+        # where the roster status was 'Blocked', causing users to receive push notifications
+        # from users they had blocked.
+
+        list($u, $id, $emailid) = $this->createTestUserAndLogin('Test', 'User', NULL, 'test@test.com', 'testpw');
+        list($u2, $id2, $emailid2) = $this->createTestUser('Test', 'User2', NULL, 'test2@test.com', 'testpw2');
+
+        $mock = $this->getMockBuilder('Freegle\Iznik\PushNotifications')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setMethods(array('uthook'))
+            ->getMock();
+        $mock->method('uthook')->willThrowException(new \Exception());
+
+        # Add FCM Android subscription for recipient
+        $n = new PushNotifications($this->dbhr, $this->dbhm);
+        $n->add($id, PushNotifications::PUSH_FCM_ANDROID, 'test-android-blocked', FALSE);
+
+        # Create a chat and send a message from user2 to user1
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        list($rid, $created) = $r->createConversation($id, $id2);
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cm, $banned) = $m->create($rid, $id2, "Message before block", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL, NULL, FALSE, FALSE, FALSE);
+        $this->dbhm->preExec("UPDATE chat_messages SET processingrequired = 0, processingsuccessful = 1, reviewrequired = 0 WHERE id = ?", [$cm]);
+
+        # First notify should send a notification (chat not blocked yet)
+        $count1 = $mock->notify($id, FALSE, FALSE, $rid);
+        $this->assertGreaterThan(0, $count1, "Should send notification before block");
+
+        # Now block the chat
+        $this->dbhm->preExec("UPDATE chat_roster SET status = 'Blocked' WHERE chatid = ? AND userid = ?", [$rid, $id]);
+
+        # Send another message from the blocked user
+        list ($cm2, $banned2) = $m->create($rid, $id2, "Message after block", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL, NULL, FALSE, FALSE, FALSE);
+        $this->dbhm->preExec("UPDATE chat_messages SET processingrequired = 0, processingsuccessful = 1, reviewrequired = 0 WHERE id = ?", [$cm2]);
+
+        # Notify should NOT send notifications for blocked chat
+        $count2 = $mock->notify($id, FALSE, FALSE, $rid);
+        $this->assertEquals(0, $count2, "Should NOT send notification for blocked chat");
+    }
+
     public function testMemberReviewHoldReleaseNotifiesGroupMods() {
         # Test that ReviewHold/ReviewRelease on memberships triggers notifyGroupMods.
         list($g, $groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);

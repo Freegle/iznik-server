@@ -424,6 +424,7 @@ class PushNotifications
             AND cm.reviewrejected = 0
             AND cm.id > COALESCE(roster.lastmsgnotified, 0)
             AND cm.date >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+            AND COALESCE(roster.status, 'Online') != 'Blocked'
             $chatFilter
             ORDER BY cm.date ASC
             LIMIT 20
