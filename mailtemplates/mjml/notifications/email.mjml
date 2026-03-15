@@ -123,7 +123,7 @@
               <mj-raw>
                 {% if notification.type == 'Exhort' %}
               </mj-raw>
-                <mj-button align="right" href="https://www.ilovefreegle.org{{ notification.url }}" background-color="darkgreen">
+                <mj-button align="right" href="{% if notification.url starts with 'http' %}{{ notification.url }}{% else %}https://www.ilovefreegle.org{{ notification.url }}{% endif %}" background-color="darkgreen">
                   Click here!
                 </mj-button>
               <mj-raw>
