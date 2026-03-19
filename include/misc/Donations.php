@@ -240,9 +240,9 @@ class Donations
         #
         # Previously we did this only for donations with a gift aid record, but doing it for any we can match
         # will result in better records of donations, which helps Support.
-        $missing = $this->dbhr->preQuery("SELECT users_emails.userid AS emailid, users_donations.id AS donationid FROM users_donations 
-    INNER JOIN users_emails ON users_emails.email = users_donations.Payer 
-         WHERE users_donations.userid IS NULL;
+        $missing = $this->dbhr->preQuery("SELECT users_emails.userid AS emailid, users_donations.id AS donationid FROM users_donations
+    INNER JOIN users_emails ON users_emails.email = users_donations.Payer
+         WHERE users_donations.userid IS NULL AND users_donations.Payer != '' AND users_emails.email != '';
 ");
         foreach ($missing as $m) {
             $this->dbhm->preExec("UPDATE users_donations SET userid = ? WHERE id = ?;", [

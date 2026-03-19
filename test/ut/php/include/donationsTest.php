@@ -297,6 +297,45 @@ class donationsTest extends IznikTestCase {
         $this->dbhm->preExec("DELETE FROM users WHERE id = ?;", [$uid]);
     }
 
+    public function testCorrectUserIdSkipsEmptyPayer() {
+        # Regression test: correctUserIdInDonations() must not match donations with
+        # empty Payer to users with empty email records.
+
+        # Create a user with a legitimate email
+        $u = User::get($this->dbhr, $this->dbhm);
+        $realUserId = $u->create('Test', 'User', NULL);
+        $u->addEmail('realdonor-ut@test.com');
+
+        # Create a second user who has an empty email record (the bug scenario)
+        $u2 = User::get($this->dbhr, $this->dbhm);
+        $badUserId = $u2->create('Test', 'User', NULL);
+        $this->dbhm->preExec("INSERT INTO users_emails (userid, email) VALUES (?, '')", [$badUserId]);
+
+        $d = new Donations($this->dbhr, $this->dbhm);
+
+        # Add a donation with empty Payer and NULL userid (simulates webhook with no billing email)
+        $did1 = $d->add(NULL, '', '', date("Y-m-d H:i:s"), 'UT-empty-1', 5.00, Donations::TYPE_STRIPE, NULL, Donations::TYPE_STRIPE);
+        $this->assertNotNull($did1);
+
+        # Add a donation with a real email and NULL userid (simulates a user who left and rejoined)
+        $did2 = $d->add(NULL, 'realdonor-ut@test.com', 'Real Donor', date("Y-m-d H:i:s"), 'UT-real-1', 10.00, Donations::TYPE_STRIPE, NULL, Donations::TYPE_STRIPE);
+        $this->assertNotNull($did2);
+
+        # Run correctUserIdInDonations
+        $d->correctUserIdInDonations();
+
+        # The empty-Payer donation must NOT be matched to the bad user
+        $rows = $this->dbhr->preQuery("SELECT userid FROM users_donations WHERE id = ?", [$did1]);
+        $this->assertNull($rows[0]['userid'], "Empty Payer donation should remain unattributed");
+
+        # The real-email donation SHOULD be matched to the real user
+        $rows = $this->dbhr->preQuery("SELECT userid FROM users_donations WHERE id = ?", [$did2]);
+        $this->assertEquals($realUserId, $rows[0]['userid'], "Real email donation should be matched to correct user");
+
+        # Clean up
+        $this->dbhm->preExec("DELETE FROM users_emails WHERE userid = ? AND email = ''", [$badUserId]);
+    }
+
     public function testGetExcludedPayersConditionDefault() {
         // Test that the function returns a valid SQL condition.
         $condition = Donations::getExcludedPayersCondition();

@@ -42,7 +42,7 @@ try {
 try {
     switch ($event->type) {
         case 'charge.succeeded':
-            $paymentIntent = $event->data->object; // contains a \Stripe\PaymentIntent
+            $paymentIntent = $event->data->object; // contains a \Stripe\Charge (variable name is legacy)
             $amount = $paymentIntent->amount;
 
             // Amount is in pence.
@@ -87,31 +87,41 @@ try {
                                 log("User id from email $eid");
                             }
                         } else {
-                            // We don't know how to link this donation to a user.  Mail details to Geeks for them to
-                            // investigate.  Will get added below.
                             log("No customer id for donation");
-//                            $message = \Swift_Message::newInstance()
-//                                ->setSubject("Stripe donation {$paymentIntent->id} can't be linked to user - needs investigating")
-//                                ->setFrom(NOREPLY_ADDR)
-//                                ->setTo(INFO_ADDR)
-//                                ->setCc(GEEKS_ADDR)
-//                                ->setBody($input);
-//
-//                            list ($transport, $mailer) = Mail::getMailer();
-//                            Mail::addHeaders($dbhr, $dbhm, $message, Mail::DONATE_IPN);
-//
-//                            $mailer->send($message);
+                        }
+
+                        # If we still don't have a user, try billing_details.email from the charge.
+                        if (!$eid) {
+                            $billingEmail = $paymentIntent->billing_details->email ?? NULL;
+
+                            if ($billingEmail) {
+                                $u = new User($dbhr, $dbhm);
+                                $eid = $u->findByEmail($billingEmail);
+                                log("User id from billing email $billingEmail: " . ($eid ?: 'none'));
+
+                                if ($eid) {
+                                    $u = User::get($dbhr, $dbhm, $eid);
+                                }
+                            }
                         }
                     }
 
                     $recurring = $paymentIntent->description == 'Subscription creation';
 
+                    # Use billing details from the charge as fallback for Payer/PayerDisplayName
+                    # when we don't have a matched user.
+                    $billingEmail = $paymentIntent->billing_details->email ?? NULL;
+                    $billingName = $paymentIntent->billing_details->name ?? NULL;
+
+                    $payerEmail = ($eid && $u->getEmailPreferred()) ? $u->getEmailPreferred() : ($billingEmail ?: '');
+                    $payerName = ($eid && $u->getName()) ? $u->getName() : ($billingName ?: '');
+
                     $d = new Donations($dbhr, $dbhm);
-                    log("Add donation");
+                    log("Add donation for user " . ($eid ?: 'NULL') . " payer $payerEmail ($payerName)");
                     $did = $d->add(
                         $eid ? $eid : NULL,
-                        $u->getEmailPreferred() ? $u->getEmailPreferred() : '',
-                        $u->getName() ? $u->getName() : '',
+                        $payerEmail,
+                        $payerName,
                         date("Y-m-d H:i:s"),
                         $paymentIntent->id,
                         $amount,
