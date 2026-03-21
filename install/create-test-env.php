@@ -79,6 +79,7 @@ $knownPrefixes = [
     'userratings'             => 18,
     'v2apipages'              => 19,
     'mteditsflow'             => 20,
+    'mtchatreply'             => 21,
 ];
 
 if (isset($knownPrefixes[$prefix])) {
