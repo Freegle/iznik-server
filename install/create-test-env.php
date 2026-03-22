@@ -214,17 +214,39 @@ $user2Uid = findOrCreateUser($dbhr, $dbhm, $user2Email, 'PW', "User2_$prefix", '
 
 # Create approved messages (OFFER + WANTED) if they don't exist.
 function findOrCreateMessage($dbhr, $dbhm, $subject, $gid, $groupName, $approver, $pcid, $lat, $lng, $senderEmail, $collection = 'Approved') {
-    # Check if a message with this subject already exists on this group.
+    # Check if a message with this subject already exists on ANY group.
+    # A prior test run may have moved it to a different group.
     $existing = $dbhr->preQuery(
-        "SELECT m.id FROM messages m " .
+        "SELECT m.id, mg.groupid, mg.collection FROM messages m " .
         "INNER JOIN messages_groups mg ON m.id = mg.msgid " .
-        "WHERE m.subject = ? AND mg.groupid = ? LIMIT 1",
-        [$subject, $gid]
+        "WHERE m.subject = ? LIMIT 1",
+        [$subject]
     );
 
     if ($existing && count($existing) > 0) {
-        error_log("Message '$subject' already exists (ID: {$existing[0]['id']})");
-        return $existing[0]['id'];
+        $id = $existing[0]['id'];
+        $currentGroup = $existing[0]['groupid'];
+        $currentCollection = $existing[0]['collection'];
+
+        # If the message is on the wrong group or in the wrong collection, fix it.
+        if ($currentGroup != $gid) {
+            error_log("Message '$subject' (ID: $id) on wrong group $currentGroup, moving to $gid");
+            $dbhm->preExec("UPDATE messages_groups SET groupid = ? WHERE msgid = ?", [$gid, $id]);
+        }
+        if ($currentCollection !== $collection) {
+            error_log("Message '$subject' (ID: $id) in $currentCollection, changing to $collection");
+            if ($collection === 'Approved') {
+                $dbhm->preExec(
+                    "UPDATE messages_groups SET collection = 'Approved', approvedby = ?, approvedat = NOW() WHERE msgid = ?",
+                    [$approver, $id]
+                );
+            } else {
+                $dbhm->preExec("UPDATE messages_groups SET collection = ? WHERE msgid = ?", [$collection, $id]);
+            }
+        }
+
+        error_log("Message '$subject' already exists (ID: $id)");
+        return $id;
     }
 
     # Load template message.
