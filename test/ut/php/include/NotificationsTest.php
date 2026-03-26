@@ -124,6 +124,48 @@ class NotificationsTest extends IznikTestCase {
         $this->assertEquals(0, $n->deleteOldUserType($uid2, Notifications::TYPE_LOVED_COMMENT, "2038-01-01"));
     }
 
+    public function testNoEmailWhenAllNotificationsSeen() {
+        # Verify that no email is sent when all notifications are already seen.
+        # This is a regression test for the bug where an empty notification email
+        # was sent because there was no guard against count($twignotifs) == 0.
+        $l = new Location($this->dbhr, $this->dbhm);
+        $lid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');
+        $this->assertNotNull($lid);
+
+        $u = User::get($this->dbhr, $this->dbhm);
+        $uid1 = $u->create(NULL, NULL, 'Test Original Poster');
+        $u = User::get($this->dbhr, $this->dbhm, $uid1);
+        $u->setPrivate('lastlocation', $lid);
+        $u->addEmail('test-empty-notif@test.com');
+
+        $uid2 = $u->create(NULL, NULL, 'Test Commenter');
+        $u = User::get($this->dbhr, $this->dbhm, $uid2);
+        $u->setPrivate('lastlocation', $lid);
+        $u->addEmail('test-empty-notif2@test.com');
+
+        $this->msgsSent = [];
+
+        $n = $this->getMockBuilder('Freegle\Iznik\Notifications')
+            ->setConstructorArgs(array($this->dbhm, $this->dbhm))
+            ->setMethods(array('sendIt'))
+            ->getMock();
+
+        $n->method('sendIt')->will($this->returnCallback(function($mailer, $message) {
+            return($this->sendMock($mailer, $message));
+        }));
+
+        # Create a notification and mark it as seen.
+        $f = new Newsfeed($this->dbhm, $this->dbhm);
+        $nid = $f->create(Newsfeed::TYPE_MESSAGE, $uid1, 'Test message');
+        $n->add($uid2, $uid1, Notifications::TYPE_LOVED_POST, $nid);
+        $this->dbhm->preExec("UPDATE users_notifications SET seen = NOW() WHERE touser = ?;", [$uid1]);
+
+        # sendEmails with unseen=TRUE should send 0 emails since all are seen.
+        $count = $n->sendEmails($uid1, '0 seconds ago', '7 days ago', TRUE);
+        self::assertEquals(0, $count);
+        self::assertEmpty($this->msgsSent, "No email should be sent when all notifications are seen");
+    }
+
     public function testDeleted1() {
         $l = new Location($this->dbhr, $this->dbhm);
         $lid = $l->create(NULL, 'Tuvalu High Street', 'Road', 'POINT(179.2167 8.53333)');

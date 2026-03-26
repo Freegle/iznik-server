@@ -292,7 +292,7 @@ class Notifications
                 $noemail = '';
                 $email = $u->getEmailPreferred();
 
-                if ($email) {
+                if ($email && count($twignotifs) > 0) {
                     try {
                         $html = $twig->render('notifications/email.html', [
                             'count' => count($twignotifs),
