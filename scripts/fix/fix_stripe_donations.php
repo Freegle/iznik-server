@@ -33,6 +33,22 @@ $IPN_LOG = '/var/www/stripeipn.out';
 # Titles to strip from names for matching
 $TITLES = ['mr', 'mrs', 'ms', 'miss', 'dr', 'prof', 'sir', 'lady', 'rev', 'professor', 'doctor'];
 
+#
+# Helper: Escape and format a value for CSV output.
+#
+function csvField($val) {
+    if ($val === NULL) {
+        $val = '';
+    }
+    $val = (string)$val;
+    # Always quote, escape internal quotes by doubling them.
+    return '"' . str_replace('"', '""', $val) . '"';
+}
+
+function csvRow($fields) {
+    echo implode(',', array_map(function($v) { return csvField($v); }, $fields)) . "\n";
+}
+
 error_log("=== Stripe Donation Fix-Up ===");
 error_log("Mode: " . ($commit ? "COMMIT (will update database)" : "DRY RUN (report only)"));
 error_log("");
@@ -404,6 +420,24 @@ function fuzzyMatchUser($billingName, $billingPostcode, $donationTimestamp, $dbh
             $reasons[] = "prev_donor(" . $prevDonations[0]['cnt'] . ")";
         }
 
+        # Gift aid declaration — if the candidate has one, they're a known donor.
+        # If the name on the declaration matches the billing name, even stronger.
+        $giftaid = $dbhr->preQuery("SELECT fullname FROM giftaid WHERE userid = ? AND deleted IS NULL", [
+            $candidate['id']
+        ]);
+        if (count($giftaid) > 0) {
+            $gaName = $giftaid[0]['fullname'] ?? '';
+            $gaNameScore = $gaName ? nameMatchScore($billingName, $gaName) : 0;
+
+            if ($gaNameScore >= 0.7) {
+                $score += 20;
+                $reasons[] = "giftaid_name_match";
+            } else {
+                $score += 10;
+                $reasons[] = "giftaid_declared";
+            }
+        }
+
         if ($score > $bestScore) {
             $bestScore = $score;
             $bestMatch = [
@@ -494,6 +528,7 @@ $stats = [
     'total' => count($donations),
     'matched_email' => 0,
     'matched_uid' => 0,
+    'matched_giftaid' => 0,
     'matched_fuzzy' => 0,
     'fuzzy_low_confidence' => 0,
     'no_billing_info' => 0,
@@ -508,6 +543,9 @@ if ($useStripeApi) {
     \Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY);
 }
 
+# CSV header to stdout
+csvRow(['TransactionID', 'Timestamp', 'Amount', 'MatchType', 'MatchedUserID', 'MatchedUserName', 'BillingEmail', 'BillingName', 'BillingPostcode', 'Score', 'Reasons', 'Source']);
+
 foreach ($donations as $donation) {
     $txnId = $donation['TransactionID'];
 
@@ -515,12 +553,13 @@ foreach ($donations as $donation) {
     $details = getChargeDetails($txnId, $logMap, $useStripeApi);
 
     if ($details['source'] === 'error') {
-        error_log("  Stripe API error for $txnId: " . ($details['error'] ?? 'unknown'));
+        csvRow([$txnId, $donation['timestamp'], $donation['GrossAmount'], 'ERROR', '', '', '', '', '', '', $details['error'] ?? 'unknown', '']);
         $stats['stripe_api_error']++;
         continue;
     }
 
     if (!$details['source']) {
+        csvRow([$txnId, $donation['timestamp'], $donation['GrossAmount'], 'NOT_FOUND', '', '', '', '', '', '', '', '']);
         $stats['not_found']++;
         continue;
     }
@@ -534,7 +573,7 @@ foreach ($donations as $donation) {
 
         if ($u->getId() == $uid) {
             $stats['matched_uid']++;
-            error_log("  $txnId ({$donation['timestamp']}, £{$donation['GrossAmount']}): metadata uid=$uid [{$details['source']}]");
+            csvRow([$txnId, $donation['timestamp'], $donation['GrossAmount'], 'metadata_uid', $uid, $u->getName(), $details['billing_email'], $details['billing_name'], $details['billing_postcode'], '', '', $details['source']]);
 
             if ($commit) {
                 $dbhm->preExec("UPDATE users_donations SET userid = ?, Payer = ?, PayerDisplayName = ? WHERE id = ?", [
@@ -551,10 +590,10 @@ foreach ($donations as $donation) {
     $customerResult = resolveFromCustomer($details['customer'], $dbhr, $BAD_USERID);
     if ($customerResult) {
         $stats['matched_uid']++;
-        error_log("  $txnId ({$donation['timestamp']}, £{$donation['GrossAmount']}): {$customerResult['method']} => user {$customerResult['userid']} [{$details['source']}]");
+        $u = User::get($dbhr, $dbhm, $customerResult['userid']);
+        csvRow([$txnId, $donation['timestamp'], $donation['GrossAmount'], $customerResult['method'], $customerResult['userid'], $u->getName(), $details['billing_email'], $details['billing_name'], $details['billing_postcode'], '', '', $details['source']]);
 
         if ($commit) {
-            $u = User::get($dbhr, $dbhm, $customerResult['userid']);
             $dbhm->preExec("UPDATE users_donations SET userid = ?, Payer = ?, PayerDisplayName = ? WHERE id = ?", [
                 $customerResult['userid'], $u->getEmailPreferred() ?: '', $u->getName() ?: '', $donation['id']
             ]);
@@ -568,10 +607,10 @@ foreach ($donations as $donation) {
     $piResult = resolveFromPaymentIntent($details['payment_intent'], $dbhr, $dbhm, $useStripeApi, $BAD_USERID);
     if ($piResult) {
         $stats['matched_uid']++;
-        error_log("  $txnId ({$donation['timestamp']}, £{$donation['GrossAmount']}): {$piResult['method']} => user {$piResult['userid']} [{$details['source']}]");
+        $u = User::get($dbhr, $dbhm, $piResult['userid']);
+        csvRow([$txnId, $donation['timestamp'], $donation['GrossAmount'], $piResult['method'], $piResult['userid'], $u->getName(), $details['billing_email'], $details['billing_name'], $details['billing_postcode'], '', '', $details['source']]);
 
         if ($commit) {
-            $u = User::get($dbhr, $dbhm, $piResult['userid']);
             $dbhm->preExec("UPDATE users_donations SET userid = ?, Payer = ?, PayerDisplayName = ? WHERE id = ?", [
                 $piResult['userid'], $u->getEmailPreferred() ?: '', $u->getName() ?: '', $donation['id']
             ]);
@@ -588,7 +627,9 @@ foreach ($donations as $donation) {
 
         if (count($users) > 0) {
             $stats['matched_email']++;
-            error_log("  $txnId ({$donation['timestamp']}, £{$donation['GrossAmount']}): email $billingEmail => user {$users[0]['userid']} [{$details['source']}]");
+            $nameRows = $dbhr->preQuery("SELECT fullname FROM users WHERE id = ?", [$users[0]['userid']]);
+            $matchedName = $nameRows[0]['fullname'] ?? '';
+            csvRow([$txnId, $donation['timestamp'], $donation['GrossAmount'], 'email', $users[0]['userid'], $matchedName, $billingEmail, $details['billing_name'], $details['billing_postcode'], '', '', $details['source']]);
 
             if ($commit) {
                 $dbhm->preExec("UPDATE users_donations SET userid = ?, Payer = ?, PayerDisplayName = ? WHERE id = ?", [
@@ -604,22 +645,125 @@ foreach ($donations as $donation) {
         $ownEmail = $dbhr->preQuery("SELECT userid FROM users_emails WHERE email = ? AND userid = ?", [$billingEmail, $BAD_USERID]);
         if (count($ownEmail) > 0) {
             $stats['already_correct']++;
+            csvRow([$txnId, $donation['timestamp'], $donation['GrossAmount'], 'already_correct', $BAD_USERID, '', $billingEmail, $details['billing_name'], $details['billing_postcode'], '', '', $details['source']]);
             continue;
         }
     }
 
-    # 5. Fuzzy name + activity + postcode matching
+    # 5. Gift aid match — by name and/or postcode against gift aid declarations
     $billingName = $details['billing_name'];
     $billingPostcode = $details['billing_postcode'];
+
+    # 5a. Match by name on gift aid declaration
+    if ($billingName) {
+        $normalized = normalizeName($billingName);
+
+        if ($normalized && $normalized['last']) {
+            $gaMatches = $dbhr->preQuery("
+                SELECT g.userid, g.fullname, g.postcode AS ga_postcode, u.fullname AS user_fullname
+                FROM giftaid g
+                INNER JOIN users u ON g.userid = u.id
+                WHERE g.deleted IS NULL
+                  AND g.userid != ?
+                  AND LOWER(g.fullname) LIKE ?
+            ", [$BAD_USERID, '%' . $normalized['last'] . '%']);
+
+            foreach ($gaMatches as $ga) {
+                $gaScore = nameMatchScore($billingName, $ga['fullname']);
+
+                # Check postcode corroboration
+                $postcodeMatch = FALSE;
+                if ($billingPostcode && $ga['ga_postcode']) {
+                    $gaPC = strtoupper(preg_replace('/\s+/', '', $ga['ga_postcode']));
+                    $stripePC = strtoupper(preg_replace('/\s+/', '', $billingPostcode));
+                    $postcodeMatch = ($gaPC === $stripePC);
+                }
+
+                # Name + postcode together is a strong match even with a weaker name score.
+                # Name alone needs a higher bar.
+                $matched = ($gaScore >= 0.5 && $postcodeMatch) || ($gaScore >= 0.7);
+
+                if ($matched) {
+                    $reasons = 'giftaid_name=' . $ga['fullname'];
+                    if ($postcodeMatch) {
+                        $reasons .= ',giftaid_postcode_exact';
+                    }
+
+                    $stats['matched_giftaid']++;
+                    csvRow([$txnId, $donation['timestamp'], $donation['GrossAmount'], 'giftaid', $ga['userid'], $ga['user_fullname'], $billingEmail, $billingName, $billingPostcode, round($gaScore * 100), $reasons, $details['source']]);
+
+                    if ($commit) {
+                        $dbhm->preExec("UPDATE users_donations SET userid = ?, Payer = ?, PayerDisplayName = ? WHERE id = ?", [
+                            $ga['userid'],
+                            $billingEmail ?: '',
+                            ($billingName ?: '') . ' [giftaid]',
+                            $donation['id']
+                        ]);
+                        $stats['fixed']++;
+                    }
+
+                    continue 2;
+                }
+            }
+        }
+    }
+
+    # 5b. Match by postcode on gift aid declaration (when no billing name available)
+    if ($billingPostcode) {
+        $stripePC = strtoupper(preg_replace('/\s+/', '', $billingPostcode));
+
+        $gaByPC = $dbhr->preQuery("
+            SELECT g.userid, g.fullname, g.postcode AS ga_postcode, u.fullname AS user_fullname
+            FROM giftaid g
+            INNER JOIN users u ON g.userid = u.id
+            WHERE g.deleted IS NULL
+              AND g.userid != ?
+              AND REPLACE(UPPER(g.postcode), ' ', '') = ?
+        ", [$BAD_USERID, $stripePC]);
+
+        if (count($gaByPC) == 1) {
+            # Unique postcode match — only trust if exactly one gift aid declaration at this postcode
+            $ga = $gaByPC[0];
+            $reasons = 'giftaid_postcode=' . $ga['ga_postcode'];
+
+            # If we also have a billing name, check it corroborates
+            $nameOk = TRUE;
+            if ($billingName) {
+                $gaScore = nameMatchScore($billingName, $ga['fullname']);
+                if ($gaScore < 0.3) {
+                    $nameOk = FALSE;  # Name actively contradicts — don't match
+                } elseif ($gaScore >= 0.5) {
+                    $reasons .= ',giftaid_name_partial=' . $ga['fullname'];
+                }
+            }
+
+            if ($nameOk) {
+                $stats['matched_giftaid']++;
+                csvRow([$txnId, $donation['timestamp'], $donation['GrossAmount'], 'giftaid_postcode', $ga['userid'], $ga['user_fullname'], $billingEmail, $billingName, $billingPostcode, '', $reasons, $details['source']]);
+
+                if ($commit) {
+                    $dbhm->preExec("UPDATE users_donations SET userid = ?, Payer = ?, PayerDisplayName = ? WHERE id = ?", [
+                        $ga['userid'],
+                        $billingEmail ?: '',
+                        ($billingName ?: '') . ' [giftaid_pc]',
+                        $donation['id']
+                    ]);
+                    $stats['fixed']++;
+                }
+
+                continue;
+            }
+        }
+    }
+
+    # 6. Fuzzy name + activity + postcode matching
 
     $fuzzyResult = fuzzyMatchUser($billingName, $billingPostcode, $donation['timestamp'], $dbhr, $BAD_USERID);
 
     if ($fuzzyResult && empty($fuzzyResult['low_confidence'])) {
         $stats['matched_fuzzy']++;
         $reasonStr = implode(', ', $fuzzyResult['reasons']);
-        error_log("  $txnId ({$donation['timestamp']}, £{$donation['GrossAmount']}): FUZZY " .
-            "\"$billingName\" => user {$fuzzyResult['userid']} \"{$fuzzyResult['fullname']}\" " .
-            "(score={$fuzzyResult['score']}, $reasonStr) [{$details['source']}]");
+        csvRow([$txnId, $donation['timestamp'], $donation['GrossAmount'], 'fuzzy', $fuzzyResult['userid'], $fuzzyResult['fullname'], $billingEmail, $billingName, $billingPostcode, $fuzzyResult['score'], $reasonStr, $details['source']]);
 
         if ($commit) {
             $u = User::get($dbhr, $dbhm, $fuzzyResult['userid']);
@@ -640,18 +784,13 @@ foreach ($donations as $donation) {
     if ($fuzzyResult && !empty($fuzzyResult['low_confidence'])) {
         $stats['fuzzy_low_confidence']++;
         $reasonStr = implode(', ', $fuzzyResult['reasons']);
-        error_log("  $txnId ({$donation['timestamp']}, £{$donation['GrossAmount']}): POSSIBLE " .
-            "\"$billingName\" => user {$fuzzyResult['userid']} \"{$fuzzyResult['fullname']}\" " .
-            "(score={$fuzzyResult['score']}, $reasonStr) — NOT AUTO-ASSIGNED [{$details['source']}]");
+        csvRow([$txnId, $donation['timestamp'], $donation['GrossAmount'], 'fuzzy_low', $fuzzyResult['userid'], $fuzzyResult['fullname'], $billingEmail, $billingName, $billingPostcode, $fuzzyResult['score'], $reasonStr, $details['source']]);
         continue;
     }
 
     # 6. No match found
     $stats['no_user_match']++;
-    $infoStr = ($billingName ? "name=$billingName" : "no_name") . " " .
-        ($billingEmail ? "email=$billingEmail" : "no_email") . " " .
-        ($billingPostcode ? "pc=$billingPostcode" : "no_postcode");
-    error_log("  $txnId ({$donation['timestamp']}, £{$donation['GrossAmount']}): NO MATCH $infoStr [{$details['source']}]");
+    csvRow([$txnId, $donation['timestamp'], $donation['GrossAmount'], 'NO_MATCH', '', '', $billingEmail, $billingName, $billingPostcode, '', '', $details['source']]);
 
     # Store billing details even if we can't match, and remove bad userid
     if ($commit) {
@@ -669,6 +808,7 @@ error_log("=== Summary ===");
 error_log("Total Stripe donations on user $BAD_USERID: {$stats['total']}");
 error_log("Matched by uid (metadata/customer/PI): {$stats['matched_uid']}");
 error_log("Matched by email: {$stats['matched_email']}");
+error_log("Matched by gift aid declaration: {$stats['matched_giftaid']}");
 error_log("Matched by fuzzy (name+activity+postcode): {$stats['matched_fuzzy']}");
 error_log("Possible fuzzy (low confidence, not assigned): {$stats['fuzzy_low_confidence']}");
 error_log("Actually belong to user $BAD_USERID: {$stats['already_correct']}");
