@@ -330,12 +330,17 @@ $cm = new ChatMessage($dbhr, $dbhm);
 # Retry wrapper: parallel test setups can deadlock on chat_rooms INSERT.
 # v1 API handles this at the HTTP level (API.php retry loop); here we do it inline.
 function retryOnDeadlock(callable $fn, int $maxAttempts = 5) {
+    global $dbhm;
     for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
         try {
             return $fn();
         } catch (DBException $e) {
             if ($attempt < $maxAttempts && stripos($e->getMessage(), 'deadlock') !== FALSE) {
                 error_log("Deadlock on attempt $attempt, retrying after backoff");
+                # The deadlock leaves an active transaction open (e.g. from
+                # ChatRoom::createConversation). Roll it back before retrying,
+                # otherwise the next beginTransaction() call will fatal.
+                try { $dbhm->rollBack(); } catch (\Exception $ignore) {}
                 usleep(rand(50000, 200000)); // 50-200ms random backoff
             } else {
                 throw $e;
