@@ -594,6 +594,45 @@ class PushNotificationsTest extends IznikTestCase {
         $this->assertEquals(0, $count2, "Should NOT send notification for blocked chat");
     }
 
+    public function testUser2ModSenderNameIsGroupVolunteers() {
+        # When a mod sends a User2Mod chat message, the push notification title
+        # should be "{GroupName} Volunteers", not the mod's real name or "Someone".
+        list($g, $groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);
+
+        # Create member (user1 in chat) with push subscription.
+        list($member, $memberid) = $this->createTestUserWithMembership($groupid, User::ROLE_MEMBER, 'Test Member', 'member-u2m@test.com', 'testpw');
+        $n = new PushNotifications($this->dbhr, $this->dbhm);
+        $n->add($memberid, PushNotifications::PUSH_FCM_ANDROID, 'test-android-u2m', FALSE);
+
+        # Create mod who will send the message.
+        list($mod, $modid) = $this->createTestUserWithMembership($groupid, User::ROLE_MODERATOR, 'Secret Mod', 'mod-u2m@test.com', 'testpw');
+
+        # Create User2Mod chat and send message from mod to member.
+        $r = new ChatRoom($this->dbhr, $this->dbhm);
+        $rid = $r->createUser2Mod($memberid, $groupid);
+        $m = new ChatMessage($this->dbhr, $this->dbhm);
+        list ($cm, $banned) = $m->create($rid, $modid, "Hello from mod", ChatMessage::TYPE_DEFAULT, NULL, TRUE, NULL, NULL, NULL, NULL, NULL, FALSE, FALSE, FALSE);
+        $this->dbhm->preExec("UPDATE chat_messages SET processingrequired = 0, processingsuccessful = 1, reviewrequired = 0 WHERE id = ?", [$cm]);
+
+        # Mock to capture the payload sent to queueSend.
+        $mock = $this->getMockBuilder('Freegle\Iznik\PushNotifications')
+            ->setConstructorArgs(array($this->dbhr, $this->dbhm))
+            ->setMethods(array('queueSend'))
+            ->getMock();
+
+        $capturedPayload = NULL;
+        $mock->method('queueSend')->willReturnCallback(function($userid, $type, $keys, $sub, $payload) use (&$capturedPayload) {
+            $capturedPayload = $payload;
+        });
+
+        $count = $mock->notify($memberid, FALSE, FALSE, $rid);
+        $this->assertGreaterThan(0, $count, "Should send notification");
+        $this->assertNotNull($capturedPayload, "Should have captured payload");
+        $this->assertStringContainsString('Volunteers', $capturedPayload['title'], "Title should contain 'Volunteers', not mod name or 'Someone'");
+        $this->assertStringNotContainsString('Secret Mod', $capturedPayload['title'], "Title should not reveal mod identity");
+        $this->assertStringNotContainsString('Someone', $capturedPayload['title'], "Title should not be 'Someone'");
+    }
+
     public function testMemberReviewHoldReleaseNotifiesGroupMods() {
         # Test that ReviewHold/ReviewRelease on memberships triggers notifyGroupMods.
         list($g, $groupid) = $this->createTestGroup('testgroup', Group::GROUP_FREEGLE);

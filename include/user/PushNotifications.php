@@ -145,7 +145,7 @@ class PushNotifications
         return ($rc);
     }
 
-    private function queueSend($userid, $type, $params, $endpoint, $payload)
+    protected function queueSend($userid, $type, $params, $endpoint, $payload)
     {
         #error_log("queueSend $userid $endpoint params " . var_export($params, TRUE));
         try {
@@ -439,8 +439,16 @@ class PushNotifications
             $atts = $r->getPublic($u);
             $icon = Utils::presdef('icon', $atts, USERLOGO);
 
-            // Get the other user's name (the sender)
-            if (isset($atts['user1']) && $atts['user1']['id'] == $chat['senderid']) {
+            // Get the sender name for the notification title.
+            // For User2Mod chats, hide moderator identity — show "{GroupName} Volunteers"
+            // to the member, matching the email notification behavior.
+            $chattype = $r->getPrivate('chattype');
+
+            if ($chattype === ChatRoom::TYPE_USER2MOD && $chat['senderid'] != $atts['user1']['id']) {
+                // Mod sending to member — use group name.
+                $groupName = Utils::presdef('group', $atts, NULL);
+                $sendername = ($groupName ? $groupName['namedisplay'] : 'Freegle') . ' Volunteers';
+            } elseif (isset($atts['user1']) && $atts['user1']['id'] == $chat['senderid']) {
                 $sendername = $atts['user1']['displayname'];
             } elseif (isset($atts['user2']) && $atts['user2']['id'] == $chat['senderid']) {
                 $sendername = $atts['user2']['displayname'];
