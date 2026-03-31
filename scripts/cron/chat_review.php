@@ -23,11 +23,12 @@ error_log($dbhm->rowsAffected() . " messages stuck in review");
 # Now look for unheld chat which has been pending review for 48 hours.  Randomise an order so that if only the first few
 # get through then different groups will get notified each time.
 $mysqltime = date("Y-m-d", strtotime("48 hours ago"));
-$sql = "SELECT DISTINCT(memberships.groupid), COUNT(*) AS count FROM chat_messages 
-    INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid 
+$sql = "SELECT DISTINCT(memberships.groupid), COUNT(*) AS count FROM chat_messages
+    INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid
+    INNER JOIN users ON users.id = chat_messages.userid AND users.deleted IS NULL
     INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_rooms.user1 = chat_messages.userid THEN chat_rooms.user2 ELSE chat_rooms.user1 END)
     LEFT JOIN chat_messages_held ON chat_messages_held.msgid = chat_messages.id
-    WHERE chat_messages.date < ? AND reviewrequired = 1 AND reviewedby IS NULL AND reviewrejected = 0 AND chat_messages_held.id IS NULL 
+    WHERE chat_messages.date < ? AND reviewrequired = 1 AND reviewedby IS NULL AND reviewrejected = 0 AND chat_messages_held.id IS NULL
     GROUP BY groupid ORDER BY RAND();";
 #error_log("SELECT DISTINCT(memberships.groupid), COUNT(*) AS count FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_rooms.user1 = chat_messages.userid THEN chat_rooms.user2 ELSE chat_rooms.user1 END) WHERE chat_messages.date < '$mysqltime' AND reviewrequired = 1 AND reviewedby IS NULL AND reviewrejected = 0 GROUP BY groupid ORDER BY RAND();");
 $groups = $dbhr->preQuery($sql, [
@@ -38,7 +39,7 @@ $mentors = '';
 
 $count = 0;
 foreach ($groups as $group) {
-    $msgs = $dbhr->preQuery("SELECT chat_messages.id FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_rooms.user1 = chat_messages.userid THEN chat_rooms.user2 ELSE chat_rooms.user1 END) WHERE chat_messages.date < '$mysqltime' AND reviewrequired = 1 AND reviewedby IS NULL AND reviewrejected = 0 AND memberships.groupid = ?;", [
+    $msgs = $dbhr->preQuery("SELECT chat_messages.id FROM chat_messages INNER JOIN chat_rooms ON chat_rooms.id = chat_messages.chatid INNER JOIN users ON users.id = chat_messages.userid AND users.deleted IS NULL INNER JOIN memberships ON memberships.userid = (CASE WHEN chat_rooms.user1 = chat_messages.userid THEN chat_rooms.user2 ELSE chat_rooms.user1 END) WHERE chat_messages.date < '$mysqltime' AND reviewrequired = 1 AND reviewedby IS NULL AND reviewrejected = 0 AND memberships.groupid = ?;", [
         $group['groupid']
     ]);
 
