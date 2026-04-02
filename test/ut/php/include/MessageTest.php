@@ -864,6 +864,13 @@ class MessageTest extends IznikTestCase {
     }
 
     public function testTN() {
+        # This test requires external network access to trashnothing.com to scrape image URLs.
+        $ctx = stream_context_create(['http' => ['timeout' => 5]]);
+        $data = @file_get_contents('https://trashnothing.com/', FALSE, $ctx);
+        if (!$data) {
+            $this->markTestSkipped('trashnothing.com is not accessible from this environment');
+        }
+
         $msg = $this->unique(file_get_contents(IZNIK_BASE . '/test/ut/php/msgs/tnatt2'));
         $m = new Message($this->dbhr, $this->dbhm);
         $m->parse(Message::EMAIL, 'from@test.com', 'to@test.com', $msg);
