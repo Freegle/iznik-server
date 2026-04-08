@@ -81,7 +81,7 @@ $knownPrefixes = [
     'mteditsflow'             => 20,
     'mtchatreply'             => 21,
     'mtspammers'              => 22,
-    'repostgroup'             => 23,
+    'repostgroupchange'       => 23,
 ];
 
 if (isset($knownPrefixes[$prefix])) {
