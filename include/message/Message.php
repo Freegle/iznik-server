@@ -4729,9 +4729,9 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                                                 # Remove any group tag.
                                                 $subj = trim(preg_replace('/^\[.*?\](.*)/', "$1", $subj));
 
-                                                $completed = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/completed", User::SRC_REPOST_WARNING);
-                                                $withdraw = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/withdraw", User::SRC_REPOST_WARNING);
-                                                $promise = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/promise", User::SRC_REPOST_WARNING);
+                                                $completed = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/completed", User::SRC_REPOST_WARNING, TRUE);
+                                                $withdraw = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/withdraw", User::SRC_REPOST_WARNING, TRUE);
+                                                $promise = $u->loginLink(USER_SITE, $u->getId(), "/mypost/{$message['msgid']}/promise", User::SRC_REPOST_WARNING, TRUE);
                                                 $othertype = $m->getType() == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
                                                 $text = "We will automatically repost your message $subj soon, so that more people will see it.  If you don't want us to do that, please go to $completed to mark as $othertype or $withdraw to withdraw it.  You can change this in Settings.";
                                                 $html = $twig->render('autorepost.html', [
@@ -4859,19 +4859,22 @@ WHERE messages_groups.arrival > ? AND messages_groups.groupid = ? AND messages_g
                                         USER_SITE,
                                         $u->getId(),
                                         "/mypost/{$message['msgid']}/completed",
-                                        User::SRC_CHASEUP
+                                        User::SRC_CHASEUP,
+                                        TRUE
                                     );
                                     $withdraw = $u->loginLink(
                                         USER_SITE,
                                         $u->getId(),
                                         "/mypost/{$message['msgid']}/withdraw",
-                                        User::SRC_CHASEUP
+                                        User::SRC_CHASEUP,
+                                        TRUE
                                     );
                                     $repost = $u->loginLink(
                                         USER_SITE,
                                         $u->getId(),
                                         "/mypost/{$message['msgid']}/repost",
-                                        User::SRC_CHASEUP
+                                        User::SRC_CHASEUP,
+                                        TRUE
                                     );
 
                                     $othertype = $m->getType() == Message::TYPE_OFFER ? Message::OUTCOME_TAKEN : Message::OUTCOME_RECEIVED;
