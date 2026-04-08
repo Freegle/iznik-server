@@ -81,6 +81,7 @@ $knownPrefixes = [
     'mteditsflow'             => 20,
     'mtchatreply'             => 21,
     'mtspammers'              => 22,
+    'repostgroup'             => 23,
 ];
 
 if (isset($knownPrefixes[$prefix])) {
@@ -213,6 +214,11 @@ $modUser->addMembership($gid2, User::ROLE_MODERATOR);
 $userUid = findOrCreateUser($dbhr, $dbhm, $userEmail, 'PW', "User_$prefix", 'User', $gid, User::ROLE_MEMBER, $pcid, $location['lat'], $location['lng']);
 $user2Uid = findOrCreateUser($dbhr, $dbhm, $user2Email, 'PW', "User2_$prefix", 'User', $gid, User::ROLE_MEMBER, $pcid, $location['lat'], $location['lng']);
 
+# Also add regular user to second group (needed for repost-group-change test).
+$userObj = new User($dbhr, $dbhm, $userUid);
+$userObj->addMembership($gid2, User::ROLE_MEMBER);
+$userObj->setMembershipAtt($gid2, 'ourPostingStatus', Group::POSTING_UNMODERATED);
+
 # Create approved messages (OFFER + WANTED) if they don't exist.
 function findOrCreateMessage($dbhr, $dbhm, $subject, $gid, $groupName, $approver, $pcid, $lat, $lng, $senderEmail, $collection = 'Approved') {
     # Check if a message with this subject already exists on ANY group.
@@ -293,6 +299,8 @@ function findOrCreateMessage($dbhr, $dbhm, $subject, $gid, $groupName, $approver
 
             # Index for search.
             $m->index();
+        } elseif ($collection === 'Rejected') {
+            $dbhm->preExec("UPDATE messages_groups SET collection = 'Rejected' WHERE msgid = ?", [$id]);
         } else {
             $dbhm->preExec("UPDATE messages_groups SET collection = 'Pending' WHERE msgid = ?", [$id]);
         }
@@ -307,13 +315,21 @@ $wantedMsgId = findOrCreateMessage($dbhr, $dbhm, "WANTED: PW_$prefix Wanted Item
 $pendingOfferId = findOrCreateMessage($dbhr, $dbhm, "OFFER: PW_$prefix Pending Sofa ($locName)", $gid, $groupName, $modUid, $pcid, $location['lat'], $location['lng'], $modEmail, 'Pending');
 $pendingWantedId = findOrCreateMessage($dbhr, $dbhm, "OFFER: PW_$prefix Pending Bookshelf ($locName)", $gid, $groupName, $modUid, $pcid, $location['lat'], $location['lng'], $modEmail, 'Pending');
 
+# Create a rejected message owned by the regular user (for repost-group-change tests).
+$rejectedOfferId = findOrCreateMessage($dbhr, $dbhm, "OFFER: PW_$prefix Rejected Chair ($locName)", $gid, $groupName, $modUid, $pcid, $location['lat'], $location['lng'], $userEmail, 'Rejected');
+
 # Ensure pending messages start unheld (clean state for hold/release tests).
 $dbhm->preExec("UPDATE messages SET heldby = NULL WHERE id IN (?, ?)", [$pendingOfferId, $pendingWantedId]);
 
-# Clean up stale chats for test users to prevent 404 errors when chat store loads old references.
-# Tests accumulate chat rooms across runs; old chats may reference deleted messages/users.
+# Clean up stale state for test users to ensure idempotent re-runs.
 $testUserIds = [$modUid, $userUid, $user2Uid];
 $placeholders = implode(',', array_fill(0, count($testUserIds), '?'));
+
+# Clear spam_users entries first — the mtspammers prefix adds these at the bottom,
+# but they persist across runs and block createConversation() on re-run.
+$dbhm->preExec("DELETE FROM spam_users WHERE userid IN ($placeholders)", $testUserIds);
+
+# Clean up stale chats to prevent 404 errors when chat store loads old references.
 $dbhm->preExec(
     "DELETE FROM chat_messages WHERE chatid IN (SELECT id FROM chat_rooms WHERE user1 IN ($placeholders) OR user2 IN ($placeholders))",
     array_merge($testUserIds, $testUserIds)
@@ -408,6 +424,7 @@ $result = [
     'user2' => ['id' => (int)$user2Uid, 'email' => $user2Email],
     'messages' => ['offer' => (int)$offerMsgId, 'wanted' => (int)$wantedMsgId],
     'pending' => ['offer' => (int)$pendingOfferId, 'wanted' => (int)$pendingWantedId],
+    'rejected' => ['offer' => (int)$rejectedOfferId],
     'chats' => ['user2user' => (int)$u2uRid, 'user2mod' => (int)$u2mRid],
     'postcode' => $location['postcode'],
     'spammers' => $spamUserIds,
