@@ -80,6 +80,7 @@ $knownPrefixes = [
     'v2apipages'              => 19,
     'mteditsflow'             => 20,
     'mtchatreply'             => 21,
+    'mtspammers'              => 22,
 ];
 
 if (isset($knownPrefixes[$prefix])) {
@@ -359,6 +360,45 @@ $u2mRid = retryOnDeadlock(fn() => $r->createUser2Mod($userUid, $gid));
 $cm->create($u2mRid, $userUid, "PW test message from user to group in $prefix");
 error_log("User2Mod chat (ID: $u2mRid)");
 
+# Spammer test env: grant mod SpamAdmin permission and create PendingAdd spam entries.
+$spamUserIds = [];
+if ($prefix === 'mtspammers') {
+    # Grant mod SpamAdmin permission (stored as comma-separated in users.permissions).
+    $existingPerms = $dbhr->preQuery("SELECT permissions FROM users WHERE id = ?", [$modUid]);
+    $currentPerms = $existingPerms[0]['permissions'] ?? '';
+    $permsList = $currentPerms ? explode(',', $currentPerms) : [];
+    if (!in_array('SpamAdmin', $permsList)) {
+        $permsList[] = 'SpamAdmin';
+    }
+    $dbhm->preExec("UPDATE users SET permissions = ? WHERE id = ?", [implode(',', $permsList), $modUid]);
+    error_log("Granted SpamAdmin to mod user $modUid");
+
+    # Create three PendingAdd spam_users entries (one for each action: hold, confirm, reject).
+    # Idempotent: if entries already exist for this test user, reuse them.
+    foreach ([$userUid, $user2Uid] as $spamTargetUid) {
+        $existing = $dbhr->preQuery(
+            "SELECT id FROM spam_users WHERE userid = ? AND collection = 'PendingAdd' LIMIT 1",
+            [$spamTargetUid]
+        );
+        if ($existing) {
+            $spamId = (int)$existing[0]['id'];
+            # Reset to clean unheld state for idempotency.
+            $dbhm->preExec(
+                "UPDATE spam_users SET heldby = NULL, heldat = NULL WHERE id = ?",
+                [$spamId]
+            );
+        } else {
+            $dbhm->preExec(
+                "INSERT INTO spam_users (userid, collection, reason, byuserid, heldby, heldat) VALUES (?, 'PendingAdd', 'Playwright test spammer', ?, NULL, NULL)",
+                [$spamTargetUid, $modUid]
+            );
+            $spamId = (int)$dbhm->lastInsertId();
+        }
+        $spamUserIds[] = $spamId;
+        error_log("PendingAdd spam entry ID $spamId for user $spamTargetUid");
+    }
+}
+
 # Output result JSON on stdout.
 $result = [
     'group' => ['id' => (int)$gid, 'name' => $groupName],
@@ -370,6 +410,7 @@ $result = [
     'pending' => ['offer' => (int)$pendingOfferId, 'wanted' => (int)$pendingWantedId],
     'chats' => ['user2user' => (int)$u2uRid, 'user2mod' => (int)$u2mRid],
     'postcode' => $location['postcode'],
+    'spammers' => $spamUserIds,
 ];
 
 echo json_encode($result, JSON_PRETTY_PRINT) . "\n";
